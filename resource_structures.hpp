@@ -15,7 +15,7 @@ class ResourceList {
 };
 class MetaResourceList {
 	public:
-		ResourceList sprites, sounds, backgrounds; //, all;
+		ResourceList sprites, sounds, backgrounds, paths, objects; //, all;
 } resource_list;
 
 ResourceList::ResourceList() {
@@ -45,3 +45,5 @@ int ResourceList::remove_resource(int id) {
 #include "resource_structures/sprite.hpp"
 #include "resource_structures/sound.hpp"
 #include "resource_structures/background.hpp"
+#include "resource_structures/path.hpp"
+#include "resource_structures/object.hpp"

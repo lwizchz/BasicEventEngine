@@ -3,6 +3,8 @@ class Sound: public Resource {
 		int id;
 		std::string name;
 		std::string sound_path;
+		int volume; // From 0 to 100
+		int pan; // From 0 to 100 as Left to Right
 		int play_type; // In memory vs continuous
 		int channel_amount; // Mono vs stereo
 		int sample_rate;
@@ -18,6 +20,8 @@ class Sound: public Resource {
 		int get_id();
 		std::string get_name();
 		std::string get_path();
+		int get_volume();
+		int get_pan();
 		int get_play_type();
 		int get_channel_amount();
 		int get_sample_rate();
@@ -25,6 +29,8 @@ class Sound: public Resource {
 		int get_bit_rate();
 		int set_name(std::string);
 		int load_path(std::string);
+		int set_volume(int);
+		int set_pan(int);
 		int set_play_type(int);
 		int set_channel_ammount(int);
 		int set_sample_rate(int);
@@ -87,6 +93,12 @@ std::string Sound::get_name() {
 std::string Sound::get_path() {
 	return sound_path;
 }
+int Sound::get_volume() {
+	return volume;
+}
+int Sound::get_pan() {
+	return pan;
+}
 int Sound::get_play_type() {
 	return play_type;
 }
@@ -114,6 +126,14 @@ int Sound::load_path(std::string path) {
 	/*
 	 * 
 	 */
+	return 0;
+}
+int Sound::set_volume(int new_volume) {
+	volume = new_volume;
+	return 0;
+}
+int Sound::set_pan(int new_pan) {
+	pan = new_pan;
 	return 0;
 }
 int Sound::set_play_type(int new_play_type) {
