@@ -1,0 +1,49 @@
+Game Start
+==========
+Create Event
+Instance Creation Code
+Game Start Event
+Room Creation Code
+Room Start Event
+Draw Event
+
+Normal Step
+===========
+Begin Step Event
+Alarm Events
+Keyboard and Mouse Events
+KaM Press Events
+KaM Release Events
+Step Event
+End of Path Event
+Outside Room Event
+Intersect Boundary Event
+Collision Events
+End Step Event
+Draw Event
+Animation End Event*
+
+Game Closed
+===========
+Room End Event
+Game End Event
+
+Room Change
+===========
+Room End Event
+Create Event
+Instance Creation Code (for non-persistent objects)
+Room Creation Code
+Room Start Event
+Draw Event
+
+Other
+=====
+Out of Health Event (executed immediately, does not wait for any event to finish)
+Out of Lives Event (executed immediately, does not wait for any event to finish)
+Destroy Event (executed immediately, does not wait for any event to finish)
+
+*Will execute every step for a single subimage or for no sprite
+
+The order of the object execution within an event is determined by depth, lower numbers first, and 
+then by creation time.

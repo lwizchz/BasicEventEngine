@@ -21,6 +21,7 @@ class Background: public Resource {
 		bool get_is_tiling();
 		int get_tile_width();
 		int get_tile_height();
+		
 		int set_name(std::string);
 		int load_path(std::string);
 		int set_is_tiling(bool);
@@ -28,7 +29,7 @@ class Background: public Resource {
 		int set_tile_height(int);
 };
 Background::Background () {
-	id = resource_list.backgrounds.add_resource(*this);
+	id = resource_list.backgrounds.add_resource(this);
 	if (id < 0) {
 		fprintf(stderr, "Failed to add background resource: %d", id);
 	}
@@ -36,7 +37,7 @@ Background::Background () {
 	reset();
 }
 Background::Background (std::string new_name, std::string path) {
-	id = resource_list.backgrounds.add_resource(*this);
+	id = resource_list.backgrounds.add_resource(this);
 	if (id < 0) {
 		fprintf(stderr, "Failed to add background resource: %d", id);
 	}

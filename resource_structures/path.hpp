@@ -1,6 +1,5 @@
 #include <vector>
 #include <tuple>
-#include <string>
 
 typedef std::tuple<int, int, int> path_coord;
 
@@ -24,11 +23,19 @@ class Path: public Resource {
 		std::string get_path();
 		std::vector<path_coord> get_coordinate_list();
 		std::string get_coordinate_string();
+		int get_connection_type();
+		bool get_is_closed();
+		
 		int set_name(std::string);
 		int load_path(std::string);
+		int add_coordinate(path_coord);
+		int add_coordinate(int, int, int);
+		int remove_last_coordinate();
+		int set_connection_type(int);
+		int set_is_closed(bool);
 };
 Path::Path () {
-	id = resource_list.paths.add_resource(*this);
+	id = resource_list.paths.add_resource(this);
 	if (id < 0) {
 		fprintf(stderr, "Failed to add path resource: %d", id);
 	}
@@ -36,7 +43,7 @@ Path::Path () {
 	reset();
 }
 Path::Path (std::string new_name, std::string path) {
-	id = resource_list.paths.add_resource(*this);
+	id = resource_list.paths.add_resource(this);
 	if (id < 0) {
 		fprintf(stderr, "Failed to add path resource: %d", id);
 	}
@@ -52,6 +59,8 @@ int Path::reset() {
 	name = "";
 	path_path = "";
 	coordinate_list.clear();
+	connection_type = 0;
+	is_closed = true;
 	
 	return 0;
 }
@@ -63,7 +72,9 @@ int Path::print() {
 	"\n	id		" << id <<
 	"\n	name		" << name <<
 	"\n	path_path	" << path_path <<
-	"\n	coordinate_list \n" << coordinate_string <<
+	"\n	coordinate_list \n" << debug_indent(coordinate_string, 2) <<
+	"	connection_type	" << connection_type <<
+	"\n	is_closed	" << is_closed <<
 	"\n}\n";
 	
 	return 0;
@@ -83,15 +94,22 @@ std::vector<path_coord> Path::get_coordinate_list() {
 std::string Path::get_coordinate_string() {
 	std::string coordinate_string;
 	for (std::vector<path_coord>::iterator it = coordinate_list.begin(); it != coordinate_list.end(); ++it) {
-		coordinate_string.append("\t\t");
+		//coordinate_string.append("\t\t");
 		coordinate_string.append(std::to_string(std::get<0>(*it)));
 		coordinate_string.append("\t");
 		coordinate_string.append(std::to_string(std::get<1>(*it)));
 		coordinate_string.append("\t");
 		coordinate_string.append(std::to_string(std::get<2>(*it)));
+		coordinate_string.append("\n");
 	}
 	
 	return coordinate_string;
+}
+int Path::get_connection_type() {
+	return connection_type;
+}
+bool Path::get_is_closed() {
+	return is_closed;
 }
 int Path::set_name(std::string new_name) {
 	// Deny name change if game is currently running (?)
@@ -105,5 +123,29 @@ int Path::load_path(std::string path) {
 	/* 
 	 * coordinate_list.push_back(x, y, speed);
 	 */
+	return 0;
+}
+int Path::add_coordinate(path_coord new_coordinate) {
+	coordinate_list.push_back(new_coordinate);
+	return 0;
+}
+int Path::add_coordinate(int x, int y, int speed) {
+	path_coord new_coordinate (x, y, speed);
+	coordinate_list.push_back(new_coordinate);
+	return 0;
+}
+int Path::remove_last_coordinate() {
+	if (!coordinate_list.empty()) {
+		coordinate_list.pop_back();
+		return 0;
+	}
+	return 1;
+}
+int Path::set_connection_type(int new_conneciton_type) {
+	connection_type = new_conneciton_type;
+	return 0;
+}
+int Path::set_is_closed(bool new_is_closed) {
+	is_closed = new_is_closed;
 	return 0;
 }

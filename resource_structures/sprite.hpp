@@ -22,6 +22,7 @@ class Sprite: public Resource {
 		int get_subimage_amount();
 		int get_origin_x();
 		int get_origin_y();
+		
 		int set_name(std::string);
 		int load_path(std::string);
 		int set_origin_x(int);
@@ -30,7 +31,7 @@ class Sprite: public Resource {
 		int set_origin_center();
 };
 Sprite::Sprite () {
-	id = resource_list.sprites.add_resource(*this);
+	id = resource_list.sprites.add_resource(this);
 	if (id < 0) {
 		fprintf(stderr, "Failed to add sprite resource: %d", id);
 	}
@@ -38,7 +39,7 @@ Sprite::Sprite () {
 	reset();
 }
 Sprite::Sprite (std::string new_name, std::string path) {
-	id = resource_list.sprites.add_resource(*this);
+	id = resource_list.sprites.add_resource(this);
 	if (id < 0) {
 		fprintf(stderr, "Failed to add sprite resource: %d", id);
 	}

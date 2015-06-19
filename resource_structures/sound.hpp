@@ -27,6 +27,7 @@ class Sound: public Resource {
 		int get_sample_rate();
 		int get_sample_format();
 		int get_bit_rate();
+		
 		int set_name(std::string);
 		int load_path(std::string);
 		int set_volume(int);
@@ -38,7 +39,7 @@ class Sound: public Resource {
 		int set_bit_rate(int);
 };
 Sound::Sound () {
-	id = resource_list.sounds.add_resource(*this);
+	id = resource_list.sounds.add_resource(this);
 	if (id < 0) {
 		fprintf(stderr, "Failed to add sound resource: %d", id);
 	}
@@ -46,7 +47,7 @@ Sound::Sound () {
 	reset();
 }
 Sound::Sound (std::string new_name, std::string path) {
-	id = resource_list.sounds.add_resource(*this);
+	id = resource_list.sounds.add_resource(this);
 	if (id < 0) {
 		fprintf(stderr, "Failed to add sound resource: %d", id);
 	}
