@@ -69,7 +69,7 @@ int Sprite::print() {
 	"\n	id		" << id <<
 	"\n	name		" << name <<
 	"\n	image_path	" << image_path <<
-	"\n	texture		" << "//" <<
+	"\n	texture		" << "none" <<
 	"\n	width		" << width <<
 	"\n	height		" << height <<
 	"\n	subimage_amount	" << subimage_amount <<

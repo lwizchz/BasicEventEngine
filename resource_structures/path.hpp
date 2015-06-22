@@ -1,3 +1,4 @@
+#include <iostream>
 #include <vector>
 #include <tuple>
 
@@ -31,6 +32,7 @@ class Path: public Resource {
 		int add_coordinate(path_coord);
 		int add_coordinate(int, int, int);
 		int remove_last_coordinate();
+		int remove_coordinate(unsigned int);
 		int set_connection_type(int);
 		int set_is_closed(bool);
 };
@@ -92,18 +94,19 @@ std::vector<path_coord> Path::get_coordinate_list() {
 	return coordinate_list;
 }
 std::string Path::get_coordinate_string() {
-	std::string coordinate_string;
-	for (std::vector<path_coord>::iterator it = coordinate_list.begin(); it != coordinate_list.end(); ++it) {
-		//coordinate_string.append("\t\t");
-		coordinate_string.append(std::to_string(std::get<0>(*it)));
-		coordinate_string.append("\t");
-		coordinate_string.append(std::to_string(std::get<1>(*it)));
-		coordinate_string.append("\t");
-		coordinate_string.append(std::to_string(std::get<2>(*it)));
-		coordinate_string.append("\n");
+	if (coordinate_list.size() > 0) {
+		std::ostringstream coordinate_string;
+		coordinate_string << "(x	y	speed)\n";
+		for (std::vector<path_coord>::iterator it = coordinate_list.begin(); it != coordinate_list.end(); ++it) {
+			coordinate_string <<
+			std::get<0>(*it) << "\t" <<
+			std::get<1>(*it) << "\t" <<
+			std::get<2>(*it) << "\n";
+		}
+		
+		return coordinate_string.str();
 	}
-	
-	return coordinate_string;
+	return "none\n";
 }
 int Path::get_connection_type() {
 	return connection_type;
@@ -137,6 +140,13 @@ int Path::add_coordinate(int x, int y, int speed) {
 int Path::remove_last_coordinate() {
 	if (!coordinate_list.empty()) {
 		coordinate_list.pop_back();
+		return 0;
+	}
+	return 1;
+}
+int Path::remove_coordinate(unsigned int index) {
+	if (index < coordinate_list.size()) {
+		coordinate_list.erase(coordinate_list.begin()+index);
 		return 0;
 	}
 	return 1;

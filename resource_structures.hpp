@@ -26,7 +26,7 @@ class ResourceList {
 };
 class MetaResourceList {
 	public:
-		ResourceList sprites, sounds, backgrounds, paths, objects; //, all;
+		ResourceList sprites, sounds, backgrounds, paths, objects, rooms; //, all;
 } resource_list;
 
 ResourceList::ResourceList() {
@@ -58,6 +58,7 @@ int ResourceList::remove_resource(int id) {
 #include "resource_structures/background.hpp"
 #include "resource_structures/path.hpp"
 #include "resource_structures/object.hpp"
+#include "resource_structures/room.hpp"
 
 Sprite* sprite(int id) {
 	return dynamic_cast<Sprite*>(resource_list.sprites.get_resource(id));
@@ -73,4 +74,7 @@ Path* path(int id) {
 }
 Object* object(int id) {
 	return dynamic_cast<Object*>(resource_list.objects.get_resource(id));
+}
+Room* room(int id) {
+	return dynamic_cast<Room*>(resource_list.rooms.get_resource(id));
 }

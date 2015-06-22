@@ -1,7 +1,8 @@
 NAME = EasyGameEngine
 
-FLAGS = -g -pg -Wall -Wextra -std=c++11
-BUILD = g++ $(FLAGS) -o $(NAME) main.cpp
+LIBS = -lalut -lopenal -lGL -lglut
+FLAGS = -g -pg -std=c++11 -Wall -Wextra -I/usr/include/AL
+BUILD = g++ $(FLAGS) -o $(NAME) main.cpp $(LIBS)
 
 DEPS = main.cpp
 
