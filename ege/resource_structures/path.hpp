@@ -121,7 +121,7 @@ int Path::set_name(std::string new_name) {
 	return 0;
 }
 int Path::load_path(std::string path) {
-	path_path = path;
+	path_path = "resources/paths/"+path;
 	// Load XML Path data
 	/* 
 	 * coordinate_list.push_back(x, y, speed);

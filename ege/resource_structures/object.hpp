@@ -181,7 +181,7 @@ int Object::set_name(std::string new_name) {
 	return 0;
 }
 int Object::load_path(std::string object) {
-	object_path = object;
+	object_path = "resources/objects/"+object;
 	// Load XML Object data
 	/* 
 	 * sprite = 

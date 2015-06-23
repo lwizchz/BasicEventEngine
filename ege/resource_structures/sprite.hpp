@@ -110,7 +110,7 @@ int Sprite::set_name(std::string new_name) {
 	return 0;
 }
 int Sprite::load_path(std::string path) {
-	image_path = path;
+	image_path = "resources/sprites/"+path;
 	// Load OpenGL texture
 	/* texture = 
 	 * width = 

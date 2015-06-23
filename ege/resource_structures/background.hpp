@@ -100,7 +100,7 @@ int Background::set_name(std::string new_name) {
 	return 0;
 }
 int Background::load_path(std::string path) {
-	background_path = path;
+	background_path = "resources/backgrounds/"+path;
 	// Load OpenGL texture
 	/* texture = 
 	 * width = 

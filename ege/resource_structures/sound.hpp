@@ -151,7 +151,7 @@ int Sound::set_name(std::string new_name) {
 	return 0;
 }
 int Sound::load_path(std::string path) {
-	sound_path = path;
+	sound_path = "resources/sounds/"+path;
 	
 	// Load OpenAL sound
 	alGenSources(sound_amount, source);
