@@ -4,3 +4,5 @@
 #include "camera.cpp"
 #include "glut_backend.cpp"
 #include "ogldev_texture.cpp"
+#include "technique.cpp"
+#include "lighting_technique.cpp"
