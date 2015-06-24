@@ -3,7 +3,7 @@
 #include "ege/game.hpp"
 
 int main(int argc, char* argv[]) {
-	if (init_game(argc, argv)) {
+	if (game.init(argc, argv)) {
 		return 1;
 	}
 	
@@ -11,9 +11,9 @@ int main(int argc, char* argv[]) {
 	rm_test.print();
 	rm_test.start();
 	
-	loop_game();
+	game.loop();
 	
-	close_game();
+	game.close();
 	
 	return 0;
 }
