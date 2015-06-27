@@ -24,9 +24,6 @@
 #include "lighting_technique.h"
 
 
-
-
-
 LightingTechnique::LightingTechnique()
 {   
 }
@@ -37,11 +34,11 @@ bool LightingTechnique::Init()
         return false;
     }
 
-    if (!AddShader(GL_VERTEX_SHADER, "include/lighting.vs")) {
+    if (!AddShader(GL_VERTEX_SHADER, "lighting.vs")) {
         return false;
     }
 
-    if (!AddShader(GL_FRAGMENT_SHADER, "include/lighting.fs")) {
+    if (!AddShader(GL_FRAGMENT_SHADER, "lighting.fs")) {
         return false;
     }
 
@@ -50,8 +47,11 @@ bool LightingTechnique::Init()
     }
 
     m_WVPLocation = GetUniformLocation("gWVP");
+    m_LightWVPLocation = GetUniformLocation("gLightWVP");
     m_WorldMatrixLocation = GetUniformLocation("gWorld");
-    m_samplerLocation = GetUniformLocation("gSampler");
+    m_colorMapLocation = GetUniformLocation("gColorMap");
+    m_shadowMapLocation = GetUniformLocation("gShadowMap");
+    m_normalMapLocation = GetUniformLocation("gNormalMap");
     m_eyeWorldPosLocation = GetUniformLocation("gEyeWorldPos");
     m_dirLightLocation.Color = GetUniformLocation("gDirectionalLight.Base.Color");
     m_dirLightLocation.AmbientIntensity = GetUniformLocation("gDirectionalLight.Base.AmbientIntensity");
@@ -64,8 +64,11 @@ bool LightingTechnique::Init()
 
     if (m_dirLightLocation.AmbientIntensity == INVALID_UNIFORM_LOCATION ||
         m_WVPLocation == INVALID_UNIFORM_LOCATION ||
+        m_LightWVPLocation == INVALID_UNIFORM_LOCATION ||
         m_WorldMatrixLocation == INVALID_UNIFORM_LOCATION ||
-        m_samplerLocation == INVALID_UNIFORM_LOCATION ||
+        m_colorMapLocation == INVALID_UNIFORM_LOCATION ||
+        m_shadowMapLocation == INVALID_UNIFORM_LOCATION ||
+        m_normalMapLocation == INVALID_UNIFORM_LOCATION ||
         m_eyeWorldPosLocation == INVALID_UNIFORM_LOCATION ||
         m_dirLightLocation.Color == INVALID_UNIFORM_LOCATION ||
         m_dirLightLocation.DiffuseIntensity == INVALID_UNIFORM_LOCATION ||
@@ -158,9 +161,16 @@ bool LightingTechnique::Init()
     return true;
 }
 
+
 void LightingTechnique::SetWVP(const Matrix4f& WVP)
 {
     glUniformMatrix4fv(m_WVPLocation, 1, GL_TRUE, (const GLfloat*)WVP.m);    
+}
+
+
+void LightingTechnique::SetLightWVP(const Matrix4f& LightWVP)
+{
+    glUniformMatrix4fv(m_LightWVPLocation, 1, GL_TRUE, (const GLfloat*)LightWVP.m);
 }
 
 
@@ -170,11 +180,21 @@ void LightingTechnique::SetWorldMatrix(const Matrix4f& WorldInverse)
 }
 
 
-void LightingTechnique::SetTextureUnit(unsigned int TextureUnit)
+void LightingTechnique::SetColorTextureUnit(unsigned int TextureUnit)
 {
-    glUniform1i(m_samplerLocation, TextureUnit);
+    glUniform1i(m_colorMapLocation, TextureUnit);
 }
 
+
+void LightingTechnique::SetShadowMapTextureUnit(unsigned int TextureUnit)
+{
+    glUniform1i(m_shadowMapLocation, TextureUnit);
+}
+
+void LightingTechnique::SetNormalMapTextureUnit(unsigned int TextureUnit)
+{
+    glUniform1i(m_normalMapLocation, TextureUnit);
+}
 
 void LightingTechnique::SetDirectionalLight(const DirectionalLight& Light)
 {
@@ -186,20 +206,24 @@ void LightingTechnique::SetDirectionalLight(const DirectionalLight& Light)
     glUniform1f(m_dirLightLocation.DiffuseIntensity, Light.DiffuseIntensity);
 }
 
+
 void LightingTechnique::SetEyeWorldPos(const Vector3f& EyeWorldPos)
 {
     glUniform3f(m_eyeWorldPosLocation, EyeWorldPos.x, EyeWorldPos.y, EyeWorldPos.z);
 }
+
 
 void LightingTechnique::SetMatSpecularIntensity(float Intensity)
 {
     glUniform1f(m_matSpecularIntensityLocation, Intensity);
 }
 
+
 void LightingTechnique::SetMatSpecularPower(float Power)
 {
     glUniform1f(m_matSpecularPowerLocation, Power);
 }
+
 
 void LightingTechnique::SetPointLights(unsigned int NumLights, const PointLight* pLights)
 {
@@ -215,6 +239,7 @@ void LightingTechnique::SetPointLights(unsigned int NumLights, const PointLight*
         glUniform1f(m_pointLightsLocation[i].Atten.Exp, pLights[i].Attenuation.Exp);
     }
 }
+
 
 void LightingTechnique::SetSpotLights(unsigned int NumLights, const SpotLight* pLights)
 {

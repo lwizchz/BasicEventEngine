@@ -1,6 +1,6 @@
 NAME = EasyGameEngine
 
-INCLUDE = freealut glew freeglut Magick++
+INCLUDE = assimp freealut glew freeglut Magick++
 LIBS = ${shell pkg-config $(INCLUDE) --libs}
 FLAGS = -g -pg -std=c++11 -Wall -Wextra ${shell pkg-config $(INCLUDE) --cflags}
 BUILD = g++ $(FLAGS) -o $(NAME) main.cpp $(LIBS)

@@ -19,15 +19,36 @@ void game_idle();
 void game_keyboard(unsigned char, int, int);
 void game_keyboard_special(int, int, int);
 void game_mouse_passive(int, int);
+void game_mouse(int, int, int, int);
 
 class Game {
 		GLuint VBO;
 		GLuint IBO;
 		int window_width, window_height;
+		long long m_currentTime;
 		
-		Texture* pTexture;
-		LightingTechnique* pEffect;
-		DirectionalLight directionalLight;
+		float m_scale = 0.0;
+		Texture* pGroundTex;
+		LightingTechnique* pLightingEffect;
+		SpotLight spotLight;
+		Mesh *pMesh, *pQuad;
+		ShadowMapTechnique* pShadowMapEffect;
+		ShadowMapFBO shadowMapFBO;
+		SkyBox* pSkyBox;
+		bool bumpMapEnabled = true;
+		Texture* pNormalMap;
+		Texture* pTrivialNormalMap;
+		ParticleSystem particleSystem;
+		
+		SimpleColorTechnique simpleColorEffect;
+		PickingTechnique pickingEffect;
+		PickingTexture pickingTexture;
+		struct {
+			bool IsPressed;
+			int x;
+			int y;
+		} m_leftMouseButton;
+		Vector3f worldPos[2];
 		
 		Camera* pGameCamera;
 		PersProjInfo gPersProjInfo;
@@ -39,6 +60,11 @@ class Game {
 		void on_keyboard(unsigned char, int, int);
 		void on_keyboard_special(int, int, int);
 		void on_mouse_passive(int, int);
+		void on_mouse(int, int, int, int);
+		
+		void picking_pass();
+		void shadow_map_pass();
+		void render_pass();
 		
 		int create_buffers();
 		int add_shader(GLuint, const char*, GLenum, GLuint*);
@@ -53,74 +79,140 @@ class Game {
 		int close();
 } game;
 void Game::on_idle() {
-	static float Scale = 0.0;
-	Scale += 0.1;
-	
-	PointLight pl[2];
-	pl[0].DiffuseIntensity = 0.5;
-	pl[0].Color = Vector3f(1.0, 0.5, 0.0);
-	pl[0].Position = Vector3f(3.0, 1.0, FieldDepth*(cosf(Scale)+1.0)/2.0);
-	pl[0].Attenuation.Linear = 0.1;
-	pl[1].DiffuseIntensity = 0.5;
-	pl[1].Color = Vector3f(0.0, 0.5, 1.0);
-	pl[1].Position = Vector3f(7.0, 1.0, FieldDepth*(sinf(Scale)+1.0)/2.0);
-	pl[1].Attenuation.Linear = 0.1;
-	pEffect->SetPointLights(2, pl);
-	
-	SpotLight sl[2];
-	sl[0].DiffuseIntensity = 0.9;
-	sl[0].Color = Vector3f(0.0, 1.0, 1.0);
-	sl[0].Position = pGameCamera->GetPos();
-	sl[0].Direction = pGameCamera->GetTarget();
-	sl[0].Attenuation.Linear = 0.1;
-	sl[0].Cutoff = 10.0;
-	
-	sl[1].DiffuseIntensity = 0.9;
-	sl[1].Color = Vector3f(1.0, 1.0, 1.0);
-	sl[1].Position = Vector3f(5.0, 3.0, 10.0);
-	sl[1].Direction = Vector3f(0.0, -1.0, 0.0);
-	sl[1].Attenuation.Linear = 0.1;
-	sl[1].Cutoff = 20.0;
-	pEffect->SetSpotLights(2, sl);
-	
-	Pipeline p;
-	p.WorldPos(0.0, 0.0, 1.0);
-	p.SetCamera(*pGameCamera);
-	p.SetPerspectiveProj(gPersProjInfo);
-	
-	pEffect->SetWVP(p.GetWVPTrans());
-	const Matrix4f& WorldTransformation = p.GetWorldTrans();
-	pEffect->SetWorldMatrix(WorldTransformation);
-	pEffect->SetDirectionalLight(directionalLight);
-	pEffect->SetEyeWorldPos(pGameCamera->GetPos());
-	pEffect->SetMatSpecularIntensity(0.0);
-	pEffect->SetMatSpecularPower(0.0);
+	// Do stuff
 	
 	glutPostRedisplay();
 }
 void Game::on_render() {
 	pGameCamera->OnRender();
+	m_scale += 0.1;
 	
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-	glEnableVertexAttribArray(2);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const GLvoid*)12);
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const GLvoid*)20);
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
-	pTexture->Bind(GL_TEXTURE0);
-	
-	//glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-	
-	glDisableVertexAttribArray(0);
-	glDisableVertexAttribArray(1);
-	glDisableVertexAttribArray(2);
+	picking_pass();
+	shadow_map_pass();
+	render_pass();
 	
 	glutSwapBuffers();
+}
+void Game::picking_pass() {
+	Pipeline p;
+	p.Scale(0.1, 0.1, 0.1);
+	p.Rotate(0.0, 90.0, 0.0);
+	p.SetCamera(pGameCamera->GetPos(), pGameCamera->GetTarget(), pGameCamera->GetUp());
+	p.SetPerspectiveProj(gPersProjInfo);
+	
+	pickingTexture.EnableWriting();
+	
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
+	pickingEffect.Enable();
+	
+	for (uint i = 0 ; i < (int)ARRAY_SIZE_IN_ELEMENTS(worldPos) ; i++) {
+		p.WorldPos(worldPos[i]);
+		pickingEffect.SetObjectIndex(i);
+		pickingEffect.SetWVP(p.GetWVPTrans());    
+		pMesh->Render(&pickingEffect);
+	}
+	
+	pickingTexture.DisableWriting();
+}
+void Game::shadow_map_pass() {
+	shadowMapFBO.BindForWriting();
+	
+	glClear(GL_DEPTH_BUFFER_BIT);
+	
+	pShadowMapEffect->Enable();
+	
+	Pipeline p;
+	p.Scale(0.1, 0.1, 0.1);
+	p.Rotate(0.0, m_scale, 0.0);
+	p.WorldPos(0.0, 0.0, 5.0);
+	p.SetCamera(spotLight.Position, spotLight.Direction, Vector3f(0.0, 1.0, 0.0));
+	p.SetPerspectiveProj(gPersProjInfo);
+	pShadowMapEffect->SetWVP(p.GetWVPTrans());
+	
+	pMesh->Render();
+	
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+void Game::render_pass() {
+	long long timeNow = GetCurrentTimeMillis();
+	assert(timeNow >= m_currentTime);
+	unsigned int deltaTime = (unsigned int) (timeNow - m_currentTime);
+	m_currentTime = timeNow;
+	
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
+	Pipeline p;
+	p.Scale(0.1f, 0.1f, 0.1f);
+	p.Rotate(0.0f, 90.0f, 0.0f);
+	p.SetCamera(pGameCamera->GetPos(), pGameCamera->GetTarget(), pGameCamera->GetUp());
+	p.SetPerspectiveProj(gPersProjInfo);
+	
+	// If the left mouse button is clicked check if it hit a triangle
+	// and color it red
+	if (m_leftMouseButton.IsPressed) {
+		PickingTexture::PixelInfo Pixel = pickingTexture.ReadPixel(m_leftMouseButton.x, window_height - m_leftMouseButton.y - 1);
+		GLExitIfError;
+		if (Pixel.PrimID != 0) {                
+			simpleColorEffect.Enable();
+			assert(Pixel.ObjectID < ARRAY_SIZE_IN_ELEMENTS(worldPos));
+			p.WorldPos(worldPos[(uint)Pixel.ObjectID]);
+			simpleColorEffect.SetWVP(p.GetWVPTrans());
+			// Must compensate for the decrement in the FS!
+			pMesh->Render((uint)Pixel.DrawID, (uint)Pixel.PrimID - 1); 
+		}
+	}
+	
+	pLightingEffect->Enable();
+	pLightingEffect->SetEyeWorldPos(pGameCamera->GetPos());
+	
+	shadowMapFBO.BindForReading(SHADOW_TEXTURE_UNIT);
+	
+	for (unsigned int i = 0 ; i < ARRAY_SIZE_IN_ELEMENTS(worldPos) ; i++) {
+            p.WorldPos(worldPos[i]);
+            pLightingEffect->SetWVP(p.GetWVPTrans());
+            pLightingEffect->SetWorldMatrix(p.GetWorldTrans());                
+            pMesh->Render(NULL);
+        }
+	
+	// Render floor
+	pGroundTex->Bind(COLOR_TEXTURE_UNIT);
+	pTrivialNormalMap->Bind(NORMAL_TEXTURE_UNIT);
+	
+	//Pipeline p;
+	p.Scale(10.0f, 10.0f, 10.0f);
+	p.WorldPos(0.0f, 0.0f, 0.0f);
+	p.Rotate(90.0f, 0.0f, 0.0f);
+	p.SetCamera(pGameCamera->GetPos(), pGameCamera->GetTarget(), pGameCamera->GetUp());
+	p.SetPerspectiveProj(gPersProjInfo);
+	
+	pLightingEffect->SetWVP(p.GetWVPTrans());
+	pLightingEffect->SetWorldMatrix(p.GetWorldTrans());
+	//p.SetCamera(spotLight.Position, spotLight.Direction, Vector3f(0.0f, 1.0f, 0.0f));
+	//pLightingEffect->SetLightWVP(p.GetWVPTrans());
+	pQuad->Render();
+	
+	// Render tank
+	/*if (bumpMapEnabled) {
+		pNormalMap->Bind(NORMAL_TEXTURE_UNIT);
+	} else {
+		pTrivialNormalMap->Bind(NORMAL_TEXTURE_UNIT);
+	}
+	
+	p.Scale(0.1f, 0.1f, 0.1f);
+	p.Rotate(0.0f, m_scale, 0.0f);
+	p.WorldPos(0.0f, 0.0f, 3.0f);
+	p.SetCamera(pGameCamera->GetPos(), pGameCamera->GetTarget(), pGameCamera->GetUp());
+	pLightingEffect->SetWVP(p.GetWVPTrans());
+	pLightingEffect->SetWorldMatrix(p.GetWorldTrans());
+	p.SetCamera(spotLight.Position, spotLight.Direction, Vector3f(0.0f, 1.0f, 0.0f));
+	pLightingEffect->SetLightWVP(p.GetWVPTrans());
+	pMesh->Render();
+	pTrivialNormalMap->Bind(NORMAL_TEXTURE_UNIT);*/
+	
+	particleSystem.Render(deltaTime, p.GetVPTrans(), pGameCamera->GetPos());
+	
+	pSkyBox->Render();
 }
 void Game::on_keyboard(unsigned char key, int x, int y) {
 	std::pair<int, int> mouse (x, y);
@@ -129,16 +221,19 @@ void Game::on_keyboard(unsigned char key, int x, int y) {
 			glutLeaveMainLoop();
 			break;
 		case 'a':
-			directionalLight.AmbientIntensity += 0.05;
+			spotLight.AmbientIntensity += 0.05;
 			break;
 		case 's':
-			directionalLight.AmbientIntensity -= 0.05;
+			spotLight.AmbientIntensity -= 0.05;
 			break;
 		case 'z':
-			directionalLight.DiffuseIntensity += 0.05;
+			spotLight.DiffuseIntensity += 0.05;
 			break;
 		case 'x':
-			directionalLight.DiffuseIntensity -= 0.05;
+			spotLight.DiffuseIntensity -= 0.05;
+			break;
+		case 'b':
+			bumpMapEnabled = !bumpMapEnabled;
 			break;
 		default:
 			OGLDEV_KEY OgldevKey = GLUTKeyToOGLDEVKey(key);
@@ -154,129 +249,16 @@ void Game::on_keyboard_special(int key, int x, int y) {
 void Game::on_mouse_passive(int x, int y) {
 	pGameCamera->OnMouse(x, y);
 }
-int Game::create_buffers() {
-	/*// Define indexes
-	unsigned int indexes[] = {
-		0, 3, 1,
-		1, 3, 2,
-		2, 3, 0,
-		0, 1, 2
-	};
-	
-	// Create Vertex Buffer
-	Vertex vertices[4] = {
-		Vertex(Vector3f(-1.0, -1.0, 0.5773), Vector2f(0.0, 0.0)),
-		Vertex(Vector3f(0.0, -1.0, -1.15475), Vector2f(0.5, 0.0)),
-		Vertex(Vector3f(1.0, -1.0, 0.5773), Vector2f(1.0, 0.0)),
-		Vertex(Vector3f(0.0, 1.0, 0.0), Vector2f(0.5, 1.0)),
-	};
-	
-	unsigned int VertexCount = ARRAY_SIZE_IN_ELEMENTS(vertices);
-	calculate_normals(indexes, sizeof(indexes)/4, vertices, VertexCount);
-		
-	glGenBuffers(1, &VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	
-	// Create Index Buffer
-	glGenBuffers(1, &IBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexes), indexes, GL_STATIC_DRAW);*/
-	
-	const Vector3f Normal = Vector3f(0.0, 1.0, 0.0);
-	Vertex vertices[6] = {
-		Vertex(Vector3f(0.0, 0.0, 0.0),			Vector2f(0.0, 0.0), Normal),
-		Vertex(Vector3f(0.0, 0.0, FieldDepth),		Vector2f(0.0, 1.0), Normal),
-		Vertex(Vector3f(FieldWidth, 0.0, 0.0),		Vector2f(1.0, 0.0), Normal),
-		
-		Vertex(Vector3f(FieldWidth, 0.0, 0.0),		Vector2f(1.0, 0.0), Normal),
-		Vertex(Vector3f(0.0, 0.0, FieldDepth),		Vector2f(0.0, 1.0), Normal),
-		Vertex(Vector3f(FieldWidth, 0.0, FieldDepth),	Vector2f(1.0, 1.0), Normal)
-	};
-	
-	glGenBuffers(1, &VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	
-	return 0;
-}
-int Game::add_shader(GLuint ShaderProgram, const char* shader_text, GLenum ShaderType, GLuint* ShaderObj) {
-	if (*ShaderObj == 0) {
-		std::cerr << "Error creating shader " << ShaderType << "\n";
-		return 1;
+void Game::on_mouse(int button, int state, int x, int y) {
+	if (button == GLUT_LEFT_BUTTON) {
+		m_leftMouseButton.IsPressed = (state == GLUT_DOWN);
+		m_leftMouseButton.x = x;
+		m_leftMouseButton.y = y;
 	}
-	
-	const GLchar* p[1];
-	p[0] = shader_text;
-	GLint length[1];
-	length[0] = strlen(shader_text);
-	glShaderSource(*ShaderObj, 1, p, length);
-	glCompileShader(*ShaderObj);
-	GLint r;
-	glGetShaderiv(*ShaderObj, GL_COMPILE_STATUS, &r);
-	if (!r) {
-		GLchar log[1024] = {0};
-		glGetShaderInfoLog(*ShaderObj, sizeof(log), NULL, log);
-		std::cerr << "Error compiling shader " << ShaderType << ": '" << log << "'\n";
-		return 1;
-	}
-	
-	glAttachShader(ShaderProgram, *ShaderObj);
-	
-	return 0;
-}
-int Game::compile_shaders() {
-	GLuint ShaderProgram = glCreateProgram();
-	if (ShaderProgram == 0) {
-		std::cerr << "Error creating shader program\n";
-		return 1;
-	}
-	
-	std::string vs, fs;
-	
-	if (read_file(vertex_shader_path, vs)) {
-		return 1;
-	}
-	if (read_file(fragment_shader_path, fs)) {
-		return 1;
-	}
-	
-	GLuint VertexShaderObj = glCreateShader(GL_VERTEX_SHADER);
-	GLuint FragmentShaderObj = glCreateShader(GL_FRAGMENT_SHADER);
-	if (add_shader(ShaderProgram, vs.c_str(), GL_VERTEX_SHADER, &VertexShaderObj)) {
-		return 1;
-	}
-	if (add_shader(ShaderProgram, fs.c_str(), GL_FRAGMENT_SHADER, &FragmentShaderObj)) {
-		return 1;
-	}
-	
-	GLint r = 0;
-	GLchar log[1024] = {0};
-	
-	glLinkProgram(ShaderProgram);
-	glGetProgramiv(ShaderProgram, GL_LINK_STATUS, &r);
-	if (r == 0) {
-		glGetProgramInfoLog(ShaderProgram, sizeof(log), NULL, log);
-		std::cerr << "Error linking shader program: '" << log << "'\n";
-		return 1;
-	}
-	
-	// Validation should only be done in development (?)
-	glValidateProgram(ShaderProgram);
-	glGetProgramiv(ShaderProgram, GL_VALIDATE_STATUS, &r);
-	if (!r) {
-		glGetProgramInfoLog(ShaderProgram, sizeof(log), NULL, log);
-		std::cerr << "Invalid shader program: '" << log << "'\n";
-		return 1;
-	}
-	
-	glUseProgram(ShaderProgram);
-	glDeleteShader(VertexShaderObj); // Delete shaders after linking to use less memory
-	glDeleteShader(FragmentShaderObj);
-	
-	return 0;
 }
 int Game::init_video(int argc, char* argv[]) {
+	m_currentTime = GetCurrentTimeMillis();
+	
 	// Initialize ImageMagick
 	Magick::InitializeMagick(*argv);
 	
@@ -284,19 +266,21 @@ int Game::init_video(int argc, char* argv[]) {
 	window_width = DEFAULT_WINDOW_WIDTH;
 	window_height = DEFAULT_WINDOW_HEIGHT;
 	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGBA);
+	glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGBA|GLUT_DEPTH);
 	glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS);
 	glutInitWindowSize(window_width, window_height);
 	glutCreateWindow("EasyGameEngine");
 	
 	// GLUT callbacks
 	glutDisplayFunc(game_render);
-	glutIdleFunc(game_idle);
+	//glutIdleFunc(game_idle);
+	glutIdleFunc(game_render);
 	glutKeyboardFunc(game_keyboard);
 	glutSpecialFunc(game_keyboard_special);
 	glutPassiveMotionFunc(game_mouse_passive);
+	glutMouseFunc(game_mouse);
 	
-	pGameCamera = new Camera(window_width, window_height, Vector3f(5.0, 1.0, -3.0), Vector3f(0.0, 0.0, 1.0), Vector3f(0.0, 1.0, 0.0));
+	pGameCamera = new Camera(window_width, window_height, Vector3f(2.0, 2.0, -7.0), Vector3f(0.0, 0.0, 1.0), Vector3f(0.0, 1.0, 0.0));
 	
 	// Initialize GLEW
 	int r = glewInit();
@@ -308,34 +292,63 @@ int Game::init_video(int argc, char* argv[]) {
 	std::cout << "GL version: " << glGetString(GL_VERSION) << "\n";
 	
 	glClearColor(0.0, 0.0, 0.0, 1.0);
-	/*glFrontFace(GL_CW);
+	glFrontFace(GL_CW);
 	glCullFace(GL_BACK);
-	glEnable(GL_CULL_FACE);*/
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST);
 	
-	create_buffers();
-	r = compile_shaders();
-	if (r) {
-		std::cerr << "Error compiling shaders\n";
-		return r;
-	}
+	spotLight.AmbientIntensity = 0.5f;
+	spotLight.DiffuseIntensity = 0.9f;
+	spotLight.Color = Vector3f(1.0f, 1.0f, 1.0f);
+	spotLight.Attenuation.Linear = 0.01f;
+	spotLight.Position  = Vector3f(-20.0, 20.0, 5.0f);
+	spotLight.Direction = Vector3f(1.0f, -1.0f, 0.0f);
+	spotLight.Cutoff =  20.0f;
 	
-	pEffect = new LightingTechnique();
-	if (!pEffect->Init()) {
+	pLightingEffect = new LightingTechnique();
+	if (!pLightingEffect->Init()) {
 		std::cerr << "Couldn't load lighting technique\n";
 		return 1;
 	}
-	pEffect->Enable();
-	pEffect->SetTextureUnit(0);
-	pTexture = new Texture(GL_TEXTURE_2D, "resources/sprites/bricks.jpg");
-	if (!pTexture->Load()) {
+	pLightingEffect->Enable();
+	pLightingEffect->SetSpotLights(1, &spotLight);
+	pLightingEffect->SetColorTextureUnit(0);
+        pLightingEffect->SetNormalMapTextureUnit(2);
+	
+	pGroundTex = new Texture(GL_TEXTURE_2D, "resources/sprites/bricks.jpg");
+	if (!pGroundTex->Load()) {
 		std::cerr << "Couldn't load texture\n";
 		return 1;
 	}
 	
-	directionalLight.Color = Vector3f(1.0, 1.0, 1.0);
-	directionalLight.AmbientIntensity = 0.5;
-	directionalLight.DiffuseIntensity = 0.75;
-	directionalLight.Direction = Vector3f(1.0, 0.0, 0.0);
+	if (!shadowMapFBO.Init(window_width, window_height)) {
+		std::cerr << "Couldn't init shadow map fbo\n";
+		return 1;
+	}
+	pShadowMapEffect = new ShadowMapTechnique();
+	if (!pShadowMapEffect->Init()) {
+		std::cerr << "Couldn't init shadow map technique\n";
+		return 1;
+	}
+	pShadowMapEffect->Enable();
+	
+	/*pMesh = new Mesh();
+	if (!pMesh->LoadMesh("resources/meshes/phoenix_ugv.md2")) {
+		std::cerr << "Couldn't load mesh\n";
+		return 1;
+	}*/
+	
+	pQuad = new Mesh();
+	if (!pQuad->LoadMesh("resources/meshes/quad.obj")) {
+		std::cerr << "Couldn't load mesh\n";
+		return 1;
+	}
+	
+	Vector3f ParticleSysPos = Vector3f(0.0, 0.0, 1.0);
+	if (!particleSystem.InitParticleSystem(ParticleSysPos)) {
+		std::cerr << "Couldn't init particle system\n";
+		return 1;
+	}
 	
 	gPersProjInfo.FOV = 60.0;
 	gPersProjInfo.Width = window_width;
@@ -343,15 +356,68 @@ int Game::init_video(int argc, char* argv[]) {
 	gPersProjInfo.zNear = 1.0;
 	gPersProjInfo.zFar = 100.0;
 	
+	pSkyBox = new SkyBox(pGameCamera, gPersProjInfo);
+	if (!pSkyBox->Init("resources/skyboxes/",
+		"sp3right.jpg",
+		"sp3left.jpg",
+		"sp3top.jpg",
+		"sp3bottom.jpg",
+		"sp3front.jpg",
+		"sp3back.jpg"
+	)) {
+		std::cerr << "Couldn't load skybox\n";
+		return 1;
+	}
+	
+	pNormalMap = new Texture(GL_TEXTURE_2D, "resources/normal_maps/tank.jpg");
+	if (!pNormalMap->Load()) {
+		std::cerr << "Couldn't load normal map\n";
+		return 1;
+	}
+	
+	pTrivialNormalMap = new Texture(GL_TEXTURE_2D, "resources/normal_maps/normal_up.jpg");
+	if (!pTrivialNormalMap->Load()) {
+		std::cerr << "Couldn't load trivial normal map\n";
+		return 1;
+	}
+	
+	m_leftMouseButton.IsPressed = false;
+	worldPos[0] = Vector3f(-10.0, 0.0, 5.0);
+	worldPos[1] = Vector3f(10.0, 0.0, 5.0);
+	
+	if (!pickingTexture.Init(window_width, window_height)) {
+		std::cerr << "Couldn't init picking texture\n";
+		return 1;
+	}
+	if (!pickingEffect.Init()) {
+		std::cerr << "Couldn't init picking effect\n";
+		return 1;
+	}
+	if (!simpleColorEffect.Init()) {
+		std::cerr << "Couldn't init simple color effect\n";
+		return 1;
+	}
+	
+	pMesh = new Mesh();
+	if (!pMesh->LoadMesh("resources/meshes/spider.obj")) {
+		std::cerr << "Couldn't load spider mesh\n";
+		return 1;
+	}
+	
 	return 0;
 }
 void Game::loop_video() {
 	glutMainLoop();
 }
 int Game::close_video() {
-	delete pGameCamera;
-	delete pTexture;
-	delete pEffect;
+	delete pLightingEffect;
+	delete pShadowMapEffect;
+	delete pMesh;
+	delete pQuad;
+	delete pGroundTex;
+	delete pSkyBox;
+	delete pNormalMap;
+	delete pTrivialNormalMap;
 	
 	return 0;
 }
@@ -391,3 +457,4 @@ void game_idle() {game.on_idle();}
 void game_keyboard(unsigned char k, int x, int y) {game.on_keyboard(k, x, y);}
 void game_keyboard_special(int k, int x, int y) {game.on_keyboard_special(k, x, y);}
 void game_mouse_passive(int x, int y) {game.on_mouse_passive(x, y);}
+void game_mouse(int b, int s, int x, int y) {game.on_mouse(b, s, x, y);}

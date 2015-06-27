@@ -7,9 +7,9 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 	
-	RmTest rm_test;
+	/*RmTest rm_test;
 	rm_test.print();
-	rm_test.start();
+	rm_test.start();*/
 	
 	game.loop();
 	

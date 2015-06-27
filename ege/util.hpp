@@ -11,28 +11,6 @@ bool read_file(const char* path, std::string& output) {
 	return 0;
 }
 
-struct Vertex {
-	Vector3f m_pos;
-	Vector2f m_tex;
-	Vector3f m_normal;
-	
-	Vertex() {}
-	
-	Vertex(const Vector3f& pos, const Vector2f& tex)
-	{
-		m_pos = pos;
-		m_tex = tex;
-		m_normal = Vector3f(0.0, 0.0, 0.0);
-	}
-	
-	Vertex(const Vector3f& pos, const Vector2f& tex, const Vector3f& normal)
-	{
-		m_pos = pos;
-		m_tex = tex;
-		m_normal = normal;
-	}
-};
-
 void calculate_normals(const unsigned int* pIndices, unsigned int IndexCount, Vertex* pVertices, unsigned int VertexCount) {
 	// Accumulate each triangle normal into each of the triangle vertices
 	for (unsigned int i = 0 ; i < IndexCount ; i += 3) {

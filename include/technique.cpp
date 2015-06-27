@@ -61,9 +61,10 @@ bool Technique::Init()
 // Use this method to add shaders to the program. When finished - call finalize()
 bool Technique::AddShader(GLenum ShaderType, const char* pFilename)
 {
-    string s;
+    string s, path = "include/";
+    path.append(pFilename);
     
-    if (!ReadFile(pFilename, s)) {
+    if (!ReadFile(path.c_str(), s)) {
         return false;
     }
     
@@ -91,7 +92,7 @@ bool Technique::AddShader(GLenum ShaderType, const char* pFilename)
     if (!success) {
         GLchar InfoLog[1024];
         glGetShaderInfoLog(ShaderObj, 1024, NULL, InfoLog);
-        fprintf(stderr, "Error compiling '%s': '%s'\n", pFilename, InfoLog);
+        fprintf(stderr, "Error compiling '%s': '%s'\n", path.c_str(), InfoLog);
         return false;
     }
 
