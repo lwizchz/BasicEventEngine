@@ -28,7 +28,7 @@ class Path: public Resource {
 		bool get_is_closed();
 		
 		int set_name(std::string);
-		int load_path(std::string);
+		int set_path(std::string);
 		int add_coordinate(path_coord);
 		int add_coordinate(int, int, int);
 		int remove_last_coordinate();
@@ -52,7 +52,7 @@ Path::Path (std::string new_name, std::string path) {
 	
 	reset();
 	set_name(new_name);
-	load_path(path);
+	set_path(path);
 }
 Path::~Path() {
 	resource_list.paths.remove_resource(id);
@@ -120,7 +120,7 @@ int Path::set_name(std::string new_name) {
 	name = new_name;
 	return 0;
 }
-int Path::load_path(std::string path) {
+int Path::set_path(std::string path) {
 	path_path = "resources/paths/"+path;
 	// Load XML Path data
 	/* 

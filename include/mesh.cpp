@@ -18,8 +18,9 @@
 
 #include <assert.h>
 
-#include "mesh.h"
 #include "ogldev_engine_common.h"
+#include "mesh.h"
+
 
 Mesh::MeshEntry::MeshEntry()
 {
@@ -85,10 +86,8 @@ bool Mesh::LoadMesh(const std::string& Filename)
     bool Ret = false;
     Assimp::Importer Importer;
 
-    const aiScene* pScene = Importer.ReadFile(Filename.c_str(), aiProcess_Triangulate |
-                                                                aiProcess_GenSmoothNormals |
-                                                                aiProcess_FlipUVs |
-                                                                aiProcess_CalcTangentSpace);    
+    const aiScene* pScene = Importer.ReadFile(Filename.c_str(), aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs);
+    
     if (pScene) {
         Ret = InitFromScene(pScene, Filename);
     }
@@ -126,13 +125,11 @@ void Mesh::InitMesh(unsigned int Index, const aiMesh* paiMesh)
         const aiVector3D* pPos      = &(paiMesh->mVertices[i]);
         const aiVector3D* pNormal   = &(paiMesh->mNormals[i]);
         const aiVector3D* pTexCoord = paiMesh->HasTextureCoords(0) ? &(paiMesh->mTextureCoords[0][i]) : &Zero3D;
-        const aiVector3D* pTangent = paiMesh->HasTangentsAndBitangents() ? &(paiMesh->mTangents[i]) : &Zero3D;
 
         Vertex v(Vector3f(pPos->x, pPos->y, pPos->z),
                  Vector2f(pTexCoord->x, pTexCoord->y),
-                 Vector3f(pNormal->x, pNormal->y, pNormal->z),
-                 Vector3f(pTangent->x, pTangent->y, pTangent->z));
-        
+                 Vector3f(pNormal->x, pNormal->y, pNormal->z));
+
         Vertices.push_back(v);
     }
 
@@ -143,7 +140,7 @@ void Mesh::InitMesh(unsigned int Index, const aiMesh* paiMesh)
         Indices.push_back(Face.mIndices[1]);
         Indices.push_back(Face.mIndices[2]);
     }
-    
+
     m_Entries[Index].Init(Vertices, Indices);
 }
 
@@ -163,7 +160,7 @@ bool Mesh::InitMaterials(const aiScene* pScene, const std::string& Filename)
         Dir = Filename.substr(0, SlashIndex);
     }
 
-    bool Ret = true;
+    bool Ret = true;    
 
     // Initialize the materials
     for (unsigned int i = 0 ; i < pScene->mNumMaterials ; i++) {
@@ -175,7 +172,14 @@ bool Mesh::InitMaterials(const aiScene* pScene, const std::string& Filename)
             aiString Path;
 
             if (pMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &Path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS) {
-                std::string FullPath = Dir + "/" + Path.data;
+                std::string p(Path.data);
+                
+                if (p.substr(0, 2) == ".\\") {                    
+                    p = p.substr(2, p.size() - 2);
+                }
+                               
+                std::string FullPath = Dir + "/" + p;
+                    
                 m_Textures[i] = new Texture(GL_TEXTURE_2D, FullPath.c_str());
 
                 if (!m_Textures[i]->Load()) {
@@ -193,6 +197,7 @@ bool Mesh::InitMaterials(const aiScene* pScene, const std::string& Filename)
 
     return Ret;
 }
+
 
 void Mesh::Render()
 {
@@ -230,7 +235,7 @@ void Mesh::Render(IRenderCallbacks* pRenderCallbacks)
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
-GLExitIfError;    
+    
     for (unsigned int i = 0 ; i < m_Entries.size() ; i++) {
         glBindBuffer(GL_ARRAY_BUFFER, m_Entries[i].VB);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
@@ -238,18 +243,18 @@ GLExitIfError;
         glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const GLvoid*)20);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Entries[i].IB);
-GLExitIfError;
+
         const unsigned int MaterialIndex = m_Entries[i].MaterialIndex;
-GLExitIfError;
+
         if (MaterialIndex < m_Textures.size() && m_Textures[MaterialIndex]) {
-            m_Textures[MaterialIndex]->Bind(GL_TEXTURE0);
+            m_Textures[MaterialIndex]->Bind(COLOR_TEXTURE_UNIT);
         }
-GLExitIfError;
+
         if (pRenderCallbacks) {
             pRenderCallbacks->DrawStartCB(i);
         }
-GLExitIfError;        
-        glDrawElements(GL_TRIANGLES, m_Entries[i].NumIndices, GL_UNSIGNED_INT, 0);
+        
+        glDrawElements(GL_PATCHES, m_Entries[i].NumIndices, GL_UNSIGNED_INT, 0);
     }
 
     glDisableVertexAttribArray(0);

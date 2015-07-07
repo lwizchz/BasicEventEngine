@@ -13,7 +13,7 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
 #ifndef LIGHTING_TECHNIQUE_H
 #define	LIGHTING_TECHNIQUE_H
@@ -77,8 +77,7 @@ struct SpotLight : public PointLight
     }
 };
 
-class LightingTechnique : public Technique 
-{
+class LightingTechnique : public Technique {
 public:
 
     static const unsigned int MAX_POINT_LIGHTS = 2;
@@ -88,32 +87,30 @@ public:
 
     virtual bool Init();
 
-    void SetWVP(const Matrix4f& WVP);
-    void SetLightWVP(const Matrix4f& LightWVP);
+    void SetVP(const Matrix4f& VP);
     void SetWorldMatrix(const Matrix4f& WVP);
     void SetColorTextureUnit(unsigned int TextureUnit);
-    void SetShadowMapTextureUnit(unsigned int TextureUnit);
-    void SetNormalMapTextureUnit(unsigned int TextureUnit);
+    void SetDisplacementMapTextureUnit(unsigned int TextureUnit);
     void SetDirectionalLight(const DirectionalLight& Light);
     void SetPointLights(unsigned int NumLights, const PointLight* pLights);
     void SetSpotLights(unsigned int NumLights, const SpotLight* pLights);
     void SetEyeWorldPos(const Vector3f& EyeWorldPos);
     void SetMatSpecularIntensity(float Intensity);
     void SetMatSpecularPower(float Power);
+    void SetDispFactor(float Factor);
 
 private:
 
-    GLuint m_WVPLocation;
-    GLuint m_LightWVPLocation;
+    GLuint m_VPLocation;
     GLuint m_WorldMatrixLocation;
-    GLuint m_colorMapLocation;
-    GLuint m_shadowMapLocation;
-    GLuint m_normalMapLocation;
+    GLuint m_colorTextureLocation;
+    GLuint m_displacementMapLocation;
     GLuint m_eyeWorldPosLocation;
     GLuint m_matSpecularIntensityLocation;
     GLuint m_matSpecularPowerLocation;
     GLuint m_numPointLightsLocation;
     GLuint m_numSpotLightsLocation;
+    GLuint m_dispFactorLocation;
 
     struct {
         GLuint Color;

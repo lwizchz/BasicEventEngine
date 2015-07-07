@@ -80,7 +80,7 @@ class Room: public Resource {
 		std::string get_instance_string();
 		
 		int set_name(std::string);
-		int load_path(std::string);
+		int set_path(std::string);
 		int set_width(int);
 		int set_height(int);
 		int set_is_isometric(bool);
@@ -96,7 +96,31 @@ class Room: public Resource {
 		int add_instance(InstanceData*);
 		int remove_instance(int);
 		
-		virtual void start() {};
+		int load_media();
+		int free_media();
+		
+		int create();
+		int destroy();
+		int alarm(int);
+		int step_begin();
+		int step_mid();
+		int step_end();
+		int keyboard(int);
+		int mouse(int);
+		int keyboard_press(int);
+		int mouse_press(int);
+		int keyboard_release(int);
+		int mouse_release(int);
+		int path_end();
+		int outside_room();
+		int intersect_boundary();
+		int collision();
+		int draw();
+		int animation_end();
+		int room_start();
+		int room_end();
+		int game_start();
+		int game_end();
 };
 Room::Room () {
 	id = resource_list.rooms.add_resource(this);
@@ -114,7 +138,7 @@ Room::Room (std::string new_name, std::string path) {
 	
 	reset();
 	set_name(new_name);
-	load_path(path);
+	set_path(path);
 }
 Room::~Room() {
 	resource_list.rooms.remove_resource(id);
@@ -269,7 +293,7 @@ int Room::set_name(std::string new_name) {
 	name = new_name;
 	return 0;
 }
-int Room::load_path(std::string path) {
+int Room::set_path(std::string path) {
 	room_path = "resources/rooms/"+path;
 	
 	// Load XML Room data
@@ -346,5 +370,179 @@ int Room::add_instance(InstanceData* new_instance) {
 }
 int Room::remove_instance(int index) {
 	instances.erase(index);
+	return 0;
+}
+
+int Room::load_media() {
+	for (unsigned int i=0; i<instances.size(); i++) {
+		instances[i]->object->get_sprite()->load();
+	}
+	
+	return 0;
+}
+int Room::free_media() {
+	for (unsigned int i=0; i < instances.size(); i++) {
+		instances[i]->object->get_sprite()->free();
+	}
+	
+	return 0;
+}
+
+int Room::create() {
+	for (unsigned int i=0; i < instances.size(); i++) {
+		instances[i]->object->create(instances[i]->id);
+	}
+	
+	return 0;
+}
+int Room::destroy() {
+	for (unsigned int i=0; i < instances.size(); i++) {
+		instances[i]->object->destroy(instances[i]->id);
+	}
+	
+	return 0;
+}
+int Room::alarm(int alarm) {
+	for (unsigned int i=0; i < instances.size(); i++) {
+		instances[i]->object->alarm(instances[i]->id, alarm);
+	}
+	
+	return 0;
+}
+int Room::step_begin() {
+	for (unsigned int i=0; i < instances.size(); i++) {
+		instances[i]->object->step_begin(instances[i]->id);
+	}
+	
+	return 0;
+}
+int Room::step_mid() {
+	for (unsigned int i=0; i < instances.size(); i++) {
+		instances[i]->object->step_mid(instances[i]->id);
+	}
+	
+	return 0;
+}
+int Room::step_end() {
+	for (unsigned int i=0; i < instances.size(); i++) {
+		instances[i]->object->step_end(instances[i]->id);
+	}
+	
+	return 0;
+}
+int Room::keyboard(int key) {
+	for (unsigned int i=0; i < instances.size(); i++) {
+		instances[i]->object->keyboard(instances[i]->id, key);
+	}
+	
+	return 0;
+}
+int Room::mouse(int button) {
+	for (unsigned int i=0; i < instances.size(); i++) {
+		instances[i]->object->mouse(instances[i]->id, button);
+	}
+	
+	return 0;
+}
+int Room::keyboard_press(int key) {
+	for (unsigned int i=0; i < instances.size(); i++) {
+		instances[i]->object->keyboard_press(instances[i]->id, key);
+	}
+	
+	return 0;
+}
+int Room::mouse_press(int button) {
+	for (unsigned int i=0; i < instances.size(); i++) {
+		instances[i]->object->mouse_press(instances[i]->id, button);
+	}
+	
+	return 0;
+}
+int Room::keyboard_release(int key) {
+	for (unsigned int i=0; i < instances.size(); i++) {
+		instances[i]->object->keyboard_release(instances[i]->id, key);
+	}
+	
+	return 0;
+}
+int Room::mouse_release(int button) {
+	for (unsigned int i=0; i < instances.size(); i++) {
+		instances[i]->object->mouse_release(instances[i]->id, button);
+	}
+	
+	return 0;
+}
+int Room::path_end() {
+	for (unsigned int i=0; i < instances.size(); i++) {
+		instances[i]->object->path_end(instances[i]->id);
+	}
+	
+	return 0;
+}
+int Room::outside_room() {
+	for (unsigned int i=0; i < instances.size(); i++) {
+		instances[i]->object->outside_room(instances[i]->id);
+	}
+	
+	return 0;
+}
+int Room::intersect_boundary() {
+	for (unsigned int i=0; i < instances.size(); i++) {
+		instances[i]->object->intersect_boundary(instances[i]->id);
+	}
+	
+	return 0;
+}
+int Room::collision() {
+	int otherid = -1;
+	
+	for (unsigned int i=0; i < instances.size(); i++) {
+		instances[i]->object->collision(instances[i]->id, otherid);
+	}
+	
+	return 0;
+}
+int Room::draw() {
+	for (unsigned int i=0; i < instances.size(); i++) {
+		instances[i]->object->draw(instances[i]->id, instances[i]->x, instances[i]->y);
+	}
+	
+	SDL_UpdateWindowSurface(game.window);
+	
+	return 0;
+}
+int Room::animation_end() {
+	for (unsigned int i=0; i < instances.size(); i++) {
+		instances[i]->object->animation_end(instances[i]->id);
+	}
+	
+	return 0;
+}
+int Room::room_start() {
+	for (unsigned int i=0; i < instances.size(); i++) {
+		instances[i]->object->room_start(instances[i]->id);
+	}
+	
+	return 0;
+}
+int Room::room_end() {
+	for (unsigned int i=0; i < instances.size(); i++) {
+		instances[i]->object->room_end(instances[i]->id);
+	}
+	
+	return 0;
+}
+int Room::game_start() {
+	for (unsigned int i=0; i < instances.size(); i++) {
+		instances[i]->object->game_start(instances[i]->id);
+	}
+	
+	return 0;
+}
+int Room::game_end() {
+	for (unsigned int i=0; i < instances.size(); i++) {
+		instances[i]->object->game_end(instances[i]->id);
+	}
+	
 	return 0;
 }

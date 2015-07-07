@@ -1,8 +1,10 @@
 NAME = EasyGameEngine
 
-INCLUDE = assimp freealut glew freeglut Magick++
-LIBS = ${shell pkg-config $(INCLUDE) --libs}
-FLAGS = -g -pg -std=c++11 -Wall -Wextra ${shell pkg-config $(INCLUDE) --cflags}
+PKGDEPS = libalut-dev libmagick++-dev freeglut3-dev libglew-dev libassimp-dev sdl2
+INCLUDE = assimp freealut glew Magick++ sdl2
+LIBS = ${shell pkg-config $(INCLUDE) --libs} -lglut
+WARNS = -Wall -Wextra -Wno-unused-parameter
+FLAGS = -g -pg -std=c++11 $(WARNS) ${shell pkg-config $(INCLUDE) --cflags}
 BUILD = g++ $(FLAGS) -o $(NAME) main.cpp $(LIBS)
 CLEAN = rm gmon.out
 

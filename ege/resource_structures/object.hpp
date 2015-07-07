@@ -30,7 +30,7 @@ class Object: public Resource {
 		int get_mask_id();
 		
 		int set_name(std::string);
-		int load_path(std::string);
+		int set_path(std::string);
 		int set_sprite(Sprite*);
 		int set_sprite_id(int);
 		int set_is_solid(bool);
@@ -58,7 +58,7 @@ class Object: public Resource {
 		virtual void outside_room(int) {};
 		virtual void intersect_boundary(int) {};
 		virtual void collision(int, int) {};
-		virtual void draw(int) {};
+		virtual void draw(int, int, int) {};
 		virtual void animation_end(int) {};
 		virtual void room_start(int) {};
 		virtual void room_end(int) {};
@@ -81,7 +81,7 @@ Object::Object (std::string new_name, std::string object) {
 	
 	reset();
 	set_name(new_name);
-	load_path(object);
+	set_path(object);
 }
 Object::~Object() {
 	resource_list.objects.remove_resource(id);
@@ -180,7 +180,7 @@ int Object::set_name(std::string new_name) {
 	name = new_name;
 	return 0;
 }
-int Object::load_path(std::string object) {
+int Object::set_path(std::string object) {
 	object_path = "resources/objects/"+object;
 	// Load XML Object data
 	/* 

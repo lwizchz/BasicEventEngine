@@ -3,10 +3,13 @@ class Sprite: public Resource {
 		int id;
 		std::string name;
 		std::string image_path;
-		//Texture texture;
 		int width, height;
 		int subimage_amount;
 		int origin_x, origin_y;
+		
+		//Texture texture;
+		SDL_Surface* surface;
+		bool is_loaded;
 	public:
 		Sprite();
 		Sprite(std::string, std::string);
@@ -24,11 +27,15 @@ class Sprite: public Resource {
 		int get_origin_y();
 		
 		int set_name(std::string);
-		int load_path(std::string);
+		int set_path(std::string);
 		int set_origin_x(int);
 		int set_origin_y(int);
 		int set_origin_xy(int, int);
 		int set_origin_center();
+		
+		int load();
+		int free();
+		int draw(int, int);
 };
 Sprite::Sprite () {
 	id = resource_list.sprites.add_resource(this);
@@ -46,20 +53,27 @@ Sprite::Sprite (std::string new_name, std::string path) {
 	
 	reset();
 	set_name(new_name);
-	load_path(path);
+	set_path(path);
 }
 Sprite::~Sprite() {
 	resource_list.sprites.remove_resource(id);
 }
 int Sprite::reset() {
+	if (is_loaded) {
+		free();
+	}
+	
 	name = "";
 	image_path = "";
-	//texture = 
 	width = 0;
 	height = 0;
 	subimage_amount = 0;
 	origin_x = 0;
 	origin_y = 0;
+	
+	//texture = NULL;
+	surface = NULL;
+	is_loaded = false;
 	
 	return 0;
 }
@@ -69,12 +83,13 @@ int Sprite::print() {
 	"\n	id		" << id <<
 	"\n	name		" << name <<
 	"\n	image_path	" << image_path <<
-	"\n	texture		" << "none" <<
 	"\n	width		" << width <<
 	"\n	height		" << height <<
 	"\n	subimage_amount	" << subimage_amount <<
 	"\n	origin_x	" << origin_x <<
 	"\n	origin_y	" << origin_y <<
+	"\n	surface		" << surface <<
+	"\n	is_loaded	" << is_loaded <<
 	"\n}\n";
 	
 	return 0;
@@ -109,14 +124,8 @@ int Sprite::set_name(std::string new_name) {
 	name = new_name;
 	return 0;
 }
-int Sprite::load_path(std::string path) {
+int Sprite::set_path(std::string path) {
 	image_path = "resources/sprites/"+path;
-	// Load OpenGL texture
-	/* texture = 
-	 * width = 
-	 * height = 
-	 * subimage_amount = 
-	 */
 	return 0;
 }
 int Sprite::set_origin_x(int new_origin_x) {
@@ -135,5 +144,29 @@ int Sprite::set_origin_xy(int new_origin_x, int new_origin_y) {
 int Sprite::set_origin_center() {
 	set_origin_x(width/2);
 	set_origin_y(height/2);
+	return 0;
+}
+
+int Sprite::load() {
+	if (!is_loaded) {
+		surface = SDL_LoadBMP(image_path.c_str());
+		if (surface == NULL) {
+			std::cerr << "Failed to load sprite " << name << ":" << SDL_GetError() << "\n";
+			return 1;
+		}
+		is_loaded = true;
+	}
+	return 0;
+}
+int Sprite::free() {
+	if (is_loaded) {
+		SDL_FreeSurface(surface);
+		surface = NULL;
+		is_loaded = false;
+	}
+	return 0;
+}
+int Sprite::draw(int x, int y) {
+	SDL_BlitSurface(surface, NULL, game.screen_surface, NULL);
 	return 0;
 }

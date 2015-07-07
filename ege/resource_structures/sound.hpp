@@ -39,7 +39,7 @@ class Sound: public Resource {
 		int get_bit_rate();
 		
 		int set_name(std::string);
-		int load_path(std::string);
+		int set_path(std::string);
 		int set_volume(float);
 		int set_pan(float);
 		int set_play_type(int);
@@ -72,7 +72,7 @@ Sound::Sound (std::string new_name, std::string path) {
 	
 	reset();
 	set_name(new_name);
-	load_path(path);
+	set_path(path);
 }
 Sound::~Sound() {
 	resource_list.sounds.remove_resource(id);
@@ -150,7 +150,7 @@ int Sound::set_name(std::string new_name) {
 	name = new_name;
 	return 0;
 }
-int Sound::load_path(std::string path) {
+int Sound::set_path(std::string path) {
 	sound_path = "resources/sounds/"+path;
 	
 	// Load OpenAL sound

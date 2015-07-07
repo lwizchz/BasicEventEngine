@@ -23,7 +23,7 @@ class Background: public Resource {
 		int get_tile_height();
 		
 		int set_name(std::string);
-		int load_path(std::string);
+		int set_path(std::string);
 		int set_is_tiling(bool);
 		int set_tile_width(int);
 		int set_tile_height(int);
@@ -44,7 +44,7 @@ Background::Background (std::string new_name, std::string path) {
 	
 	reset();
 	set_name(new_name);
-	load_path(path);
+	set_path(path);
 }
 Background::~Background() {
 	resource_list.backgrounds.remove_resource(id);
@@ -99,7 +99,7 @@ int Background::set_name(std::string new_name) {
 	name = new_name;
 	return 0;
 }
-int Background::load_path(std::string path) {
+int Background::set_path(std::string path) {
 	background_path = "resources/backgrounds/"+path;
 	// Load OpenGL texture
 	/* texture = 

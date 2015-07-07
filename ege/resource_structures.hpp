@@ -12,7 +12,7 @@ class Resource {
 		virtual std::string get_name() =0;
 		virtual std::string get_path() =0;
 		virtual int set_name(std::string) =0;
-		virtual int load_path(std::string) =0;
+		virtual int set_path(std::string) =0;
 };
 class ResourceList {
 		std::map<int,Resource*> resources;

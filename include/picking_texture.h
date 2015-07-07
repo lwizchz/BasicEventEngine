@@ -15,8 +15,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef PICKING_TEXTURE_H
-#define	PICKING_TEXTURE_H
+#ifndef PICKINGTEXTURE_H
+#define	PICKINGTEXTURE_H
 
 #include <GL/glew.h>
 
@@ -54,5 +54,5 @@ private:
     GLuint m_depthTexture;
 };
 
-#endif	/* PICKING_TEXTURE_H */
+#endif	/* PICKINGTEXTURE_H */
 

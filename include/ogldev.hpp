@@ -1,3 +1,4 @@
+#include "ogldev_engine_common.h"
 #include "render_callbacks.h"
 #include "ogldev_util.cpp"
 #include "math_3d.cpp"
