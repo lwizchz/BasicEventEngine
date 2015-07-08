@@ -1,3 +1,5 @@
+class InstanceData; // Defined in ege/resource_structures/room.hpp
+
 class Object: public Resource {
 		// Add new variables to the print() debugging method
 		int id;
@@ -42,28 +44,28 @@ class Object: public Resource {
 		int set_mask(Sprite*);
 		int set_mask_id(int);
 		
-		virtual void create(int) {};
-		virtual void destroy(int) {};
-		virtual void alarm(int, int) {};
-		virtual void step_begin(int) {};
-		virtual void step_mid(int) {};
-		virtual void step_end(int) {};
-		virtual void keyboard(int, int) {};
-		virtual void mouse(int, int) {};
-		virtual void keyboard_press(int, int) {};
-		virtual void mouse_press(int, int) {};
-		virtual void keyboard_release(int, int) {};
-		virtual void mouse_release(int, int) {};
-		virtual void path_end(int) {};
-		virtual void outside_room(int) {};
-		virtual void intersect_boundary(int) {};
-		virtual void collision(int, int) {};
-		virtual void draw(int, int, int) {};
-		virtual void animation_end(int) {};
-		virtual void room_start(int) {};
-		virtual void room_end(int) {};
-		virtual void game_start(int) {};
-		virtual void game_end(int) {};
+		virtual void create(InstanceData*) {};
+		virtual void destroy(InstanceData*) {};
+		virtual void alarm(InstanceData*, int) {};
+		virtual void step_begin(InstanceData*) {};
+		virtual void step_mid(InstanceData*) {};
+		virtual void step_end(InstanceData*) {};
+		virtual void keyboard(InstanceData*, SDL_Event*) {};
+		virtual void mouse(InstanceData*, SDL_Event*) {};
+		virtual void keyboard_press(InstanceData*, SDL_Event*) {};
+		virtual void mouse_press(InstanceData*, SDL_Event*) {};
+		virtual void keyboard_release(InstanceData*, SDL_Event*) {};
+		virtual void mouse_release(InstanceData*, SDL_Event*) {};
+		virtual void path_end(InstanceData*) {};
+		virtual void outside_room(InstanceData*) {};
+		virtual void intersect_boundary(InstanceData*) {};
+		virtual void collision(InstanceData*, int) {};
+		virtual void draw(InstanceData*) {};
+		virtual void animation_end(InstanceData*) {};
+		virtual void room_start(InstanceData*) {};
+		virtual void room_end(InstanceData*) {};
+		virtual void game_start(InstanceData*) {};
+		virtual void game_end(InstanceData*) {};
 };
 Object::Object () {
 	id = resource_list.objects.add_resource(this);

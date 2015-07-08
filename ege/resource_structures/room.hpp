@@ -105,12 +105,12 @@ class Room: public Resource {
 		int step_begin();
 		int step_mid();
 		int step_end();
-		int keyboard(int);
-		int mouse(int);
-		int keyboard_press(int);
-		int mouse_press(int);
-		int keyboard_release(int);
-		int mouse_release(int);
+		int keyboard(SDL_Event*);
+		int mouse(SDL_Event*);
+		int keyboard_press(SDL_Event*);
+		int mouse_press(SDL_Event*);
+		int keyboard_release(SDL_Event*);
+		int mouse_release(SDL_Event*);
 		int path_end();
 		int outside_room();
 		int intersect_boundary();
@@ -390,105 +390,105 @@ int Room::free_media() {
 
 int Room::create() {
 	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->create(instances[i]->id);
+		instances[i]->object->create(instances[i]);
 	}
 	
 	return 0;
 }
 int Room::destroy() {
 	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->destroy(instances[i]->id);
+		instances[i]->object->destroy(instances[i]);
 	}
 	
 	return 0;
 }
 int Room::alarm(int alarm) {
 	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->alarm(instances[i]->id, alarm);
+		instances[i]->object->alarm(instances[i], alarm);
 	}
 	
 	return 0;
 }
 int Room::step_begin() {
 	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->step_begin(instances[i]->id);
+		instances[i]->object->step_begin(instances[i]);
 	}
 	
 	return 0;
 }
 int Room::step_mid() {
 	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->step_mid(instances[i]->id);
+		instances[i]->object->step_mid(instances[i]);
 	}
 	
 	return 0;
 }
 int Room::step_end() {
 	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->step_end(instances[i]->id);
+		instances[i]->object->step_end(instances[i]);
 	}
 	
 	return 0;
 }
-int Room::keyboard(int key) {
+int Room::keyboard(SDL_Event* e) {
 	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->keyboard(instances[i]->id, key);
+		instances[i]->object->keyboard(instances[i], e);
 	}
 	
 	return 0;
 }
-int Room::mouse(int button) {
+int Room::mouse(SDL_Event* e) {
 	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->mouse(instances[i]->id, button);
+		instances[i]->object->mouse(instances[i], e);
 	}
 	
 	return 0;
 }
-int Room::keyboard_press(int key) {
+int Room::keyboard_press(SDL_Event* e) {
 	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->keyboard_press(instances[i]->id, key);
+		instances[i]->object->keyboard_press(instances[i], e);
 	}
 	
 	return 0;
 }
-int Room::mouse_press(int button) {
+int Room::mouse_press(SDL_Event* e) {
 	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->mouse_press(instances[i]->id, button);
+		instances[i]->object->mouse_press(instances[i], e);
 	}
 	
 	return 0;
 }
-int Room::keyboard_release(int key) {
+int Room::keyboard_release(SDL_Event* e) {
 	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->keyboard_release(instances[i]->id, key);
+		instances[i]->object->keyboard_release(instances[i], e);
 	}
 	
 	return 0;
 }
-int Room::mouse_release(int button) {
+int Room::mouse_release(SDL_Event* e) {
 	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->mouse_release(instances[i]->id, button);
+		instances[i]->object->mouse_release(instances[i], e);
 	}
 	
 	return 0;
 }
 int Room::path_end() {
 	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->path_end(instances[i]->id);
+		instances[i]->object->path_end(instances[i]);
 	}
 	
 	return 0;
 }
 int Room::outside_room() {
 	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->outside_room(instances[i]->id);
+		instances[i]->object->outside_room(instances[i]);
 	}
 	
 	return 0;
 }
 int Room::intersect_boundary() {
 	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->intersect_boundary(instances[i]->id);
+		instances[i]->object->intersect_boundary(instances[i]);
 	}
 	
 	return 0;
@@ -497,51 +497,53 @@ int Room::collision() {
 	int otherid = -1;
 	
 	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->collision(instances[i]->id, otherid);
+		instances[i]->object->collision(instances[i], otherid);
 	}
 	
 	return 0;
 }
 int Room::draw() {
+	SDL_RenderClear(game.renderer);
+	
 	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->draw(instances[i]->id, instances[i]->x, instances[i]->y);
+		instances[i]->object->draw(instances[i]);
 	}
 	
-	SDL_UpdateWindowSurface(game.window);
+	SDL_RenderPresent(game.renderer);
 	
 	return 0;
 }
 int Room::animation_end() {
 	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->animation_end(instances[i]->id);
+		instances[i]->object->animation_end(instances[i]);
 	}
 	
 	return 0;
 }
 int Room::room_start() {
 	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->room_start(instances[i]->id);
+		instances[i]->object->room_start(instances[i]);
 	}
 	
 	return 0;
 }
 int Room::room_end() {
 	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->room_end(instances[i]->id);
+		instances[i]->object->room_end(instances[i]);
 	}
 	
 	return 0;
 }
 int Room::game_start() {
 	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->game_start(instances[i]->id);
+		instances[i]->object->game_start(instances[i]);
 	}
 	
 	return 0;
 }
 int Room::game_end() {
 	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->game_end(instances[i]->id);
+		instances[i]->object->game_end(instances[i]);
 	}
 	
 	return 0;

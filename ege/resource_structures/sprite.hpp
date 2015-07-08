@@ -7,8 +7,7 @@ class Sprite: public Resource {
 		int subimage_amount;
 		int origin_x, origin_y;
 		
-		//Texture texture;
-		SDL_Surface* surface;
+		SDL_Texture* texture;
 		bool is_loaded;
 	public:
 		Sprite();
@@ -71,8 +70,7 @@ int Sprite::reset() {
 	origin_x = 0;
 	origin_y = 0;
 	
-	//texture = NULL;
-	surface = NULL;
+	texture = NULL;
 	is_loaded = false;
 	
 	return 0;
@@ -88,7 +86,7 @@ int Sprite::print() {
 	"\n	subimage_amount	" << subimage_amount <<
 	"\n	origin_x	" << origin_x <<
 	"\n	origin_y	" << origin_y <<
-	"\n	surface		" << surface <<
+	"\n	texture		" << texture <<
 	"\n	is_loaded	" << is_loaded <<
 	"\n}\n";
 	
@@ -149,24 +147,43 @@ int Sprite::set_origin_center() {
 
 int Sprite::load() {
 	if (!is_loaded) {
-		surface = SDL_LoadBMP(image_path.c_str());
-		if (surface == NULL) {
-			std::cerr << "Failed to load sprite " << name << ":" << SDL_GetError() << "\n";
+		SDL_Surface* tmp_surface;
+		tmp_surface = IMG_Load(image_path.c_str());
+		if (tmp_surface == NULL) {
+			std::cerr << "Failed to load sprite " << name << ": " << IMG_GetError() << "\n";
 			return 1;
 		}
+		
+		texture = SDL_CreateTextureFromSurface(game.renderer, tmp_surface);
+		if (texture == NULL) {
+			std::cerr << "Failed to create texture from surface: " << SDL_GetError() << "\n";
+			return 1;
+		}
+		
+		SDL_FreeSurface(tmp_surface);
+		
+		SDL_QueryTexture(texture, NULL, NULL, &width, &height);
+		
 		is_loaded = true;
 	}
 	return 0;
 }
 int Sprite::free() {
 	if (is_loaded) {
-		SDL_FreeSurface(surface);
-		surface = NULL;
+		SDL_DestroyTexture(texture);
+		texture = NULL;
 		is_loaded = false;
 	}
 	return 0;
 }
 int Sprite::draw(int x, int y) {
-	SDL_BlitSurface(surface, NULL, game.screen_surface, NULL);
+	SDL_Rect rect;
+	rect.x = x;
+	rect.y = y;
+	rect.w = width;
+	rect.h = height;
+	
+	SDL_RenderCopy(game.renderer, texture, NULL, &rect);
+	
 	return 0;
 }
