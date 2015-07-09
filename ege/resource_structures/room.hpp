@@ -13,7 +13,22 @@ class BackgroundData {
 		bool is_horizontal_tile, is_vertical_tile;
 		int horizontal_speed, vertical_speed;
 		bool is_stretched;
+		BackgroundData() {background=NULL;is_visible=false;is_foreground=false;x=0;y=0;is_horizontal_tile=false;is_vertical_tile=false;horizontal_speed=0;vertical_speed=0;is_stretched=false;};
+		int init(Background*, bool, bool, int, int, bool, bool, int, int, bool);
 };
+int BackgroundData::init(Background* new_background, bool new_is_visible, bool new_is_foreground, int new_x, int new_y, bool new_is_horizontal_tile, bool new_is_vertical_tile, int new_horizontal_speed, int new_vertical_speed, bool new_is_stretched) {
+	background = new_background;
+	is_visible = new_is_visible;
+	is_foreground = new_is_foreground;
+	x = new_x;
+	y = new_y;
+	is_horizontal_tile = new_is_horizontal_tile;
+	is_vertical_tile = new_is_vertical_tile;
+	horizontal_speed = new_horizontal_speed;
+	vertical_speed = new_vertical_speed;
+	is_stretched = new_is_stretched;
+	return 0;
+}
 class ViewData {
 	public:
 		bool is_visible;
@@ -27,8 +42,8 @@ class InstanceData {
 	public:
 		int id;
 		Object* object;
-		int x, y;
-		InstanceData() {id=-1;object=0;x=0;y=0;};
+		int x, y, vx, vy;
+		InstanceData() {id=-1;object=NULL;x=0;y=0;vx=0;vy=0;};
 		int init(int, Object*, int, int);
 };
 int InstanceData::init(int new_id, Object* new_object, int new_x, int new_y) {
@@ -36,6 +51,8 @@ int InstanceData::init(int new_id, Object* new_object, int new_x, int new_y) {
 	object = new_object;
 	x = new_x;
 	y = new_y;
+	vx = x;
+	vy = y;
 	return 0;
 }
 
@@ -374,8 +391,15 @@ int Room::remove_instance(int index) {
 }
 
 int Room::load_media() {
+	// Load room sprites
 	for (unsigned int i=0; i<instances.size(); i++) {
 		instances[i]->object->get_sprite()->load();
+	}
+	// Load room sounds
+	//
+	// Load room backgrounds
+	for (unsigned int i=0; i<backgrounds.size(); i++) {
+		backgrounds[i]->background->load();
 	}
 	
 	return 0;
@@ -505,8 +529,42 @@ int Room::collision() {
 int Room::draw() {
 	SDL_RenderClear(game.renderer);
 	
+	BackgroundData b;
+	for (unsigned int i=0; i<backgrounds.size(); i++) {
+		b = *backgrounds[i];
+		if (b.is_visible && !b.is_foreground) {
+			b.background->draw(b.x, b.y, b.is_horizontal_tile, b.is_vertical_tile, b.horizontal_speed, b.vertical_speed, b.is_stretched);
+		}
+	}
+	
 	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->draw(instances[i]);
+		if (is_views_enabled) { // Render different viewports
+			SDL_Rect viewport;
+			for (unsigned int i=0; i<views.size(); i++) {
+				if (views[i]->is_visible) {
+					viewport.x = views[i]->port_x;
+					viewport.y = views[i]->port_y;
+					viewport.w = views[i]->port_width;
+					viewport.h = views[i]->port_height;
+					SDL_RenderSetViewport(game.renderer, &viewport);
+					
+					instances[i]->vx = instances[i]->x; // This needs to be fixed for when viewports are not the default
+					instances[i]->vy = instances[i]->y;
+					instances[i]->object->draw(instances[i]);
+				}
+			}
+		} else {
+			instances[i]->vx = instances[i]->x;
+			instances[i]->vy = instances[i]->y;
+			instances[i]->object->draw(instances[i]);
+		}
+	}
+	
+	for (unsigned int i=0; i<backgrounds.size(); i++) {
+		b = *backgrounds[i];
+		if (b.is_visible && b.is_foreground) {
+			b.background->draw(b.x, b.y, b.is_horizontal_tile, b.is_vertical_tile, b.horizontal_speed, b.vertical_speed, b.is_stretched);
+		}
 	}
 	
 	SDL_RenderPresent(game.renderer);

@@ -80,6 +80,11 @@ EGE::EGE(int new_argc, char** new_argv, Room* first_room) {
 	}
 }
 int EGE::loop() {
+	if (current_room == NULL) {
+		quit = true;
+		return 1;
+	}
+	
 	tickstamp = SDL_GetTicks();
 	while (!quit) {
 		current_room->step_begin(); if (quit) {break;}
@@ -190,6 +195,7 @@ int EGE::change_room(Room* new_room) {
 		return 1;
 	}
 	
+	SDL_SetWindowTitle(game.window, current_room->get_name().c_str());
 	current_room->create();
 	if (is_game_start) {
 		current_room->game_start();
