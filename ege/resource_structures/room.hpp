@@ -1,3 +1,14 @@
+/*
+* Copyright (c) 2015 Luke Montalvo <lukemontalvo@gmail.com>
+*
+* This file is part of EGE.
+* EGE is free software and comes with ABSOLUTELY NO WARANTY.
+* See LICENSE for more details.
+*/
+
+#ifndef _EGE_ROOM_H
+#define _EGE_ROOM_H 1
+
 #include <iostream>
 #include <map>
 #include <tuple>
@@ -78,7 +89,7 @@ class Room: public Resource {
 		int add_to_resources(std::string);
 		int reset();
 		int print();
-		
+
 		int get_id();
 		std::string get_name();
 		std::string get_path();
@@ -96,7 +107,7 @@ class Room: public Resource {
 		std::string get_view_string();
 		std::map<int,InstanceData*> get_instances();
 		std::string get_instance_string();
-		
+
 		int set_name(std::string);
 		int set_path(std::string);
 		int set_width(int);
@@ -113,11 +124,11 @@ class Room: public Resource {
 		int set_instance(int, InstanceData*);
 		int add_instance(InstanceData*);
 		int remove_instance(int);
-		
+
 		int load_media();
 		int free_media();
 		int reset_properties();
-		
+
 		int create();
 		int destroy();
 		int alarm(int);
@@ -140,7 +151,7 @@ class Room: public Resource {
 		int room_end();
 		int game_start();
 		int game_end();
-		
+
 		virtual int init() =0;
 };
 Room::Room () {
@@ -150,13 +161,13 @@ Room::Room () {
 Room::Room (std::string new_name, std::string path) {
 	id = -1;
 	reset();
-	
+
 	add_to_resources("resources/rooms/"+path);
 	if (id < 0) {
 		std::cerr << "Failed to add room resource: " << path << "\n";
 		throw(-1);
 	}
-	
+
 	set_name(new_name);
 	set_path(path);
 }
@@ -179,14 +190,14 @@ int Room::add_to_resources(std::string path) {
 			}
 		}
 	}
-	
+
 	if (list_id >= 0) {
 		id = list_id;
 	} else {
 		id = resource_list.rooms.add_resource(this);
 	}
 	resource_list.rooms.set_resource(id, this);
-	
+
 	return 0;
 }
 int Room::reset() {
@@ -203,14 +214,14 @@ int Room::reset() {
 	is_views_enabled = false;
 	views.clear();
 	instances.clear();
-	
+
 	return 0;
 }
 int Room::print() {
 	std::string background_string = get_background_string();
 	std::string view_string = get_view_string();
 	std::string instance_string = get_instance_string();
-	
+
 	std::cout <<
 	"Room { "
 	"\n	id				" << id <<
@@ -228,7 +239,7 @@ int Room::print() {
 	"\n	views				\n" << debug_indent(view_string, 2) <<
 	"	instances			\n" << debug_indent(instance_string, 2) <<
 	"}\n";
-	
+
 	return 0;
 }
 int Room::get_id() {
@@ -281,7 +292,7 @@ std::string Room::get_background_string() {
 			b.second->vertical_speed << "\t" <<
 			b.second->is_stretched << "\n";
 		}
-		
+
 		return background_string.str();
 	}
 	return "none\n";
@@ -311,7 +322,7 @@ std::string Room::get_view_string() {
 			v.second->horizontal_speed << "\t" <<
 			v.second->vertical_speed << "\n";
 		}
-		
+
 		return view_string.str();
 	}
 	return "none\n";
@@ -330,7 +341,7 @@ std::string Room::get_instance_string() {
 			i.second->x << "\t" <<
 			i.second->y << "\n";
 		}
-		
+
 		return instance_string.str();
 	}
 	return "none\n";
@@ -430,24 +441,24 @@ int Room::load_media() {
 	for (auto& b : backgrounds) {
 		b.second->background->load();
 	}
-	
+
 	return 0;
 }
 int Room::free_media() {
 	for (auto& i : instances) {
 		i.second->object->get_sprite()->free();
 	}
-	
+
 	return 0;
 }
 int Room::reset_properties() {
 	instances.clear();
-	
+
 	// Reset background data
 	for (auto& i : backgrounds) {
 		i.second->background->set_time_update();
 	}
-	
+
 	return 0;
 }
 
@@ -455,119 +466,119 @@ int Room::create() {
 	for (auto& i : instances) {
 		i.second->object->create(i.second);
 	}
-	
+
 	return 0;
 }
 int Room::destroy() {
 	for (auto& i : instances) {
 		i.second->object->destroy(i.second);
 	}
-	
+
 	return 0;
 }
 int Room::alarm(int alarm) {
-	for (auto& i : instances) {	
+	for (auto& i : instances) {
 		i.second->object->alarm(i.second, alarm);
 	}
-	
+
 	return 0;
 }
 int Room::step_begin() {
 	for (auto& i : instances) {
 		i.second->object->step_begin(i.second);
 	}
-	
+
 	return 0;
 }
 int Room::step_mid() {
 	for (auto& i : instances) {
 		i.second->object->step_mid(i.second);
 	}
-	
+
 	return 0;
 }
 int Room::step_end() {
 	for (auto& i : instances) {
 		i.second->object->step_end(i.second);
 	}
-	
+
 	return 0;
 }
 int Room::keyboard(SDL_Event* e) {
 	for (auto& i : instances) {
 		i.second->object->keyboard(i.second, e);
 	}
-	
+
 	return 0;
 }
 int Room::mouse(SDL_Event* e) {
 	for (auto& i : instances) {
 		i.second->object->mouse(i.second, e);
 	}
-	
+
 	return 0;
 }
 int Room::keyboard_press(SDL_Event* e) {
 	for (auto& i : instances) {
 		i.second->object->keyboard_press(i.second, e);
 	}
-	
+
 	return 0;
 }
 int Room::mouse_press(SDL_Event* e) {
 	for (auto& i : instances) {
 		i.second->object->mouse_press(i.second, e);
 	}
-	
+
 	return 0;
 }
 int Room::keyboard_release(SDL_Event* e) {
 	for (auto& i : instances) {
 		i.second->object->keyboard_release(i.second, e);
 	}
-	
+
 	return 0;
 }
 int Room::mouse_release(SDL_Event* e) {
 	for (auto& i : instances) {
 		i.second->object->mouse_release(i.second, e);
 	}
-	
+
 	return 0;
 }
 int Room::path_end() {
 	for (auto& i : instances) {
 		i.second->object->path_end(i.second);
 	}
-	
+
 	return 0;
 }
 int Room::outside_room() {
 	for (auto& i : instances) {
 		i.second->object->outside_room(i.second);
 	}
-	
+
 	return 0;
 }
 int Room::intersect_boundary() {
 	for (auto& i : instances) {
 		i.second->object->intersect_boundary(i.second);
 	}
-	
+
 	return 0;
 }
 int Room::collision() {
 	int otherid = -1;
-	
+
 	for (auto& i : instances) {
 		i.second->object->collision(i.second, otherid);
 	}
-	
+
 	return 0;
 }
 int Room::draw() {
 	SDL_RenderClear(game->renderer);
-	
+
 	BackgroundData b;
 	for (unsigned int i=0; i<backgrounds.size(); i++) {
 		b = *backgrounds[i];
@@ -575,7 +586,7 @@ int Room::draw() {
 			b.background->draw(b.x, b.y, b.is_horizontal_tile, b.is_vertical_tile, b.horizontal_speed, b.vertical_speed, b.is_stretched);
 		}
 	}
-	
+
 	for (auto& i : instances) {
 		if (is_views_enabled) { // Render different viewports
 			SDL_Rect viewport;
@@ -586,7 +597,7 @@ int Room::draw() {
 					viewport.w = v.second->port_width;
 					viewport.h = v.second->port_height;
 					SDL_RenderSetViewport(game->renderer, &viewport);
-					
+
 					i.second->vx = i.second->x; // This needs to be fixed for when viewports are not the default
 					i.second->vy = i.second->y;
 					i.second->object->draw(i.second);
@@ -598,16 +609,16 @@ int Room::draw() {
 			i.second->object->draw(i.second);
 		}
 	}
-	
+
 	for (unsigned int i=0; i<backgrounds.size(); i++) {
 		b = *backgrounds[i];
 		if (b.is_visible && b.is_foreground) {
 			b.background->draw(b.x, b.y, b.is_horizontal_tile, b.is_vertical_tile, b.horizontal_speed, b.vertical_speed, b.is_stretched);
 		}
 	}
-	
+
 	SDL_RenderPresent(game->renderer);
-	
+
 	return 0;
 }
 int Room::animation_end(Sprite* finished_sprite) {
@@ -616,34 +627,36 @@ int Room::animation_end(Sprite* finished_sprite) {
 			i.second->object->animation_end(i.second);
 		}
 	}
-	
+
 	return 0;
 }
 int Room::room_start() {
 	for (auto& i : instances) {
 		i.second->object->room_start(i.second);
 	}
-	
+
 	return 0;
 }
 int Room::room_end() {
 	for (auto& i : instances) {
 		i.second->object->room_end(i.second);
 	}
-	
+
 	return 0;
 }
 int Room::game_start() {
 	for (auto& i : instances) {
 		i.second->object->game_start(i.second);
 	}
-	
+
 	return 0;
 }
 int Room::game_end() {
 	for (auto& i : instances) {
 		i.second->object->game_end(i.second);
 	}
-	
+
 	return 0;
 }
+
+#endif // _EGE_ROOM_H

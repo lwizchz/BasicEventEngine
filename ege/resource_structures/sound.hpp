@@ -1,3 +1,14 @@
+/*
+* Copyright (c) 2015 Luke Montalvo <lukemontalvo@gmail.com>
+*
+* This file is part of EGE.
+* EGE is free software and comes with ABSOLUTELY NO WARANTY.
+* See LICENSE for more details.
+*/
+
+#ifndef _EGE_SOUND_H
+#define _EGE_SOUND_H 1
+
 #include <AL/alut.h>
 
 #define SOUND_AMOUNT 8
@@ -14,7 +25,7 @@ class Sound: public Resource {
 		int sample_rate;
 		int sample_format;
 		int bit_rate;
-		
+
 		ALuint buffer[SOUND_AMOUNT];
 		ALuint source[SOUND_AMOUNT];
 		const int sound_amount = SOUND_AMOUNT;
@@ -27,7 +38,7 @@ class Sound: public Resource {
 		int add_to_resources(std::string);
 		int reset();
 		int print();
-		
+
 		int get_id();
 		std::string get_name();
 		std::string get_path();
@@ -38,7 +49,7 @@ class Sound: public Resource {
 		int get_sample_rate();
 		int get_sample_format();
 		int get_bit_rate();
-		
+
 		int set_name(std::string);
 		int set_path(std::string);
 		int set_volume(float);
@@ -48,7 +59,7 @@ class Sound: public Resource {
 		int set_sample_rate(int);
 		int set_sample_format(int);
 		int set_bit_rate(int);
-		
+
 		int play();
 		int stop();
 		int rewind();
@@ -64,13 +75,13 @@ Sound::Sound () {
 Sound::Sound (std::string new_name, std::string path) {
 	id = -1;
 	reset();
-	
+
 	add_to_resources("resources/sounds/"+path);
 	if (id < 0) {
 		std::cerr << "Failed to add sound resource: " << path << "\n";
 		throw(-1);
 	}
-	
+
 	set_name(new_name);
 	set_path(path);
 }
@@ -95,14 +106,14 @@ int Sound::add_to_resources(std::string path) {
 			}
 		}
 	}
-	
+
 	if (list_id >= 0) {
 		id = list_id;
 	} else {
 		id = resource_list.sounds.add_resource(this);
 	}
 	resource_list.sounds.set_resource(id, this);
-	
+
 	return 0;
 }
 int Sound::reset() {
@@ -115,13 +126,13 @@ int Sound::reset() {
 	sample_rate = 44100;
 	sample_format = 16;
 	bit_rate = 192;
-	
+
 	/*alDeleteBuffers(1, &buffer);
 	buffer = AL_NONE;
 	source = AL_NONE;*/
 	is_playing = false;
 	next_sound = 0;
-	
+
 	return 0;
 }
 int Sound::print() {
@@ -139,7 +150,7 @@ int Sound::print() {
 	"\n	is_playing	" << is_playing <<
 	"\n	next_sound	" << next_sound <<
 	"\n}\n";
-	
+
 	return 0;
 }
 int Sound::get_id() {
@@ -179,19 +190,19 @@ int Sound::set_name(std::string new_name) {
 int Sound::set_path(std::string path) {
 	add_to_resources("resources/sounds/"+path);
 	sound_path = "resources/sounds/"+path;
-	
+
 	// Load OpenAL sound
 	alGenSources(sound_amount, source);
 	for (int i=0; i<sound_amount; i++) {
 		buffer[i] = alutCreateBufferFromFile(sound_path.c_str());
 		alSourcei(source[i], AL_BUFFER, buffer[i]);
-		
+
 		// For stereo panning
 		alSourcei(source[i], AL_SOURCE_RELATIVE, AL_TRUE);
 		alSourcef(source[i], AL_MAX_DISTANCE, 1.0f);
 		alSourcef(source[i], AL_REFERENCE_DISTANCE, 0.5f);
 	}
-	
+
 	return 0;
 }
 int Sound::set_volume(float new_volume) {
@@ -274,3 +285,5 @@ int Sound::loop() {
 bool Sound::get_is_playing() {
 	return is_playing;
 }
+
+#endif // _EGE_SOUND_H

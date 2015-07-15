@@ -1,3 +1,14 @@
+/*
+* Copyright (c) 2015 Luke Montalvo <lukemontalvo@gmail.com>
+*
+* This file is part of EGE.
+* EGE is free software and comes with ABSOLUTELY NO WARANTY.
+* See LICENSE for more details.
+*/
+
+#ifndef _EGE_UTIL_H
+#define _EGE_UTIL_H 1
+
 #include <string>
 #include <fstream>
 
@@ -21,14 +32,16 @@ void calculate_normals(const unsigned int* pIndices, unsigned int IndexCount, Ve
 		Vector3f v2 = pVertices[Index2].m_pos - pVertices[Index0].m_pos;
 		Vector3f Normal = v1.Cross(v2);
 		Normal.Normalize();
-		
+
 		pVertices[Index0].m_normal += Normal;
 		pVertices[Index1].m_normal += Normal;
 		pVertices[Index2].m_normal += Normal;
 	}
-	
+
 	// Normalize all the vertex normals
 	for (unsigned int i = 0 ; i < VertexCount ; i++) {
 		pVertices[i].m_normal.Normalize();
 	}
 }
+
+#endif // _EGE_UTIL_H

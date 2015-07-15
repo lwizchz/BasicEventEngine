@@ -1,3 +1,14 @@
+/*
+* Copyright (c) 2015 Luke Montalvo <lukemontalvo@gmail.com>
+*
+* This file is part of EGE.
+* EGE is free software and comes with ABSOLUTELY NO WARANTY.
+* See LICENSE for more details.
+*/
+
+#ifndef _EGE_PATH_H
+#define _EGE_PATH_H 1
+
 #include <iostream>
 #include <vector>
 #include <tuple>
@@ -19,7 +30,7 @@ class Path: public Resource {
 		int add_to_resources(std::string);
 		int reset();
 		int print();
-		
+
 		int get_id();
 		std::string get_name();
 		std::string get_path();
@@ -27,7 +38,7 @@ class Path: public Resource {
 		std::string get_coordinate_string();
 		int get_connection_type();
 		bool get_is_closed();
-		
+
 		int set_name(std::string);
 		int set_path(std::string);
 		int add_coordinate(path_coord);
@@ -44,13 +55,13 @@ Path::Path () {
 Path::Path (std::string new_name, std::string path) {
 	id = -1;
 	reset();
-	
+
 	add_to_resources("resources/paths/"+path);
 	if (id < 0) {
 		std::cerr << "Failed to add path resource: " << path << "\n";
 		throw(-1);
 	}
-	
+
 	set_name(new_name);
 	set_path(path);
 }
@@ -73,14 +84,14 @@ int Path::add_to_resources(std::string path) {
 			}
 		}
 	}
-	
+
 	if (list_id >= 0) {
 		id = list_id;
 	} else {
 		id = resource_list.paths.add_resource(this);
 	}
 	resource_list.paths.set_resource(id, this);
-	
+
 	return 0;
 }
 int Path::reset() {
@@ -89,12 +100,12 @@ int Path::reset() {
 	coordinate_list.clear();
 	connection_type = 0;
 	is_closed = true;
-	
+
 	return 0;
 }
 int Path::print() {
 	std::string coordinate_string = get_coordinate_string();
-	
+
 	std::cout <<
 	"Path { "
 	"\n	id		" << id <<
@@ -104,7 +115,7 @@ int Path::print() {
 	"	connection_type	" << connection_type <<
 	"\n	is_closed	" << is_closed <<
 	"\n}\n";
-	
+
 	return 0;
 }
 int Path::get_id() {
@@ -129,7 +140,7 @@ std::string Path::get_coordinate_string() {
 			std::get<1>(*it) << "\t" <<
 			std::get<2>(*it) << "\n";
 		}
-		
+
 		return coordinate_string.str();
 	}
 	return "none\n";
@@ -150,7 +161,7 @@ int Path::set_path(std::string path) {
 	add_to_resources("resources/paths/"+path);
 	path_path = "resources/paths/"+path;
 	// Load XML Path data
-	/* 
+	/*
 	 * coordinate_list.push_back(x, y, speed);
 	 */
 	return 0;
@@ -186,3 +197,5 @@ int Path::set_is_closed(bool new_is_closed) {
 	is_closed = new_is_closed;
 	return 0;
 }
+
+#endif // _EGE_PATH_H

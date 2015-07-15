@@ -1,3 +1,14 @@
+/*
+* Copyright (c) 2015 Luke Montalvo <lukemontalvo@gmail.com>
+*
+* This file is part of EGE.
+* EGE is free software and comes with ABSOLUTELY NO WARANTY.
+* See LICENSE for more details.
+*/
+
+#ifndef _EGE_SPRITE_H
+#define _EGE_SPRITE_H 1
+
 #define MAX_SPRITE_IMAGES 8
 
 class Sprite: public Resource {
@@ -291,3 +302,5 @@ int Sprite::draw(int x, int y) {
 
 	return 0;
 }
+
+#endif // _EGE_SPRITE_H

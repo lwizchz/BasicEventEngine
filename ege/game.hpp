@@ -1,3 +1,14 @@
+/*
+* Copyright (c) 2015 Luke Montalvo <lukemontalvo@gmail.com>
+*
+* This file is part of EGE.
+* EGE is free software and comes with ABSOLUTELY NO WARANTY.
+* See LICENSE for more details.
+*/
+
+#ifndef _EGE_GAME_H
+#define _EGE_GAME_H 1
+
 #include <iostream>
 #include <time.h>
 #include <SDL2/SDL.h>
@@ -335,3 +346,5 @@ int EGE::animation_end(Sprite* finished_sprite) {
 Room* EGE::get_room() {
 	return current_room;
 }
+
+#endif // _EGE_GAME_H

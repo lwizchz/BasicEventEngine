@@ -1,3 +1,14 @@
+/*
+* Copyright (c) 2015 Luke Montalvo <lukemontalvo@gmail.com>
+*
+* This file is part of EGE.
+* EGE is free software and comes with ABSOLUTELY NO WARANTY.
+* See LICENSE for more details.
+*/
+
+#ifndef _EGE_BACKGROUND_H
+#define _EGE_BACKGROUND_H 1
+
 class Background: public Resource {
 		// Add new variables to the print() debugging method
 		int id;
@@ -7,10 +18,10 @@ class Background: public Resource {
 		bool is_tiling;
 		int tile_width, tile_height;
 		Uint32 animation_time;
-		
+
 		SDL_Texture* texture;
 		bool is_loaded;
-		
+
 		int tile_horizontal(SDL_Texture*, SDL_Rect*);
 		int tile_vertical(SDL_Texture*, SDL_Rect*);
 	public:
@@ -20,7 +31,7 @@ class Background: public Resource {
 		int add_to_resources(std::string);
 		int reset();
 		int print();
-		
+
 		int get_id();
 		std::string get_name();
 		std::string get_path();
@@ -29,14 +40,14 @@ class Background: public Resource {
 		bool get_is_tiling();
 		int get_tile_width();
 		int get_tile_height();
-		
+
 		int set_name(std::string);
 		int set_path(std::string);
 		int set_is_tiling(bool);
 		int set_tile_width(int);
 		int set_tile_height(int);
 		int set_time_update();
-		
+
 		int load();
 		int free();
 		int draw(int, int, bool, bool, int, int, bool);
@@ -49,13 +60,13 @@ Background::Background (std::string new_name, std::string path) {
 	id = -1;
 	is_loaded = false;
 	reset();
-	
+
 	add_to_resources("resources/backgrounds/"+path);
 	if (id < 0) {
 		std::cerr << "Failed to add background resource: " << path << "\n";
 		throw(-1);
 	}
-	
+
 	set_name(new_name);
 	set_path(path);
 }
@@ -78,21 +89,21 @@ int Background::add_to_resources(std::string path) {
 			}
 		}
 	}
-	
+
 	if (list_id >= 0) {
 		id = list_id;
 	} else {
 		id = resource_list.backgrounds.add_resource(this);
 	}
 	resource_list.backgrounds.set_resource(id, this);
-	
+
 	return 0;
 }
 int Background::reset() {
 	if (is_loaded) {
 		free();
 	}
-	
+
 	name = "";
 	background_path = "";
 	width = 0;
@@ -101,10 +112,10 @@ int Background::reset() {
 	tile_width = 0;
 	tile_height = 0;
 	animation_time = 0;
-	
+
 	texture = NULL;
 	is_loaded = false;
-	
+
 	return 0;
 }
 int Background::print() {
@@ -117,7 +128,7 @@ int Background::print() {
 	"\n	height		" << height <<
 	"\n	is_tiling	" << is_tiling <<
 	"\n}\n";
-	
+
 	return 0;
 }
 int Background::get_id() {
@@ -178,17 +189,17 @@ int Background::load() {
 			std::cerr << "Failed to load background " << name << ": " << IMG_GetError() << "\n";
 			return 1;
 		}
-		
+
 		texture = SDL_CreateTextureFromSurface(game->renderer, tmp_surface);
 		if (texture == NULL) {
 			std::cerr << "Failed to create texture from surface: " << SDL_GetError() << "\n";
 			return 1;
 		}
-		
+
 		SDL_FreeSurface(tmp_surface);
-		
+
 		SDL_QueryTexture(texture, NULL, NULL, &width, &height);
-		
+
 		is_loaded = true;
 	}
 	return 0;
@@ -260,7 +271,7 @@ int Background::draw(int x, int y, bool is_horizontal_tile, bool is_vertical_til
 		rect.y = y + dy;
 		rect.w = width;
 		rect.h = height;
-		
+
 		if (is_horizontal_tile && is_vertical_tile) {
 			for (;rect.y < game->height; rect.y+=rect.h) {
 				tile_horizontal(texture, &rect);
@@ -277,6 +288,8 @@ int Background::draw(int x, int y, bool is_horizontal_tile, bool is_vertical_til
 			SDL_RenderCopy(game->renderer, texture, NULL, &rect);
 		}
 	}
-	
+
 	return 0;
 }
+
+#endif // _EGE_BACKGROUND_H

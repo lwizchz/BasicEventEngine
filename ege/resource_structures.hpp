@@ -1,3 +1,14 @@
+/*
+* Copyright (c) 2015 Luke Montalvo <lukemontalvo@gmail.com>
+*
+* This file is part of EGE.
+* EGE is free software and comes with ABSOLUTELY NO WARANTY.
+* See LICENSE for more details.
+*/
+
+#ifndef _EGE_RESOURCE_STRUCTURES_H
+#define _EGE_RESOURCE_STRUCTURES_H 1
+
 #include <iostream>
 #include <string>
 #include <map>
@@ -100,3 +111,5 @@ Object* object(int id) {
 Room* room(int id) {
 	return dynamic_cast<Room*>(resource_list.rooms.get_resource(id));
 }
+
+#endif // _EGE_RESOURCE_STRUCTURES_H

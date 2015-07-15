@@ -1,3 +1,14 @@
+/*
+* Copyright (c) 2015 Luke Montalvo <lukemontalvo@gmail.com>
+*
+* This file is part of EGE.
+* EGE is free software and comes with ABSOLUTELY NO WARANTY.
+* See LICENSE for more details.
+*/
+
+#ifndef _EGE_OBJECT_H
+#define _EGE_OBJECT_H 1
+
 class InstanceData; // Defined in ege/resource_structures/room.hpp
 
 class Object: public Resource {
@@ -17,7 +28,7 @@ class Object: public Resource {
 		int add_to_resources(std::string);
 		int reset();
 		int print();
-		
+
 		int get_id();
 		std::string get_name();
 		std::string get_path();
@@ -31,7 +42,7 @@ class Object: public Resource {
 		int get_parent_id();
 		Sprite* get_mask();
 		int get_mask_id();
-		
+
 		int set_name(std::string);
 		int set_path(std::string);
 		int set_sprite(Sprite*);
@@ -44,7 +55,7 @@ class Object: public Resource {
 		int set_parent_id(int);
 		int set_mask(Sprite*);
 		int set_mask_id(int);
-		
+
 		virtual void create(InstanceData*) {};
 		virtual void destroy(InstanceData*) {};
 		virtual void alarm(InstanceData*, int) {};
@@ -75,13 +86,13 @@ Object::Object () {
 Object::Object (std::string new_name, std::string path) {
 	id = -1;
 	reset();
-	
+
 	add_to_resources("resources/objects/"+path);
 	if (id < 0) {
 		std::cerr << "Failed to add object resource: " << path << "\n";
 		throw(-1);
 	}
-	
+
 	set_name(new_name);
 	set_path(path);
 }
@@ -104,14 +115,14 @@ int Object::add_to_resources(std::string path) {
 			}
 		}
 	}
-	
+
 	if (list_id >= 0) {
 		id = list_id;
 	} else {
 		id = resource_list.objects.add_resource(this);
 	}
 	resource_list.objects.set_resource(id, this);
-	
+
 	return 0;
 }
 int Object::reset() {
@@ -125,7 +136,7 @@ int Object::reset() {
 	parent = NULL;
 	who = this;
 	mask = NULL;
-	
+
 	return 0;
 }
 int Object::print() {
@@ -160,7 +171,7 @@ int Object::print() {
 		std::cout << "\n	mask		NULL";
 	}
 	std::cout << "\n}\n";
-	
+
 	return 0;
 }
 int Object::get_id() {
@@ -239,3 +250,5 @@ int Object::set_mask(Sprite* new_mask) {
 	mask = new_mask;
 	return 0;
 }
+
+#endif // _EGE_OBJECT_H
