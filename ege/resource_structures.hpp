@@ -6,6 +6,9 @@
 
 class Resource {
 	public:
+		EGE* game = NULL;
+		
+		virtual ~Resource() {};
 		virtual int reset() =0;
 		virtual int print() =0;
 		virtual int get_id() =0;
@@ -15,11 +18,14 @@ class Resource {
 		virtual int set_path(std::string) =0;
 };
 class ResourceList {
+	public:
 		std::map<int,Resource*> resources;
 		int next_index;
-	public:
+		
 		ResourceList();
+		int reset();
 		int add_resource(Resource*);
+		int set_resource(int, Resource*);
 		Resource* get_resource(int);
 		int get_amount();
 		int remove_resource(int);
@@ -32,6 +38,11 @@ class MetaResourceList {
 ResourceList::ResourceList() {
 	next_index = 0;
 }
+int ResourceList::reset() {
+	resources.clear();
+	next_index = 0;
+	return 0;
+}
 int ResourceList::add_resource(Resource* new_resource) {
 	int index = next_index;
 	std::pair<std::map<int,Resource*>::iterator,bool> ret;
@@ -42,11 +53,18 @@ int ResourceList::add_resource(Resource* new_resource) {
 	}
 	return -1;
 }
+int ResourceList::set_resource(int id, Resource* resource) {
+	resources.at(id) = resource;
+	return 0;
+}
 Resource* ResourceList::get_resource(int id) {
-	return resources[id];
+	if (resources.find(id) != resources.end()) {
+		return resources.at(id);
+	}
+	return NULL;
 }
 int ResourceList::get_amount() {
-	return resources.size();
+	return next_index; //resources.size();
 }
 int ResourceList::remove_resource(int id) {
 	resources.erase(id);

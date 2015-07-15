@@ -24,6 +24,7 @@ class Sound: public Resource {
 		Sound();
 		Sound(std::string, std::string);
 		~Sound();
+		int add_to_resources(std::string);
 		int reset();
 		int print();
 		
@@ -57,20 +58,19 @@ class Sound: public Resource {
 		bool get_is_playing();
 };
 Sound::Sound () {
-	id = resource_list.sounds.add_resource(this);
-	if (id < 0) {
-		fprintf(stderr, "Failed to add sound resource: %d", id);
-	}
-	
+	id = -1;
 	reset();
 }
 Sound::Sound (std::string new_name, std::string path) {
-	id = resource_list.sounds.add_resource(this);
+	id = -1;
+	reset();
+	
+	add_to_resources("resources/sounds/"+path);
 	if (id < 0) {
-		fprintf(stderr, "Failed to add sound resource: %d", id);
+		std::cerr << "Failed to add sound resource: " << path << "\n";
+		throw(-1);
 	}
 	
-	reset();
 	set_name(new_name);
 	set_path(path);
 }
@@ -78,6 +78,32 @@ Sound::~Sound() {
 	resource_list.sounds.remove_resource(id);
 	alDeleteBuffers(SOUND_AMOUNT, buffer);
 	alDeleteSources(SOUND_AMOUNT, source);
+}
+int Sound::add_to_resources(std::string path) {
+	int list_id = -1;
+	if (id >= 0) {
+		if (path == sound_path) {
+			return 1;
+		}
+		resource_list.sounds.remove_resource(id);
+		id = -1;
+	} else {
+		for (auto i : resource_list.sounds.resources) {
+			if ((i.second != NULL)&&(i.second->get_path() == path)) {
+				list_id = i.first;
+				break;
+			}
+		}
+	}
+	
+	if (list_id >= 0) {
+		id = list_id;
+	} else {
+		id = resource_list.sounds.add_resource(this);
+	}
+	resource_list.sounds.set_resource(id, this);
+	
+	return 0;
 }
 int Sound::reset() {
 	name = "";
@@ -151,6 +177,7 @@ int Sound::set_name(std::string new_name) {
 	return 0;
 }
 int Sound::set_path(std::string path) {
+	add_to_resources("resources/sounds/"+path);
 	sound_path = "resources/sounds/"+path;
 	
 	// Load OpenAL sound

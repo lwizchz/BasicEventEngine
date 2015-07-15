@@ -6,6 +6,7 @@ class Background: public Resource {
 		int width, height;
 		bool is_tiling;
 		int tile_width, tile_height;
+		Uint32 animation_time;
 		
 		SDL_Texture* texture;
 		bool is_loaded;
@@ -16,6 +17,7 @@ class Background: public Resource {
 		Background();
 		Background(std::string, std::string);
 		~Background();
+		int add_to_resources(std::string);
 		int reset();
 		int print();
 		
@@ -33,36 +35,75 @@ class Background: public Resource {
 		int set_is_tiling(bool);
 		int set_tile_width(int);
 		int set_tile_height(int);
+		int set_time_update();
 		
 		int load();
 		int free();
 		int draw(int, int, bool, bool, int, int, bool);
 };
 Background::Background () {
-	id = resource_list.backgrounds.add_resource(this);
-	if (id < 0) {
-		fprintf(stderr, "Failed to add background resource: %d", id);
-	}
-	
+	id = -1;
 	reset();
 }
 Background::Background (std::string new_name, std::string path) {
-	id = resource_list.backgrounds.add_resource(this);
+	id = -1;
+	is_loaded = false;
+	reset();
+	
+	add_to_resources("resources/backgrounds/"+path);
 	if (id < 0) {
-		fprintf(stderr, "Failed to add background resource: %d", id);
+		std::cerr << "Failed to add background resource: " << path << "\n";
+		throw(-1);
 	}
 	
-	reset();
 	set_name(new_name);
 	set_path(path);
 }
 Background::~Background() {
 	resource_list.backgrounds.remove_resource(id);
 }
+int Background::add_to_resources(std::string path) {
+	int list_id = -1;
+	if (id >= 0) {
+		if (path == background_path) {
+			return 1;
+		}
+		resource_list.backgrounds.remove_resource(id);
+		id = -1;
+	} else {
+		for (auto b : resource_list.backgrounds.resources) {
+			if ((b.second != NULL)&&(b.second->get_path() == path)) {
+				list_id = b.first;
+				break;
+			}
+		}
+	}
+	
+	if (list_id >= 0) {
+		id = list_id;
+	} else {
+		id = resource_list.backgrounds.add_resource(this);
+	}
+	resource_list.backgrounds.set_resource(id, this);
+	
+	return 0;
+}
 int Background::reset() {
+	if (is_loaded) {
+		free();
+	}
+	
 	name = "";
 	background_path = "";
+	width = 0;
+	height = 0;
 	is_tiling = false;
+	tile_width = 0;
+	tile_height = 0;
+	animation_time = 0;
+	
+	texture = NULL;
+	is_loaded = false;
 	
 	return 0;
 }
@@ -104,18 +145,12 @@ int Background::get_tile_height() {
 	return tile_height;
 }
 int Background::set_name(std::string new_name) {
-	// Deny name change if game is currently running (?)
-	// if (!game.is_running()) {
 	name = new_name;
 	return 0;
 }
 int Background::set_path(std::string path) {
+	add_to_resources("resources/backgrounds/"+path);
 	background_path = "resources/backgrounds/"+path;
-	// Load OpenGL texture
-	/* texture = 
-	 * width = 
-	 * height = 
-	 */
 	return 0;
 }
 int Background::set_is_tiling(bool new_is_tiling) {
@@ -130,6 +165,10 @@ int Background::set_tile_height(int new_tile_height) {
 	tile_height = new_tile_height;
 	return 0;
 }
+int Background::set_time_update() {
+	animation_time = SDL_GetTicks();
+	return 0;
+}
 
 int Background::load() {
 	if (!is_loaded) {
@@ -140,7 +179,7 @@ int Background::load() {
 			return 1;
 		}
 		
-		texture = SDL_CreateTextureFromSurface(game.renderer, tmp_surface);
+		texture = SDL_CreateTextureFromSurface(game->renderer, tmp_surface);
 		if (texture == NULL) {
 			std::cerr << "Failed to create texture from surface: " << SDL_GetError() << "\n";
 			return 1;
@@ -163,15 +202,18 @@ int Background::free() {
 	return 0;
 }
 int Background::tile_horizontal(SDL_Texture* t, SDL_Rect* r) {
+	if (r->w <= 0) {
+		return -1;
+	}
 	int ox=r->x, i=0;
-	while (r->x < game.width) {
-		SDL_RenderCopy(game.renderer, t, NULL, r);
+	while (r->x < game->width) {
+		SDL_RenderCopy(game->renderer, t, NULL, r);
 		i++;
 		r->x += r->w;
 	}
 	r->x = ox;
 	while (r->x+r->w > 0) {
-		SDL_RenderCopy(game.renderer, t, NULL, r);
+		SDL_RenderCopy(game->renderer, t, NULL, r);
 		i++;
 		r->x -= r->w;
 	}
@@ -179,15 +221,18 @@ int Background::tile_horizontal(SDL_Texture* t, SDL_Rect* r) {
 	return i;
 }
 int Background::tile_vertical(SDL_Texture* t, SDL_Rect* r) {
+	if (r->w <= 0) {
+		return -1;
+	}
 	int oy=r->y, i=0;
-	while (r->y < game.height) {
-		SDL_RenderCopy(game.renderer, t, NULL, r);
+	while (r->y < game->height) {
+		SDL_RenderCopy(game->renderer, t, NULL, r);
 		i++;
 		r->y += r->h;
 	}
 	r->y = oy;
 	while (r->y+r->h > 0) {
-		SDL_RenderCopy(game.renderer, t, NULL, r);
+		SDL_RenderCopy(game->renderer, t, NULL, r);
 		i++;
 		r->y -= r->h;
 	}
@@ -199,21 +244,25 @@ int Background::draw(int x, int y, bool is_horizontal_tile, bool is_vertical_til
 	if (is_stretched) {
 		rect.x = 0;
 		rect.y = 0;
-		rect.w = game.width;
-		rect.h = game.height;
-		SDL_RenderCopy(game.renderer, texture, NULL, &rect);
+		rect.w = game->width;
+		rect.h = game->height;
+		SDL_RenderCopy(game->renderer, texture, NULL, &rect);
 	} else {
-		int dx = horizontal_speed*SDL_GetTicks()/game.fps;
-		int dy = vertical_speed*SDL_GetTicks()/game.fps;
-		dx %= game.width - (game.width % width);
-		dy %= game.height - (game.height % height);
+		int dx = horizontal_speed*(SDL_GetTicks()-animation_time)/game->fps;
+		int dy = vertical_speed*(SDL_GetTicks()-animation_time)/game->fps;
+		int mx = (width <= 0) ? 0 : game->width - (game->width % width);
+		int my = (height <= 0) ? 0 : game->height - (game->height % height);
+		if ((mx > 0)&&(my > 0)) {
+			dx %= mx;
+			dy %= my;
+		}
 		rect.x = x + dx;
 		rect.y = y + dy;
 		rect.w = width;
 		rect.h = height;
 		
 		if (is_horizontal_tile && is_vertical_tile) {
-			for (;rect.y < game.height; rect.y+=rect.h) {
+			for (;rect.y < game->height; rect.y+=rect.h) {
 				tile_horizontal(texture, &rect);
 			}
 			rect.y = y+dy;
@@ -225,7 +274,7 @@ int Background::draw(int x, int y, bool is_horizontal_tile, bool is_vertical_til
 		} else if (is_vertical_tile) {
 			tile_vertical(texture, &rect);
 		} else {
-			SDL_RenderCopy(game.renderer, texture, NULL, &rect);
+			SDL_RenderCopy(game->renderer, texture, NULL, &rect);
 		}
 	}
 	

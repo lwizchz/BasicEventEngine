@@ -14,6 +14,7 @@ class Object: public Resource {
 		Object();
 		Object(std::string, std::string);
 		~Object();
+		int add_to_resources(std::string);
 		int reset();
 		int print();
 		
@@ -68,25 +69,50 @@ class Object: public Resource {
 		virtual void game_end(InstanceData*) {};
 };
 Object::Object () {
-	id = resource_list.objects.add_resource(this);
-	if (id < 0) {
-		fprintf(stderr, "Failed to add object resource: %d", id);
-	}
-	
+	id = -1;
 	reset();
 }
-Object::Object (std::string new_name, std::string object) {
-	id = resource_list.objects.add_resource(this);
+Object::Object (std::string new_name, std::string path) {
+	id = -1;
+	reset();
+	
+	add_to_resources("resources/objects/"+path);
 	if (id < 0) {
-		fprintf(stderr, "Failed to add object resource: %d", id);
+		std::cerr << "Failed to add object resource: " << path << "\n";
+		throw(-1);
 	}
 	
-	reset();
 	set_name(new_name);
-	set_path(object);
+	set_path(path);
 }
 Object::~Object() {
 	resource_list.objects.remove_resource(id);
+}
+int Object::add_to_resources(std::string path) {
+	int list_id = -1;
+	if (id >= 0) {
+		if (path == object_path) {
+			return 1;
+		}
+		resource_list.objects.remove_resource(id);
+		id = -1;
+	} else {
+		for (auto i : resource_list.objects.resources) {
+			if ((i.second != NULL)&&(i.second->get_path() == path)) {
+				list_id = i.first;
+				break;
+			}
+		}
+	}
+	
+	if (list_id >= 0) {
+		id = list_id;
+	} else {
+		id = resource_list.objects.add_resource(this);
+	}
+	resource_list.objects.set_resource(id, this);
+	
+	return 0;
 }
 int Object::reset() {
 	name = "";
@@ -177,23 +203,12 @@ int Object::get_mask_id() {
 	return mask->get_id();
 }
 int Object::set_name(std::string new_name) {
-	// Deny name change if game is currently running (?)
-	// if (!game.is_running()) {
 	name = new_name;
 	return 0;
 }
-int Object::set_path(std::string object) {
-	object_path = "resources/objects/"+object;
-	// Load XML Object data
-	/* 
-	 * sprite = 
-	 * is_solid = 
-	 * is_visible = 
-	 * is_persistent = 
-	 * depth = 
-	 * parent = 
-	 * mask = 
-	 */
+int Object::set_path(std::string path) {
+	add_to_resources("resources/objects/"+path);
+	object_path = "resources/objects/"+path;
 	return 0;
 }
 int Object::set_sprite(Sprite* new_sprite) {

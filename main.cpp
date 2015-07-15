@@ -3,20 +3,21 @@
 #include "ege/game.hpp"
 
 int main(int argc, char* argv[]) {
-	// Init game engine
-	game.g = new EGE(argc, argv, NULL);
-	
-	// Set first room
 	RmTest rm_test;
-	if (game.g->change_room(&rm_test)) {
+	
+	try {
+		// Init game engine
+		EGE* game = new EGE(argc, argv, &rm_test);
+		
+		// Loop event handling
+		game->loop();
+		
+		// Clean up
+		game->close();
+	} catch (std::string e) {
+		std::cerr << e;
 		return 1;
 	}
-	
-	// Loop event handling
-	game.g->loop();
-	
-	// Clean up
-	game.g->close();
 	
 	return 0;
 }

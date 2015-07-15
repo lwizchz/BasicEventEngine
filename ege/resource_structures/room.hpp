@@ -75,6 +75,7 @@ class Room: public Resource {
 		Room();
 		Room(std::string, std::string);
 		~Room();
+		int add_to_resources(std::string);
 		int reset();
 		int print();
 		
@@ -115,6 +116,7 @@ class Room: public Resource {
 		
 		int load_media();
 		int free_media();
+		int reset_properties();
 		
 		int create();
 		int destroy();
@@ -133,32 +135,59 @@ class Room: public Resource {
 		int intersect_boundary();
 		int collision();
 		int draw();
-		int animation_end();
+		int animation_end(Sprite*);
 		int room_start();
 		int room_end();
 		int game_start();
 		int game_end();
+		
+		virtual int init() =0;
 };
 Room::Room () {
-	id = resource_list.rooms.add_resource(this);
-	if (id < 0) {
-		fprintf(stderr, "Failed to add room resource: %d", id);
-	}
-	
+	id = -1;
 	reset();
 }
 Room::Room (std::string new_name, std::string path) {
-	id = resource_list.rooms.add_resource(this);
+	id = -1;
+	reset();
+	
+	add_to_resources("resources/rooms/"+path);
 	if (id < 0) {
-		fprintf(stderr, "Failed to add room resource: %d", id);
+		std::cerr << "Failed to add room resource: " << path << "\n";
+		throw(-1);
 	}
 	
-	reset();
 	set_name(new_name);
 	set_path(path);
 }
 Room::~Room() {
 	resource_list.rooms.remove_resource(id);
+}
+int Room::add_to_resources(std::string path) {
+	int list_id = -1;
+	if (id >= 0) {
+		if (path == room_path) {
+			return 1;
+		}
+		resource_list.rooms.remove_resource(id);
+		id = -1;
+	} else {
+		for (auto& r : resource_list.rooms.resources) {
+			if ((r.second != NULL)&&(r.second->get_path() == path)) {
+				list_id = r.first;
+				break;
+			}
+		}
+	}
+	
+	if (list_id >= 0) {
+		id = list_id;
+	} else {
+		id = resource_list.rooms.add_resource(this);
+	}
+	resource_list.rooms.set_resource(id, this);
+	
+	return 0;
 }
 int Room::reset() {
 	name = "";
@@ -170,10 +199,10 @@ int Room::reset() {
 	is_persistent = false;
 	background_color = std::make_tuple(192, 192, 192);
 	is_background_color_enabled = true;
-	backgrounds.empty();
+	backgrounds.clear();
 	is_views_enabled = false;
-	views.empty();
-	instances.empty();
+	views.clear();
+	instances.clear();
 	
 	return 0;
 }
@@ -239,18 +268,18 @@ std::string Room::get_background_string() {
 	if (backgrounds.size() > 0) {
 		std::ostringstream background_string;
 		background_string << "(name	visible	fore	x	y	htile	vtile	hspeed	vspeed	stretch)\n";
-		for (unsigned int i=0; i<backgrounds.size(); i++) {
+		for (auto& b : backgrounds) {
 			background_string <<
-			backgrounds[i]->background->get_name() << "\t" <<
-			backgrounds[i]->is_visible << "\t" <<
-			backgrounds[i]->is_foreground << "\t" <<
-			backgrounds[i]->x << "\t" <<
-			backgrounds[i]->y << "\t" <<
-			backgrounds[i]->is_horizontal_tile << "\t" <<
-			backgrounds[i]->is_vertical_tile << "\t" <<
-			backgrounds[i]->horizontal_speed << "\t" <<
-			backgrounds[i]->vertical_speed << "\t" <<
-			backgrounds[i]->is_stretched << "\n";
+			b.second->background->get_name() << "\t" <<
+			b.second->is_visible << "\t" <<
+			b.second->is_foreground << "\t" <<
+			b.second->x << "\t" <<
+			b.second->y << "\t" <<
+			b.second->is_horizontal_tile << "\t" <<
+			b.second->is_vertical_tile << "\t" <<
+			b.second->horizontal_speed << "\t" <<
+			b.second->vertical_speed << "\t" <<
+			b.second->is_stretched << "\n";
 		}
 		
 		return background_string.str();
@@ -267,20 +296,20 @@ std::string Room::get_view_string() {
 	if (views.size() > 0) {
 		std::ostringstream view_string;
 		view_string << "(visible	vx, vy	vwidth	vheight	px, py	pwidth	pheight	object	hborder	vborder	hspeed	vspeed)\n";
-		for (unsigned int i=0; i<views.size(); i++) {
+		for (auto& v : views) {
 			view_string <<
-			views[i]->is_visible << "\t" <<
-			views[i]->view_x << ", " << views[i]->view_y <<"\t" <<
-			views[i]->view_width << "\t" <<
-			views[i]->view_height << "\t" <<
-			views[i]->port_x << ", " << views[i]->port_y << "\t" <<
-			views[i]->port_width << "\t" <<
-			views[i]->port_height << "\t" <<
-			views[i]->object->get_name() << "\t" <<
-			views[i]->object_horizontal_border << "\t" <<
-			views[i]->object_vertical_border << "\t" <<
-			views[i]->horizontal_speed << "\t" <<
-			views[i]->vertical_speed << "\n";
+			v.second->is_visible << "\t" <<
+			v.second->view_x << ", " << v.second->view_y <<"\t" <<
+			v.second->view_width << "\t" <<
+			v.second->view_height << "\t" <<
+			v.second->port_x << ", " << v.second->port_y << "\t" <<
+			v.second->port_width << "\t" <<
+			v.second->port_height << "\t" <<
+			v.second->object->get_name() << "\t" <<
+			v.second->object_horizontal_border << "\t" <<
+			v.second->object_vertical_border << "\t" <<
+			v.second->horizontal_speed << "\t" <<
+			v.second->vertical_speed << "\n";
 		}
 		
 		return view_string.str();
@@ -294,12 +323,12 @@ std::string Room::get_instance_string() {
 	if (instances.size() > 0) {
 		std::ostringstream instance_string;
 		instance_string << "(id	object	x	y)\n";
-		for (unsigned int i=0; i<instances.size(); i++) {
+		for (auto& i : instances) {
 			instance_string <<
-			instances[i]->id << "\t" <<
-			instances[i]->object->get_name() << "\t" <<
-			instances[i]->x << "\t" <<
-			instances[i]->y << "\n";
+			i.second->id << "\t" <<
+			i.second->object->get_name() << "\t" <<
+			i.second->x << "\t" <<
+			i.second->y << "\n";
 		}
 		
 		return instance_string.str();
@@ -311,13 +340,8 @@ int Room::set_name(std::string new_name) {
 	return 0;
 }
 int Room::set_path(std::string path) {
+	add_to_resources("resources/rooms"+path);
 	room_path = "resources/rooms/"+path;
-	
-	// Load XML Room data
-	/*
-	 * 
-	 */
-	
 	return 0;
 }
 int Room::set_width(int new_width) {
@@ -387,132 +411,147 @@ int Room::add_instance(InstanceData* new_instance) {
 }
 int Room::remove_instance(int index) {
 	instances.erase(index);
+	for (unsigned int i=index; i<instances.size(); i++) {
+		if (instances.find(i)++ != instances.end()) {
+			instances[i] = instances[i+1];
+		}
+	}
 	return 0;
 }
 
 int Room::load_media() {
 	// Load room sprites
-	for (unsigned int i=0; i<instances.size(); i++) {
-		instances[i]->object->get_sprite()->load();
+	for (auto& i : instances) {
+		i.second->object->get_sprite()->load();
 	}
 	// Load room sounds
 	//
 	// Load room backgrounds
-	for (unsigned int i=0; i<backgrounds.size(); i++) {
-		backgrounds[i]->background->load();
+	for (auto& b : backgrounds) {
+		b.second->background->load();
 	}
 	
 	return 0;
 }
 int Room::free_media() {
-	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->get_sprite()->free();
+	for (auto& i : instances) {
+		i.second->object->get_sprite()->free();
+	}
+	
+	return 0;
+}
+int Room::reset_properties() {
+	instances.clear();
+	
+	// Reset background data
+	for (auto& i : backgrounds) {
+		i.second->background->set_time_update();
 	}
 	
 	return 0;
 }
 
 int Room::create() {
-	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->create(instances[i]);
+	for (auto& i : instances) {
+		i.second->object->create(i.second);
 	}
 	
 	return 0;
 }
 int Room::destroy() {
-	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->destroy(instances[i]);
+	for (auto& i : instances) {
+		i.second->object->destroy(i.second);
 	}
 	
 	return 0;
 }
 int Room::alarm(int alarm) {
-	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->alarm(instances[i], alarm);
+	for (auto& i : instances) {	
+		i.second->object->alarm(i.second, alarm);
 	}
 	
 	return 0;
 }
 int Room::step_begin() {
-	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->step_begin(instances[i]);
+	for (auto& i : instances) {
+		i.second->object->step_begin(i.second);
 	}
 	
 	return 0;
 }
 int Room::step_mid() {
-	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->step_mid(instances[i]);
+	for (auto& i : instances) {
+		i.second->object->step_mid(i.second);
 	}
 	
 	return 0;
 }
 int Room::step_end() {
-	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->step_end(instances[i]);
+	for (auto& i : instances) {
+		i.second->object->step_end(i.second);
 	}
 	
 	return 0;
 }
 int Room::keyboard(SDL_Event* e) {
-	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->keyboard(instances[i], e);
+	for (auto& i : instances) {
+		i.second->object->keyboard(i.second, e);
 	}
 	
 	return 0;
 }
 int Room::mouse(SDL_Event* e) {
-	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->mouse(instances[i], e);
+	for (auto& i : instances) {
+		i.second->object->mouse(i.second, e);
 	}
 	
 	return 0;
 }
 int Room::keyboard_press(SDL_Event* e) {
-	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->keyboard_press(instances[i], e);
+	for (auto& i : instances) {
+		i.second->object->keyboard_press(i.second, e);
 	}
 	
 	return 0;
 }
 int Room::mouse_press(SDL_Event* e) {
-	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->mouse_press(instances[i], e);
+	for (auto& i : instances) {
+		i.second->object->mouse_press(i.second, e);
 	}
 	
 	return 0;
 }
 int Room::keyboard_release(SDL_Event* e) {
-	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->keyboard_release(instances[i], e);
+	for (auto& i : instances) {
+		i.second->object->keyboard_release(i.second, e);
 	}
 	
 	return 0;
 }
 int Room::mouse_release(SDL_Event* e) {
-	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->mouse_release(instances[i], e);
+	for (auto& i : instances) {
+		i.second->object->mouse_release(i.second, e);
 	}
 	
 	return 0;
 }
 int Room::path_end() {
-	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->path_end(instances[i]);
+	for (auto& i : instances) {
+		i.second->object->path_end(i.second);
 	}
 	
 	return 0;
 }
 int Room::outside_room() {
-	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->outside_room(instances[i]);
+	for (auto& i : instances) {
+		i.second->object->outside_room(i.second);
 	}
 	
 	return 0;
 }
 int Room::intersect_boundary() {
-	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->intersect_boundary(instances[i]);
+	for (auto& i : instances) {
+		i.second->object->intersect_boundary(i.second);
 	}
 	
 	return 0;
@@ -520,14 +559,14 @@ int Room::intersect_boundary() {
 int Room::collision() {
 	int otherid = -1;
 	
-	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->collision(instances[i], otherid);
+	for (auto& i : instances) {
+		i.second->object->collision(i.second, otherid);
 	}
 	
 	return 0;
 }
 int Room::draw() {
-	SDL_RenderClear(game.renderer);
+	SDL_RenderClear(game->renderer);
 	
 	BackgroundData b;
 	for (unsigned int i=0; i<backgrounds.size(); i++) {
@@ -537,26 +576,26 @@ int Room::draw() {
 		}
 	}
 	
-	for (unsigned int i=0; i < instances.size(); i++) {
+	for (auto& i : instances) {
 		if (is_views_enabled) { // Render different viewports
 			SDL_Rect viewport;
-			for (unsigned int i=0; i<views.size(); i++) {
-				if (views[i]->is_visible) {
-					viewport.x = views[i]->port_x;
-					viewport.y = views[i]->port_y;
-					viewport.w = views[i]->port_width;
-					viewport.h = views[i]->port_height;
-					SDL_RenderSetViewport(game.renderer, &viewport);
+			for (auto& v : views) {
+				if (v.second->is_visible) {
+					viewport.x = v.second->port_x;
+					viewport.y = v.second->port_y;
+					viewport.w = v.second->port_width;
+					viewport.h = v.second->port_height;
+					SDL_RenderSetViewport(game->renderer, &viewport);
 					
-					instances[i]->vx = instances[i]->x; // This needs to be fixed for when viewports are not the default
-					instances[i]->vy = instances[i]->y;
-					instances[i]->object->draw(instances[i]);
+					i.second->vx = i.second->x; // This needs to be fixed for when viewports are not the default
+					i.second->vy = i.second->y;
+					i.second->object->draw(i.second);
 				}
 			}
 		} else {
-			instances[i]->vx = instances[i]->x;
-			instances[i]->vy = instances[i]->y;
-			instances[i]->object->draw(instances[i]);
+			i.second->vx = i.second->x;
+			i.second->vy = i.second->y;
+			i.second->object->draw(i.second);
 		}
 	}
 	
@@ -567,41 +606,43 @@ int Room::draw() {
 		}
 	}
 	
-	SDL_RenderPresent(game.renderer);
+	SDL_RenderPresent(game->renderer);
 	
 	return 0;
 }
-int Room::animation_end() {
-	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->animation_end(instances[i]);
+int Room::animation_end(Sprite* finished_sprite) {
+	for (auto& i : instances) {
+		if (i.second->object->get_sprite()->get_id() == finished_sprite->get_id()) {
+			i.second->object->animation_end(i.second);
+		}
 	}
 	
 	return 0;
 }
 int Room::room_start() {
-	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->room_start(instances[i]);
+	for (auto& i : instances) {
+		i.second->object->room_start(i.second);
 	}
 	
 	return 0;
 }
 int Room::room_end() {
-	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->room_end(instances[i]);
+	for (auto& i : instances) {
+		i.second->object->room_end(i.second);
 	}
 	
 	return 0;
 }
 int Room::game_start() {
-	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->game_start(instances[i]);
+	for (auto& i : instances) {
+		i.second->object->game_start(i.second);
 	}
 	
 	return 0;
 }
 int Room::game_end() {
-	for (unsigned int i=0; i < instances.size(); i++) {
-		instances[i]->object->game_end(instances[i]);
+	for (auto& i : instances) {
+		i.second->object->game_end(i.second);
 	}
 	
 	return 0;

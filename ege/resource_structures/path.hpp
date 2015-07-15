@@ -16,6 +16,7 @@ class Path: public Resource {
 		Path();
 		Path(std::string, std::string);
 		~Path();
+		int add_to_resources(std::string);
 		int reset();
 		int print();
 		
@@ -37,25 +38,50 @@ class Path: public Resource {
 		int set_is_closed(bool);
 };
 Path::Path () {
-	id = resource_list.paths.add_resource(this);
-	if (id < 0) {
-		fprintf(stderr, "Failed to add path resource: %d", id);
-	}
-	
+	id = -1;
 	reset();
 }
 Path::Path (std::string new_name, std::string path) {
-	id = resource_list.paths.add_resource(this);
+	id = -1;
+	reset();
+	
+	add_to_resources("resources/paths/"+path);
 	if (id < 0) {
-		fprintf(stderr, "Failed to add path resource: %d", id);
+		std::cerr << "Failed to add path resource: " << path << "\n";
+		throw(-1);
 	}
 	
-	reset();
 	set_name(new_name);
 	set_path(path);
 }
 Path::~Path() {
 	resource_list.paths.remove_resource(id);
+}
+int Path::add_to_resources(std::string path) {
+	int list_id = -1;
+	if (id >= 0) {
+		if (path == path_path) {
+			return 1;
+		}
+		resource_list.paths.remove_resource(id);
+		id = -1;
+	} else {
+		for (auto i : resource_list.paths.resources) {
+			if ((i.second != NULL)&&(i.second->get_path() == path)) {
+				list_id = i.first;
+				break;
+			}
+		}
+	}
+	
+	if (list_id >= 0) {
+		id = list_id;
+	} else {
+		id = resource_list.paths.add_resource(this);
+	}
+	resource_list.paths.set_resource(id, this);
+	
+	return 0;
 }
 int Path::reset() {
 	name = "";
@@ -121,6 +147,7 @@ int Path::set_name(std::string new_name) {
 	return 0;
 }
 int Path::set_path(std::string path) {
+	add_to_resources("resources/paths/"+path);
 	path_path = "resources/paths/"+path;
 	// Load XML Path data
 	/* 
