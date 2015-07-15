@@ -11,7 +11,7 @@ class Sprite: public Resource {
 		float speed, alpha;
 		bool is_animated;
 		int origin_x, origin_y;
-		
+
 		SDL_Texture* texture;
 		bool is_loaded;
 		SDL_Rect subimages[MAX_SPRITE_IMAGES];
@@ -22,7 +22,7 @@ class Sprite: public Resource {
 		int add_to_resources(std::string);
 		int reset();
 		int print();
-		
+
 		int get_id();
 		std::string get_name();
 		std::string get_path();
@@ -34,7 +34,7 @@ class Sprite: public Resource {
 		float get_alpha();
 		int get_origin_x();
 		int get_origin_y();
-		
+
 		int set_name(std::string);
 		int set_path(std::string);
 		int set_subimage_amount(int, int);
@@ -44,7 +44,7 @@ class Sprite: public Resource {
 		int set_origin_y(int);
 		int set_origin_xy(int, int);
 		int set_origin_center();
-		
+
 		int load();
 		int free();
 		int draw(int, int);
@@ -57,18 +57,19 @@ Sprite::Sprite (std::string new_name, std::string path) {
 	id = -1;
 	is_loaded = false;
 	reset();
-	
+
 	add_to_resources("resources/sprites/"+path);
 	if (id < 0) {
 		std::cerr << "Failed to add sprite resource: " << path << "\n";
 		throw(-1);
 	}
-	
+
 	set_name(new_name);
 	set_path(path);
 }
 Sprite::~Sprite() {
 	free();
+	resource_list.sprites.remove_resource(id);
 }
 int Sprite::add_to_resources(std::string path) {
 	int list_id = -1;
@@ -86,21 +87,21 @@ int Sprite::add_to_resources(std::string path) {
 			}
 		}
 	}
-	
+
 	if (list_id >= 0) {
 		id = list_id;
 	} else {
 		id = resource_list.sprites.add_resource(this);
 	}
 	resource_list.sprites.set_resource(id, this);
-	
+
 	return 0;
 }
 int Sprite::reset() {
 	if (is_loaded) {
 		free();
 	}
-	
+
 	name = "";
 	image_path = "";
 	width = 0;
@@ -114,7 +115,7 @@ int Sprite::reset() {
 	is_animated = false;
 	origin_x = 0;
 	origin_y = 0;
-	
+
 	texture = NULL;
 	is_loaded = false;
 	for (int i=0; i<MAX_SPRITE_IMAGES; i++) {
@@ -123,7 +124,7 @@ int Sprite::reset() {
 		subimages[i].w = 0;
 		subimages[i].h = 0;
 	}
-	
+
 	return 0;
 }
 int Sprite::print() {
@@ -143,7 +144,7 @@ int Sprite::print() {
 	"\n	texture		" << texture <<
 	"\n	is_loaded	" << is_loaded <<
 	"\n}\n";
-	
+
 	return 0;
 }
 int Sprite::get_id() {
@@ -234,23 +235,23 @@ int Sprite::load() {
 			std::cerr << "Failed to load sprite " << name << ": " << IMG_GetError() << "\n";
 			return 1;
 		}
-		
+
 		texture = SDL_CreateTextureFromSurface(game->renderer, tmp_surface);
 		if (texture == NULL) {
 			std::cerr << "Failed to create texture from surface: " << SDL_GetError() << "\n";
 			return 1;
 		}
-		
+
 		SDL_FreeSurface(tmp_surface);
-		
+
 		SDL_QueryTexture(texture, NULL, NULL, &width, &height);
 		if (subimage_amount == 0) {
 			set_subimage_amount(1, width);
 		}
-		
+
 		SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
 		SDL_SetTextureAlphaMod(texture, alpha*255);
-		
+
 		is_loaded = true;
 	}
 	return 0;
@@ -268,25 +269,25 @@ int Sprite::draw(int x, int y) {
 	if (current_subimage == 0) {
 		is_animated = true;
 	}
-	
+
 	SDL_Rect srect, drect;
-	
+
 	srect.x = subimages[current_subimage].x;
 	srect.y = 0;
 	srect.w = subimages[current_subimage].w;
 	srect.h = height;
-	
+
 	drect.x = x;
 	drect.y = y;
 	drect.w = subimage_width;
 	drect.h = height;
-	
+
 	SDL_RenderCopy(game->renderer, texture, &srect, &drect);
-	
+
 	if ((is_animated)&&(current_subimage == subimage_amount-1)) {
 		game->animation_end(this);
 		is_animated = false;
 	}
-	
+
 	return 0;
 }

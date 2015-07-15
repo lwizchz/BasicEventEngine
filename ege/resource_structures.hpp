@@ -7,7 +7,7 @@
 class Resource {
 	public:
 		EGE* game = NULL;
-		
+
 		virtual ~Resource() {};
 		virtual int reset() =0;
 		virtual int print() =0;
@@ -21,7 +21,7 @@ class ResourceList {
 	public:
 		std::map<int,Resource*> resources;
 		int next_index;
-		
+
 		ResourceList();
 		int reset();
 		int add_resource(Resource*);
@@ -32,7 +32,7 @@ class ResourceList {
 };
 class MetaResourceList {
 	public:
-		ResourceList sprites, sounds, backgrounds, paths, objects, rooms; //, all;
+		ResourceList sprites, sounds, backgrounds, fonts, paths, objects, rooms; //, all;
 } resource_list;
 
 ResourceList::ResourceList() {
@@ -74,6 +74,7 @@ int ResourceList::remove_resource(int id) {
 #include "resource_structures/sprite.hpp"
 #include "resource_structures/sound.hpp"
 #include "resource_structures/background.hpp"
+#include "resource_structures/font.hpp"
 #include "resource_structures/path.hpp"
 #include "resource_structures/object.hpp"
 #include "resource_structures/room.hpp"
@@ -86,6 +87,9 @@ Sound* sound(int id) {
 }
 Background* background(int id) {
 	return dynamic_cast<Background*>(resource_list.backgrounds.get_resource(id));
+}
+Font* font(int id) {
+	return dynamic_cast<Font*>(resource_list.fonts.get_resource(id));
 }
 Path* path(int id) {
 	return dynamic_cast<Path*>(resource_list.paths.get_resource(id));

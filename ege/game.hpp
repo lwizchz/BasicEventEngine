@@ -2,34 +2,40 @@
 #include <time.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
 
 class Sprite; class Sound; class Background; class Path; class Object; class Room;
 
 class EGE {
 		int argc;
 		char** argv;
-		bool quit, restart;
+		bool quit;
 		Room *first_room = NULL, *current_room = NULL;
-		
+
 		SDL_Event event;
-		Uint32 tickstamp, new_tickstamp;
+		Uint32 tickstamp, new_tickstamp, fps_ticks;
 	public:
 		SDL_Window* window = NULL;
 		SDL_Renderer* renderer = NULL;
 		int width, height;
-		unsigned int fps;
-		
+		unsigned int max_fps, fps, fps_count, fps_stable;
+
 		EGE(int, char**, Room*);
 		int loop();
 		int close();
 		int set_engine_pointer();
 		int load_media();
 		int free_media();
-		
+
+		int restart_game();
+		int end_game();
+
 		int restart_room();
 		int restart_room_internal();
 		int change_room(Room*);
 		int animation_end(Sprite*);
+
+		Room* get_room();
 };
 
 int init_resources();
@@ -43,41 +49,47 @@ int close_resources();
 EGE::EGE(int new_argc, char** new_argv, Room* new_first_room) {
 	argc = new_argc;
 	argv = new_argv;
+	max_fps = 300;
 	fps = 60;
-	
+	fps_count = 0;
+	fps_stable = 0;
+
 	width = DEFAULT_WINDOW_WIDTH;
 	height = DEFAULT_WINDOW_HEIGHT;
-	
+
 	if (SDL_Init(SDL_INIT_VIDEO) > 0) {
 		throw std::string("Couldn't init SDL: ") + SDL_GetError() + "\n";
 	}
-	
+
 	window = SDL_CreateWindow("Easy Game Engine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_SHOWN);
 	if (window == NULL) {
 		throw std::string("Couldn't create SDL window: ") + SDL_GetError() + "\n";
 	}
-	
+
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 	if (renderer == NULL) {
 		throw std::string("Couldn't create SDL renderer: ") + SDL_GetError() + "\n";
 	}
 	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-	
+
 	int img_flags = IMG_INIT_PNG;
 	if (!(IMG_Init(img_flags) & img_flags)) {
 		throw std::string("Couldn't init SDL_image: ") + IMG_GetError() + "\n";
 	}
-	
+
+	if (TTF_Init() == -1) {
+		throw std::string("Couldn't init SDL_ttf: ") + TTF_GetError() + "\n";
+	}
+
 	if ((!is_initialized)&&(init_resources())) {
 		throw std::string("Couldn't init resources\n");
 	}
-	
+
 	if (set_engine_pointer()) {
 		throw std::string("Couldn't set engine pointer\n");
 	}
-	
+
 	quit = false;
-	restart = false;
 	if (new_first_room != NULL) {
 		if (change_room(new_first_room)) {
 			throw std::string("Couldn't load first room\n");
@@ -87,15 +99,19 @@ EGE::EGE(int new_argc, char** new_argv, Room* new_first_room) {
 int EGE::loop() {
 	if (current_room == NULL) {
 		quit = true;
+		std::cerr << "Failed to start event loop, i.e. current_room == NULL\n";
 		return 1;
 	}
-	
+
 	tickstamp = SDL_GetTicks();
+	fps_ticks = SDL_GetTicks();
 	while (!quit) {
 		try {
+			fps_count++;
+
 			current_room->step_begin();
 			current_room->alarm(0);
-			
+
 			while (SDL_PollEvent(&event) != 0) {
 				switch (event.type) {
 					case SDL_QUIT: {
@@ -129,21 +145,27 @@ int EGE::loop() {
 					}
 				}
 			}
-			
+
 			current_room->step_mid();
 			current_room->path_end();
 			current_room->outside_room();
 			current_room->intersect_boundary();
 			current_room->collision();
-			
+
 			current_room->step_end();
 			current_room->draw();
-			
+
 			new_tickstamp = SDL_GetTicks();
-			if (new_tickstamp - tickstamp < 1000/fps) {
-				SDL_Delay((1000/fps) - (new_tickstamp - tickstamp));
+			if (new_tickstamp - tickstamp < 1000/max_fps) {
+				SDL_Delay((1000/max_fps) - (new_tickstamp - tickstamp));
 			}
-			tickstamp = new_tickstamp;
+			tickstamp = SDL_GetTicks();
+
+			if (tickstamp - fps_ticks >= 1000) {
+				fps_stable = fps_count;
+				fps_count = 0;
+				fps_ticks = tickstamp;
+			}
 		} catch (int e) {
 			switch (e) {
 				case -1: { // Resource error
@@ -168,24 +190,25 @@ int EGE::loop() {
 			}
 		}
 	}
-	
+
 	current_room->room_end();
 	current_room->game_end();
-	
+
 	return 0;
 }
 int EGE::close() {
 	free_media();
 	close_resources();
-	
+
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	window = NULL;
 	renderer = NULL;
-	
+
+	TTF_Quit();
 	IMG_Quit();
 	SDL_Quit();
-	
+
 	return 0;
 }
 int EGE::set_engine_pointer() {
@@ -204,6 +227,11 @@ int EGE::set_engine_pointer() {
 			background(i)->game = this;
 		}
 	}
+	for (int i=0; i<resource_list.fonts.get_amount(); i++) {
+		if (font(i) != NULL) {
+			font(i)->game = this;
+		}
+	}
 	for (int i=0; i<resource_list.paths.get_amount(); i++) {
 		if (path(i) != NULL) {
 			path(i)->game = this;
@@ -219,26 +247,35 @@ int EGE::set_engine_pointer() {
 			room(i)->game = this;
 		}
 	}
-	
+
 	return 0;
 }
 int EGE::load_media() {
 	if (current_room != NULL) {
 		current_room->load_media();
+		font_liberation->load();
 	}
-	
+
 	return 0;
 }
 int EGE::free_media() {
 	if (current_room != NULL) {
 		current_room->free_media();
 	}
-	
+
+	return 0;
+}
+
+int EGE::restart_game() {
+	throw 2;
+	return 0;
+}
+int EGE::end_game() {
+	throw 1;
 	return 0;
 }
 
 int EGE::restart_room() {
-	restart = true;
 	throw 3;
 	return 0;
 }
@@ -246,22 +283,20 @@ int EGE::restart_room_internal() {
 	current_room->room_end();
 	current_room->reset_properties();
 	current_room->init();
-	
+
 	SDL_SetWindowTitle(window, current_room->get_name().c_str());
-	
+
 	current_room->create();
 	current_room->room_start();
 	current_room->draw();
-	
-	restart = false;
-	
+
 	return 0;
 }
 int EGE::change_room(Room* new_room) {
 	if (quit) {
 		return 1;
 	}
-	
+
 	bool is_game_start = false;
 	if (current_room != NULL) {
 		current_room->room_end();
@@ -269,30 +304,34 @@ int EGE::change_room(Room* new_room) {
 		is_game_start = true;
 		first_room = new_room;
 	}
-	
+
 	free_media();
-	
+
 	current_room = new_room;
 	current_room->reset_properties();
 	current_room->init();
-	
+
 	if (load_media()) {
 		std::cerr << "Couldn't load room media for " << current_room->get_name() << "\n";
 		return 1;
 	}
-	
+
 	SDL_SetWindowTitle(window, current_room->get_name().c_str());
 	std::cout << current_room->get_instance_string();
-	
+
 	current_room->create();
 	if (is_game_start) {
 		current_room->game_start();
 	}
 	current_room->room_start();
 	current_room->draw();
-	
+
 	return 0;
 }
 int EGE::animation_end(Sprite* finished_sprite) {
 	return current_room->animation_end(finished_sprite);
+}
+
+Room* EGE::get_room() {
+	return current_room;
 }
