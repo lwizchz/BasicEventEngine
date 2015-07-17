@@ -435,8 +435,7 @@ int Room::load_media() {
 	for (auto& i : instances) {
 		i.second->object->get_sprite()->load();
 	}
-	// Load room sounds
-	//
+	
 	// Load room backgrounds
 	for (auto& b : backgrounds) {
 		b.second->background->load();

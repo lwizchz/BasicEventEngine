@@ -14,6 +14,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_mixer.h>
 
 class Sprite; class Sound; class Background; class Path; class Object; class Room;
 
@@ -45,6 +46,7 @@ class EGE {
 		int restart_room_internal();
 		int change_room(Room*);
 		int animation_end(Sprite*);
+		static void sound_finished(int);
 
 		Room* get_room();
 };
@@ -68,7 +70,7 @@ EGE::EGE(int new_argc, char** new_argv, Room* new_first_room) {
 	width = DEFAULT_WINDOW_WIDTH;
 	height = DEFAULT_WINDOW_HEIGHT;
 
-	if (SDL_Init(SDL_INIT_VIDEO) > 0) {
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) > 0) {
 		throw std::string("Couldn't init SDL: ") + SDL_GetError() + "\n";
 	}
 
@@ -91,6 +93,12 @@ EGE::EGE(int new_argc, char** new_argv, Room* new_first_room) {
 	if (TTF_Init() == -1) {
 		throw std::string("Couldn't init SDL_ttf: ") + TTF_GetError() + "\n";
 	}
+
+	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
+		throw std::string("Couldn't init SDL_mixer: ") + Mix_GetError() + "\n";
+	}
+	Mix_ChannelFinished(sound_finished);
+	Mix_AllocateChannels(128);
 
 	if ((!is_initialized)&&(init_resources())) {
 		throw std::string("Couldn't init resources\n");
@@ -123,7 +131,7 @@ int EGE::loop() {
 			current_room->step_begin();
 			current_room->alarm(0);
 
-			while (SDL_PollEvent(&event) != 0) {
+			while (SDL_PollEvent(&event)) {
 				switch (event.type) {
 					case SDL_QUIT: {
 						quit = true;
@@ -154,6 +162,9 @@ int EGE::loop() {
 						current_room->mouse_release(&event);
 						break;
 					}
+					default:
+						//std::cerr << "Unknown event type: " << event.type << "\n";
+						break;
 				}
 			}
 
@@ -216,6 +227,7 @@ int EGE::close() {
 	window = NULL;
 	renderer = NULL;
 
+	Mix_Quit();
 	TTF_Quit();
 	IMG_Quit();
 	SDL_Quit();
@@ -264,7 +276,6 @@ int EGE::set_engine_pointer() {
 int EGE::load_media() {
 	if (current_room != NULL) {
 		current_room->load_media();
-		font_liberation->load();
 	}
 
 	return 0;
@@ -339,8 +350,18 @@ int EGE::change_room(Room* new_room) {
 
 	return 0;
 }
+
 int EGE::animation_end(Sprite* finished_sprite) {
 	return current_room->animation_end(finished_sprite);
+}
+void EGE::sound_finished(int channel) {
+	for (int i=0; i<resource_list.sounds.get_amount(); i++) {
+		if (sound(i) != NULL) {
+			if (!sound(i)->get_is_music()) {
+				sound(i)->finished(channel);
+			}
+		}
+	}
 }
 
 Room* EGE::get_room() {
