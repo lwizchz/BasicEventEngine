@@ -13,6 +13,8 @@
 #include <map>
 #include <tuple>
 
+#define ALARM_COUNT 8
+
 typedef std::tuple<int,int,int> rgb;
 
 class BackgroundData {
@@ -25,8 +27,12 @@ class BackgroundData {
 		int horizontal_speed, vertical_speed;
 		bool is_stretched;
 		BackgroundData() {background=NULL;is_visible=false;is_foreground=false;x=0;y=0;is_horizontal_tile=false;is_vertical_tile=false;horizontal_speed=0;vertical_speed=0;is_stretched=false;};
+		BackgroundData(Background*, bool, bool, int, int, bool, bool, int, int, bool);
 		int init(Background*, bool, bool, int, int, bool, bool, int, int, bool);
 };
+BackgroundData::BackgroundData(Background* new_background, bool new_is_visible, bool new_is_foreground, int new_x, int new_y, bool new_is_horizontal_tile, bool new_is_vertical_tile, int new_horizontal_speed, int new_vertical_speed, bool new_is_stretched) {
+	init(new_background, new_is_visible, new_is_foreground, new_x, new_y, new_is_horizontal_tile, new_is_vertical_tile, new_horizontal_speed, new_vertical_speed, new_is_stretched);
+}
 int BackgroundData::init(Background* new_background, bool new_is_visible, bool new_is_foreground, int new_x, int new_y, bool new_is_horizontal_tile, bool new_is_vertical_tile, int new_horizontal_speed, int new_vertical_speed, bool new_is_stretched) {
 	background = new_background;
 	is_visible = new_is_visible;
@@ -53,17 +59,41 @@ class InstanceData {
 	public:
 		int id;
 		Object* object;
+		Uint32 subimage_time;
 		int x, y, vx, vy;
-		InstanceData() {id=-1;object=NULL;x=0;y=0;vx=0;vy=0;};
+		Uint32 alarm_end[ALARM_COUNT];
+		InstanceData();
+		InstanceData(int, Object*, int, int);
 		int init(int, Object*, int, int);
+		int set_alarm(int, Uint32);
 };
+InstanceData::InstanceData() {
+	id=-1; object=NULL; subimage_time = 0;
+	x=0; y=0; vx=0; vy=0;
+	for (int i=0; i<ALARM_COUNT; i++) {
+		alarm_end[i] = 0xffffffff;
+	}
+}
+InstanceData::InstanceData(int new_id, Object* new_object, int new_x, int new_y) {
+	init(new_id, new_object, new_x, new_y);
+}
 int InstanceData::init(int new_id, Object* new_object, int new_x, int new_y) {
 	id = new_id;
 	object = new_object;
+	subimage_time = SDL_GetTicks();
 	x = new_x;
 	y = new_y;
 	vx = x;
 	vy = y;
+
+	for (int i=0; i<ALARM_COUNT; i++) {
+		alarm_end[i] = 0xffffffff;
+	}
+
+	return 0;
+}
+int InstanceData::set_alarm(int alarm, Uint32 elapsed_ticks) {
+	alarm_end[alarm] = elapsed_ticks + SDL_GetTicks();
 	return 0;
 }
 
@@ -119,10 +149,11 @@ class Room: public Resource {
 		int set_background_color(int, int, int);
 		int set_is_background_color_enabled(bool);
 		int set_background(int, BackgroundData*);
+		int add_background(int, Background*, bool, bool, int, int, bool, bool, int, int, bool);
 		int set_is_views_enabled(bool);
 		int set_view(int, ViewData*);
 		int set_instance(int, InstanceData*);
-		int add_instance(InstanceData*);
+		int add_instance(int, Object*, int, int);
 		int remove_instance(int);
 
 		int load_media();
@@ -131,7 +162,7 @@ class Room: public Resource {
 
 		int create();
 		int destroy();
-		int alarm(int);
+		int check_alarms();
 		int step_begin();
 		int step_mid();
 		int step_end();
@@ -172,6 +203,9 @@ Room::Room (std::string new_name, std::string path) {
 	set_path(path);
 }
 Room::~Room() {
+	backgrounds.clear();
+	views.clear();
+	instances.clear();
 	resource_list.rooms.remove_resource(id);
 }
 int Room::add_to_resources(std::string path) {
@@ -213,6 +247,9 @@ int Room::reset() {
 	backgrounds.clear();
 	is_views_enabled = false;
 	views.clear();
+	for (auto& i : instances) {
+		delete i.second;
+	}
 	instances.clear();
 
 	return 0;
@@ -394,6 +431,13 @@ int Room::set_background(int index, BackgroundData* new_background) {
 	backgrounds.insert(std::pair<int,BackgroundData*>(index,new_background));
 	return 0;
 }
+int Room::add_background(int index, Background* new_background, bool new_is_visible, bool new_is_foreground, int new_x, int new_y, bool new_is_horizontal_tile, bool new_is_vertical_tile, int new_horizontal_speed, int new_vertical_speed, bool new_is_stretched) {
+	BackgroundData* background = new BackgroundData(new_background, new_is_visible, new_is_foreground, new_x, new_y, new_is_horizontal_tile, new_is_vertical_tile, new_horizontal_speed, new_vertical_speed, new_is_stretched);
+	if (index < 0) {
+		index = backgrounds.size();
+	}
+	return set_background(index, background);
+}
 int Room::set_is_views_enabled(bool new_is_views_enabled) {
 	is_views_enabled = new_is_views_enabled;
 	return 0;
@@ -412,13 +456,19 @@ int Room::set_instance(int index, InstanceData* new_instance) {
 	instances.insert(std::pair<int,InstanceData*>(index, new_instance));
 	return 0;
 }
-int Room::add_instance(InstanceData* new_instance) {
-	int index = new_instance->id;
+int Room::add_instance(int index, Object* object, int x, int y) {
+	InstanceData* new_instance = new InstanceData(index, object, x, y);
 	if (index < 0) {
 		index = instances.size();
 		new_instance->id = index;
 	}
-	return set_instance(index, new_instance);
+	set_instance(index, new_instance);
+
+	if (game->get_is_ready()) {
+		new_instance->object->create(new_instance);
+	}
+
+	return 0;
 }
 int Room::remove_instance(int index) {
 	instances.erase(index);
@@ -435,7 +485,7 @@ int Room::load_media() {
 	for (auto& i : instances) {
 		i.second->object->get_sprite()->load();
 	}
-	
+
 	// Load room backgrounds
 	for (auto& b : backgrounds) {
 		b.second->background->load();
@@ -444,19 +494,30 @@ int Room::load_media() {
 	return 0;
 }
 int Room::free_media() {
+	// Free room sprites
 	for (auto& i : instances) {
 		i.second->object->get_sprite()->free();
+	}
+
+	// Free room backgrounds
+	for (auto& b : backgrounds) {
+		b.second->background->free();
 	}
 
 	return 0;
 }
 int Room::reset_properties() {
+	for (auto& i : instances) {
+		delete i.second;
+	}
 	instances.clear();
 
 	// Reset background data
-	for (auto& i : backgrounds) {
-		i.second->background->set_time_update();
+	for (auto& b : backgrounds) {
+		b.second->background->set_time_update();
+		delete b.second;
 	}
+	backgrounds.clear();
 
 	return 0;
 }
@@ -475,9 +536,14 @@ int Room::destroy() {
 
 	return 0;
 }
-int Room::alarm(int alarm) {
+int Room::check_alarms() {
 	for (auto& i : instances) {
-		i.second->object->alarm(i.second, alarm);
+		for (int e=0; e<ALARM_COUNT; e++) {
+			if (SDL_GetTicks() >= i.second->alarm_end[e]) {
+				i.second->alarm_end[e] = 0xffffffff; // Reset alarm
+				i.second->object->alarm(i.second, e);
+			}
+		}
 	}
 
 	return 0;
@@ -567,10 +633,15 @@ int Room::intersect_boundary() {
 	return 0;
 }
 int Room::collision() {
-	int otherid = -1;
-
-	for (auto& i : instances) {
-		i.second->object->collision(i.second, otherid);
+	for (auto& i1 : instances) {
+		for (auto& i2 : instances) {
+			SDL_Rect a = {i1.second->x, i1.second->y, i1.second->object->get_sprite()->get_subimage_width(), i1.second->object->get_sprite()->get_height()};
+			SDL_Rect b = {i2.second->x, i2.second->y, i2.second->object->get_sprite()->get_subimage_width(), i2.second->object->get_sprite()->get_height()};
+			if (check_collision(&a, &b)) {
+				i1.second->object->collision(i1.second, i2.second);
+				//i2.second->object->collision(i2.second, i1.first);
+			}
+		}
 	}
 
 	return 0;

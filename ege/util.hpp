@@ -10,38 +10,47 @@
 #define _EGE_UTIL_H 1
 
 #include <string>
-#include <fstream>
 
-bool read_file(const char* path, std::string& output) {
-	std::ifstream t(path);
-	t.seekg(0, std::ios::end);
-	size_t size = t.tellg();
-	output.reserve(size);
-	t.seekg(0);
-	t.read(&output[0], size);
-	return 0;
+bool check_collision(SDL_Rect* a, SDL_Rect* b) {
+	int a_left, a_right, a_top, a_bottom;
+	int b_left, b_right, b_top, b_bottom;
+
+	a_left = a->x;
+	a_right = a->x + a->w;
+	a_top = a->y;
+	a_bottom = a->y + a->h;
+
+	b_left = b->x;
+	b_right = b->x + b->w;
+	b_top = b->y;
+	b_bottom = b->y + b->h;
+
+	if (a_bottom <= b_top) {
+		return false;
+	} else if (a_top >= b_bottom) {
+		return false;
+	} else if (a_right <= b_left) {
+		return false;
+	} else if (a_left >= b_right) {
+		return false;
+	}
+
+	return true;
+
+	//return (SDL_HasIntersection(a, b) == SDL_TRUE) ? true : false;
 }
 
-void calculate_normals(const unsigned int* pIndices, unsigned int IndexCount, Vertex* pVertices, unsigned int VertexCount) {
-	// Accumulate each triangle normal into each of the triangle vertices
-	for (unsigned int i = 0 ; i < IndexCount ; i += 3) {
-		unsigned int Index0 = pIndices[i];
-		unsigned int Index1 = pIndices[i + 1];
-		unsigned int Index2 = pIndices[i + 2];
-		Vector3f v1 = pVertices[Index1].m_pos - pVertices[Index0].m_pos;
-		Vector3f v2 = pVertices[Index2].m_pos - pVertices[Index0].m_pos;
-		Vector3f Normal = v1.Cross(v2);
-		Normal.Normalize();
-
-		pVertices[Index0].m_normal += Normal;
-		pVertices[Index1].m_normal += Normal;
-		pVertices[Index2].m_normal += Normal;
+std::pair<int,int> coord_approach(int x1, int y1, int x2, int y2, int speed) {
+	float distance = sqrt(pow(x1-x2, 2) + pow(y1-y2, 2));
+	if (distance <= speed) {
+		return std::make_pair(x2, y2);
 	}
+ 	float ratio = speed/distance;
 
-	// Normalize all the vertex normals
-	for (unsigned int i = 0 ; i < VertexCount ; i++) {
-		pVertices[i].m_normal.Normalize();
-	}
+	int x3 = x1 + (x2-x1)*ratio;
+	int y3 = y1 + (y2-y1)*ratio;
+
+	return std::make_pair(x3, y3);
 }
 
 #endif // _EGE_UTIL_H

@@ -9,7 +9,7 @@
 #ifndef _EGE_SPRITE_H
 #define _EGE_SPRITE_H 1
 
-#define MAX_SPRITE_IMAGES 8
+#include <vector>
 
 class Sprite: public Resource {
 		// Add new variables to the print() debugging method
@@ -17,15 +17,14 @@ class Sprite: public Resource {
 		std::string name;
 		std::string image_path;
 		int width, height;
-		int subimage_amount, subimage_width, current_subimage;
-		Uint32 subimage_time;
+		int subimage_amount, subimage_width;
 		float speed, alpha;
 		bool is_animated;
 		int origin_x, origin_y;
 
 		SDL_Texture* texture;
 		bool is_loaded;
-		SDL_Rect subimages[MAX_SPRITE_IMAGES];
+		std::vector<SDL_Rect> subimages;
 	public:
 		Sprite();
 		Sprite(std::string, std::string);
@@ -58,7 +57,7 @@ class Sprite: public Resource {
 
 		int load();
 		int free();
-		int draw(int, int);
+		int draw(int, int, Uint32);
 };
 Sprite::Sprite () {
 	id = -1;
@@ -119,8 +118,6 @@ int Sprite::reset() {
 	height = 0;
 	subimage_amount = 0;
 	subimage_width = 0;
-	current_subimage = 0;
-	subimage_time = 0;
 	speed = 0.0;
 	alpha = 1.0;
 	is_animated = false;
@@ -129,12 +126,7 @@ int Sprite::reset() {
 
 	texture = NULL;
 	is_loaded = false;
-	for (int i=0; i<MAX_SPRITE_IMAGES; i++) {
-		subimages[i].x = 0;
-		subimages[i].y = 0;
-		subimages[i].w = 0;
-		subimages[i].h = 0;
-	}
+	subimages.clear();
 
 	return 0;
 }
@@ -204,10 +196,8 @@ int Sprite::set_subimage_amount(int new_subimage_amount, int new_subimage_width)
 	subimage_amount = new_subimage_amount;
 	subimage_width = new_subimage_width;
 	for (int i=0; i<subimage_amount; i++) {
-		subimages[i].x = i*subimage_width;
-		subimages[i].w = subimage_width;
+		subimages.push_back({i*subimage_width, 0, subimage_width, 0});
 	}
-	subimage_time = SDL_GetTicks();
 	return 0;
 }
 int Sprite::set_speed(float new_speed) {
@@ -275,8 +265,8 @@ int Sprite::free() {
 	}
 	return 0;
 }
-int Sprite::draw(int x, int y) {
-	current_subimage = (int)round(speed*(SDL_GetTicks()-subimage_time)/game->fps) % subimage_amount;
+int Sprite::draw(int x, int y, Uint32 subimage_time) {
+	int current_subimage = (int)round(speed*(SDL_GetTicks()-subimage_time)/game->fps_goal) % subimage_amount;
 	if (current_subimage == 0) {
 		is_animated = true;
 	}

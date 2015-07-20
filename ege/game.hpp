@@ -16,12 +16,14 @@
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_mixer.h>
 
+#include "util.hpp"
+
 class Sprite; class Sound; class Background; class Path; class Object; class Room;
 
 class EGE {
 		int argc;
 		char** argv;
-		bool quit;
+		bool quit, is_ready;
 		Room *first_room = NULL, *current_room = NULL;
 
 		SDL_Event event;
@@ -30,9 +32,10 @@ class EGE {
 		SDL_Window* window = NULL;
 		SDL_Renderer* renderer = NULL;
 		int width, height;
-		unsigned int max_fps, fps, fps_count, fps_stable;
+		unsigned int fps_max, fps_goal, fps_count, fps_stable;
 
 		EGE(int, char**, Room*);
+		~EGE();
 		int loop();
 		int close();
 		int set_engine_pointer();
@@ -49,6 +52,7 @@ class EGE {
 		static void sound_finished(int);
 
 		Room* get_room();
+		bool get_is_ready();
 };
 
 int init_resources();
@@ -62,8 +66,10 @@ int close_resources();
 EGE::EGE(int new_argc, char** new_argv, Room* new_first_room) {
 	argc = new_argc;
 	argv = new_argv;
-	max_fps = 300;
-	fps = 60;
+	is_ready = false;
+
+	fps_max = 300;
+	fps_goal = 60;
 	fps_count = 0;
 	fps_stable = 0;
 
@@ -115,21 +121,20 @@ EGE::EGE(int new_argc, char** new_argv, Room* new_first_room) {
 		}
 	}
 }
+EGE::~EGE() {
+	close();
+}
 int EGE::loop() {
 	if (current_room == NULL) {
-		quit = true;
-		std::cerr << "Failed to start event loop, i.e. current_room == NULL\n";
-		return 1;
+		throw std::string("Failed to start event loop, i.e. current_room == NULL\n");
 	}
 
 	tickstamp = SDL_GetTicks();
 	fps_ticks = SDL_GetTicks();
 	while (!quit) {
 		try {
-			fps_count++;
-
 			current_room->step_begin();
-			current_room->alarm(0);
+			current_room->check_alarms();
 
 			while (SDL_PollEvent(&event)) {
 				switch (event.type) {
@@ -177,9 +182,10 @@ int EGE::loop() {
 			current_room->step_end();
 			current_room->draw();
 
+			fps_count++;
 			new_tickstamp = SDL_GetTicks();
-			if (new_tickstamp - tickstamp < 1000/max_fps) {
-				SDL_Delay((1000/max_fps) - (new_tickstamp - tickstamp));
+			if (new_tickstamp - tickstamp < 1000/fps_max) {
+				SDL_Delay((1000/fps_max) - (new_tickstamp - tickstamp));
 			}
 			tickstamp = SDL_GetTicks();
 
@@ -215,6 +221,8 @@ int EGE::loop() {
 
 	current_room->room_end();
 	current_room->game_end();
+	is_ready = false;
+	current_room->reset_properties();
 
 	return 0;
 }
@@ -303,11 +311,13 @@ int EGE::restart_room() {
 }
 int EGE::restart_room_internal() {
 	current_room->room_end();
+	is_ready = false;
 	current_room->reset_properties();
 	current_room->init();
 
 	SDL_SetWindowTitle(window, current_room->get_name().c_str());
 
+	is_ready = true;
 	current_room->create();
 	current_room->room_start();
 	current_room->draw();
@@ -322,6 +332,7 @@ int EGE::change_room(Room* new_room) {
 	bool is_game_start = false;
 	if (current_room != NULL) {
 		current_room->room_end();
+		current_room->reset_properties();
 	} else {
 		is_game_start = true;
 		first_room = new_room;
@@ -330,6 +341,7 @@ int EGE::change_room(Room* new_room) {
 	free_media();
 
 	current_room = new_room;
+	is_ready = false;
 	current_room->reset_properties();
 	current_room->init();
 
@@ -341,6 +353,7 @@ int EGE::change_room(Room* new_room) {
 	SDL_SetWindowTitle(window, current_room->get_name().c_str());
 	std::cout << current_room->get_instance_string();
 
+	is_ready = true;
 	current_room->create();
 	if (is_game_start) {
 		current_room->game_start();
@@ -366,6 +379,9 @@ void EGE::sound_finished(int channel) {
 
 Room* EGE::get_room() {
 	return current_room;
+}
+bool EGE::get_is_ready() {
+	return is_ready;
 }
 
 #endif // _EGE_GAME_H

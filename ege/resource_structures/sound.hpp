@@ -142,6 +142,7 @@ int Sound::reset() {
 	bit_rate = 192;
 
 	is_loaded = false;
+	is_music = false;
 	is_playing = false;
 	is_looping = false;
 	current_channels.clear();
@@ -233,7 +234,7 @@ int Sound::set_volume(float new_volume) {
 }
 int Sound::set_pan(float new_pan) {
 	pan = new_pan;
-	if (music) {
+	if (is_music) {
 		return 1; // I'm not sure how to pan music at the moment
 	} else {
 		for (std::list<int>::iterator i=current_channels.begin(); i != current_channels.end(); ++i) {

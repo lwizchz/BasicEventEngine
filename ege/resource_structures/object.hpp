@@ -71,7 +71,7 @@ class Object: public Resource {
 		virtual void path_end(InstanceData*) {};
 		virtual void outside_room(InstanceData*) {};
 		virtual void intersect_boundary(InstanceData*) {};
-		virtual void collision(InstanceData*, int) {};
+		virtual void collision(InstanceData*, InstanceData*) {};
 		virtual void draw(InstanceData*) {};
 		virtual void animation_end(InstanceData*) {};
 		virtual void room_start(InstanceData*) {};

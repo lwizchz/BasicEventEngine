@@ -259,8 +259,8 @@ int Background::draw(int x, int y, bool is_horizontal_tile, bool is_vertical_til
 		rect.h = game->height;
 		SDL_RenderCopy(game->renderer, texture, NULL, &rect);
 	} else {
-		int dx = horizontal_speed*(SDL_GetTicks()-animation_time)/game->fps;
-		int dy = vertical_speed*(SDL_GetTicks()-animation_time)/game->fps;
+		int dx = horizontal_speed*(SDL_GetTicks()-animation_time)/game->fps_goal;
+		int dy = vertical_speed*(SDL_GetTicks()-animation_time)/game->fps_goal;
 		int mx = (width <= 0) ? 0 : game->width - (game->width % width);
 		int my = (height <= 0) ? 0 : game->height - (game->height % height);
 		if ((mx > 0)&&(my > 0)) {

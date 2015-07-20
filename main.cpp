@@ -18,9 +18,7 @@ int main(int argc, char* argv[]) {
 		EGE* game = new EGE(argc, argv, &rm_test);
 
 		// Loop event handling
-		if (game->loop()) {
-			return 2;
-		}
+		game->loop();
 
 		// Clean up
 		game->close();

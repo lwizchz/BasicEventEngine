@@ -11,6 +11,24 @@
 
 #include <iostream>
 
+class TextData {
+	public:
+		SDL_Texture* texture;
+		std::string text;
+		TextData() {texture=NULL;text="";};
+		TextData(SDL_Texture*, std::string);
+		~TextData();
+};
+TextData::TextData(SDL_Texture* new_texture, std::string new_text) {
+	texture = new_texture;
+	text = new_text;
+}
+TextData::~TextData() {
+	SDL_DestroyTexture(texture);
+	texture = NULL;
+	text = "";
+}
+
 class Font: public Resource {
 		// Add new variables to the print() debugging method
 		int id;
@@ -20,8 +38,6 @@ class Font: public Resource {
 
 		TTF_Font* font;
 		bool is_loaded;
-		SDL_Texture* texture;
-		int width, height;
 	public:
 		Font();
 		Font(std::string, std::string, int);
@@ -41,9 +57,12 @@ class Font: public Resource {
 
 		int load();
 		int free();
-		int draw(int, int, std::string, SDL_Color);
-		int draw(int, int, std::string);
-		int reset_texture();
+		TextData* draw(int, int, std::string, SDL_Color);
+		TextData* draw(int, int, std::string);
+		TextData* draw(TextData*, int, int, std::string, SDL_Color);
+		TextData* draw(TextData*, int, int, std::string);
+		int draw_fast(int, int, std::string, SDL_Color);
+		int draw_fast(int, int, std::string);
 
 		int get_string_width(std::string, int);
 		int get_string_width(std::string);
@@ -107,9 +126,6 @@ int Font::reset() {
 
 	font = NULL;
 	is_loaded = false;
-	texture = NULL;
-	width = 0;
-	height = 0;
 
 	return 0;
 }
@@ -121,7 +137,6 @@ int Font::print() {
 	"\n	font_path	" << font_path <<
 	"\n	font_size	" << font_size <<
 	"\n	font		" << font <<
-	"\n	texture		" << texture <<
 	"\n}\n";
 
 	return 0;
@@ -166,8 +181,6 @@ int Font::load() {
 }
 int Font::free() {
 	if (is_loaded) {
-		reset_texture();
-
 		TTF_CloseFont(font);
 		font = NULL;
 
@@ -176,16 +189,77 @@ int Font::free() {
 
 	return 0;
 }
-int Font::draw(int x, int y, std::string text, SDL_Color color) {
+TextData* Font::draw(int x, int y, std::string text, SDL_Color color) {
 	if (is_loaded) {
 		if (text.size() > 0) {
 			SDL_Surface* tmp_surface;
-			tmp_surface = TTF_RenderText_Solid(font, text.c_str(), color);
+			//tmp_surface = TTF_RenderUTF8_Solid(font, text.c_str(), color); // Fast but ugly
+			tmp_surface = TTF_RenderUTF8_Blended(font, text.c_str(), color); // Slow but pretty
+			if (tmp_surface == NULL) {
+				std::cerr << "Failed to draw with font " << name << ": " << TTF_GetError() << "\n";
+				return NULL;
+			}
+
+			SDL_Texture* texture;
+			texture = SDL_CreateTextureFromSurface(game->renderer, tmp_surface);
+			if (texture == NULL) {
+				std::cerr << "Failed to create texture from surface: " << SDL_GetError() << "\n";
+				return NULL;
+			}
+
+			SDL_FreeSurface(tmp_surface);
+
+			SDL_Rect rect;
+			rect.x = x;
+			rect.y = y;
+			SDL_QueryTexture(texture, NULL, NULL, &rect.w, &rect.h);
+
+			SDL_RenderCopy(game->renderer, texture, NULL, &rect);
+
+			TextData* textdata = new TextData(texture, text);
+
+			return textdata;
+		}
+
+		return NULL;
+	}
+
+	std::cerr << "Failed to draw text, font not loaded: " << name << "\n";
+	return NULL;
+}
+TextData* Font::draw(int x, int y, std::string text) {
+	SDL_Color color = {0, 0, 0, 255};
+	return draw(x, y, text, color);
+}
+TextData* Font::draw(TextData* textdata, int x, int y, std::string text, SDL_Color color) {
+	if ((textdata != NULL)&&(textdata->text == text)) {
+		SDL_Rect rect;
+		rect.x = x;
+		rect.y = y;
+		SDL_QueryTexture(textdata->texture, NULL, NULL, &rect.w, &rect.h);
+
+		SDL_RenderCopy(game->renderer, textdata->texture, NULL, &rect);
+
+		return textdata;
+	} else {
+		return draw(x, y, text, color);
+	}
+}
+TextData* Font::draw(TextData* textdata, int x, int y, std::string text) {
+	SDL_Color color = {0, 0, 0, 255};
+	return draw(textdata, x, y, text, color);
+}
+int Font::draw_fast(int x, int y, std::string text, SDL_Color color) {
+	if (is_loaded) {
+		if (text.size() > 0) {
+			SDL_Surface* tmp_surface;
+			tmp_surface = TTF_RenderUTF8_Solid(font, text.c_str(), color); // Fast but ugly
 			if (tmp_surface == NULL) {
 				std::cerr << "Failed to draw with font " << name << ": " << TTF_GetError() << "\n";
 				return 1;
 			}
 
+			SDL_Texture* texture;
 			texture = SDL_CreateTextureFromSurface(game->renderer, tmp_surface);
 			if (texture == NULL) {
 				std::cerr << "Failed to create texture from surface: " << SDL_GetError() << "\n";
@@ -193,51 +267,32 @@ int Font::draw(int x, int y, std::string text, SDL_Color color) {
 			}
 
 			SDL_FreeSurface(tmp_surface);
-			SDL_QueryTexture(texture, NULL, NULL, &width, &height);
 
 			SDL_Rect rect;
 			rect.x = x;
 			rect.y = y;
-			rect.w = width;
-			rect.h = height;
+			SDL_QueryTexture(texture, NULL, NULL, &rect.w, &rect.h);
+
 			SDL_RenderCopy(game->renderer, texture, NULL, &rect);
 
-			reset_texture();
+			return 0;
 		}
 
-		return 0;
+		return 1;
 	}
 
 	std::cerr << "Failed to draw text, font not loaded: " << name << "\n";
 	return 1;
 }
-int Font::draw(int x, int y, std::string text) {
-	SDL_Color color = {0, 0, 0, 1};
-	return draw(x, y, text, color);
-}
-int Font::reset_texture() {
-	SDL_DestroyTexture(texture);
-	texture = NULL;
-	width = 0;
-	height = 0;
-
-	return 0;
+int Font::draw_fast(int x, int y, std::string text) {
+	SDL_Color color = {0, 0, 0, 255};
+	return draw_fast(x, y, text, color);
 }
 
 int Font::get_string_width(std::string text, int size) {
 	if (is_loaded) {
 		int w = 0;
-		if (text.size() > 0) {
-			SDL_Surface* tmp_surface;
-			tmp_surface = TTF_RenderText_Solid(font, text.c_str(), {0, 0, 0, 1});
-			if (tmp_surface == NULL) {
-				std::cerr << "Failed to draw with font " << name << ": " << TTF_GetError() << "\n";
-				return 1;
-			}
-			w = tmp_surface->w;
-			SDL_FreeSurface(tmp_surface);
-		}
-
+		TTF_SizeUTF8(font, text.c_str(), &w, NULL);
 		return w;
 	}
 
