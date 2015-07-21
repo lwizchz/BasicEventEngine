@@ -1,13 +1,13 @@
 /*
 * Copyright (c) 2015 Luke Montalvo <lukemontalvo@gmail.com>
 *
-* This file is part of EGE.
-* EGE is free software and comes with ABSOLUTELY NO WARANTY.
+* This file is part of BEE.
+* BEE is free software and comes with ABSOLUTELY NO WARANTY.
 * See LICENSE for more details.
 */
 
-#ifndef _EGE_UTIL_H
-#define _EGE_UTIL_H 1
+#ifndef _BEE_UTIL_H
+#define _BEE_UTIL_H 1
 
 #include <string>
 
@@ -53,4 +53,4 @@ std::pair<int,int> coord_approach(int x1, int y1, int x2, int y2, int speed) {
 	return std::make_pair(x3, y3);
 }
 
-#endif // _EGE_UTIL_H
+#endif // _BEE_UTIL_H

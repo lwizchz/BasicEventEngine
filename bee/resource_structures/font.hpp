@@ -1,13 +1,13 @@
 /*
 * Copyright (c) 2015 Luke Montalvo <lukemontalvo@gmail.com>
 *
-* This file is part of EGE.
-* EGE is free software and comes with ABSOLUTELY NO WARANTY.
+* This file is part of BEE.
+* BEE is free software and comes with ABSOLUTELY NO WARANTY.
 * See LICENSE for more details.
 */
 
-#ifndef _EGE_FONT_H
-#define _EGE_FONT_H 1
+#ifndef _BEE_FONT_H
+#define _BEE_FONT_H 1
 
 #include <iostream>
 
@@ -303,4 +303,4 @@ int Font::get_string_width(std::string text) {
 	return get_string_width(text, font_size);
 }
 
-#endif // _EGE_FONT_H
+#endif // _BEE_FONT_H

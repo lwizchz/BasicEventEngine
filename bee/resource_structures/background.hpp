@@ -1,13 +1,13 @@
 /*
 * Copyright (c) 2015 Luke Montalvo <lukemontalvo@gmail.com>
 *
-* This file is part of EGE.
-* EGE is free software and comes with ABSOLUTELY NO WARANTY.
+* This file is part of BEE.
+* BEE is free software and comes with ABSOLUTELY NO WARANTY.
 * See LICENSE for more details.
 */
 
-#ifndef _EGE_BACKGROUND_H
-#define _EGE_BACKGROUND_H 1
+#ifndef _BEE_BACKGROUND_H
+#define _BEE_BACKGROUND_H 1
 
 class Background: public Resource {
 		// Add new variables to the print() debugging method
@@ -292,4 +292,4 @@ int Background::draw(int x, int y, bool is_horizontal_tile, bool is_vertical_til
 	return 0;
 }
 
-#endif // _EGE_BACKGROUND_H
+#endif // _BEE_BACKGROUND_H

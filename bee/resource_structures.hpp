@@ -1,13 +1,13 @@
 /*
 * Copyright (c) 2015 Luke Montalvo <lukemontalvo@gmail.com>
 *
-* This file is part of EGE.
-* EGE is free software and comes with ABSOLUTELY NO WARANTY.
+* This file is part of BEE.
+* BEE is free software and comes with ABSOLUTELY NO WARANTY.
 * See LICENSE for more details.
 */
 
-#ifndef _EGE_RESOURCE_STRUCTURES_H
-#define _EGE_RESOURCE_STRUCTURES_H 1
+#ifndef _BEE_RESOURCE_STRUCTURES_H
+#define _BEE_RESOURCE_STRUCTURES_H 1
 
 #include <iostream>
 #include <string>
@@ -17,7 +17,7 @@
 
 class Resource {
 	public:
-		EGE* game = NULL;
+		BEE* game = NULL;
 
 		virtual ~Resource() {};
 		virtual int reset() =0;
@@ -112,4 +112,4 @@ Room* room(int id) {
 	return dynamic_cast<Room*>(resource_list.rooms.get_resource(id));
 }
 
-#endif // _EGE_RESOURCE_STRUCTURES_H
+#endif // _BEE_RESOURCE_STRUCTURES_H

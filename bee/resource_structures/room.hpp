@@ -1,13 +1,13 @@
 /*
 * Copyright (c) 2015 Luke Montalvo <lukemontalvo@gmail.com>
 *
-* This file is part of EGE.
-* EGE is free software and comes with ABSOLUTELY NO WARANTY.
+* This file is part of BEE.
+* BEE is free software and comes with ABSOLUTELY NO WARANTY.
 * See LICENSE for more details.
 */
 
-#ifndef _EGE_ROOM_H
-#define _EGE_ROOM_H 1
+#ifndef _BEE_ROOM_H
+#define _BEE_ROOM_H 1
 
 #include <iostream>
 #include <map>
@@ -729,4 +729,4 @@ int Room::game_end() {
 	return 0;
 }
 
-#endif // _EGE_ROOM_H
+#endif // _BEE_ROOM_H

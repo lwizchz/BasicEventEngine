@@ -1,13 +1,13 @@
 /*
 * Copyright (c) 2015 Luke Montalvo <lukemontalvo@gmail.com>
 *
-* This file is part of EGE.
-* EGE is free software and comes with ABSOLUTELY NO WARANTY.
+* This file is part of BEE.
+* BEE is free software and comes with ABSOLUTELY NO WARANTY.
 * See LICENSE for more details.
 */
 
-#ifndef _EGE_SOUND3D_H
-#define _EGE_SOUND3D_H 1
+#ifndef _BEE_SOUND3D_H
+#define _BEE_SOUND3D_H 1
 
 #include <AL/alut.h>
 
@@ -286,4 +286,4 @@ bool Sound3D::get_is_playing() {
 	return is_playing;
 }
 
-#endif // _EGE_SOUND3D_H
+#endif // _BEE_SOUND3D_H

@@ -1,15 +1,15 @@
-/*
+	/*
 * Copyright (c) 2015 Luke Montalvo <lukemontalvo@gmail.com>
 *
-* This file is part of EGE.
-* EGE is free software and comes with ABSOLUTELY NO WARANTY.
+* This file is part of BEE.
+* BEE is free software and comes with ABSOLUTELY NO WARANTY.
 * See LICENSE for more details.
 */
 
-#ifndef _EGE_OBJECT_H
-#define _EGE_OBJECT_H 1
+#ifndef _BEE_OBJECT_H
+#define _BEE_OBJECT_H 1
 
-class InstanceData; // Defined in ege/resource_structures/room.hpp
+class InstanceData; // Defined in bee/resource_structures/room.hpp
 
 class Object: public Resource {
 		// Add new variables to the print() debugging method
@@ -254,4 +254,4 @@ int Object::set_mask(Sprite* new_mask) {
 	return 0;
 }
 
-#endif // _EGE_OBJECT_H
+#endif // _BEE_OBJECT_H

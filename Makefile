@@ -1,4 +1,4 @@
-NAME = EasyGameEngine
+NAME = BasicEventEngine
 
 DEPS = main.cpp
 REQ_FILES = $(NAME)/

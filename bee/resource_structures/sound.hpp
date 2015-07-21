@@ -1,13 +1,13 @@
 /*
 * Copyright (c) 2015 Luke Montalvo <lukemontalvo@gmail.com>
 *
-* This file is part of EGE.
-* EGE is free software and comes with ABSOLUTELY NO WARANTY.
+* This file is part of BEE.
+* BEE is free software and comes with ABSOLUTELY NO WARANTY.
 * See LICENSE for more details.
 */
 
-#ifndef _EGE_SOUND_H
-#define _EGE_SOUND_H 1
+#ifndef _BEE_SOUND_H
+#define _BEE_SOUND_H 1
 
 #include <list>
 
@@ -434,4 +434,4 @@ bool Sound::get_is_looping() {
 	return is_looping;
 }
 
-#endif // _EGE_SOUND_H
+#endif // _BEE_SOUND_H

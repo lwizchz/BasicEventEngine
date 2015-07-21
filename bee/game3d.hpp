@@ -1,13 +1,13 @@
 /*
 * Copyright (c) 2015 Luke Montalvo <lukemontalvo@gmail.com>
 *
-* This file is part of EGE.
-* EGE is free software and comes with ABSOLUTELY NO WARANTY.
+* This file is part of BEE.
+* BEE is free software and comes with ABSOLUTELY NO WARANTY.
 * See LICENSE for more details.
 */
 
-#ifndef _EGE_GAME3D_H
-#define _EGE_GAME3D_H 1
+#ifndef _BEE_GAME3D_H
+#define _BEE_GAME3D_H 1
 
 #include <GL/glew.h>
 #include <GL/freeglut.h>
@@ -498,4 +498,4 @@ void game3d_keyboard_special(int k, int x, int y) {game3d.on_keyboard_special(k,
 void game3d_mouse_passive(int x, int y) {game3d.on_mouse_passive(x, y);}
 void game3d_mouse(int b, int s, int x, int y) {game3d.on_mouse(b, s, x, y);}
 
-#endif // _EGE_GAME3D_H
+#endif // _BEE_GAME3D_H

@@ -1,13 +1,13 @@
 /*
 * Copyright (c) 2015 Luke Montalvo <lukemontalvo@gmail.com>
 *
-* This file is part of EGE.
-* EGE is free software and comes with ABSOLUTELY NO WARANTY.
+* This file is part of BEE.
+* BEE is free software and comes with ABSOLUTELY NO WARANTY.
 * See LICENSE for more details.
 */
 
-#ifndef _EGE_GAME_H
-#define _EGE_GAME_H 1
+#ifndef _BEE_GAME_H
+#define _BEE_GAME_H 1
 
 #include <iostream>
 #include <time.h>
@@ -20,7 +20,7 @@
 
 class Sprite; class Sound; class Background; class Path; class Object; class Room;
 
-class EGE {
+class BEE {
 		int argc;
 		char** argv;
 		bool quit, is_ready;
@@ -34,8 +34,8 @@ class EGE {
 		int width, height;
 		unsigned int fps_max, fps_goal, fps_count, fps_stable;
 
-		EGE(int, char**, Room*);
-		~EGE();
+		BEE(int, char**, Room*);
+		~BEE();
 		int loop();
 		int close();
 		int set_engine_pointer();
@@ -63,7 +63,7 @@ int close_resources();
 #define DEFAULT_WINDOW_WIDTH 1280
 #define DEFAULT_WINDOW_HEIGHT 720
 
-EGE::EGE(int new_argc, char** new_argv, Room* new_first_room) {
+BEE::BEE(int new_argc, char** new_argv, Room* new_first_room) {
 	argc = new_argc;
 	argv = new_argv;
 	is_ready = false;
@@ -121,10 +121,10 @@ EGE::EGE(int new_argc, char** new_argv, Room* new_first_room) {
 		}
 	}
 }
-EGE::~EGE() {
+BEE::~BEE() {
 	close();
 }
-int EGE::loop() {
+int BEE::loop() {
 	if (current_room == NULL) {
 		throw std::string("Failed to start event loop, i.e. current_room == NULL\n");
 	}
@@ -226,7 +226,7 @@ int EGE::loop() {
 
 	return 0;
 }
-int EGE::close() {
+int BEE::close() {
 	free_media();
 	close_resources();
 
@@ -242,7 +242,7 @@ int EGE::close() {
 
 	return 0;
 }
-int EGE::set_engine_pointer() {
+int BEE::set_engine_pointer() {
 	for (int i=0; i<resource_list.sprites.get_amount(); i++) {
 		if (sprite(i) != NULL) {
 			sprite(i)->game = this;
@@ -281,14 +281,14 @@ int EGE::set_engine_pointer() {
 
 	return 0;
 }
-int EGE::load_media() {
+int BEE::load_media() {
 	if (current_room != NULL) {
 		current_room->load_media();
 	}
 
 	return 0;
 }
-int EGE::free_media() {
+int BEE::free_media() {
 	if (current_room != NULL) {
 		current_room->free_media();
 	}
@@ -296,20 +296,20 @@ int EGE::free_media() {
 	return 0;
 }
 
-int EGE::restart_game() {
+int BEE::restart_game() {
 	throw 2;
 	return 0;
 }
-int EGE::end_game() {
+int BEE::end_game() {
 	throw 1;
 	return 0;
 }
 
-int EGE::restart_room() {
+int BEE::restart_room() {
 	throw 3;
 	return 0;
 }
-int EGE::restart_room_internal() {
+int BEE::restart_room_internal() {
 	current_room->room_end();
 	is_ready = false;
 	current_room->reset_properties();
@@ -324,7 +324,7 @@ int EGE::restart_room_internal() {
 
 	return 0;
 }
-int EGE::change_room(Room* new_room) {
+int BEE::change_room(Room* new_room) {
 	if (quit) {
 		return 1;
 	}
@@ -364,10 +364,10 @@ int EGE::change_room(Room* new_room) {
 	return 0;
 }
 
-int EGE::animation_end(Sprite* finished_sprite) {
+int BEE::animation_end(Sprite* finished_sprite) {
 	return current_room->animation_end(finished_sprite);
 }
-void EGE::sound_finished(int channel) {
+void BEE::sound_finished(int channel) {
 	for (int i=0; i<resource_list.sounds.get_amount(); i++) {
 		if (sound(i) != NULL) {
 			if (!sound(i)->get_is_music()) {
@@ -377,11 +377,11 @@ void EGE::sound_finished(int channel) {
 	}
 }
 
-Room* EGE::get_room() {
+Room* BEE::get_room() {
 	return current_room;
 }
-bool EGE::get_is_ready() {
+bool BEE::get_is_ready() {
 	return is_ready;
 }
 
-#endif // _EGE_GAME_H
+#endif // _BEE_GAME_H
