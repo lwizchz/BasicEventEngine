@@ -224,6 +224,9 @@ int Object::set_path(std::string path) {
 }
 int Object::set_sprite(Sprite* new_sprite) {
 	sprite = new_sprite;
+	if (mask == NULL) {
+		mask = new_sprite;
+	}
 	return 0;
 }
 int Object::set_is_solid(bool new_is_solid) {

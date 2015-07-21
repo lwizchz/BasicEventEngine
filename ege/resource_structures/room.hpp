@@ -635,8 +635,8 @@ int Room::intersect_boundary() {
 int Room::collision() {
 	for (auto& i1 : instances) {
 		for (auto& i2 : instances) {
-			SDL_Rect a = {i1.second->x, i1.second->y, i1.second->object->get_sprite()->get_subimage_width(), i1.second->object->get_sprite()->get_height()};
-			SDL_Rect b = {i2.second->x, i2.second->y, i2.second->object->get_sprite()->get_subimage_width(), i2.second->object->get_sprite()->get_height()};
+			SDL_Rect a = {i1.second->x, i1.second->y, i1.second->object->get_mask()->get_subimage_width(), i1.second->object->get_mask()->get_height()};
+			SDL_Rect b = {i2.second->x, i2.second->y, i2.second->object->get_mask()->get_subimage_width(), i2.second->object->get_mask()->get_height()};
 			if (check_collision(&a, &b)) {
 				i1.second->object->collision(i1.second, i2.second);
 				//i2.second->object->collision(i2.second, i1.first);
