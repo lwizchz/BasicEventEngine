@@ -1,0 +1,16 @@
+Copyright (c) 2015 Luke Montalvo <lukemontalvo@gmail.com>
+This file is part of BEE.
+BEE is free software and comes with ABSOLUTELY NO WARANTY.
+See LICENSE for more details.
+
+BasicEventEngine is an event-driven game engine which the user can interface with via the Sprite, 
+Sound, Background, Font, Path, Object, and Room classes. The Room class is used to organize the 
+resources for each section of the game and the Object class is used to act upon the events from the 
+main loop. A small example is included with all non-engine code in the resources directory.
+
+The available events are the virtual functions of the Object class which are on lines 59 to 80 in 
+the file bee/resource_structures/object.hpp
+
+The software is in early alpha so do not expect any sort of stability. If you have any questions or 
+comments, feel free to email me. Also feel free to contribute to the engine code, either by email 
+or via github.
