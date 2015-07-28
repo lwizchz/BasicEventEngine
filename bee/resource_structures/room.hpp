@@ -13,89 +13,17 @@
 #include <map>
 #include <tuple>
 
-#define ALARM_COUNT 8
-
 typedef std::tuple<int,int,int> rgb;
 
-class BackgroundData {
-	public:
-		Background* background;
-		bool is_visible;
-		bool is_foreground;
-		int x, y;
-		bool is_horizontal_tile, is_vertical_tile;
-		int horizontal_speed, vertical_speed;
-		bool is_stretched;
-		BackgroundData() {background=NULL;is_visible=false;is_foreground=false;x=0;y=0;is_horizontal_tile=false;is_vertical_tile=false;horizontal_speed=0;vertical_speed=0;is_stretched=false;};
-		BackgroundData(Background*, bool, bool, int, int, bool, bool, int, int, bool);
-		int init(Background*, bool, bool, int, int, bool, bool, int, int, bool);
-};
-BackgroundData::BackgroundData(Background* new_background, bool new_is_visible, bool new_is_foreground, int new_x, int new_y, bool new_is_horizontal_tile, bool new_is_vertical_tile, int new_horizontal_speed, int new_vertical_speed, bool new_is_stretched) {
-	init(new_background, new_is_visible, new_is_foreground, new_x, new_y, new_is_horizontal_tile, new_is_vertical_tile, new_horizontal_speed, new_vertical_speed, new_is_stretched);
-}
-int BackgroundData::init(Background* new_background, bool new_is_visible, bool new_is_foreground, int new_x, int new_y, bool new_is_horizontal_tile, bool new_is_vertical_tile, int new_horizontal_speed, int new_vertical_speed, bool new_is_stretched) {
-	background = new_background;
-	is_visible = new_is_visible;
-	is_foreground = new_is_foreground;
-	x = new_x;
-	y = new_y;
-	is_horizontal_tile = new_is_horizontal_tile;
-	is_vertical_tile = new_is_vertical_tile;
-	horizontal_speed = new_horizontal_speed;
-	vertical_speed = new_vertical_speed;
-	is_stretched = new_is_stretched;
-	return 0;
-}
 class ViewData {
 	public:
 		bool is_visible;
 		int view_x, view_y, view_width, view_height;
 		int port_x, port_y, port_width, port_height;
-		Object* object;
+		InstanceData* following;
 		int object_horizontal_border, object_vertical_border;
 		int horizontal_speed, vertical_speed;
 };
-class InstanceData {
-	public:
-		int id;
-		Object* object;
-		Uint32 subimage_time;
-		int x, y, vx, vy;
-		Uint32 alarm_end[ALARM_COUNT];
-		InstanceData();
-		InstanceData(int, Object*, int, int);
-		int init(int, Object*, int, int);
-		int set_alarm(int, Uint32);
-};
-InstanceData::InstanceData() {
-	id=-1; object=NULL; subimage_time = 0;
-	x=0; y=0; vx=0; vy=0;
-	for (int i=0; i<ALARM_COUNT; i++) {
-		alarm_end[i] = 0xffffffff;
-	}
-}
-InstanceData::InstanceData(int new_id, Object* new_object, int new_x, int new_y) {
-	init(new_id, new_object, new_x, new_y);
-}
-int InstanceData::init(int new_id, Object* new_object, int new_x, int new_y) {
-	id = new_id;
-	object = new_object;
-	subimage_time = SDL_GetTicks();
-	x = new_x;
-	y = new_y;
-	vx = x;
-	vy = y;
-
-	for (int i=0; i<ALARM_COUNT; i++) {
-		alarm_end[i] = 0xffffffff;
-	}
-
-	return 0;
-}
-int InstanceData::set_alarm(int alarm, Uint32 elapsed_ticks) {
-	alarm_end[alarm] = elapsed_ticks + SDL_GetTicks();
-	return 0;
-}
 
 class Room: public Resource {
 		// Add new variables to the print() debugging method
@@ -182,9 +110,13 @@ class Room: public Resource {
 		int room_end();
 		int game_start();
 		int game_end();
+		int window(SDL_Event*);
 
 		virtual int init() =0;
 };
+
+#include "instancedata.hpp"
+
 Room::Room () {
 	id = -1;
 	reset();
@@ -353,7 +285,7 @@ std::string Room::get_view_string() {
 			v.second->port_x << ", " << v.second->port_y << "\t" <<
 			v.second->port_width << "\t" <<
 			v.second->port_height << "\t" <<
-			v.second->object->get_name() << "\t" <<
+			v.second->following->object->get_name() << "\t" <<
 			v.second->object_horizontal_border << "\t" <<
 			v.second->object_vertical_border << "\t" <<
 			v.second->horizontal_speed << "\t" <<
@@ -457,7 +389,7 @@ int Room::set_instance(int index, InstanceData* new_instance) {
 	return 0;
 }
 int Room::add_instance(int index, Object* object, int x, int y) {
-	InstanceData* new_instance = new InstanceData(index, object, x, y);
+	InstanceData* new_instance = new InstanceData(game, index, object, x, y);
 	if (index < 0) {
 		index = instances.size();
 		new_instance->id = index;
@@ -560,6 +492,22 @@ int Room::step_mid() {
 		i.second->object->step_mid(i.second);
 	}
 
+	// Condense all instance motion based on velocity and gravity into a single step
+	for (auto& i : instances) {
+		double x = i.second->x;
+		double y = i.second->y;
+		for (auto& v : i.second->velocity) {
+			x += sin(degtorad(v.second))*v.first;
+			y += -cos(degtorad(v.second))*v.first;
+		}
+		y += i.second->gravity;
+		i.second->velocity.clear();
+		i.second->move_away(distance(i.second->x, i.second->y, x, y), x, y);
+		i.second->x = x;
+		i.second->y = y;
+		//i.second->print();
+	}
+
 	return 0;
 }
 int Room::step_end() {
@@ -620,7 +568,11 @@ int Room::path_end() {
 }
 int Room::outside_room() {
 	for (auto& i : instances) {
-		i.second->object->outside_room(i.second);
+		SDL_Rect a = {(int)i.second->x, (int)i.second->y, i.second->object->get_mask()->get_subimage_width(), i.second->object->get_mask()->get_height()};
+		SDL_Rect b = {0, 0, game->width, game->height};
+		if (!check_collision(&a, &b)) {
+			i.second->object->outside_room(i.second);
+		}
 	}
 
 	return 0;
@@ -633,27 +585,43 @@ int Room::intersect_boundary() {
 	return 0;
 }
 int Room::collision() {
-	for (auto& i1 : instances) {
-		for (auto& i2 : instances) {
-			SDL_Rect a = {i1.second->x, i1.second->y, i1.second->object->get_mask()->get_subimage_width(), i1.second->object->get_mask()->get_height()};
-			SDL_Rect b = {i2.second->x, i2.second->y, i2.second->object->get_mask()->get_subimage_width(), i2.second->object->get_mask()->get_height()};
-			if (check_collision(&a, &b)) {
-				i1.second->object->collision(i1.second, i2.second);
-				//i2.second->object->collision(i2.second, i1.first);
+	std::map<int,InstanceData*> ilist = instances;
+
+	for (auto& i1 : ilist) {
+		SDL_Rect a = {(int)i1.second->x, (int)i1.second->y, i1.second->object->get_mask()->get_subimage_width(), i1.second->object->get_mask()->get_height()};
+		for (auto& i2 : ilist) {
+			if (i1.first == i2.first) {
+				continue;
 			}
+
+			SDL_Rect b = {(int)i2.second->x, (int)i2.second->y, i2.second->object->get_mask()->get_subimage_width(), i2.second->object->get_mask()->get_height()};
+			if (check_collision(&a, &b)) {
+				if (i1.second->object->get_is_solid()) {
+					i1.second->x -= sin(degtorad(i1.second->velocity.front().second))*i1.second->velocity.front().first;
+					i1.second->y -= -cos(degtorad(i1.second->velocity.front().second))*i1.second->velocity.front().first;
+				}
+
+				i1.second->object->collision(i1.second, i2.second);
+				i2.second->object->collision(i2.second, i1.second);
+			}
+		}
+		ilist.erase(i1.first);
+	}
+
+	for (auto& i : instances) {
+		if (!i.second->velocity.empty()) {
+			i.second->velocity.pop_front();
 		}
 	}
 
 	return 0;
 }
 int Room::draw() {
-	SDL_RenderClear(game->renderer);
+	game->render_clear();
 
-	BackgroundData b;
-	for (unsigned int i=0; i<backgrounds.size(); i++) {
-		b = *backgrounds[i];
-		if (b.is_visible && !b.is_foreground) {
-			b.background->draw(b.x, b.y, b.is_horizontal_tile, b.is_vertical_tile, b.horizontal_speed, b.vertical_speed, b.is_stretched);
+	for (auto& b : backgrounds) {
+		if (b.second->is_visible && !b.second->is_foreground) {
+			b.second->background->draw(b.second->x, b.second->y, b.second);
 		}
 	}
 
@@ -673,21 +641,24 @@ int Room::draw() {
 					i.second->object->draw(i.second);
 				}
 			}
+			viewport = {0, 0, game->width, game->height};
+			SDL_RenderSetViewport(game->renderer, &viewport);
 		} else {
 			i.second->vx = i.second->x;
 			i.second->vy = i.second->y;
-			i.second->object->draw(i.second);
+			if (i.second->object->get_is_visible()) {
+				i.second->object->draw(i.second);
+			}
 		}
 	}
 
-	for (unsigned int i=0; i<backgrounds.size(); i++) {
-		b = *backgrounds[i];
-		if (b.is_visible && b.is_foreground) {
-			b.background->draw(b.x, b.y, b.is_horizontal_tile, b.is_vertical_tile, b.horizontal_speed, b.vertical_speed, b.is_stretched);
+	for (auto& b : backgrounds) {
+		if (b.second->is_visible && b.second->is_foreground) {
+			b.second->background->draw(b.second->x, b.second->y, b.second);
 		}
 	}
 
-	SDL_RenderPresent(game->renderer);
+	game->render();
 
 	return 0;
 }
@@ -724,6 +695,13 @@ int Room::game_start() {
 int Room::game_end() {
 	for (auto& i : instances) {
 		i.second->object->game_end(i.second);
+	}
+
+	return 0;
+}
+int Room::window(SDL_Event* e) {
+	for (auto& i : instances) {
+		i.second->object->window(i.second, e);
 	}
 
 	return 0;

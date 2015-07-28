@@ -25,6 +25,7 @@ class Sprite: public Resource {
 		SDL_Texture* texture;
 		bool is_loaded;
 		std::vector<SDL_Rect> subimages;
+		SDL_Rect srect, drect;
 	public:
 		Sprite();
 		Sprite(std::string, std::string);
@@ -44,6 +45,8 @@ class Sprite: public Resource {
 		float get_alpha();
 		int get_origin_x();
 		int get_origin_y();
+		SDL_Texture* get_texture();
+		bool get_is_loaded();
 
 		int set_name(std::string);
 		int set_path(std::string);
@@ -58,6 +61,7 @@ class Sprite: public Resource {
 		int load();
 		int free();
 		int draw(int, int, Uint32);
+		int set_as_target();
 };
 Sprite::Sprite () {
 	id = -1;
@@ -183,6 +187,12 @@ int Sprite::get_origin_x() {
 int Sprite::get_origin_y() {
 	return origin_y;
 }
+SDL_Texture* Sprite::get_texture() {
+	return texture;
+}
+bool Sprite::get_is_loaded() {
+	return is_loaded;
+}
 int Sprite::set_name(std::string new_name) {
 	name = new_name;
 	return 0;
@@ -271,8 +281,6 @@ int Sprite::draw(int x, int y, Uint32 subimage_time) {
 		is_animated = true;
 	}
 
-	SDL_Rect srect, drect;
-
 	srect.x = subimages[current_subimage].x;
 	srect.y = 0;
 	srect.w = subimages[current_subimage].w;
@@ -289,6 +297,27 @@ int Sprite::draw(int x, int y, Uint32 subimage_time) {
 		game->animation_end(this);
 		is_animated = false;
 	}
+
+	return 0;
+}
+int Sprite::set_as_target() {
+	if (is_loaded) {
+		free();
+	}
+
+	texture = SDL_CreateTexture(game->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, game->width, game->height);
+	if (texture == NULL) {
+		std::cerr << "Failed to create a blank texture: " << SDL_GetError() << "\n";
+		return 1;
+	}
+
+	width = game->width;
+	height = game->height;
+	set_subimage_amount(1, width);
+
+	SDL_SetRenderTarget(game->renderer, texture);
+
+	is_loaded = true;
 
 	return 0;
 }

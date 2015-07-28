@@ -20,11 +20,25 @@
 
 class Sprite; class Sound; class Background; class Path; class Object; class Room;
 
+class GameOptions {
+	public:
+		// Window flags
+		bool is_fullscreen, is_opengl, is_borderless;
+		bool is_resizable, is_maximized, is_highdpi;
+
+		// Renderer flags
+		bool is_vsync_enabled;
+};
+
 class BEE {
 		int argc;
 		char** argv;
 		bool quit, is_ready;
 		Room *first_room = NULL, *current_room = NULL;
+		GameOptions* options;
+
+		bool is_minimized, is_fullscreen;
+		bool has_mouse, has_focus;
 
 		SDL_Event event;
 		Uint32 tickstamp, new_tickstamp, fps_ticks;
@@ -34,13 +48,16 @@ class BEE {
 		int width, height;
 		unsigned int fps_max, fps_goal, fps_count, fps_stable;
 
-		BEE(int, char**, Room*);
+		BEE(int, char**, Room*, GameOptions*);
 		~BEE();
 		int loop();
 		int close();
 		int set_engine_pointer();
 		int load_media();
 		int free_media();
+
+		int render();
+		int render_clear();
 
 		int restart_game();
 		int end_game();
@@ -50,6 +67,8 @@ class BEE {
 		int change_room(Room*);
 		int animation_end(Sprite*);
 		static void sound_finished(int);
+
+		int set_render_target(Sprite*);
 
 		Room* get_room();
 		bool get_is_ready();
@@ -63,10 +82,16 @@ int close_resources();
 #define DEFAULT_WINDOW_WIDTH 1280
 #define DEFAULT_WINDOW_HEIGHT 720
 
-BEE::BEE(int new_argc, char** new_argv, Room* new_first_room) {
+BEE::BEE(int new_argc, char** new_argv, Room* new_first_room, GameOptions* new_options) {
 	argc = new_argc;
 	argv = new_argv;
 	is_ready = false;
+	options = new_options;
+
+	is_minimized = false;
+	is_fullscreen = false;
+	has_mouse = false;
+	has_focus = false;
 
 	fps_max = 300;
 	fps_goal = 60;
@@ -80,18 +105,49 @@ BEE::BEE(int new_argc, char** new_argv, Room* new_first_room) {
 		throw std::string("Couldn't init SDL: ") + SDL_GetError() + "\n";
 	}
 
-	window = SDL_CreateWindow("Easy Game Engine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_SHOWN);
+	int window_flags = SDL_WINDOW_SHOWN;
+	if (options->is_fullscreen) {
+		if (options->is_resizable) {
+			window_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP; // Changes the window dimensions
+		} else {
+			window_flags |= SDL_WINDOW_FULLSCREEN; // Changes the video mode
+		}
+	}
+	if (options->is_opengl) {
+		window_flags |= SDL_WINDOW_OPENGL;
+	}
+	if (options->is_borderless) {
+		window_flags |= SDL_WINDOW_BORDERLESS;
+	}
+	if (options->is_resizable) {
+		window_flags |= SDL_WINDOW_RESIZABLE;
+	}
+	if (options->is_maximized) {
+		window_flags |= SDL_WINDOW_MAXIMIZED;
+	}
+	if (options->is_highdpi) {
+		window_flags |= SDL_WINDOW_ALLOW_HIGHDPI;
+	}
+	window = SDL_CreateWindow("Easy Game Engine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, window_flags);
 	if (window == NULL) {
 		throw std::string("Couldn't create SDL window: ") + SDL_GetError() + "\n";
 	}
 
-	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-	if (renderer == NULL) {
-		throw std::string("Couldn't create SDL renderer: ") + SDL_GetError() + "\n";
+	if (options->is_opengl) {
+		// Do OpenGL stuff
+	} else {
+		int renderer_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE;
+		if (options->is_vsync_enabled) {
+			renderer_flags |= SDL_RENDERER_PRESENTVSYNC;
+		}
+		renderer = SDL_CreateRenderer(window, -1, renderer_flags);
+		if (renderer == NULL) {
+			throw std::string("Couldn't create SDL renderer: ") + SDL_GetError() + "\n";
+		}
+		SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 	}
-	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 
-	int img_flags = IMG_INIT_PNG;
+	int img_flags = IMG_INIT_PNG | IMG_INIT_JPG;
 	if (!(IMG_Init(img_flags) & img_flags)) {
 		throw std::string("Couldn't init SDL_image: ") + IMG_GetError() + "\n";
 	}
@@ -104,7 +160,7 @@ BEE::BEE(int new_argc, char** new_argv, Room* new_first_room) {
 		throw std::string("Couldn't init SDL_mixer: ") + Mix_GetError() + "\n";
 	}
 	Mix_ChannelFinished(sound_finished);
-	Mix_AllocateChannels(128);
+	Mix_AllocateChannels(128); // Probably overkill
 
 	if ((!is_initialized)&&(init_resources())) {
 		throw std::string("Couldn't init resources\n");
@@ -142,6 +198,51 @@ int BEE::loop() {
 						quit = true;
 						break;
 					}
+					case SDL_WINDOWEVENT: {
+						switch (event.window.event) {
+							case SDL_WINDOWEVENT_RESIZED:
+							case SDL_WINDOWEVENT_SIZE_CHANGED: {
+								width = event.window.data1;
+								height = event.window.data2;
+								render();
+								break;
+							}
+							case SDL_WINDOWEVENT_EXPOSED: {
+								render();
+								break;
+							}
+							case SDL_WINDOWEVENT_ENTER: {
+								has_mouse = true;
+								break;
+							}
+							case SDL_WINDOWEVENT_LEAVE: {
+								has_mouse = false;
+								break;
+							}
+							case SDL_WINDOWEVENT_FOCUS_GAINED: {
+								has_focus = true;
+								break;
+							}
+							case SDL_WINDOWEVENT_FOCUS_LOST: {
+								has_focus = false;
+								break;
+							}
+							case SDL_WINDOWEVENT_MINIMIZED: {
+								is_minimized = true;
+								has_mouse = false;
+								break;
+							}case SDL_WINDOWEVENT_MAXIMIZED: {
+								is_minimized = false;
+								break;
+							}case SDL_WINDOWEVENT_RESTORED: {
+								is_minimized = false;
+								break;
+							}
+						}
+						current_room->window(&event);
+						break;
+					}
+
 					case SDL_KEYDOWN: {
 						if (event.key.repeat != 0) {
 							current_room->keyboard(&event);
@@ -184,7 +285,7 @@ int BEE::loop() {
 
 			fps_count++;
 			new_tickstamp = SDL_GetTicks();
-			if (new_tickstamp - tickstamp < 1000/fps_max) {
+			if ((new_tickstamp - tickstamp < 1000/fps_max)&&(!options->is_vsync_enabled)) {
 				SDL_Delay((1000/fps_max) - (new_tickstamp - tickstamp));
 			}
 			tickstamp = SDL_GetTicks();
@@ -296,6 +397,23 @@ int BEE::free_media() {
 	return 0;
 }
 
+int BEE::render() {
+	if (options->is_opengl) {
+		// OpenGL rendering
+	} else {
+		SDL_RenderPresent(renderer);
+	}
+	return 0;
+}
+int BEE::render_clear() {
+	if (options->is_opengl) {
+		// OpenGL render clearing
+	} else {
+		SDL_RenderClear(renderer);
+	}
+	return 0;
+}
+
 int BEE::restart_game() {
 	throw 2;
 	return 0;
@@ -375,6 +493,16 @@ void BEE::sound_finished(int channel) {
 			}
 		}
 	}
+}
+
+int BEE::set_render_target(Sprite* sprite_target) {
+	if (sprite_target == NULL) {
+		SDL_SetRenderTarget(renderer, NULL);
+	} else {
+		sprite_target->set_as_target();
+	}
+
+	return 0;
 }
 
 Room* BEE::get_room() {

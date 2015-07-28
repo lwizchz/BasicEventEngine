@@ -193,7 +193,6 @@ TextData* Font::draw(int x, int y, std::string text, SDL_Color color) {
 	if (is_loaded) {
 		if (text.size() > 0) {
 			SDL_Surface* tmp_surface;
-			//tmp_surface = TTF_RenderUTF8_Solid(font, text.c_str(), color); // Fast but ugly
 			tmp_surface = TTF_RenderUTF8_Blended(font, text.c_str(), color); // Slow but pretty
 			if (tmp_surface == NULL) {
 				std::cerr << "Failed to draw with font " << name << ": " << TTF_GetError() << "\n";
@@ -242,6 +241,9 @@ TextData* Font::draw(TextData* textdata, int x, int y, std::string text, SDL_Col
 
 		return textdata;
 	} else {
+		if (textdata != NULL) {
+			delete textdata;
+		}
 		return draw(x, y, text, color);
 	}
 }
@@ -274,6 +276,7 @@ int Font::draw_fast(int x, int y, std::string text, SDL_Color color) {
 			SDL_QueryTexture(texture, NULL, NULL, &rect.w, &rect.h);
 
 			SDL_RenderCopy(game->renderer, texture, NULL, &rect);
+			SDL_DestroyTexture(texture);
 
 			return 0;
 		}

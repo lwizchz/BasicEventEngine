@@ -9,6 +9,36 @@
 #ifndef _BEE_BACKGROUND_H
 #define _BEE_BACKGROUND_H 1
 
+class BackgroundData { // Used to pass data to the Room class in bee/resource_structures/room.hpp
+	public:
+		Background* background;
+		bool is_visible;
+		bool is_foreground;
+		int x, y;
+		bool is_horizontal_tile, is_vertical_tile;
+		int horizontal_speed, vertical_speed;
+		bool is_stretched;
+		BackgroundData() {background=NULL;is_visible=false;is_foreground=false;x=0;y=0;is_horizontal_tile=false;is_vertical_tile=false;horizontal_speed=0;vertical_speed=0;is_stretched=false;};
+		BackgroundData(Background*, bool, bool, int, int, bool, bool, int, int, bool);
+		int init(Background*, bool, bool, int, int, bool, bool, int, int, bool);
+};
+BackgroundData::BackgroundData(Background* new_background, bool new_is_visible, bool new_is_foreground, int new_x, int new_y, bool new_is_horizontal_tile, bool new_is_vertical_tile, int new_horizontal_speed, int new_vertical_speed, bool new_is_stretched) {
+	init(new_background, new_is_visible, new_is_foreground, new_x, new_y, new_is_horizontal_tile, new_is_vertical_tile, new_horizontal_speed, new_vertical_speed, new_is_stretched);
+}
+int BackgroundData::init(Background* new_background, bool new_is_visible, bool new_is_foreground, int new_x, int new_y, bool new_is_horizontal_tile, bool new_is_vertical_tile, int new_horizontal_speed, int new_vertical_speed, bool new_is_stretched) {
+	background = new_background;
+	is_visible = new_is_visible;
+	is_foreground = new_is_foreground;
+	x = new_x;
+	y = new_y;
+	is_horizontal_tile = new_is_horizontal_tile;
+	is_vertical_tile = new_is_vertical_tile;
+	horizontal_speed = new_horizontal_speed;
+	vertical_speed = new_vertical_speed;
+	is_stretched = new_is_stretched;
+	return 0;
+}
+
 class Background: public Resource {
 		// Add new variables to the print() debugging method
 		int id;
@@ -50,7 +80,7 @@ class Background: public Resource {
 
 		int load();
 		int free();
-		int draw(int, int, bool, bool, int, int, bool);
+		int draw(int, int, BackgroundData*);
 };
 Background::Background () {
 	id = -1;
@@ -250,17 +280,17 @@ int Background::tile_vertical(SDL_Texture* t, SDL_Rect* r) {
 	r->y = oy;
 	return i;
 }
-int Background::draw(int x, int y, bool is_horizontal_tile, bool is_vertical_tile, int horizontal_speed, int vertical_speed, bool is_stretched) {
+int Background::draw(int x, int y, BackgroundData* b) {
 	SDL_Rect rect;
-	if (is_stretched) {
+	if (b->is_stretched) {
 		rect.x = 0;
 		rect.y = 0;
 		rect.w = game->width;
 		rect.h = game->height;
 		SDL_RenderCopy(game->renderer, texture, NULL, &rect);
 	} else {
-		int dx = horizontal_speed*(SDL_GetTicks()-animation_time)/game->fps_goal;
-		int dy = vertical_speed*(SDL_GetTicks()-animation_time)/game->fps_goal;
+		int dx = b->horizontal_speed*(SDL_GetTicks()-animation_time)/game->fps_goal;
+		int dy = b->vertical_speed*(SDL_GetTicks()-animation_time)/game->fps_goal;
 		int mx = (width <= 0) ? 0 : game->width - (game->width % width);
 		int my = (height <= 0) ? 0 : game->height - (game->height % height);
 		if ((mx > 0)&&(my > 0)) {
@@ -272,7 +302,7 @@ int Background::draw(int x, int y, bool is_horizontal_tile, bool is_vertical_til
 		rect.w = width;
 		rect.h = height;
 
-		if (is_horizontal_tile && is_vertical_tile) {
+		if (b->is_horizontal_tile && b->is_vertical_tile) {
 			for (;rect.y < game->height; rect.y+=rect.h) {
 				tile_horizontal(texture, &rect);
 			}
@@ -280,9 +310,9 @@ int Background::draw(int x, int y, bool is_horizontal_tile, bool is_vertical_til
 			for (;rect.y+height > 0; rect.y-=rect.h) {
 				tile_horizontal(texture, &rect);
 			}
-		} else if (is_horizontal_tile) {
+		} else if (b->is_horizontal_tile) {
 			tile_horizontal(texture, &rect);
-		} else if (is_vertical_tile) {
+		} else if (b->is_vertical_tile) {
 			tile_vertical(texture, &rect);
 		} else {
 			SDL_RenderCopy(game->renderer, texture, NULL, &rect);

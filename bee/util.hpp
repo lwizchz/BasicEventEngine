@@ -11,6 +11,32 @@
 
 #include <string>
 
+#define PI 3.14159265
+
+inline double degtorad(double a) {
+	return a*PI/180.0;
+}
+inline double radtodeg(double a) {
+	return a*180.0/PI;
+}
+double direction_of(double x1, double y1, double x2, double y2) {
+	double dx = x2-x1;
+	double dy = y2-y1;
+
+	if (dx == 0.0) {
+		if (dy >= 0.0) {
+			return 0.0;
+		} else {
+			return 180.0;
+		}
+	}
+
+	return 90.0 + radtodeg(atan2(dy, dx));
+}
+double distance(double x1, double y1, double x2, double y2) {
+	return sqrt(pow(x1-x2, 2) + pow(y1-y2, 2));
+}
+
 bool check_collision(SDL_Rect* a, SDL_Rect* b) {
 	int a_left, a_right, a_top, a_bottom;
 	int b_left, b_right, b_top, b_bottom;

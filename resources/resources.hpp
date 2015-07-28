@@ -19,7 +19,7 @@ int init_resources() {
 		// Init sprites
 		spr_bee = new Sprite("spr_bee", "bee.png");
 			spr_bee->set_subimage_amount(2, 100);
-			spr_bee->set_speed(0.05);
+			spr_bee->set_speed(0.5);
 
 		// Init sounds
 		snd_chirp = new Sound("snd_chirp", "chirp.wav", false);

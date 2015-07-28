@@ -14,8 +14,15 @@ int main(int argc, char* argv[]) {
 	RmTest rm_test;
 
 	try {
+		// Set game options;
+		GameOptions options = {
+			false, false, false,
+			true, false, false,
+			true
+		};
+
 		// Init game engine
-		BEE* game = new BEE(argc, argv, &rm_test);
+		BEE* game = new BEE(argc, argv, &rm_test, &options);
 
 		// Loop event handling
 		game->loop();

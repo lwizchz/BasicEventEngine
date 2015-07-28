@@ -1,4 +1,4 @@
-	/*
+/*
 * Copyright (c) 2015 Luke Montalvo <lukemontalvo@gmail.com>
 *
 * This file is part of BEE.
@@ -9,7 +9,7 @@
 #ifndef _BEE_OBJECT_H
 #define _BEE_OBJECT_H 1
 
-class InstanceData; // Defined in bee/resource_structures/room.hpp
+class InstanceData; // Defined in bee/resource_structures/instancedata.hpp
 
 class Object: public Resource {
 		// Add new variables to the print() debugging method
@@ -78,6 +78,7 @@ class Object: public Resource {
 		virtual void room_end(InstanceData*) {};
 		virtual void game_start(InstanceData*) {};
 		virtual void game_end(InstanceData*) {};
+		virtual void window(InstanceData*, SDL_Event*) {};
 };
 Object::Object () {
 	id = -1;
