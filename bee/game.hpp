@@ -18,7 +18,7 @@
 
 #include "util.hpp"
 
-class Sprite; class Sound; class Background; class Path; class Object; class Room;
+class Sprite; class Sound; class Background; class Font; class Path; class Object; class Room;
 
 class GameOptions {
 	public:
@@ -48,6 +48,11 @@ class BEE {
 		int width, height;
 		unsigned int fps_max, fps_goal, fps_count, fps_stable;
 
+		Sprite* texture_before;
+		Sprite* texture_after;
+		unsigned int transition_type = 6;
+		unsigned int transition_speed = 80;
+
 		BEE(int, char**, Room*, GameOptions*);
 		~BEE();
 		int loop();
@@ -65,12 +70,17 @@ class BEE {
 		int restart_room();
 		int restart_room_internal();
 		int change_room(Room*);
+		int room_goto(int);
+		int room_goto_previous();
+		int room_goto_next();
+
 		int animation_end(Sprite*);
 		static void sound_finished(int);
 
 		int set_render_target(Sprite*);
+		int draw_transition();
 
-		Room* get_room();
+		Room* get_current_room();
 		bool get_is_ready();
 };
 
@@ -169,6 +179,11 @@ BEE::BEE(int new_argc, char** new_argv, Room* new_first_room, GameOptions* new_o
 	if (set_engine_pointer()) {
 		throw std::string("Couldn't set engine pointer\n");
 	}
+
+	texture_before = new Sprite();
+	texture_before->game = this;
+	texture_after = new Sprite();
+	texture_after->game = this;
 
 	quit = false;
 	if (new_first_room != NULL) {
@@ -275,7 +290,7 @@ int BEE::loop() {
 			}
 
 			current_room->step_mid();
-			current_room->path_end();
+			current_room->check_paths();
 			current_room->outside_room();
 			current_room->intersect_boundary();
 			current_room->collision();
@@ -345,38 +360,38 @@ int BEE::close() {
 }
 int BEE::set_engine_pointer() {
 	for (int i=0; i<resource_list.sprites.get_amount(); i++) {
-		if (sprite(i) != NULL) {
-			sprite(i)->game = this;
+		if (get_sprite(i) != NULL) {
+			get_sprite(i)->game = this;
 		}
 	}
 	for (int i=0; i<resource_list.sounds.get_amount(); i++) {
-		if (sound(i) != NULL) {
-			sound(i)->game = this;
+		if (get_sound(i) != NULL) {
+			get_sound(i)->game = this;
 		}
 	}
 	for (int i=0; i<resource_list.backgrounds.get_amount(); i++) {
-		if (background(i) != NULL) {
-			background(i)->game = this;
+		if (get_background(i) != NULL) {
+			get_background(i)->game = this;
 		}
 	}
 	for (int i=0; i<resource_list.fonts.get_amount(); i++) {
-		if (font(i) != NULL) {
-			font(i)->game = this;
+		if (get_font(i) != NULL) {
+			get_font(i)->game = this;
 		}
 	}
 	for (int i=0; i<resource_list.paths.get_amount(); i++) {
-		if (path(i) != NULL) {
-			path(i)->game = this;
+		if (get_path(i) != NULL) {
+			get_path(i)->game = this;
 		}
 	}
 	for (int i=0; i<resource_list.objects.get_amount(); i++) {
-		if (object(i) != NULL) {
-			object(i)->game = this;
+		if (get_object(i) != NULL) {
+			get_object(i)->game = this;
 		}
 	}
 	for (int i=0; i<resource_list.rooms.get_amount(); i++) {
-		if  (room(i) != NULL) {
-			room(i)->game = this;
+		if  (get_room(i) != NULL) {
+			get_room(i)->game = this;
 		}
 	}
 
@@ -428,6 +443,13 @@ int BEE::restart_room() {
 	return 0;
 }
 int BEE::restart_room_internal() {
+	if (transition_type != 0) {
+		set_render_target(texture_before);
+		render_clear();
+		current_room->draw();
+		render();
+	}
+
 	current_room->room_end();
 	is_ready = false;
 	current_room->reset_properties();
@@ -435,10 +457,21 @@ int BEE::restart_room_internal() {
 
 	SDL_SetWindowTitle(window, current_room->get_name().c_str());
 
+	if (transition_type != 0) {
+		set_render_target(texture_after);
+		render_clear();
+	}
+
 	is_ready = true;
 	current_room->create();
 	current_room->room_start();
 	current_room->draw();
+
+	if (transition_type != 0) {
+		render();
+		set_render_target(NULL);
+		draw_transition();
+	}
 
 	return 0;
 }
@@ -449,9 +482,20 @@ int BEE::change_room(Room* new_room) {
 
 	bool is_game_start = false;
 	if (current_room != NULL) {
+		if (transition_type != 0) {
+			set_render_target(texture_before);
+			render_clear();
+			current_room->draw();
+			render();
+		}
 		current_room->room_end();
 		current_room->reset_properties();
 	} else {
+		if (transition_type != 0) {
+			set_render_target(texture_before);
+			render_clear();
+			render();
+		}
 		is_game_start = true;
 		first_room = new_room;
 	}
@@ -471,6 +515,11 @@ int BEE::change_room(Room* new_room) {
 	SDL_SetWindowTitle(window, current_room->get_name().c_str());
 	std::cout << current_room->get_instance_string();
 
+	if (transition_type != 0) {
+		set_render_target(texture_after);
+		render_clear();
+	}
+
 	is_ready = true;
 	current_room->create();
 	if (is_game_start) {
@@ -479,7 +528,22 @@ int BEE::change_room(Room* new_room) {
 	current_room->room_start();
 	current_room->draw();
 
+	if (transition_type != 0) {
+		render();
+		set_render_target(NULL);
+		draw_transition();
+	}
+
 	return 0;
+}
+int BEE::room_goto(int index) {
+	return change_room(get_room(index));
+}
+int BEE::room_goto_previous() {
+	return room_goto(get_current_room()->get_id()-1);
+}
+int BEE::room_goto_next() {
+	return room_goto(get_current_room()->get_id()+1);
 }
 
 int BEE::animation_end(Sprite* finished_sprite) {
@@ -487,9 +551,9 @@ int BEE::animation_end(Sprite* finished_sprite) {
 }
 void BEE::sound_finished(int channel) {
 	for (int i=0; i<resource_list.sounds.get_amount(); i++) {
-		if (sound(i) != NULL) {
-			if (!sound(i)->get_is_music()) {
-				sound(i)->finished(channel);
+		if (get_sound(i) != NULL) {
+			if (!get_sound(i)->get_is_music()) {
+				get_sound(i)->finished(channel);
 			}
 		}
 	}
@@ -504,8 +568,130 @@ int BEE::set_render_target(Sprite* sprite_target) {
 
 	return 0;
 }
+int BEE::draw_transition() {
+	switch (transition_type) {
+		case 1: { // Create from left
+			break;
+		}
+		case 2: { // Create from right
+			break;
+		}
+		case 3: { // Create from top
+			break;
+		}
+		case 4: { // Create from bottom
+			break;
+		}
+		case 5: { // Create from center
+			break;
+		}
+		case 6: { // Shift from left
+			for (int i=-width; i<0; i+=transition_speed) {
+				render_clear();
+				texture_before->draw(0, 0, 0);
+				texture_after->draw(i, 0, 0);
+				render();
+			}
+			break;
+		}
+		case 7: { // Shift from right
+			for (int i=width; i>=0; i-=transition_speed) {
+				render_clear();
+				texture_before->draw(0, 0, 0);
+				texture_after->draw(i, 0, 0);
+				render();
+			}
+			break;
+		}
+		case 8: { // Shift from top
+			for (int i=-height; i<0; i+=transition_speed) {
+				render_clear();
+				texture_before->draw(0, 0, 0);
+				texture_after->draw(0, i, 0);
+				render();
+			}
+			break;
+		}
+		case 9: { // Shift from bottom
+			for (int i=height; i>=0; i-=transition_speed) {
+				render_clear();
+				texture_before->draw(0, 0, 0);
+				texture_after->draw(0, i, 0);
+				render();
+			}
+			break;
+		}
+		case 10: { // Interlaced from left
+			break;
+		}
+		case 11: { // Interlaced from right
+			break;
+		}
+		case 12: { // Interlaced from top
+			break;
+		}
+		case 13: { // Interlaced from bottom
+			break;
+		}
+		case 14: { // Push from left
+			for (int i=-width; i<0; i+=transition_speed) {
+				render_clear();
+				texture_before->draw(i+width, 0, 0);
+				texture_after->draw(i, 0, 0);
+				render();
+			}
+			break;
+		}
+		case 15: { // Push from right
+			for (int i=width; i>=0; i-=transition_speed) {
+				render_clear();
+				texture_before->draw(i-width, 0, 0);
+				texture_after->draw(i, 0, 0);
+				render();
+			}
+			break;
+		}
+		case 16: { // Push from top
+			for (int i=-height; i=0; i+=transition_speed) {
+				render_clear();
+				texture_before->draw(i+height, 0, 0);
+				texture_after->draw(i, 0, 0);
+				render();
+			}
+			break;
+		}
+		case 17: { // Push from bottom
+			for (int i=height; i=0; i-=transition_speed) {
+				render_clear();
+				texture_before->draw(i-height, 0, 0);
+				texture_after->draw(i, 0, 0);
+				render();
+			}
+			break;
+		}
+		case 18: { // Rotate to left
+			break;
+		}
+		case 19: { // Rotate to right
+			break;
+		}
+		case 20: { // Blend
+			break;
+		}
+		case 21: { // Fade out and in
+			break;
+		}
 
-Room* BEE::get_room() {
+	}
+	transition_type++;
+	for (auto& b : current_room->get_backgrounds()) {
+		b.second->background->set_time_update();
+	}
+
+	return 0;
+}
+
+Room* BEE::get_current_room() {
 	return current_room;
 }
 bool BEE::get_is_ready() {

@@ -31,7 +31,7 @@ ObjBee::~ObjBee() {
 }
 void ObjBee::create(InstanceData* self) {
 	// create event
-	std::cout << "u r a b " << self->id << ", fps: " << game->fps_stable << "\n";
+	std::cout << "u r a b " << self->id << ", : " << median<int>(23, 6, 41, 6, 7, 945, 23) << "\n";
 	//self->set_alarm(0, 2000);
 	spr_bee->set_alpha(0.5);
 	self->set_gravity(7.0);
@@ -93,7 +93,7 @@ void ObjBee::mouse(InstanceData* self, SDL_Event* e) {
 			self->y = c.second;
 		}*/
 		if (self->id == 0) {
-			game->get_room()->add_instance(-1, this, e->button.x, e->button.y);
+			game->get_current_room()->add_instance(-1, this, e->button.x, e->button.y);
 		}
 	}
 }
@@ -109,7 +109,7 @@ void ObjBee::mouse_press(InstanceData* self, SDL_Event* e) {
 				self->x = c.first;
 				self->y = c.second;
 			} else if (self->id == 0) {
-				game->get_room()->add_instance(-1, this, e->button.x, e->button.y);
+				game->get_current_room()->add_instance(-1, this, e->button.x, e->button.y);
 			}
 			break;
 		}
@@ -120,8 +120,8 @@ void ObjBee::collision(InstanceData* self, InstanceData* other) {
 }
 void ObjBee::draw(InstanceData* self) {
 	// draw event
-	get_sprite()->draw(self->vx, self->vy, self->subimage_time);
-	font_liberation->draw_fast(self->vx, self->vy, std::to_string(self->id));
+	get_sprite()->draw(self->x, self->y, self->subimage_time);
+	font_liberation->draw_fast(self->x, self->y, std::to_string(self->id));
 
 	if (self->id == 0) {
 		fps_display = font_liberation->draw(fps_display, 0, 0, "FPS: " + std::to_string(game->fps_stable));

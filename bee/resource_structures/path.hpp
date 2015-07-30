@@ -17,7 +17,7 @@ typedef std::tuple<int, int, int> path_coord;
 
 class Path: public Resource {
 		// Add new variables to the print() debugging method
-		int id;
+		int id = -1;
 		std::string name;
 		std::string path_path;
 		std::vector<path_coord> coordinate_list; // [x, y, speed]
@@ -49,11 +49,9 @@ class Path: public Resource {
 		int set_is_closed(bool);
 };
 Path::Path () {
-	id = -1;
 	reset();
 }
 Path::Path (std::string new_name, std::string path) {
-	id = -1;
 	reset();
 
 	add_to_resources("resources/paths/"+path);

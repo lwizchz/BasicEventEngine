@@ -15,7 +15,7 @@
 
 class Sound3D: public Resource {
 		// Add new variables to the print() debugging method
-		int id;
+		int id = -1;
 		std::string name;
 		std::string sound_path;
 		float volume; // From 0.0 to 1.0
@@ -69,11 +69,9 @@ class Sound3D: public Resource {
 		bool get_is_playing();
 };
 Sound3D::Sound3D () {
-	id = -1;
 	reset();
 }
 Sound3D::Sound3D (std::string new_name, std::string path) {
-	id = -1;
 	reset();
 
 	//add_to_resources("resources/sounds/"+path);

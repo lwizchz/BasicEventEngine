@@ -27,7 +27,7 @@ class ViewData {
 
 class Room: public Resource {
 		// Add new variables to the print() debugging method
-		int id;
+		int id = -1;
 		std::string name;
 		std::string room_path;
 		int width, height;
@@ -100,7 +100,7 @@ class Room: public Resource {
 		int mouse_press(SDL_Event*);
 		int keyboard_release(SDL_Event*);
 		int mouse_release(SDL_Event*);
-		int path_end();
+		int check_paths();
 		int outside_room();
 		int intersect_boundary();
 		int collision();
@@ -118,11 +118,9 @@ class Room: public Resource {
 #include "instancedata.hpp"
 
 Room::Room () {
-	id = -1;
 	reset();
 }
 Room::Room (std::string new_name, std::string path) {
-	id = -1;
 	reset();
 
 	add_to_resources("resources/rooms/"+path);
@@ -395,6 +393,7 @@ int Room::add_instance(int index, Object* object, int x, int y) {
 		new_instance->id = index;
 	}
 	set_instance(index, new_instance);
+	object->add_instance(index, new_instance);
 
 	if (game->get_is_ready()) {
 		new_instance->object->create(new_instance);
@@ -403,6 +402,7 @@ int Room::add_instance(int index, Object* object, int x, int y) {
 	return 0;
 }
 int Room::remove_instance(int index) {
+	instances[index]->object->remove_instance(index);
 	instances.erase(index);
 	for (unsigned int i=index; i<instances.size(); i++) {
 		if (instances.find(i)++ != instances.end()) {
@@ -492,20 +492,29 @@ int Room::step_mid() {
 		i.second->object->step_mid(i.second);
 	}
 
+	// Move instances along their paths
+	for (auto& i : instances) {
+		if (i.second->has_path()) {
+			i.second->path_update_node();
+
+			path_coord c = std::make_tuple(0, 0, 0);
+			if (i.second->get_path_speed() >= 0) {
+				c = i.second->get_path_coords().at(i.second->get_path_node()+1);
+			} else {
+				c = i.second->get_path_coords().at(i.second->get_path_node());
+			}
+			i.second->move(std::get<2>(c)*abs(i.second->get_path_speed()), direction_of(i.second->x, i.second->y, std::get<0>(c), std::get<1>(c)));
+		}
+	}
+
 	// Condense all instance motion based on velocity and gravity into a single step
 	for (auto& i : instances) {
-		double x = i.second->x;
-		double y = i.second->y;
-		for (auto& v : i.second->velocity) {
-			x += sin(degtorad(v.second))*v.first;
-			y += -cos(degtorad(v.second))*v.first;
-		}
-		y += i.second->gravity;
+		double x=0.0, y=0.0;
+		std::tie (x, y) = i.second->get_motion();
 		i.second->velocity.clear();
 		i.second->move_away(distance(i.second->x, i.second->y, x, y), x, y);
 		i.second->x = x;
 		i.second->y = y;
-		//i.second->print();
 	}
 
 	return 0;
@@ -559,9 +568,14 @@ int Room::mouse_release(SDL_Event* e) {
 
 	return 0;
 }
-int Room::path_end() {
+int Room::check_paths() {
 	for (auto& i : instances) {
-		i.second->object->path_end(i.second);
+		if ((i.second->has_path())&&(i.second->get_path_node() == i.second->get_path_coords().size()-1)) {
+			i.second->object->path_end(i.second);
+			if (i.second->get_path_node() == i.second->get_path_coords().size()-1) {
+				i.second->handle_path_end();
+			}
+		}
 	}
 
 	return 0;
@@ -600,6 +614,10 @@ int Room::collision() {
 					i1.second->x -= sin(degtorad(i1.second->velocity.front().second))*i1.second->velocity.front().first;
 					i1.second->y -= -cos(degtorad(i1.second->velocity.front().second))*i1.second->velocity.front().first;
 				}
+				if (i2.second->object->get_is_solid()) {
+					i2.second->x -= sin(degtorad(i2.second->velocity.front().second))*i2.second->velocity.front().first;
+					i2.second->y -= -cos(degtorad(i2.second->velocity.front().second))*i2.second->velocity.front().first;
+				}
 
 				i1.second->object->collision(i1.second, i2.second);
 				i2.second->object->collision(i2.second, i1.second);
@@ -636,16 +654,12 @@ int Room::draw() {
 					viewport.h = v.second->port_height;
 					SDL_RenderSetViewport(game->renderer, &viewport);
 
-					i.second->vx = i.second->x; // This needs to be fixed for when viewports are not the default
-					i.second->vy = i.second->y;
 					i.second->object->draw(i.second);
 				}
 			}
 			viewport = {0, 0, game->width, game->height};
 			SDL_RenderSetViewport(game->renderer, &viewport);
 		} else {
-			i.second->vx = i.second->x;
-			i.second->vy = i.second->y;
 			if (i.second->object->get_is_visible()) {
 				i.second->object->draw(i.second);
 			}

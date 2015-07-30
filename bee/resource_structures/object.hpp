@@ -13,7 +13,7 @@ class InstanceData; // Defined in bee/resource_structures/instancedata.hpp
 
 class Object: public Resource {
 		// Add new variables to the print() debugging method
-		int id;
+		int id = -1;
 		std::string name;
 		std::string object_path;
 		Sprite *sprite;
@@ -21,6 +21,8 @@ class Object: public Resource {
 		int depth;
 		Object *parent, *who;
 		Sprite *mask;
+
+		std::map<int,InstanceData*> instances;
 	public:
 		Object();
 		Object(std::string, std::string);
@@ -56,6 +58,11 @@ class Object: public Resource {
 		int set_mask(Sprite*);
 		int set_mask_id(int);
 
+		int add_instance(int, InstanceData*);
+		int remove_instance(int);
+		int clear_instances();
+		std::map<int, InstanceData*> get_instances();
+
 		virtual void create(InstanceData*) {};
 		virtual void destroy(InstanceData*) {};
 		virtual void alarm(InstanceData*, int) {};
@@ -81,11 +88,9 @@ class Object: public Resource {
 		virtual void window(InstanceData*, SDL_Event*) {};
 };
 Object::Object () {
-	id = -1;
 	reset();
 }
 Object::Object (std::string new_name, std::string path) {
-	id = -1;
 	reset();
 
 	add_to_resources("resources/objects/"+path);
@@ -137,6 +142,8 @@ int Object::reset() {
 	parent = NULL;
 	who = this;
 	mask = NULL;
+
+	instances.clear();
 
 	return 0;
 }
@@ -253,6 +260,30 @@ int Object::set_parent(Object* new_parent) {
 int Object::set_mask(Sprite* new_mask) {
 	mask = new_mask;
 	return 0;
+}
+
+int Object::add_instance(int index, InstanceData* new_instance) {
+	if (instances.find(index) != instances.end()) { //  if the instance exists, overwrite it
+		instances.erase(index);
+	}
+	instances.insert(std::pair<int,InstanceData*>(index, new_instance));
+	return 0;
+}
+int Object::remove_instance(int index) {
+	instances.erase(index);
+	for (unsigned int i=index; i<instances.size(); i++) {
+		if (instances.find(i)++ != instances.end()) {
+			instances[i] = instances[i+1];
+		}
+	}
+	return 0;
+}
+int Object::clear_instances() {
+	instances.clear();
+	return 0;
+}
+std::map<int, InstanceData*> Object::get_instances() {
+	return instances;
 }
 
 #endif // _BEE_OBJECT_H

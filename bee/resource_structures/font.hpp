@@ -31,13 +31,13 @@ TextData::~TextData() {
 
 class Font: public Resource {
 		// Add new variables to the print() debugging method
-		int id;
+		int id = -1;
 		std::string name;
 		std::string font_path;
 		int font_size;
 
 		TTF_Font* font;
-		bool is_loaded;
+		bool is_loaded = false;
 	public:
 		Font();
 		Font(std::string, std::string, int);
@@ -68,12 +68,9 @@ class Font: public Resource {
 		int get_string_width(std::string);
 };
 Font::Font () {
-	id = -1;
 	reset();
 }
 Font::Font (std::string new_name, std::string path, int new_font_size) {
-	id = -1;
-	is_loaded = false;
 	reset();
 
 	add_to_resources("resources/fonts/"+path);

@@ -13,7 +13,7 @@
 
 class Sound: public Resource {
 		// Add new variables to the print() debugging method
-		int id;
+		int id = -1;
 		std::string name;
 		std::string sound_path;
 		float volume; // From 0.0 to 1.0
@@ -24,7 +24,7 @@ class Sound: public Resource {
 		int sample_format;
 		int bit_rate;
 
-		bool is_loaded, is_music;
+		bool is_loaded = false, is_music;
 		Mix_Music* music;
 		Mix_Chunk* chunk;
 		bool is_playing, is_looping;
@@ -76,12 +76,9 @@ class Sound: public Resource {
 		bool get_is_looping();
 };
 Sound::Sound () {
-	id = -1;
 	reset();
 }
 Sound::Sound (std::string new_name, std::string path, bool new_is_music) {
-	id = -1;
-	is_loaded = false;
 	reset();
 
 	add_to_resources("resources/sounds/"+path);

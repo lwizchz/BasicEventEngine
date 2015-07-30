@@ -82,6 +82,14 @@ int ResourceList::remove_resource(int id) {
 	return 0;
 }
 
+Sprite* get_sprite(int id);
+Sound* get_sound(int id);
+Background* get_background(int id);
+Font* get_font(int id);
+Path* get_path(int id);
+Object* get_object(int id);
+Room* get_room(int id);
+
 #include "resource_structures/sprite.hpp"
 #include "resource_structures/sound.hpp"
 #include "resource_structures/background.hpp"
@@ -90,25 +98,25 @@ int ResourceList::remove_resource(int id) {
 #include "resource_structures/object.hpp"
 #include "resource_structures/room.hpp"
 
-Sprite* sprite(int id) {
+Sprite* get_sprite(int id) {
 	return dynamic_cast<Sprite*>(resource_list.sprites.get_resource(id));
 }
-Sound* sound(int id) {
+Sound* get_sound(int id) {
 	return dynamic_cast<Sound*>(resource_list.sounds.get_resource(id));
 }
-Background* background(int id) {
+Background* get_background(int id) {
 	return dynamic_cast<Background*>(resource_list.backgrounds.get_resource(id));
 }
-Font* font(int id) {
+Font* get_font(int id) {
 	return dynamic_cast<Font*>(resource_list.fonts.get_resource(id));
 }
-Path* path(int id) {
+Path* get_path(int id) {
 	return dynamic_cast<Path*>(resource_list.paths.get_resource(id));
 }
-Object* object(int id) {
+Object* get_object(int id) {
 	return dynamic_cast<Object*>(resource_list.objects.get_resource(id));
 }
-Room* room(int id) {
+Room* get_room(int id) {
 	return dynamic_cast<Room*>(resource_list.rooms.get_resource(id));
 }
 

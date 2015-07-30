@@ -41,7 +41,7 @@ int BackgroundData::init(Background* new_background, bool new_is_visible, bool n
 
 class Background: public Resource {
 		// Add new variables to the print() debugging method
-		int id;
+		int id = -1;
 		std::string name;
 		std::string background_path;
 		int width, height;
@@ -50,7 +50,7 @@ class Background: public Resource {
 		Uint32 animation_time;
 
 		SDL_Texture* texture;
-		bool is_loaded;
+		bool is_loaded = false;
 
 		int tile_horizontal(SDL_Texture*, SDL_Rect*);
 		int tile_vertical(SDL_Texture*, SDL_Rect*);
@@ -83,12 +83,9 @@ class Background: public Resource {
 		int draw(int, int, BackgroundData*);
 };
 Background::Background () {
-	id = -1;
 	reset();
 }
 Background::Background (std::string new_name, std::string path) {
-	id = -1;
-	is_loaded = false;
 	reset();
 
 	add_to_resources("resources/backgrounds/"+path);

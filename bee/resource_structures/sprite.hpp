@@ -13,7 +13,7 @@
 
 class Sprite: public Resource {
 		// Add new variables to the print() debugging method
-		int id;
+		int id = -1;
 		std::string name;
 		std::string image_path;
 		int width, height;
@@ -23,7 +23,7 @@ class Sprite: public Resource {
 		int origin_x, origin_y;
 
 		SDL_Texture* texture;
-		bool is_loaded;
+		bool is_loaded = false;
 		std::vector<SDL_Rect> subimages;
 		SDL_Rect srect, drect;
 	public:
@@ -64,12 +64,9 @@ class Sprite: public Resource {
 		int set_as_target();
 };
 Sprite::Sprite () {
-	id = -1;
 	reset();
 }
 Sprite::Sprite (std::string new_name, std::string path) {
-	id = -1;
-	is_loaded = false;
 	reset();
 
 	add_to_resources("resources/sprites/"+path);
@@ -120,7 +117,7 @@ int Sprite::reset() {
 	image_path = "";
 	width = 0;
 	height = 0;
-	subimage_amount = 0;
+	subimage_amount = 1;
 	subimage_width = 0;
 	speed = 0.0;
 	alpha = 1.0;
@@ -281,17 +278,21 @@ int Sprite::draw(int x, int y, Uint32 subimage_time) {
 		is_animated = true;
 	}
 
-	srect.x = subimages[current_subimage].x;
-	srect.y = 0;
-	srect.w = subimages[current_subimage].w;
-	srect.h = height;
+	if (!subimages.empty()) {
+		srect.x = subimages[current_subimage].x;
+		srect.y = 0;
+		srect.w = subimages[current_subimage].w;
+		srect.h = height;
 
-	drect.x = x;
-	drect.y = y;
-	drect.w = subimage_width;
-	drect.h = height;
+		drect.x = x;
+		drect.y = y;
+		drect.w = subimage_width;
+		drect.h = height;
 
-	SDL_RenderCopy(game->renderer, texture, &srect, &drect);
+		SDL_RenderCopy(game->renderer, texture, &srect, &drect);
+	} else {
+		SDL_RenderCopy(game->renderer, texture, NULL, NULL);
+	}
 
 	if ((is_animated)&&(current_subimage == subimage_amount-1)) {
 		game->animation_end(this);
