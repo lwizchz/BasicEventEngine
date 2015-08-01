@@ -10,22 +10,25 @@
 #define _BEE_FONT_H 1
 
 #include <iostream>
+#include <map>
 
 class TextData {
 	public:
-		SDL_Texture* texture;
+		std::map<int,SDL_Texture*> texture;
 		std::string text;
-		TextData() {texture=NULL;text="";};
+		TextData() {texture.clear();text="";};
 		TextData(SDL_Texture*, std::string);
 		~TextData();
 };
 TextData::TextData(SDL_Texture* new_texture, std::string new_text) {
-	texture = new_texture;
+	texture.insert(std::make_pair(0, new_texture));
 	text = new_text;
 }
 TextData::~TextData() {
-	SDL_DestroyTexture(texture);
-	texture = NULL;
+	for (auto& t : texture) {
+		SDL_DestroyTexture(t.second);
+	}
+	texture.clear();
 	text = "";
 }
 
@@ -35,6 +38,8 @@ class Font: public Resource {
 		std::string name;
 		std::string font_path;
 		int font_size;
+		int style;
+		int lineskip;
 
 		TTF_Font* font;
 		bool is_loaded = false;
@@ -50,13 +55,20 @@ class Font: public Resource {
 		std::string get_name();
 		std::string get_path();
 		int get_font_size();
+		int get_style();
+		int get_lineskip();
+		int get_lineskip_default();
 
 		int set_name(std::string);
 		int set_path(std::string);
 		int set_font_size(int);
+		int set_style(int);
+		int set_lineskip(int);
 
 		int load();
 		int free();
+
+		TextData* draw_internal(int, int, std::string, SDL_Color);
 		TextData* draw(int, int, std::string, SDL_Color);
 		TextData* draw(int, int, std::string);
 		TextData* draw(TextData*, int, int, std::string, SDL_Color);
@@ -66,6 +78,8 @@ class Font: public Resource {
 
 		int get_string_width(std::string, int);
 		int get_string_width(std::string);
+		int get_string_height(std::string, int);
+		int get_string_height(std::string);
 };
 Font::Font () {
 	reset();
@@ -120,6 +134,8 @@ int Font::reset() {
 	name = "";
 	font_path = "";
 	font_size = 16;
+	style = TTF_STYLE_NORMAL;
+	lineskip = 0;
 
 	font = NULL;
 	is_loaded = false;
@@ -133,6 +149,8 @@ int Font::print() {
 	"\n	name		" << name <<
 	"\n	font_path	" << font_path <<
 	"\n	font_size	" << font_size <<
+	"\n	style		" << style <<
+	"\n	lineskip	" << lineskip <<
 	"\n	font		" << font <<
 	"\n}\n";
 
@@ -150,6 +168,20 @@ std::string Font::get_path() {
 int Font::get_font_size() {
 	return font_size;
 }
+int Font::get_style() {
+	return style;
+}
+int Font::get_lineskip() {
+	return lineskip;
+}
+int Font::get_lineskip_default() {
+	if (is_loaded) {
+		return TTF_FontLineSkip(font);
+	}
+	std::cerr << "Failed to get default lineskip, font not loaded: " << name << "\n";
+	return -1;
+}
+
 int Font::set_name(std::string new_name) {
 	name = new_name;
 	return 0;
@@ -163,6 +195,21 @@ int Font::set_font_size(int new_font_size) {
 	font_size = new_font_size;
 	return 0;
 }
+int Font::set_style(int new_style) {
+	if (is_loaded)	{
+		style = new_style; // bitmask of TTF_STYLE_BOLD, ITALIC, UNDERLINE, STRIKETHROUGH, and NORMAL
+		TTF_SetFontStyle(font, style);
+		return 0;
+	}
+
+	std::cerr << "Failed to set font style, font not loaded: " << name << "\n";
+	return 1;
+}
+int Font::set_lineskip(int new_lineskip) {
+	lineskip = new_lineskip;
+	return 0;
+}
+
 int Font::load() {
 	if (!is_loaded) {
 		font = TTF_OpenFont(font_path.c_str(), font_size);
@@ -186,7 +233,8 @@ int Font::free() {
 
 	return 0;
 }
-TextData* Font::draw(int x, int y, std::string text, SDL_Color color) {
+
+TextData* Font::draw_internal(int x, int y, std::string text, SDL_Color color) {
 	if (is_loaded) {
 		if (text.size() > 0) {
 			SDL_Surface* tmp_surface;
@@ -223,26 +271,59 @@ TextData* Font::draw(int x, int y, std::string text, SDL_Color color) {
 	std::cerr << "Failed to draw text, font not loaded: " << name << "\n";
 	return NULL;
 }
+TextData* Font::draw(int x, int y, std::string text, SDL_Color color) {
+	if (is_loaded) {
+		TextData *r = NULL, *textdata = NULL;
+		std::map<int,std::string> lines = handle_newlines(text);
+
+		if (lineskip == 0) {
+			lineskip = TTF_FontLineSkip(font);
+		}
+
+		for (auto& l : lines) {
+			r = draw_internal(x, y+lineskip*l.first, l.second, color);
+			if (r != NULL) {
+				if (textdata == NULL) {
+					textdata = r;
+				} else {
+					textdata->texture.insert(std::make_pair(textdata->texture.size(), r->texture[0]));
+					delete r;
+				}
+			}
+		}
+		return textdata;
+	}
+
+	std::cerr << "Failed to draw text, font not loaded: " << name << "\n";
+	return NULL;
+}
 TextData* Font::draw(int x, int y, std::string text) {
 	SDL_Color color = {0, 0, 0, 255};
 	return draw(x, y, text, color);
 }
 TextData* Font::draw(TextData* textdata, int x, int y, std::string text, SDL_Color color) {
-	if ((textdata != NULL)&&(textdata->text == text)) {
-		SDL_Rect rect;
-		rect.x = x;
-		rect.y = y;
-		SDL_QueryTexture(textdata->texture, NULL, NULL, &rect.w, &rect.h);
+	if (is_loaded) {
+		if ((textdata != NULL)&&(textdata->text == text)) {
+			std::map<int,std::string> lines = handle_newlines(text);
+			for (auto& l : lines) {
+				SDL_Rect rect;
+				rect.x = x;
+				rect.y = y;
+				SDL_QueryTexture(textdata->texture[l.first], NULL, NULL, &rect.w, &rect.h);
 
-		SDL_RenderCopy(game->renderer, textdata->texture, NULL, &rect);
-
-		return textdata;
-	} else {
-		if (textdata != NULL) {
-			delete textdata;
+				SDL_RenderCopy(game->renderer, textdata->texture[l.first], NULL, &rect);
+			}
+			return textdata;
+		} else {
+			if (textdata != NULL) {
+				delete textdata;
+			}
+			return draw(x, y, text, color);
 		}
-		return draw(x, y, text, color);
 	}
+
+	std::cerr << "Failed to draw text, font not loaded: " << name << "\n";
+	return NULL;
 }
 TextData* Font::draw(TextData* textdata, int x, int y, std::string text) {
 	SDL_Color color = {0, 0, 0, 255};
@@ -301,6 +382,19 @@ int Font::get_string_width(std::string text, int size) {
 }
 int Font::get_string_width(std::string text) {
 	return get_string_width(text, font_size);
+}
+int Font::get_string_height(std::string text, int size) {
+	if (is_loaded) {
+		int h = 0;
+		TTF_SizeUTF8(font, text.c_str(), NULL, &h);
+		return h;
+	}
+
+	std::cerr << "Failed to draw text, font not loaded: " << name << "\n";
+	return -1;
+}
+int Font::get_string_height(std::string text) {
+	return get_string_height(text, font_size);
 }
 
 #endif // _BEE_FONT_H

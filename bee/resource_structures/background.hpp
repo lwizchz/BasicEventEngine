@@ -244,7 +244,7 @@ int Background::tile_horizontal(SDL_Texture* t, SDL_Rect* r) {
 		return -1;
 	}
 	int ox=r->x, i=0;
-	while (r->x < game->width) {
+	while (r->x < game->get_room_width()) {
 		SDL_RenderCopy(game->renderer, t, NULL, r);
 		i++;
 		r->x += r->w;
@@ -263,7 +263,7 @@ int Background::tile_vertical(SDL_Texture* t, SDL_Rect* r) {
 		return -1;
 	}
 	int oy=r->y, i=0;
-	while (r->y < game->height) {
+	while (r->y < game->get_room_height()) {
 		SDL_RenderCopy(game->renderer, t, NULL, r);
 		i++;
 		r->y += r->h;
@@ -282,14 +282,14 @@ int Background::draw(int x, int y, BackgroundData* b) {
 	if (b->is_stretched) {
 		rect.x = 0;
 		rect.y = 0;
-		rect.w = game->width;
-		rect.h = game->height;
+		rect.w = game->get_room_width();
+		rect.h = game->get_room_height();
 		SDL_RenderCopy(game->renderer, texture, NULL, &rect);
 	} else {
 		int dx = b->horizontal_speed*(SDL_GetTicks()-animation_time)/game->fps_goal;
 		int dy = b->vertical_speed*(SDL_GetTicks()-animation_time)/game->fps_goal;
-		int mx = (width <= 0) ? 0 : game->width - (game->width % width);
-		int my = (height <= 0) ? 0 : game->height - (game->height % height);
+		int mx = (width <= 0) ? 0 : game->get_room_width() - (game->get_room_width() % width);
+		int my = (height <= 0) ? 0 : game->get_room_height() - (game->get_room_height() % height);
 		if ((mx > 0)&&(my > 0)) {
 			dx %= mx;
 			dy %= my;
@@ -300,7 +300,7 @@ int Background::draw(int x, int y, BackgroundData* b) {
 		rect.h = height;
 
 		if (b->is_horizontal_tile && b->is_vertical_tile) {
-			for (;rect.y < game->height; rect.y+=rect.h) {
+			for (;rect.y < game->get_room_height(); rect.y+=rect.h) {
 				tile_horizontal(texture, &rect);
 			}
 			rect.y = y+dy;

@@ -583,7 +583,7 @@ int Room::check_paths() {
 int Room::outside_room() {
 	for (auto& i : instances) {
 		SDL_Rect a = {(int)i.second->x, (int)i.second->y, i.second->object->get_mask()->get_subimage_width(), i.second->object->get_mask()->get_height()};
-		SDL_Rect b = {0, 0, game->width, game->height};
+		SDL_Rect b = {0, 0, game->get_width(), game->get_height()};
 		if (!check_collision(&a, &b)) {
 			i.second->object->outside_room(i.second);
 		}
@@ -657,7 +657,7 @@ int Room::draw() {
 					i.second->object->draw(i.second);
 				}
 			}
-			viewport = {0, 0, game->width, game->height};
+			viewport = {0, 0, game->get_width(), game->get_height()};
 			SDL_RenderSetViewport(game->renderer, &viewport);
 		} else {
 			if (i.second->object->get_is_visible()) {

@@ -31,10 +31,10 @@ ObjBee::~ObjBee() {
 }
 void ObjBee::create(InstanceData* self) {
 	// create event
-	std::cout << "u r a b " << self->id << ", : " << median<int>(23, 6, 41, 6, 7, 945, 23) << "\n";
+	std::cout << "u r a b " << self->id << ", : " << game->get_display_refresh_rate() << "\n";
 	//self->set_alarm(0, 2000);
 	spr_bee->set_alpha(0.5);
-	self->set_gravity(7.0);
+	//self->set_gravity(7.0);
 }
 void ObjBee::alarm(InstanceData* self, int a) {
 	switch (a) {
@@ -69,11 +69,16 @@ void ObjBee::keyboard_press(InstanceData* self, SDL_Event* e) {
 		}
 
 		case SDLK_w: {
-			float p = (float)self->x/game->width;
+			float p = (float)self->x/game->get_width();
 			p *= 2.0;
 			p -= 1.0;
 			snd_chirp->set_pan(p);
 			snd_chirp->play();
+			break;
+		}
+
+		case SDLK_p: {
+			game->save_screenshot("screenshot.bmp");
 			break;
 		}
 	}
@@ -120,11 +125,15 @@ void ObjBee::collision(InstanceData* self, InstanceData* other) {
 }
 void ObjBee::draw(InstanceData* self) {
 	// draw event
-	get_sprite()->draw(self->x, self->y, self->subimage_time);
+	int mx, my;
+	SDL_GetMouseState(&mx, &my);
+	int s = distance(self->x, self->y, mx, my)/2;
+	self->draw(s, s, direction_of(self->x, self->y, mx, my), c_aqua);
+
 	font_liberation->draw_fast(self->x, self->y, std::to_string(self->id));
 
 	if (self->id == 0) {
-		fps_display = font_liberation->draw(fps_display, 0, 0, "FPS: " + std::to_string(game->fps_stable));
+		fps_display = font_liberation->draw(fps_display, 0, 0, "FPS: \n" + std::to_string(game->fps_stable));
 		//font_liberation->draw_fast(0, 0, "FPS: " + std::to_string(game->fps_stable));
 	}
 }

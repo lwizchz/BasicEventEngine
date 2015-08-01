@@ -19,12 +19,14 @@
 #include "util.hpp"
 
 class Sprite; class Sound; class Background; class Font; class Path; class Object; class Room;
+class InstanceData; class RGBA;
 
 class GameOptions {
 	public:
 		// Window flags
 		bool is_fullscreen, is_opengl, is_borderless;
 		bool is_resizable, is_maximized, is_highdpi;
+		bool is_visible;
 
 		// Renderer flags
 		bool is_vsync_enabled;
@@ -37,6 +39,9 @@ class BEE {
 		Room *first_room = NULL, *current_room = NULL;
 		GameOptions* options;
 
+		int width, height;
+		SDL_Cursor* cursor;
+
 		bool is_minimized, is_fullscreen;
 		bool has_mouse, has_focus;
 
@@ -45,7 +50,6 @@ class BEE {
 	public:
 		SDL_Window* window = NULL;
 		SDL_Renderer* renderer = NULL;
-		int width, height;
 		unsigned int fps_max, fps_goal, fps_count, fps_stable;
 
 		Sprite* texture_before;
@@ -82,6 +86,49 @@ class BEE {
 
 		Room* get_current_room();
 		bool get_is_ready();
+		int get_room_width();
+		int get_room_height();
+
+		SDL_DisplayMode get_display();
+		Uint32 get_display_format();
+		int get_display_width();
+		int get_display_height();
+		int get_display_refresh_rate();
+		int set_display(int, int, int);
+		int set_display_size(int, int);
+		int set_display_refresh_rate(int);
+
+		bool get_is_visible();
+		bool get_is_fullscreen();
+		bool get_is_borderless();
+		bool get_is_resizable();
+		std::string get_window_title();
+		SDL_Cursor* get_cursor();
+		int get_window_x();
+		int get_window_y();
+		int get_width();
+		int get_height();
+		int set_is_visible(bool);
+		int set_is_fullscreen(bool);
+		int set_window_title(std::string);
+		int set_cursor(SDL_SystemCursor);
+		int set_show_cursor(bool);
+		int set_window_position(int, int);
+		int set_window_x(int);
+		int set_window_y(int);
+		int set_window_center();
+		int set_window_size(int, int);
+		int set_width(int);
+		int set_height(int);
+
+		int get_mousex();
+		int get_mousey();
+		int set_mouse_position(int, int);
+		int set_mousex(int);
+		int set_mousey(int);
+
+		RGBA get_pixel_color(int, int);
+		int save_screenshot(std::string);
 };
 
 int init_resources();
@@ -142,6 +189,9 @@ BEE::BEE(int new_argc, char** new_argv, Room* new_first_room, GameOptions* new_o
 	if (window == NULL) {
 		throw std::string("Couldn't create SDL window: ") + SDL_GetError() + "\n";
 	}
+
+	cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
+	SDL_SetCursor(cursor);
 
 	if (options->is_opengl) {
 		// Do OpenGL stuff
@@ -345,6 +395,9 @@ int BEE::loop() {
 int BEE::close() {
 	free_media();
 	close_resources();
+
+	texture_before->free();
+	texture_after->free();
 
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
@@ -652,7 +705,7 @@ int BEE::draw_transition() {
 			break;
 		}
 		case 16: { // Push from top
-			for (int i=-height; i=0; i+=transition_speed) {
+			for (int i=-height; i<0; i+=transition_speed) {
 				render_clear();
 				texture_before->draw(i+height, 0, 0);
 				texture_after->draw(i, 0, 0);
@@ -661,7 +714,7 @@ int BEE::draw_transition() {
 			break;
 		}
 		case 17: { // Push from bottom
-			for (int i=height; i=0; i-=transition_speed) {
+			for (int i=height; i>=0; i-=transition_speed) {
 				render_clear();
 				texture_before->draw(i-height, 0, 0);
 				texture_after->draw(i, 0, 0);
@@ -696,6 +749,209 @@ Room* BEE::get_current_room() {
 }
 bool BEE::get_is_ready() {
 	return is_ready;
+}
+int BEE::get_room_width() {
+	if (current_room != NULL) {
+		return current_room->get_width();
+	}
+	return -1;
+}
+int BEE::get_room_height() {
+	if (current_room != NULL) {
+		return current_room->get_height();
+	}
+	return -1;
+}
+
+
+SDL_DisplayMode BEE::get_display() {
+	SDL_DisplayMode dm;
+	if (SDL_GetDesktopDisplayMode(0, &dm) != 0) {
+		std::cerr << "Failed to get display mode: " << SDL_GetError() << "\n";
+	}
+	return dm;
+}
+Uint32 BEE::get_display_format() {
+	return get_display().format;
+}
+int BEE::get_display_width() {
+	return get_display().w;
+}
+int BEE::get_display_height() {
+	return get_display().h;
+}
+int BEE::get_display_refresh_rate() {
+	return get_display().refresh_rate;
+}
+
+int BEE::set_display(int w, int h, int hz) {
+	if (options->is_fullscreen) {
+		SDL_DisplayMode dm = {get_display_format(), w, h, hz, 0};
+		if (SDL_SetWindowDisplayMode(window, &dm) != 0) {
+			std::cerr << "Failed to set display size: " << SDL_GetError() << "\n";
+			return 1;
+		}
+		return 0;
+	} else {
+		std::cerr << "Failed to set display size because the window is not fullscreen.\n";
+		return 1;
+	}
+}
+int BEE::set_display_size(int w, int h) {
+	return set_display(w, h, get_display_refresh_rate());
+}
+int BEE::set_display_refresh_rate(int hz) {
+	return set_display(get_display_width(), get_display_height(), hz);
+}
+
+bool BEE::get_is_visible() {
+	return options->is_visible;
+}
+bool BEE::get_is_fullscreen() {
+	return options->is_fullscreen;
+}
+bool BEE::get_is_borderless() {
+	return options->is_borderless;
+}
+bool BEE::get_is_resizable() {
+	return options->is_resizable;
+}
+std::string BEE::get_window_title() {
+	return SDL_GetWindowTitle(window);
+}
+SDL_Cursor* BEE::get_cursor() {
+	return cursor;
+}
+int BEE::get_window_x() {
+	int wx;
+	SDL_GetWindowPosition(window, &wx, NULL);
+	return wx;
+}
+int BEE::get_window_y() {
+	int wy;
+	SDL_GetWindowPosition(window, NULL, &wy);
+	return wy;
+}
+int BEE::get_width() {
+	return width;
+}
+int BEE::get_height() {
+	return height;
+}
+int BEE::set_is_visible(bool new_is_visible) {
+	options->is_visible = new_is_visible;
+	if (options->is_visible) {
+		SDL_ShowWindow(window);
+	} else {
+		SDL_HideWindow(window);
+	}
+	return 0;
+}
+int BEE::set_is_fullscreen(bool new_is_fullscreen) {
+	options->is_fullscreen = new_is_fullscreen;
+	if (options->is_fullscreen) {
+		if (options->is_resizable) {
+			SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+		} else {
+			SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
+		}
+	} else {
+		SDL_SetWindowFullscreen(window, 0);
+	}
+	return 0;
+}
+int BEE::set_window_title(std::string new_title) {
+	SDL_SetWindowTitle(window, new_title.c_str());
+	return 0;
+}
+int BEE::set_cursor(SDL_SystemCursor cid) {
+	SDL_FreeCursor(cursor);
+	cursor = SDL_CreateSystemCursor(cid);
+	SDL_SetCursor(cursor);
+	return 0;
+}
+int BEE::set_show_cursor(bool new_show_cursor) {
+	SDL_ShowCursor((new_show_cursor) ? SDL_ENABLE : SDL_DISABLE);
+	return 0;
+}
+int BEE::set_window_position(int new_x, int new_y) {
+	SDL_SetWindowPosition(window, new_x, new_y);
+	return 0;
+}
+int BEE::set_window_x(int new_x) {
+	return set_window_position(new_x, get_window_y());
+}
+int BEE::set_window_y(int new_y) {
+	return set_window_position(get_window_x(), new_y);
+}
+int BEE::set_window_center() {
+	return set_window_position(SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+}
+int BEE::set_window_size(int new_width, int new_height) {
+	width = new_width;
+	height = new_height;
+	SDL_SetWindowSize(window, width, height);
+	return 0;
+}
+int BEE::set_width(int new_width) {
+	return set_window_size(new_width, height);
+}
+int BEE::set_height(int new_height) {
+	return set_window_size(width, new_height);
+}
+
+int BEE::get_mousex() {
+	int mx;
+	SDL_GetMouseState(&mx, NULL);
+	return mx;
+}
+int BEE::get_mousey() {
+	int my;
+	SDL_GetMouseState(NULL, &my);
+	return my;
+}
+int BEE::set_mouse_position(int new_mx, int new_my) {
+	SDL_WarpMouseInWindow(window, new_mx, new_my);
+	return 0;
+}
+int BEE::set_mousex(int new_mx) {
+	return set_mouse_position(new_mx, get_mousey());
+}
+int BEE::set_mousey(int new_my) {
+	return set_mouse_position(get_mousex(), new_my);
+}
+
+RGBA BEE::get_pixel_color(int x, int y) {
+	SDL_Surface *screenshot = SDL_CreateRGBSurface(0, width, height, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
+	SDL_RenderReadPixels(renderer, NULL, SDL_PIXELFORMAT_ARGB8888, screenshot->pixels, screenshot->pitch);
+
+	RGBA color;
+	SDL_GetRGBA(((Uint32*)screenshot->pixels)[x+y*height], screenshot->format, &color.r, &color.g, &color.b, &color.a);
+
+	SDL_FreeSurface(screenshot);
+
+	return color;
+}
+int BEE::save_screenshot(std::string filename) { // Slow, use sparingly
+	if (options->is_opengl) {
+		/*unsigned char* pixels = new unsigned char[width*height*4]; // 4 bytes for RGBA
+		glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+		SDL_Surface* screenshot  = SDL_CreateRGBSurfaceFrom(pixels, width, height, 8*4, width*4, 0,0,0,0);
+		SDL_SaveBMP(screenshot), filename.c_str());
+
+		SDL_FreeSurface(screenshot);
+		delete [] pixels;*/
+	} else {
+		SDL_Surface *screenshot = SDL_CreateRGBSurface(0, width, height, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
+		SDL_RenderReadPixels(renderer, NULL, SDL_PIXELFORMAT_ARGB8888, screenshot->pixels, screenshot->pitch);
+
+		SDL_SaveBMP(screenshot, filename.c_str());
+
+		SDL_FreeSurface(screenshot);
+	}
+
+	return 0;
 }
 
 #endif // _BEE_GAME_H

@@ -11,6 +11,30 @@
 
 #include <vector>
 
+class RGBA {
+	public:
+		Uint8 r, g, b, a;
+};
+RGBA c_aqua	= {0, 255, 255, 255};
+RGBA c_black	= {0, 0, 0, 255};
+RGBA c_blue	= {0, 0, 255, 255};
+RGBA c_dkgray	= {64, 64, 64, 255};
+RGBA c_fuchsia	= {255, 0, 255, 255};
+RGBA c_gray	= {128, 128, 128, 255};
+RGBA c_green	= {0, 255, 0, 255};
+//RGBA c_lime	= {255, 255, 255, 255};
+RGBA c_ltgray	= {192, 192, 192, 255};
+//RGBA c_maroon	= {255, 255, 255, 255};
+//RGBA c_navy	= {255, 255, 255, 255};
+//RGBA c_olive	= {255, 255, 255, 255};
+RGBA c_orange	= {255, 128, 0, 255};
+RGBA c_purple	= {128, 0, 255, 255};
+RGBA c_red	= {255, 0, 0, 255};
+//RGBA c_silver	= {255, 255, 255, 255};
+//RGBA c_teal	= {255, 255, 255, 255};
+RGBA c_white	= {255, 255, 255, 255};
+RGBA c_yellow	= {255, 255, 0, 255};
+
 class Sprite: public Resource {
 		// Add new variables to the print() debugging method
 		int id = -1;
@@ -18,7 +42,7 @@ class Sprite: public Resource {
 		std::string image_path;
 		int width, height;
 		int subimage_amount, subimage_width;
-		float speed, alpha;
+		double speed, alpha;
 		bool is_animated;
 		int origin_x, origin_y;
 
@@ -41,8 +65,8 @@ class Sprite: public Resource {
 		int get_height();
 		int get_subimage_amount();
 		int get_subimage_width();
-		float get_speed();
-		float get_alpha();
+		double get_speed();
+		double get_alpha();
 		int get_origin_x();
 		int get_origin_y();
 		SDL_Texture* get_texture();
@@ -51,8 +75,8 @@ class Sprite: public Resource {
 		int set_name(std::string);
 		int set_path(std::string);
 		int set_subimage_amount(int, int);
-		int set_speed(float);
-		int set_alpha(float);
+		int set_speed(double);
+		int set_alpha(double);
 		int set_origin_x(int);
 		int set_origin_y(int);
 		int set_origin_xy(int, int);
@@ -60,7 +84,11 @@ class Sprite: public Resource {
 
 		int load();
 		int free();
+		int draw(int, int, Uint32, int, int, double, RGBA);
 		int draw(int, int, Uint32);
+		int draw(int, int, Uint32, int, int);
+		int draw(int, int, Uint32, double);
+		int draw(int, int, Uint32, RGBA);
 		int set_as_target();
 };
 Sprite::Sprite () {
@@ -172,10 +200,10 @@ int Sprite::get_subimage_amount() {
 int Sprite::get_subimage_width() {
 	return subimage_width;
 }
-float Sprite::get_speed() {
+double Sprite::get_speed() {
 	return speed;
 }
-float Sprite::get_alpha() {
+double Sprite::get_alpha() {
 	return alpha;
 }
 int Sprite::get_origin_x() {
@@ -207,11 +235,11 @@ int Sprite::set_subimage_amount(int new_subimage_amount, int new_subimage_width)
 	}
 	return 0;
 }
-int Sprite::set_speed(float new_speed) {
+int Sprite::set_speed(double new_speed) {
 	speed = new_speed;
 	return 0;
 }
-int Sprite::set_alpha(float new_alpha) {
+int Sprite::set_alpha(double new_alpha) {
 	alpha = new_alpha;
 	SDL_SetTextureAlphaMod(texture, alpha*255);
 	return 0;
@@ -272,10 +300,25 @@ int Sprite::free() {
 	}
 	return 0;
 }
-int Sprite::draw(int x, int y, Uint32 subimage_time) {
+int Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h, double angle, RGBA new_color) {
 	int current_subimage = (int)round(speed*(SDL_GetTicks()-subimage_time)/game->fps_goal) % subimage_amount;
 	if (current_subimage == 0) {
 		is_animated = true;
+	}
+
+	SDL_SetTextureColorMod(texture, new_color.r, new_color.g, new_color.b);
+
+	drect.x = x;
+	drect.y = y;
+	if ((w >= 0)&&(h >= 0)) {
+		drect.w = w;
+		drect.h = h;
+	} else if (!subimages.empty()) {
+		drect.w = subimage_width;
+		drect.h = height;
+	} else {
+		drect.w = width;
+		drect.h = height;
 	}
 
 	if (!subimages.empty()) {
@@ -284,14 +327,9 @@ int Sprite::draw(int x, int y, Uint32 subimage_time) {
 		srect.w = subimages[current_subimage].w;
 		srect.h = height;
 
-		drect.x = x;
-		drect.y = y;
-		drect.w = subimage_width;
-		drect.h = height;
-
-		SDL_RenderCopy(game->renderer, texture, &srect, &drect);
+		SDL_RenderCopyEx(game->renderer, texture, &srect, &drect, angle, NULL, SDL_FLIP_NONE);
 	} else {
-		SDL_RenderCopy(game->renderer, texture, NULL, NULL);
+		SDL_RenderCopyEx(game->renderer, texture, NULL, &drect, angle, NULL, SDL_FLIP_NONE);
 	}
 
 	if ((is_animated)&&(current_subimage == subimage_amount-1)) {
@@ -301,19 +339,31 @@ int Sprite::draw(int x, int y, Uint32 subimage_time) {
 
 	return 0;
 }
+int Sprite::draw(int x, int y, Uint32 subimage_time) {
+	return draw(x, y, subimage_time, -1, -1, 0.0, {255, 255, 255, 255});
+}
+int Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h) {
+	return draw(x, y, subimage_time, w, h, 0.0, {255, 255, 255, 255});
+}
+int Sprite::draw(int x, int y, Uint32 subimage_time, double angle) {
+	return draw(x, y, subimage_time, -1, -1, angle, {255, 255, 255, 255});
+}
+int Sprite::draw(int x, int y, Uint32 subimage_time, RGBA color) {
+	return draw(x, y, subimage_time, -1, -1, 0.0, color);
+}
 int Sprite::set_as_target() {
 	if (is_loaded) {
 		free();
 	}
 
-	texture = SDL_CreateTexture(game->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, game->width, game->height);
+	texture = SDL_CreateTexture(game->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, game->get_width(), game->get_height());
 	if (texture == NULL) {
 		std::cerr << "Failed to create a blank texture: " << SDL_GetError() << "\n";
 		return 1;
 	}
 
-	width = game->width;
-	height = game->height;
+	width = game->get_width();
+	height = game->get_height();
 	set_subimage_amount(1, width);
 
 	SDL_SetRenderTarget(game->renderer, texture);

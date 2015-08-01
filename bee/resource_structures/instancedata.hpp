@@ -81,6 +81,12 @@ class InstanceData {
 		int get_path_speed();
 		unsigned int get_path_node();
 		std::vector<path_coord> get_path_coords();
+
+		int draw(int, int, double, RGBA);
+		int draw();
+		int draw(int, int);
+		int draw(double);
+		int draw(RGBA);
 };
 InstanceData::InstanceData() {
 	velocity.clear();
@@ -402,6 +408,22 @@ unsigned int InstanceData::get_path_node() {
 std::vector<path_coord> InstanceData::get_path_coords() {
 	std::vector<path_coord> no_path;
 	return (has_path()) ? path->get_coordinate_list() : no_path;
+}
+
+int InstanceData::draw(int w, int h, double angle, RGBA color) {
+	return object->get_sprite()->draw(x, y, subimage_time, w, h, angle, color);
+}
+int InstanceData::draw() {
+	return object->get_sprite()->draw(x, y, subimage_time);
+}
+int InstanceData::draw(int w, int h) {
+	return object->get_sprite()->draw(x, y, subimage_time, w, h);
+}
+int InstanceData::draw(double angle) {
+	return object->get_sprite()->draw(x, y, subimage_time, angle);
+}
+int InstanceData::draw(RGBA color) {
+	return object->get_sprite()->draw(x, y, subimage_time, color);
 }
 
 #endif // _BEE_INSTANCEDATA_H

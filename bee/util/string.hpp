@@ -14,6 +14,7 @@
 #include <string>
 #include <algorithm>
 #include <regex>
+#include <map>
 
 std::string chr(int c) {
         char character = c;
@@ -43,6 +44,19 @@ std::string string_digits(std::string str){
 }
 std::string string_lettersdigits(std::string str){
         return std::regex_replace(str, std::regex("[^[:alnum:][:digit:]]"), "");
+}
+
+std::map<int,std::string> handle_newlines(std::string input) {
+	std::map<int,std::string> output;
+	if (input.size() > 0) {
+		std::istringstream input_stream (input);
+		while (!input_stream.eof()) {
+			std::string tmp;
+			getline(input_stream, tmp);
+			output.insert(std::make_pair(output.size(), tmp));
+		}
+	}
+	return output;
 }
 
 bool clipboard_has_text() {
