@@ -15,6 +15,7 @@
 #include "util/string.hpp"
 #include "util/dates.hpp"
 #include "util/collision.hpp"
+#include "util/sound.hpp"
 
 std::pair<int,int> coord_approach(int x1, int y1, int x2, int y2, int speed) {
 	float d = distance(x1, y1, x2, y2);

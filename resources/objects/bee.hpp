@@ -69,11 +69,31 @@ void ObjBee::keyboard_press(InstanceData* self, SDL_Event* e) {
 		}
 
 		case SDLK_w: {
-			float p = (float)self->x/game->get_width();
-			p *= 2.0;
-			p -= 1.0;
-			snd_chirp->set_pan(p);
-			snd_chirp->play();
+			game->sound_stop_all();
+			break;
+		}
+		case SDLK_a: {
+			game->set_volume(game->get_volume()/2);
+			break;
+		}
+		case SDLK_d: {
+			game->set_volume(game->get_volume()*2);
+			break;
+		}
+
+		case SDLK_1: {
+			snd_music->effect_add(se_none);
+			snd_music->play();
+			break;
+		}
+		case SDLK_2: {
+			snd_music->effect_add(se_chorus);
+			snd_music->play();
+			break;
+		}
+		case SDLK_3: {
+			snd_music->effect_add(se_echo);
+			snd_music->play();
 			break;
 		}
 

@@ -11,13 +11,24 @@
 
 #include <list>
 
+enum se_type {
+	se_none		= (1u << 0),
+	se_chorus	= (1u << 1),
+	se_echo		= (1u << 2),
+	se_flanger	= (1u << 3),
+	se_gargle	= (1u << 4),
+	se_reverb	= (1u << 5),
+	se_compressor	= (1u << 6),
+	se_equalizer	= (1u << 7)
+};
+
 class Sound: public Resource {
 		// Add new variables to the print() debugging method
 		int id = -1;
 		std::string name;
 		std::string sound_path;
-		float volume; // From 0.0 to 1.0
-		float pan; // From -1.0 to 1.0 as Left to Right
+		double volume; // From 0.0 to 1.0
+		double pan; // From -1.0 to 1.0 as Left to Right
 		int play_type; // In memory vs continuous
 		int channel_amount; // Mono vs stereo
 		int sample_rate;
@@ -29,6 +40,15 @@ class Sound: public Resource {
 		Mix_Chunk* chunk;
 		bool is_playing, is_looping;
 		std::list<int> current_channels;
+
+		int sound_effects = (1u << 0);
+		se_chorus_data chorus_data;
+		se_echo_data echo_data;
+		se_flanger_data flanger_data;
+		se_gargle_data gargle_data;
+		se_reverb_data reverb_data;
+		se_compressor_data compressor_data;
+		se_equalizer_data equalizer_data;
 	public:
 		Sound();
 		Sound(std::string, std::string, bool);
@@ -41,8 +61,8 @@ class Sound: public Resource {
 		std::string get_name();
 		std::string get_path();
 		bool get_is_music();
-		float get_volume();
-		float get_pan();
+		double get_volume();
+		double get_pan();
 		int get_play_type();
 		int get_channel_amount();
 		int get_sample_rate();
@@ -52,8 +72,9 @@ class Sound: public Resource {
 		int set_name(std::string);
 		int set_path(std::string);
 		int set_is_music(bool);
-		int set_volume(float);
-		int set_pan(float);
+		int set_volume(double);
+		int update_volume();
+		int set_pan(double);
 		int set_pan_internal(int);
 		int set_play_type(int);
 		int set_channel_ammount(int);
@@ -72,8 +93,16 @@ class Sound: public Resource {
 		int resume();
 		int toggle();
 		int loop();
+		int fade_in(int);
+		int fade_out(int);
 		bool get_is_playing();
 		bool get_is_looping();
+
+		int effect_add(int);
+		int effect_set(int, int);
+		int effect_set_post(int);
+		int effect_remove(int, int);
+		int effect_remove_post(int);
 };
 Sound::Sound () {
 	reset();
@@ -176,10 +205,10 @@ std::string Sound::get_path() {
 bool Sound::get_is_music() {
 	return is_music;
 }
-float Sound::get_volume() {
+double Sound::get_volume() {
 	return volume;
 }
-float Sound::get_pan() {
+double Sound::get_pan() {
 	return pan;
 }
 int Sound::get_play_type() {
@@ -217,19 +246,20 @@ int Sound::set_is_music(bool new_is_music) {
 	}
 	return 0;
 }
-int Sound::set_volume(float new_volume) {
+int Sound::set_volume(double new_volume) {
 	volume = new_volume;
 	if (is_music) {
-		Mix_VolumeMusic(volume*128);
+		Mix_VolumeMusic(game->get_volume()*volume*128);
 	} else {
-		Mix_VolumeChunk(chunk, volume*128);
-		/*for (std::list<int>::iterator i=current_channels.begin(); i != current_channels.end(); ++i) {
-			Mix_Volume(*i, volume*128);
-		}*/
+		Mix_VolumeChunk(chunk, game->get_volume()*volume*128);
 	}
 	return 0;
 }
-int Sound::set_pan(float new_pan) {
+int Sound::update_volume() {
+	set_volume(volume);
+	return 0;
+}
+int Sound::set_pan(double new_pan) {
 	pan = new_pan;
 	if (is_music) {
 		return 1; // I'm not sure how to pan music at the moment
@@ -292,6 +322,7 @@ int Sound::load() {
 	return 0;
 }
 int Sound::free() {
+	stop();
 	if (is_music) {
 		Mix_FreeMusic(music);
 		music = NULL;
@@ -316,6 +347,7 @@ int Sound::finished(int channel) {
 int Sound::play() {
 	if (is_music) {
 		Mix_PlayMusic(music, 1);
+		effect_set_post(sound_effects);
 	} else {
 		int c = Mix_PlayChannel(-1, chunk, 0);
 		if (c >= 0) {
@@ -327,6 +359,7 @@ int Sound::play() {
 		}
 
 		set_pan_internal(c);
+		effect_set(c, sound_effects);
 	}
 
 	is_playing = true;
@@ -339,10 +372,12 @@ int Sound::stop() {
 	is_looping = false;
 
 	if (is_music) {
+		effect_set_post(0);
 		Mix_HaltMusic();
 	} else {
 		std::list<int> tmp_channels = current_channels;
 		for (auto i=tmp_channels.begin(); i != tmp_channels.end(); ++i) {
+			effect_set(*i, 0);
 			Mix_HaltChannel(*i);
 		}
 	}
@@ -358,6 +393,7 @@ int Sound::rewind() {
 		} else {
 			Mix_PlayMusic(music, 1);
 		}
+		effect_set_post(sound_effects);
 	} else {
 		for (auto i=current_channels.begin(); i != current_channels.end(); ++i) {
 			Mix_HaltChannel(*i);
@@ -366,6 +402,7 @@ int Sound::rewind() {
 			} else {
 				Mix_PlayChannel(*i, chunk, 0);
 			}
+			effect_set(*i, sound_effects);
 		}
 	}
 
@@ -407,6 +444,7 @@ int Sound::toggle() {
 int Sound::loop() {
 	if (is_music) {
 		Mix_PlayMusic(music, -1);
+		effect_set_post(sound_effects);
 	} else {
 		int c = Mix_PlayChannel(-1, chunk, -1);
 		if (c >= 0) {
@@ -418,10 +456,47 @@ int Sound::loop() {
 		}
 
 		set_pan_internal(c);
+		effect_set(c, sound_effects);
 	}
 
 	is_looping = true;
 
+	return 0;
+}
+int Sound::fade_in(int ticks) {
+	if (is_music) {
+		Mix_FadeInMusic(music, 1, ticks);
+	} else {
+		int c = Mix_FadeInChannel(-1, chunk, 0, ticks);
+		if (c >= 0) {
+			current_channels.remove(c);
+			current_channels.push_back(c);
+		} else {
+			std::cerr << "Failed to play sound " << name << ": " << Mix_GetError() << "\n";
+			return 1;
+		}
+
+		set_pan_internal(c);
+		effect_set(c, sound_effects);
+	}
+
+	is_playing = true;
+	is_looping = false;
+
+	return 0;
+}
+int Sound::fade_out(int ticks) {
+	is_playing = false;
+	is_looping = false;
+
+	if (is_music) {
+		Mix_FadeOutMusic(ticks);
+	} else {
+		std::list<int> tmp_channels = current_channels;
+		for (auto i=tmp_channels.begin(); i != tmp_channels.end(); ++i) {
+			Mix_FadeOutChannel(*i, ticks);
+		}
+	}
 	return 0;
 }
 bool Sound::get_is_playing() {
@@ -429,6 +504,148 @@ bool Sound::get_is_playing() {
 }
 bool Sound::get_is_looping() {
 	return is_looping;
+}
+
+int Sound::effect_add(int new_sound_effects) {
+	int old_sound_effects = sound_effects;
+	sound_effects = new_sound_effects;
+
+	if (is_music) {
+		effect_remove_post(old_sound_effects ^ sound_effects);
+		effect_set_post(sound_effects);
+	} else {
+		std::list<int> tmp_channels = current_channels;
+		for (auto i=tmp_channels.begin(); i != tmp_channels.end(); ++i) {
+			effect_remove(*i, old_sound_effects ^ sound_effects);
+			effect_set(*i, sound_effects);
+		}
+	}
+
+	return 0;
+}
+int Sound::effect_set(int channel, int se_mask) {
+	if (se_mask & se_none) {
+		Mix_UnregisterAllEffects(channel);
+	} else {
+		if (se_mask & se_chorus) {
+			std::cerr << "The requested sound effect 'se_chorus' is not implemented and will not be applied\n";
+			Mix_RegisterEffect(channel, sound_effect_chorus, sound_effect_chorus_cleanup, &chorus_data);
+		}
+		if (se_mask & se_echo) {
+			Mix_RegisterEffect(channel, sound_effect_echo, sound_effect_echo_cleanup, &echo_data);
+		}
+		if (se_mask & se_flanger) {
+			std::cerr << "The requested sound effect 'se_flanger' is not implemented and will not be applied\n";
+			Mix_RegisterEffect(channel, sound_effect_flanger, sound_effect_flanger_cleanup, &flanger_data);
+		}
+		if (se_mask & se_gargle) {
+			std::cerr << "The requested sound effect 'se_gargle' is not implemented and will not be applied\n";
+			Mix_RegisterEffect(channel, sound_effect_gargle, sound_effect_gargle_cleanup, &gargle_data);
+		}
+		if (se_mask & se_reverb) {
+			std::cerr << "The requested sound effect 'se_reverb' is not implemented and will not be applied\n";
+			Mix_RegisterEffect(channel, sound_effect_reverb, sound_effect_reverb_cleanup, &reverb_data);
+		}
+		if (se_mask & se_compressor) {
+			std::cerr << "The requested sound effect 'se_compressor' is not implemented and will not be applied\n";
+			Mix_RegisterEffect(channel, sound_effect_compressor, sound_effect_compressor_cleanup, &compressor_data);
+		}
+		if (se_mask & se_equalizer) {
+			std::cerr << "The requested sound effect 'se_equalizer' is not implemented and will not be applied\n";
+			Mix_RegisterEffect(channel, sound_effect_equalizer, sound_effect_equalizer_cleanup, &equalizer_data);
+		}
+	}
+
+	return 0;
+}
+int Sound::effect_remove(int channel, int se_mask) {
+	if (!(se_mask & se_none)) {
+		if ((se_mask & se_chorus)&&(!(sound_effects & se_chorus))) {
+			Mix_UnregisterEffect(channel, sound_effect_chorus);
+		}
+		if ((se_mask & se_echo)&&(!(sound_effects & se_echo))) {
+			Mix_UnregisterEffect(channel, sound_effect_echo);
+		}
+		if ((se_mask & se_flanger)&&(!(sound_effects & se_flanger))) {
+			Mix_UnregisterEffect(channel, sound_effect_flanger);
+		}
+		if ((se_mask & se_gargle)&&(!(sound_effects & se_gargle))) {
+			Mix_UnregisterEffect(channel, sound_effect_gargle);
+		}
+		if ((se_mask & se_reverb)&&(!(sound_effects & se_reverb))) {
+			Mix_UnregisterEffect(channel, sound_effect_reverb);
+		}
+		if ((se_mask & se_compressor)&&(!(sound_effects & se_compressor))) {
+			Mix_UnregisterEffect(channel, sound_effect_compressor);
+		}
+		if ((se_mask & se_equalizer)&&(!(sound_effects & se_equalizer))) {
+			Mix_UnregisterEffect(channel, sound_effect_equalizer);
+		}
+	}
+
+	return 0;
+}
+int Sound::effect_set_post(int se_mask) {
+	if (se_mask & se_none) {
+		Mix_UnregisterAllEffects(MIX_CHANNEL_POST);
+	} else {
+		if (se_mask & se_chorus) {
+			std::cerr << "The requested sound effect 'se_chorus' is not implemented and will not be applied\n";
+			Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_chorus, sound_effect_chorus_cleanup, &chorus_data);
+		}
+		if (se_mask & se_echo) {
+			Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_echo, sound_effect_echo_cleanup, &echo_data);
+		}
+		if (se_mask & se_flanger) {
+			std::cerr << "The requested sound effect 'se_flanger' is not implemented and will not be applied\n";
+			Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_flanger, sound_effect_flanger_cleanup, &flanger_data);
+		}
+		if (se_mask & se_gargle) {
+			std::cerr << "The requested sound effect 'se_gargle' is not implemented and will not be applied\n";
+			Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_gargle, sound_effect_gargle_cleanup, &gargle_data);
+		}
+		if (se_mask & se_reverb) {
+			std::cerr << "The requested sound effect 'se_reverb' is not implemented and will not be applied\n";
+			Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_reverb, sound_effect_reverb_cleanup, &reverb_data);
+		}
+		if (se_mask & se_compressor) {
+			std::cerr << "The requested sound effect 'se_compressor' is not implemented and will not be applied\n";
+			Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_compressor, sound_effect_compressor_cleanup, &compressor_data);
+		}
+		if (se_mask & se_equalizer) {
+			std::cerr << "The requested sound effect 'se_equalizer' is not implemented and will not be applied\n";
+			Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_equalizer, sound_effect_equalizer_cleanup, &equalizer_data);
+		}
+	}
+
+	return 0;
+}
+int Sound::effect_remove_post(int se_mask) {
+	if (!(se_mask & se_none)) {
+		if ((se_mask & se_chorus)&&(!(sound_effects & se_chorus))) {
+			Mix_UnregisterEffect(MIX_CHANNEL_POST, sound_effect_chorus);
+		}
+		if ((se_mask & se_echo)&&(!(sound_effects & se_echo))) {
+			Mix_UnregisterEffect(MIX_CHANNEL_POST, sound_effect_echo);
+		}
+		if ((se_mask & se_flanger)&&(!(sound_effects & se_flanger))) {
+			Mix_UnregisterEffect(MIX_CHANNEL_POST, sound_effect_flanger);
+		}
+		if ((se_mask & se_gargle)&&(!(sound_effects & se_gargle))) {
+			Mix_UnregisterEffect(MIX_CHANNEL_POST, sound_effect_gargle);
+		}
+		if ((se_mask & se_reverb)&&(!(sound_effects & se_reverb))) {
+			Mix_UnregisterEffect(MIX_CHANNEL_POST, sound_effect_reverb);
+		}
+		if ((se_mask & se_compressor)&&(!(sound_effects & se_compressor))) {
+			Mix_UnregisterEffect(MIX_CHANNEL_POST, sound_effect_compressor);
+		}
+		if ((se_mask & se_equalizer)&&(!(sound_effects & se_equalizer))) {
+			Mix_UnregisterEffect(MIX_CHANNEL_POST, sound_effect_equalizer);
+		}
+	}
+
+	return 0;
 }
 
 #endif // _BEE_SOUND_H

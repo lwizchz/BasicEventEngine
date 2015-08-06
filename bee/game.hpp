@@ -47,6 +47,8 @@ class BEE {
 
 		SDL_Event event;
 		Uint32 tickstamp, new_tickstamp, fps_ticks;
+
+		double volume = 1.0;
 	public:
 		SDL_Window* window = NULL;
 		SDL_Renderer* renderer = NULL;
@@ -72,7 +74,7 @@ class BEE {
 		int end_game();
 
 		int restart_room();
-		int restart_room_internal();
+		//int restart_room_internal();
 		int change_room(Room*);
 		int room_goto(int);
 		int room_goto_previous();
@@ -129,6 +131,10 @@ class BEE {
 
 		RGBA get_pixel_color(int, int);
 		int save_screenshot(std::string);
+
+		double get_volume();
+		int set_volume(double);
+		int sound_stop_all();
 };
 
 int init_resources();
@@ -216,7 +222,7 @@ BEE::BEE(int new_argc, char** new_argv, Room* new_first_room, GameOptions* new_o
 		throw std::string("Couldn't init SDL_ttf: ") + TTF_GetError() + "\n";
 	}
 
-	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
+	if (Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 1024) < 0) {
 		throw std::string("Couldn't init SDL_mixer: ") + Mix_GetError() + "\n";
 	}
 	Mix_ChannelFinished(sound_finished);
@@ -371,14 +377,16 @@ int BEE::loop() {
 				}
 				case 2: { // Restart game
 					if (current_room == first_room) {
-						restart_room_internal();
+						//restart_room_internal();
+						change_room(current_room);
 					} else {
 						change_room(first_room);
 					}
 					break;
 				}
 				case 3: { // Restart room
-					restart_room_internal();
+					//restart_room_internal();
+					change_room(current_room);
 					break;
 				}
 			}
@@ -495,7 +503,7 @@ int BEE::restart_room() {
 	throw 3;
 	return 0;
 }
-int BEE::restart_room_internal() {
+/*int BEE::restart_room_internal() {
 	if (transition_type != 0) {
 		set_render_target(texture_before);
 		render_clear();
@@ -527,7 +535,7 @@ int BEE::restart_room_internal() {
 	}
 
 	return 0;
-}
+}*/
 int BEE::change_room(Room* new_room) {
 	if (quit) {
 		return 1;
@@ -553,6 +561,7 @@ int BEE::change_room(Room* new_room) {
 		first_room = new_room;
 	}
 
+	sound_stop_all();
 	free_media();
 
 	current_room = new_room;
@@ -951,6 +960,29 @@ int BEE::save_screenshot(std::string filename) { // Slow, use sparingly
 		SDL_FreeSurface(screenshot);
 	}
 
+	return 0;
+}
+
+double BEE::get_volume() {
+	return volume;
+}
+int BEE::set_volume(double new_volume) {
+	volume = new_volume;
+
+	for (int i=0; i<resource_list.sounds.get_amount(); i++) {
+		if (get_sound(i) != NULL) {
+			get_sound(i)->update_volume();
+		}
+	}
+
+	return 0;
+}
+int BEE::sound_stop_all() {
+	for (int i=0; i<resource_list.sounds.get_amount(); i++) {
+		if (get_sound(i) != NULL) {
+			get_sound(i)->stop();
+		}
+	}
 	return 0;
 }
 

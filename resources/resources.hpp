@@ -3,6 +3,7 @@ bool is_initialized = false;
 Sprite* spr_bee;
 
 Sound* snd_chirp;
+Sound* snd_music;
 
 Background* bk_green;
 
@@ -24,6 +25,8 @@ int init_resources() {
 		// Init sounds
 		snd_chirp = new Sound("snd_chirp", "chirp.wav", false);
 			snd_chirp->load();
+		snd_music = new Sound("snd_chirp", "music.wav", false);
+			snd_music->load();
 
 		// Init backgrounds
 		bk_green = new Background("bk_green", "green.png");
