@@ -9,9 +9,9 @@
 #ifndef _BEE_OBJECT_H
 #define _BEE_OBJECT_H 1
 
-class InstanceData; // Defined in bee/resource_structures/instancedata.hpp
+//class InstanceData; // Defined in bee/resource_structures/instancedata.hpp
 
-class Object: public Resource {
+class BEE::Object: public Resource {
 		// Add new variables to the print() debugging method
 		int id = -1;
 		std::string name;
@@ -19,7 +19,7 @@ class Object: public Resource {
 		Sprite *sprite;
 		bool is_solid, is_visible, is_persistent;
 		int depth;
-		Object *parent, *who;
+		Object *parent;
 		Sprite *mask;
 
 		std::map<int,InstanceData*> instances;
@@ -87,10 +87,10 @@ class Object: public Resource {
 		virtual void game_end(InstanceData*) {};
 		virtual void window(InstanceData*, SDL_Event*) {};
 };
-Object::Object () {
+BEE::Object::Object () {
 	reset();
 }
-Object::Object (std::string new_name, std::string path) {
+BEE::Object::Object (std::string new_name, std::string path) {
 	reset();
 
 	add_to_resources("resources/objects/"+path);
@@ -102,19 +102,19 @@ Object::Object (std::string new_name, std::string path) {
 	set_name(new_name);
 	set_path(path);
 }
-Object::~Object() {
-	resource_list.objects.remove_resource(id);
+BEE::Object::~Object() {
+	BEE::resource_list.objects.remove_resource(id);
 }
-int Object::add_to_resources(std::string path) {
+int BEE::Object::add_to_resources(std::string path) {
 	int list_id = -1;
 	if (id >= 0) {
 		if (path == object_path) {
 			return 1;
 		}
-		resource_list.objects.remove_resource(id);
+		BEE::resource_list.objects.remove_resource(id);
 		id = -1;
 	} else {
-		for (auto i : resource_list.objects.resources) {
+		for (auto i : BEE::resource_list.objects.resources) {
 			if ((i.second != NULL)&&(i.second->get_path() == path)) {
 				list_id = i.first;
 				break;
@@ -125,13 +125,13 @@ int Object::add_to_resources(std::string path) {
 	if (list_id >= 0) {
 		id = list_id;
 	} else {
-		id = resource_list.objects.add_resource(this);
+		id = BEE::resource_list.objects.add_resource(this);
 	}
-	resource_list.objects.set_resource(id, this);
+	BEE::resource_list.objects.set_resource(id, this);
 
 	return 0;
 }
-int Object::reset() {
+int BEE::Object::reset() {
 	name = "";
 	object_path = "";
 	sprite = NULL;
@@ -140,14 +140,13 @@ int Object::reset() {
 	is_persistent = false;
 	depth = 0;
 	parent = NULL;
-	who = this;
 	mask = NULL;
 
 	instances.clear();
 
 	return 0;
 }
-int Object::print() {
+int BEE::Object::print() {
 	std::cout <<
 	"Object { "
 	"\n	id		" << id <<
@@ -168,11 +167,6 @@ int Object::print() {
 	} else {
 		std::cout << "\n	parent		NULL";
 	}
-	if (who != NULL) {
-		std::cout << "\n	who		" << who->get_id() << ", " << who->get_name();
-	} else {
-		std::cout << "\n	who		NULL";
-	}
 	if (mask != NULL) {
 		std::cout << "\n	mask		" << mask->get_id() << ", " << mask->get_name();
 	} else {
@@ -182,94 +176,95 @@ int Object::print() {
 
 	return 0;
 }
-int Object::get_id() {
+
+int BEE::Object::get_id() {
 	return id;
 }
-std::string Object::get_name() {
+std::string BEE::Object::get_name() {
 	return name;
 }
-std::string Object::get_path() {
+std::string BEE::Object::get_path() {
 	return object_path;
 }
-Sprite* Object::get_sprite() {
+BEE::Sprite* BEE::Object::get_sprite() {
 	return sprite;
 }
-int Object::get_sprite_id() {
+int BEE::Object::get_sprite_id() {
 	return sprite->get_id();
 }
-bool Object::get_is_solid() {
+bool BEE::Object::get_is_solid() {
 	return is_solid;
 }
-bool Object::get_is_visible() {
+bool BEE::Object::get_is_visible() {
 	return is_visible;
 }
-bool Object::get_is_persistent() {
+bool BEE::Object::get_is_persistent() {
 	return is_persistent;
 }
-int Object::get_depth() {
+int BEE::Object::get_depth() {
 	return depth;
 }
-Object* Object::get_parent() {
+BEE::Object* BEE::Object::get_parent() {
 	return parent;
 }
-int Object::get_parent_id() {
+int BEE::Object::get_parent_id() {
 	return parent->get_id();
 }
-Sprite* Object::get_mask() {
+BEE::Sprite* BEE::Object::get_mask() {
 	return mask;
 }
-int Object::get_mask_id() {
+int BEE::Object::get_mask_id() {
 	return mask->get_id();
 }
-int Object::set_name(std::string new_name) {
+int BEE::Object::set_name(std::string new_name) {
 	name = new_name;
 	return 0;
 }
-int Object::set_path(std::string path) {
+int BEE::Object::set_path(std::string path) {
 	add_to_resources("resources/objects/"+path);
 	object_path = "resources/objects/"+path;
 	return 0;
 }
-int Object::set_sprite(Sprite* new_sprite) {
+int BEE::Object::set_sprite(Sprite* new_sprite) {
 	sprite = new_sprite;
 	if (mask == NULL) {
 		mask = new_sprite;
 	}
 	return 0;
 }
-int Object::set_is_solid(bool new_is_solid) {
+int BEE::Object::set_is_solid(bool new_is_solid) {
 	is_solid = new_is_solid;
 	return 0;
 }
-int Object::set_is_visible(bool new_is_visible) {
+int BEE::Object::set_is_visible(bool new_is_visible) {
 	is_visible = new_is_visible;
 	return 0;
 }
-int Object::set_is_persistent(bool new_is_persistent) {
+int BEE::Object::set_is_persistent(bool new_is_persistent) {
 	is_persistent = new_is_persistent;
 	return 0;
 }
-int Object::set_depth(int new_depth) {
+int BEE::Object::set_depth(int new_depth) {
 	depth = new_depth;
 	return 0;
 }
-int Object::set_parent(Object* new_parent) {
+int BEE::Object::set_parent(Object* new_parent) {
 	parent = new_parent;
 	return 0;
 }
-int Object::set_mask(Sprite* new_mask) {
+int BEE::Object::set_mask(Sprite* new_mask) {
 	mask = new_mask;
 	return 0;
 }
 
-int Object::add_instance(int index, InstanceData* new_instance) {
+int BEE::Object::add_instance(int index, InstanceData* new_instance) {
 	if (instances.find(index) != instances.end()) { //  if the instance exists, overwrite it
 		instances.erase(index);
 	}
 	instances.insert(std::pair<int,InstanceData*>(index, new_instance));
 	return 0;
 }
-int Object::remove_instance(int index) {
+int BEE::Object::remove_instance(int index) {
 	instances.erase(index);
 	for (unsigned int i=index; i<instances.size(); i++) {
 		if (instances.find(i)++ != instances.end()) {
@@ -278,11 +273,11 @@ int Object::remove_instance(int index) {
 	}
 	return 0;
 }
-int Object::clear_instances() {
+int BEE::Object::clear_instances() {
 	instances.clear();
 	return 0;
 }
-std::map<int, InstanceData*> Object::get_instances() {
+std::map<int, BEE::InstanceData*> BEE::Object::get_instances() {
 	return instances;
 }
 

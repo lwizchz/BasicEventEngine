@@ -1,13 +1,11 @@
-bool is_initialized = false;
+BEE::Sprite* spr_bee;
 
-Sprite* spr_bee;
+BEE::Sound* snd_chirp;
+BEE::Sound* snd_music;
 
-Sound* snd_chirp;
-Sound* snd_music;
+BEE::Background* bk_green;
 
-Background* bk_green;
-
-Font* font_liberation;
+BEE::Font* font_liberation;
 
 #include "objects/bee.hpp"
 ObjBee* obj_bee;
@@ -15,7 +13,7 @@ ObjBee* obj_bee;
 #include "rooms/test.hpp"
 //RmTest* rm_test;
 
-int init_resources() {
+int BEE::init_resources() {
 	try {
 		// Init sprites
 		spr_bee = new Sprite("spr_bee", "bee.png");
@@ -43,14 +41,14 @@ int init_resources() {
 		// Init rooms
 		//rm_test = new RmTest();
 
-		is_initialized = true;
+		BEE::is_initialized = true;
 	} catch (...) {
 		return 1;
 	}
 
 	return 0;
 }
-int close_resources() {
+int BEE::close_resources() {
 	delete spr_bee;
 	delete snd_chirp;
 	delete bk_green;
@@ -58,7 +56,7 @@ int close_resources() {
 	delete obj_bee;
 	//delete rm_test;
 
-	is_initialized = false;
+	BEE::is_initialized = false;
 
 	return 0;
 }

@@ -13,19 +13,17 @@
 #include <map>
 #include <tuple>
 
-typedef std::tuple<int,int,int> rgb;
-
 class ViewData {
 	public:
 		bool is_visible;
 		int view_x, view_y, view_width, view_height;
 		int port_x, port_y, port_width, port_height;
-		InstanceData* following;
+		BEE::InstanceData* following;
 		int object_horizontal_border, object_vertical_border;
 		int horizontal_speed, vertical_speed;
 };
 
-class Room: public Resource {
+class BEE::Room: public Resource {
 		// Add new variables to the print() debugging method
 		int id = -1;
 		std::string name;
@@ -34,7 +32,7 @@ class Room: public Resource {
 		bool is_isometric;
 		int speed;
 		bool is_persistent;
-		rgb background_color;
+		RGBA background_color;
 		bool is_background_color_enabled;
 		std::map<int,BackgroundData*> backgrounds;
 		bool is_views_enabled;
@@ -56,7 +54,7 @@ class Room: public Resource {
 		bool get_is_isometric();
 		int get_speed();
 		bool get_is_persistent();
-		rgb get_background_color();
+		RGBA get_background_color();
 		bool get_is_background_color_enabled();
 		std::map<int,BackgroundData*> get_backgrounds();
 		std::string get_background_string();
@@ -73,8 +71,8 @@ class Room: public Resource {
 		int set_is_isometric(bool);
 		int set_speed(int);
 		int set_is_persistent(bool);
-		int set_background_color(rgb);
-		int set_background_color(int, int, int);
+		int set_background_color(RGBA);
+		int set_background_color(Uint8, Uint8, Uint8);
 		int set_is_background_color_enabled(bool);
 		int set_background(int, BackgroundData*);
 		int add_background(int, Background*, bool, bool, int, int, bool, bool, int, int, bool);
@@ -117,10 +115,10 @@ class Room: public Resource {
 
 #include "instancedata.hpp"
 
-Room::Room () {
+BEE::Room::Room () {
 	reset();
 }
-Room::Room (std::string new_name, std::string path) {
+BEE::Room::Room (std::string new_name, std::string path) {
 	reset();
 
 	add_to_resources("resources/rooms/"+path);
@@ -132,22 +130,22 @@ Room::Room (std::string new_name, std::string path) {
 	set_name(new_name);
 	set_path(path);
 }
-Room::~Room() {
+BEE::Room::~Room() {
 	backgrounds.clear();
 	views.clear();
 	instances.clear();
-	resource_list.rooms.remove_resource(id);
+	BEE::resource_list.rooms.remove_resource(id);
 }
-int Room::add_to_resources(std::string path) {
+int BEE::Room::add_to_resources(std::string path) {
 	int list_id = -1;
 	if (id >= 0) {
 		if (path == room_path) {
 			return 1;
 		}
-		resource_list.rooms.remove_resource(id);
+		BEE::resource_list.rooms.remove_resource(id);
 		id = -1;
 	} else {
-		for (auto& r : resource_list.rooms.resources) {
+		for (auto& r : BEE::resource_list.rooms.resources) {
 			if ((r.second != NULL)&&(r.second->get_path() == path)) {
 				list_id = r.first;
 				break;
@@ -158,13 +156,13 @@ int Room::add_to_resources(std::string path) {
 	if (list_id >= 0) {
 		id = list_id;
 	} else {
-		id = resource_list.rooms.add_resource(this);
+		id = BEE::resource_list.rooms.add_resource(this);
 	}
-	resource_list.rooms.set_resource(id, this);
+	BEE::resource_list.rooms.set_resource(id, this);
 
 	return 0;
 }
-int Room::reset() {
+int BEE::Room::reset() {
 	name = "";
 	room_path = "";
 	width = 1280;
@@ -172,7 +170,7 @@ int Room::reset() {
 	is_isometric = false;
 	speed = 60;
 	is_persistent = false;
-	background_color = std::make_tuple(192, 192, 192);
+	background_color = {255, 255, 255, 255};
 	is_background_color_enabled = true;
 	backgrounds.clear();
 	is_views_enabled = false;
@@ -184,7 +182,7 @@ int Room::reset() {
 
 	return 0;
 }
-int Room::print() {
+int BEE::Room::print() {
 	std::string background_string = get_background_string();
 	std::string view_string = get_view_string();
 	std::string instance_string = get_instance_string();
@@ -199,7 +197,7 @@ int Room::print() {
 	"\n	is_isometric			" << is_isometric <<
 	"\n	speed				" << speed <<
 	"\n	is_persistent			" << is_persistent <<
-	"\n	background_color		" << std::get<0>(background_color) << ", " << std::get<1>(background_color) << ", " << std::get<0>(background_color) <<
+	"\n	background_color		" << background_color.r << ", " << background_color.g << ", " << background_color.b <<
 	"\n	is_background_color_enabled	" << is_background_color_enabled <<
 	"\n	backgrounds			\n" << debug_indent(background_string, 2) <<
 	"	is_views_enabled		" << is_views_enabled <<
@@ -209,40 +207,40 @@ int Room::print() {
 
 	return 0;
 }
-int Room::get_id() {
+int BEE::Room::get_id() {
 	return id;
 }
-std::string Room::get_name() {
+std::string BEE::Room::get_name() {
 	return name;
 }
-std::string Room::get_path() {
+std::string BEE::Room::get_path() {
 	return room_path;
 }
-int Room::get_width() {
+int BEE::Room::get_width() {
 	return width;
 }
-int Room::get_height() {
+int BEE::Room::get_height() {
 	return height;
 }
-bool Room::get_is_isometric() {
+bool BEE::Room::get_is_isometric() {
 	return is_isometric;
 }
-int Room::get_speed() {
+int BEE::Room::get_speed() {
 	return speed;
 }
-bool Room::get_is_persistent() {
+bool BEE::Room::get_is_persistent() {
 	return is_persistent;
 }
-rgb Room::get_background_color() {
+BEE::RGBA BEE::Room::get_background_color() {
 	return background_color;
 }
-bool Room::get_is_background_color_enabled() {
+bool BEE::Room::get_is_background_color_enabled() {
 	return is_background_color_enabled;
 }
-std::map<int, BackgroundData*> Room::get_backgrounds() {
+std::map<int, BackgroundData*> BEE::Room::get_backgrounds() {
 	return backgrounds;
 }
-std::string Room::get_background_string() {
+std::string BEE::Room::get_background_string() {
 	if (backgrounds.size() > 0) {
 		std::ostringstream background_string;
 		background_string << "(name	visible	fore	x	y	htile	vtile	hspeed	vspeed	stretch)\n";
@@ -264,13 +262,13 @@ std::string Room::get_background_string() {
 	}
 	return "none\n";
 }
-bool Room::get_is_views_enabled() {
+bool BEE::Room::get_is_views_enabled() {
 	return is_views_enabled;
 }
-std::map<int, ViewData*> Room::get_views() {
+std::map<int, ViewData*> BEE::Room::get_views() {
 	return views;
 }
-std::string Room::get_view_string() {
+std::string BEE::Room::get_view_string() {
 	if (views.size() > 0) {
 		std::ostringstream view_string;
 		view_string << "(visible	vx, vy	vwidth	vheight	px, py	pwidth	pheight	object	hborder	vborder	hspeed	vspeed)\n";
@@ -294,10 +292,10 @@ std::string Room::get_view_string() {
 	}
 	return "none\n";
 }
-std::map<int, InstanceData*> Room::get_instances() {
+std::map<int, BEE::InstanceData*> BEE::Room::get_instances() {
 	return instances;
 }
-std::string Room::get_instance_string() {
+std::string BEE::Room::get_instance_string() {
 	if (instances.size() > 0) {
 		std::ostringstream instance_string;
 		instance_string << "(id	object	x	y)\n";
@@ -313,80 +311,80 @@ std::string Room::get_instance_string() {
 	}
 	return "none\n";
 }
-int Room::set_name(std::string new_name) {
+int BEE::Room::set_name(std::string new_name) {
 	name = new_name;
 	return 0;
 }
-int Room::set_path(std::string path) {
+int BEE::Room::set_path(std::string path) {
 	add_to_resources("resources/rooms"+path);
 	room_path = "resources/rooms/"+path;
 	return 0;
 }
-int Room::set_width(int new_width) {
+int BEE::Room::set_width(int new_width) {
 	width = new_width;
 	return 0;
 }
-int Room::set_height(int new_height) {
+int BEE::Room::set_height(int new_height) {
 	height = new_height;
 	return 0;
 }
-int Room::set_is_isometric(bool new_is_isometric) {
+int BEE::Room::set_is_isometric(bool new_is_isometric) {
 	is_isometric = new_is_isometric;
 	return 0;
 }
-int Room::set_speed(int new_speed) {
+int BEE::Room::set_speed(int new_speed) {
 	speed = new_speed;
 	return 0;
 }
-int Room::set_is_persistent(bool new_is_persistent) {
+int BEE::Room::set_is_persistent(bool new_is_persistent) {
 	is_persistent = new_is_persistent;
 	return 0;
 }
-int Room::set_background_color(rgb new_background_color) {
+int BEE::Room::set_background_color(RGBA new_background_color) {
 	background_color = new_background_color;
 	return 0;
 }
-int Room::set_background_color(int r, int g, int b) {
-	background_color = std::make_tuple(r, g, b);
+int BEE::Room::set_background_color(Uint8 r, Uint8 g, Uint8 b) {
+	background_color = {r, g, b, 255};
 	return 0;
 }
-int Room::set_is_background_color_enabled(bool new_is_background_color_enabled) {
+int BEE::Room::set_is_background_color_enabled(bool new_is_background_color_enabled) {
 	is_background_color_enabled = new_is_background_color_enabled;
 	return 0;
 }
-int Room::set_background(int index, BackgroundData* new_background) {
+int BEE::Room::set_background(int index, BackgroundData* new_background) {
 	if (backgrounds.find(index) != backgrounds.end()) { // if the background exists, overwrite it
 		backgrounds.erase(index);
 	}
 	backgrounds.insert(std::pair<int,BackgroundData*>(index,new_background));
 	return 0;
 }
-int Room::add_background(int index, Background* new_background, bool new_is_visible, bool new_is_foreground, int new_x, int new_y, bool new_is_horizontal_tile, bool new_is_vertical_tile, int new_horizontal_speed, int new_vertical_speed, bool new_is_stretched) {
+int BEE::Room::add_background(int index, Background* new_background, bool new_is_visible, bool new_is_foreground, int new_x, int new_y, bool new_is_horizontal_tile, bool new_is_vertical_tile, int new_horizontal_speed, int new_vertical_speed, bool new_is_stretched) {
 	BackgroundData* background = new BackgroundData(new_background, new_is_visible, new_is_foreground, new_x, new_y, new_is_horizontal_tile, new_is_vertical_tile, new_horizontal_speed, new_vertical_speed, new_is_stretched);
 	if (index < 0) {
 		index = backgrounds.size();
 	}
 	return set_background(index, background);
 }
-int Room::set_is_views_enabled(bool new_is_views_enabled) {
+int BEE::Room::set_is_views_enabled(bool new_is_views_enabled) {
 	is_views_enabled = new_is_views_enabled;
 	return 0;
 }
-int Room::set_view(int index, ViewData* new_view) {
+int BEE::Room::set_view(int index, ViewData* new_view) {
 	if (views.find(index) != views.end()) { // if the view exists, overwrite it
 		views.erase(index);
 	}
 	views.insert(std::pair<int,ViewData*>(index, new_view));
 	return 0;
 }
-int Room::set_instance(int index, InstanceData* new_instance) {
+int BEE::Room::set_instance(int index, InstanceData* new_instance) {
 	if (instances.find(index) != instances.end()) { //  if the instance exists, overwrite it
 		instances.erase(index);
 	}
 	instances.insert(std::pair<int,InstanceData*>(index, new_instance));
 	return 0;
 }
-int Room::add_instance(int index, Object* object, int x, int y) {
+int BEE::Room::add_instance(int index, Object* object, int x, int y) {
 	InstanceData* new_instance = new InstanceData(game, index, object, x, y);
 	if (index < 0) {
 		index = instances.size();
@@ -401,7 +399,7 @@ int Room::add_instance(int index, Object* object, int x, int y) {
 
 	return 0;
 }
-int Room::remove_instance(int index) {
+int BEE::Room::remove_instance(int index) {
 	instances[index]->object->remove_instance(index);
 	instances.erase(index);
 	for (unsigned int i=index; i<instances.size(); i++) {
@@ -412,7 +410,7 @@ int Room::remove_instance(int index) {
 	return 0;
 }
 
-int Room::load_media() {
+int BEE::Room::load_media() {
 	// Load room sprites
 	for (auto& i : instances) {
 		i.second->object->get_sprite()->load();
@@ -425,7 +423,7 @@ int Room::load_media() {
 
 	return 0;
 }
-int Room::free_media() {
+int BEE::Room::free_media() {
 	// Free room sprites
 	for (auto& i : instances) {
 		i.second->object->get_sprite()->free();
@@ -438,7 +436,7 @@ int Room::free_media() {
 
 	return 0;
 }
-int Room::reset_properties() {
+int BEE::Room::reset_properties() {
 	for (auto& i : instances) {
 		delete i.second;
 	}
@@ -454,21 +452,21 @@ int Room::reset_properties() {
 	return 0;
 }
 
-int Room::create() {
+int BEE::Room::create() {
 	for (auto& i : instances) {
 		i.second->object->create(i.second);
 	}
 
 	return 0;
 }
-int Room::destroy() {
+int BEE::Room::destroy() {
 	for (auto& i : instances) {
 		i.second->object->destroy(i.second);
 	}
 
 	return 0;
 }
-int Room::check_alarms() {
+int BEE::Room::check_alarms() {
 	for (auto& i : instances) {
 		for (int e=0; e<ALARM_COUNT; e++) {
 			if (SDL_GetTicks() >= i.second->alarm_end[e]) {
@@ -480,14 +478,14 @@ int Room::check_alarms() {
 
 	return 0;
 }
-int Room::step_begin() {
+int BEE::Room::step_begin() {
 	for (auto& i : instances) {
 		i.second->object->step_begin(i.second);
 	}
 
 	return 0;
 }
-int Room::step_mid() {
+int BEE::Room::step_mid() {
 	for (auto& i : instances) {
 		i.second->object->step_mid(i.second);
 	}
@@ -519,56 +517,56 @@ int Room::step_mid() {
 
 	return 0;
 }
-int Room::step_end() {
+int BEE::Room::step_end() {
 	for (auto& i : instances) {
 		i.second->object->step_end(i.second);
 	}
 
 	return 0;
 }
-int Room::keyboard(SDL_Event* e) {
+int BEE::Room::keyboard(SDL_Event* e) {
 	for (auto& i : instances) {
 		i.second->object->keyboard(i.second, e);
 	}
 
 	return 0;
 }
-int Room::mouse(SDL_Event* e) {
+int BEE::Room::mouse(SDL_Event* e) {
 	for (auto& i : instances) {
 		i.second->object->mouse(i.second, e);
 	}
 
 	return 0;
 }
-int Room::keyboard_press(SDL_Event* e) {
+int BEE::Room::keyboard_press(SDL_Event* e) {
 	for (auto& i : instances) {
 		i.second->object->keyboard_press(i.second, e);
 	}
 
 	return 0;
 }
-int Room::mouse_press(SDL_Event* e) {
+int BEE::Room::mouse_press(SDL_Event* e) {
 	for (auto& i : instances) {
 		i.second->object->mouse_press(i.second, e);
 	}
 
 	return 0;
 }
-int Room::keyboard_release(SDL_Event* e) {
+int BEE::Room::keyboard_release(SDL_Event* e) {
 	for (auto& i : instances) {
 		i.second->object->keyboard_release(i.second, e);
 	}
 
 	return 0;
 }
-int Room::mouse_release(SDL_Event* e) {
+int BEE::Room::mouse_release(SDL_Event* e) {
 	for (auto& i : instances) {
 		i.second->object->mouse_release(i.second, e);
 	}
 
 	return 0;
 }
-int Room::check_paths() {
+int BEE::Room::check_paths() {
 	for (auto& i : instances) {
 		if ((i.second->has_path())&&(i.second->get_path_node() == i.second->get_path_coords().size()-1)) {
 			i.second->object->path_end(i.second);
@@ -580,7 +578,7 @@ int Room::check_paths() {
 
 	return 0;
 }
-int Room::outside_room() {
+int BEE::Room::outside_room() {
 	for (auto& i : instances) {
 		SDL_Rect a = {(int)i.second->x, (int)i.second->y, i.second->object->get_mask()->get_subimage_width(), i.second->object->get_mask()->get_height()};
 		SDL_Rect b = {0, 0, game->get_width(), game->get_height()};
@@ -591,14 +589,14 @@ int Room::outside_room() {
 
 	return 0;
 }
-int Room::intersect_boundary() {
+int BEE::Room::intersect_boundary() {
 	for (auto& i : instances) {
 		i.second->object->intersect_boundary(i.second);
 	}
 
 	return 0;
 }
-int Room::collision() {
+int BEE::Room::collision() {
 	std::map<int,InstanceData*> ilist = instances;
 
 	for (auto& i1 : ilist) {
@@ -634,7 +632,7 @@ int Room::collision() {
 
 	return 0;
 }
-int Room::draw() {
+int BEE::Room::draw() {
 	game->render_clear();
 
 	for (auto& b : backgrounds) {
@@ -676,7 +674,7 @@ int Room::draw() {
 
 	return 0;
 }
-int Room::animation_end(Sprite* finished_sprite) {
+int BEE::Room::animation_end(Sprite* finished_sprite) {
 	for (auto& i : instances) {
 		if (i.second->object->get_sprite()->get_id() == finished_sprite->get_id()) {
 			i.second->object->animation_end(i.second);
@@ -685,35 +683,35 @@ int Room::animation_end(Sprite* finished_sprite) {
 
 	return 0;
 }
-int Room::room_start() {
+int BEE::Room::room_start() {
 	for (auto& i : instances) {
 		i.second->object->room_start(i.second);
 	}
 
 	return 0;
 }
-int Room::room_end() {
+int BEE::Room::room_end() {
 	for (auto& i : instances) {
 		i.second->object->room_end(i.second);
 	}
 
 	return 0;
 }
-int Room::game_start() {
+int BEE::Room::game_start() {
 	for (auto& i : instances) {
 		i.second->object->game_start(i.second);
 	}
 
 	return 0;
 }
-int Room::game_end() {
+int BEE::Room::game_end() {
 	for (auto& i : instances) {
 		i.second->object->game_end(i.second);
 	}
 
 	return 0;
 }
-int Room::window(SDL_Event* e) {
+int BEE::Room::window(SDL_Event* e) {
 	for (auto& i : instances) {
 		i.second->object->window(i.second, e);
 	}

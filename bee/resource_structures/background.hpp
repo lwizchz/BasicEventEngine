@@ -11,7 +11,7 @@
 
 class BackgroundData { // Used to pass data to the Room class in bee/resource_structures/room.hpp
 	public:
-		Background* background;
+		BEE::Background* background;
 		bool is_visible;
 		bool is_foreground;
 		int x, y;
@@ -19,13 +19,13 @@ class BackgroundData { // Used to pass data to the Room class in bee/resource_st
 		int horizontal_speed, vertical_speed;
 		bool is_stretched;
 		BackgroundData() {background=NULL;is_visible=false;is_foreground=false;x=0;y=0;is_horizontal_tile=false;is_vertical_tile=false;horizontal_speed=0;vertical_speed=0;is_stretched=false;};
-		BackgroundData(Background*, bool, bool, int, int, bool, bool, int, int, bool);
-		int init(Background*, bool, bool, int, int, bool, bool, int, int, bool);
+		BackgroundData(BEE::Background*, bool, bool, int, int, bool, bool, int, int, bool);
+		int init(BEE::Background*, bool, bool, int, int, bool, bool, int, int, bool);
 };
-BackgroundData::BackgroundData(Background* new_background, bool new_is_visible, bool new_is_foreground, int new_x, int new_y, bool new_is_horizontal_tile, bool new_is_vertical_tile, int new_horizontal_speed, int new_vertical_speed, bool new_is_stretched) {
+BackgroundData::BackgroundData(BEE::Background* new_background, bool new_is_visible, bool new_is_foreground, int new_x, int new_y, bool new_is_horizontal_tile, bool new_is_vertical_tile, int new_horizontal_speed, int new_vertical_speed, bool new_is_stretched) {
 	init(new_background, new_is_visible, new_is_foreground, new_x, new_y, new_is_horizontal_tile, new_is_vertical_tile, new_horizontal_speed, new_vertical_speed, new_is_stretched);
 }
-int BackgroundData::init(Background* new_background, bool new_is_visible, bool new_is_foreground, int new_x, int new_y, bool new_is_horizontal_tile, bool new_is_vertical_tile, int new_horizontal_speed, int new_vertical_speed, bool new_is_stretched) {
+int BackgroundData::init(BEE::Background* new_background, bool new_is_visible, bool new_is_foreground, int new_x, int new_y, bool new_is_horizontal_tile, bool new_is_vertical_tile, int new_horizontal_speed, int new_vertical_speed, bool new_is_stretched) {
 	background = new_background;
 	is_visible = new_is_visible;
 	is_foreground = new_is_foreground;
@@ -39,7 +39,7 @@ int BackgroundData::init(Background* new_background, bool new_is_visible, bool n
 	return 0;
 }
 
-class Background: public Resource {
+class BEE::Background: public Resource {
 		// Add new variables to the print() debugging method
 		int id = -1;
 		std::string name;
@@ -82,10 +82,10 @@ class Background: public Resource {
 		int free();
 		int draw(int, int, BackgroundData*);
 };
-Background::Background () {
+BEE::Background::Background () {
 	reset();
 }
-Background::Background (std::string new_name, std::string path) {
+BEE::Background::Background (std::string new_name, std::string path) {
 	reset();
 
 	add_to_resources("resources/backgrounds/"+path);
@@ -97,19 +97,19 @@ Background::Background (std::string new_name, std::string path) {
 	set_name(new_name);
 	set_path(path);
 }
-Background::~Background() {
-	resource_list.backgrounds.remove_resource(id);
+BEE::Background::~Background() {
+	BEE::resource_list.backgrounds.remove_resource(id);
 }
-int Background::add_to_resources(std::string path) {
+int BEE::Background::add_to_resources(std::string path) {
 	int list_id = -1;
 	if (id >= 0) {
 		if (path == background_path) {
 			return 1;
 		}
-		resource_list.backgrounds.remove_resource(id);
+		BEE::resource_list.backgrounds.remove_resource(id);
 		id = -1;
 	} else {
-		for (auto b : resource_list.backgrounds.resources) {
+		for (auto b : BEE::resource_list.backgrounds.resources) {
 			if ((b.second != NULL)&&(b.second->get_path() == path)) {
 				list_id = b.first;
 				break;
@@ -120,13 +120,13 @@ int Background::add_to_resources(std::string path) {
 	if (list_id >= 0) {
 		id = list_id;
 	} else {
-		id = resource_list.backgrounds.add_resource(this);
+		id = BEE::resource_list.backgrounds.add_resource(this);
 	}
-	resource_list.backgrounds.set_resource(id, this);
+	BEE::resource_list.backgrounds.set_resource(id, this);
 
 	return 0;
 }
-int Background::reset() {
+int BEE::Background::reset() {
 	if (is_loaded) {
 		free();
 	}
@@ -145,7 +145,7 @@ int Background::reset() {
 
 	return 0;
 }
-int Background::print() {
+int BEE::Background::print() {
 	std::cout <<
 	"Background { "
 	"\n	id		" << id <<
@@ -158,57 +158,57 @@ int Background::print() {
 
 	return 0;
 }
-int Background::get_id() {
+int BEE::Background::get_id() {
 	return id;
 }
-std::string Background::get_name() {
+std::string BEE::Background::get_name() {
 	return name;
 }
-std::string Background::get_path() {
+std::string BEE::Background::get_path() {
 	return background_path;
 }
-int Background::get_width() {
+int BEE::Background::get_width() {
 	return width;
 }
-int Background::get_height() {
+int BEE::Background::get_height() {
 	return height;
 }
-bool Background::get_is_tiling() {
+bool BEE::Background::get_is_tiling() {
 	return is_tiling;
 }
-int Background::get_tile_width() {
+int BEE::Background::get_tile_width() {
 	return tile_width;
 }
-int Background::get_tile_height() {
+int BEE::Background::get_tile_height() {
 	return tile_height;
 }
-int Background::set_name(std::string new_name) {
+int BEE::Background::set_name(std::string new_name) {
 	name = new_name;
 	return 0;
 }
-int Background::set_path(std::string path) {
+int BEE::Background::set_path(std::string path) {
 	add_to_resources("resources/backgrounds/"+path);
 	background_path = "resources/backgrounds/"+path;
 	return 0;
 }
-int Background::set_is_tiling(bool new_is_tiling) {
+int BEE::Background::set_is_tiling(bool new_is_tiling) {
 	is_tiling = new_is_tiling;
 	return 0;
 }
-int Background::set_tile_width(int new_tile_width) {
+int BEE::Background::set_tile_width(int new_tile_width) {
 	tile_width = new_tile_width;
 	return 0;
 }
-int Background::set_tile_height(int new_tile_height) {
+int BEE::Background::set_tile_height(int new_tile_height) {
 	tile_height = new_tile_height;
 	return 0;
 }
-int Background::set_time_update() {
+int BEE::Background::set_time_update() {
 	animation_time = SDL_GetTicks();
 	return 0;
 }
 
-int Background::load() {
+int BEE::Background::load() {
 	if (!is_loaded) {
 		SDL_Surface* tmp_surface;
 		tmp_surface = IMG_Load(background_path.c_str());
@@ -231,7 +231,7 @@ int Background::load() {
 	}
 	return 0;
 }
-int Background::free() {
+int BEE::Background::free() {
 	if (is_loaded) {
 		SDL_DestroyTexture(texture);
 		texture = NULL;
@@ -239,7 +239,7 @@ int Background::free() {
 	}
 	return 0;
 }
-int Background::tile_horizontal(SDL_Texture* t, SDL_Rect* r) {
+int BEE::Background::tile_horizontal(SDL_Texture* t, SDL_Rect* r) {
 	if (r->w <= 0) {
 		return -1;
 	}
@@ -258,7 +258,7 @@ int Background::tile_horizontal(SDL_Texture* t, SDL_Rect* r) {
 	r->x = ox;
 	return i;
 }
-int Background::tile_vertical(SDL_Texture* t, SDL_Rect* r) {
+int BEE::Background::tile_vertical(SDL_Texture* t, SDL_Rect* r) {
 	if (r->w <= 0) {
 		return -1;
 	}
@@ -277,7 +277,7 @@ int Background::tile_vertical(SDL_Texture* t, SDL_Rect* r) {
 	r->y = oy;
 	return i;
 }
-int Background::draw(int x, int y, BackgroundData* b) {
+int BEE::Background::draw(int x, int y, BackgroundData* b) {
 	SDL_Rect rect;
 	if (b->is_stretched) {
 		rect.x = 0;

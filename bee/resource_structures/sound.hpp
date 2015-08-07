@@ -22,7 +22,7 @@ enum se_type {
 	se_equalizer	= (1u << 7)
 };
 
-class Sound: public Resource {
+class BEE::Sound: public Resource {
 		// Add new variables to the print() debugging method
 		int id = -1;
 		std::string name;
@@ -104,10 +104,10 @@ class Sound: public Resource {
 		int effect_remove(int, int);
 		int effect_remove_post(int);
 };
-Sound::Sound () {
+BEE::Sound::Sound () {
 	reset();
 }
-Sound::Sound (std::string new_name, std::string path, bool new_is_music) {
+BEE::Sound::Sound (std::string new_name, std::string path, bool new_is_music) {
 	reset();
 
 	add_to_resources("resources/sounds/"+path);
@@ -120,22 +120,22 @@ Sound::Sound (std::string new_name, std::string path, bool new_is_music) {
 	set_path(path);
 	set_is_music(new_is_music);
 }
-Sound::~Sound() {
+BEE::Sound::~Sound() {
 	if (is_loaded) {
 		free();
 	}
-	resource_list.sounds.remove_resource(id);
+	BEE::resource_list.sounds.remove_resource(id);
 }
-int Sound::add_to_resources(std::string path) {
+int BEE::Sound::add_to_resources(std::string path) {
 	int list_id = -1;
 	if (id >= 0) {
 		if (path == sound_path) {
 			return 1;
 		}
-		resource_list.sounds.remove_resource(id);
+		BEE::resource_list.sounds.remove_resource(id);
 		id = -1;
 	} else {
-		for (auto i : resource_list.sounds.resources) {
+		for (auto i : BEE::resource_list.sounds.resources) {
 			if ((i.second != NULL)&&(i.second->get_path() == path)) {
 				list_id = i.first;
 				break;
@@ -146,13 +146,13 @@ int Sound::add_to_resources(std::string path) {
 	if (list_id >= 0) {
 		id = list_id;
 	} else {
-		id = resource_list.sounds.add_resource(this);
+		id = BEE::resource_list.sounds.add_resource(this);
 	}
-	resource_list.sounds.set_resource(id, this);
+	BEE::resource_list.sounds.set_resource(id, this);
 
 	return 0;
 }
-int Sound::reset() {
+int BEE::Sound::reset() {
 	if (is_loaded) {
 		free();
 	}
@@ -175,7 +175,7 @@ int Sound::reset() {
 
 	return 0;
 }
-int Sound::print() {
+int BEE::Sound::print() {
 	std::cout <<
 	"Sound { "
 	"\n	id		" << id <<
@@ -193,50 +193,50 @@ int Sound::print() {
 
 	return 0;
 }
-int Sound::get_id() {
+int BEE::Sound::get_id() {
 	return id;
 }
-std::string Sound::get_name() {
+std::string BEE::Sound::get_name() {
 	return name;
 }
-std::string Sound::get_path() {
+std::string BEE::Sound::get_path() {
 	return sound_path;
 }
-bool Sound::get_is_music() {
+bool BEE::Sound::get_is_music() {
 	return is_music;
 }
-double Sound::get_volume() {
+double BEE::Sound::get_volume() {
 	return volume;
 }
-double Sound::get_pan() {
+double BEE::Sound::get_pan() {
 	return pan;
 }
-int Sound::get_play_type() {
+int BEE::Sound::get_play_type() {
 	return play_type;
 }
-int Sound::get_channel_amount() {
+int BEE::Sound::get_channel_amount() {
 	return channel_amount;
 }
-int Sound::get_sample_rate() {
+int BEE::Sound::get_sample_rate() {
 	return sample_rate;
 }
-int Sound::get_sample_format() {
+int BEE::Sound::get_sample_format() {
 	return sample_format;
 }
-int Sound::get_bit_rate() {
+int BEE::Sound::get_bit_rate() {
 	return bit_rate;
 }
-int Sound::set_name(std::string new_name) {
+int BEE::Sound::set_name(std::string new_name) {
 	name = new_name;
 	return 0;
 }
-int Sound::set_path(std::string path) {
+int BEE::Sound::set_path(std::string path) {
 	add_to_resources("resources/sounds/"+path);
 	sound_path = "resources/sounds/"+path;
 
 	return 0;
 }
-int Sound::set_is_music(bool new_is_music) {
+int BEE::Sound::set_is_music(bool new_is_music) {
 	if (is_loaded) {
 		free();
 		is_music = new_is_music;
@@ -246,7 +246,7 @@ int Sound::set_is_music(bool new_is_music) {
 	}
 	return 0;
 }
-int Sound::set_volume(double new_volume) {
+int BEE::Sound::set_volume(double new_volume) {
 	volume = new_volume;
 	if (is_music) {
 		Mix_VolumeMusic(game->get_volume()*volume*128);
@@ -255,11 +255,11 @@ int Sound::set_volume(double new_volume) {
 	}
 	return 0;
 }
-int Sound::update_volume() {
+int BEE::Sound::update_volume() {
 	set_volume(volume);
 	return 0;
 }
-int Sound::set_pan(double new_pan) {
+int BEE::Sound::set_pan(double new_pan) {
 	pan = new_pan;
 	if (is_music) {
 		return 1; // I'm not sure how to pan music at the moment
@@ -270,7 +270,7 @@ int Sound::set_pan(double new_pan) {
 	}
 	return 0;
 }
-int Sound::set_pan_internal(int channel) {
+int BEE::Sound::set_pan_internal(int channel) {
 	if (pan > 0) {
 		Mix_SetPanning(channel, 255-pan*255, 255); // Pan right
 	} else if (pan < 0) {
@@ -280,28 +280,28 @@ int Sound::set_pan_internal(int channel) {
 	}
 	return 0;
 }
-int Sound::set_play_type(int new_play_type) {
+int BEE::Sound::set_play_type(int new_play_type) {
 	play_type = new_play_type;
 	return 0;
 }
-int Sound::set_channel_ammount(int new_channel_amount) {
+int BEE::Sound::set_channel_ammount(int new_channel_amount) {
 	channel_amount = new_channel_amount;
 	return 0;
 }
-int Sound::set_sample_rate(int new_sample_rate) {
+int BEE::Sound::set_sample_rate(int new_sample_rate) {
 	sample_rate = new_sample_rate;
 	return 0;
 }
-int Sound::set_sample_format(int new_sample_format) {
+int BEE::Sound::set_sample_format(int new_sample_format) {
 	sample_format = new_sample_format;
 	return 0;
 }
-int Sound::set_bit_rate(int new_bit_rate) {
+int BEE::Sound::set_bit_rate(int new_bit_rate) {
 	bit_rate = new_bit_rate;
 	return 0;
 }
 
-int Sound::load() {
+int BEE::Sound::load() {
 	// Load SDL2 Mixer sound
 	if (is_music) {
 		music = Mix_LoadMUS(sound_path.c_str());
@@ -321,7 +321,7 @@ int Sound::load() {
 
 	return 0;
 }
-int Sound::free() {
+int BEE::Sound::free() {
 	stop();
 	if (is_music) {
 		Mix_FreeMusic(music);
@@ -334,7 +334,7 @@ int Sound::free() {
 
 	return 0;
 }
-int Sound::finished(int channel) {
+int BEE::Sound::finished(int channel) {
 	if (!is_music) {
 		if (!is_playing) {
 			current_channels.remove(channel);
@@ -344,7 +344,7 @@ int Sound::finished(int channel) {
 	return 0;
 }
 
-int Sound::play() {
+int BEE::Sound::play() {
 	if (is_music) {
 		Mix_PlayMusic(music, 1);
 		effect_set_post(sound_effects);
@@ -367,7 +367,7 @@ int Sound::play() {
 
 	return 0;
 }
-int Sound::stop() {
+int BEE::Sound::stop() {
 	is_playing = false;
 	is_looping = false;
 
@@ -384,7 +384,7 @@ int Sound::stop() {
 
 	return 0;
 }
-int Sound::rewind() {
+int BEE::Sound::rewind() {
 	if (is_music) {
 		// Mix_RewindMusic(); // Only works for MOD, OGG, MP3, and MIDI
 		Mix_HaltMusic();
@@ -408,7 +408,7 @@ int Sound::rewind() {
 
 	return 0;
 }
-int Sound::pause() {
+int BEE::Sound::pause() {
 	if (is_music) {
 		Mix_PauseMusic();
 	} else {
@@ -421,7 +421,7 @@ int Sound::pause() {
 
 	return 0;
 }
-int Sound::resume() {
+int BEE::Sound::resume() {
 	if (is_music) {
 		Mix_ResumeMusic();
 	} else {
@@ -434,14 +434,14 @@ int Sound::resume() {
 
 	return 0;
 }
-int Sound::toggle() {
+int BEE::Sound::toggle() {
 	if (is_playing) {
 		return pause();
 	} else {
 		return resume();
 	}
 }
-int Sound::loop() {
+int BEE::Sound::loop() {
 	if (is_music) {
 		Mix_PlayMusic(music, -1);
 		effect_set_post(sound_effects);
@@ -463,7 +463,7 @@ int Sound::loop() {
 
 	return 0;
 }
-int Sound::fade_in(int ticks) {
+int BEE::Sound::fade_in(int ticks) {
 	if (is_music) {
 		Mix_FadeInMusic(music, 1, ticks);
 	} else {
@@ -485,7 +485,7 @@ int Sound::fade_in(int ticks) {
 
 	return 0;
 }
-int Sound::fade_out(int ticks) {
+int BEE::Sound::fade_out(int ticks) {
 	is_playing = false;
 	is_looping = false;
 
@@ -499,14 +499,14 @@ int Sound::fade_out(int ticks) {
 	}
 	return 0;
 }
-bool Sound::get_is_playing() {
+bool BEE::Sound::get_is_playing() {
 	return is_playing;
 }
-bool Sound::get_is_looping() {
+bool BEE::Sound::get_is_looping() {
 	return is_looping;
 }
 
-int Sound::effect_add(int new_sound_effects) {
+int BEE::Sound::effect_add(int new_sound_effects) {
 	int old_sound_effects = sound_effects;
 	sound_effects = new_sound_effects;
 
@@ -523,7 +523,7 @@ int Sound::effect_add(int new_sound_effects) {
 
 	return 0;
 }
-int Sound::effect_set(int channel, int se_mask) {
+int BEE::Sound::effect_set(int channel, int se_mask) {
 	if (se_mask & se_none) {
 		Mix_UnregisterAllEffects(channel);
 	} else {
@@ -558,7 +558,7 @@ int Sound::effect_set(int channel, int se_mask) {
 
 	return 0;
 }
-int Sound::effect_remove(int channel, int se_mask) {
+int BEE::Sound::effect_remove(int channel, int se_mask) {
 	if (!(se_mask & se_none)) {
 		if ((se_mask & se_chorus)&&(!(sound_effects & se_chorus))) {
 			Mix_UnregisterEffect(channel, sound_effect_chorus);
@@ -585,7 +585,7 @@ int Sound::effect_remove(int channel, int se_mask) {
 
 	return 0;
 }
-int Sound::effect_set_post(int se_mask) {
+int BEE::Sound::effect_set_post(int se_mask) {
 	if (se_mask & se_none) {
 		Mix_UnregisterAllEffects(MIX_CHANNEL_POST);
 	} else {
@@ -620,7 +620,7 @@ int Sound::effect_set_post(int se_mask) {
 
 	return 0;
 }
-int Sound::effect_remove_post(int se_mask) {
+int BEE::Sound::effect_remove_post(int se_mask) {
 	if (!(se_mask & se_none)) {
 		if ((se_mask & se_chorus)&&(!(sound_effects & se_chorus))) {
 			Mix_UnregisterEffect(MIX_CHANNEL_POST, sound_effect_chorus);

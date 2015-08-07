@@ -15,7 +15,7 @@
 
 typedef std::tuple<int, int, int> path_coord;
 
-class Path: public Resource {
+class BEE::Path: public Resource {
 		// Add new variables to the print() debugging method
 		int id = -1;
 		std::string name;
@@ -48,10 +48,10 @@ class Path: public Resource {
 		int set_connection_type(int);
 		int set_is_closed(bool);
 };
-Path::Path () {
+BEE::Path::Path () {
 	reset();
 }
-Path::Path (std::string new_name, std::string path) {
+BEE::Path::Path (std::string new_name, std::string path) {
 	reset();
 
 	add_to_resources("resources/paths/"+path);
@@ -63,19 +63,19 @@ Path::Path (std::string new_name, std::string path) {
 	set_name(new_name);
 	set_path(path);
 }
-Path::~Path() {
-	resource_list.paths.remove_resource(id);
+BEE::Path::~Path() {
+	BEE::resource_list.paths.remove_resource(id);
 }
-int Path::add_to_resources(std::string path) {
+int BEE::Path::add_to_resources(std::string path) {
 	int list_id = -1;
 	if (id >= 0) {
 		if (path == path_path) {
 			return 1;
 		}
-		resource_list.paths.remove_resource(id);
+		BEE::resource_list.paths.remove_resource(id);
 		id = -1;
 	} else {
-		for (auto i : resource_list.paths.resources) {
+		for (auto i : BEE::resource_list.paths.resources) {
 			if ((i.second != NULL)&&(i.second->get_path() == path)) {
 				list_id = i.first;
 				break;
@@ -86,13 +86,13 @@ int Path::add_to_resources(std::string path) {
 	if (list_id >= 0) {
 		id = list_id;
 	} else {
-		id = resource_list.paths.add_resource(this);
+		id = BEE::resource_list.paths.add_resource(this);
 	}
-	resource_list.paths.set_resource(id, this);
+	BEE::resource_list.paths.set_resource(id, this);
 
 	return 0;
 }
-int Path::reset() {
+int BEE::Path::reset() {
 	name = "";
 	path_path = "";
 	coordinate_list.clear();
@@ -101,7 +101,7 @@ int Path::reset() {
 
 	return 0;
 }
-int Path::print() {
+int BEE::Path::print() {
 	std::string coordinate_string = get_coordinate_string();
 
 	std::cout <<
@@ -116,19 +116,19 @@ int Path::print() {
 
 	return 0;
 }
-int Path::get_id() {
+int BEE::Path::get_id() {
 	return id;
 }
-std::string Path::get_name() {
+std::string BEE::Path::get_name() {
 	return name;
 }
-std::string Path::get_path() {
+std::string BEE::Path::get_path() {
 	return path_path;
 }
-std::vector<path_coord> Path::get_coordinate_list() {
+std::vector<path_coord> BEE::Path::get_coordinate_list() {
 	return coordinate_list;
 }
-std::string Path::get_coordinate_string() {
+std::string BEE::Path::get_coordinate_string() {
 	if (coordinate_list.size() > 0) {
 		std::ostringstream coordinate_string;
 		coordinate_string << "(x	y	speed)\n";
@@ -143,19 +143,19 @@ std::string Path::get_coordinate_string() {
 	}
 	return "none\n";
 }
-int Path::get_connection_type() {
+int BEE::Path::get_connection_type() {
 	return connection_type;
 }
-bool Path::get_is_closed() {
+bool BEE::Path::get_is_closed() {
 	return is_closed;
 }
-int Path::set_name(std::string new_name) {
+int BEE::Path::set_name(std::string new_name) {
 	// Deny name change if game is currently running (?)
 	// if (!game.is_running()) {
 	name = new_name;
 	return 0;
 }
-int Path::set_path(std::string path) {
+int BEE::Path::set_path(std::string path) {
 	add_to_resources("resources/paths/"+path);
 	path_path = "resources/paths/"+path;
 	// Load XML Path data
@@ -164,34 +164,34 @@ int Path::set_path(std::string path) {
 	 */
 	return 0;
 }
-int Path::add_coordinate(path_coord new_coordinate) {
+int BEE::Path::add_coordinate(path_coord new_coordinate) {
 	coordinate_list.push_back(new_coordinate);
 	return 0;
 }
-int Path::add_coordinate(int x, int y, int speed) {
+int BEE::Path::add_coordinate(int x, int y, int speed) {
 	path_coord new_coordinate (x, y, speed);
 	coordinate_list.push_back(new_coordinate);
 	return 0;
 }
-int Path::remove_last_coordinate() {
+int BEE::Path::remove_last_coordinate() {
 	if (!coordinate_list.empty()) {
 		coordinate_list.pop_back();
 		return 0;
 	}
 	return 1;
 }
-int Path::remove_coordinate(unsigned int index) {
+int BEE::Path::remove_coordinate(unsigned int index) {
 	if (index < coordinate_list.size()) {
 		coordinate_list.erase(coordinate_list.begin()+index);
 		return 0;
 	}
 	return 1;
 }
-int Path::set_connection_type(int new_conneciton_type) {
+int BEE::Path::set_connection_type(int new_conneciton_type) {
 	connection_type = new_conneciton_type;
 	return 0;
 }
-int Path::set_is_closed(bool new_is_closed) {
+int BEE::Path::set_is_closed(bool new_is_closed) {
 	is_closed = new_is_closed;
 	return 0;
 }

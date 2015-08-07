@@ -17,22 +17,20 @@
 #include <SDL2/SDL_mixer.h>
 
 #include "util.hpp"
+#include "debug.hpp"
 
-class Sprite; class Sound; class Background; class Font; class Path; class Object; class Room;
-class InstanceData; class RGBA;
+#define DEFAULT_WINDOW_WIDTH 1280
+#define DEFAULT_WINDOW_HEIGHT 720
 
-class GameOptions {
-	public:
-		// Window flags
-		bool is_fullscreen, is_opengl, is_borderless;
-		bool is_resizable, is_maximized, is_highdpi;
-		bool is_visible;
+class BEE;
 
-		// Renderer flags
-		bool is_vsync_enabled;
-};
+#include "resource_structures.hpp"
 
 class BEE {
+	public:
+		class Sprite; class Sound; class Background; class Font; class Path; class Object; class Room;
+		class GameOptions; class InstanceData; class RGBA;
+	private:
 		int argc;
 		char** argv;
 		bool quit, is_ready;
@@ -59,6 +57,9 @@ class BEE {
 		unsigned int transition_type = 6;
 		unsigned int transition_speed = 80;
 
+		static MetaResourceList resource_list;
+		static bool is_initialized;
+
 		BEE(int, char**, Room*, GameOptions*);
 		~BEE();
 		int loop();
@@ -74,7 +75,6 @@ class BEE {
 		int end_game();
 
 		int restart_room();
-		//int restart_room_internal();
 		int change_room(Room*);
 		int room_goto(int);
 		int room_goto_previous();
@@ -135,15 +135,42 @@ class BEE {
 		double get_volume();
 		int set_volume(double);
 		int sound_stop_all();
+
+		static int init_resources();
+		static int close_resources();
+
+		static Sprite* get_sprite(int);
+		static Sound* get_sound(int);
+		static Background* get_background(int);
+		static Font* get_font(int);
+		static Path* get_path(int);
+		static Object* get_object(int);
+		static Room* get_room(int);
 };
 
-int init_resources();
-int close_resources();
-#include "resource_structures.hpp"
-#include "../resources/resources.hpp"
+MetaResourceList BEE::resource_list;
+bool BEE::is_initialized = false;
 
-#define DEFAULT_WINDOW_WIDTH 1280
-#define DEFAULT_WINDOW_HEIGHT 720
+class BEE::GameOptions {
+	public:
+		// Window flags
+		bool is_fullscreen, is_opengl, is_borderless;
+		bool is_resizable, is_maximized, is_highdpi;
+		bool is_visible;
+
+		// Renderer flags
+		bool is_vsync_enabled;
+};
+
+#include "resource_structures/sprite.hpp"
+#include "resource_structures/sound.hpp"
+#include "resource_structures/background.hpp"
+#include "resource_structures/font.hpp"
+#include "resource_structures/path.hpp"
+#include "resource_structures/object.hpp"
+#include "resource_structures/room.hpp"
+
+#include "../resources/resources.hpp"
 
 BEE::BEE(int new_argc, char** new_argv, Room* new_first_room, GameOptions* new_options) {
 	argc = new_argc;
@@ -376,16 +403,10 @@ int BEE::loop() {
 					break;
 				}
 				case 2: { // Restart game
-					if (current_room == first_room) {
-						//restart_room_internal();
-						change_room(current_room);
-					} else {
-						change_room(first_room);
-					}
+					change_room(first_room);
 					break;
 				}
 				case 3: { // Restart room
-					//restart_room_internal();
 					change_room(current_room);
 					break;
 				}
@@ -503,39 +524,6 @@ int BEE::restart_room() {
 	throw 3;
 	return 0;
 }
-/*int BEE::restart_room_internal() {
-	if (transition_type != 0) {
-		set_render_target(texture_before);
-		render_clear();
-		current_room->draw();
-		render();
-	}
-
-	current_room->room_end();
-	is_ready = false;
-	current_room->reset_properties();
-	current_room->init();
-
-	SDL_SetWindowTitle(window, current_room->get_name().c_str());
-
-	if (transition_type != 0) {
-		set_render_target(texture_after);
-		render_clear();
-	}
-
-	is_ready = true;
-	current_room->create();
-	current_room->room_start();
-	current_room->draw();
-
-	if (transition_type != 0) {
-		render();
-		set_render_target(NULL);
-		draw_transition();
-	}
-
-	return 0;
-}*/
 int BEE::change_room(Room* new_room) {
 	if (quit) {
 		return 1;
@@ -753,7 +741,7 @@ int BEE::draw_transition() {
 	return 0;
 }
 
-Room* BEE::get_current_room() {
+BEE::Room* BEE::get_current_room() {
 	return current_room;
 }
 bool BEE::get_is_ready() {
@@ -930,7 +918,7 @@ int BEE::set_mousey(int new_my) {
 	return set_mouse_position(get_mousex(), new_my);
 }
 
-RGBA BEE::get_pixel_color(int x, int y) {
+BEE::RGBA BEE::get_pixel_color(int x, int y) {
 	SDL_Surface *screenshot = SDL_CreateRGBSurface(0, width, height, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
 	SDL_RenderReadPixels(renderer, NULL, SDL_PIXELFORMAT_ARGB8888, screenshot->pixels, screenshot->pitch);
 
@@ -984,6 +972,28 @@ int BEE::sound_stop_all() {
 		}
 	}
 	return 0;
+}
+
+BEE::Sprite* BEE::get_sprite(int id) {
+	return dynamic_cast<Sprite*>(resource_list.sprites.get_resource(id));
+}
+BEE::Sound* BEE::get_sound(int id) {
+	return dynamic_cast<Sound*>(resource_list.sounds.get_resource(id));
+}
+BEE::Background* BEE::get_background(int id) {
+	return dynamic_cast<Background*>(resource_list.backgrounds.get_resource(id));
+}
+BEE::Font* BEE::get_font(int id) {
+	return dynamic_cast<Font*>(resource_list.fonts.get_resource(id));
+}
+BEE::Path* BEE::get_path(int id) {
+	return dynamic_cast<Path*>(resource_list.paths.get_resource(id));
+}
+BEE::Object* BEE::get_object(int id) {
+	return dynamic_cast<Object*>(resource_list.objects.get_resource(id));
+}
+BEE::Room* BEE::get_room(int id) {
+	return dynamic_cast<Room*>(resource_list.rooms.get_resource(id));
 }
 
 #endif // _BEE_GAME_H

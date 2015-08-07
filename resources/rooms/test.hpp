@@ -6,7 +6,7 @@
 * See LICENSE for more details.
 */
 
-class RmTest: public Room {
+class RmTest: public BEE::Room {
 	public:
 		RmTest();
 		int init();

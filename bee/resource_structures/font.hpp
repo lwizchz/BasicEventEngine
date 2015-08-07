@@ -32,7 +32,7 @@ TextData::~TextData() {
 	text = "";
 }
 
-class Font: public Resource {
+class BEE::Font: public Resource {
 		// Add new variables to the print() debugging method
 		int id = -1;
 		std::string name;
@@ -81,10 +81,10 @@ class Font: public Resource {
 		int get_string_height(std::string, int);
 		int get_string_height(std::string);
 };
-Font::Font () {
+BEE::Font::Font () {
 	reset();
 }
-Font::Font (std::string new_name, std::string path, int new_font_size) {
+BEE::Font::Font (std::string new_name, std::string path, int new_font_size) {
 	reset();
 
 	add_to_resources("resources/fonts/"+path);
@@ -97,19 +97,19 @@ Font::Font (std::string new_name, std::string path, int new_font_size) {
 	set_path(path);
 	set_font_size(new_font_size);
 }
-Font::~Font() {
-	resource_list.fonts.remove_resource(id);
+BEE::Font::~Font() {
+	BEE::resource_list.fonts.remove_resource(id);
 }
-int Font::add_to_resources(std::string path) {
+int BEE::Font::add_to_resources(std::string path) {
 	int list_id = -1;
 	if (id >= 0) {
 		if (path == font_path) {
 			return 1;
 		}
-		resource_list.fonts.remove_resource(id);
+		BEE::resource_list.fonts.remove_resource(id);
 		id = -1;
 	} else {
-		for (auto i : resource_list.fonts.resources) {
+		for (auto i : BEE::resource_list.fonts.resources) {
 			if ((i.second != NULL)&&(i.second->get_path() == path)) {
 				list_id = i.first;
 				break;
@@ -120,13 +120,13 @@ int Font::add_to_resources(std::string path) {
 	if (list_id >= 0) {
 		id = list_id;
 	} else {
-		id = resource_list.fonts.add_resource(this);
+		id = BEE::resource_list.fonts.add_resource(this);
 	}
-	resource_list.fonts.set_resource(id, this);
+	BEE::resource_list.fonts.set_resource(id, this);
 
 	return 0;
 }
-int Font::reset() {
+int BEE::Font::reset() {
 	if (is_loaded) {
 		free();
 	}
@@ -142,7 +142,7 @@ int Font::reset() {
 
 	return 0;
 }
-int Font::print() {
+int BEE::Font::print() {
 	std::cout <<
 	"Font { "
 	"\n	id		" << id <<
@@ -156,25 +156,25 @@ int Font::print() {
 
 	return 0;
 }
-int Font::get_id() {
+int BEE::Font::get_id() {
 	return id;
 }
-std::string Font::get_name() {
+std::string BEE::Font::get_name() {
 	return name;
 }
-std::string Font::get_path() {
+std::string BEE::Font::get_path() {
 	return font_path;
 }
-int Font::get_font_size() {
+int BEE::Font::get_font_size() {
 	return font_size;
 }
-int Font::get_style() {
+int BEE::Font::get_style() {
 	return style;
 }
-int Font::get_lineskip() {
+int BEE::Font::get_lineskip() {
 	return lineskip;
 }
-int Font::get_lineskip_default() {
+int BEE::Font::get_lineskip_default() {
 	if (is_loaded) {
 		return TTF_FontLineSkip(font);
 	}
@@ -182,20 +182,20 @@ int Font::get_lineskip_default() {
 	return -1;
 }
 
-int Font::set_name(std::string new_name) {
+int BEE::Font::set_name(std::string new_name) {
 	name = new_name;
 	return 0;
 }
-int Font::set_path(std::string path) {
+int BEE::Font::set_path(std::string path) {
 	add_to_resources("resources/fonts/"+path);
 	font_path = "resources/fonts/"+path;
 	return 0;
 }
-int Font::set_font_size(int new_font_size) {
+int BEE::Font::set_font_size(int new_font_size) {
 	font_size = new_font_size;
 	return 0;
 }
-int Font::set_style(int new_style) {
+int BEE::Font::set_style(int new_style) {
 	if (is_loaded)	{
 		style = new_style; // bitmask of TTF_STYLE_BOLD, ITALIC, UNDERLINE, STRIKETHROUGH, and NORMAL
 		TTF_SetFontStyle(font, style);
@@ -205,12 +205,12 @@ int Font::set_style(int new_style) {
 	std::cerr << "Failed to set font style, font not loaded: " << name << "\n";
 	return 1;
 }
-int Font::set_lineskip(int new_lineskip) {
+int BEE::Font::set_lineskip(int new_lineskip) {
 	lineskip = new_lineskip;
 	return 0;
 }
 
-int Font::load() {
+int BEE::Font::load() {
 	if (!is_loaded) {
 		font = TTF_OpenFont(font_path.c_str(), font_size);
 		if (font == NULL) {
@@ -223,7 +223,7 @@ int Font::load() {
 
 	return 0;
 }
-int Font::free() {
+int BEE::Font::free() {
 	if (is_loaded) {
 		TTF_CloseFont(font);
 		font = NULL;
@@ -234,7 +234,7 @@ int Font::free() {
 	return 0;
 }
 
-TextData* Font::draw_internal(int x, int y, std::string text, SDL_Color color) {
+TextData* BEE::Font::draw_internal(int x, int y, std::string text, SDL_Color color) {
 	if (is_loaded) {
 		if (text.size() > 0) {
 			SDL_Surface* tmp_surface;
@@ -271,7 +271,7 @@ TextData* Font::draw_internal(int x, int y, std::string text, SDL_Color color) {
 	std::cerr << "Failed to draw text, font not loaded: " << name << "\n";
 	return NULL;
 }
-TextData* Font::draw(int x, int y, std::string text, SDL_Color color) {
+TextData* BEE::Font::draw(int x, int y, std::string text, SDL_Color color) {
 	if (is_loaded) {
 		TextData *r = NULL, *textdata = NULL;
 		std::map<int,std::string> lines = handle_newlines(text);
@@ -297,11 +297,11 @@ TextData* Font::draw(int x, int y, std::string text, SDL_Color color) {
 	std::cerr << "Failed to draw text, font not loaded: " << name << "\n";
 	return NULL;
 }
-TextData* Font::draw(int x, int y, std::string text) {
+TextData* BEE::Font::draw(int x, int y, std::string text) {
 	SDL_Color color = {0, 0, 0, 255};
 	return draw(x, y, text, color);
 }
-TextData* Font::draw(TextData* textdata, int x, int y, std::string text, SDL_Color color) {
+TextData* BEE::Font::draw(TextData* textdata, int x, int y, std::string text, SDL_Color color) {
 	if (is_loaded) {
 		if ((textdata != NULL)&&(textdata->text == text)) {
 			std::map<int,std::string> lines = handle_newlines(text);
@@ -325,11 +325,11 @@ TextData* Font::draw(TextData* textdata, int x, int y, std::string text, SDL_Col
 	std::cerr << "Failed to draw text, font not loaded: " << name << "\n";
 	return NULL;
 }
-TextData* Font::draw(TextData* textdata, int x, int y, std::string text) {
+TextData* BEE::Font::draw(TextData* textdata, int x, int y, std::string text) {
 	SDL_Color color = {0, 0, 0, 255};
 	return draw(textdata, x, y, text, color);
 }
-int Font::draw_fast(int x, int y, std::string text, SDL_Color color) {
+int BEE::Font::draw_fast(int x, int y, std::string text, SDL_Color color) {
 	if (is_loaded) {
 		if (text.size() > 0) {
 			SDL_Surface* tmp_surface;
@@ -365,12 +365,12 @@ int Font::draw_fast(int x, int y, std::string text, SDL_Color color) {
 	std::cerr << "Failed to draw text, font not loaded: " << name << "\n";
 	return 1;
 }
-int Font::draw_fast(int x, int y, std::string text) {
+int BEE::Font::draw_fast(int x, int y, std::string text) {
 	SDL_Color color = {0, 0, 0, 255};
 	return draw_fast(x, y, text, color);
 }
 
-int Font::get_string_width(std::string text, int size) {
+int BEE::Font::get_string_width(std::string text, int size) {
 	if (is_loaded) {
 		int w = 0;
 		TTF_SizeUTF8(font, text.c_str(), &w, NULL);
@@ -380,10 +380,10 @@ int Font::get_string_width(std::string text, int size) {
 	std::cerr << "Failed to draw text, font not loaded: " << name << "\n";
 	return -1;
 }
-int Font::get_string_width(std::string text) {
+int BEE::Font::get_string_width(std::string text) {
 	return get_string_width(text, font_size);
 }
-int Font::get_string_height(std::string text, int size) {
+int BEE::Font::get_string_height(std::string text, int size) {
 	if (is_loaded) {
 		int h = 0;
 		TTF_SizeUTF8(font, text.c_str(), NULL, &h);
@@ -393,7 +393,7 @@ int Font::get_string_height(std::string text, int size) {
 	std::cerr << "Failed to draw text, font not loaded: " << name << "\n";
 	return -1;
 }
-int Font::get_string_height(std::string text) {
+int BEE::Font::get_string_height(std::string text) {
 	return get_string_height(text, font_size);
 }
 

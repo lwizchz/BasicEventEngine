@@ -9,11 +9,8 @@
 #ifndef _BEE_RESOURCE_STRUCTURES_H
 #define _BEE_RESOURCE_STRUCTURES_H 1
 
-#include <iostream>
 #include <string>
 #include <map>
-
-#include "debug.hpp"
 
 class Resource {
 	public:
@@ -43,8 +40,8 @@ class ResourceList {
 };
 class MetaResourceList {
 	public:
-		ResourceList sprites, sounds, backgrounds, fonts, paths, objects, rooms; //, all;
-} resource_list;
+		ResourceList sprites, sounds, backgrounds, fonts, paths, objects, rooms;
+};
 
 ResourceList::ResourceList() {
 	next_index = 0;
@@ -80,44 +77,6 @@ int ResourceList::get_amount() {
 int ResourceList::remove_resource(int id) {
 	resources.erase(id);
 	return 0;
-}
-
-Sprite* get_sprite(int id);
-Sound* get_sound(int id);
-Background* get_background(int id);
-Font* get_font(int id);
-Path* get_path(int id);
-Object* get_object(int id);
-Room* get_room(int id);
-
-#include "resource_structures/sprite.hpp"
-#include "resource_structures/sound.hpp"
-#include "resource_structures/background.hpp"
-#include "resource_structures/font.hpp"
-#include "resource_structures/path.hpp"
-#include "resource_structures/object.hpp"
-#include "resource_structures/room.hpp"
-
-Sprite* get_sprite(int id) {
-	return dynamic_cast<Sprite*>(resource_list.sprites.get_resource(id));
-}
-Sound* get_sound(int id) {
-	return dynamic_cast<Sound*>(resource_list.sounds.get_resource(id));
-}
-Background* get_background(int id) {
-	return dynamic_cast<Background*>(resource_list.backgrounds.get_resource(id));
-}
-Font* get_font(int id) {
-	return dynamic_cast<Font*>(resource_list.fonts.get_resource(id));
-}
-Path* get_path(int id) {
-	return dynamic_cast<Path*>(resource_list.paths.get_resource(id));
-}
-Object* get_object(int id) {
-	return dynamic_cast<Object*>(resource_list.objects.get_resource(id));
-}
-Room* get_room(int id) {
-	return dynamic_cast<Room*>(resource_list.rooms.get_resource(id));
 }
 
 #endif // _BEE_RESOURCE_STRUCTURES_H

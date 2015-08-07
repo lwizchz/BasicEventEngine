@@ -11,31 +11,31 @@
 
 #include <vector>
 
-class RGBA {
+class BEE::RGBA {
 	public:
 		Uint8 r, g, b, a;
 };
-RGBA c_aqua	= {0, 255, 255, 255};
-RGBA c_black	= {0, 0, 0, 255};
-RGBA c_blue	= {0, 0, 255, 255};
-RGBA c_dkgray	= {64, 64, 64, 255};
-RGBA c_fuchsia	= {255, 0, 255, 255};
-RGBA c_gray	= {128, 128, 128, 255};
-RGBA c_green	= {0, 255, 0, 255};
-//RGBA c_lime	= {255, 255, 255, 255};
-RGBA c_ltgray	= {192, 192, 192, 255};
-//RGBA c_maroon	= {255, 255, 255, 255};
-//RGBA c_navy	= {255, 255, 255, 255};
-//RGBA c_olive	= {255, 255, 255, 255};
-RGBA c_orange	= {255, 128, 0, 255};
-RGBA c_purple	= {128, 0, 255, 255};
-RGBA c_red	= {255, 0, 0, 255};
-//RGBA c_silver	= {255, 255, 255, 255};
-//RGBA c_teal	= {255, 255, 255, 255};
-RGBA c_white	= {255, 255, 255, 255};
-RGBA c_yellow	= {255, 255, 0, 255};
+BEE::RGBA c_aqua	= {0, 255, 255, 255};
+BEE::RGBA c_black	= {0, 0, 0, 255};
+BEE::RGBA c_blue	= {0, 0, 255, 255};
+BEE::RGBA c_dkgray	= {64, 64, 64, 255};
+BEE::RGBA c_fuchsia	= {255, 0, 255, 255};
+BEE::RGBA c_gray	= {128, 128, 128, 255};
+BEE::RGBA c_green	= {0, 255, 0, 255};
+//BEE::RGBA c_lime	= {255, 255, 255, 255};
+BEE::RGBA c_ltgray	= {192, 192, 192, 255};
+//BEE::RGBA c_maroon	= {255, 255, 255, 255};
+//BEE::RGBA c_navy	= {255, 255, 255, 255};
+//BEE::RGBA c_olive	= {255, 255, 255, 255};
+BEE::RGBA c_orange	= {255, 128, 0, 255};
+BEE::RGBA c_purple	= {128, 0, 255, 255};
+BEE::RGBA c_red	= {255, 0, 0, 255};
+//BEE::RGBA c_silver	= {255, 255, 255, 255};
+//BEE::RGBA c_teal	= {255, 255, 255, 255};
+BEE::RGBA c_white	= {255, 255, 255, 255};
+BEE::RGBA c_yellow	= {255, 255, 0, 255};
 
-class Sprite: public Resource {
+class BEE::Sprite: public Resource {
 		// Add new variables to the print() debugging method
 		int id = -1;
 		std::string name;
@@ -91,10 +91,10 @@ class Sprite: public Resource {
 		int draw(int, int, Uint32, RGBA);
 		int set_as_target();
 };
-Sprite::Sprite () {
+BEE::Sprite::Sprite () {
 	reset();
 }
-Sprite::Sprite (std::string new_name, std::string path) {
+BEE::Sprite::Sprite (std::string new_name, std::string path) {
 	reset();
 
 	add_to_resources("resources/sprites/"+path);
@@ -106,20 +106,20 @@ Sprite::Sprite (std::string new_name, std::string path) {
 	set_name(new_name);
 	set_path(path);
 }
-Sprite::~Sprite() {
+BEE::Sprite::~Sprite() {
 	free();
-	resource_list.sprites.remove_resource(id);
+	BEE::resource_list.sprites.remove_resource(id);
 }
-int Sprite::add_to_resources(std::string path) {
+int BEE::Sprite::add_to_resources(std::string path) {
 	int list_id = -1;
 	if (id >= 0) {
 		if (path == image_path) {
 			return 1;
 		}
-		resource_list.sprites.remove_resource(id);
+		BEE::resource_list.sprites.remove_resource(id);
 		id = -1;
 	} else {
-		for (auto s : resource_list.sprites.resources) {
+		for (auto s : BEE::resource_list.sprites.resources) {
 			if ((s.second != NULL)&&(s.second->get_path() == path)) {
 				list_id = s.first;
 				break;
@@ -130,13 +130,13 @@ int Sprite::add_to_resources(std::string path) {
 	if (list_id >= 0) {
 		id = list_id;
 	} else {
-		id = resource_list.sprites.add_resource(this);
+		id = BEE::resource_list.sprites.add_resource(this);
 	}
-	resource_list.sprites.set_resource(id, this);
+	BEE::resource_list.sprites.set_resource(id, this);
 
 	return 0;
 }
-int Sprite::reset() {
+int BEE::Sprite::reset() {
 	if (is_loaded) {
 		free();
 	}
@@ -159,7 +159,7 @@ int Sprite::reset() {
 
 	return 0;
 }
-int Sprite::print() {
+int BEE::Sprite::print() {
 	std::cout <<
 	"Sprite { "
 	"\n	id		" << id <<
@@ -179,55 +179,55 @@ int Sprite::print() {
 
 	return 0;
 }
-int Sprite::get_id() {
+int BEE::Sprite::get_id() {
 	return id;
 }
-std::string Sprite::get_name() {
+std::string BEE::Sprite::get_name() {
 	return name;
 }
-std::string Sprite::get_path() {
+std::string BEE::Sprite::get_path() {
 	return image_path;
 }
-int Sprite::get_width() {
+int BEE::Sprite::get_width() {
 	return width;
 }
-int Sprite::get_height() {
+int BEE::Sprite::get_height() {
 	return height;
 }
-int Sprite::get_subimage_amount() {
+int BEE::Sprite::get_subimage_amount() {
 	return subimage_amount;
 }
-int Sprite::get_subimage_width() {
+int BEE::Sprite::get_subimage_width() {
 	return subimage_width;
 }
-double Sprite::get_speed() {
+double BEE::Sprite::get_speed() {
 	return speed;
 }
-double Sprite::get_alpha() {
+double BEE::Sprite::get_alpha() {
 	return alpha;
 }
-int Sprite::get_origin_x() {
+int BEE::Sprite::get_origin_x() {
 	return origin_x;
 }
-int Sprite::get_origin_y() {
+int BEE::Sprite::get_origin_y() {
 	return origin_y;
 }
-SDL_Texture* Sprite::get_texture() {
+SDL_Texture* BEE::Sprite::get_texture() {
 	return texture;
 }
-bool Sprite::get_is_loaded() {
+bool BEE::Sprite::get_is_loaded() {
 	return is_loaded;
 }
-int Sprite::set_name(std::string new_name) {
+int BEE::Sprite::set_name(std::string new_name) {
 	name = new_name;
 	return 0;
 }
-int Sprite::set_path(std::string path) {
+int BEE::Sprite::set_path(std::string path) {
 	add_to_resources("resources/sprites/"+path);
 	image_path = "resources/sprites/"+path;
 	return 0;
 }
-int Sprite::set_subimage_amount(int new_subimage_amount, int new_subimage_width) {
+int BEE::Sprite::set_subimage_amount(int new_subimage_amount, int new_subimage_width) {
 	subimage_amount = new_subimage_amount;
 	subimage_width = new_subimage_width;
 	for (int i=0; i<subimage_amount; i++) {
@@ -235,35 +235,35 @@ int Sprite::set_subimage_amount(int new_subimage_amount, int new_subimage_width)
 	}
 	return 0;
 }
-int Sprite::set_speed(double new_speed) {
+int BEE::Sprite::set_speed(double new_speed) {
 	speed = new_speed;
 	return 0;
 }
-int Sprite::set_alpha(double new_alpha) {
+int BEE::Sprite::set_alpha(double new_alpha) {
 	alpha = new_alpha;
 	SDL_SetTextureAlphaMod(texture, alpha*255);
 	return 0;
 }
-int Sprite::set_origin_x(int new_origin_x) {
+int BEE::Sprite::set_origin_x(int new_origin_x) {
 	origin_x = new_origin_x;
 	return 0;
 }
-int Sprite::set_origin_y(int new_origin_y) {
+int BEE::Sprite::set_origin_y(int new_origin_y) {
 	origin_y = new_origin_y;
 	return 0;
 }
-int Sprite::set_origin_xy(int new_origin_x, int new_origin_y) {
+int BEE::Sprite::set_origin_xy(int new_origin_x, int new_origin_y) {
 	set_origin_x(new_origin_x);
 	set_origin_y(new_origin_y);
 	return 0;
 }
-int Sprite::set_origin_center() {
+int BEE::Sprite::set_origin_center() {
 	set_origin_x(width/2);
 	set_origin_y(height/2);
 	return 0;
 }
 
-int Sprite::load() {
+int BEE::Sprite::load() {
 	if (!is_loaded) {
 		SDL_Surface* tmp_surface;
 		tmp_surface = IMG_Load(image_path.c_str());
@@ -292,7 +292,7 @@ int Sprite::load() {
 	}
 	return 0;
 }
-int Sprite::free() {
+int BEE::Sprite::free() {
 	if (is_loaded) {
 		SDL_DestroyTexture(texture);
 		texture = NULL;
@@ -300,7 +300,7 @@ int Sprite::free() {
 	}
 	return 0;
 }
-int Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h, double angle, RGBA new_color) {
+int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h, double angle, RGBA new_color) {
 	int current_subimage = (int)round(speed*(SDL_GetTicks()-subimage_time)/game->fps_goal) % subimage_amount;
 	if (current_subimage == 0) {
 		is_animated = true;
@@ -339,19 +339,19 @@ int Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h, double angle,
 
 	return 0;
 }
-int Sprite::draw(int x, int y, Uint32 subimage_time) {
+int BEE::Sprite::draw(int x, int y, Uint32 subimage_time) {
 	return draw(x, y, subimage_time, -1, -1, 0.0, {255, 255, 255, 255});
 }
-int Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h) {
+int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h) {
 	return draw(x, y, subimage_time, w, h, 0.0, {255, 255, 255, 255});
 }
-int Sprite::draw(int x, int y, Uint32 subimage_time, double angle) {
+int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, double angle) {
 	return draw(x, y, subimage_time, -1, -1, angle, {255, 255, 255, 255});
 }
-int Sprite::draw(int x, int y, Uint32 subimage_time, RGBA color) {
+int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, RGBA color) {
 	return draw(x, y, subimage_time, -1, -1, 0.0, color);
 }
-int Sprite::set_as_target() {
+int BEE::Sprite::set_as_target() {
 	if (is_loaded) {
 		free();
 	}

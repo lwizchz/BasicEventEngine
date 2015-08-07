@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
 
 	try {
 		// Set game options;
-		GameOptions options = {
+		BEE::GameOptions options = {
 			// Window flags
 			false, false, false,
 			true, false, false,

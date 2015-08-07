@@ -6,20 +6,20 @@
 * See LICENSE for more details.
 */
 
-class ObjBee : public Object {
+class ObjBee : public BEE::Object {
 	public:
 		TextData* fps_display;
 
 		ObjBee();
 		~ObjBee();
-		void create(InstanceData*);
-		void alarm(InstanceData*, int);
-		void step_mid(InstanceData*);
-		void keyboard_press(InstanceData*, SDL_Event*);
-		void mouse(InstanceData*, SDL_Event*);
-		void mouse_press(InstanceData*, SDL_Event*);
-		void collision(InstanceData*, InstanceData*);
-		void draw(InstanceData*);
+		void create(BEE::InstanceData*);
+		void alarm(BEE::InstanceData*, int);
+		void step_mid(BEE::InstanceData*);
+		void keyboard_press(BEE::InstanceData*, SDL_Event*);
+		void mouse(BEE::InstanceData*, SDL_Event*);
+		void mouse_press(BEE::InstanceData*, SDL_Event*);
+		void collision(BEE::InstanceData*, BEE::InstanceData*);
+		void draw(BEE::InstanceData*);
 };
 ObjBee::ObjBee() : Object("obj_bee", "bee.hpp") {
 	set_sprite(spr_bee);
@@ -29,14 +29,14 @@ ObjBee::ObjBee() : Object("obj_bee", "bee.hpp") {
 ObjBee::~ObjBee() {
 	delete fps_display;
 }
-void ObjBee::create(InstanceData* self) {
+void ObjBee::create(BEE::InstanceData* self) {
 	// create event
 	std::cout << "u r a b " << self->id << ", : " << game->get_display_refresh_rate() << "\n";
 	//self->set_alarm(0, 2000);
 	spr_bee->set_alpha(0.5);
 	//self->set_gravity(7.0);
 }
-void ObjBee::alarm(InstanceData* self, int a) {
+void ObjBee::alarm(BEE::InstanceData* self, int a) {
 	switch (a) {
 		case 0: { // Alarm 0
 			//snd_chirp->play();
@@ -46,7 +46,7 @@ void ObjBee::alarm(InstanceData* self, int a) {
 	}
 
 }
-void ObjBee::step_mid(InstanceData* self) {
+void ObjBee::step_mid(BEE::InstanceData* self) {
 	/*int mx, my;
 	SDL_GetMouseState(&mx, &my);
 	std::pair<int,int> c = coord_approach(self->x, self->y, mx, my, 10);
@@ -57,7 +57,7 @@ void ObjBee::step_mid(InstanceData* self) {
 	SDL_GetMouseState(&mx, &my);
 	self->move_to(10.0, mx, my);
 }
-void ObjBee::keyboard_press(InstanceData* self, SDL_Event* e) {
+void ObjBee::keyboard_press(BEE::InstanceData* self, SDL_Event* e) {
 	switch (e->key.keysym.sym) {
 		case SDLK_RETURN: {
 			game->restart_room();
@@ -78,6 +78,15 @@ void ObjBee::keyboard_press(InstanceData* self, SDL_Event* e) {
 		}
 		case SDLK_d: {
 			game->set_volume(game->get_volume()*2);
+			break;
+		}
+
+		case SDLK_r: {
+			if (self->id == 0) {
+				if (game->get_sprite(54) == NULL) {
+					show_error("No such sprite");
+				}
+			}
 			break;
 		}
 
@@ -103,7 +112,7 @@ void ObjBee::keyboard_press(InstanceData* self, SDL_Event* e) {
 		}
 	}
 }
-void ObjBee::mouse(InstanceData* self, SDL_Event* e) {
+void ObjBee::mouse(BEE::InstanceData* self, SDL_Event* e) {
 	if (e->type == SDL_MOUSEMOTION) {
 		//spr_bee->set_alpha(0.25);
 	}
@@ -122,7 +131,7 @@ void ObjBee::mouse(InstanceData* self, SDL_Event* e) {
 		}
 	}
 }
-void ObjBee::mouse_press(InstanceData* self, SDL_Event* e) {
+void ObjBee::mouse_press(BEE::InstanceData* self, SDL_Event* e) {
 	switch (e->button.button) {
 		case SDL_BUTTON_LEFT: {
 			SDL_Rect a = {(int)self->x, (int)self->y, get_mask()->get_subimage_width(), get_mask()->get_height()};
@@ -140,10 +149,10 @@ void ObjBee::mouse_press(InstanceData* self, SDL_Event* e) {
 		}
 	}
 }
-void ObjBee::collision(InstanceData* self, InstanceData* other) {
+void ObjBee::collision(BEE::InstanceData* self, BEE::InstanceData* other) {
 	self->move_away(2.0, other->x, other->y);
 }
-void ObjBee::draw(InstanceData* self) {
+void ObjBee::draw(BEE::InstanceData* self) {
 	// draw event
 	int mx, my;
 	SDL_GetMouseState(&mx, &my);

@@ -60,16 +60,16 @@ std::map<int,std::string> handle_newlines(std::string input) {
 }
 
 bool clipboard_has_text() {
-        std::cerr << "Clipboard not yet implemented\n";
-        return false;
+        return (SDL_HasClipboardText() == SDL_TRUE) ? true : false;
 }
 std::string clipboard_get_text() {
-        std::cerr << "Clipboard not yet implemented\n";
-        return "";
+        char* cstr = SDL_GetClipboardText();
+        std::string s (cstr);
+        free(cstr);
+        return s;
 }
 int clipboard_set_text(std::string str) {
-        std::cerr << "Clipboard not yet implemented\n";
-        return 1;
+        return SDL_SetClipboardText(str.c_str());
 }
 
 #endif // _BEE_UTIL_STRING_H
