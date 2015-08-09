@@ -58,6 +58,7 @@ class BEE::Font: public Resource {
 		int get_style();
 		int get_lineskip();
 		int get_lineskip_default();
+		std::string get_fontname();
 
 		int set_name(std::string);
 		int set_path(std::string);
@@ -180,6 +181,15 @@ int BEE::Font::get_lineskip_default() {
 	}
 	std::cerr << "Failed to get default lineskip, font not loaded: " << name << "\n";
 	return -1;
+}
+std::string BEE::Font::get_fontname() {
+	std::string fontname = "";
+	char* familyname = TTF_FontFaceFamilyName(font);
+	char* stylename = TTF_FontFaceStyleName(font);
+	fontname += familyname;
+	fontname += " ";
+	fontname += stylename;
+	return fontname;
 }
 
 int BEE::Font::set_name(std::string new_name) {

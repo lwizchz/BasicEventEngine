@@ -13,7 +13,7 @@
 #include <vector>
 #include <tuple>
 
-typedef std::tuple<int, int, int> path_coord;
+typedef std::tuple<int, int, double> path_coord;
 
 class BEE::Path: public Resource {
 		// Add new variables to the print() debugging method
@@ -42,7 +42,7 @@ class BEE::Path: public Resource {
 		int set_name(std::string);
 		int set_path(std::string);
 		int add_coordinate(path_coord);
-		int add_coordinate(int, int, int);
+		int add_coordinate(int, int, double);
 		int remove_last_coordinate();
 		int remove_coordinate(unsigned int);
 		int set_connection_type(int);
@@ -168,7 +168,7 @@ int BEE::Path::add_coordinate(path_coord new_coordinate) {
 	coordinate_list.push_back(new_coordinate);
 	return 0;
 }
-int BEE::Path::add_coordinate(int x, int y, int speed) {
+int BEE::Path::add_coordinate(int x, int y, double speed) {
 	path_coord new_coordinate (x, y, speed);
 	coordinate_list.push_back(new_coordinate);
 	return 0;

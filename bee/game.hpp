@@ -129,6 +129,11 @@ class BEE {
 		int set_mousex(int);
 		int set_mousey(int);
 
+		int draw_point(int, int);
+		int draw_line(int, int, int, int);
+		int draw_rectangle(int, int, int, int, bool);
+		int draw_set_color(RGBA);
+		RGBA draw_get_color();
 		RGBA get_pixel_color(int, int);
 		int save_screenshot(std::string);
 
@@ -918,6 +923,29 @@ int BEE::set_mousey(int new_my) {
 	return set_mouse_position(get_mousex(), new_my);
 }
 
+int BEE::draw_point(int x, int y) {
+	return SDL_RenderDrawPoint(renderer, x, y);
+}
+int BEE::draw_line(int x1, int y1, int x2, int y2) {
+	return SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
+}
+int BEE::draw_rectangle(int x1, int y1, int x2, int y2, bool is_filled) {
+	SDL_Rect rect = {x1, y1, x2, y2};
+	if (is_filled) {
+		return SDL_RenderFillRect(renderer, &rect);
+	} else {
+		return SDL_RenderDrawRect(renderer, &rect);
+	}
+}
+int BEE::draw_set_color(RGBA new_color) {
+	return SDL_SetRenderDrawColor(renderer, new_color.r, new_color.g, new_color.b, new_color.a);
+}
+BEE::RGBA BEE::draw_get_color() {
+	Uint8 r, g, b, a;
+	SDL_GetRenderDrawColor(renderer, &r, &g, &b, &a);
+	RGBA c = {r, g, b, a};
+	return c;
+}
 BEE::RGBA BEE::get_pixel_color(int x, int y) {
 	SDL_Surface *screenshot = SDL_CreateRGBSurface(0, width, height, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
 	SDL_RenderReadPixels(renderer, NULL, SDL_PIXELFORMAT_ARGB8888, screenshot->pixels, screenshot->pitch);

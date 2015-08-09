@@ -12,8 +12,7 @@
 #define ALARM_COUNT 8
 
 class BEE::InstanceData {
-		float xprevious = 0.0, yprevious = 0.0;
-		float xstart = 0.0, ystart = 0.0;
+		double xstart = 0.0, ystart = 0.0;
 
 		double friction;
 		double gravity = 0.0, gravity_direction = 180.0;
@@ -21,8 +20,8 @@ class BEE::InstanceData {
 		Path* path = NULL;
 		double path_speed = 0.0;
 		int path_end_action = 0;
-		int path_xstart = 0, path_ystart = 0;
-		unsigned int path_current_node = 0;
+		int path_current_node = 0;
+		bool path_is_drawn = false;
 	public:
 		BEE* game = NULL;
 
@@ -31,8 +30,10 @@ class BEE::InstanceData {
 		Uint32 subimage_time = 0;
 		Uint32 alarm_end[ALARM_COUNT];
 
-		float x = 0.0, y = 0.0;
+		double x = 0.0, y = 0.0;
+		double xprevious = 0.0, yprevious = 0.0;
 		std::list<std::pair<double,double>> velocity;
+		int path_xstart = 0, path_ystart = 0;
 
 		InstanceData();
 		InstanceData(BEE*, int, Object*, int, int);
@@ -76,10 +77,12 @@ class BEE::InstanceData {
 		int path_start(Path*, double, int, bool);
 		int path_end();
 		int path_update_node();
+		int set_path_drawn(bool);
 		int handle_path_end();
 		bool has_path();
+		bool get_path_drawn();
 		int get_path_speed();
-		unsigned int get_path_node();
+		int get_path_node();
 		std::vector<path_coord> get_path_coords();
 
 		int draw(int, int, double, RGBA);
@@ -190,10 +193,10 @@ std::pair<double,double> BEE::InstanceData::get_motion() {
 	return std::make_pair(xsum, ysum);
 }
 double BEE::InstanceData::get_hspeed() {
-	return get_motion().first;
+	return get_motion().first - xprevious;
 }
 double BEE::InstanceData::get_vspeed() {
-	return get_motion().second;
+	return get_motion().second - yprevious;
 }
 double BEE::InstanceData::get_direction() {
 	double xsum=0.0, ysum=0.0;
@@ -203,6 +206,9 @@ double BEE::InstanceData::get_direction() {
 double BEE::InstanceData::get_speed() {
 	double xsum=0.0, ysum=0.0;
 	std::tie (xsum, ysum) = get_motion();
+	if ((x == xsum)&&(y == ysum)) {
+		return distance(xprevious, yprevious, x, y);
+	}
 	return distance(x, y, xsum, ysum);
 }
 double BEE::InstanceData::get_friction() {
@@ -360,49 +366,74 @@ int BEE::InstanceData::path_end() {
 	return 0;
 }
 int BEE::InstanceData::path_update_node() {
-	if (path_speed >= 0) {
-		path_coord c = path->get_coordinate_list().at(path_current_node+1);
-		if ((x == std::get<0>(c))&&(y == std::get<1>(c))) {
-			path_current_node++;
+	if (has_path()) {
+		if (path_speed >= 0) {
+			if (path_current_node+1 < (int) path->get_coordinate_list().size()) {
+				path_coord c = path->get_coordinate_list().at(path_current_node+1);
+				if (distance(x, y, path_xstart+std::get<0>(c), path_ystart+std::get<1>(c)) < get_speed()) {
+					path_current_node++;
+				}
+			}
+		} else {
+			path_coord c = path->get_coordinate_list().at(path_current_node);
+			if (distance(x, y, path_xstart+std::get<0>(c), path_ystart+std::get<1>(c)) < get_speed()) {
+				path_current_node--;
+			}
 		}
-	} else {
-		path_coord c = path->get_coordinate_list().at(path_current_node);
-		if ((x == std::get<0>(c))&&(y == std::get<1>(c))) {
-			path_current_node--;
-		}
+
+		return 0;
 	}
+	return 1;
+}
+int BEE::InstanceData::set_path_drawn(bool new_path_is_drawn) {
+	path_is_drawn = new_path_is_drawn;
 	return 0;
 }
 int BEE::InstanceData::handle_path_end() {
-	switch (path_end_action) {
-		case 0: { // Stop path
-			path_end();
-			break;
+	if (has_path()) {
+		switch (path_end_action) {
+			case 0: { // Stop path
+				path_end();
+				break;
+			}
+			case 1: { // Continue from start
+				path_current_node = 0;
+				x = path_xstart;
+				y = path_ystart;
+				xprevious = x;
+				yprevious = y;
+				break;
+			}
+			case 2: { // Continue from current position
+				path_current_node = 0;
+				path_xstart = x;
+				path_ystart = y;
+				break;
+			}
+			case 3: { // Reverse direction
+				path_speed *= -1;
+				if (path_speed >= 0) {
+					path_current_node = 0;
+				} else {
+					path_current_node = path->get_coordinate_list().size()-2;
+				}
+				break;
+			}
 		}
-		case 1: {
-			path_current_node = 0;
-			break;
-		}
-		case 2: {
-			path_current_node = 0;
-			path_xstart = x;
-			path_ystart = y;
-			break;
-		}
-		case 3: {
-			path_speed *= -1;
-			break;
-		}
+		return 0;
 	}
-	return 0;
+	return 1;
 }
 bool BEE::InstanceData::has_path() {
 	return (path != NULL) ? true : false;
 }
+bool BEE::InstanceData::get_path_drawn() {
+	return path_is_drawn;
+}
 int BEE::InstanceData::get_path_speed() {
 	return path_speed;
 }
-unsigned int BEE::InstanceData::get_path_node() {
+int BEE::InstanceData::get_path_node() {
 	return path_current_node;
 }
 std::vector<path_coord> BEE::InstanceData::get_path_coords() {

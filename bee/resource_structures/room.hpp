@@ -497,16 +497,23 @@ int BEE::Room::step_mid() {
 
 			path_coord c = std::make_tuple(0, 0, 0);
 			if (i.second->get_path_speed() >= 0) {
-				c = i.second->get_path_coords().at(i.second->get_path_node()+1);
-			} else {
+				if (i.second->get_path_node()+1 < (int) i.second->get_path_coords().size()) {
+					c = i.second->get_path_coords().at(i.second->get_path_node()+1);
+				} else {
+					break;
+				}
+			} else if (i.second->get_path_node() >= 0) {
 				c = i.second->get_path_coords().at(i.second->get_path_node());
 			}
-			i.second->move(std::get<2>(c)*abs(i.second->get_path_speed()), direction_of(i.second->x, i.second->y, std::get<0>(c), std::get<1>(c)));
+			i.second->move(std::get<2>(c)*abs(i.second->get_path_speed()), direction_of(i.second->x, i.second->y, i.second->path_xstart+std::get<0>(c), i.second->path_ystart+std::get<1>(c)));
 		}
 	}
 
 	// Condense all instance motion based on velocity and gravity into a single step
 	for (auto& i : instances) {
+		i.second->xprevious = i.second->x;
+		i.second->yprevious = i.second->y;
+
 		double x=0.0, y=0.0;
 		std::tie (x, y) = i.second->get_motion();
 		i.second->velocity.clear();
@@ -568,9 +575,10 @@ int BEE::Room::mouse_release(SDL_Event* e) {
 }
 int BEE::Room::check_paths() {
 	for (auto& i : instances) {
-		if ((i.second->has_path())&&(i.second->get_path_node() == i.second->get_path_coords().size()-1)) {
-			i.second->object->path_end(i.second);
-			if (i.second->get_path_node() == i.second->get_path_coords().size()-1) {
+		if (i.second->has_path()) {
+			if (((i.second->get_path_speed() >= 0)&&(i.second->get_path_node() == (int) i.second->get_path_coords().size()-1))
+				|| ((i.second->get_path_speed() < 0)&&(i.second->get_path_node() == -1))) {
+				i.second->object->path_end(i.second);
 				i.second->handle_path_end();
 			}
 		}
@@ -635,12 +643,36 @@ int BEE::Room::collision() {
 int BEE::Room::draw() {
 	game->render_clear();
 
+	// Draw backgrounds
 	for (auto& b : backgrounds) {
 		if (b.second->is_visible && !b.second->is_foreground) {
 			b.second->background->draw(b.second->x, b.second->y, b.second);
 		}
 	}
 
+	// Draw paths
+	for (auto& i : instances) {
+		if ((i.second->has_path())&&(i.second->get_path_drawn())) {
+			std::vector<path_coord> coords = i.second->get_path_coords();
+			for (std::vector<path_coord>::iterator it = coords.begin(); it != coords.end(); ++it) {
+				if (it != --coords.end()) {
+					int xs = i.second->path_xstart;
+					int ys = i.second->path_ystart;
+
+					int x1 = std::get<0>(*it);
+					int y1 = std::get<1>(*it);
+					++it;
+					int x2 = std::get<0>(*it);
+					int y2 = std::get<1>(*it);
+					--it;
+
+					game->draw_line(x1+xs, y1+ys, x2+xs, y2+ys);
+				}
+			}
+		}
+	}
+
+	// Draw instances
 	for (auto& i : instances) {
 		if (is_views_enabled) { // Render different viewports
 			SDL_Rect viewport;
@@ -664,6 +696,7 @@ int BEE::Room::draw() {
 		}
 	}
 
+	// Draw foregrounds
 	for (auto& b : backgrounds) {
 		if (b.second->is_visible && b.second->is_foreground) {
 			b.second->background->draw(b.second->x, b.second->y, b.second);

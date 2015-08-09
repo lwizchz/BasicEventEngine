@@ -7,6 +7,8 @@ BEE::Background* bk_green;
 
 BEE::Font* font_liberation;
 
+BEE::Path* path_bee;
+
 #include "objects/bee.hpp"
 ObjBee* obj_bee;
 
@@ -34,6 +36,11 @@ int BEE::init_resources() {
 			font_liberation->load();
 
 		// Init paths
+		path_bee = new Path("path_bee", "");
+			path_bee->add_coordinate(0, 0, 1.0);
+			path_bee->add_coordinate(200, 400, 1.0);
+			path_bee->add_coordinate(800, 400, 1.0);
+			path_bee->add_coordinate(500, 200, 1.0);
 
 		// Init objects
 		obj_bee = new ObjBee();

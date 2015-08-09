@@ -35,6 +35,7 @@ void ObjBee::create(BEE::InstanceData* self) {
 	//self->set_alarm(0, 2000);
 	spr_bee->set_alpha(0.5);
 	//self->set_gravity(7.0);
+	//show_message(font_liberation->get_fontname());
 }
 void ObjBee::alarm(BEE::InstanceData* self, int a) {
 	switch (a) {
@@ -53,9 +54,9 @@ void ObjBee::step_mid(BEE::InstanceData* self) {
 	self->x = c.first;
 	self->y = c.second;*/
 
-	int mx, my;
+	/*int mx, my;
 	SDL_GetMouseState(&mx, &my);
-	self->move_to(10.0, mx, my);
+	self->move_to(10.0, mx, my);*/
 }
 void ObjBee::keyboard_press(BEE::InstanceData* self, SDL_Event* e) {
 	switch (e->key.keysym.sym) {
@@ -81,6 +82,11 @@ void ObjBee::keyboard_press(BEE::InstanceData* self, SDL_Event* e) {
 			break;
 		}
 
+		case SDLK_e: {
+			self->path_start(path_bee, 5.0, 3, true);
+			self->set_path_drawn(true);
+			break;
+		}
 		case SDLK_r: {
 			if (self->id == 0) {
 				if (game->get_sprite(54) == NULL) {
@@ -156,10 +162,11 @@ void ObjBee::draw(BEE::InstanceData* self) {
 	// draw event
 	int mx, my;
 	SDL_GetMouseState(&mx, &my);
-	int s = distance(self->x, self->y, mx, my)/2;
+	int s = 100;//distance(self->x, self->y, mx, my)/2;
 	self->draw(s, s, direction_of(self->x, self->y, mx, my), c_aqua);
 
-	font_liberation->draw_fast(self->x, self->y, std::to_string(self->id));
+	//font_liberation->draw_fast(self->x, self->y, std::to_string(self->id));
+	font_liberation->draw_fast(self->x, self->y, std::to_string(self->get_path_node()));
 
 	if (self->id == 0) {
 		fps_display = font_liberation->draw(fps_display, 0, 0, "FPS: \n" + std::to_string(game->fps_stable));
