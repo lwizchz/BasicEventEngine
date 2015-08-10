@@ -36,6 +36,8 @@ void ObjBee::create(BEE::InstanceData* self) {
 	spr_bee->set_alpha(0.5);
 	//self->set_gravity(7.0);
 	//show_message(font_liberation->get_fontname());
+
+	std::cerr << execute_string<int>("3+5");
 }
 void ObjBee::alarm(BEE::InstanceData* self, int a) {
 	switch (a) {

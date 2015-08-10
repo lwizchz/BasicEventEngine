@@ -15,14 +15,17 @@ This program has only been compiled under Arch Linux and Ubuntu 15.04 and at the
         # Ubuntu
         sudo apt-get install libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev
 
-2. Download the example resource files [from my website][1] and extract the tarball to the same folder, keeping the folder structure.
+2. (Optional) Install ChaiScript [from their website][1] in order to use scripting.
+
+3. Download the example resource files [from my website][2] and extract the tarball to the same folder, keeping the folder structure.
 
 	I'm waiting on acceptance into GitHub's large file storage closed beta, after which I will include the example resources with the rest of the project.
 
-3. Edit the file "resources/resources.hpp" in order to add or remove resources which are located in their corresponding subfolder.
+4. Edit the file "resources/resources.hpp" in order to add or remove resources which are located in their corresponding subfolder.
 
-4. Compile the program with the `make` command, optionally the `run` target can be passed to it in order to automatically run the program after a successful compilation.
+5. Compile the program with the `make` command, optionally the `run` target can be passed to it in order to automatically run the program after a successful compilation.
 
 This project is under the MIT License so feel free to do basically whatever you want with the code.
 
-[1]: http://lukemontalvo.us/BasicEventEngine/resources.tar.gz	"example resources"
+[1]: https://github.com/ChaiScript/ChaiScript/releases          "ChaiScript download"
+[2]: http://lukemontalvo.us/BasicEventEngine/resources.tar.gz	"example resources"
