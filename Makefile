@@ -28,7 +28,6 @@ WINBUILD = i686-w64-mingw32-g++ $(WINFLAGS) -o $(NAME).exe main.cpp $(WINLIBS)
 EMSCRIPTEN = /usr/lib/emscripten/emc++
 
 main: $(foreach var, $(DEPS_BEE), obj/bee/$(var).o) $(foreach var, $(DEPS_BEE_RESOURCE_STRUCTURES), obj/bee/resource_structures/$(var).o) $(foreach var, $(DEPS), obj/$(var).o)
-	mkdir -p obj/bee/resource_structures
 	$(BUILD) $^
 
 obj/bee/%.o : bee/%.cpp bee/game.hpp
@@ -37,9 +36,11 @@ obj/bee/resource_structures/%.o : bee/resource_structures/%.cpp bee/game.hpp
 	g++ $(FLAGS) -c $< -o $@
 obj/%.o : %.cpp bee/game.hpp
 	g++ $(FLAGS) -c $< -o $@
-bee/game.hpp: bee/debug.hpp bee/util.hpp
+bee/game.hpp: bee/debug.hpp bee/util.hpp dir
 bee/debug.hpp: bee/debug.cpp
 bee/util.hpp: $(foreach var, $(DEPS_BEE_UTIL), bee/util/$(var).hpp)
+dir:
+	mkdir -p obj/bee/resource_structures
 
 run: main
 	./$(NAME)
