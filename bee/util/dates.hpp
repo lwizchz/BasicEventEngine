@@ -11,7 +11,11 @@
 
 // Date and time functions
 
+#include <string>
 #include <time.h>
+#include <cmath>
+
+#include "real.hpp"
 
 time_t date_date_of(time_t date) {
         struct tm *timeinfo = localtime(&date);

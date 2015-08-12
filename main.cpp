@@ -7,12 +7,12 @@
 */
 
 #include <stdio.h>
+#include <string>
 
 #include "bee/game.hpp"
+#include "resources/resources.hpp"
 
 int main(int argc, char* argv[]) {
-	RmTest rm_test;
-
 	try {
 		// Set game options;
 		BEE::GameOptions options = {

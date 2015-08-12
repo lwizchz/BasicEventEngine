@@ -13,6 +13,9 @@
 
 #include <cmath>
 #include <vector>
+#include <SDL2/SDL_mixer.h>
+
+#include "real.hpp"
 
 class se_chorus_data {
         public:

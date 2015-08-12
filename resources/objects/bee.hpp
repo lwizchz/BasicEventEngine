@@ -37,7 +37,7 @@ void ObjBee::create(BEE::InstanceData* self) {
 	//self->set_gravity(7.0);
 	//show_message(font_liberation->get_fontname());
 
-	std::cerr << execute_string<int>("3+5");
+	//std::cerr << execute_string<int>("3+5");
 }
 void ObjBee::alarm(BEE::InstanceData* self, int a) {
 	switch (a) {
@@ -165,7 +165,8 @@ void ObjBee::draw(BEE::InstanceData* self) {
 	int mx, my;
 	SDL_GetMouseState(&mx, &my);
 	int s = 100;//distance(self->x, self->y, mx, my)/2;
-	self->draw(s, s, direction_of(self->x, self->y, mx, my), c_aqua);
+	//self->draw(s, s, direction_of(self->x, self->y, mx, my), c_aqua);
+	self->draw(s, s, direction_of(self->x, self->y, mx, my), {255, 255, 255, 255});
 
 	//font_liberation->draw_fast(self->x, self->y, std::to_string(self->id));
 	font_liberation->draw_fast(self->x, self->y, std::to_string(self->get_path_node()));

@@ -9,23 +9,9 @@
 #ifndef _BEE_DEBUG_H
 #define _BEE_DEBUG_H 1
 
+#include <string>
 #include <sstream>
 
-std::string debug_indent(std::string input, int amount) {
-	if (input.size() > 0) {
-		input.pop_back();
-		std::istringstream input_stream (input);
-		std::string output;
-		while (!input_stream.eof()) {
-			std::string tmp;
-			getline(input_stream, tmp);
-			tmp.append("\n");
-			output.append(amount, '\t');
-			output.append(tmp);
-		}
-		return output;
-	}
-	return "\n";
-}
+std::string debug_indent(std::string, int);
 
 #endif // _BEE_DEBUG_H

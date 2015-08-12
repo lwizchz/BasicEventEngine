@@ -12,6 +12,7 @@
 // Message box functions
 
 #include <iostream>
+#include <SDL2/SDL.h>
 
 int show_message(std::string str) {
 	std::cout << str << "\n";

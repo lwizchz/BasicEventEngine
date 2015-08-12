@@ -12,6 +12,10 @@
 #include <string>
 #include <map>
 
+#ifndef _BEE_GAME_H
+class BEE;
+#endif
+
 class Resource {
 	public:
 		BEE* game = NULL;
@@ -41,42 +45,8 @@ class ResourceList {
 class MetaResourceList {
 	public:
 		ResourceList sprites, sounds, backgrounds, fonts, paths, objects, rooms;
-};
 
-ResourceList::ResourceList() {
-	next_index = 0;
-}
-int ResourceList::reset() {
-	resources.clear();
-	next_index = 0;
-	return 0;
-}
-int ResourceList::add_resource(Resource* new_resource) {
-	int index = next_index;
-	std::pair<std::map<int,Resource*>::iterator,bool> ret;
-	ret = resources.insert(std::pair<int,Resource*>(index, new_resource));
-	if (ret.second) {
-		next_index++;
-		return index;
-	}
-	return -1;
-}
-int ResourceList::set_resource(int id, Resource* resource) {
-	resources.at(id) = resource;
-	return 0;
-}
-Resource* ResourceList::get_resource(int id) {
-	if (resources.find(id) != resources.end()) {
-		return resources.at(id);
-	}
-	return NULL;
-}
-int ResourceList::get_amount() {
-	return next_index; //resources.size();
-}
-int ResourceList::remove_resource(int id) {
-	resources.erase(id);
-	return 0;
-}
+		int reset();
+};
 
 #endif // _BEE_RESOURCE_STRUCTURES_H

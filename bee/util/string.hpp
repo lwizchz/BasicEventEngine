@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <regex>
 #include <map>
+#include <SDL2/SDL.h>
 
 std::string chr(int c) {
         char character = c;
@@ -36,13 +37,13 @@ std::string string_upper(std::string str) {
         return str;
 }
 
-std::string string_letters(std::string str){
+std::string string_letters(std::string str) {
         return std::regex_replace(str, std::regex("[^[:alnum:]]"), "");
 }
-std::string string_digits(std::string str){
+std::string string_digits(std::string str) {
         return std::regex_replace(str, std::regex("[^[:digit:]]"), "");
 }
-std::string string_lettersdigits(std::string str){
+std::string string_lettersdigits(std::string str) {
         return std::regex_replace(str, std::regex("[^[:alnum:][:digit:]]"), "");
 }
 

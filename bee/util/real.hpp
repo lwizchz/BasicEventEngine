@@ -18,6 +18,8 @@
 #include <vector>
 #include <algorithm>
 
+#define PI 3.14159265
+
 #define DEFAULT_RANDOM_SEED 1
 
 unsigned int random_internal(unsigned int new_seed, unsigned int minimum, unsigned int maximum) {
@@ -90,7 +92,7 @@ template <typename T>
 T sqr(T x) {
         return x*x;
 }
-float logn(float n, float x) {
+double logn(double n, double x) {
         return log(x)/log(n);
 }
 double degtorad(double a) {

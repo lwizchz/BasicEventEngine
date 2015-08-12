@@ -10,10 +10,10 @@ BEE::Font* font_liberation;
 BEE::Path* path_bee;
 
 #include "objects/bee.hpp"
-ObjBee* obj_bee;
+BEE::Object* obj_bee;
 
 #include "rooms/test.hpp"
-//RmTest* rm_test;
+BEE::Room* rm_test;
 
 int BEE::init_resources() {
 	try {
@@ -46,9 +46,9 @@ int BEE::init_resources() {
 		obj_bee = new ObjBee();
 
 		// Init rooms
-		//rm_test = new RmTest();
+		rm_test = new RmTest();
 
-		BEE::is_initialized = true;
+		is_initialized = true;
 	} catch (...) {
 		return 1;
 	}
@@ -61,9 +61,9 @@ int BEE::close_resources() {
 	delete bk_green;
 	delete font_liberation;
 	delete obj_bee;
-	//delete rm_test;
+	delete rm_test;
 
-	BEE::is_initialized = false;
+	is_initialized = false;
 
 	return 0;
 }
