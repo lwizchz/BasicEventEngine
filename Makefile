@@ -36,11 +36,13 @@ obj/bee/resource_structures/%.o : bee/resource_structures/%.cpp bee/game.hpp
 	g++ $(FLAGS) -c $< -o $@
 obj/%.o : %.cpp bee/game.hpp
 	g++ $(FLAGS) -c $< -o $@
-bee/game.hpp: bee/debug.hpp bee/util.hpp dir
-bee/debug.hpp: bee/debug.cpp
-bee/util.hpp: $(foreach var, $(DEPS_BEE_UTIL), bee/util/$(var).hpp)
+bee/game.hpp: obj/bee/util.o resources/resources.hpp dir
+obj/bee/util.o: bee/util.cpp bee/util.hpp $(foreach var, $(DEPS_BEE_UTIL), bee/util/$(var).hpp)
+	g++ $(FLAGS) -c bee/util.cpp -o obj/bee/util.o
 dir:
 	mkdir -p obj/bee/resource_structures
+resources/resources.hpp: resources/objects/bee.hpp resources/rooms/test.hpp
+	g++ $(FLAGS) -c main.cpp -o obj/main.o
 
 run: main
 	./$(NAME)

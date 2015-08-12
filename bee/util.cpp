@@ -9,6 +9,8 @@
 #ifndef _BEE_UTIL
 #define _BEE_UTIL 1
 
+#include "util.hpp"
+
 #include "util/real.hpp"
 #include "util/string.hpp"
 #include "util/dates.hpp"

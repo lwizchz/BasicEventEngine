@@ -78,6 +78,9 @@ T choose(Args&&... args) {
         arguments = {std::forward<Args>(args)...};
         return arguments[random(size)];
 }
+/*template int choose<int, int...>(int&&...);
+template double choose<double...>(double&&...);
+template std::string choose<std::string...>(std::string&&...);*/
 
 template <typename T>
 int sign(T x) {
@@ -88,10 +91,16 @@ int sign(T x) {
         }
         return 0;
 }
+template int sign<int>(int);
+template int sign<double>(double);
+
 template <typename T>
 T sqr(T x) {
         return x*x;
 }
+template int sqr<int>(int);
+template double sqr<double>(double);
+
 double logn(double n, double x) {
         return log(x)/log(n);
 }
@@ -168,9 +177,14 @@ template <typename T>
 T dot_product(T x1, T y1, T x2, T y2) {
         return x1*x2 + y1*y2;
 }
+template int dot_product<int>(int, int, int, int);
+template double dot_product<double>(double, double, double, double);
+
 template <typename T>
 T dot_product(std::pair<T,T> p1, std::pair<T,T> p2) {
         return p1.first*p2.first + p1.second*p2.second;
 }
+template int dot_product<int>(std::pair<int,int>, std::pair<int,int>);
+template double dot_product<double>(std::pair<double,double>, std::pair<double,double>);
 
 #endif // _BEE_UTIL_REAL_H

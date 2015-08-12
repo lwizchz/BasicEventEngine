@@ -49,14 +49,17 @@ T dot_product(std::pair<T,T>, std::pair<T,T>);
 
 // String handling functions
 std::string chr(int);
-template <typename T>
-int ord(T);
+int ord(char);
+int ord(std::string);
 std::string string_lower(std::string);
 std::string string_upper(std::string);
 std::string string_letters(std::string);
 std::string string_digits(std::string);
 std::string string_lettersdigits(std::string);
 std::map<int,std::string> handle_newlines(std::string);
+std::string ltrim(std::string);
+std::string rtrim(std::string);
+std::string trim(std::string);
 bool clipboard_has_text();
 std::string clipboard_get_text();
 int clipboard_set_text(std::string);
@@ -162,6 +165,10 @@ template <typename T>
 T execute_string(std::string);
 template <typename T>
 T execute_file(std::string);
+template <typename T>
+int save_map(std::string, std::map<std::string,T>);
+template <typename T>
+std::map<std::string,T> load_map(std::string);
 
 #endif // _BEE_SCRIPTING
 

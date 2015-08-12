@@ -22,10 +22,12 @@ std::string chr(int c) {
         return std::to_string(character);
 }
 
-template <typename T>
-int ord(T s) {
-        std::string str = std::to_string(s);
+int ord(char c) {
+        std::string str = std::to_string(c);
         return str[0];
+}
+int ord(std::string s) {
+        return s[0];
 }
 
 std::string string_lower(std::string str) {
@@ -58,6 +60,28 @@ std::map<int,std::string> handle_newlines(std::string input) {
 		}
 	}
 	return output;
+}
+
+std::string ltrim(std::string str) {
+        unsigned int i;
+        for (i=0; i<str.length(); i++) {
+                if (!isspace(str[i])) {
+                        break;
+                }
+        }
+        return str.substr(i);
+}
+std::string rtrim(std::string str) {
+        int i;
+        for (i=str.length()-1; i>=0; i--) {
+                if (!isspace(str[i])) {
+                        break;
+                }
+        }
+        return str.substr(0, i+1);
+}
+std::string trim(std::string str) {
+        return rtrim(ltrim(str));
 }
 
 bool clipboard_has_text() {

@@ -38,8 +38,11 @@ int file_copy(std::string fname, std::string new_fname) {
 std::string file_get_contents(std::string fname) {
         std::ifstream input (fname);
         if (input.is_open()) {
-                std::string s;
-                input >> s;
+                std::string s, tmp;
+                while (!input.eof()) {
+                        getline(input, tmp);
+                        s += tmp + "\n";
+                }
                 input.close();
                 return s;
         }

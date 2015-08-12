@@ -98,6 +98,22 @@ void ObjBee::keyboard_press(BEE::InstanceData* self, SDL_Event* e) {
 			break;
 		}
 
+		case SDLK_n: {
+			std::map<std::string, int> d;
+			d.insert(std::make_pair("testvar", 5));
+			save_map(directory_get_temp()+"/test.map", d);
+			std::cerr << "Map saved\n";
+			break;
+		}
+		case SDLK_m: {
+			std::map<std::string,int> d = load_map<int>(directory_get_temp()+"/test.map");
+			std::cerr << "Map loaded:\n";
+			for (auto& v : d) {
+				std::cerr << "\t" << v.first << " = " << v.second << "\n";
+			}
+			break;
+		}
+
 		case SDLK_1: {
 			snd_music->effect_add(se_none);
 			snd_music->play();
