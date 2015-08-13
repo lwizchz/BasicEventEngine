@@ -27,6 +27,8 @@ class BEE;
 #include "resource_structures.hpp"
 #endif
 
+enum rgba_t {c_aqua, c_black, c_blue, c_dkgray, c_fuchsia, c_gray, c_green, c_lime, c_ltgray, c_maroon, c_navy, c_olive, c_orange, c_purple, c_red, c_silver, c_teal, c_white, c_yellow};
+
 class BEE {
 	public:
 		class Sprite; class Sound; class Background; class Font; class Path; class Object; class Room;
@@ -65,33 +67,55 @@ class BEE {
 		~BEE();
 		int loop();
 		int close();
+
+		// User defined
+		static int init_resources();
+		static int close_resources();
+
+		// bee/game/resources.cpp
 		int set_engine_pointer();
 		int load_media();
 		int free_media();
 
+		int animation_end(Sprite*);
+		static void sound_finished(int);
+
+		double get_volume();
+		int set_volume(double);
+		int sound_stop_all();
+
+		static Sprite* get_sprite(int);
+		static Sound* get_sound(int);
+		static Background* get_background(int);
+		static Font* get_font(int);
+		static Path* get_path(int);
+		static Object* get_object(int);
+		static Room* get_room(int);
+
+		// bee/game.cpp
 		int render();
 		int render_clear();
 
 		int restart_game();
 		int end_game();
 
+		// bee/game/room.cpp
 		int restart_room();
 		int change_room(Room*);
 		int room_goto(int);
 		int room_goto_previous();
 		int room_goto_next();
 
-		int animation_end(Sprite*);
-		static void sound_finished(int);
-
-		int set_render_target(Sprite*);
-		int draw_transition();
-
 		Room* get_current_room();
 		bool get_is_ready();
 		int get_room_width();
 		int get_room_height();
 
+		// bee/game/transition.cpp
+		int set_render_target(Sprite*);
+		int draw_transition();
+
+		// bee/game/display.cpp
 		SDL_DisplayMode get_display();
 		Uint32 get_display_format();
 		int get_display_width();
@@ -101,6 +125,7 @@ class BEE {
 		int set_display_size(int, int);
 		int set_display_refresh_rate(int);
 
+		// bee/game/window.cpp
 		bool get_is_visible();
 		bool get_is_fullscreen();
 		bool get_is_borderless();
@@ -124,34 +149,23 @@ class BEE {
 		int set_width(int);
 		int set_height(int);
 
+		// bee/game/input.cpp
 		int get_mousex();
 		int get_mousey();
 		int set_mouse_position(int, int);
 		int set_mousex(int);
 		int set_mousey(int);
 
+		// bee/game/draw.cpp
+		RGBA get_enum_color(rgba_t);
 		int draw_point(int, int);
 		int draw_line(int, int, int, int);
 		int draw_rectangle(int, int, int, int, bool);
 		int draw_set_color(RGBA);
+		int draw_set_color(rgba_t);
 		RGBA draw_get_color();
 		RGBA get_pixel_color(int, int);
 		int save_screenshot(std::string);
-
-		double get_volume();
-		int set_volume(double);
-		int sound_stop_all();
-
-		static int init_resources();
-		static int close_resources();
-
-		static Sprite* get_sprite(int);
-		static Sound* get_sound(int);
-		static Background* get_background(int);
-		static Font* get_font(int);
-		static Path* get_path(int);
-		static Object* get_object(int);
-		static Room* get_room(int);
 };
 
 class BEE::GameOptions {
@@ -169,26 +183,6 @@ class BEE::RGBA {
 	public:
 		Uint8 r, g, b, a;
 };
-
-/*BEE::RGBA c_aqua	= {0, 255, 255, 255};
-BEE::RGBA c_black	= {0, 0, 0, 255};
-BEE::RGBA c_blue	= {0, 0, 255, 255};
-BEE::RGBA c_dkgray	= {64, 64, 64, 255};
-BEE::RGBA c_fuchsia	= {255, 0, 255, 255};
-BEE::RGBA c_gray	= {128, 128, 128, 255};
-BEE::RGBA c_green	= {0, 255, 0, 255};
-//BEE::RGBA c_lime	= {255, 255, 255, 255};
-BEE::RGBA c_ltgray	= {192, 192, 192, 255};
-//BEE::RGBA c_maroon	= {255, 255, 255, 255};
-//BEE::RGBA c_navy	= {255, 255, 255, 255};
-//BEE::RGBA c_olive	= {255, 255, 255, 255};
-BEE::RGBA c_orange	= {255, 128, 0, 255};
-BEE::RGBA c_purple	= {128, 0, 255, 255};
-BEE::RGBA c_red		= {255, 0, 0, 255};
-//BEE::RGBA c_silver	= {255, 255, 255, 255};
-//BEE::RGBA c_teal	= {255, 255, 255, 255};
-BEE::RGBA c_white	= {255, 255, 255, 255};
-BEE::RGBA c_yellow	= {255, 255, 0, 255};*/
 
 typedef std::tuple<int, int, double> path_coord;
 

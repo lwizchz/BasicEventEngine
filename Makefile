@@ -2,6 +2,7 @@ NAME = BasicEventEngine
 
 DEPS = main
 DEPS_BEE = debug resource_structures util game
+DEPS_BEE_GAME = resources room transition display window input draw
 DEPS_BEE_RESOURCE_STRUCTURES = sprite sound background font path object room instancedata
 DEPS_BEE_UTIL = real string dates collision sound messagebox files script
 
@@ -36,7 +37,7 @@ obj/bee/resource_structures/%.o : bee/resource_structures/%.cpp bee/game.hpp
 	g++ $(FLAGS) -c $< -o $@
 obj/%.o : %.cpp bee/game.hpp
 	g++ $(FLAGS) -c $< -o $@
-bee/game.hpp: obj/bee/util.o resources/resources.hpp dir
+bee/game.hpp: obj/bee/util.o resources/resources.hpp $(foreach var, $(DEPS_BEE_GAME), bee/game/$(var).cpp) dir
 obj/bee/util.o: bee/util.cpp bee/util.hpp $(foreach var, $(DEPS_BEE_UTIL), bee/util/$(var).hpp)
 	g++ $(FLAGS) -c bee/util.cpp -o obj/bee/util.o
 dir:

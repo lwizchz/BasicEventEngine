@@ -12,8 +12,15 @@
 #include <iostream>
 #include <map>
 #include <tuple>
+#include <algorithm>
 
 #include "../game.hpp"
+
+template <typename A, typename B>
+std::pair<B,A> flip_pair(const std::pair<A,B>& p) {
+	return std::pair<B,A>(p.second, p.first);
+}
+template std::pair<BEE::InstanceData*,int> flip_pair<int,BEE::InstanceData*>(const std::pair<int,BEE::InstanceData*>&);
 
 class BEE::Room: public Resource {
 		// Add new variables to the print() debugging method
@@ -30,6 +37,7 @@ class BEE::Room: public Resource {
 		bool is_views_enabled;
 		std::map<int,ViewData*> views;
 		std::map<int,InstanceData*> instances;
+		std::map<InstanceData*,int> instances_sorted;
 	public:
 		Room();
 		Room(std::string, std::string);
@@ -73,6 +81,7 @@ class BEE::Room: public Resource {
 		int set_instance(int, InstanceData*);
 		int add_instance(int, Object*, int, int);
 		int remove_instance(int);
+		int sort_instances();
 
 		int load_media();
 		int free_media();

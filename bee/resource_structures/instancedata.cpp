@@ -25,6 +25,8 @@ int BEE::InstanceData::init(int new_id, Object* new_object, int new_x, int new_y
 	id = new_id;
 	object = new_object;
 	subimage_time = SDL_GetTicks();
+	depth = object->get_depth();
+
 	x = (float)new_x;
 	y = (float)new_y;
 	xprevious = x;
@@ -52,6 +54,13 @@ int BEE::InstanceData::print() {
 	"\n}\n";
 
 	return 0;
+}
+
+bool BEE::InstanceData::operator< (const InstanceData& other) {
+	if (depth == other.depth) {
+		return (id <= other.id);
+	}
+	return (depth > other.depth);
 }
 
 int BEE::InstanceData::remove() {
@@ -364,6 +373,9 @@ std::vector<path_coord> BEE::InstanceData::get_path_coords() {
 int BEE::InstanceData::draw(int w, int h, double angle, RGBA color) {
 	return object->get_sprite()->draw(x, y, subimage_time, w, h, angle, color);
 }
+int BEE::InstanceData::draw(int w, int h, double angle, rgba_t color) {
+	return draw(w, h, angle, game->get_enum_color(color));
+}
 int BEE::InstanceData::draw() {
 	return object->get_sprite()->draw(x, y, subimage_time);
 }
@@ -375,6 +387,9 @@ int BEE::InstanceData::draw(double angle) {
 }
 int BEE::InstanceData::draw(RGBA color) {
 	return object->get_sprite()->draw(x, y, subimage_time, color);
+}
+int BEE::InstanceData::draw(rgba_t color) {
+	return draw(game->get_enum_color(color));
 }
 
 #endif // _BEE_INSTANCEDATA

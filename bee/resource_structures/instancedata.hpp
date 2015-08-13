@@ -31,6 +31,7 @@ class BEE::InstanceData {
 		Object* object = NULL;
 		Uint32 subimage_time = 0;
 		Uint32 alarm_end[ALARM_COUNT];
+		int depth = 0;
 
 		double x = 0.0, y = 0.0;
 		double xprevious = 0.0, yprevious = 0.0;
@@ -41,6 +42,8 @@ class BEE::InstanceData {
 		InstanceData(BEE*, int, Object*, int, int);
 		int init(int, Object*, int, int);
 		int print();
+
+		bool operator< (const InstanceData& other);
 
 		int remove();
 
@@ -88,10 +91,12 @@ class BEE::InstanceData {
 		std::vector<path_coord> get_path_coords();
 
 		int draw(int, int, double, RGBA);
+		int draw(int, int, double, rgba_t);
 		int draw();
 		int draw(int, int);
 		int draw(double);
 		int draw(RGBA);
+		int draw(rgba_t);
 };
 
 #endif // _BEE_INSTANCEDATA_H
