@@ -33,6 +33,7 @@ class BEE {
 	public:
 		class Sprite; class Sound; class Background; class Font; class Path; class Object; class Room;
 		class GameOptions; class InstanceData; class RGBA;
+		class Particle; class ParticleData; class ParticleEmitter; class ParticleAttractor; class ParticleDestroyer; class ParticleDeflector; class ParticleChanger; class ParticleSystem;
 	private:
 		int argc;
 		char** argv;
@@ -77,7 +78,6 @@ class BEE {
 		int load_media();
 		int free_media();
 
-		int animation_end(Sprite*);
 		static void sound_finished(int);
 
 		double get_volume();
@@ -205,6 +205,7 @@ class BackgroundData { // Used to pass data to the Room class in bee/resource_st
 		bool is_horizontal_tile, is_vertical_tile;
 		int horizontal_speed, vertical_speed;
 		bool is_stretched;
+
 		BackgroundData() {background=NULL;is_visible=false;is_foreground=false;x=0;y=0;is_horizontal_tile=false;is_vertical_tile=false;horizontal_speed=0;vertical_speed=0;is_stretched=false;};
 		BackgroundData(BEE::Background*, bool, bool, int, int, bool, bool, int, int, bool);
 		int init(BEE::Background*, bool, bool, int, int, bool, bool, int, int, bool);
@@ -216,7 +217,8 @@ class BackgroundData { // Used to pass data to the Room class in bee/resource_st
 #include "resource_structures/font.hpp"
 #include "resource_structures/path.hpp"
 #include "resource_structures/object.hpp"
-#include "resource_structures/instancedata.hpp"
+#include "resource_structures/ext/instancedata.hpp"
+#include "resource_structures/ext/particles.hpp"
 #include "resource_structures/room.hpp"
 
 #endif // _BEE_GAME_H

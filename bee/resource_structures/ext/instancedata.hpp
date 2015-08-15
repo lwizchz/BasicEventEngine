@@ -11,7 +11,7 @@
 
 #define ALARM_COUNT 8
 
-#include "../game.hpp"
+#include "../../game.hpp"
 
 class BEE::InstanceData {
 		double xstart = 0.0, ystart = 0.0;

@@ -1,4 +1,5 @@
 BEE::Sprite* spr_bee;
+BEE::Sprite* spr_dot;
 
 BEE::Sound* snd_chirp;
 BEE::Sound* snd_music;
@@ -21,6 +22,7 @@ int BEE::init_resources() {
 		spr_bee = new Sprite("spr_bee", "bee.png");
 			spr_bee->set_subimage_amount(2, 100);
 			spr_bee->set_speed(0.5);
+		spr_dot = new Sprite("spr_dot", "dot.png");
 
 		// Init sounds
 		snd_chirp = new Sound("snd_chirp", "chirp.wav", false);
@@ -57,6 +59,7 @@ int BEE::init_resources() {
 }
 int BEE::close_resources() {
 	delete spr_bee;
+	delete spr_dot;
 	delete snd_chirp;
 	delete bk_green;
 	delete font_liberation;

@@ -3,7 +3,7 @@ NAME = BasicEventEngine
 DEPS = main
 DEPS_BEE = debug resource_structures util game
 DEPS_BEE_GAME = resources room transition display window input draw
-DEPS_BEE_RESOURCE_STRUCTURES = sprite sound background font path object room instancedata
+DEPS_BEE_RESOURCE_STRUCTURES = sprite sound background font path object room ext/instancedata ext/particles
 DEPS_BEE_UTIL = real string dates collision sound messagebox files script
 
 PKGDEPS = libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev chaiscript
@@ -41,7 +41,7 @@ bee/game.hpp: obj/bee/util.o resources/resources.hpp $(foreach var, $(DEPS_BEE_G
 obj/bee/util.o: bee/util.cpp bee/util.hpp $(foreach var, $(DEPS_BEE_UTIL), bee/util/$(var).hpp)
 	g++ $(FLAGS) -c bee/util.cpp -o obj/bee/util.o
 dir:
-	mkdir -p obj/bee/resource_structures
+	mkdir -p obj/bee/resource_structures/ext
 resources/resources.hpp: resources/objects/bee.hpp resources/rooms/test.hpp
 	g++ $(FLAGS) -c main.cpp -o obj/main.o
 

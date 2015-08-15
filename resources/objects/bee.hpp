@@ -38,6 +38,17 @@ void ObjBee::create(BEE::InstanceData* self) {
 	//show_message(font_liberation->get_fontname());
 
 	//std::cerr << execute_string<int>("3+5");
+
+	BEE::ParticleSystem* part_system = new BEE::ParticleSystem();
+	part_system->following = self;
+
+	BEE::Particle* part_firework = new BEE::Particle(game, spr_dot, 1.0, std::make_pair(1.0, 0.0), game->get_enum_color(c_orange), 100);
+
+	BEE::ParticleEmitter* part_emitter = new BEE::ParticleEmitter();
+	part_emitter->particle_type = part_firework;
+	part_system->emitters.push_back(part_emitter);
+
+	game->get_current_room()->add_particle_system(part_system);
 }
 void ObjBee::alarm(BEE::InstanceData* self, int a) {
 	switch (a) {
@@ -55,10 +66,6 @@ void ObjBee::step_mid(BEE::InstanceData* self) {
 	std::pair<int,int> c = coord_approach(self->x, self->y, mx, my, 10);
 	self->x = c.first;
 	self->y = c.second;*/
-
-	/*int mx, my;
-	SDL_GetMouseState(&mx, &my);
-	self->move_to(10.0, mx, my);*/
 }
 void ObjBee::keyboard_press(BEE::InstanceData* self, SDL_Event* e) {
 	switch (e->key.keysym.sym) {
@@ -181,7 +188,7 @@ void ObjBee::draw(BEE::InstanceData* self) {
 	int mx, my;
 	SDL_GetMouseState(&mx, &my);
 	int s = 100;//distance(self->x, self->y, mx, my)/2;
-	self->draw(s, s, direction_of(self->x, self->y, mx, my), c_aqua);
+	self->draw(s, s, direction_of(self->x, self->y, mx, my), c_white);
 
 	//font_liberation->draw_fast(self->x, self->y, std::to_string(self->id));
 	font_liberation->draw_fast(self->x, self->y, std::to_string(self->get_path_node()));

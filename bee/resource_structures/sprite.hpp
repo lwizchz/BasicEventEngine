@@ -47,6 +47,7 @@ class BEE::Sprite: public Resource {
 		int get_subimage_width();
 		double get_speed();
 		double get_alpha();
+		bool get_is_animated();
 		int get_origin_x();
 		int get_origin_y();
 		SDL_Texture* get_texture();

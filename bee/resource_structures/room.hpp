@@ -31,6 +31,7 @@ class BEE::Room: public Resource {
 		bool is_isometric;
 		int speed;
 		bool is_persistent;
+
 		RGBA background_color;
 		bool is_background_color_enabled;
 		std::map<int,BackgroundData*> backgrounds;
@@ -38,6 +39,8 @@ class BEE::Room: public Resource {
 		std::map<int,ViewData*> views;
 		std::map<int,InstanceData*> instances;
 		std::map<InstanceData*,int> instances_sorted;
+		std::map<int,ParticleSystem*> particles;
+		int particle_count = 0;
 	public:
 		Room();
 		Room(std::string, std::string);
@@ -82,6 +85,8 @@ class BEE::Room: public Resource {
 		int add_instance(int, Object*, int, int);
 		int remove_instance(int);
 		int sort_instances();
+		int add_particle_system(ParticleSystem*);
+		int clear_particles();
 
 		int load_media();
 		int free_media();
@@ -104,7 +109,7 @@ class BEE::Room: public Resource {
 		int intersect_boundary();
 		int collision();
 		int draw();
-		int animation_end(Sprite*);
+		int animation_end();
 		int room_start();
 		int room_end();
 		int game_start();

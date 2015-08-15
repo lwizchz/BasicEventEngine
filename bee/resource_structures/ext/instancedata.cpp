@@ -117,7 +117,7 @@ std::pair<double,double> BEE::InstanceData::get_motion() {
 
 	double d = direction_of(x, y, xsum, ysum);
 	xsum += sin(degtorad(d))*friction;
-	xsum += -cos(degtorad(d))*friction;
+	ysum += -cos(degtorad(d))*friction;
 
 	return std::make_pair(xsum, ysum);
 }

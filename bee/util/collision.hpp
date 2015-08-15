@@ -75,4 +75,27 @@ bool check_collision_line(Line line1, Line line2) {
         return false;
 }
 
+double angle_hbounce(double a) {
+        if ((a > 0)&&(a < 90)) {
+                a = (90 - a) + 270;
+        } else if ((a > 270)&&(a < 360)) {
+                a = 90 - (a - 270);
+        } else if ((a > 90)&&(a < 270)) {
+                a = (180 - a) + 180;
+        } else {
+                a += 180;
+        }
+        return a;
+}
+double angle_vbounce(double a) {
+        if ((a > 0)&&(a < 180)) {
+                a = (90 - a) + 90;
+        } else if ((a > 180)&&(a < 360)) {
+                a = (270 - a) + 270;
+        } else {
+                a += 180;
+        }
+        return a;
+}
+
 #endif // _BEE_UTIL_COLLISION_H

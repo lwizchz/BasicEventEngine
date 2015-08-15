@@ -15,10 +15,6 @@
 #include <random>
 #include <time.h>
 #include <tuple>
-#include <vector>
-#include <algorithm>
-
-#define PI 3.14159265
 
 #define DEFAULT_RANDOM_SEED 1
 
@@ -70,17 +66,6 @@ unsigned int random_reset_seed() {
 unsigned int randomize() {
         return random_set_seed(random_internal(DEFAULT_RANDOM_SEED, 0, 0));
 }
-template <typename T, typename... Args>
-T choose(Args&&... args) {
-        auto t = std::make_tuple(std::forward<Args>(args)...);
-        unsigned int size = std::tuple_size<decltype(t)>::value;
-        std::vector<T> arguments (size);
-        arguments = {std::forward<Args>(args)...};
-        return arguments[random(size)];
-}
-/*template int choose<int, int...>(int&&...);
-template double choose<double...>(double&&...);
-template std::string choose<std::string...>(std::string&&...);*/
 
 template <typename T>
 int sign(T x) {
@@ -109,50 +94,6 @@ double degtorad(double a) {
 }
 double radtodeg(double a) {
 	return a*180.0/PI;
-}
-
-template <typename T, typename... Args>
-T min(Args&&... args) {
-        auto t = std::make_tuple(std::forward<Args>(args)...);
-        unsigned int size = std::tuple_size<decltype(t)>::value;
-        std::vector<T> arguments (size);
-        arguments = {std::forward<Args>(args)...};
-        std::sort(arguments.begin(), arguments.end());
-        return arguments[0];
-}
-template <typename T, typename... Args>
-T max(Args&&... args) {
-        auto t = std::make_tuple(std::forward<Args>(args)...);
-        unsigned int size = std::tuple_size<decltype(t)>::value;
-        std::vector<T> arguments (size);
-        arguments = {std::forward<Args>(args)...};
-        std::sort(arguments.begin(), arguments.end());
-        return arguments[size-1];
-}
-template <typename T, typename... Args>
-T mean(Args&&... args) {
-        auto t = std::make_tuple(std::forward<Args>(args)...);
-        unsigned int size = std::tuple_size<decltype(t)>::value;
-        std::vector<T> arguments (size);
-        arguments = {std::forward<Args>(args)...};
-        T sum = 0;
-        for (auto a : arguments) {
-                sum += a;
-        }
-        return sum/size;
-}
-template <typename T, typename... Args>
-T median(Args&&... args) {
-        auto t = std::make_tuple(std::forward<Args>(args)...);
-        unsigned int size = std::tuple_size<decltype(t)>::value;
-        std::vector<T> arguments (size);
-        arguments = {std::forward<Args>(args)...};
-        std::sort(arguments.begin(), arguments.end());
-        if (size % 2 == 1) {
-                return arguments[(int)size/2+1];
-        } else {
-                return (arguments[size/2-1] + arguments[size/2])/2;
-        }
 }
 
 double direction_of(double x1, double y1, double x2, double y2) {

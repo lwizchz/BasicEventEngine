@@ -16,6 +16,7 @@
 std::pair<int,int> coord_approach(int, int, int, int, int);
 
 // Real number functions
+#define PI 3.14159265
 unsigned int random_internal(unsigned int, unsigned int, unsigned int);
 unsigned int random(unsigned int);
 unsigned int random_range(unsigned int, unsigned int);
@@ -23,8 +24,6 @@ unsigned random_get_seed();
 unsigned random_set_seed(unsigned int);
 unsigned int random_reset_seed();
 unsigned int randomize();
-template <typename T, typename... Args>
-T choose(Args&&...);
 template <typename T>
 int sign(T);
 template <typename T>
@@ -32,14 +31,6 @@ T sqr(T);
 double logn(double, double);
 double degtorad(double);
 double radtodeg(double);
-template <typename T, typename... Args>
-T min(Args&&...);
-template <typename T, typename... Args>
-T max(Args&&...);
-template <typename T, typename... Args>
-T mean(Args&&...);
-template <typename T, typename... Args>
-T median(Args&&...);
 double direction_of(double, double, double, double);
 double distance(double, double, double, double);
 template <typename T>
@@ -116,6 +107,8 @@ class Line;
 bool check_collision(SDL_Rect*, SDL_Rect*);
 bool check_collision_circle(double, double, double, double, double, double);
 bool check_collision_line(Line, Line);
+double angle_hbounce(double);
+double angle_vbounce(double);
 
 // Sound effect functions
 class se_chorus_data;
@@ -171,5 +164,7 @@ template <typename T>
 std::map<std::string,T> load_map(std::string);
 
 #endif // _BEE_SCRIPTING
+
+#include "util/template.hpp"
 
 #endif // _BEE_UTIL_H

@@ -63,9 +63,6 @@ int BEE::free_media() {
 	return 0;
 }
 
-int BEE::animation_end(Sprite* finished_sprite) {
-	return current_room->animation_end(finished_sprite);
-}
 void BEE::sound_finished(int channel) {
 	for (int i=0; i<resource_list->sounds.get_amount(); i++) {
 		if (get_sound(i) != NULL) {

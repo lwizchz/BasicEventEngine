@@ -30,6 +30,7 @@ BEE::Room::~Room() {
 	backgrounds.clear();
 	views.clear();
 	instances.clear();
+	particles.clear();
 	BEE::resource_list->rooms.remove_resource(id);
 }
 int BEE::Room::add_to_resources(std::string path) {
@@ -76,6 +77,7 @@ int BEE::Room::reset() {
 	}
 	instances.clear();
 	instances_sorted.clear();
+	particles.clear();
 
 	return 0;
 }
@@ -310,6 +312,19 @@ int BEE::Room::sort_instances() {
 	std::transform(instances.begin(), instances.end(), std::inserter(instances_sorted, instances_sorted.begin()), flip_pair<int,InstanceData*>);
 	return 0;
 }
+int BEE::Room::add_particle_system(ParticleSystem* new_system) {
+	new_system->load();
+	particles.insert(std::make_pair(particle_count++, new_system));
+	return 0;
+}
+int BEE::Room::clear_particles() {
+	for (auto& p : particles) {
+		delete p.second;
+	}
+	particles.clear();
+	particle_count = 0;
+	return 0;
+}
 
 int BEE::Room::load_media() {
 	// Load room sprites
@@ -350,6 +365,11 @@ int BEE::Room::reset_properties() {
 		delete b.second;
 	}
 	backgrounds.clear();
+
+	for (auto& p : particles) {
+		p.second->clear();
+	}
+	particles.clear();
 
 	return 0;
 }
@@ -617,6 +637,11 @@ int BEE::Room::draw() {
 		}
 	}
 
+	// Draw particles
+	for (auto& p : particles) {
+		p.second->draw();
+	}
+
 	// Draw foregrounds
 	for (auto& b : backgrounds) {
 		if (b.second->is_visible && b.second->is_foreground) {
@@ -628,10 +653,10 @@ int BEE::Room::draw() {
 
 	return 0;
 }
-int BEE::Room::animation_end(Sprite* finished_sprite) {
+int BEE::Room::animation_end() {
 	sort_instances();
 	for (auto& i : instances_sorted) {
-		if (i.first->object->get_sprite()->get_id() == finished_sprite->get_id()) {
+		if (!i.first->object->get_sprite()->get_is_animated()) {
 			i.first->object->animation_end(i.first);
 		}
 	}

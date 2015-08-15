@@ -225,11 +225,14 @@ int BEE::loop() {
 
 			current_room->step_end();
 			current_room->draw();
+			current_room->animation_end();
 
 			fps_count++;
 			new_tickstamp = SDL_GetTicks();
-			if ((new_tickstamp - tickstamp < 1000/fps_max)&&(!options->is_vsync_enabled)) {
-				SDL_Delay((1000/fps_max) - (new_tickstamp - tickstamp));
+			if (new_tickstamp - tickstamp < 1000/fps_max) {
+				if ((!options->is_vsync_enabled)||(!has_focus)) {
+					SDL_Delay((1000/fps_max) - (new_tickstamp - tickstamp));
+				}
 			}
 			tickstamp = SDL_GetTicks();
 

@@ -126,6 +126,9 @@ double BEE::Sprite::get_speed() {
 double BEE::Sprite::get_alpha() {
 	return alpha;
 }
+bool BEE::Sprite::get_is_animated() {
+	return is_animated;
+}
 int BEE::Sprite::get_origin_x() {
 	return origin_x;
 }
@@ -201,7 +204,7 @@ int BEE::Sprite::load() {
 		SDL_FreeSurface(tmp_surface);
 
 		SDL_QueryTexture(texture, NULL, NULL, &width, &height);
-		if (subimage_amount == 0) {
+		if (subimage_amount <= 1) {
 			set_subimage_amount(1, width);
 		}
 
@@ -221,6 +224,11 @@ int BEE::Sprite::free() {
 	return 0;
 }
 int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h, double angle, RGBA new_color) {
+	if (!is_loaded) {
+		std::cerr << "Failed to draw sprite '" << name << "'" << " because it is not loaded\n";
+		return 1;
+	}
+
 	int current_subimage = (int)round(speed*(SDL_GetTicks()-subimage_time)/game->fps_goal) % subimage_amount;
 	if (current_subimage == 0) {
 		is_animated = true;
@@ -253,7 +261,6 @@ int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h, double a
 	}
 
 	if ((is_animated)&&(current_subimage == subimage_amount-1)) {
-		game->animation_end(this);
 		is_animated = false;
 	}
 
