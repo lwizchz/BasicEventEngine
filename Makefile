@@ -6,8 +6,8 @@ DEPS_BEE_GAME = resources room transition display window input draw
 DEPS_BEE_RESOURCE_STRUCTURES = sprite sound background font path object room ext/instancedata ext/particles
 DEPS_BEE_UTIL = real string dates collision sound messagebox files script
 
-PKGDEPS = libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev chaiscript
-INCLUDE = sdl2 SDL2_image SDL2_ttf SDL2_mixer
+PKGDEPS = libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev libsdl2-net-dev chaiscript
+INCLUDE = sdl2 SDL2_image SDL2_ttf SDL2_mixer SDL2_net
 LIBS = ${shell pkg-config --libs $(INCLUDE)}
 WARNS = -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable
 
@@ -37,7 +37,7 @@ obj/bee/resource_structures/%.o : bee/resource_structures/%.cpp bee/game.hpp
 	g++ $(FLAGS) -c $< -o $@
 obj/%.o : %.cpp bee/game.hpp
 	g++ $(FLAGS) -c $< -o $@
-bee/game.hpp: obj/bee/util.o resources/resources.hpp $(foreach var, $(DEPS_BEE_GAME), bee/game/$(var).cpp) dir
+bee/game.hpp: dir obj/bee/util.o resources/resources.hpp $(foreach var, $(DEPS_BEE_GAME), bee/game/$(var).cpp)
 obj/bee/util.o: bee/util.cpp bee/util.hpp $(foreach var, $(DEPS_BEE_UTIL), bee/util/$(var).hpp)
 	g++ $(FLAGS) -c bee/util.cpp -o obj/bee/util.o
 dir:
@@ -50,8 +50,8 @@ run: main
 win: $(DEPS)
 	$(WINBUILD)
 clean:
-	$(CLEAN)
 	rm -r obj
+	$(CLEAN)
 
 web:
 	cd ..

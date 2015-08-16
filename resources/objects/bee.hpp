@@ -9,6 +9,7 @@
 class ObjBee : public BEE::Object {
 	public:
 		TextData* fps_display;
+		TCPsocket listen = NULL, client = NULL;
 
 		ObjBee();
 		~ObjBee();
@@ -101,6 +102,32 @@ void ObjBee::keyboard_press(BEE::InstanceData* self, SDL_Event* e) {
 				if (game->get_sprite(54) == NULL) {
 					show_error("No such sprite");
 				}
+			}
+			break;
+		}
+
+		case SDLK_z: {
+			if (listen == NULL) {
+				listen = network_tcp_open("", 9999);
+				std::cerr << "TCP opened\n";
+			}
+			if ((client == NULL)&&(listen != NULL)) {
+				client = network_tcp_accept(listen);
+			}
+			if (client != NULL) {
+				std::cerr << "Client accepted\n";
+				network_tcp_send(client, "x=" + std::to_string(self->x) + ", y=" + std::to_string(self->y));
+				std::cerr << "Data sent\n";
+			}
+			break;
+		}
+		case SDLK_x: {
+			if (client == NULL) {
+				client = network_tcp_open("192.168.1.155", 9999);
+				std::cerr << "TCP opened\n";
+			}
+			if (client != NULL) {
+				std::cerr << network_tcp_recv(client, 8) << "\n";
 			}
 			break;
 		}

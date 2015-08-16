@@ -11,6 +11,7 @@
 
 #include <map>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_net.h>
 
 // General utility
 std::pair<int,int> coord_approach(int, int, int, int, int);
@@ -164,6 +165,18 @@ template <typename T>
 std::map<std::string,T> load_map(std::string);
 
 #endif // _BEE_SCRIPTING
+
+// Networking functions
+int network_init();
+int network_quit();
+IPaddress* network_get_peer_address(TCPsocket);
+TCPsocket network_tcp_open(std::string, int);
+int network_tcp_close(TCPsocket);
+TCPsocket network_tcp_accept(TCPsocket);
+int network_tcp_send(TCPsocket, const void*, int);
+int network_tcp_send(TCPsocket, std::string);
+int network_tcp_recv(TCPsocket, void*, int);
+std::string network_tcp_recv(TCPsocket, int);
 
 #include "util/template.hpp"
 
