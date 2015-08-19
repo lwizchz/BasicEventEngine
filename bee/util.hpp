@@ -19,7 +19,7 @@ std::pair<int,int> coord_approach(int, int, int, int, int);
 // Real number functions
 #define PI 3.14159265
 unsigned int random_internal(unsigned int, unsigned int, unsigned int);
-unsigned int random(unsigned int);
+unsigned int random(int);
 unsigned int random_range(unsigned int, unsigned int);
 unsigned random_get_seed();
 unsigned random_set_seed(unsigned int);

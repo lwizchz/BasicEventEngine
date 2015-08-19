@@ -11,9 +11,9 @@ This program has only been compiled under Arch Linux and Ubuntu 15.04 and at the
 1. Install the required libraries:
 
         # Arch Linux
-        sudo pacman -S sdl2 sdl2_image sdl2_ttf sdl2_mixer
+        sudo pacman -S sdl2 sdl2_image sdl2_ttf sdl2_mixer sdl2_net
         # Ubuntu
-        sudo apt-get install libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev
+        sudo apt-get install libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev libsdl2-net-dev
 
 2. (Optional) Install ChaiScript [from their website][1] in order to use scripting.
 

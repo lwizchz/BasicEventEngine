@@ -85,6 +85,14 @@ class BEE {
 		int set_volume(double);
 		int sound_stop_all();
 
+		Sprite* add_sprite(std::string, std::string);
+		Sound* add_sound(std::string, std::string, bool);
+		Background* add_background(std::string, std::string);
+		Font* add_font(std::string, std::string, int);
+		Path* add_path(std::string, std::string);
+		Object* add_object(std::string, std::string);
+		Room* add_room(std::string, std::string);
+
 		static Sprite* get_sprite(int);
 		static Sound* get_sound(int);
 		static Background* get_background(int);
@@ -158,6 +166,7 @@ class BEE {
 		int set_mousey(int);
 
 		// bee/game/draw.cpp
+		RGBA get_enum_color(rgba_t, Uint8);
 		RGBA get_enum_color(rgba_t);
 		int draw_point(int, int);
 		int draw_line(int, int, int, int);

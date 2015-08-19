@@ -164,7 +164,6 @@ int BEE::Sprite::set_speed(double new_speed) {
 }
 int BEE::Sprite::set_alpha(double new_alpha) {
 	alpha = new_alpha;
-	SDL_SetTextureAlphaMod(texture, alpha*255);
 	return 0;
 }
 int BEE::Sprite::set_origin_x(int new_origin_x) {
@@ -235,6 +234,11 @@ int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h, double a
 	}
 
 	SDL_SetTextureColorMod(texture, new_color.r, new_color.g, new_color.b);
+	if (new_color.a == 0) {
+		SDL_SetTextureAlphaMod(texture, alpha*255);
+	} else {
+		SDL_SetTextureAlphaMod(texture, new_color.a);
+	}
 
 	drect.x = x;
 	drect.y = y;
@@ -267,13 +271,13 @@ int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h, double a
 	return 0;
 }
 int BEE::Sprite::draw(int x, int y, Uint32 subimage_time) {
-	return draw(x, y, subimage_time, -1, -1, 0.0, {255, 255, 255, 255});
+	return draw(x, y, subimage_time, -1, -1, 0.0, {255, 255, 255, 0});
 }
 int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h) {
-	return draw(x, y, subimage_time, w, h, 0.0, {255, 255, 255, 255});
+	return draw(x, y, subimage_time, w, h, 0.0, {255, 255, 255, 0});
 }
 int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, double angle) {
-	return draw(x, y, subimage_time, -1, -1, angle, {255, 255, 255, 255});
+	return draw(x, y, subimage_time, -1, -1, angle, {255, 255, 255, 0});
 }
 int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, RGBA color) {
 	return draw(x, y, subimage_time, -1, -1, 0.0, color);

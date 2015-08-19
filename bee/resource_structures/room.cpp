@@ -314,8 +314,18 @@ int BEE::Room::sort_instances() {
 }
 int BEE::Room::add_particle_system(ParticleSystem* new_system) {
 	new_system->load();
+	new_system->id = particle_count;
 	particles.insert(std::make_pair(particle_count++, new_system));
 	return 0;
+}
+int BEE::Room::add_particle(ParticleSystem* sys, Particle* pd, int x, int y) {
+	auto it = particles.find(sys->id);
+	if (it != particles.end()) {
+		it->second->add_particle(pd, x, y);
+
+		return 0;
+	}
+	return 1;
 }
 int BEE::Room::clear_particles() {
 	for (auto& p : particles) {

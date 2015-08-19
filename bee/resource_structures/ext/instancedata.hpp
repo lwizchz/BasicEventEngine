@@ -43,7 +43,7 @@ class BEE::InstanceData {
 		int init(int, Object*, int, int);
 		int print();
 
-		bool operator< (const InstanceData& other);
+		bool operator< (const InstanceData&);
 
 		int remove();
 

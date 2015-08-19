@@ -96,6 +96,49 @@ int BEE::sound_stop_all() {
 	return 0;
 }
 
+BEE::Sprite* BEE::add_sprite(std::string name, std::string path) {
+	Sprite* new_sprite = new Sprite(name, path);
+	new_sprite->game = this;
+	new_sprite->load();
+	return new_sprite;
+}
+BEE::Sound* BEE::add_sound(std::string name, std::string path, bool type) {
+	Sound* new_sound = new Sound(name, path, type);
+	new_sound->game = this;
+	new_sound->load();
+	return new_sound;
+}
+BEE::Background* BEE::add_background(std::string name, std::string path) {
+	Background* new_background = new Background(name, path);
+	new_background->game = this;
+	new_background->load();
+	return new_background;
+}
+BEE::Font* BEE::add_font(std::string name, std::string path, int size) {
+	Font* new_font = new Font(name, path, size);
+	new_font->game = this;
+	new_font->load();
+	return new_font;
+}
+BEE::Path* BEE::add_path(std::string name, std::string path) {
+	Path* new_path = new Path(name, path);
+	new_path->game = this;
+	//new_path->load();
+	return new_path;
+}
+BEE::Object* BEE::add_object(std::string name, std::string path) {
+	Object* new_object = new Object(name, path);
+	new_object->game = this;
+	//new_object->load();
+	return new_object;
+}
+/*BEE::Room* BEE::add_room(std::string name, std::string path) {
+	Room* new_room = new Room(name, path);
+	new_room->game = this;
+	//new_room->load();
+	return new_room;
+}*/
+
 BEE::Sprite* BEE::get_sprite(int id) {
 	return dynamic_cast<Sprite*>(resource_list->sprites.get_resource(id));
 }
@@ -117,5 +160,7 @@ BEE::Object* BEE::get_object(int id) {
 BEE::Room* BEE::get_room(int id) {
 	return dynamic_cast<Room*>(resource_list->rooms.get_resource(id));
 }
+
+
 
 #endif // _BEE_GAME_RESOURCES

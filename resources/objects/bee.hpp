@@ -34,20 +34,33 @@ void ObjBee::create(BEE::InstanceData* self) {
 	// create event
 	std::cout << "u r a b " << self->id << ", : " << game->get_display_refresh_rate() << "\n";
 	//self->set_alarm(0, 2000);
-	spr_bee->set_alpha(0.5);
+	//spr_bee->set_alpha(0.5);
 	//self->set_gravity(7.0);
 	//show_message(font_liberation->get_fontname());
 
 	//std::cerr << execute_string<int>("3+5");
 
 	BEE::ParticleSystem* part_system = new BEE::ParticleSystem();
-	part_system->following = self;
+	//part_system->following = NULL;
 
-	BEE::Particle* part_firework = new BEE::Particle(game, spr_dot, 1.0, std::make_pair(1.0, 0.0), game->get_enum_color(c_orange), 100);
+	//BEE::Particle* part_done = new BEE::Particle(game, pt_shape_explosion, 0.5, 100);
+
+	BEE::Particle* part_firework = new BEE::Particle(game, pt_shape_snow, 0.5, 20000);
+	part_firework->velocity = {-1.0, 0.0};
+	part_firework->angle_increase = 0.5;
+	//part_firework->color = game->get_enum_color(c_orange, 100);
+	//part_firework->death_type = part_done;
 
 	BEE::ParticleEmitter* part_emitter = new BEE::ParticleEmitter();
+	part_emitter->w = 1280;
 	part_emitter->particle_type = part_firework;
+	part_emitter->number = 5;
 	part_system->emitters.push_back(part_emitter);
+
+	BEE::ParticleDestroyer* part_destroyer = new BEE::ParticleDestroyer();
+	part_destroyer->y = 620;
+	part_destroyer->w = 1280;
+	part_system->destroyers.push_back(part_destroyer);
 
 	game->get_current_room()->add_particle_system(part_system);
 }

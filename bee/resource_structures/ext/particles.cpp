@@ -11,26 +11,104 @@
 
 #include "particles.hpp"
 
-BEE::Particle::Particle(BEE* new_game, Sprite* new_sprite, double new_scale, std::pair<double,double> new_velocity, RGBA new_color, Uint32 new_max_time) {
+BEE::Particle::Particle(BEE* new_game, Sprite* new_sprite, double new_scale, Uint32 new_max_time) {
 	game = new_game;
-	init(new_sprite, new_scale, new_velocity, new_color, new_max_time);
+	init(new_sprite, new_scale, new_max_time);
 }
-int BEE::Particle::init(Sprite* new_sprite, double new_scale, std::pair<double,double> new_velocity, RGBA new_color, Uint32 new_max_time) {
+BEE::Particle::Particle(BEE* new_game, pt_shape_t new_shape, double new_scale, Uint32 new_max_time) {
+	game = new_game;
+	Sprite* new_sprite;
+
+	switch (new_shape) {
+		case pt_shape_pixel: {
+			new_sprite = game->add_sprite("pt_sprite_pixel", "particles/00_pixel.png");
+			break;
+		}
+		case pt_shape_disk: {
+			new_sprite = game->add_sprite("pt_sprite_disk", "particles/01_disk.png");
+			break;
+		}
+		case pt_shape_square: {
+			new_sprite = game->add_sprite("pt_sprite_square", "particles/02_square.png");
+			break;
+		}
+		case pt_shape_line: {
+			new_sprite = game->add_sprite("pt_sprite_line", "particles/03_line.png");
+			break;
+		}
+		case pt_shape_star: {
+			new_sprite = game->add_sprite("pt_sprite_star", "particles/04_star.png");
+			break;
+		}
+		case pt_shape_circle: {
+			new_sprite = game->add_sprite("pt_sprite_circle", "particles/05_circle.png");
+			break;
+		}
+		case pt_shape_ring: {
+			new_sprite = game->add_sprite("pt_sprite_ring", "particles/06_ring.png");
+			break;
+		}
+		case pt_shape_sphere: {
+			new_sprite = game->add_sprite("pt_sprite_sphere", "particles/07_sphere.png");
+			break;
+		}
+		case pt_shape_flare: {
+			new_sprite = game->add_sprite("pt_sprite_flare", "particles/08_flare.png");
+			break;
+		}
+		case pt_shape_spark: {
+			new_sprite = game->add_sprite("pt_sprite_spark", "particles/09_spark.png");
+			break;
+		}
+		case pt_shape_explosion: {
+			new_sprite = game->add_sprite("pt_sprite_explosion", "particles/10_explosion.png");
+			break;
+		}
+		case pt_shape_cloud: {
+			new_sprite = game->add_sprite("pt_sprite_cloud", "particles/11_cloud.png");
+			break;
+		}
+		case pt_shape_smoke: {
+			new_sprite = game->add_sprite("pt_sprite_smoke", "particles/12_smoke.png");
+			break;
+		}
+		case pt_shape_snow: {
+			new_sprite = game->add_sprite("pt_sprite_snow", "particles/13_snow.png");
+			break;
+		}
+		default: // This should never happen
+			return;
+	}
+
+	init(new_sprite, new_scale, new_max_time);
+}
+int BEE::Particle::init(Sprite* new_sprite, double new_scale, Uint32 new_max_time) {
 	sprite = new_sprite;
 	scale = new_scale;
-	velocity = new_velocity;
-	color = new_color;
 	max_time = new_max_time;
+
+	on_death = [] (BEE::ParticleSystem* sys, BEE::ParticleData* pd, BEE::Particle* p) {
+		for (int i = 0; i < pd->particle_type->death_amount; i++) {
+			p->game->get_current_room()->add_particle(sys, p, pd->x, pd->y);
+		}
+	};
 
 	return 0;
 }
 int BEE::Particle::print() {
 	std::cout <<
 	"Particle { "
-	"\n	sprite		" << sprite <<
-	"\n	scale		" << scale <<
-	"\n	color		" << (int)color.r << ", " << (int)color.g << ", " << (int)color.b << ", " << (int)color.a <<
-	"\n	max_time	" << max_time <<
+	"\n	sprite			" << sprite <<
+	"\n	scale			" << scale <<
+	"\n	velocity:\n" <<
+	"\n		magnitude	" << velocity.first <<
+	"\n		direction	" << velocity.second <<
+	"\n	angle			" << angle <<
+	"\n	angle_increase		" << angle_increase <<
+	"\n	color (rgba)		" << (int)color.r << ", " << (int)color.g << ", " << (int)color.b << ", " << (int)color.a <<
+	"\n	max_time		" << max_time <<
+	"\n	death_type		" << death_type <<
+	"\n	death_amount		" << death_amount <<
 	"\n}\n";
 
 	return 0;
@@ -39,30 +117,41 @@ int BEE::Particle::print() {
 BEE::ParticleData::ParticleData(Particle* new_particle_type, int new_x, int new_y) {
 	particle_type = new_particle_type;
 
-	x = mean<int>(new_x, (int)random(25));
-	y = mean<int>(new_y, (int)random(25));
+	x = mean<int>(new_x, new_x + (int)random(25) - 12);
+	y = mean<int>(new_y, new_y + (int)random(25) - 12);
 	double s = particle_type->scale * random(100)/100;
 	w = particle_type->sprite->get_width() * s;
 	h = particle_type->sprite->get_height() * s;
 
 	velocity = particle_type->velocity;
 	creation_time = SDL_GetTicks();
+
+	randomness = random(3) + 1;
 }
-int BEE::ParticleData::draw(int sx, int sy) {
-	return particle_type->sprite->draw(sx+x, sy+y, creation_time, w, h, 0.0, particle_type->color);
+int BEE::ParticleData::draw(int sx, int sy, Uint32 ticks) {
+	double a = particle_type->angle + particle_type->angle_increase * ticks * ((double)randomness / 2);
+	return particle_type->sprite->draw((sx+x) - w/2, (sy+y) - h/2, creation_time, w, h, a, particle_type->color);
 }
-bool BEE::ParticleData::is_dead() {
+bool BEE::ParticleData::is_dead(Uint32 ticks) {
 	if (particle_type->sprite->get_subimage_amount() > 1) {
 		if (!particle_type->sprite->get_is_animated()) {
 			return true;
 		}
-	} else if (SDL_GetTicks() - creation_time > particle_type->max_time) {
+	} else if (ticks + (int)random(particle_type->max_time/4) > particle_type->max_time) {
 		return true;
 	}
 	return false;
 }
+bool BEE::ParticleData::operator< (const ParticleData& other) {
+	if (depth == other.depth) {
+		return (creation_time <= other.creation_time);
+	}
+	return (depth > other.depth);
+}
 
-BEE::ParticleSystem::ParticleSystem() {}
+BEE::ParticleSystem::ParticleSystem() {
+	following = NULL;
+}
 int BEE::ParticleSystem::load() {
 	for (auto& e : emitters) {
 		e->particle_type->sprite->load();
@@ -82,15 +171,15 @@ int BEE::ParticleSystem::draw() {
 		}
 
 		int px = p->x, py = p->y;
-		double m = p->velocity.first;
+		double m = p->velocity.first * p->randomness;
 		double dir = p->velocity.second;
-		p->x += sin(degtorad(dir))*m;
-		p->y += -cos(degtorad(dir))*m;
+		p->x += sin(degtorad(dir)) * m;
+		p->y += -cos(degtorad(dir)) * m;
 
 		for (auto& a : attractors) {
 			dir = direction_of(px, py, a->x, a->y);
-			p->x += sin(degtorad(dir)) * a->force;
-			p->y += -cos(degtorad(dir)) * a->force;
+			p->x += sin(degtorad(dir)) * a->force * p->randomness;
+			p->y += -cos(degtorad(dir)) * a->force * p->randomness;
 		}
 
 		for (auto& d : deflectors) {
@@ -99,9 +188,9 @@ int BEE::ParticleSystem::draw() {
 			if (check_collision(&a, &b)) {
 				dir = direction_of(px, py, p->x, p->y);
 				if (true) {
-					p->velocity = std::make_pair(p->velocity.first*d->friction, angle_hbounce(dir));
+					p->velocity = std::make_pair(p->velocity.first * d->friction, angle_hbounce(dir));
 				} else {
-					p->velocity = std::make_pair(p->velocity.first*d->friction, angle_vbounce(dir));
+					p->velocity = std::make_pair(p->velocity.first * d->friction, angle_vbounce(dir));
 				}
 			}
 		}
@@ -109,15 +198,35 @@ int BEE::ParticleSystem::draw() {
 
 	for (auto& e : emitters) {
 		if (e->number >= 0) {
-			ParticleData* p = new ParticleData(e->particle_type, 0, 100);
-			particles.push_back(p);
+			for (int i=0; i<e->number; i++) {
+				add_particle(e->particle_type, e->x + random(e->w), e->y + random(e->h));
+			}
+		} else {
+			if (e->number_count++ >= -e->number) {
+				add_particle(e->particle_type, e->x + random(e->w), e->y + random(e->h));
+				e->number_count = 0;
+			}
 		}
 	}
 
 	std::list<ParticleData*> plist = particles;
+	plist.sort();
+	if (!is_oldfirst) {
+		plist.reverse();
+	}
 	for (auto& p : plist) {
-		p->draw(following->x + xoffset, following->y + yoffset);
-		if (p->is_dead()) {
+		Uint32 ticks = SDL_GetTicks() - p->creation_time;
+
+		if (following != NULL) {
+			p->draw(following->x + xoffset, following->y + yoffset, ticks);
+		} else {
+			p->draw(xoffset, yoffset, ticks);
+		}
+
+		if (p->is_dead(ticks)) {
+			if ((p->particle_type->death_type != NULL)&&(p->particle_type->on_death != NULL)) {
+				p->particle_type->on_death(this, p, p->particle_type->death_type);
+			}
 			particles.remove(p);
 			delete p;
 		} else {
@@ -144,6 +253,12 @@ int BEE::ParticleSystem::clear() {
 	destroyers.clear();
 	deflectors.clear();
 	changers.clear();
+	return 0;
+}
+
+int BEE::ParticleSystem::add_particle(Particle* p, int x, int y) {
+	ParticleData* pd = new ParticleData(p, x, y);
+	particles.push_back(pd);
 	return 0;
 }
 

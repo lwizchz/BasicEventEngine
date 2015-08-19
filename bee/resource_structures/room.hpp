@@ -86,6 +86,7 @@ class BEE::Room: public Resource {
 		int remove_instance(int);
 		int sort_instances();
 		int add_particle_system(ParticleSystem*);
+		int add_particle(ParticleSystem*, Particle*, int, int);
 		int clear_particles();
 
 		int load_media();

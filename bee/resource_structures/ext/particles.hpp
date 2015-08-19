@@ -10,6 +10,7 @@
 #define _BEE_PARTICLE_H 1
 
 #include <list>
+#include <functional>
 
 #include "../../game.hpp"
 
@@ -37,13 +38,21 @@ class BEE::Particle {
 		Sprite* sprite = NULL;
 
 		double scale = 1.0;
-		std::pair<double,double> velocity;
+		std::pair<double,double> velocity = {0.0, 0.0};
+
+		double angle = 0.0;
+		double angle_increase = 0.0;
+
 		RGBA color = {255, 255, 255, 255};
 
 		Uint32 max_time = 100;
+		std::function<void (ParticleSystem*, ParticleData*, Particle*)> on_death = NULL;
+		Particle* death_type = NULL;
+		int death_amount = 1;
 
-		Particle(BEE*, Sprite*, double, std::pair<double,double>, RGBA, Uint32);
-		int init(Sprite*, double, std::pair<double,double>, RGBA, Uint32);
+		Particle(BEE*, Sprite*, double, Uint32);
+		Particle(BEE*, pt_shape_t, double, Uint32);
+		int init(Sprite*, double, Uint32);
 		int print();
 };
 
@@ -54,13 +63,19 @@ class BEE::ParticleData {
 		int x = 0, y = 0;
 		int w = 0, h = 0;
 
+		int depth = 0;
+
 		std::pair<double,double> velocity;
 
 		Uint32 creation_time;
 
+		unsigned int randomness = 1;
+
 		ParticleData(Particle*, int, int);
-		int draw(int, int);
-		bool is_dead();
+		int draw(int, int, Uint32);
+		bool is_dead(Uint32);
+
+		bool operator< (const ParticleData&);
 };
 
 enum ps_shape_t {
@@ -146,7 +161,7 @@ class BEE::ParticleSystem {
 		int depth = 0;
 
 		int xoffset = 0, yoffset = 0;
-		InstanceData* following;
+		InstanceData* following = NULL;
 
 		std::list<ParticleData*> particles;
 		std::list<ParticleEmitter*> emitters;
@@ -160,6 +175,8 @@ class BEE::ParticleSystem {
 		int load();
 		int draw();
 		int clear();
+
+		int add_particle(Particle*, int, int);
 };
 
 #endif // _BEE_PARTICLE_H

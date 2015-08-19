@@ -9,29 +9,32 @@
 #ifndef _BEE_GAME_DRAW
 #define _BEE_GAME_DRAW 1
 
-BEE::RGBA BEE::get_enum_color(rgba_t c) {
+BEE::RGBA BEE::get_enum_color(rgba_t c, Uint8 a) {
 	switch (c) {
-		case c_aqua: return {0, 255, 255, 255};
-		case c_black: return {0, 0, 0, 255};
-		case c_blue: return {0, 0, 255, 255};
-		case c_dkgray: return {64, 64, 64, 255};
-		case c_fuchsia: return {255, 0, 255, 255};
-		case c_gray: return {128, 128, 128, 255};
-		case c_green: return {0, 255, 0, 255};
-		//case c_lime: return {255, 255, 255, 255};
-		case c_ltgray: return {192, 192, 192, 255};
-		//case c_maroon: return {255, 255, 255, 255};
-		//case c_navy: return {255, 255, 255, 255};
-		//case c_olive: return {255, 255, 255, 255};
-		case c_orange: return {255, 128, 0, 255};
-		case c_purple: return {128, 0, 255, 255};
-		case c_red: return {255, 0, 0, 255};
-		//case c_silver: return {255, 255, 255, 255};
-		//case c_teal: return {255, 255, 255, 255};
-		case c_white: return {255, 255, 255, 255};
-		case c_yellow: return {255, 255, 0, 255};
-		default: return {0, 0, 0, 255};
+		case c_aqua: return {0, 255, 255, a};
+		case c_black: return {0, 0, 0, a};
+		case c_blue: return {0, 0, 255, a};
+		case c_dkgray: return {64, 64, 64, a};
+		case c_fuchsia: return {255, 0, 255, a};
+		case c_gray: return {128, 128, 128, a};
+		case c_green: return {0, 255, 0, a};
+		//case c_lime: return {255, 255, 255, a};
+		case c_ltgray: return {192, 192, 192, a};
+		//case c_maroon: return {255, 255, 255, a};
+		//case c_navy: return {255, 255, 255, a};
+		//case c_olive: return {255, 255, 255, a};
+		case c_orange: return {255, 128, 0, a};
+		case c_purple: return {128, 0, 255, a};
+		case c_red: return {255, 0, 0, a};
+		//case c_silver: return {255, 255, 255, a};
+		//case c_teal: return {255, 255, 255, a};
+		case c_white: return {255, 255, 255, a};
+		case c_yellow: return {255, 255, 0, a};
+		default: return {0, 0, 0, a};
 	}
+}
+BEE::RGBA BEE::get_enum_color(rgba_t c) {
+	return get_enum_color(c, 255);
 }
 
 int BEE::draw_point(int x, int y) {

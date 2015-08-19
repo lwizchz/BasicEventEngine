@@ -48,7 +48,10 @@ unsigned int random_internal(unsigned int new_seed, unsigned int minimum, unsign
         }
 }
 
-unsigned int random(unsigned int x) {
+unsigned int random(int x) {
+        if (x == 0) {
+                return 0;
+        }
         return random_internal(DEFAULT_RANDOM_SEED, 0, x);
 }
 unsigned int random_range(unsigned int x1, unsigned int x2) {
