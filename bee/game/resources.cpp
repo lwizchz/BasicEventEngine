@@ -161,6 +161,4 @@ BEE::Room* BEE::get_room(int id) {
 	return dynamic_cast<Room*>(resource_list->rooms.get_resource(id));
 }
 
-
-
 #endif // _BEE_GAME_RESOURCES

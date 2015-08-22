@@ -151,6 +151,7 @@ bool BEE::ParticleData::operator< (const ParticleData& other) {
 
 BEE::ParticleSystem::ParticleSystem() {
 	following = NULL;
+	clear();
 }
 int BEE::ParticleSystem::load() {
 	for (auto& e : emitters) {
@@ -209,37 +210,44 @@ int BEE::ParticleSystem::draw() {
 		}
 	}
 
-	std::list<ParticleData*> plist = particles;
-	plist.sort();
+	particles.sort();
 	if (!is_oldfirst) {
-		plist.reverse();
+		particles.reverse();
 	}
-	for (auto& p : plist) {
-		Uint32 ticks = SDL_GetTicks() - p->creation_time;
+	particles.erase(
+		std::remove_if(
+			particles.begin(),
+			particles.end(),
+			[&] (ParticleData* p) -> bool {
+				Uint32 ticks = SDL_GetTicks() - p->creation_time;
 
-		if (following != NULL) {
-			p->draw(following->x + xoffset, following->y + yoffset, ticks);
-		} else {
-			p->draw(xoffset, yoffset, ticks);
-		}
-
-		if (p->is_dead(ticks)) {
-			if ((p->particle_type->death_type != NULL)&&(p->particle_type->on_death != NULL)) {
-				p->particle_type->on_death(this, p, p->particle_type->death_type);
-			}
-			particles.remove(p);
-			delete p;
-		} else {
-			for (auto& d : destroyers) {
-				SDL_Rect a = {p->x, p->y, 0, 0};
-				SDL_Rect b = {d->x, d->y, d->w, d->y};
-				if (check_collision(&a, &b)) {
-					particles.remove(p);
-					delete p;
+				if (following != NULL) {
+					p->draw(following->x + xoffset, following->y + yoffset, ticks);
+				} else {
+					p->draw(xoffset, yoffset, ticks);
 				}
+
+				if (p->is_dead(ticks)) {
+					if ((p->particle_type->death_type != NULL)&&(p->particle_type->on_death != NULL)) {
+						p->particle_type->on_death(this, p, p->particle_type->death_type);
+					}
+					delete p;
+					return true;
+				} else {
+					for (auto& d : destroyers) {
+						SDL_Rect a = {p->x, p->y, 0, 0};
+						SDL_Rect b = {d->x, d->y, d->w, d->y};
+						if (check_collision(&a, &b)) {
+							delete p;
+							return true;
+						}
+					}
+				}
+				return false;
 			}
-		}
-	}
+		),
+		particles.end()
+	);
 
 	return 0;
 }

@@ -169,14 +169,29 @@ std::map<std::string,T> load_map(std::string);
 // Networking functions
 int network_init();
 int network_quit();
-IPaddress* network_get_peer_address(TCPsocket);
 TCPsocket network_tcp_open(std::string, int);
 int network_tcp_close(TCPsocket);
 TCPsocket network_tcp_accept(TCPsocket);
+IPaddress* network_get_peer_address(TCPsocket);
 int network_tcp_send(TCPsocket, const void*, int);
 int network_tcp_send(TCPsocket, std::string);
 int network_tcp_recv(TCPsocket, void*, int);
 std::string network_tcp_recv(TCPsocket, int);
+UDPsocket network_udp_open(int);
+int network_udp_close(UDPsocket);
+int network_udp_bind(UDPsocket, int, IPaddress*);
+int network_udp_bind(UDPsocket, int, std::string, int);
+int network_udp_unbind(UDPsocket, int);
+IPaddress* network_get_peer_address(UDPsocket, int);
+int network_udp_send(UDPsocket, int, UDPpacket*);
+int network_udp_recv(UDPsocket, UDPpacket*);
+int network_udp_sendv(UDPsocket, UDPpacket**, int);
+int network_udp_recvv(UDPsocket, UDPpacket**);
+UDPpacket* network_packet_alloc(int);
+UDPpacket* network_packet_resize(UDPpacket*, int);
+int network_packet_free(UDPpacket*);
+UDPpacket** network_packet_allocv(int, int);
+int network_packet_freev(UDPpacket**);
 
 #include "util/template.hpp"
 
