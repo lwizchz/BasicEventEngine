@@ -20,6 +20,8 @@
 #define DEFAULT_WINDOW_WIDTH 1280
 #define DEFAULT_WINDOW_HEIGHT 720
 
+#define BEE_GAME_ID 11111111
+
 #include "debug.hpp"
 #include "util.hpp"
 
@@ -35,6 +37,7 @@ class BEE {
 		class Sprite; class Sound; class Background; class Font; class Path; class Object; class Room;
 		class GameOptions; class InstanceData; class RGBA;
 		class Particle; class ParticleData; class ParticleEmitter; class ParticleAttractor; class ParticleDestroyer; class ParticleDeflector; class ParticleChanger; class ParticleSystem;
+		class NetworkData;
 	private:
 		int argc;
 		char** argv;
@@ -50,6 +53,8 @@ class BEE {
 
 		SDL_Event event;
 		Uint32 tickstamp, new_tickstamp, fps_ticks;
+
+		NetworkData* net;
 
 		double volume = 1.0;
 	public:
@@ -176,6 +181,17 @@ class BEE {
 		RGBA draw_get_color();
 		RGBA get_pixel_color(int, int);
 		int save_screenshot(std::string);
+
+		// bee/game/network.cpp
+		int net_init();
+		bool net_get_is_initialized();
+		int net_end();
+		int net_handle_events();
+		bool net_session_start(std::string, int, std::string);
+		std::map<std::string,std::string> net_session_find();
+		bool net_session_join(std::string, std::string);
+		bool net_get_is_connected();
+		int net_session_end();
 };
 
 class BEE::GameOptions {
@@ -187,6 +203,9 @@ class BEE::GameOptions {
 
 		// Renderer flags
 		bool is_vsync_enabled;
+
+		// Miscellaneous flags
+		bool is_network_enabled;
 };
 
 class BEE::RGBA {
@@ -219,6 +238,27 @@ class BackgroundData { // Used to pass data to the Room class in bee/resource_st
 		BackgroundData() {background=NULL;is_visible=false;is_foreground=false;x=0;y=0;is_horizontal_tile=false;is_vertical_tile=false;horizontal_speed=0;vertical_speed=0;is_stretched=false;};
 		BackgroundData(BEE::Background*, bool, bool, int, int, bool, bool, int, int, bool);
 		int init(BEE::Background*, bool, bool, int, int, bool, bool, int, int, bool);
+};
+
+class BEE::NetworkData {
+	public:
+		bool is_initialized = false;
+		UDPsocket udp_send = NULL;
+		UDPsocket udp_recv = NULL;
+		UDPpacket* udp_data = NULL;
+
+		int id = BEE_GAME_ID;
+		bool is_connected = false;
+		bool is_host = false;
+		int channel = -1;
+		Uint32 timeout = 1000;
+		std::map<std::string,std::string> servers;
+
+		std::string name = "";
+		int max_players = 0;
+		int self_id = 0;
+		std::map<int,UDPsocket> players;
+		std::map<std::string,std::string> data;
 };
 
 #include "resource_structures/sprite.hpp"

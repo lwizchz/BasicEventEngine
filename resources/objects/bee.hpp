@@ -9,7 +9,6 @@
 class ObjBee : public BEE::Object {
 	public:
 		TextData* fps_display;
-		TCPsocket listen = NULL, client = NULL;
 
 		ObjBee();
 		~ObjBee();
@@ -40,29 +39,31 @@ void ObjBee::create(BEE::InstanceData* self) {
 
 	//std::cerr << execute_string<int>("3+5");
 
-	BEE::ParticleSystem* part_system = new BEE::ParticleSystem();
-	//part_system->following = NULL;
+	if (self->id == 0) {
+		BEE::ParticleSystem* part_system = new BEE::ParticleSystem();
+		//part_system->following = NULL;
 
-	//BEE::Particle* part_done = new BEE::Particle(game, pt_shape_explosion, 0.5, 100);
+		//BEE::Particle* part_done = new BEE::Particle(game, pt_shape_explosion, 0.5, 100);
 
-	BEE::Particle* part_firework = new BEE::Particle(game, pt_shape_snow, 0.5, 20000);
-	part_firework->velocity = {-1.0, 0.0};
-	part_firework->angle_increase = 0.5;
-	//part_firework->color = game->get_enum_color(c_orange, 100);
-	//part_firework->death_type = part_done;
+		BEE::Particle* part_firework = new BEE::Particle(game, pt_shape_snow, 0.5, 20000);
+		part_firework->velocity = {-1.0, 0.0};
+		part_firework->angle_increase = 0.5;
+		//part_firework->color = game->get_enum_color(c_orange, 100);
+		//part_firework->death_type = part_done;
 
-	BEE::ParticleEmitter* part_emitter = new BEE::ParticleEmitter();
-	part_emitter->w = 1280;
-	part_emitter->particle_type = part_firework;
-	part_emitter->number = 5;
-	part_system->emitters.push_back(part_emitter);
+		BEE::ParticleEmitter* part_emitter = new BEE::ParticleEmitter();
+		part_emitter->w = 1280;
+		part_emitter->particle_type = part_firework;
+		part_emitter->number = 5;
+		part_system->emitters.push_back(part_emitter);
 
-	BEE::ParticleDestroyer* part_destroyer = new BEE::ParticleDestroyer();
-	part_destroyer->y = 620;
-	part_destroyer->w = 1280;
-	part_system->destroyers.push_back(part_destroyer);
+		BEE::ParticleDestroyer* part_destroyer = new BEE::ParticleDestroyer();
+		part_destroyer->y = 620;
+		part_destroyer->w = 1280;
+		part_system->destroyers.push_back(part_destroyer);
 
-	game->get_current_room()->add_particle_system(part_system);
+		game->get_current_room()->add_particle_system(part_system);
+	}
 }
 void ObjBee::alarm(BEE::InstanceData* self, int a) {
 	switch (a) {
@@ -120,27 +121,38 @@ void ObjBee::keyboard_press(BEE::InstanceData* self, SDL_Event* e) {
 		}
 
 		case SDLK_z: {
-			if (listen == NULL) {
-				listen = network_tcp_open("", 9999);
-				std::cerr << "TCP opened\n";
-			}
-			if ((client == NULL)&&(listen != NULL)) {
-				client = network_tcp_accept(listen);
-			}
-			if (client != NULL) {
-				std::cerr << "Client accepted\n";
-				network_tcp_send(client, "x=" + std::to_string(self->x) + ", y=" + std::to_string(self->y));
-				std::cerr << "Data sent\n";
+			if (self->id == 0) {
+				game->net_session_start("test_session", 0, "hostplayer");
+				if (game->net_get_is_connected()) {
+					std::cout << "Session started\n";
+				} else {
+					std::cout << "Failed to host\n";
+				}
 			}
 			break;
 		}
 		case SDLK_x: {
-			if (client == NULL) {
-				client = network_tcp_open("192.168.1.155", 9999);
-				std::cerr << "TCP opened\n";
+			if (self->id == 0) {
+				game->net_session_join("127.0.0.1", "clientplayer");
+				if (game->net_get_is_connected()) {
+					std::cout << "Connected to session\n";
+				} else {
+					std::cout << "Failed to connect\n";
+				}
 			}
-			if (client != NULL) {
-				std::cerr << network_tcp_recv(client, 8) << "\n";
+			break;
+		}
+		case SDLK_c: {
+			if (self->id == 0) {
+				std::map<std::string,std::string> servers = game->net_session_find();
+				if (!servers.empty()) {
+					std::cerr << "Available servers:\n";
+					for (auto& s : servers) {
+						std::cerr << "\t" << s.second << "\t" << s.first << "\n";
+					}
+				} else {
+					std::cerr << "No servers available\n";
+				}
 			}
 			break;
 		}

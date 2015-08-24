@@ -13,6 +13,7 @@
 
 #include <string>
 #include <SDL2/SDL_net.h>
+#include <arpa/inet.h>
 
 int network_init() {
         int r = SDLNet_Init();
@@ -25,36 +26,42 @@ int network_quit() {
         SDLNet_Quit();
         return 0;
 }
-
-TCPsocket network_tcp_open(std::string ip, int port) {
-        IPaddress ipa;
-        TCPsocket tcp;
+IPaddress* network_resolve_host(std::string ip, int port) {
+        IPaddress* ipa = (IPaddress*)malloc(sizeof(IPaddress));
 
         if (ip.empty()) { // Host
-                if (SDLNet_ResolveHost(&ipa, NULL, port)) {
+                if (SDLNet_ResolveHost(ipa, NULL, port)) {
                         std::cerr << "Failed to resolve host: " << SDLNet_GetError() << "\n";
-                        return NULL;
-                }
-
-                tcp = SDLNet_TCP_Open(&ipa);
-                if (!tcp) {
-                        std::cerr << "Failed to host TCP on port " << port << ": " << SDLNet_GetError();
                         return NULL;
                 }
         } else { // Client
-                if (SDLNet_ResolveHost(&ipa, ip.c_str(), port)) {
+                if (SDLNet_ResolveHost(ipa, ip.c_str(), port)) {
                         std::cerr << "Failed to resolve host: " << SDLNet_GetError() << "\n";
-                        return NULL;
-                }
-
-                tcp = SDLNet_TCP_Open(&ipa);
-                if (!tcp) {
-                        std::cerr << "Failed to connect via TCP to \"" << ip << ":" << port << "\": " << SDLNet_GetError();
                         return NULL;
                 }
         }
 
+        return ipa;
+}
+std::string network_get_address(Uint32 a) {
+        char str[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, &a, str, INET_ADDRSTRLEN);
+        return std::string(str);
+}
+
+TCPsocket network_tcp_open(IPaddress* ipa) {
+        TCPsocket tcp;
+
+        tcp = SDLNet_TCP_Open(ipa);
+        if (!tcp) {
+                std::cerr << "Failed to open TCP on port " << ipa->port << ": " << SDLNet_GetError();
+                return NULL;
+        }
+
         return tcp;
+}
+TCPsocket network_tcp_open(std::string ip, int port) {
+        return network_tcp_open(network_resolve_host(ip, port));
 }
 int network_tcp_close(TCPsocket tcp) {
         SDLNet_TCP_Close(tcp);
@@ -112,13 +119,7 @@ int network_udp_bind(UDPsocket udp, int channel, IPaddress* ipa) {
         return c;
 }
 int network_udp_bind(UDPsocket udp, int channel, std::string ip, int port) {
-        IPaddress ipa;
-        if (SDLNet_ResolveHost(&ipa, ip.c_str(), port)) {
-                std::cerr << "Failed to resolve host: " << SDLNet_GetError() << "\n";
-                return -1;
-        }
-
-        return network_udp_bind(udp, channel, &ipa);
+        return network_udp_bind(udp, channel, network_resolve_host(ip, port));
 }
 int network_udp_unbind(UDPsocket udp, int channel) {
         SDLNet_UDP_Unbind(udp, channel);
@@ -165,6 +166,20 @@ int network_udp_recvv(UDPsocket udp, UDPpacket** packets) {
         }
         return recv;
 }
+int network_udp_send(UDPsocket udp, int channel, Uint8* data) {
+	UDPpacket* d = network_packet_alloc(data[0]);
+	d->data = data;
+
+        int r = network_udp_send(udp, channel, d);
+
+        network_packet_free(d);
+
+        return r;
+}
+int network_udp_send(UDPsocket udp, int channel, Uint8 id, Uint8 signal, Uint8 data) {
+        Uint8 d[] = {3, id, signal, data};
+        return network_udp_send(udp, channel, d);
+}
 
 UDPpacket* network_packet_alloc(int size) {
         UDPpacket* packet;
@@ -187,6 +202,11 @@ int network_packet_free(UDPpacket* packet) {
         SDLNet_FreePacket(packet);
         packet = NULL;
         return 0;
+}
+int network_packet_realloc(UDPpacket* packet, int size) {
+        network_packet_free(packet);
+        packet = network_packet_alloc(size);
+        return (packet == NULL) ? 1 : 0;
 }
 UDPpacket** network_packet_allocv(int amount, int size) {
         UDPpacket** packets;

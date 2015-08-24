@@ -14,8 +14,6 @@
 
 int main(int argc, char* argv[]) {
 	try {
-		network_init();
-
 		// Set game options;
 		BEE::GameOptions options = {
 			// Window flags
@@ -23,6 +21,8 @@ int main(int argc, char* argv[]) {
 			true, false, false,
 			true,
 			// Renderer flags
+			true,
+			// Miscellaneous flags
 			true
 		};
 
@@ -34,8 +34,6 @@ int main(int argc, char* argv[]) {
 
 		// Clean up
 		game->close();
-
-		network_quit();
 	} catch (std::string e) {
 		std::cerr << e;
 		return 1;

@@ -33,6 +33,8 @@ BEE::BEE(int new_argc, char** new_argv, Room** new_first_room, GameOptions* new_
 	width = DEFAULT_WINDOW_WIDTH;
 	height = DEFAULT_WINDOW_HEIGHT;
 
+	net = new NetworkData();
+
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) > 0) {
 		throw std::string("Couldn't init SDL: ") + SDL_GetError() + "\n";
 	}
@@ -96,6 +98,12 @@ BEE::BEE(int new_argc, char** new_argv, Room** new_first_room, GameOptions* new_
 	}
 	Mix_ChannelFinished(sound_finished);
 	Mix_AllocateChannels(128); // Probably overkill
+
+	if (options->is_network_enabled) {
+		if (!network_init()) {
+			net->is_initialized = true;
+		}
+	}
 
 	if (!is_initialized) {
 		resource_list = new MetaResourceList();
@@ -227,6 +235,8 @@ int BEE::loop() {
 			current_room->draw();
 			current_room->animation_end();
 
+			net_handle_events();
+
 			fps_count++;
 			new_tickstamp = SDL_GetTicks();
 			if (new_tickstamp - tickstamp < 1000/fps_max) {
@@ -295,6 +305,12 @@ int BEE::close() {
 		window = NULL;
 	}
 
+	if (options->is_network_enabled) {
+		if (!network_quit()) {
+			net->is_initialized = false;
+		}
+	}
+
 	Mix_Quit();
 	TTF_Quit();
 	IMG_Quit();
@@ -348,5 +364,7 @@ int BEE::end_game() {
 #include "game/input.cpp"
 
 #include "game/draw.cpp"
+
+#include "game/network.cpp"
 
 #endif // _BEE_GAME

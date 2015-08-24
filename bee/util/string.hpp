@@ -29,6 +29,21 @@ int ord(char c) {
 int ord(std::string s) {
         return s[0];
 }
+std::string chra(Uint8* carray) {
+        std::string str;
+        for (unsigned int i=0; i<carray[0]; i++) {
+                str += chr(carray[i+1]);
+        }
+        return str;
+}
+Uint8* orda(std::string s) {
+        Uint8* carray = (Uint8*)malloc(s.length()+1);
+        carray[0] = s.length()+1;
+        for (unsigned int i=0; i<s.length(); i++) {
+                carray[i+1] = s[i];
+        }
+        return carray;
+}
 
 std::string string_lower(std::string str) {
         std::transform(str.begin(), str.end(), str.begin(), ::tolower);
