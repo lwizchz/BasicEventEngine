@@ -56,7 +56,7 @@ template <typename T>
 std::map<std::string,T> load_map(std::string fname) {
         std::map<std::string,T> data;
         std::string datastr = file_get_contents(fname);
-        if (datastr != "") {
+        if (!datastr.empty()) {
                 std::istringstream data_stream (datastr);
 
                 while (!data_stream.eof()) {

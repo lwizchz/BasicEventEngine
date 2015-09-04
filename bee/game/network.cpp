@@ -24,7 +24,7 @@
 	1	connect requested/accepted
 	2	disconnect notification
 	3	server info transfer
-		1	server IP address and name
+		1	server name
 		2	player map
 		3	data update
 */
@@ -83,19 +83,43 @@ int BEE::net_handle_events() {
 			case 3: { // Server info request
 				switch (net->udp_data->data[3]) {
 					case 1: { // Server name
-						Uint8* data = (Uint8*)malloc(net->name.length()+3);
-						data[0] = net->name.length()+3;
+						Uint8* data = (Uint8*)malloc(net->name.length()+4);
+						data[0] = net->name.length()+4;
 						data[1] = 0;
 						data[2] = 3;
-						memcpy(data+3, orda(net->name), net->name.length());
+						data[3] = 1;
+						memcpy(data+4, orda(net->name), net->name.length());
 						network_udp_send(net->players[net->udp_data->data[1]], -1, data);
 						free(data);
 						break;
 					}
 					case 2: { // Player map
+						std::map <int,std::string> t;
+						for (auto& p : net->players) {
+							t.insert(std::pair<int,std::string>(p.first, network_get_address(network_get_peer_address(p.second, -1)->host)));
+						}
+
+						Uint8* m = network_map_encode(t);
+						Uint8* data = (Uint8*)malloc(m[0]+4);
+						data[0] = m[0]+4;
+						data[1] = 0;
+						data[2] = 3;
+						data[3] = 2;
+						memcpy(data+4, m, m[0]);
+						network_udp_send(net->players[net->udp_data->data[1]], -1, data);
+						free(data);
 						break;
 					}
 					case 3: { // Data map
+						Uint8* m = network_map_encode(net->data);
+						Uint8* data = (Uint8*)malloc(m[0]+4);
+						data[0] = m[0]+4;
+						data[1] = 0;
+						data[2] = 3;
+						data[3] = 3;
+						memcpy(data+4, m, m[0]);
+						network_udp_send(net->players[net->udp_data->data[1]], -1, data);
+						free(data);
 						break;
 					}
 				}
@@ -103,11 +127,11 @@ int BEE::net_handle_events() {
 			}
 		}
 	} else {
-		switch (net->udp_data->data[1]) {
+		switch (net->udp_data->data[2]) {
 			case 1: { // Connection accepted
-				net->self_id = net->udp_data->data[2];
+				net->self_id = net->udp_data->data[3];
 				net->is_connected = true;
-				std::cout << "Connected with id " << net->udp_data->data[2] << "\n";
+				std::cout << "Connected with id " << net->udp_data->data[3] << "\n";
 				break;
 			}
 			case 2: { // Disconnected by host
@@ -117,9 +141,9 @@ int BEE::net_handle_events() {
 				break;
 			}
 			case 3: { // Server info recieved
-				switch (net->udp_data->data[2]) {
+				switch (net->udp_data->data[3]) {
 					case 1: { // Server IP address and name
-						std::string d = chra(net->udp_data->data+3);
+						std::string d = chra(net->udp_data->data+4);
 						std::string ip = d.substr(0, d.find(","));
 						d.erase(0, d.find(","));
 						std::string name = d.substr(0, d.find(","));
@@ -127,9 +151,18 @@ int BEE::net_handle_events() {
 						break;
 					}
 					case 2: { // Player map
+						std::map <std::string,std::string> t;
+						net->players.clear();
+						network_map_decode(net->udp_data->data+4, t);
+						for (auto& p : t) {
+							UDPsocket sock;
+							network_udp_bind(sock, -1, p.second);
+							net->players.insert(std::pair<int,UDPsocket>(std::stoi(p.first), sock));
+						}
 						break;
 					}
 					case 3: { // Data map
+						network_map_decode(net->udp_data->data+4, net->data);
 						break;
 					}
 				}
@@ -170,12 +203,15 @@ std::map<std::string,std::string> BEE::net_session_find() {
 
 	net->channel = network_udp_bind(net->udp_send, -1, "255.255.255.255", net->id);
 	if (net->channel == -1) {
+		network_udp_close(net->udp_recv);
 		return servers;
 	}
 
 	network_udp_send(net->udp_send, net->channel, net->self_id, 3, 0);
 
 	if (network_packet_realloc(net->udp_data, 8)) {
+		network_udp_close(net->udp_recv);
+		network_udp_close(net->udp_send);
 		return servers;
 	}
 
@@ -189,6 +225,8 @@ std::map<std::string,std::string> BEE::net_session_find() {
 		}
 	}
 
+	network_udp_close(net->udp_recv);
+	network_udp_close(net->udp_send);
 	return servers;
 }
 bool BEE::net_session_join(std::string ip, std::string player_name) {
@@ -201,12 +239,15 @@ bool BEE::net_session_join(std::string ip, std::string player_name) {
 
 	net->channel = network_udp_bind(net->udp_send, -1, ip, net->id);
 	if (net->channel == -1) {
+		network_udp_close(net->udp_recv);
 		return false;
 	}
 
 	network_udp_send(net->udp_send, net->channel, 0, 1, 0);
 
 	if (network_packet_realloc(net->udp_data, 8)) {
+		network_udp_close(net->udp_recv);
+		network_udp_close(net->udp_send);
 		return false;
 	}
 
@@ -218,6 +259,8 @@ bool BEE::net_session_join(std::string ip, std::string player_name) {
 
 	if ((r < 1)||(net->udp_data->data[0] != 1)) {
 		std::cerr << "Failed to connect to " << ip << "\n";
+		network_udp_close(net->udp_recv);
+		network_udp_close(net->udp_send);
 		return false;
 	}
 

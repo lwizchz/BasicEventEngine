@@ -2,9 +2,9 @@ NAME = BasicEventEngine
 
 DEPS = main
 DEPS_BEE = debug resource_structures util game
-DEPS_BEE_GAME = resources room transition display window input draw
+DEPS_BEE_GAME = resources room transition display window input draw network
 DEPS_BEE_RESOURCE_STRUCTURES = sprite sound background font path object room ext/instancedata ext/particles
-DEPS_BEE_UTIL = real string dates collision sound messagebox files script
+DEPS_BEE_UTIL = real string dates collision sound messagebox files script network
 
 PKGDEPS = libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev libsdl2-net-dev chaiscript
 INCLUDE = sdl2 SDL2_image SDL2_ttf SDL2_mixer SDL2_net
@@ -37,7 +37,8 @@ obj/bee/resource_structures/%.o : bee/resource_structures/%.cpp bee/game.hpp
 	g++ $(FLAGS) -c $< -o $@
 obj/%.o : %.cpp bee/game.hpp
 	g++ $(FLAGS) -c $< -o $@
-bee/game.hpp: dir obj/bee/util.o resources/resources.hpp $(foreach var, $(DEPS_BEE_GAME), bee/game/$(var).cpp)
+bee/game.hpp: dir obj/bee/game.o obj/bee/util.o resources/resources.hpp
+obj/bee/game.o: bee/game.cpp $(foreach var, $(DEPS_BEE_GAME), bee/game/$(var).cpp)
 obj/bee/util.o: bee/util.cpp bee/util.hpp $(foreach var, $(DEPS_BEE_UTIL), bee/util/$(var).hpp)
 	g++ $(FLAGS) -c bee/util.cpp -o obj/bee/util.o
 dir:
