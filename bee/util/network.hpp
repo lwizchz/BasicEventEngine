@@ -53,7 +53,7 @@ TCPsocket network_tcp_open(IPaddress* ipa) {
         TCPsocket tcp;
 
         tcp = SDLNet_TCP_Open(ipa);
-        if (!tcp) {
+        if (tcp == NULL) {
                 std::cerr << "Failed to open TCP on port " << ipa->port << ": " << SDLNet_GetError();
                 return NULL;
         }
@@ -100,7 +100,7 @@ std::string network_tcp_recv(TCPsocket tcp, int maxlen) {
 UDPsocket network_udp_open(int port) {
         UDPsocket udp;
         udp = SDLNet_UDP_Open(port);
-        if (!udp) {
+        if (udp == NULL) {
                 std::cerr << "Failed to open UDP on port " << port << ": " << SDLNet_GetError() << "\n";
                 return NULL;
         }
@@ -111,7 +111,15 @@ int network_udp_close(UDPsocket udp) {
         udp = NULL;
         return 0;
 }
+int network_udp_reopen(UDPsocket udp, int port) {
+        if (udp != NULL) {
+                network_udp_close(udp);
+        }
+        udp = network_udp_open(port);
+        return 0;
+}
 int network_udp_bind(UDPsocket udp, int channel, IPaddress* ipa) {
+        network_udp_reopen(udp, 0);
         int c = SDLNet_UDP_Bind(udp, channel, ipa);
         if (c == -1) {
                 std::cerr << "Failed to bind UDP on channel " << channel << ": " << SDLNet_GetError() << "\n";
@@ -121,14 +129,22 @@ int network_udp_bind(UDPsocket udp, int channel, IPaddress* ipa) {
 int network_udp_bind(UDPsocket udp, int channel, std::string ip, int port) {
         return network_udp_bind(udp, channel, network_resolve_host(ip, port));
 }
+int network_udp_bind(UDPsocket udp, int channel, std::string ipp) {
+        std::string ip;
+        int port;
+        ip = ipp.substr(0, ipp.find(":"));
+        port = std::stoi(ipp.substr(ipp.find(":")));
+        return network_udp_bind(udp, channel, network_resolve_host(ip, port));
+}
 int network_udp_unbind(UDPsocket udp, int channel) {
         SDLNet_UDP_Unbind(udp, channel);
+        network_udp_close(udp);
         return 0;
 }
 IPaddress* network_get_peer_address(UDPsocket udp, int channel) {
-        IPaddress* ipa;
+        IPaddress* ipa = NULL;
         ipa = SDLNet_UDP_GetPeerAddress(udp, channel);
-        if (!ipa) {
+        if (ipa == NULL) {
                 std::cerr << "Failed to get UDP peer address: " << SDLNet_GetError() << "\n";
                 return NULL;
         }
@@ -182,9 +198,9 @@ int network_udp_send(UDPsocket udp, int channel, Uint8 id, Uint8 signal, Uint8 d
 }
 
 UDPpacket* network_packet_alloc(int size) {
-        UDPpacket* packet;
+        UDPpacket* packet = NULL;
         packet = SDLNet_AllocPacket(size);
-        if (!packet) {
+        if (packet == NULL) {
                 std::cerr << "Failed to allocate UDP packet: " << SDLNet_GetError() << "\n";
                 return NULL;
         }
@@ -209,9 +225,9 @@ int network_packet_realloc(UDPpacket* packet, int size) {
         return (packet == NULL) ? 1 : 0;
 }
 UDPpacket** network_packet_allocv(int amount, int size) {
-        UDPpacket** packets;
+        UDPpacket** packets = NULL;
         packets = SDLNet_AllocPacketV(amount, size);
-        if (!packets) {
+        if (packets == NULL) {
                 std::cerr << "Failed to allocate UDP vector packets: " << SDLNet_GetError() << "\n";
                 return NULL;
         }
