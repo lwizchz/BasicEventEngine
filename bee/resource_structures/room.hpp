@@ -110,6 +110,7 @@ class BEE::Room: public Resource {
 		int intersect_boundary();
 		int collision();
 		int draw();
+		int draw_view();
 		int animation_end();
 		int room_start();
 		int room_end();

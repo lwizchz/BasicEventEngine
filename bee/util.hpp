@@ -110,6 +110,7 @@ class Line;
 bool check_collision(SDL_Rect*, SDL_Rect*);
 bool check_collision_circle(double, double, double, double, double, double);
 bool check_collision_line(Line, Line);
+bool check_collision(SDL_Rect*, Line);
 double angle_hbounce(double);
 double angle_vbounce(double);
 

@@ -74,6 +74,26 @@ bool check_collision_line(Line line1, Line line2) {
 
         return false;
 }
+bool check_collision(SDL_Rect* rect, Line line) {
+        double left, right, top, bottom;
+        left = rect->x;
+	right = rect->x + rect->w;
+	top = rect->y;
+	bottom = rect->y + rect->h;
+
+        bool has_collision = false;
+
+        Line side = {left, top, right, top};
+        has_collision |= check_collision_line(line, side);
+        side = {right, top, right, bottom};
+        has_collision |= check_collision_line(line, side);
+        side = {left, bottom, right, bottom};
+        has_collision |= check_collision_line(line, side);
+        side = {left, top, left, bottom};
+        has_collision |= check_collision_line(line, side);
+
+        return has_collision;
+}
 
 double angle_hbounce(double a) {
         if ((a > 0)&&(a < 90)) {

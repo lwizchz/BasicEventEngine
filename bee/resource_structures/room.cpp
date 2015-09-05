@@ -62,10 +62,10 @@ int BEE::Room::add_to_resources(std::string path) {
 int BEE::Room::reset() {
 	name = "";
 	room_path = "";
-	width = 1280;
-	height = 720;
+	width = DEFAULT_WINDOW_WIDTH;
+	height = DEFAULT_WINDOW_HEIGHT;
 	is_isometric = false;
-	speed = 60;
+	speed = DEFAULT_GAME_FPS;
 	is_persistent = false;
 	background_color = {255, 255, 255, 255};
 	is_background_color_enabled = true;
@@ -591,9 +591,38 @@ int BEE::Room::collision() {
 }
 int BEE::Room::draw() {
 	sort_instances();
-
+	
+	if (is_background_color_enabled) {
+		game->draw_set_color(background_color);
+	} else {
+		game->draw_set_color(c_white);
+	}
 	game->render_clear();
 
+	if (is_views_enabled) { // Render different viewports
+		SDL_Rect viewport;
+		for (auto& v : views) {
+			if (v.second->is_visible) {
+				viewport.x = v.second->port_x;
+				viewport.y = v.second->port_y;
+				viewport.w = v.second->port_width;
+				viewport.h = v.second->port_height;
+				SDL_RenderSetViewport(game->renderer, &viewport);
+
+				draw_view();
+			}
+		}
+		viewport = {0, 0, game->get_width(), game->get_height()};
+		SDL_RenderSetViewport(game->renderer, &viewport);
+	} else {
+		draw_view();
+	}
+
+	game->render();
+
+	return 0;
+}
+int BEE::Room::draw_view() {
 	// Draw backgrounds
 	for (auto& b : backgrounds) {
 		if (b.second->is_visible && !b.second->is_foreground) {
@@ -625,25 +654,8 @@ int BEE::Room::draw() {
 
 	// Draw instances
 	for (auto& i : instances_sorted) {
-		if (is_views_enabled) { // Render different viewports
-			SDL_Rect viewport;
-			for (auto& v : views) {
-				if (v.second->is_visible) {
-					viewport.x = v.second->port_x;
-					viewport.y = v.second->port_y;
-					viewport.w = v.second->port_width;
-					viewport.h = v.second->port_height;
-					SDL_RenderSetViewport(game->renderer, &viewport);
-
-					i.first->object->draw(i.first);
-				}
-			}
-			viewport = {0, 0, game->get_width(), game->get_height()};
-			SDL_RenderSetViewport(game->renderer, &viewport);
-		} else {
-			if (i.first->object->get_is_visible()) {
+		if (i.first->object->get_is_visible()) {
 				i.first->object->draw(i.first);
-			}
 		}
 	}
 
@@ -658,8 +670,6 @@ int BEE::Room::draw() {
 			b.second->background->draw(b.second->x, b.second->y, b.second);
 		}
 	}
-
-	game->render();
 
 	return 0;
 }

@@ -26,7 +26,7 @@ BEE::BEE(int new_argc, char** new_argv, Room** new_first_room, GameOptions* new_
 	has_focus = false;
 
 	fps_max = 300;
-	fps_goal = 60;
+	fps_goal = DEFAULT_GAME_FPS;
 	fps_count = 0;
 	fps_stable = 0;
 

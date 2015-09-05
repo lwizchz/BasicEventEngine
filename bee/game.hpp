@@ -20,6 +20,8 @@
 #define DEFAULT_WINDOW_WIDTH 1280
 #define DEFAULT_WINDOW_HEIGHT 720
 
+#define DEFAULT_GAME_FPS 60
+
 #define BEE_GAME_ID 11111111
 
 #include "debug.hpp"
