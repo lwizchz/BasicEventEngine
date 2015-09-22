@@ -31,6 +31,13 @@ BEE::Room::~Room() {
 	views.clear();
 	instances.clear();
 	particles.clear();
+
+	if (view_texture != NULL) {
+		view_texture->free();
+		delete view_texture;
+		view_texture = NULL;
+	}
+
 	BEE::resource_list->rooms.remove_resource(id);
 }
 int BEE::Room::add_to_resources(std::string path) {
@@ -78,6 +85,13 @@ int BEE::Room::reset() {
 	instances.clear();
 	instances_sorted.clear();
 	particles.clear();
+
+	if (view_texture != NULL) {
+		view_texture->free();
+		delete view_texture;
+		view_texture = NULL;
+	}
+	view_texture = new Sprite();
 
 	return 0;
 }
@@ -210,6 +224,10 @@ std::string BEE::Room::get_instance_string() {
 	}
 	return "none\n";
 }
+ViewData* BEE::Room::get_current_view() {
+	return view_current;
+}
+
 int BEE::Room::set_name(std::string new_name) {
 	name = new_name;
 	return 0;
@@ -557,13 +575,16 @@ int BEE::Room::collision() {
 	std::map<InstanceData*,int> ilist = instances_sorted;
 
 	for (auto& i1 : ilist) {
-		SDL_Rect a = {(int)i1.first->x, (int)i1.first->y, i1.first->object->get_mask()->get_subimage_width(), i1.first->object->get_mask()->get_height()};
+		double x, y;
+		std::tie(x, y) = i1.first->get_position();
+		SDL_Rect a = {(int)x, (int)y, i1.first->object->get_mask()->get_subimage_width(), i1.first->object->get_mask()->get_height()};
 		for (auto& i2 : ilist) {
 			if (i1.first == i2.first) {
 				continue;
 			}
 
-			SDL_Rect b = {(int)i2.first->x, (int)i2.first->y, i2.first->object->get_mask()->get_subimage_width(), i2.first->object->get_mask()->get_height()};
+			std::tie(x, y) = i2.first->get_position();
+			SDL_Rect b = {(int)x, (int)y, i2.first->object->get_mask()->get_subimage_width(), i2.first->object->get_mask()->get_height()};
 			if (check_collision(&a, &b)) {
 				if (i1.first->object->get_is_solid()) {
 					i1.first->x -= sin(degtorad(i1.first->velocity.front().first))*i1.first->velocity.front().first;
@@ -591,30 +612,50 @@ int BEE::Room::collision() {
 }
 int BEE::Room::draw() {
 	sort_instances();
-	
+
 	if (is_background_color_enabled) {
 		game->draw_set_color(background_color);
 	} else {
 		game->draw_set_color(c_white);
 	}
-	game->render_clear();
 
 	if (is_views_enabled) { // Render different viewports
-		SDL_Rect viewport;
+		if (view_texture->game == NULL) {
+			view_texture->game = game;
+		}
+		/*game->set_render_target(view_texture, 5000, 5000);
+		game->render_clear();
+		draw_view();
+		game->render();
+		game->set_render_target(NULL);*/
+		game->render_clear();
+
+		SDL_Rect viewport, viewcoords;
 		for (auto& v : views) {
 			if (v.second->is_visible) {
+				view_current = v.second;
+
 				viewport.x = v.second->port_x;
 				viewport.y = v.second->port_y;
 				viewport.w = v.second->port_width;
 				viewport.h = v.second->port_height;
 				SDL_RenderSetViewport(game->renderer, &viewport);
 
+				/*viewcoords.x = v.second->view_x;
+				viewcoords.y = v.second->view_y;
+				viewcoords.w = v.second->view_width;
+				viewcoords.h = v.second->view_height;
+
+				view_texture->draw_simple(&viewcoords, &viewport);*/
 				draw_view();
 			}
 		}
+		view_current = NULL;
+		//view_texture->free();
 		viewport = {0, 0, game->get_width(), game->get_height()};
 		SDL_RenderSetViewport(game->renderer, &viewport);
 	} else {
+		game->render_clear();
 		draw_view();
 	}
 

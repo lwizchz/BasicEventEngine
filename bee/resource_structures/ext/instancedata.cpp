@@ -121,6 +121,9 @@ std::pair<double,double> BEE::InstanceData::get_motion() {
 
 	return std::make_pair(xsum, ysum);
 }
+std::pair<double,double> BEE::InstanceData::get_position() {
+	return std::make_pair(x, y);
+}
 double BEE::InstanceData::get_hspeed() {
 	return get_motion().first - xprevious;
 }
@@ -162,7 +165,7 @@ bool BEE::InstanceData::is_place_free(int new_x, int new_y) {
 			}
 		}
 	}
-	return is_collision;
+	return !is_collision;
 }
 bool BEE::InstanceData::is_place_empty(int new_x, int new_y) {
 	bool is_collision = false;
@@ -174,7 +177,7 @@ bool BEE::InstanceData::is_place_empty(int new_x, int new_y) {
 			break;
 		}
 	}
-	return is_collision;
+	return !is_collision;
 }
 bool BEE::InstanceData::is_place_meeting(int new_x, int new_y, Object* other) {
 	bool is_collision = false;

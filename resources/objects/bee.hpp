@@ -200,17 +200,14 @@ void ObjBee::mouse(BEE::InstanceData* self, SDL_Event* e) {
 		//spr_bee->set_alpha(0.25);
 	}
 	if (e->motion.state & SDL_BUTTON_LMASK) {
-		/*SDL_Rect a = {self->x, self->y, get_mask()->get_subimage_width(), get_mask()->get_height()};
+		SDL_Rect a = {(int)self->x, (int)self->y, get_mask()->get_subimage_width(), get_mask()->get_height()};
 		SDL_Rect b = {e->button.x, e->button.y, 20, 20};
 		if (check_collision(&a, &b)) {
-			int mx, my;
-			SDL_GetMouseState(&mx, &my);
-			std::pair<int,int> c = coord_approach(self->x, self->y, mx, my, 10);
-			self->x = c.first;
-			self->y = c.second;
-		}*/
-		if (self->id == 0) {
-			game->get_current_room()->add_instance(-1, this, e->button.x, e->button.y);
+			std::tie(self->x, self->y) = coord_approach(self->x, self->y, game->get_mouse_x(), game->get_mouse_y(), 10);
+		} else if (self->id == 0) {
+			if (self->is_place_empty(game->get_mouse_x(), game->get_mouse_y())) {
+				game->get_current_room()->add_instance(-1, this, game->get_mouse_x(), game->get_mouse_y());
+			}
 		}
 	}
 }
@@ -220,13 +217,11 @@ void ObjBee::mouse_press(BEE::InstanceData* self, SDL_Event* e) {
 			SDL_Rect a = {(int)self->x, (int)self->y, get_mask()->get_subimage_width(), get_mask()->get_height()};
 			SDL_Rect b = {e->button.x, e->button.y, 20, 20};
 			if (check_collision(&a, &b)) {
-				int mx, my;
-				SDL_GetMouseState(&mx, &my);
-				std::pair<int,int> c = coord_approach(self->x, self->y, mx, my, 10);
-				self->x = c.first;
-				self->y = c.second;
+				std::tie(self->x, self->y) = coord_approach(self->x, self->y, game->get_mouse_x(), game->get_mouse_y(), 10);
 			} else if (self->id == 0) {
-				game->get_current_room()->add_instance(-1, this, e->button.x, e->button.y);
+				if (self->is_place_empty(game->get_mouse_x(), game->get_mouse_y())) {
+					game->get_current_room()->add_instance(-1, this, game->get_mouse_x(), game->get_mouse_y());
+				}
 			}
 			break;
 		}
@@ -238,12 +233,12 @@ void ObjBee::collision(BEE::InstanceData* self, BEE::InstanceData* other) {
 void ObjBee::draw(BEE::InstanceData* self) {
 	// draw event
 	int mx, my;
-	SDL_GetMouseState(&mx, &my);
+	std::tie(mx, my) = game->get_mouse_position();
 	int s = 100;//distance(self->x, self->y, mx, my)/2;
 	self->draw(s, s, direction_of(self->x, self->y, mx, my), c_white);
 
-	//font_liberation->draw_fast(self->x, self->y, std::to_string(self->id));
-	font_liberation->draw_fast(self->x, self->y, std::to_string(self->get_path_node()));
+	font_liberation->draw_fast(self->x, self->y, std::to_string(self->id));
+	//font_liberation->draw_fast(self->x, self->y, std::to_string(self->get_path_node()));
 
 	if (self->id == 0) {
 		fps_display = font_liberation->draw(fps_display, 0, 0, "FPS: \n" + std::to_string(game->fps_stable));

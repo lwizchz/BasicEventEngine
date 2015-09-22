@@ -57,6 +57,7 @@ class BEE::InstanceData {
 		int set_gravity_direction(double);
 
 		std::pair<double,double> get_motion();
+		std::pair<double,double> get_position();
 		double get_hspeed();
 		double get_vspeed();
 		double get_direction();

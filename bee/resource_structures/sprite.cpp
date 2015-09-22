@@ -282,19 +282,25 @@ int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, double angle) {
 int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, RGBA color) {
 	return draw(x, y, subimage_time, -1, -1, 0.0, color);
 }
-int BEE::Sprite::set_as_target() {
+int BEE::Sprite::draw_simple(SDL_Rect* srect, SDL_Rect* drect) {
+	if (!is_loaded) {
+		return 1;
+	}
+	return SDL_RenderCopy(game->renderer, texture, srect, drect);
+}
+int BEE::Sprite::set_as_target(int w, int h) {
 	if (is_loaded) {
 		free();
 	}
 
-	texture = SDL_CreateTexture(game->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, game->get_width(), game->get_height());
+	texture = SDL_CreateTexture(game->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w, h);
 	if (texture == NULL) {
 		std::cerr << "Failed to create a blank texture: " << SDL_GetError() << "\n";
 		return 1;
 	}
 
-	width = game->get_width();
-	height = game->get_height();
+	width = w;
+	height = h;
 	set_subimage_amount(1, width);
 
 	SDL_SetRenderTarget(game->renderer, texture);
@@ -302,6 +308,9 @@ int BEE::Sprite::set_as_target() {
 	is_loaded = true;
 
 	return 0;
+}
+int BEE::Sprite::set_as_target() {
+	return set_as_target(game->get_width(), game->get_height());
 }
 
 #endif // _BEE_SPRITE

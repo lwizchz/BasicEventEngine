@@ -41,6 +41,9 @@ class BEE::Room: public Resource {
 		std::map<InstanceData*,int> instances_sorted;
 		std::map<int,ParticleSystem*> particles;
 		int particle_count = 0;
+
+		Sprite* view_texture = NULL;
+		ViewData* view_current = NULL;
 	public:
 		Room();
 		Room(std::string, std::string);
@@ -66,6 +69,7 @@ class BEE::Room: public Resource {
 		std::string get_view_string();
 		std::map<int,InstanceData*> get_instances();
 		std::string get_instance_string();
+		ViewData* get_current_view();
 
 		int set_name(std::string);
 		int set_path(std::string);

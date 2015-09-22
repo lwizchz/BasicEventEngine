@@ -9,7 +9,7 @@
 #ifndef _BEE_GAME_TRANSITION
 #define _BEE_GAME_TRANSITION 1
 
-int BEE::set_render_target(Sprite* sprite_target) {
+int BEE::set_render_target(Sprite* sprite_target, int w, int h) {
 	if (sprite_target == NULL) {
 		SDL_SetRenderTarget(renderer, NULL);
 	} else {
@@ -17,6 +17,9 @@ int BEE::set_render_target(Sprite* sprite_target) {
 	}
 
 	return 0;
+}
+int BEE::set_render_target(Sprite* sprite_target) {
+	return set_render_target(sprite_target, get_width(), get_height());
 }
 int BEE::draw_transition() {
 	switch (transition_type) {

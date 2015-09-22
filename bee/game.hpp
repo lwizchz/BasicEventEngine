@@ -128,6 +128,7 @@ class BEE {
 		int get_room_height();
 
 		// bee/game/transition.cpp
+		int set_render_target(Sprite*, int, int);
 		int set_render_target(Sprite*);
 		int draw_transition();
 
@@ -166,11 +167,15 @@ class BEE {
 		int set_height(int);
 
 		// bee/game/input.cpp
-		int get_mousex();
-		int get_mousey();
-		int set_mouse_position(int, int);
-		int set_mousex(int);
-		int set_mousey(int);
+		std::pair<int,int> get_mouse_global_position();
+		int get_mouse_global_x();
+		int get_mouse_global_y();
+		std::pair<int,int> get_mouse_position();
+		int get_mouse_x();
+		int get_mouse_y();
+		int set_mouse_global_position(int, int);
+		int set_mouse_global_x(int);
+		int set_mouse_global_y(int);
 
 		// bee/game/draw.cpp
 		RGBA get_enum_color(rgba_t, Uint8);
