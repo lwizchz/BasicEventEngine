@@ -11,6 +11,7 @@
 
 #include "util.hpp"
 
+#include "util/platform.hpp"
 #include "util/real.hpp"
 #include "util/string.hpp"
 #include "util/dates.hpp"

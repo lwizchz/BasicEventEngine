@@ -24,11 +24,11 @@ RmTest::RmTest() : Room("RmTest", "test.hpp") {}
 
 int RmTest::init() {
 	// set room properties
-	set_width(3000);
+	/*set_width(3000);
 	set_height(500);
 
 	set_view(0, &vw_main);
-	set_is_views_enabled(true);
+	set_is_views_enabled(true);*/
 
 	// set backgrounds
 	add_background(-1, bk_green, true, false, 0, 0, true, true, 10, 10, false);

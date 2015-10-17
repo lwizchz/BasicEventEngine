@@ -16,6 +16,11 @@
 // General utility
 std::pair<int,int> coord_approach(int, int, int, int, int);
 
+// Platform compatibility functions
+int bee_mkdir(const char*, mode_t);
+std::string bee_mkdtemp(char*);
+std::string bee_inet_ntop(const void* src);
+
 // Real number functions
 #define PI 3.14159265
 unsigned int random_internal(unsigned int, unsigned int, unsigned int);

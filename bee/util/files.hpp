@@ -55,12 +55,11 @@ bool directory_exists(std::string fname) {
         return S_ISDIR(st.st_mode);
 }
 int directory_create(std::string fname) {
-        return mkdir(fname.c_str(), 0755);
+        return bee_mkdir(fname.c_str(), 0755);
 }
 std::string directory_get_temp() {
         char t[] = "/tmp/bee-XXXXXX";
-        static std::string fname (mkdtemp(t));
-        return fname;
+        return bee_mkdtemp(t);
 }
 
 #endif // _BEE_UTIL_FILES_H

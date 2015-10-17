@@ -44,7 +44,13 @@ time_t date_current_time() {
 }
 
 time_t date_create_datetime(int year, int month, int day, int hour, int minute, int second) {
-        struct tm timeinfo = {second, minute, hour, day, month, year, 0, 0, -1, -1, ""};
+        struct tm timeinfo;
+        timeinfo.tm_year = year;
+        timeinfo.tm_mon = month;
+        timeinfo.tm_mday = day;
+        timeinfo.tm_hour = hour;
+        timeinfo.tm_min = minute;
+        timeinfo.tm_sec = second;
         return mktime(&timeinfo);
 }
 time_t date_create_date(int year, int month, int day) {

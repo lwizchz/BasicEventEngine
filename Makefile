@@ -20,13 +20,7 @@ endif
 
 BUILD = g++ $(FLAGS) -o $(NAME) $(LIBS)
 
-CLEAN = rm $(NAME) gmon.out $(NAME).html $(NAME).js
-
-WINLIBS = ${shell i686-w64-mingw32-pkg-config --libs $(INCLUDE)}
-WINFLAGS = -g -pg -std=c++11 $(WARNS) ${shell i686-w64-mingw32-pkg-config --cflags $(INCLUDE)} -static-libstdc++
-WINBUILD = i686-w64-mingw32-g++ $(WINFLAGS) -o $(NAME).exe main.cpp $(WINLIBS)
-
-EMSCRIPTEN = /usr/lib/emscripten/emc++
+CLEAN = rm $(NAME) gmon.out
 
 main: $(foreach var, $(DEPS_BEE), obj/bee/$(var).o) $(foreach var, $(DEPS_BEE_RESOURCE_STRUCTURES), obj/bee/resource_structures/$(var).o) $(foreach var, $(DEPS), obj/$(var).o)
 	$(BUILD) $^
@@ -48,13 +42,8 @@ resources/resources.hpp: resources/objects/bee.hpp resources/rooms/test.hpp
 
 run: main
 	./$(NAME)
-win: $(DEPS)
-	$(WINBUILD)
+win:
+	make -f Makefile.windows
 clean:
 	rm -r obj
 	$(CLEAN)
-
-web:
-	cd ..
-	$(EMSCRIPTEN) $(DEPS) -o $(NAME).html --preload-file $(NAME)/
-	cd $(NAME)

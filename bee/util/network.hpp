@@ -13,7 +13,6 @@
 
 #include <string>
 #include <SDL2/SDL_net.h>
-#include <arpa/inet.h>
 
 int network_init() {
         int r = SDLNet_Init();
@@ -44,9 +43,7 @@ IPaddress* network_resolve_host(std::string ip, int port) {
         return ipa;
 }
 std::string network_get_address(Uint32 a) {
-        char str[INET_ADDRSTRLEN];
-        inet_ntop(AF_INET, &a, str, INET_ADDRSTRLEN);
-        return std::string(str);
+        return bee_inet_ntop(&a);
 }
 
 TCPsocket network_tcp_open(IPaddress* ipa) {
