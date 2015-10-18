@@ -9,6 +9,8 @@
 #ifndef _BEE_GAME_RESOURCES
 #define _BEE_GAME_RESOURCES 1
 
+#include "../game.hpp"
+
 int BEE::set_engine_pointer() {
 	for (int i=0; i<resource_list->sprites.get_amount(); i++) {
 		if (get_sprite(i) != NULL) {

@@ -42,8 +42,6 @@ resources/resources.hpp: resources/objects/bee.hpp resources/rooms/test.hpp
 
 run: main
 	./$(NAME)
-win:
-	make -f Makefile.windows
 clean:
 	rm -r obj
 	$(CLEAN)

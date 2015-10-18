@@ -9,6 +9,8 @@
 #ifndef _BEE_GAME_WINDOW
 #define _BEE_GAME_WINDOW 1
 
+#include "../game.hpp"
+
 bool BEE::get_is_visible() {
 	return options->is_visible;
 }

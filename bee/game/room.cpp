@@ -9,6 +9,8 @@
 #ifndef _BEE_GAME_ROOM
 #define _BEE_GAME_ROOM 1
 
+#include "../game.hpp"
+
 int BEE::restart_room() {
 	throw 3;
 	return 0;

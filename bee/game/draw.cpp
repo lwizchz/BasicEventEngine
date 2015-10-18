@@ -9,6 +9,8 @@
 #ifndef _BEE_GAME_DRAW
 #define _BEE_GAME_DRAW 1
 
+#include "../game.hpp"
+
 BEE::RGBA BEE::get_enum_color(rgba_t c, Uint8 a) {
 	switch (c) {
 		case c_aqua: return {0, 255, 255, a};

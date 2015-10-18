@@ -160,8 +160,6 @@ bool directory_exists(std::string);
 int directory_create(std::string);
 std::string directory_get_temp();
 
-#ifdef _BEE_SCRIPTING
-
 // Scripting functions
 template <typename T>
 T execute_string(std::string);
@@ -171,8 +169,6 @@ template <typename T>
 int save_map(std::string, std::map<std::string,T>);
 template <typename T>
 std::map<std::string,T> load_map(std::string);
-
-#endif // _BEE_SCRIPTING
 
 // Networking functions
 int network_init();

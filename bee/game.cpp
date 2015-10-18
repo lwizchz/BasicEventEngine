@@ -325,7 +325,9 @@ int BEE::close() {
 	return 0;
 }
 
+#ifndef _WINDOWS
 #include "game/resources.cpp"
+#endif // _WINDOWS
 
 int BEE::render() {
 	if (options->is_opengl) {
@@ -353,18 +355,14 @@ int BEE::end_game() {
 	return 0;
 }
 
+#ifndef _WINDOWS
 #include "game/room.cpp"
-
 #include "game/transition.cpp"
-
 #include "game/display.cpp"
-
 #include "game/window.cpp"
-
 #include "game/input.cpp"
-
 #include "game/draw.cpp"
-
 #include "game/network.cpp"
+#endif // _WINDOWS
 
 #endif // _BEE_GAME

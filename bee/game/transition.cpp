@@ -9,6 +9,8 @@
 #ifndef _BEE_GAME_TRANSITION
 #define _BEE_GAME_TRANSITION 1
 
+#include "../game.hpp"
+
 int BEE::set_render_target(Sprite* sprite_target, int w, int h) {
 	if (sprite_target == NULL) {
 		SDL_SetRenderTarget(renderer, NULL);

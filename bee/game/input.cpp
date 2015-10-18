@@ -9,6 +9,8 @@
 #ifndef _BEE_GAME_INPUT
 #define _BEE_GAME_INPUT 1
 
+#include "../game.hpp"
+
 std::pair<int,int> BEE::get_mouse_global_position() {
 	int mx, my;
 	SDL_GetMouseState(&mx, &my);

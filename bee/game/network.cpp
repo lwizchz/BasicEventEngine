@@ -9,6 +9,8 @@
 #ifndef _BEE_GAME_NETWORK
 #define _BEE_GAME_NETWORK 1
 
+#include "../game.hpp"
+
 /*
 	Network message format {
 		total message length,

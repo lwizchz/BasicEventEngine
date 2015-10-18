@@ -9,6 +9,9 @@
 #ifndef _BEE_GAME_DISPLAY
 #define _BEE_GAME_DISPLAY 1
 
+#include <SDL2/SDL.h>
+#include "../game.hpp"
+
 SDL_DisplayMode BEE::get_display() {
 	SDL_DisplayMode dm;
 	if (SDL_GetDesktopDisplayMode(0, &dm) != 0) {

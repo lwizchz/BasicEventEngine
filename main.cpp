@@ -12,6 +12,12 @@
 #include "bee/game.hpp"
 #include "resources/resources.hpp"
 
+#ifdef _WINDOWS
+#ifdef main
+#undef main
+#endif // main
+#endif // _WINDOWS
+
 int main(int argc, char* argv[]) {
 	try {
 		// Set game options;
