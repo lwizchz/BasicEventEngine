@@ -6,8 +6,7 @@ The software is in early alpha so do not expect any sort of stability. If you ha
 
 ## How to use
 
-This program has only been compiled under Arch Linux and Ubuntu 15.04 and at the moment, no official support will be given to other platforms.
-**Note that as of Aug 2015 I am unable to build it under Ubuntu but you may have better luck**
+This program has only been compiled under Arch Linux and Ubuntu 15.10 and at the moment, no official support will be given to other platforms.
 
 1. [Intall git-lfs][1] so that you can download the resources for the example.
 
