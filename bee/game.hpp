@@ -66,7 +66,7 @@ class BEE {
 
 		Sprite* texture_before;
 		Sprite* texture_after;
-		unsigned int transition_type = 6;
+		unsigned int transition_type = 1;
 		unsigned int transition_speed = 80;
 
 		static MetaResourceList* resource_list;

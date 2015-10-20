@@ -265,6 +265,10 @@ int BEE::Room::set_background_color(Uint8 r, Uint8 g, Uint8 b) {
 	background_color = {r, g, b, 255};
 	return 0;
 }
+int BEE::Room::set_background_color(rgba_t new_background_color) {
+	background_color = game->get_enum_color(new_background_color);
+	return 0;
+}
 int BEE::Room::set_is_background_color_enabled(bool new_is_background_color_enabled) {
 	is_background_color_enabled = new_is_background_color_enabled;
 	return 0;
@@ -357,7 +361,9 @@ int BEE::Room::clear_particles() {
 int BEE::Room::load_media() {
 	// Load room sprites
 	for (auto& i : instances) {
-		i.second->object->get_sprite()->load();
+		if (i.second->object->get_sprite() != NULL) {
+			i.second->object->get_sprite()->load();
+		}
 	}
 
 	// Load room backgrounds
@@ -370,7 +376,9 @@ int BEE::Room::load_media() {
 int BEE::Room::free_media() {
 	// Free room sprites
 	for (auto& i : instances) {
-		i.second->object->get_sprite()->free();
+		if (i.second->object->get_sprite() != NULL) {
+			i.second->object->get_sprite()->free();
+		}
 	}
 
 	// Free room backgrounds
@@ -552,10 +560,12 @@ int BEE::Room::check_paths() {
 int BEE::Room::outside_room() {
 	sort_instances();
 	for (auto& i : instances_sorted) {
-		SDL_Rect a = {(int)i.first->x, (int)i.first->y, i.first->object->get_mask()->get_subimage_width(), i.first->object->get_mask()->get_height()};
-		SDL_Rect b = {0, 0, game->get_width(), game->get_height()};
-		if (!check_collision(&a, &b)) {
-			i.first->object->outside_room(i.first);
+		if (i.first->object->get_mask() != NULL) {
+			SDL_Rect a = {(int)i.first->x, (int)i.first->y, i.first->object->get_mask()->get_subimage_width(), i.first->object->get_mask()->get_height()};
+			SDL_Rect b = {0, 0, game->get_width(), game->get_height()};
+			if (!check_collision(&a, &b)) {
+				i.first->object->outside_room(i.first);
+			}
 		}
 	}
 
@@ -575,28 +585,32 @@ int BEE::Room::collision() {
 	std::map<InstanceData*,int> ilist = instances_sorted;
 
 	for (auto& i1 : ilist) {
-		double x, y;
-		std::tie(x, y) = i1.first->get_position();
-		SDL_Rect a = {(int)x, (int)y, i1.first->object->get_mask()->get_subimage_width(), i1.first->object->get_mask()->get_height()};
-		for (auto& i2 : ilist) {
-			if (i1.first == i2.first) {
-				continue;
-			}
-
-			std::tie(x, y) = i2.first->get_position();
-			SDL_Rect b = {(int)x, (int)y, i2.first->object->get_mask()->get_subimage_width(), i2.first->object->get_mask()->get_height()};
-			if (check_collision(&a, &b)) {
-				if (i1.first->object->get_is_solid()) {
-					i1.first->x -= sin(degtorad(i1.first->velocity.front().first))*i1.first->velocity.front().first;
-					i1.first->y -= -cos(degtorad(i1.first->velocity.front().first))*i1.first->velocity.front().first;
-				}
-				if (i2.first->object->get_is_solid()) {
-					i2.first->x -= sin(degtorad(i2.first->velocity.front().first))*i2.first->velocity.front().first;
-					i2.first->y -= -cos(degtorad(i2.first->velocity.front().first))*i2.first->velocity.front().first;
+		if (i1.first->object->get_mask() != NULL) {
+			double x, y;
+			std::tie(x, y) = i1.first->get_position();
+			SDL_Rect a = {(int)x, (int)y, i1.first->object->get_mask()->get_subimage_width(), i1.first->object->get_mask()->get_height()};
+			for (auto& i2 : ilist) {
+				if (i1.first == i2.first) {
+					continue;
 				}
 
-				i1.first->object->collision(i1.first, i2.first);
-				i2.first->object->collision(i2.first, i1.first);
+				if (i2.first->object->get_mask() != NULL) {
+					std::tie(x, y) = i2.first->get_position();
+					SDL_Rect b = {(int)x, (int)y, i2.first->object->get_mask()->get_subimage_width(), i2.first->object->get_mask()->get_height()};
+					if (check_collision(&a, &b)) {
+						if (i1.first->object->get_is_solid()) {
+							i1.first->x -= sin(degtorad(i1.first->velocity.front().first))*i1.first->velocity.front().first;
+							i1.first->y -= -cos(degtorad(i1.first->velocity.front().first))*i1.first->velocity.front().first;
+						}
+						if (i2.first->object->get_is_solid()) {
+							i2.first->x -= sin(degtorad(i2.first->velocity.front().first))*i2.first->velocity.front().first;
+							i2.first->y -= -cos(degtorad(i2.first->velocity.front().first))*i2.first->velocity.front().first;
+						}
+
+						i1.first->object->collision(i1.first, i2.first);
+						i2.first->object->collision(i2.first, i1.first);
+					}
+				}
 			}
 		}
 		ilist.erase(i1.first);
@@ -717,8 +731,10 @@ int BEE::Room::draw_view() {
 int BEE::Room::animation_end() {
 	sort_instances();
 	for (auto& i : instances_sorted) {
-		if (!i.first->object->get_sprite()->get_is_animated()) {
-			i.first->object->animation_end(i.first);
+		if (i.first->object->get_sprite() != NULL) {
+			if (!i.first->object->get_sprite()->get_is_animated()) {
+				i.first->object->animation_end(i.first);
+			}
 		}
 	}
 

@@ -138,7 +138,7 @@ int BEE::draw_transition() {
 		}
 
 	}
-	transition_type++;
+
 	for (auto& b : current_room->get_backgrounds()) {
 		b.second->background->set_time_update();
 	}

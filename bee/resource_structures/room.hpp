@@ -80,6 +80,7 @@ class BEE::Room: public Resource {
 		int set_is_persistent(bool);
 		int set_background_color(RGBA);
 		int set_background_color(Uint8, Uint8, Uint8);
+		int set_background_color(rgba_t);
 		int set_is_background_color_enabled(bool);
 		int set_background(int, BackgroundData*);
 		int add_background(int, Background*, bool, bool, int, int, bool, bool, int, int, bool);
