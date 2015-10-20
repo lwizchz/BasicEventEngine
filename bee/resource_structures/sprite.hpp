@@ -28,6 +28,7 @@ class BEE::Sprite: public Resource {
 
 		SDL_Texture* texture;
 		bool is_loaded = false;
+		bool has_draw_failed = false;
 		std::vector<SDL_Rect> subimages;
 		SDL_Rect srect, drect;
 	public:

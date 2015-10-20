@@ -320,6 +320,10 @@ int BEE::Font::draw_fast(int x, int y, std::string text) {
 	SDL_Color color = {0, 0, 0, 255};
 	return draw_fast(x, y, text, color);
 }
+int BEE::Font::draw_fast(int x, int y, std::string text, rgba_t color) {
+	RGBA c = game->get_enum_color(color);
+	return draw_fast(x, y, text, {c.r, c.g, c.b, c.a});
+}
 
 int BEE::Font::get_string_width(std::string text, int size) {
 	if (is_loaded) {

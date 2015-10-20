@@ -55,4 +55,10 @@ int BEE::set_mouse_global_y(int new_my) {
 	return set_mouse_global_position(get_mouse_global_x(), new_my);
 }
 
+bool BEE::is_mouse_inside(InstanceData* instance) {
+	SDL_Rect i = {(int)instance->x, (int)instance->y, instance->object->get_mask()->get_subimage_width(), instance->object->get_mask()->get_height()};
+	SDL_Rect m = {get_mouse_x(), get_mouse_y(), 0, 0};
+	return check_collision(&i, &m);
+}
+
 #endif // _BEE_GAME_INPUT
