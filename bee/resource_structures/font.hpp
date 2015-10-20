@@ -67,6 +67,7 @@ class BEE::Font: public Resource {
 		TextData* draw(TextData*, int, int, std::string);
 		int draw_fast(int, int, std::string, SDL_Color);
 		int draw_fast(int, int, std::string);
+		int draw_fast(int, int, std::string, rgba_t);
 
 		int get_string_width(std::string, int);
 		int get_string_width(std::string);

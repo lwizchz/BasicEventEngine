@@ -312,13 +312,14 @@ int BEE::Room::add_instance(int index, Object* object, int x, int y) {
 		new_instance->id = index;
 	}
 	set_instance(index, new_instance);
+	object->game = game;
 	object->add_instance(index, new_instance);
 
 	if (game->get_is_ready()) {
 		new_instance->object->create(new_instance);
 	}
 
-	return 0;
+	return index;
 }
 int BEE::Room::remove_instance(int index) {
 	instances[index]->object->remove_instance(index);

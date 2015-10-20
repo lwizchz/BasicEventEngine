@@ -76,6 +76,7 @@ int BEE::Sprite::reset() {
 	texture = NULL;
 	is_loaded = false;
 	subimages.clear();
+	has_draw_failed = false;
 
 	return 0;
 }
@@ -211,6 +212,7 @@ int BEE::Sprite::load() {
 		SDL_SetTextureAlphaMod(texture, alpha*255);
 
 		is_loaded = true;
+		has_draw_failed = false;
 	}
 	return 0;
 }
@@ -224,7 +226,10 @@ int BEE::Sprite::free() {
 }
 int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h, double angle, RGBA new_color) {
 	if (!is_loaded) {
-		std::cerr << "Failed to draw sprite '" << name << "'" << " because it is not loaded\n";
+		if (!has_draw_failed) {
+			std::cerr << "Failed to draw sprite '" << name << "'" << " because it is not loaded\n";
+			has_draw_failed = true;
+		}
 		return 1;
 	}
 
@@ -306,6 +311,7 @@ int BEE::Sprite::set_as_target(int w, int h) {
 	SDL_SetRenderTarget(game->renderer, texture);
 
 	is_loaded = true;
+	has_draw_failed = false;
 
 	return 0;
 }

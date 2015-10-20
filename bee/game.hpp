@@ -176,6 +176,7 @@ class BEE {
 		int set_mouse_global_position(int, int);
 		int set_mouse_global_x(int);
 		int set_mouse_global_y(int);
+		bool is_mouse_inside(InstanceData*);
 
 		// bee/game/draw.cpp
 		RGBA get_enum_color(rgba_t, Uint8);
