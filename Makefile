@@ -1,4 +1,4 @@
-NAME = skeltal
+NAME = BasicEventEngine
 
 DEPS = main
 DEPS_BEE = debug resource_structures util game
@@ -6,8 +6,8 @@ DEPS_BEE_GAME = resources room transition display window input draw network
 DEPS_BEE_RESOURCE_STRUCTURES = sprite sound background font path object room ext/instancedata ext/particles
 DEPS_BEE_UTIL = real string dates collision sound messagebox files script network
 
-RES_OBJS = titlescreen
-RES_ROOMS = titlescreen
+RES_OBJS = bee
+RES_ROOMS = test
 
 PKGDEPS = libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev libsdl2-net-dev chaiscript
 INCLUDE = sdl2 SDL2_image SDL2_ttf SDL2_mixer SDL2_net
