@@ -42,6 +42,7 @@ class BEE::Sound: public Resource {
 		Mix_Chunk* chunk;
 		bool is_playing, is_looping;
 		std::list<int> current_channels;
+		bool has_play_failed = false;
 
 		int sound_effects = (1u << 0);
 		se_chorus_data* chorus_data;

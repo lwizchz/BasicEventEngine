@@ -27,8 +27,8 @@ int BEE::InstanceData::init(int new_id, Object* new_object, int new_x, int new_y
 	subimage_time = SDL_GetTicks();
 	depth = object->get_depth();
 
-	x = (float)new_x;
-	y = (float)new_y;
+	x = (double)new_x;
+	y = (double)new_y;
 	xprevious = x;
 	yprevious = y;
 	xstart = x;

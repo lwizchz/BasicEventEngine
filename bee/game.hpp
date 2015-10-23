@@ -183,7 +183,11 @@ class BEE {
 		RGBA get_enum_color(rgba_t);
 		int draw_point(int, int);
 		int draw_line(int, int, int, int);
+		int draw_line(int, int, int, int, RGBA);
+		int draw_line(int, int, int, int, rgba_t);
 		int draw_rectangle(int, int, int, int, bool);
+		int draw_rectangle(int, int, int, int, bool, RGBA);
+		int draw_rectangle(int, int, int, int, bool, rgba_t);
 		int draw_set_color(RGBA);
 		int draw_set_color(rgba_t);
 		RGBA draw_get_color();

@@ -23,6 +23,10 @@ int BEE::get_mouse_global_y() {
 	return get_mouse_global_position().second;
 }
 std::pair<int,int> BEE::get_mouse_position() {
+	if (!get_current_room()->get_is_views_enabled()) {
+		return get_mouse_global_position();
+	}
+	
 	int mx, my;
 	std::tie(mx, my) = get_mouse_global_position();
 	ViewData* v = get_current_room()->get_current_view();
