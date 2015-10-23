@@ -79,6 +79,7 @@ int BEE::Sound::reset() {
 	is_playing = false;
 	is_looping = false;
 	current_channels.clear();
+	has_play_failed = false;
 
 	return 0;
 }
@@ -155,12 +156,15 @@ int BEE::Sound::set_is_music(bool new_is_music) {
 }
 int BEE::Sound::set_volume(double new_volume) {
 	volume = new_volume;
-	if (is_music) {
-		Mix_VolumeMusic(game->get_volume()*volume*128);
-	} else {
-		Mix_VolumeChunk(chunk, game->get_volume()*volume*128);
+	if (is_loaded) {
+		if (is_music) {
+			Mix_VolumeMusic(game->get_volume()*volume*128);
+		} else {
+			Mix_VolumeChunk(chunk, game->get_volume()*volume*128);
+		}
+		return 0;
 	}
-	return 0;
+	return 1;
 }
 int BEE::Sound::update_volume() {
 	set_volume(volume);
@@ -168,14 +172,17 @@ int BEE::Sound::update_volume() {
 }
 int BEE::Sound::set_pan(double new_pan) {
 	pan = new_pan;
-	if (is_music) {
-		return 1; // I'm not sure how to pan music at the moment
-	} else {
-		for (std::list<int>::iterator i=current_channels.begin(); i != current_channels.end(); ++i) {
-			set_pan_internal(*i);
+	if (is_loaded) {
+		if (is_music) {
+			return 1; // I'm not sure how to pan music at the moment
+		} else {
+			for (std::list<int>::iterator i=current_channels.begin(); i != current_channels.end(); ++i) {
+				set_pan_internal(*i);
+			}
 		}
+		return 0;
 	}
-	return 0;
+	return 1;
 }
 int BEE::Sound::set_pan_internal(int channel) {
 	if (pan > 0) {
@@ -225,6 +232,7 @@ int BEE::Sound::load() {
 
 	}
 	is_loaded = true;
+	has_play_failed = false;
 
 	return 0;
 }
@@ -252,6 +260,14 @@ int BEE::Sound::finished(int channel) {
 }
 
 int BEE::Sound::play() {
+	if (!is_loaded) {
+		if (!has_play_failed) {
+			std::cerr << "Failed to play sound '" << name << "'" << " because it is not loaded\n";
+			has_play_failed = true;
+		}
+		return 1;
+	}
+
 	if (is_music) {
 		Mix_PlayMusic(music, 1);
 		effect_set_post(sound_effects);
@@ -275,23 +291,34 @@ int BEE::Sound::play() {
 	return 0;
 }
 int BEE::Sound::stop() {
-	is_playing = false;
-	is_looping = false;
+	if (is_loaded) {
+		is_playing = false;
+		is_looping = false;
 
-	if (is_music) {
-		effect_set_post(0);
-		Mix_HaltMusic();
-	} else {
-		std::list<int> tmp_channels = current_channels;
-		for (auto i=tmp_channels.begin(); i != tmp_channels.end(); ++i) {
-			effect_set(*i, 0);
-			Mix_HaltChannel(*i);
+		if (is_music) {
+			effect_set_post(0);
+			Mix_HaltMusic();
+		} else {
+			std::list<int> tmp_channels = current_channels;
+			for (auto i=tmp_channels.begin(); i != tmp_channels.end(); ++i) {
+				effect_set(*i, 0);
+				Mix_HaltChannel(*i);
+			}
 		}
-	}
 
-	return 0;
+		return 0;
+	}
+	return 1;
 }
 int BEE::Sound::rewind() {
+	if (!is_loaded) {
+		if (!has_play_failed) {
+			std::cerr << "Failed to rewind sound '" << name << "'" << " because it is not loaded\n";
+			has_play_failed = true;
+		}
+		return 1;
+	}
+
 	if (is_music) {
 		// Mix_RewindMusic(); // Only works for MOD, OGG, MP3, and MIDI
 		Mix_HaltMusic();
@@ -316,6 +343,14 @@ int BEE::Sound::rewind() {
 	return 0;
 }
 int BEE::Sound::pause() {
+	if (!is_loaded) {
+		if (!has_play_failed) {
+			std::cerr << "Failed to pause sound '" << name << "'" << " because it is not loaded\n";
+			has_play_failed = true;
+		}
+		return 1;
+	}
+
 	if (is_music) {
 		Mix_PauseMusic();
 	} else {
@@ -329,6 +364,14 @@ int BEE::Sound::pause() {
 	return 0;
 }
 int BEE::Sound::resume() {
+	if (!is_loaded) {
+		if (!has_play_failed) {
+			std::cerr << "Failed to resume sound '" << name << "'" << " because it is not loaded\n";
+			has_play_failed = true;
+		}
+		return 1;
+	}
+
 	if (is_music) {
 		Mix_ResumeMusic();
 	} else {
@@ -349,6 +392,14 @@ int BEE::Sound::toggle() {
 	}
 }
 int BEE::Sound::loop() {
+	if (!is_loaded) {
+		if (!has_play_failed) {
+			std::cerr << "Failed to loop sound '" << name << "'" << " because it is not loaded\n";
+			has_play_failed = true;
+		}
+		return 1;
+	}
+
 	if (is_music) {
 		Mix_PlayMusic(music, -1);
 		effect_set_post(sound_effects);
@@ -371,6 +422,14 @@ int BEE::Sound::loop() {
 	return 0;
 }
 int BEE::Sound::fade_in(int ticks) {
+	if (!is_loaded) {
+		if (!has_play_failed) {
+			std::cerr << "Failed to fade in sound '" << name << "'" << " because it is not loaded\n";
+			has_play_failed = true;
+		}
+		return 1;
+	}
+
 	if (is_music) {
 		Mix_FadeInMusic(music, 1, ticks);
 	} else {
@@ -393,6 +452,14 @@ int BEE::Sound::fade_in(int ticks) {
 	return 0;
 }
 int BEE::Sound::fade_out(int ticks) {
+	if (!is_loaded) {
+		if (!has_play_failed) {
+			std::cerr << "Failed to fade out sound '" << name << "'" << " because it is not loaded\n";
+			has_play_failed = true;
+		}
+		return 1;
+	}
+
 	is_playing = false;
 	is_looping = false;
 
@@ -414,21 +481,24 @@ bool BEE::Sound::get_is_looping() {
 }
 
 int BEE::Sound::effect_add(int new_sound_effects) {
-	int old_sound_effects = sound_effects;
-	sound_effects = new_sound_effects;
+	if (is_loaded) {
+		int old_sound_effects = sound_effects;
+		sound_effects = new_sound_effects;
 
-	if (is_music) {
-		effect_remove_post(old_sound_effects ^ sound_effects);
-		effect_set_post(sound_effects);
-	} else {
-		std::list<int> tmp_channels = current_channels;
-		for (auto i=tmp_channels.begin(); i != tmp_channels.end(); ++i) {
-			effect_remove(*i, old_sound_effects ^ sound_effects);
-			effect_set(*i, sound_effects);
+		if (is_music) {
+			effect_remove_post(old_sound_effects ^ sound_effects);
+			effect_set_post(sound_effects);
+		} else {
+			std::list<int> tmp_channels = current_channels;
+			for (auto i=tmp_channels.begin(); i != tmp_channels.end(); ++i) {
+				effect_remove(*i, old_sound_effects ^ sound_effects);
+				effect_set(*i, sound_effects);
+			}
 		}
-	}
 
-	return 0;
+		return 0;
+	}
+	return 1;
 }
 int BEE::Sound::effect_set(int channel, int se_mask) {
 	if (se_mask & se_none) {

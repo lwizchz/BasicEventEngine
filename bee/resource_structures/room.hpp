@@ -39,6 +39,7 @@ class BEE::Room: public Resource {
 		std::map<int,ViewData*> views;
 		std::map<int,InstanceData*> instances;
 		std::map<InstanceData*,int> instances_sorted;
+		std::vector<InstanceData*> destroyed_instances;
 		std::map<int,ParticleSystem*> particles;
 		int particle_count = 0;
 
@@ -100,6 +101,8 @@ class BEE::Room: public Resource {
 
 		int create();
 		int destroy();
+		int destroy(InstanceData*);
+		int destroy_all(Object*);
 		int check_alarms();
 		int step_begin();
 		int step_mid();

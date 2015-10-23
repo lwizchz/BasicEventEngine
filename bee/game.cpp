@@ -234,6 +234,7 @@ int BEE::loop() {
 			current_room->step_end();
 			current_room->draw();
 			current_room->animation_end();
+			current_room->destroy();
 
 			net_handle_events();
 

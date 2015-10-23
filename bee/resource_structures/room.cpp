@@ -315,6 +315,13 @@ int BEE::Room::add_instance(int index, Object* object, int x, int y) {
 	object->game = game;
 	object->add_instance(index, new_instance);
 
+	if (object->get_sprite() != NULL) {
+		if (!object->get_sprite()->get_is_loaded()) {
+			//object->get_sprite()->load();
+			std::cerr << "An instance of " << object->get_name() << " has been created but its sprite has not been loaded\n";
+		}
+	}
+
 	if (game->get_is_ready()) {
 		new_instance->object->create(new_instance);
 	}
@@ -322,14 +329,17 @@ int BEE::Room::add_instance(int index, Object* object, int x, int y) {
 	return index;
 }
 int BEE::Room::remove_instance(int index) {
-	instances[index]->object->remove_instance(index);
-	instances.erase(index);
-	for (unsigned int i=index; i<instances.size(); i++) {
-		if (instances.find(i)++ != instances.end()) {
-			instances[i] = instances[i+1];
+	if (instances.find(index) != instances.end()) {
+		instances[index]->object->remove_instance(index);
+		instances.erase(index);
+		for (unsigned int i=index; i<instances.size(); i++) {
+			if (instances.find(i)++ != instances.end()) {
+				instances[i] = instances[i+1];
+			}
 		}
+		return 0;
 	}
-	return 0;
+	return 1;
 }
 int BEE::Room::sort_instances() {
 	std::transform(instances.begin(), instances.end(), std::inserter(instances_sorted, instances_sorted.begin()), flip_pair<int,InstanceData*>);
@@ -420,9 +430,22 @@ int BEE::Room::create() {
 	return 0;
 }
 int BEE::Room::destroy() {
-	sort_instances();
-	for (auto& i : instances_sorted) {
-		i.first->object->destroy(i.first);
+	for (auto& i : destroyed_instances) {
+		i->object->destroy(i);
+		remove_instance(i->id);
+	}
+	instances_sorted.clear();
+	destroyed_instances.clear();
+
+	return 0;
+}
+int BEE::Room::destroy(InstanceData* inst) {
+	destroyed_instances.push_back(inst);
+	return 0;
+}
+int BEE::Room::destroy_all(Object* obj) {
+	for (auto& i : obj->get_instances()) {
+		destroyed_instances.push_back(i.second);
 	}
 
 	return 0;

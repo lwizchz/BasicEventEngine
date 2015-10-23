@@ -16,7 +16,7 @@
 class BEE::InstanceData {
 		double xstart = 0.0, ystart = 0.0;
 
-		double friction;
+		double friction = 0.0;
 		double gravity = 0.0, gravity_direction = 180.0;
 
 		Path* path = NULL;
