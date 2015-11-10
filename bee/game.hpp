@@ -63,6 +63,7 @@ class BEE {
 		SDL_Window* window = NULL;
 		SDL_Renderer* renderer = NULL;
 		unsigned int fps_max, fps_goal, fps_count, fps_stable;
+		const Uint8* keystate;
 
 		Sprite* texture_before;
 		Sprite* texture_after;
@@ -108,6 +109,8 @@ class BEE {
 		static Object* get_object(int);
 		static Room* get_room(int);
 
+		Object* get_object_by_name(std::string);
+
 		// bee/game.cpp
 		int render();
 		int render_clear();
@@ -117,6 +120,7 @@ class BEE {
 
 		// bee/game/room.cpp
 		int restart_room();
+		int change_room(Room*, bool);
 		int change_room(Room*);
 		int room_goto(int);
 		int room_goto_previous();
@@ -177,6 +181,9 @@ class BEE {
 		int set_mouse_global_x(int);
 		int set_mouse_global_y(int);
 		bool is_mouse_inside(InstanceData*);
+		bool get_keystate(SDL_Scancode);
+		bool get_keystate(SDL_Keycode);
+		char append_input(std::string&, SDL_KeyboardEvent*);
 
 		// bee/game/draw.cpp
 		RGBA get_enum_color(rgba_t, Uint8);
@@ -233,7 +240,7 @@ class ViewData {
 		int view_x, view_y, view_width, view_height;
 		int port_x, port_y, port_width, port_height;
 		BEE::InstanceData* following;
-		int object_horizontal_border, object_vertical_border;
+		int horizontal_border, vertical_border;
 		int horizontal_speed, vertical_speed;
 };
 

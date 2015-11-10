@@ -34,6 +34,7 @@ int BEE::InstanceData::init(int new_id, Object* new_object, int new_x, int new_y
 	xstart = x;
 	ystart = y;
 	velocity.clear();
+	old_velocity.clear();
 	gravity = 0.0;
 
 	for (int i=0; i<ALARM_COUNT; i++) {
@@ -74,6 +75,31 @@ int BEE::InstanceData::set_alarm(int alarm, Uint32 elapsed_ticks) {
 	return 0;
 }
 
+double BEE::InstanceData::get_xstart() {
+	return xstart;
+}
+double BEE::InstanceData::get_ystart() {
+	return ystart;
+}
+int BEE::InstanceData::get_width() {
+	if (object->get_sprite() == NULL) {
+		return 0;
+	}
+	return object->get_sprite()->get_subimage_width();
+}
+int BEE::InstanceData::get_height() {
+	if (object->get_sprite() == NULL) {
+		return 0;
+	}
+	return object->get_sprite()->get_height();
+}
+double BEE::InstanceData::get_center_x() {
+	return x + (double)get_width()/2.0;
+}
+double BEE::InstanceData::get_center_y() {
+	return y + (double)get_height()/2.0;
+}
+
 int BEE::InstanceData::move(double new_magnitude, double new_direction) {
 	if (new_direction < 0.0) {
 		new_direction = 360.0 + new_direction;
@@ -104,15 +130,49 @@ int BEE::InstanceData::set_gravity_direction(double new_gravity_direction) {
 	gravity_direction = new_gravity_direction;
 	return 0;
 }
+int BEE::InstanceData::set_gravity_acceleration(double new_acceleration) {
+	acceleration = new_acceleration;
+	return 0;
+}
+int BEE::InstanceData::reset_gravity_acceleration() {
+	acceleration_amount = 0.0;
+	return 0;
+}
+int BEE::InstanceData::move_avoid(SDL_Rect* other) {
+	SDL_Rect r = {(int)x, (int)y, object->get_mask()->get_subimage_width(), object->get_mask()->get_height()};
+
+	for (auto v=old_velocity.begin(); v!=old_velocity.end(); ++v) {
+		xprevious = x;
+		yprevious = y;
+
+		x += sin(degtorad((*v).second)) * (*v).first;
+		y += -cos(degtorad((*v).second)) * (*v).first;
+		r.x = x;
+		r.y = y;
+
+		if (check_collision(&r, other)) {
+			std::tie(x, y) = move_outside(std::make_pair(x, y), std::make_pair(xprevious, yprevious), &r, other);
+			(*v).first = distance(x, y, xprevious, yprevious);
+		}
+	}
+
+	return 0;
+}
 
 std::pair<double,double> BEE::InstanceData::get_motion() {
 	double xsum = x;
 	double ysum = y;
 
-	velocity.push_back(std::make_pair(gravity, gravity_direction));
 	for (auto& v : velocity) {
 		xsum += sin(degtorad(v.second))*v.first;
 		ysum += -cos(degtorad(v.second))*v.first;
+	}
+
+	double g = gravity*pow(acceleration, acceleration_amount), gd = gravity_direction;
+	xsum += sin(degtorad(gd))*g;
+	ysum += -cos(degtorad(gd))*g;
+	if (acceleration_amount < 10) {
+		acceleration_amount += 0.01;
 	}
 
 	double d = direction_of(x, y, xsum, ysum);
@@ -128,7 +188,8 @@ double BEE::InstanceData::get_hspeed() {
 	return get_motion().first - xprevious;
 }
 double BEE::InstanceData::get_vspeed() {
-	return get_motion().second - yprevious;
+	double g = gravity*pow(acceleration, acceleration_amount), gd = gravity_direction;
+	return get_motion().second - yprevious + cos(degtorad(gd))*g;
 }
 double BEE::InstanceData::get_direction() {
 	double xsum=0.0, ysum=0.0;
@@ -151,6 +212,12 @@ double BEE::InstanceData::get_gravity() {
 }
 double BEE::InstanceData::get_gravity_direction() {
 	return gravity_direction;
+}
+double BEE::InstanceData::get_gravity_acceleration() {
+	return acceleration;
+}
+double BEE::InstanceData::get_gravity_acceleration_amount() {
+	return acceleration_amount;
 }
 
 bool BEE::InstanceData::is_place_free(int new_x, int new_y) {
@@ -270,6 +337,30 @@ double BEE::InstanceData::get_distance(Object* other) {
 		}
 	}
 	return shortest_distance;
+}
+double BEE::InstanceData::get_direction(int dx, int dy) {
+	return direction_of(x, y, dx, dy);
+}
+double BEE::InstanceData::get_direction(InstanceData* other) {
+	return direction_of(x, y, other->x, other->y);
+}
+double BEE::InstanceData::get_direction(Object* other) {
+	double shortest_distance = 0.0, current_distance = 0.0;
+	InstanceData* closest_instance = NULL;
+	for (auto& i : game->get_current_room()->get_instances()) {
+		if (i.second->object->get_id() == other->get_id()) {
+			current_distance = distance(x, y, i.second->x, i.second->y);
+			if (current_distance < shortest_distance) {
+				shortest_distance = current_distance;
+				closest_instance = i.second;
+			}
+		}
+	}
+
+	if (closest_instance != NULL) {
+		return direction_of(x, y, closest_instance->x, closest_instance->y);
+	}
+	return 0.0;
 }
 
 int BEE::InstanceData::path_start(Path* new_path, double new_path_speed, int new_end_action, bool absolute) {
@@ -393,6 +484,15 @@ int BEE::InstanceData::draw(RGBA color) {
 }
 int BEE::InstanceData::draw(rgba_t color) {
 	return draw(game->get_enum_color(color));
+}
+
+int BEE::InstanceData::draw_debug() {
+	if (object->get_mask() != NULL) {
+		int w = object->get_mask()->get_subimage_width();
+		int h = object->get_mask()->get_height();
+		return game->draw_rectangle(x, y, w, h, false, c_aqua);
+	}
+	return 1;
 }
 
 #endif // _BEE_INSTANCEDATA

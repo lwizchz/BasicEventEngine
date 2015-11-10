@@ -43,6 +43,10 @@ template <typename T>
 T dot_product(T, T, T, T);
 template <typename T>
 T dot_product(std::pair<T,T>, std::pair<T,T>);
+template <typename T>
+bool is_between(T, T, T);
+template <typename T>
+bool is_angle_between(T, T, T);
 
 // String handling functions
 std::string chr(int);
@@ -118,6 +122,7 @@ bool check_collision_line(Line, Line);
 bool check_collision(SDL_Rect*, Line);
 double angle_hbounce(double);
 double angle_vbounce(double);
+std::pair<double,double> move_outside(std::pair<double,double>, std::pair<double,double>, SDL_Rect*, SDL_Rect*);
 
 // Sound effect functions
 class se_chorus_data;

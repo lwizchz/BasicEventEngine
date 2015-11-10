@@ -70,6 +70,8 @@ BEE::BEE(int new_argc, char** new_argv, Room** new_first_room, GameOptions* new_
 	cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
 	SDL_SetCursor(cursor);
 
+	keystate = SDL_GetKeyboardState(NULL);
+
 	if (options->is_opengl) {
 		// Do OpenGL stuff
 	} else {
@@ -123,7 +125,7 @@ BEE::BEE(int new_argc, char** new_argv, Room** new_first_room, GameOptions* new_
 
 	quit = false;
 	if (*new_first_room != NULL) {
-		if (change_room(*new_first_room)) {
+		if (change_room(*new_first_room, false)) {
 			throw std::string("Couldn't load first room\n");
 		}
 	}
@@ -195,11 +197,10 @@ int BEE::loop() {
 					}
 
 					case SDL_KEYDOWN: {
-						if (event.key.repeat != 0) {
-							current_room->keyboard(&event);
-						} else {
+						if (event.key.repeat == 0) {
 							current_room->keyboard_press(&event);
 						}
+						current_room->keyboard_input(&event);
 						break;
 					}
 					case SDL_KEYUP: {
@@ -208,7 +209,7 @@ int BEE::loop() {
 					}
 					case SDL_MOUSEMOTION:
 					case SDL_MOUSEWHEEL: {
-						current_room->mouse(&event);
+						current_room->mouse_input(&event);
 						break;
 					}
 					case SDL_MOUSEBUTTONDOWN: {
@@ -224,6 +225,8 @@ int BEE::loop() {
 						break;
 				}
 			}
+			current_room->keyboard();
+			current_room->mouse();
 
 			current_room->step_mid();
 			current_room->check_paths();
@@ -262,11 +265,14 @@ int BEE::loop() {
 					break;
 				}
 				case 2: { // Restart game
-					change_room(first_room);
+					change_room(first_room, false);
 					break;
 				}
 				case 3: { // Restart room
-					change_room(current_room);
+					change_room(current_room, false);
+					break;
+				}
+				case 4: { // Jump to loop end, e.g. change room
 					break;
 				}
 			}

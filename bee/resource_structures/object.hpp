@@ -64,17 +64,22 @@ class BEE::Object: public Resource {
 		int remove_instance(int);
 		int clear_instances();
 		std::map<int, InstanceData*> get_instances();
+		InstanceData* get_instance(int);
+		std::string get_instance_string();
 
+		virtual void update(InstanceData*) {};
 		virtual void create(InstanceData*) {};
 		virtual void destroy(InstanceData*) {};
 		virtual void alarm(InstanceData*, int) {};
 		virtual void step_begin(InstanceData*) {};
 		virtual void step_mid(InstanceData*) {};
 		virtual void step_end(InstanceData*) {};
-		virtual void keyboard(InstanceData*, SDL_Event*) {};
-		virtual void mouse(InstanceData*, SDL_Event*) {};
+		virtual void keyboard(InstanceData*) {};
+		virtual void mouse(InstanceData*) {};
 		virtual void keyboard_press(InstanceData*, SDL_Event*) {};
 		virtual void mouse_press(InstanceData*, SDL_Event*) {};
+		virtual void keyboard_input(InstanceData*, SDL_Event*) {};
+		virtual void mouse_input(InstanceData*, SDL_Event*) {};
 		virtual void keyboard_release(InstanceData*, SDL_Event*) {};
 		virtual void mouse_release(InstanceData*, SDL_Event*) {};
 		virtual void path_end(InstanceData*) {};

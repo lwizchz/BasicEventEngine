@@ -15,7 +15,7 @@ int BEE::restart_room() {
 	throw 3;
 	return 0;
 }
-int BEE::change_room(Room* new_room) {
+int BEE::change_room(Room* new_room, bool should_jump) {
 	if (quit) {
 		return 1;
 	}
@@ -75,7 +75,14 @@ int BEE::change_room(Room* new_room) {
 		draw_transition();
 	}
 
+	if (should_jump) {
+		throw 4;
+	}
+
 	return 0;
+}
+int BEE::change_room(Room* new_room) {
+	return change_room(new_room, true);
 }
 int BEE::room_goto(int index) {
 	return change_room(get_room(index));

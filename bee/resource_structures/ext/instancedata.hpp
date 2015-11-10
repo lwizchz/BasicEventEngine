@@ -18,6 +18,7 @@ class BEE::InstanceData {
 
 		double friction = 0.0;
 		double gravity = 0.0, gravity_direction = 180.0;
+		double acceleration = 0.0, acceleration_amount = 0.0;
 
 		Path* path = NULL;
 		double path_speed = 0.0;
@@ -35,7 +36,7 @@ class BEE::InstanceData {
 
 		double x = 0.0, y = 0.0;
 		double xprevious = 0.0, yprevious = 0.0;
-		std::list<std::pair<double,double>> velocity;
+		std::list<std::pair<double,double>> velocity, old_velocity;
 		int path_xstart = 0, path_ystart = 0;
 
 		InstanceData();
@@ -49,12 +50,22 @@ class BEE::InstanceData {
 
 		int set_alarm(int, Uint32);
 
+		double get_xstart();
+		double get_ystart();
+		int get_width();
+		int get_height();
+		double get_center_x();
+		double get_center_y();
+
 		int move(double, double);
 		int move_to(double, double, double);
 		int move_away(double, double, double);
 		int set_friction(double);
 		int set_gravity(double);
 		int set_gravity_direction(double);
+		int set_gravity_acceleration(double);
+		int reset_gravity_acceleration();
+		int move_avoid(SDL_Rect*);
 
 		std::pair<double,double> get_motion();
 		std::pair<double,double> get_position();
@@ -65,6 +76,8 @@ class BEE::InstanceData {
 		double get_friction();
 		double get_gravity();
 		double get_gravity_direction();
+		double get_gravity_acceleration();
+		double get_gravity_acceleration_amount();
 
 		bool is_place_free(int, int);
 		bool is_place_empty(int, int);
@@ -79,6 +92,9 @@ class BEE::InstanceData {
 		double get_distance(int, int);
 		double get_distance(InstanceData*);
 		double get_distance(Object*);
+		double get_direction(int, int);
+		double get_direction(InstanceData*);
+		double get_direction(Object*);
 
 		int path_start(Path*, double, int, bool);
 		int path_end();
@@ -98,6 +114,8 @@ class BEE::InstanceData {
 		int draw(double);
 		int draw(RGBA);
 		int draw(rgba_t);
+
+		int draw_debug();
 };
 
 #endif // _BEE_INSTANCEDATA_H

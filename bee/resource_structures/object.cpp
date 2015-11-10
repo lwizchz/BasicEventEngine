@@ -71,6 +71,8 @@ int BEE::Object::reset() {
 	return 0;
 }
 int BEE::Object::print() {
+	std::string instance_string = get_instance_string();
+
 	std::cout <<
 	"Object { "
 	"\n	id		" << id <<
@@ -96,7 +98,8 @@ int BEE::Object::print() {
 	} else {
 		std::cout << "\n	mask		NULL";
 	}
-	std::cout << "\n}\n";
+	std::cout << "\n	instances\n" << debug_indent(instance_string, 2) <<
+	"\n}\n";
 
 	return 0;
 }
@@ -203,6 +206,32 @@ int BEE::Object::clear_instances() {
 }
 std::map<int, BEE::InstanceData*> BEE::Object::get_instances() {
 	return instances;
+}
+BEE::InstanceData* BEE::Object::get_instance(int inst_id) {
+	int i = 0;
+	for (auto& inst : instances) {
+		if (i == inst_id) {
+			return inst.second;
+		}
+		i++;
+	}
+	return NULL;
+}
+std::string BEE::Object::get_instance_string() {
+	if (instances.size() > 0) {
+		std::ostringstream instance_string;
+		instance_string << "(id	object	x	y)\n";
+		for (auto& i : instances) {
+			instance_string <<
+			i.second->id << "\t" <<
+			i.second->object->get_name() << "\t" <<
+			i.second->x << "\t" <<
+			i.second->y << "\n";
+		}
+
+		return instance_string.str();
+	}
+	return "none\n";
 }
 
 #endif // _BEE_OBJECT

@@ -131,4 +131,21 @@ T dot_product(std::pair<T,T> p1, std::pair<T,T> p2) {
 template int dot_product<int>(std::pair<int,int>, std::pair<int,int>);
 template double dot_product<double>(std::pair<double,double>, std::pair<double,double>);
 
+template <typename T>
+bool is_between(T x, T a, T b) {
+        if ((x > a)&&(x < b)) {
+                return true;
+        }
+        return false;
+}
+template bool is_between<int>(int, int, int);
+template bool is_between<double>(double, double, double);
+
+template <typename T>
+bool is_angle_between(T x, T a, T b) {
+        return is_between(x, (T)0, b) || is_between(x, a, (T)360);
+}
+template bool is_angle_between<int>(int, int, int);
+template bool is_angle_between<double>(double, double, double);
+
 #endif // _BEE_UTIL_REAL_H

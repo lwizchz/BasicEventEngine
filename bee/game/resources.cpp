@@ -163,4 +163,15 @@ BEE::Room* BEE::get_room(int id) {
 	return dynamic_cast<Room*>(resource_list->rooms.get_resource(id));
 }
 
+BEE::Object* BEE::get_object_by_name(std::string name) {
+	for (int i=0; i<resource_list->objects.get_amount(); i++) {
+		if (get_object(i) != NULL) {
+			if (get_object(i)->get_name() == name) {
+				return get_object(i);
+			}
+		}
+	}
+	return NULL;
+}
+
 #endif // _BEE_GAME_RESOURCES

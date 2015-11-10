@@ -247,6 +247,11 @@ int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h, double a
 
 	drect.x = x;
 	drect.y = y;
+	if (game->get_current_room()->get_is_views_enabled()) {
+		drect.x += game->get_current_room()->get_current_view()->view_x;
+		drect.y += game->get_current_room()->get_current_view()->view_y;
+	}
+
 	if ((w >= 0)&&(h >= 0)) {
 		drect.w = w;
 		drect.h = h;

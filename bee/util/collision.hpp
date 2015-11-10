@@ -118,4 +118,27 @@ double angle_vbounce(double a) {
         return a;
 }
 
+std::pair<double,double> move_outside(std::pair<double,double> p1, std::pair<double,double> p2, SDL_Rect* r1, SDL_Rect* r2) {
+        double dist = distance(p1.first, p1.second, p2.first, p2.second);
+        /*double dir = direction_of(p1.first, p1.second, p2.first, p2.second);
+        double x = p1.first, y = p1.second;*/
+        double dir = direction_of(p2.first, p2.second, p1.first, p1.second);
+        double x = p2.first, y = p2.second;
+
+        int max_attempts = 10;
+        double delta = dist/((double)max_attempts);
+        int attempts = 0;
+
+        //r1->x = p1.first; r1->y = p1.second;
+        r1->x = p2.first; r1->y = p2.second;
+        while ((check_collision(r1, r2))&&(attempts++ < max_attempts)) {
+                x += sin(dir) * delta*dist;
+                y += -cos(dir) * delta*dist;
+                r1->x = x;
+                r1->y = y;
+        }
+
+        return std::make_pair(x, y);
+}
+
 #endif // _BEE_UTIL_COLLISION_H

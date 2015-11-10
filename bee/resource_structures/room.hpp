@@ -13,6 +13,7 @@
 #include <map>
 #include <tuple>
 #include <algorithm>
+#include <fstream>
 
 #include "../game.hpp"
 
@@ -89,6 +90,7 @@ class BEE::Room: public Resource {
 		int set_view(int, ViewData*);
 		int set_instance(int, InstanceData*);
 		int add_instance(int, Object*, int, int);
+		int add_instance_grid(int, Object*, double, double);
 		int remove_instance(int);
 		int sort_instances();
 		int add_particle_system(ParticleSystem*);
@@ -99,6 +101,9 @@ class BEE::Room: public Resource {
 		int free_media();
 		int reset_properties();
 
+		int save_instance_map(std::string);
+		int load_instance_map(std::string);
+
 		int create();
 		int destroy();
 		int destroy(InstanceData*);
@@ -107,10 +112,12 @@ class BEE::Room: public Resource {
 		int step_begin();
 		int step_mid();
 		int step_end();
-		int keyboard(SDL_Event*);
-		int mouse(SDL_Event*);
+		int keyboard();
+		int mouse();
 		int keyboard_press(SDL_Event*);
 		int mouse_press(SDL_Event*);
+		int keyboard_input(SDL_Event*);
+		int mouse_input(SDL_Event*);
 		int keyboard_release(SDL_Event*);
 		int mouse_release(SDL_Event*);
 		int check_paths();
