@@ -23,6 +23,12 @@ std::pair<B,A> flip_pair(const std::pair<A,B>& p) {
 }
 template std::pair<BEE::InstanceData*,int> flip_pair<int,BEE::InstanceData*>(const std::pair<int,BEE::InstanceData*>&);
 
+struct InstanceDataSort {
+	bool operator() (BEE::InstanceData* lhs, BEE::InstanceData* rhs) {
+		return (*lhs) < (*rhs);
+	}
+};
+
 class BEE::Room: public Resource {
 		// Add new variables to the print() debugging method
 		int id = -1;
@@ -39,10 +45,13 @@ class BEE::Room: public Resource {
 		bool is_views_enabled;
 		std::map<int,ViewData*> views;
 		std::map<int,InstanceData*> instances;
-		std::map<InstanceData*,int> instances_sorted;
+		std::map<InstanceData*,int,InstanceDataSort> instances_sorted;
 		std::vector<InstanceData*> destroyed_instances;
 		std::map<int,ParticleSystem*> particles;
 		int particle_count = 0;
+		int next_instance_id = 0;
+
+		std::string instance_map = "";
 
 		Sprite* view_texture = NULL;
 		ViewData* view_current = NULL;
@@ -103,6 +112,9 @@ class BEE::Room: public Resource {
 
 		int save_instance_map(std::string);
 		int load_instance_map(std::string);
+		int load_instance_map();
+		std::string get_instance_map();
+		int set_instance_map(std::string);
 
 		int create();
 		int destroy();

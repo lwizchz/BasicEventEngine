@@ -336,6 +336,13 @@ int BEE::close() {
 #include "game/resources.cpp"
 #endif // _WINDOWS
 
+Uint32 BEE::get_ticks() {
+	return SDL_GetTicks();
+}
+Uint32 BEE::get_seconds() {
+	return SDL_GetTicks()/1000;
+}
+
 int BEE::render() {
 	if (options->is_opengl) {
 		// OpenGL rendering

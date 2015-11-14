@@ -66,11 +66,13 @@ class BEE::Sprite: public Resource {
 
 		int load();
 		int free();
-		int draw(int, int, Uint32, int, int, double, RGBA);
+		int draw(int, int, Uint32, int, int, double, RGBA, SDL_RendererFlip, bool);
 		int draw(int, int, Uint32);
 		int draw(int, int, Uint32, int, int);
 		int draw(int, int, Uint32, double);
 		int draw(int, int, Uint32, RGBA);
+		int draw(int, int, Uint32, SDL_RendererFlip);
+		int draw(int, int, Uint32, bool);
 		int draw_simple(SDL_Rect*, SDL_Rect*);
 		int set_as_target(int, int);
 		int set_as_target();

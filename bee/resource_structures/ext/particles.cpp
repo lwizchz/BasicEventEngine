@@ -130,7 +130,7 @@ BEE::ParticleData::ParticleData(Particle* new_particle_type, int new_x, int new_
 }
 int BEE::ParticleData::draw(int sx, int sy, Uint32 ticks) {
 	double a = particle_type->angle + particle_type->angle_increase * ticks * ((double)randomness / 2);
-	return particle_type->sprite->draw((sx+x) - w/2, (sy+y) - h/2, creation_time, w, h, a, particle_type->color);
+	return particle_type->sprite->draw((sx+x) - w/2, (sy+y) - h/2, creation_time, w, h, a, particle_type->color, SDL_FLIP_NONE, false);
 }
 bool BEE::ParticleData::is_dead(Uint32 ticks) {
 	if (particle_type->sprite->get_subimage_amount() > 1) {

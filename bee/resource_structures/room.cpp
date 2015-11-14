@@ -85,6 +85,8 @@ int BEE::Room::reset() {
 	instances.clear();
 	instances_sorted.clear();
 	particles.clear();
+	destroyed_instances.clear();
+	next_instance_id = 0;
 
 	if (view_texture != NULL) {
 		view_texture->free();
@@ -110,8 +112,11 @@ int BEE::Room::print() {
 	"\n	is_isometric			" << is_isometric <<
 	"\n	speed				" << speed <<
 	"\n	is_persistent			" << is_persistent <<
-	"\n	background_color		" << background_color.r << ", " << background_color.g << ", " << background_color.b <<
-	"\n	is_background_color_enabled	" << is_background_color_enabled <<
+	"\n	is_background_color_enabled	" << is_background_color_enabled;
+	if (is_background_color_enabled) {
+		std::cerr << "\n	background_color		" << background_color.r << ", " << background_color.g << ", " << background_color.b;
+	}
+	std::cerr <<
 	"\n	backgrounds			\n" << debug_indent(background_string, 2) <<
 	"	is_views_enabled		" << is_views_enabled <<
 	"\n	views				\n" << debug_indent(view_string, 2) <<
@@ -211,14 +216,26 @@ std::map<int, BEE::InstanceData*> BEE::Room::get_instances() {
 std::string BEE::Room::get_instance_string() {
 	if (instances.size() > 0) {
 		std::ostringstream instance_string;
-		instance_string << "(id	object	x	y)\n";
+		instance_string << "(id	object		depth	x	y)\n";
+
 		for (auto& i : instances) {
 			instance_string <<
 			i.second->id << "\t" <<
 			i.second->object->get_name() << "\t" <<
+			i.second->depth << "\t" <<
 			i.second->x << "\t" <<
 			i.second->y << "\n";
 		}
+
+		/*sort_instances();
+		for (auto& i : instances_sorted) {
+			instance_string <<
+			i.first->id << "\t" <<
+			i.first->object->get_name() << "\t" <<
+			i.first->depth << "\t" <<
+			i.first->x << "\t" <<
+			i.first->y << "\n";
+		}*/
 
 		return instance_string.str();
 	}
@@ -308,7 +325,7 @@ int BEE::Room::set_instance(int index, InstanceData* new_instance) {
 int BEE::Room::add_instance(int index, Object* object, int x, int y) {
 	InstanceData* new_instance = new InstanceData(game, index, object, x, y);
 	if (index < 0) {
-		index = instances.size();
+		index = next_instance_id++;
 		new_instance->id = index;
 	}
 	set_instance(index, new_instance);
@@ -355,13 +372,11 @@ int BEE::Room::add_instance_grid(int index, Object* object, double x, double y) 
 }
 int BEE::Room::remove_instance(int index) {
 	if (instances.find(index) != instances.end()) {
-		instances[index]->object->remove_instance(index);
+		InstanceData* inst = instances[index];
+		inst->object->remove_instance(index);
 		instances.erase(index);
-		for (unsigned int i=index; i<instances.size(); i++) {
-			if (instances.find(i)++ != instances.end()) {
-				instances[i] = instances[i+1];
-			}
-		}
+		delete inst;
+
 		return 0;
 	}
 	return 1;
@@ -430,6 +445,8 @@ int BEE::Room::reset_properties() {
 	}
 	instances.clear();
 	instances_sorted.clear();
+	destroyed_instances.clear();
+	next_instance_id = 0;
 
 	// Reset background data
 	for (auto& b : backgrounds) {
@@ -458,6 +475,12 @@ int BEE::Room::save_instance_map(std::string fname) {
         return 1;
 }
 int BEE::Room::load_instance_map(std::string fname) {
+	if (game->get_is_ready()) {
+		instance_map = fname;
+		game->restart_room();
+		return 0;
+	}
+
 	std::vector<std::tuple<Object*,int,int>> data;
 	std::string datastr = file_get_contents(fname);
         if (!datastr.empty()) {
@@ -493,6 +516,19 @@ int BEE::Room::load_instance_map(std::string fname) {
 	}
 
 	return 0;
+}
+int BEE::Room::load_instance_map() {
+	if (!instance_map.empty()) {
+		return load_instance_map(instance_map);
+	}
+	return 1;
+}
+std::string BEE::Room::get_instance_map() {
+	return instance_map;
+}
+int BEE::Room::set_instance_map(std::string new_instance_map) {
+	instance_map = new_instance_map;
+	return 1;
 }
 
 int BEE::Room::create() {
@@ -712,7 +748,7 @@ int BEE::Room::intersect_boundary() {
 int BEE::Room::collision() {
 	sort_instances();
 
-	std::map<InstanceData*,int> ilist = instances_sorted;
+	std::map<InstanceData*,int,InstanceDataSort> ilist = instances_sorted;
 
 	for (auto& i1 : ilist) {
 		if (i1.first->object->get_mask() != NULL) {

@@ -65,11 +65,17 @@ bool BEE::is_mouse_inside(InstanceData* instance) {
 	return check_collision(&i, &m);
 }
 
-bool BEE::get_keystate(SDL_Scancode k) {
+bool BEE::get_key_state(SDL_Scancode k) {
 	return (bool)keystate[k];
 }
-bool BEE::get_keystate(SDL_Keycode k) {
-	return get_keystate(SDL_GetScancodeFromKey(k));
+bool BEE::get_key_state(SDL_Keycode k) {
+	return get_key_state(SDL_GetScancodeFromKey(k));
+}
+bool BEE::get_mod_state(Uint8 k) {
+	return (SDL_GetModState() & k);
+}
+bool BEE::get_mouse_state(Uint8 b) {
+	return (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(b));
 }
 
 char BEE::append_input(std::string& output, SDL_KeyboardEvent* k) {

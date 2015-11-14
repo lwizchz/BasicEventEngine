@@ -11,6 +11,11 @@
 
 #define ALARM_COUNT 8
 
+#ifndef _BEE_ROOM_H
+#define _BEE_ROOM_H
+#define _BEE_ROOM_OPERATOR 1
+#endif // _BEE_ROOM
+
 #include "../../game.hpp"
 
 class BEE::InstanceData {
@@ -44,7 +49,7 @@ class BEE::InstanceData {
 		int init(int, Object*, int, int);
 		int print();
 
-		bool operator< (const InstanceData&);
+		bool operator< (const InstanceData& other) const;
 
 		int remove();
 
@@ -107,15 +112,22 @@ class BEE::InstanceData {
 		int get_path_node();
 		std::vector<path_coord> get_path_coords();
 
-		int draw(int, int, double, RGBA);
-		int draw(int, int, double, rgba_t);
+		int draw(int, int, double, RGBA, SDL_RendererFlip);
+		int draw(int, int, double, rgba_t, SDL_RendererFlip);
 		int draw();
 		int draw(int, int);
 		int draw(double);
 		int draw(RGBA);
 		int draw(rgba_t);
+		int draw(SDL_RendererFlip);
 
 		int draw_debug();
 };
+
+#ifdef _BEE_ROOM_OPERATOR
+#undef _BEE_ROOM_H
+#undef _BEE_ROOM_OPERATOR
+#include "../room.hpp"
+#endif // _BEE_ROOM_OPERATOR
 
 #endif // _BEE_INSTANCEDATA_H

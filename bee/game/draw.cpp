@@ -38,24 +38,48 @@ BEE::RGBA BEE::get_enum_color(rgba_t c, Uint8 a) {
 BEE::RGBA BEE::get_enum_color(rgba_t c) {
 	return get_enum_color(c, 255);
 }
+int BEE::convert_view_coords(int& x, int& y) {
+	if (get_current_room()->get_is_views_enabled()) {
+		x += get_current_room()->get_current_view()->view_x;
+		y += get_current_room()->get_current_view()->view_y;
+	}
+	return 0;
+}
+int BEE::convert_window_coords(int& x, int& y) {
+	if (get_current_room()->get_is_views_enabled()) {
+		x -= get_current_room()->get_current_view()->view_x;
+		y -= get_current_room()->get_current_view()->view_y;
+	}
+	return 0;
+}
 
-int BEE::draw_point(int x, int y) {
+int BEE::draw_point(int x, int y, bool is_hud) {
+	if (!is_hud) {
+		convert_view_coords(x, y);
+	}
 	return SDL_RenderDrawPoint(renderer, x, y);
 }
-int BEE::draw_line(int x1, int y1, int x2, int y2) {
+int BEE::draw_line(int x1, int y1, int x2, int y2, bool is_hud) {
+	if (!is_hud) {
+		convert_view_coords(x1, y1);
+		convert_view_coords(x2, y2);
+	}
 	return SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
 }
-int BEE::draw_line(int x1, int y1, int x2, int y2, RGBA color) {
+int BEE::draw_line(int x1, int y1, int x2, int y2, RGBA color, bool is_hud) {
 	RGBA c = draw_get_color();
 	draw_set_color(color);
-	int r = draw_line(x1, y1, x2, y2);
+	int r = draw_line(x1, y1, x2, y2, is_hud);
 	draw_set_color(c);
 	return r;
 }
-int BEE::draw_line(int x1, int y1, int x2, int y2, rgba_t color) {
-	return draw_line(x1, y1, x2, y2, get_enum_color(color));
+int BEE::draw_line(int x1, int y1, int x2, int y2, rgba_t color, bool is_hud) {
+	return draw_line(x1, y1, x2, y2, get_enum_color(color), is_hud);
 }
-int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled) {
+int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled, bool is_hud) {
+	if (!is_hud) {
+		convert_view_coords(x, y);
+	}
 	SDL_Rect rect = {x, y, w, h};
 	if (is_filled) {
 		return SDL_RenderFillRect(renderer, &rect);
@@ -63,16 +87,38 @@ int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled) {
 		return SDL_RenderDrawRect(renderer, &rect);
 	}
 }
-int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled, RGBA color) {
+int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled, RGBA color, bool is_hud) {
 	RGBA c = draw_get_color();
 	draw_set_color(color);
-	int r = draw_rectangle(x, y, w, h, is_filled);
+	int r = draw_rectangle(x, y, w, h, is_filled, is_hud);
 	draw_set_color(c);
 	return r;
 }
-int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled, rgba_t color) {
-	return draw_rectangle(x, y, w, h, is_filled, get_enum_color(color));
+int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled, rgba_t color, bool is_hud) {
+	return draw_rectangle(x, y, w, h, is_filled, get_enum_color(color), is_hud);
 }
+int BEE::draw_point(int x, int y) {
+	return draw_point(x, y, false);
+}
+int BEE::draw_line(int x1, int y1, int x2, int y2) {
+	return draw_line(x1, y1, x2, y2, false);
+}
+int BEE::draw_line(int x1, int y1, int x2, int y2, RGBA color) {
+	return draw_line(x1, y1, x2, y2, color, false);
+}
+int BEE::draw_line(int x1, int y1, int x2, int y2, rgba_t color) {
+	return draw_line(x1, y1, x2, y2, get_enum_color(color), false);
+}
+int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled) {
+	return draw_rectangle(x, y, w, h, is_filled, false);
+}
+int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled, RGBA color) {
+	return draw_rectangle(x, y, w, h, is_filled, color, false);
+}
+int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled, rgba_t color) {
+	return draw_rectangle(x, y, w, h, is_filled, get_enum_color(color), false);
+}
+
 int BEE::draw_set_color(RGBA new_color) {
 	return SDL_SetRenderDrawColor(renderer, new_color.r, new_color.g, new_color.b, new_color.a);
 }

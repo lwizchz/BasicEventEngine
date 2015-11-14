@@ -50,6 +50,7 @@ int BEE::InstanceData::print() {
 	"\n	object		" << object <<
 	"\n	subimage_time	" << subimage_time <<
 	"\n	x, y		" << x << ", " << y <<
+	"\n	depth		" << depth <<
 	//"\n	velocity	" << velocity <<
 	"\n	gravity		" << gravity <<
 	"\n}\n";
@@ -57,9 +58,9 @@ int BEE::InstanceData::print() {
 	return 0;
 }
 
-bool BEE::InstanceData::operator< (const InstanceData& other) {
+bool BEE::InstanceData::operator< (const InstanceData& other) const {
 	if (depth == other.depth) {
-		return (id <= other.id);
+		return (id < other.id);
 	}
 	return (depth > other.depth);
 }
@@ -168,11 +169,13 @@ std::pair<double,double> BEE::InstanceData::get_motion() {
 		ysum += -cos(degtorad(v.second))*v.first;
 	}
 
-	double g = gravity*pow(acceleration, acceleration_amount), gd = gravity_direction;
-	xsum += sin(degtorad(gd))*g;
-	ysum += -cos(degtorad(gd))*g;
-	if (acceleration_amount < 10) {
-		acceleration_amount += 0.01;
+	if (gravity != 0.0) {
+		double g = gravity*pow(acceleration, acceleration_amount), gd = gravity_direction;
+		xsum += sin(degtorad(gd))*g;
+		ysum += -cos(degtorad(gd))*g;
+		if (acceleration_amount < 10) {
+			acceleration_amount += 0.01;
+		}
 	}
 
 	double d = direction_of(x, y, xsum, ysum);
@@ -284,16 +287,23 @@ int BEE::InstanceData::move_random(int hsnap, int vsnap) {
 	return 0;
 }
 int BEE::InstanceData::move_snap(int hsnap, int vsnap) {
+	if (hsnap < 1) {
+		hsnap = 1;
+	}
+	if (vsnap < 1) {
+		vsnap = 1;
+	}
+
 	int dx = (int)x % hsnap;
 	int dy = (int)y % vsnap;
 
-	if (dx >= hsnap/2) {
-		x += hsnap;
+	if (x < 0) {
+		x -= hsnap;
+	}
+	if (y < 0) {
+		y -= hsnap;
 	}
 	x -= dx;
-	if (dy >= vsnap/2) {
-		y += vsnap;
-	}
 	y -= dy;
 
 	return 0;
@@ -464,26 +474,53 @@ std::vector<path_coord> BEE::InstanceData::get_path_coords() {
 	return (has_path()) ? path->get_coordinate_list() : no_path;
 }
 
-int BEE::InstanceData::draw(int w, int h, double angle, RGBA color) {
-	return object->get_sprite()->draw(x, y, subimage_time, w, h, angle, color);
+int BEE::InstanceData::draw(int w, int h, double angle, RGBA color, SDL_RendererFlip flip) {
+	if (object->get_sprite() == NULL) {
+		return 1;
+	}
+	return object->get_sprite()->draw(x, y, subimage_time, w, h, angle, color, flip, false);
 }
-int BEE::InstanceData::draw(int w, int h, double angle, rgba_t color) {
-	return draw(w, h, angle, game->get_enum_color(color));
+int BEE::InstanceData::draw(int w, int h, double angle, rgba_t color, SDL_RendererFlip flip) {
+	if (object->get_sprite() == NULL) {
+		return 1;
+	}
+	return draw(w, h, angle, game->get_enum_color(color), flip);
 }
 int BEE::InstanceData::draw() {
+	if (object->get_sprite() == NULL) {
+		return 1;
+	}
 	return object->get_sprite()->draw(x, y, subimage_time);
 }
 int BEE::InstanceData::draw(int w, int h) {
+	if (object->get_sprite() == NULL) {
+		return 1;
+	}
 	return object->get_sprite()->draw(x, y, subimage_time, w, h);
 }
 int BEE::InstanceData::draw(double angle) {
+	if (object->get_sprite() == NULL) {
+		return 1;
+	}
 	return object->get_sprite()->draw(x, y, subimage_time, angle);
 }
 int BEE::InstanceData::draw(RGBA color) {
+	if (object->get_sprite() == NULL) {
+		return 1;
+	}
 	return object->get_sprite()->draw(x, y, subimage_time, color);
 }
 int BEE::InstanceData::draw(rgba_t color) {
+	if (object->get_sprite() == NULL) {
+		return 1;
+	}
 	return draw(game->get_enum_color(color));
+}
+int BEE::InstanceData::draw(SDL_RendererFlip flip) {
+	if (object->get_sprite() == NULL) {
+		return 1;
+	}
+	return object->get_sprite()->draw(x, y, subimage_time, flip);
 }
 
 int BEE::InstanceData::draw_debug() {

@@ -173,6 +173,11 @@ int BEE::Object::set_is_persistent(bool new_is_persistent) {
 }
 int BEE::Object::set_depth(int new_depth) {
 	depth = new_depth;
+
+	for (auto i : instances) {
+		i.second->depth = depth;
+	}
+
 	return 0;
 }
 int BEE::Object::set_parent(Object* new_parent) {
@@ -193,11 +198,6 @@ int BEE::Object::add_instance(int index, InstanceData* new_instance) {
 }
 int BEE::Object::remove_instance(int index) {
 	instances.erase(index);
-	for (unsigned int i=index; i<instances.size(); i++) {
-		if (instances.find(i)++ != instances.end()) {
-			instances[i] = instances[i+1];
-		}
-	}
 	return 0;
 }
 int BEE::Object::clear_instances() {

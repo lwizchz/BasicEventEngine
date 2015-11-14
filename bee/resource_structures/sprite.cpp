@@ -224,7 +224,7 @@ int BEE::Sprite::free() {
 	}
 	return 0;
 }
-int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h, double angle, RGBA new_color) {
+int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h, double angle, RGBA new_color, SDL_RendererFlip flip, bool is_hud) {
 	if (!is_loaded) {
 		if (!has_draw_failed) {
 			std::cerr << "Failed to draw sprite '" << name << "'" << " because it is not loaded\n";
@@ -247,7 +247,7 @@ int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h, double a
 
 	drect.x = x;
 	drect.y = y;
-	if (game->get_current_room()->get_is_views_enabled()) {
+	if ((game->get_current_room()->get_is_views_enabled())&&(!is_hud)) {
 		drect.x += game->get_current_room()->get_current_view()->view_x;
 		drect.y += game->get_current_room()->get_current_view()->view_y;
 	}
@@ -269,9 +269,9 @@ int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h, double a
 		srect.w = subimages[current_subimage].w;
 		srect.h = height;
 
-		SDL_RenderCopyEx(game->renderer, texture, &srect, &drect, angle, NULL, SDL_FLIP_NONE);
+		SDL_RenderCopyEx(game->renderer, texture, &srect, &drect, angle, NULL, flip);
 	} else {
-		SDL_RenderCopyEx(game->renderer, texture, NULL, &drect, angle, NULL, SDL_FLIP_NONE);
+		SDL_RenderCopyEx(game->renderer, texture, NULL, &drect, angle, NULL, flip);
 	}
 
 	if ((is_animated)&&(current_subimage == subimage_amount-1)) {
@@ -281,16 +281,22 @@ int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h, double a
 	return 0;
 }
 int BEE::Sprite::draw(int x, int y, Uint32 subimage_time) {
-	return draw(x, y, subimage_time, -1, -1, 0.0, {255, 255, 255, 0});
+	return draw(x, y, subimage_time, -1, -1, 0.0, {255, 255, 255, 0}, SDL_FLIP_NONE, false);
 }
 int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h) {
-	return draw(x, y, subimage_time, w, h, 0.0, {255, 255, 255, 0});
+	return draw(x, y, subimage_time, w, h, 0.0, {255, 255, 255, 0}, SDL_FLIP_NONE, false);
 }
 int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, double angle) {
-	return draw(x, y, subimage_time, -1, -1, angle, {255, 255, 255, 0});
+	return draw(x, y, subimage_time, -1, -1, angle, {255, 255, 255, 0}, SDL_FLIP_NONE, false);
 }
 int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, RGBA color) {
-	return draw(x, y, subimage_time, -1, -1, 0.0, color);
+	return draw(x, y, subimage_time, -1, -1, 0.0, color, SDL_FLIP_NONE, false);
+}
+int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, SDL_RendererFlip flip) {
+	return draw(x, y, subimage_time, -1, -1, 0.0, {255, 255, 255, 0}, flip, false);
+}
+int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, bool is_hud) {
+	return draw(x, y, subimage_time, -1, -1, 0.0, {255, 255, 255, 0}, SDL_FLIP_NONE, is_hud);
 }
 int BEE::Sprite::draw_simple(SDL_Rect* srect, SDL_Rect* drect) {
 	if (!is_loaded) {

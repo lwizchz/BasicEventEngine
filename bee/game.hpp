@@ -43,7 +43,7 @@ class BEE {
 	private:
 		int argc;
 		char** argv;
-		bool quit, is_ready;
+		bool quit, is_ready, is_paused;
 		Room *first_room = NULL, *current_room = NULL;
 		GameOptions* options;
 
@@ -112,6 +112,9 @@ class BEE {
 		Object* get_object_by_name(std::string);
 
 		// bee/game.cpp
+		Uint32 get_ticks();
+		Uint32 get_seconds();
+
 		int render();
 		int render_clear();
 
@@ -130,6 +133,9 @@ class BEE {
 		bool get_is_ready();
 		int get_room_width();
 		int get_room_height();
+
+		bool set_is_paused(bool);
+		bool get_is_paused();
 
 		// bee/game/transition.cpp
 		int set_render_target(Sprite*, int, int);
@@ -181,13 +187,25 @@ class BEE {
 		int set_mouse_global_x(int);
 		int set_mouse_global_y(int);
 		bool is_mouse_inside(InstanceData*);
-		bool get_keystate(SDL_Scancode);
-		bool get_keystate(SDL_Keycode);
+		bool get_key_state(SDL_Scancode);
+		bool get_key_state(SDL_Keycode);
+		bool get_mod_state(Uint8);
+		bool get_mouse_state(Uint8);
 		char append_input(std::string&, SDL_KeyboardEvent*);
 
 		// bee/game/draw.cpp
 		RGBA get_enum_color(rgba_t, Uint8);
 		RGBA get_enum_color(rgba_t);
+		int convert_view_coords(int&, int&);
+		int convert_window_coords(int&, int&);
+
+		int draw_point(int, int, bool);
+		int draw_line(int, int, int, int, bool);
+		int draw_line(int, int, int, int, RGBA, bool);
+		int draw_line(int, int, int, int, rgba_t, bool);
+		int draw_rectangle(int, int, int, int, bool, bool);
+		int draw_rectangle(int, int, int, int, bool, RGBA, bool);
+		int draw_rectangle(int, int, int, int, bool, rgba_t, bool);
 		int draw_point(int, int);
 		int draw_line(int, int, int, int);
 		int draw_line(int, int, int, int, RGBA);
@@ -195,6 +213,7 @@ class BEE {
 		int draw_rectangle(int, int, int, int, bool);
 		int draw_rectangle(int, int, int, int, bool, RGBA);
 		int draw_rectangle(int, int, int, int, bool, rgba_t);
+
 		int draw_set_color(RGBA);
 		int draw_set_color(rgba_t);
 		RGBA draw_get_color();

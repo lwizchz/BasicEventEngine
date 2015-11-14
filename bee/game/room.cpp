@@ -113,4 +113,13 @@ int BEE::get_room_height() {
 	return -1;
 }
 
+bool BEE::set_is_paused(bool new_is_paused) {
+	bool p = is_paused;
+	is_paused = new_is_paused;
+	return p;
+}
+bool BEE::get_is_paused() {
+	return is_paused;
+}
+
 #endif // _BEE_GAME_ROOM
