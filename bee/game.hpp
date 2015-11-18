@@ -39,6 +39,7 @@ class BEE {
 		class Sprite; class Sound; class Background; class Font; class Path; class Object; class Room;
 		class GameOptions; class InstanceData; class RGBA;
 		class Particle; class ParticleData; class ParticleEmitter; class ParticleAttractor; class ParticleDestroyer; class ParticleDeflector; class ParticleChanger; class ParticleSystem;
+		class SoundGroup;
 		class NetworkData;
 	private:
 		int argc;
@@ -133,6 +134,7 @@ class BEE {
 		bool get_is_ready();
 		int get_room_width();
 		int get_room_height();
+		bool is_on_screen(SDL_Rect*);
 
 		bool set_is_paused(bool);
 		bool get_is_paused();
@@ -306,7 +308,8 @@ class BEE::NetworkData {
 #include "resource_structures/path.hpp"
 #include "resource_structures/object.hpp"
 #include "resource_structures/ext/instancedata.hpp"
-#include "resource_structures/ext/particles.hpp"
+#include "resource_structures/ext/particle.hpp"
+#include "resource_structures/ext/soundgroup.hpp"
 #include "resource_structures/room.hpp"
 
 #endif // _BEE_GAME_H

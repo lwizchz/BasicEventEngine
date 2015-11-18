@@ -65,6 +65,8 @@ int BEE::Object::reset() {
 	depth = 0;
 	parent = NULL;
 	mask = NULL;
+	xoffset = 0;
+	yoffset = 0;
 
 	instances.clear();
 
@@ -143,6 +145,10 @@ BEE::Sprite* BEE::Object::get_mask() {
 int BEE::Object::get_mask_id() {
 	return mask->get_id();
 }
+std::pair<int,int> BEE::Object::get_mask_offset() {
+	return std::make_pair(xoffset, yoffset);
+}
+
 int BEE::Object::set_name(std::string new_name) {
 	name = new_name;
 	return 0;
@@ -186,6 +192,15 @@ int BEE::Object::set_parent(Object* new_parent) {
 }
 int BEE::Object::set_mask(Sprite* new_mask) {
 	mask = new_mask;
+	return 0;
+}
+int BEE::Object::set_mask_offset(std::pair<int,int> new_offset) {
+	std::tie(xoffset, yoffset) = new_offset;
+	return 0;
+}
+int BEE::Object::set_mask_offset(int new_xoffset, int new_yoffset) {
+	xoffset = new_xoffset;
+	yoffset = new_yoffset;
 	return 0;
 }
 

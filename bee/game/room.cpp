@@ -112,6 +112,10 @@ int BEE::get_room_height() {
 	}
 	return -1;
 }
+bool BEE::is_on_screen(SDL_Rect* spr) {
+	SDL_Rect screen = {0, 0, get_width(), get_height()};
+	return check_collision(spr, &screen);
+}
 
 bool BEE::set_is_paused(bool new_is_paused) {
 	bool p = is_paused;

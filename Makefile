@@ -3,7 +3,7 @@ NAME = BasicEventEngine
 DEPS = main
 DEPS_BEE = debug resource_structures util game
 DEPS_BEE_GAME = resources room transition display window input draw network
-DEPS_BEE_RESOURCE_STRUCTURES = sprite sound background font path object room ext/instancedata ext/particles
+DEPS_BEE_RESOURCE_STRUCTURES = sprite sound background font path object room ext/instancedata ext/particle ext/soundgroup
 DEPS_BEE_UTIL = real string dates collision sound messagebox files script network
 
 RES_OBJS = bee
@@ -31,7 +31,7 @@ main: $(foreach var, $(DEPS_BEE), obj/bee/$(var).o) $(foreach var, $(DEPS_BEE_RE
 
 obj/bee/%.o : bee/%.cpp bee/game.hpp
 	$(CXX) $(FLAGS) -c $< -o $@ $(LIBS)
-obj/bee/resource_structures/%.o : bee/resource_structures/%.cpp bee/game.hpp
+obj/bee/resource_structures/%.o : bee/resource_structures/%.cpp bee/resource_structures/%.hpp bee/game.hpp
 	$(CXX) $(FLAGS) -c $< -o $@ $(LIBS)
 obj/%.o : %.cpp bee/game.hpp
 	$(CXX) $(FLAGS) -c $< -o $@ $(LIBS)
@@ -46,6 +46,8 @@ resources: resources/resources.hpp $(foreach var, $(RES_OBJS), resources/objects
 
 run: main
 	./$(NAME)
+debug: main
+	gdb ./$(NAME)
 clean:
 	rm -r obj
 	$(CLEAN)

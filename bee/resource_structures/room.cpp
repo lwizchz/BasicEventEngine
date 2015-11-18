@@ -375,6 +375,7 @@ int BEE::Room::remove_instance(int index) {
 		InstanceData* inst = instances[index];
 		inst->object->remove_instance(index);
 		instances.erase(index);
+		instances_sorted.erase(inst);
 		delete inst;
 
 		return 0;
@@ -546,7 +547,7 @@ int BEE::Room::destroy() {
 		i->object->destroy(i);
 		remove_instance(i->id);
 	}
-	instances_sorted.clear();
+	//instances_sorted.clear();
 	destroyed_instances.clear();
 
 	return 0;
@@ -566,10 +567,12 @@ int BEE::Room::check_alarms() {
 	sort_instances();
 	for (auto& i : instances_sorted) {
 		for (int e=0; e<ALARM_COUNT; e++) {
-			if (SDL_GetTicks() >= i.first->alarm_end[e]) {
-				i.first->alarm_end[e] = 0xffffffff; // Reset alarm
-				i.first->object->update(i.first);
-				i.first->object->alarm(i.first, e);
+			if (i.first->alarm_end[e] != 0xffffffff) {
+				if (SDL_GetTicks() >= i.first->alarm_end[e]) {
+					i.first->alarm_end[e] = 0xffffffff; // Reset alarm
+					i.first->object->update(i.first);
+					i.first->object->alarm(i.first, e);
+				}
 			}
 		}
 	}
@@ -750,43 +753,48 @@ int BEE::Room::collision() {
 
 	std::map<InstanceData*,int,InstanceDataSort> ilist = instances_sorted;
 
+	for (auto& i : ilist) {
+		if (i.first->object->get_mask() == NULL) {
+			ilist.erase(i.first);
+		}
+	}
+
 	for (auto& i1 : ilist) {
-		if (i1.first->object->get_mask() != NULL) {
-			double x1, y1;
-			std::tie(x1, y1) = i1.first->get_position();
-			SDL_Rect a = {(int)x1, (int)y1, i1.first->object->get_mask()->get_subimage_width(), i1.first->object->get_mask()->get_height()};
-			for (auto& i2 : ilist) {
-				if (i1.first == i2.first) {
-					continue;
+		ilist.erase(i1.first);
+
+		double x1 = i1.first->x;
+		double y1 = i1.first->y;
+
+		Sprite* m1 = i1.first->object->get_mask();
+		SDL_Rect a = {(int)x1, (int)y1, m1->get_subimage_width(), m1->get_height()};
+
+		for (auto& i2 : ilist) {
+			double x2 = i2.first->x;
+			double y2 = i2.first->y;
+
+			Sprite* m2 = i2.first->object->get_mask();
+			SDL_Rect b = {(int)x2, (int)y2, m2->get_subimage_width(), m2->get_height()};
+
+			if (check_collision(&a, &b)) {
+				if (i1.first->object->get_is_solid()) {
+					i1.first->x = i1.first->xprevious;
+					i1.first->y = i1.first->yprevious;
+
+					i1.first->move_avoid(&b);
+				}
+				if (i2.first->object->get_is_solid()) {
+					i2.first->x = i2.first->xprevious;
+					i2.first->y = i2.first->yprevious;
+
+					i2.first->move_avoid(&a);
 				}
 
-				if (i2.first->object->get_mask() != NULL) {
-					double x2, y2;
-					std::tie(x2, y2) = i2.first->get_position();
-					SDL_Rect b = {(int)x2, (int)y2, i2.first->object->get_mask()->get_subimage_width(), i2.first->object->get_mask()->get_height()};
-					if (check_collision(&a, &b)) {
-						if (i1.first->object->get_is_solid()) {
-							i1.first->x = i1.first->xprevious;
-							i1.first->y = i1.first->yprevious;
-
-							i1.first->move_avoid(&b);
-						}
-						if (i2.first->object->get_is_solid()) {
-							i2.first->x = i2.first->xprevious;
-							i2.first->y = i2.first->yprevious;
-
-							i2.first->move_avoid(&a);
-						}
-
-						i1.first->object->update(i1.first);
-						i1.first->object->collision(i1.first, i2.first);
-						i2.first->object->update(i2.first);
-						i2.first->object->collision(i2.first, i1.first);
-					}
-				}
+				i1.first->object->update(i1.first);
+				i1.first->object->collision(i1.first, i2.first);
+				i2.first->object->update(i2.first);
+				i2.first->object->collision(i2.first, i1.first);
 			}
 		}
-		ilist.erase(i1.first);
 	}
 
 	return 0;
@@ -815,17 +823,20 @@ int BEE::Room::draw() {
 					InstanceData* f = view_current->following;
 					SDL_Rect a = {(int)f->x, (int)f->y, f->get_width(), f->get_height()};
 					SDL_Rect b = {
-						view_current->view_x + view_current->horizontal_border,
-						view_current->view_y + view_current->vertical_border,
-						view_current->view_x + view_current->port_width - view_current->horizontal_border,
-						view_current->view_y + view_current->port_width - view_current->vertical_border
+						view_current->view_x,
+						view_current->view_y,
+						view_current->port_width,
+						view_current->port_height
 					};
-					//if (!check_collision(&a, &b)) // FIXME: follow instance with a border
-					{
-						view_current->view_x = view_current->port_width/2 - f->x - f->get_width()/2;
-						view_current->view_y = view_current->port_height/2 - f->y - f->get_height()/2;
-						/*view_current->view_x = -f->x;
-						view_current->view_y = -f->y;*/
+					if (a.x < -b.x+view_current->horizontal_border) {
+						view_current->view_x = -(a.x - view_current->horizontal_border);
+					} else if (a.x+a.w > -b.x+b.w-view_current->horizontal_border) {
+						view_current->view_x = b.w - (a.x + a.w + view_current->horizontal_border);
+					}
+					if (a.y < -b.y+view_current->vertical_border) {
+						view_current->view_y = -(a.y - view_current->vertical_border);
+					} else if (a.y+a.h > -b.y+b.h-view_current->vertical_border) {
+						view_current->view_y = b.h - (a.y + a.h + view_current->vertical_border);
 					}
 				}
 				if (view_current->horizontal_speed != 0) {

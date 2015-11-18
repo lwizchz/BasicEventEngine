@@ -83,16 +83,16 @@ double BEE::InstanceData::get_ystart() {
 	return ystart;
 }
 int BEE::InstanceData::get_width() {
-	if (object->get_sprite() == NULL) {
+	if (object->get_mask() == NULL) {
 		return 0;
 	}
-	return object->get_sprite()->get_subimage_width();
+	return object->get_mask()->get_subimage_width();
 }
 int BEE::InstanceData::get_height() {
-	if (object->get_sprite() == NULL) {
+	if (object->get_mask() == NULL) {
 		return 0;
 	}
-	return object->get_sprite()->get_height();
+	return object->get_mask()->get_height();
 }
 double BEE::InstanceData::get_center_x() {
 	return x + (double)get_width()/2.0;
@@ -228,8 +228,8 @@ bool BEE::InstanceData::is_place_free(int new_x, int new_y) {
 	SDL_Rect a = {new_x, new_y, object->get_mask()->get_subimage_width(), object->get_mask()->get_height()};
 	for (auto& i : game->get_current_room()->get_instances()) {
 		SDL_Rect b = {(int)i.second->x, (int)i.second->y, i.second->object->get_mask()->get_subimage_width(), i.second->object->get_mask()->get_height()};
-		if (check_collision(&a, &b)) {
-			if (i.second->object->get_is_solid()) {
+		if (i.second->object->get_is_solid()) {
+			if (check_collision(&a, &b)) {
 				is_collision = true;
 				break;
 			}
@@ -478,7 +478,11 @@ int BEE::InstanceData::draw(int w, int h, double angle, RGBA color, SDL_Renderer
 	if (object->get_sprite() == NULL) {
 		return 1;
 	}
-	return object->get_sprite()->draw(x, y, subimage_time, w, h, angle, color, flip, false);
+	int xo=0, yo=0;
+	if (object->get_sprite() != NULL) {
+		std::tie(xo, yo) = object->get_mask_offset();
+	}
+	return object->get_sprite()->draw(x-xo, y-yo, subimage_time, w, h, angle, color, flip, false);
 }
 int BEE::InstanceData::draw(int w, int h, double angle, rgba_t color, SDL_RendererFlip flip) {
 	if (object->get_sprite() == NULL) {
@@ -490,25 +494,41 @@ int BEE::InstanceData::draw() {
 	if (object->get_sprite() == NULL) {
 		return 1;
 	}
-	return object->get_sprite()->draw(x, y, subimage_time);
+	int xo=0, yo=0;
+	if (object->get_sprite() != NULL) {
+		std::tie(xo, yo) = object->get_mask_offset();
+	}
+	return object->get_sprite()->draw(x-xo, y-yo, subimage_time);
 }
 int BEE::InstanceData::draw(int w, int h) {
 	if (object->get_sprite() == NULL) {
 		return 1;
 	}
-	return object->get_sprite()->draw(x, y, subimage_time, w, h);
+	int xo=0, yo=0;
+	if (object->get_sprite() != NULL) {
+		std::tie(xo, yo) = object->get_mask_offset();
+	}
+	return object->get_sprite()->draw(x-xo, y-yo, subimage_time, w, h);
 }
 int BEE::InstanceData::draw(double angle) {
 	if (object->get_sprite() == NULL) {
 		return 1;
 	}
-	return object->get_sprite()->draw(x, y, subimage_time, angle);
+	int xo=0, yo=0;
+	if (object->get_sprite() != NULL) {
+		std::tie(xo, yo) = object->get_mask_offset();
+	}
+	return object->get_sprite()->draw(x-xo, y-yo, subimage_time, angle);
 }
 int BEE::InstanceData::draw(RGBA color) {
 	if (object->get_sprite() == NULL) {
 		return 1;
 	}
-	return object->get_sprite()->draw(x, y, subimage_time, color);
+	int xo=0, yo=0;
+	if (object->get_sprite() != NULL) {
+		std::tie(xo, yo) = object->get_mask_offset();
+	}
+	return object->get_sprite()->draw(x-xo, y-yo, subimage_time, color);
 }
 int BEE::InstanceData::draw(rgba_t color) {
 	if (object->get_sprite() == NULL) {
@@ -520,7 +540,11 @@ int BEE::InstanceData::draw(SDL_RendererFlip flip) {
 	if (object->get_sprite() == NULL) {
 		return 1;
 	}
-	return object->get_sprite()->draw(x, y, subimage_time, flip);
+	int xo=0, yo=0;
+	if (object->get_sprite() != NULL) {
+		std::tie(xo, yo) = object->get_mask_offset();
+	}
+	return object->get_sprite()->draw(x-xo, y-yo, subimage_time, flip);
 }
 
 int BEE::InstanceData::draw_debug() {

@@ -23,6 +23,7 @@ class BEE::Object: public Resource {
 		int depth;
 		Object *parent;
 		Sprite *mask;
+		int xoffset, yoffset;
 
 		std::map<int,InstanceData*> instances;
 	public:
@@ -46,6 +47,7 @@ class BEE::Object: public Resource {
 		int get_parent_id();
 		Sprite* get_mask();
 		int get_mask_id();
+		std::pair<int,int> get_mask_offset();
 
 		int set_name(std::string);
 		int set_path(std::string);
@@ -59,6 +61,8 @@ class BEE::Object: public Resource {
 		int set_parent_id(int);
 		int set_mask(Sprite*);
 		int set_mask_id(int);
+		int set_mask_offset(std::pair<int,int>);
+		int set_mask_offset(int, int);
 
 		int add_instance(int, InstanceData*);
 		int remove_instance(int);

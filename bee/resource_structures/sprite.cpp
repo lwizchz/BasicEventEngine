@@ -263,15 +263,17 @@ int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h, double a
 		drect.h = height;
 	}
 
-	if (!subimages.empty()) {
-		srect.x = subimages[current_subimage].x;
-		srect.y = 0;
-		srect.w = subimages[current_subimage].w;
-		srect.h = height;
+	if (game->is_on_screen(&drect)) {
+		if (!subimages.empty()) {
+			srect.x = subimages[current_subimage].x;
+			srect.y = 0;
+			srect.w = subimages[current_subimage].w;
+			srect.h 	= height;
 
-		SDL_RenderCopyEx(game->renderer, texture, &srect, &drect, angle, NULL, flip);
-	} else {
-		SDL_RenderCopyEx(game->renderer, texture, NULL, &drect, angle, NULL, flip);
+			SDL_RenderCopyEx(game->renderer, texture, &srect, &drect, angle, NULL, flip);
+		} else {
+			SDL_RenderCopyEx(game->renderer, texture, NULL, &drect, angle, NULL, flip);
+		}
 	}
 
 	if ((is_animated)&&(current_subimage == subimage_amount-1)) {

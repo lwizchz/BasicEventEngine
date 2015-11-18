@@ -41,11 +41,15 @@ BEE::BEE(int new_argc, char** new_argv, Room** new_first_room, GameOptions* new_
 
 	int window_flags = SDL_WINDOW_SHOWN;
 	if (options->is_fullscreen) {
+#ifdef _WINDOWS
+		window_flags |= SDL_WINDOW_BORDERLESS;
+#else // _WINDOWS
 		if (options->is_resizable) {
 			window_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP; // Changes the window dimensions
 		} else {
 			window_flags |= SDL_WINDOW_FULLSCREEN; // Changes the video mode
 		}
+#endif // _WINDOWS else
 	}
 	if (options->is_opengl) {
 		window_flags |= SDL_WINDOW_OPENGL;
@@ -62,7 +66,7 @@ BEE::BEE(int new_argc, char** new_argv, Room** new_first_room, GameOptions* new_
 	if (options->is_highdpi) {
 		window_flags |= SDL_WINDOW_ALLOW_HIGHDPI;
 	}
-	window = SDL_CreateWindow("Easy Game Engine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, window_flags);
+	window = SDL_CreateWindow("Basic Event Engine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, window_flags);
 	if (window == NULL) {
 		throw std::string("Couldn't create SDL window: ") + SDL_GetError() + "\n";
 	}
@@ -184,10 +188,12 @@ int BEE::loop() {
 								is_minimized = true;
 								has_mouse = false;
 								break;
-							}case SDL_WINDOWEVENT_MAXIMIZED: {
+							}
+							case SDL_WINDOWEVENT_MAXIMIZED: {
 								is_minimized = false;
 								break;
-							}case SDL_WINDOWEVENT_RESTORED: {
+							}
+							case SDL_WINDOWEVENT_RESTORED: {
 								is_minimized = false;
 								break;
 							}
@@ -251,7 +257,7 @@ int BEE::loop() {
 			tickstamp = SDL_GetTicks();
 
 			if (tickstamp - fps_ticks >= 1000) {
-				fps_stable = fps_count;
+				fps_stable = fps_count / ((tickstamp-fps_ticks)/1000);
 				fps_count = 0;
 				fps_ticks = tickstamp;
 			}
