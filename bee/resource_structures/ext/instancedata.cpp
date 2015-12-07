@@ -76,6 +76,13 @@ int BEE::InstanceData::set_alarm(int alarm, Uint32 elapsed_ticks) {
 	return 0;
 }
 
+int BEE::InstanceData::set_object(BEE::Object* new_object) {
+	object->remove_instance(id);
+	object = new_object;
+	object->add_instance(id, this);
+	return 0;
+}
+
 double BEE::InstanceData::get_xstart() {
 	return xstart;
 }
@@ -102,10 +109,12 @@ double BEE::InstanceData::get_center_y() {
 }
 
 int BEE::InstanceData::move(double new_magnitude, double new_direction) {
-	if (new_direction < 0.0) {
-		new_direction = 360.0 + new_direction;
+	if (new_magnitude < 0.0) {
+		new_direction -= 180.0;
+		new_magnitude = fabs(new_magnitude);
 	}
-	velocity.push_back(std::make_pair(new_magnitude, fmod(new_direction, 360.0)));
+	new_direction = fmod(new_direction, 360.0);
+	velocity.push_back(std::make_pair(new_magnitude, new_direction));
 	return 0;
 }
 int BEE::InstanceData::move_to(double new_magnitude, double other_x, double other_y) {
@@ -140,7 +149,11 @@ int BEE::InstanceData::reset_gravity_acceleration() {
 	return 0;
 }
 int BEE::InstanceData::move_avoid(SDL_Rect* other) {
-	SDL_Rect r = {(int)x, (int)y, object->get_mask()->get_subimage_width(), object->get_mask()->get_height()};
+	SDL_Rect r = {(int)x, (int)y, 0, 0};
+	if (object->get_mask() != NULL) {
+		r.w = object->get_mask()->get_subimage_width();
+		r.h = object->get_mask()->get_height();
+	}
 
 	for (auto v=old_velocity.begin(); v!=old_velocity.end(); ++v) {
 		xprevious = x;
@@ -148,10 +161,9 @@ int BEE::InstanceData::move_avoid(SDL_Rect* other) {
 
 		x += sin(degtorad((*v).second)) * (*v).first;
 		y += -cos(degtorad((*v).second)) * (*v).first;
-		r.x = x;
-		r.y = y;
-
-		if (check_collision(&r, other)) {
+		if (!is_place_free(x, y)) {
+			r.x = (int)x;
+			r.y = (int)y;
 			std::tie(x, y) = move_outside(std::make_pair(x, y), std::make_pair(xprevious, yprevious), &r, other);
 			(*v).first = distance(x, y, xprevious, yprevious);
 		}
@@ -225,13 +237,29 @@ double BEE::InstanceData::get_gravity_acceleration_amount() {
 
 bool BEE::InstanceData::is_place_free(int new_x, int new_y) {
 	bool is_collision = false;
-	SDL_Rect a = {new_x, new_y, object->get_mask()->get_subimage_width(), object->get_mask()->get_height()};
+	SDL_Rect a = {new_x, new_y, 0, 0};
+	if (object->get_mask() != NULL) {
+		a.w = object->get_mask()->get_subimage_width();
+		a.h = object->get_mask()->get_height();
+	}
+
 	for (auto& i : game->get_current_room()->get_instances()) {
-		SDL_Rect b = {(int)i.second->x, (int)i.second->y, i.second->object->get_mask()->get_subimage_width(), i.second->object->get_mask()->get_height()};
+		if (i.second == this) {
+			continue;
+		}
+
+		SDL_Rect b = {(int)i.second->x, (int)i.second->y, 0, 0};
+		if (i.second->object->get_mask() != NULL) {
+			b.w = i.second->object->get_mask()->get_subimage_width();
+			b.h = i.second->object->get_mask()->get_height();
+		}
+
 		if (i.second->object->get_is_solid()) {
 			if (check_collision(&a, &b)) {
-				is_collision = true;
-				break;
+				if ((object->check_collision_list(i.second->object))&&(i.second->object->check_collision_list(object))) {
+					is_collision = true;
+					break;
+				}
 			}
 		}
 	}
@@ -239,9 +267,23 @@ bool BEE::InstanceData::is_place_free(int new_x, int new_y) {
 }
 bool BEE::InstanceData::is_place_empty(int new_x, int new_y) {
 	bool is_collision = false;
-	SDL_Rect a = {new_x, new_y, object->get_mask()->get_subimage_width(), object->get_mask()->get_height()};
+	SDL_Rect a = {new_x, new_y, 0, 0};
+	if (object->get_mask() != NULL) {
+		a.w = object->get_mask()->get_subimage_width();
+		a.h = object->get_mask()->get_height();
+	}
+
 	for (auto& i : game->get_current_room()->get_instances()) {
-		SDL_Rect b = {(int)i.second->x, (int)i.second->y, i.second->object->get_mask()->get_subimage_width(), i.second->object->get_mask()->get_height()};
+		if (i.second == this) {
+			continue;
+		}
+
+		SDL_Rect b = {(int)i.second->x, (int)i.second->y, 0, 0};
+		if (i.second->object->get_mask() != NULL) {
+			b.w = i.second->object->get_mask()->get_subimage_width();
+			b.h = i.second->object->get_mask()->get_height();
+		}
+
 		if (check_collision(&a, &b)) {
 			is_collision = true;
 			break;
@@ -251,9 +293,23 @@ bool BEE::InstanceData::is_place_empty(int new_x, int new_y) {
 }
 bool BEE::InstanceData::is_place_meeting(int new_x, int new_y, Object* other) {
 	bool is_collision = false;
-	SDL_Rect a = {new_x, new_y, object->get_mask()->get_subimage_width(), object->get_mask()->get_height()};
+	SDL_Rect a = {new_x, new_y, 0, 0};
+	if (object->get_mask() != NULL) {
+		a.w = object->get_mask()->get_subimage_width();
+		a.h = object->get_mask()->get_height();
+	}
+
 	for (auto& i : other->get_instances()) {
-		SDL_Rect b = {(int)i.second->x, (int)i.second->y, i.second->object->get_mask()->get_subimage_width(), i.second->object->get_mask()->get_height()};
+		if (i.second == this) {
+			continue;
+		}
+
+		SDL_Rect b = {(int)i.second->x, (int)i.second->y, 0, 0};
+		if (i.second->object->get_mask() != NULL) {
+			b.w = i.second->object->get_mask()->get_subimage_width();
+			b.h = i.second->object->get_mask()->get_height();
+		}
+
 		if (check_collision(&a, &b)) {
 			is_collision = true;
 			break;
@@ -263,15 +319,34 @@ bool BEE::InstanceData::is_place_meeting(int new_x, int new_y, Object* other) {
 }
 bool BEE::InstanceData::is_place_meeting(int new_x, int new_y, int other_id) {
 	bool is_collision = false;
-	SDL_Rect a = {new_x, new_y, object->get_mask()->get_subimage_width(), object->get_mask()->get_height()};
+	SDL_Rect a = {new_x, new_y, 0, 0};
+	if (object->get_mask() != NULL) {
+		a.w = object->get_mask()->get_subimage_width();
+		a.h = object->get_mask()->get_height();
+	}
+
 	for (auto& i : game->get_object(other_id)->get_instances()) {
-		SDL_Rect b = {(int)i.second->x, (int)i.second->y, i.second->object->get_mask()->get_subimage_width(), i.second->object->get_mask()->get_height()};
+		if (i.second == this) {
+			continue;
+		}
+
+		SDL_Rect b = {(int)i.second->x, (int)i.second->y, 0, 0};
+		if (i.second->object->get_mask() != NULL) {
+			b.w = i.second->object->get_mask()->get_subimage_width();
+			b.h = i.second->object->get_mask()->get_height();
+		}
+
 		if (check_collision(&a, &b)) {
 			is_collision = true;
 			break;
 		}
 	}
 	return is_collision;
+}
+bool BEE::InstanceData::is_move_free(double magnitude, double direction) {
+	double dx = sin(degtorad(direction)) * magnitude;
+	double dy = -cos(degtorad(direction)) * magnitude;
+	return is_place_free(x+dx, y+dy);
 }
 bool BEE::InstanceData::is_snapped(int hsnap, int vsnap) {
 	if (((int)x % hsnap == 0)&&((int)y % vsnap == 0)) {
@@ -286,7 +361,7 @@ int BEE::InstanceData::move_random(int hsnap, int vsnap) {
 	move_snap(hsnap, vsnap);
 	return 0;
 }
-int BEE::InstanceData::move_snap(int hsnap, int vsnap) {
+std::pair<int,int> BEE::InstanceData::get_snapped(int hsnap, int vsnap) {
 	if (hsnap < 1) {
 		hsnap = 1;
 	}
@@ -294,19 +369,38 @@ int BEE::InstanceData::move_snap(int hsnap, int vsnap) {
 		vsnap = 1;
 	}
 
-	int dx = (int)x % hsnap;
-	int dy = (int)y % vsnap;
+	int xsnap = (int)x;
+	int ysnap = (int)y;
+
+	int dx = xsnap % hsnap;
+	int dy = ysnap % vsnap;
 
 	if (x < 0) {
-		x -= hsnap;
+		xsnap -= hsnap;
 	}
 	if (y < 0) {
-		y -= hsnap;
+		ysnap -= hsnap;
 	}
-	x -= dx;
-	y -= dy;
+	xsnap -= dx;
+	ysnap -= dy;
 
+	return std::make_pair(xsnap, ysnap);
+}
+std::pair<int,int> BEE::InstanceData::get_snapped() {
+	if (object->get_sprite() == NULL) {
+		return std::make_pair((int)x, (int)y);
+	}
+	return get_snapped(object->get_sprite()->get_width(), object->get_sprite()->get_height());
+}
+int BEE::InstanceData::move_snap(int hsnap, int vsnap) {
+	std::tie(x, y) = get_snapped(hsnap, vsnap);
 	return 0;
+}
+int BEE::InstanceData::move_snap() {
+	if (object->get_sprite() == NULL) {
+		return 0;
+	}
+	return move_snap(object->get_sprite()->get_width(), object->get_sprite()->get_height());
 }
 int BEE::InstanceData::move_wrap(bool is_horizontal, bool is_vertical, int margin) {
 	int w = game->get_current_room()->get_width();
@@ -381,7 +475,7 @@ int BEE::InstanceData::path_start(Path* new_path, double new_path_speed, int new
 
 	if (absolute) {
 		path_xstart = std::get<0>(path->get_coordinate_list().front());
-		path_xstart = std::get<1>(path->get_coordinate_list().front());
+		path_ystart = std::get<1>(path->get_coordinate_list().front());
 	} else {
 		path_xstart = x;
 		path_ystart = y;
@@ -545,6 +639,13 @@ int BEE::InstanceData::draw(SDL_RendererFlip flip) {
 		std::tie(xo, yo) = object->get_mask_offset();
 	}
 	return object->get_sprite()->draw(x-xo, y-yo, subimage_time, flip);
+}
+
+int BEE::InstanceData::draw_path() {
+	if (path != NULL) {
+		return path->draw(path_xstart, path_ystart);
+	}
+	return 0;
 }
 
 int BEE::InstanceData::draw_debug() {

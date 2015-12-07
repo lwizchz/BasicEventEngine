@@ -25,8 +25,9 @@ BEE::BEE(int new_argc, char** new_argv, Room** new_first_room, GameOptions* new_
 	has_mouse = false;
 	has_focus = false;
 
-	fps_max = 300;
 	fps_goal = DEFAULT_GAME_FPS;
+	fps_max = 300;
+	//fps_max = fps_goal;
 	fps_count = 0;
 	fps_stable = 0;
 
@@ -142,8 +143,8 @@ int BEE::loop() {
 		throw std::string("Failed to start event loop, i.e. current_room == NULL\n");
 	}
 
-	tickstamp = SDL_GetTicks();
-	fps_ticks = SDL_GetTicks();
+	tickstamp = get_ticks();
+	fps_ticks = get_ticks();
 	while (!quit) {
 		try {
 			current_room->step_begin();
@@ -248,13 +249,14 @@ int BEE::loop() {
 			net_handle_events();
 
 			fps_count++;
-			new_tickstamp = SDL_GetTicks();
+			frame_number++;
+			new_tickstamp = get_ticks();
 			if (new_tickstamp - tickstamp < 1000/fps_max) {
 				if ((!options->is_vsync_enabled)||(!has_focus)) {
 					SDL_Delay((1000/fps_max) - (new_tickstamp - tickstamp));
 				}
 			}
-			tickstamp = SDL_GetTicks();
+			tickstamp = get_ticks();
 
 			if (tickstamp - fps_ticks >= 1000) {
 				fps_stable = fps_count / ((tickstamp-fps_ticks)/1000);
@@ -347,6 +349,9 @@ Uint32 BEE::get_ticks() {
 }
 Uint32 BEE::get_seconds() {
 	return SDL_GetTicks()/1000;
+}
+Uint32 BEE::get_frame() {
+	return frame_number;
 }
 
 int BEE::render() {

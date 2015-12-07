@@ -64,17 +64,20 @@ std::string string_lettersdigits(std::string str) {
         return std::regex_replace(str, std::regex("[^[:alnum:][:digit:]]"), "");
 }
 
-std::map<int,std::string> handle_newlines(std::string input) {
-	std::map<int,std::string> output;
+std::map<int,std::string> split(std::string input, char delimiter) {
+        std::map<int,std::string> output;
 	if (input.size() > 0) {
 		std::istringstream input_stream (input);
 		while (!input_stream.eof()) {
 			std::string tmp;
-			getline(input_stream, tmp);
+			getline(input_stream, tmp, delimiter);
 			output.insert(std::make_pair(output.size(), tmp));
 		}
 	}
 	return output;
+}
+std::map<int,std::string> handle_newlines(std::string input) {
+	return split(input, '\n');
 }
 
 std::string ltrim(std::string str) {

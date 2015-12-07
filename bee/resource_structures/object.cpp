@@ -205,6 +205,10 @@ int BEE::Object::set_mask_offset(int new_xoffset, int new_yoffset) {
 }
 
 int BEE::Object::add_instance(int index, InstanceData* new_instance) {
+	if (new_instance->object != this) {
+		return 1;
+	}
+
 	if (instances.find(index) != instances.end()) { //  if the instance exists, overwrite it
 		instances.erase(index);
 	}

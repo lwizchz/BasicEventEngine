@@ -48,6 +48,8 @@ class BEE::Path: public Resource {
 		int remove_coordinate(unsigned int);
 		int set_connection_type(int);
 		int set_is_closed(bool);
+
+		int draw(int, int);
 };
 
 #endif // _BEE_PATH_H

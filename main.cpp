@@ -23,8 +23,8 @@ int main(int argc, char* argv[]) {
 		// Set game options;
 		BEE::GameOptions options = {
 			// Window flags
-			false, false, false,
-			true, false, false,
+			true, false, true,
+			true, true, false,
 			true,
 			// Renderer flags
 			true,

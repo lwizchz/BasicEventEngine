@@ -34,15 +34,15 @@ bool check_collision(SDL_Rect* a, SDL_Rect* b) {
 	b_top = b->y;
 	b_bottom = b->y + b->h;
 
-	if (a_bottom <= b_top) {
-		return false;
-	} else if (a_top >= b_bottom) {
-		return false;
-	} else if (a_right <= b_left) {
-		return false;
-	} else if (a_left >= b_right) {
-		return false;
-	}
+	if (a_bottom < b_top) {
+                return false;
+        } else if (a_top > b_bottom) {
+                return false;
+        } else if (a_right < b_left) {
+                return false;
+        } else if (a_left > b_right) {
+                return false;
+        }
 
 	return true;
 
@@ -120,8 +120,6 @@ double angle_vbounce(double a) {
 
 std::pair<double,double> move_outside(std::pair<double,double> p1, std::pair<double,double> p2, SDL_Rect* r1, SDL_Rect* r2) {
         double dist = distance(p1.first, p1.second, p2.first, p2.second);
-        /*double dir = direction_of(p1.first, p1.second, p2.first, p2.second);
-        double x = p1.first, y = p1.second;*/
         double dir = direction_of(p2.first, p2.second, p1.first, p1.second);
         double x = p2.first, y = p2.second;
 
@@ -129,11 +127,10 @@ std::pair<double,double> move_outside(std::pair<double,double> p1, std::pair<dou
         double delta = dist/((double)max_attempts);
         int attempts = 0;
 
-        //r1->x = p1.first; r1->y = p1.second;
         r1->x = p2.first; r1->y = p2.second;
         while ((check_collision(r1, r2))&&(attempts++ < max_attempts)) {
-                x += sin(dir) * delta*dist;
-                y += -cos(dir) * delta*dist;
+                x += sin(degtorad(dir)) * delta*dist;
+                y += -cos(degtorad(dir)) * delta*dist;
                 r1->x = x;
                 r1->y = y;
         }

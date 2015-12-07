@@ -37,6 +37,11 @@ int BEE::set_engine_pointer() {
 			get_path(i)->game = this;
 		}
 	}
+	for (int i=0; i<resource_list->timelines.get_amount(); i++) {
+		if (get_timeline(i) != NULL) {
+			get_timeline(i)->game = this;
+		}
+	}
 	for (int i=0; i<resource_list->objects.get_amount(); i++) {
 		if (get_object(i) != NULL) {
 			get_object(i)->game = this;
@@ -128,6 +133,11 @@ BEE::Path* BEE::add_path(std::string name, std::string path) {
 	//new_path->load();
 	return new_path;
 }
+BEE::Timeline* BEE::add_timeline(std::string name, std::string path) {
+	Timeline* new_timeline = new Timeline(name, path);
+	new_timeline->game = this;
+	return new_timeline;
+}
 BEE::Object* BEE::add_object(std::string name, std::string path) {
 	Object* new_object = new Object(name, path);
 	new_object->game = this;
@@ -155,6 +165,9 @@ BEE::Font* BEE::get_font(int id) {
 }
 BEE::Path* BEE::get_path(int id) {
 	return dynamic_cast<Path*>(resource_list->paths.get_resource(id));
+}
+BEE::Timeline* BEE::get_timeline(int id) {
+	return dynamic_cast<Timeline*>(resource_list->timelines.get_resource(id));
 }
 BEE::Object* BEE::get_object(int id) {
 	return dynamic_cast<Object*>(resource_list->objects.get_resource(id));

@@ -12,6 +12,7 @@
 #include <string>
 #include <sstream>
 
+std::string debug_indent(std::string, int, std::string);
 std::string debug_indent(std::string, int);
 
 #endif // _BEE_DEBUG_H

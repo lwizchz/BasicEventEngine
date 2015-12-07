@@ -235,7 +235,7 @@ void ObjBee::draw(BEE::InstanceData* self) {
 	int mx, my;
 	std::tie(mx, my) = game->get_mouse_position();
 	int s = 100;//distance(self->x, self->y, mx, my)/2;
-	self->draw(s, s, direction_of(self->x, self->y, mx, my), c_white);
+	self->draw(s, s, direction_of(self->x, self->y, mx, my), c_white, SDL_FLIP_NONE);
 
 	font_liberation->draw_fast(self->x, self->y, std::to_string(self->id));
 	//font_liberation->draw_fast(self->x, self->y, std::to_string(self->get_path_node()));

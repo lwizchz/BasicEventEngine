@@ -31,6 +31,8 @@ BEE::Room::~Room() {
 	views.clear();
 	instances.clear();
 	particles.clear();
+	destroyed_instances.clear();
+	collision_tree->reset(0, 0, get_width());
 
 	if (view_texture != NULL) {
 		view_texture->free();
@@ -88,6 +90,15 @@ int BEE::Room::reset() {
 	destroyed_instances.clear();
 	next_instance_id = 0;
 
+	tree_x = 0;
+	tree_y = 0;
+	tree_width = get_width();
+	if (collision_tree != NULL) {
+		delete collision_tree;
+		collision_tree = NULL;
+	}
+	collision_tree = new CollisionTree(game, tree_x, tree_y, tree_width, 0);
+
 	if (view_texture != NULL) {
 		view_texture->free();
 		delete view_texture;
@@ -121,6 +132,7 @@ int BEE::Room::print() {
 	"	is_views_enabled		" << is_views_enabled <<
 	"\n	views				\n" << debug_indent(view_string, 2) <<
 	"	instances			\n" << debug_indent(instance_string, 2) <<
+	"	collistion tree			\n" << debug_indent(collision_tree->print(), 2) <<
 	"}\n";
 
 	return 0;
@@ -317,7 +329,7 @@ int BEE::Room::set_view(int index, ViewData* new_view) {
 }
 int BEE::Room::set_instance(int index, InstanceData* new_instance) {
 	if (instances.find(index) != instances.end()) { //  if the instance exists, overwrite it
-		instances.erase(index);
+		remove_instance(index);
 	}
 	instances.insert(std::pair<int,InstanceData*>(index, new_instance));
 	return 0;
@@ -331,6 +343,20 @@ int BEE::Room::add_instance(int index, Object* object, int x, int y) {
 	set_instance(index, new_instance);
 	object->game = game;
 	object->add_instance(index, new_instance);
+
+	int r = collision_tree->insert(new_instance);
+	if (r == 1) {
+		expand_collision_tree(x, y);
+	} else if (r == 2) {
+		collision_tree->set_capacity(collision_tree->max_capacity*2);
+		collision_tree->combine();
+	}
+	if (r != 0) {
+		if (collision_tree->insert(new_instance) != 0) {
+			std::cerr << "Failed to add " << new_instance->object->get_name() << " with id " << new_instance->id << " to the collision tree: error " << r << "\n";
+			//new_instance->print();
+		}
+	}
 
 	if (object->get_sprite() != NULL) {
 		if (!object->get_sprite()->get_is_loaded()) {
@@ -373,6 +399,7 @@ int BEE::Room::add_instance_grid(int index, Object* object, double x, double y) 
 int BEE::Room::remove_instance(int index) {
 	if (instances.find(index) != instances.end()) {
 		InstanceData* inst = instances[index];
+		collision_tree->remove(inst);
 		inst->object->remove_instance(index);
 		instances.erase(index);
 		instances_sorted.erase(inst);
@@ -409,6 +436,34 @@ int BEE::Room::clear_particles() {
 	particle_count = 0;
 	return 0;
 }
+int BEE::Room::expand_collision_tree(int expand_x, int expand_y) {
+	CollisionTree* ct = collision_tree;
+
+	if ((expand_x >= 0)&&(expand_y >= 0)) {
+		collision_tree = new CollisionTree(game, tree_x, tree_y, tree_width*2, 0);
+		if (collision_tree->divide()) {
+			return 1;
+		}
+
+		delete collision_tree->topleft;
+		collision_tree->topleft = ct;
+	} else {
+		collision_tree = new CollisionTree(game, tree_x-tree_width, tree_y-tree_width, tree_width*2, 0);
+		if (collision_tree->divide()) {
+			return 1;
+		}
+
+		tree_x = -tree_width;
+		tree_y = -tree_width;
+
+		delete collision_tree->bottomright;
+		collision_tree->bottomright = ct;
+	}
+
+	tree_width *= 2;
+
+	return 0;
+}
 
 int BEE::Room::load_media() {
 	// Load room sprites
@@ -442,12 +497,20 @@ int BEE::Room::free_media() {
 }
 int BEE::Room::reset_properties() {
 	for (auto& i : instances) {
-		delete i.second;
+		i.second->object->update(i.second);
+		i.second->object->destroy(i.second);
+		remove_instance(i.second->id);
 	}
 	instances.clear();
 	instances_sorted.clear();
 	destroyed_instances.clear();
 	next_instance_id = 0;
+
+	tree_x = 0;
+	tree_y = 0;
+	tree_width = get_width();
+	collision_tree->game = game;
+	collision_tree->reset(tree_x, tree_y, tree_width);
 
 	// Reset background data
 	for (auto& b : backgrounds) {
@@ -614,6 +677,13 @@ int BEE::Room::step_mid() {
 		}
 	}
 
+	// Run timelines
+	for (auto& t : BEE::resource_list->timelines.resources) {
+		if (game->get_timeline(t.first)->get_is_running()) {
+			game->get_timeline(t.first)->step(game->get_frame());
+		}
+	}
+
 	// Condense all instance motion based on velocity and gravity into a single step
 	for (auto& i : instances_sorted) {
 		i.first->xprevious = i.first->x;
@@ -624,6 +694,25 @@ int BEE::Room::step_mid() {
 
 		i.first->old_velocity.clear();
 		i.first->old_velocity.swap(i.first->velocity);
+	}
+
+	// Update collision tree for all moving instances
+	for (auto& i : instances_sorted) {
+		if ((i.first->xprevious != i.first->x)||(i.first->yprevious != i.first->y)) {
+			collision_tree->remove(i.first);
+			int r = collision_tree->insert(i.first);
+			if (r == 1) {
+				expand_collision_tree(i.first->x, i.first->y);
+			} else if (r == 2) {
+				collision_tree->set_capacity(collision_tree->max_capacity*2);
+				collision_tree->combine();
+			}
+			if (r != 0) {
+				if (collision_tree->insert(i.first) != 0) {
+					std::cerr << "Failed to add " << i.first->object->get_name() << " with id " << i.first->id << " to the collision tree: error " << r << "\n";
+				}
+			}
+		}
 	}
 
 	return 0;
@@ -751,51 +840,17 @@ int BEE::Room::intersect_boundary() {
 int BEE::Room::collision() {
 	sort_instances();
 
-	std::map<InstanceData*,int,InstanceDataSort> ilist = instances_sorted;
-
-	for (auto& i : ilist) {
-		if (i.first->object->get_mask() == NULL) {
-			ilist.erase(i.first);
-		}
+	if (collision_tree == NULL) {
+		tree_x = 0;
+		tree_y = 0;
+		tree_width = get_width();
+		collision_tree = new CollisionTree(game, tree_x, tree_y, tree_width, 0);
+	}
+	if (tree_width == 0) {
+		tree_width = get_width();
 	}
 
-	for (auto& i1 : ilist) {
-		ilist.erase(i1.first);
-
-		double x1 = i1.first->x;
-		double y1 = i1.first->y;
-
-		Sprite* m1 = i1.first->object->get_mask();
-		SDL_Rect a = {(int)x1, (int)y1, m1->get_subimage_width(), m1->get_height()};
-
-		for (auto& i2 : ilist) {
-			double x2 = i2.first->x;
-			double y2 = i2.first->y;
-
-			Sprite* m2 = i2.first->object->get_mask();
-			SDL_Rect b = {(int)x2, (int)y2, m2->get_subimage_width(), m2->get_height()};
-
-			if (check_collision(&a, &b)) {
-				if (i1.first->object->get_is_solid()) {
-					i1.first->x = i1.first->xprevious;
-					i1.first->y = i1.first->yprevious;
-
-					i1.first->move_avoid(&b);
-				}
-				if (i2.first->object->get_is_solid()) {
-					i2.first->x = i2.first->xprevious;
-					i2.first->y = i2.first->yprevious;
-
-					i2.first->move_avoid(&a);
-				}
-
-				i1.first->object->update(i1.first);
-				i1.first->object->collision(i1.first, i2.first);
-				i2.first->object->update(i2.first);
-				i2.first->object->collision(i2.first, i1.first);
-			}
-		}
-	}
+	collision_tree->check_collisions();
 
 	return 0;
 }
@@ -821,22 +876,26 @@ int BEE::Room::draw() {
 
 				if (view_current->following != NULL) {
 					InstanceData* f = view_current->following;
-					SDL_Rect a = {(int)f->x, (int)f->y, f->get_width(), f->get_height()};
-					SDL_Rect b = {
-						view_current->view_x,
-						view_current->view_y,
-						view_current->port_width,
-						view_current->port_height
-					};
-					if (a.x < -b.x+view_current->horizontal_border) {
-						view_current->view_x = -(a.x - view_current->horizontal_border);
-					} else if (a.x+a.w > -b.x+b.w-view_current->horizontal_border) {
-						view_current->view_x = b.w - (a.x + a.w + view_current->horizontal_border);
-					}
-					if (a.y < -b.y+view_current->vertical_border) {
-						view_current->view_y = -(a.y - view_current->vertical_border);
-					} else if (a.y+a.h > -b.y+b.h-view_current->vertical_border) {
-						view_current->view_y = b.h - (a.y + a.h + view_current->vertical_border);
+					if (instances_sorted.find(f) != instances_sorted.end()) {
+						SDL_Rect a = {(int)f->x, (int)f->y, f->get_width(), f->get_height()};
+						SDL_Rect b = {
+							view_current->view_x,
+							view_current->view_y,
+							view_current->port_width,
+							view_current->port_height
+						};
+						if (a.x < -b.x+view_current->horizontal_border) {
+							view_current->view_x = -(a.x - view_current->horizontal_border);
+						} else if (a.x+a.w > -b.x+b.w-view_current->horizontal_border) {
+							view_current->view_x = b.w - (a.x + a.w + view_current->horizontal_border);
+						}
+						if (a.y < -b.y+view_current->vertical_border) {
+							view_current->view_y = -(a.y - view_current->vertical_border);
+						} else if (a.y+a.h > -b.y+b.h-view_current->vertical_border) {
+							view_current->view_y = b.h - (a.y + a.h + view_current->vertical_border);
+						}
+					} else {
+						view_current->following = NULL;
 					}
 				}
 				if (view_current->horizontal_speed != 0) {
@@ -878,22 +937,7 @@ int BEE::Room::draw_view() {
 	// Draw paths
 	for (auto& i : instances_sorted) {
 		if ((i.first->has_path())&&(i.first->get_path_drawn())) {
-			std::vector<path_coord> coords = i.first->get_path_coords();
-			for (std::vector<path_coord>::iterator it = coords.begin(); it != coords.end(); ++it) {
-				if (it != --coords.end()) {
-					int xs = i.first->path_xstart;
-					int ys = i.first->path_ystart;
-
-					int x1 = std::get<0>(*it);
-					int y1 = std::get<1>(*it);
-					++it;
-					int x2 = std::get<0>(*it);
-					int y2 = std::get<1>(*it);
-					--it;
-
-					game->draw_line(x1+xs, y1+ys, x2+xs, y2+ys);
-				}
-			}
+			i.first->draw_path();
 		}
 	}
 
@@ -904,6 +948,8 @@ int BEE::Room::draw_view() {
 			i.first->object->draw(i.first);
 		}
 	}
+
+	//collision_tree->draw();
 
 	// Draw particles
 	for (auto& p : particles) {

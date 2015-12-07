@@ -71,6 +71,33 @@ class BEE::Object: public Resource {
 		InstanceData* get_instance(int);
 		std::string get_instance_string();
 
+		/*void (*update)(InstanceData*);
+		void (*create)(InstanceData*);
+		void (*destroy)(InstanceData*);
+		void (*alarm)(InstanceData*, int);
+		void (*step_begin)(InstanceData*);
+		void (*step_mid)(InstanceData*);
+		void (*step_end)(InstanceData*);
+		void (*keyboard)(InstanceData*);
+		void (*mouse)(InstanceData*);
+		void (*keyboard_press)(InstanceData*, SDL_Event*);
+		void (*mouse_press)(InstanceData*, SDL_Event*);
+		void (*keyboard_input)(InstanceData*, SDL_Event*);
+		void (*mouse_input)(InstanceData*, SDL_Event*);
+		void (*keyboard_release)(InstanceData*, SDL_Event*);
+		void (*mouse_release)(InstanceData*, SDL_Event*);
+		void (*path_end)(InstanceData*);
+		void (*outside_room)(InstanceData*);
+		void (*intersect_boundary)(InstanceData*);
+		void (*collision)(InstanceData*, InstanceData*);
+		void (*draw)(InstanceData*);
+		void (*animation_end)(InstanceData*);
+		void (*room_start)(InstanceData*);
+		void (*room_end)(InstanceData*);
+		void (*game_start)(InstanceData*);
+		void (*game_end)(InstanceData*);
+		void (*window)(InstanceData*, SDL_Event*);*/
+
 		virtual void update(InstanceData*) {};
 		virtual void create(InstanceData*) {};
 		virtual void destroy(InstanceData*) {};
@@ -90,6 +117,7 @@ class BEE::Object: public Resource {
 		virtual void outside_room(InstanceData*) {};
 		virtual void intersect_boundary(InstanceData*) {};
 		virtual void collision(InstanceData*, InstanceData*) {};
+		virtual bool check_collision_list(Object*) {return true;};
 		virtual void draw(InstanceData*) {};
 		virtual void animation_end(InstanceData*) {};
 		virtual void room_start(InstanceData*) {};

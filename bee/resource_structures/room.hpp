@@ -51,6 +51,10 @@ class BEE::Room: public Resource {
 		int particle_count = 0;
 		int next_instance_id = 0;
 
+		CollisionTree* collision_tree = NULL;
+		int tree_width;
+		int tree_x, tree_y;
+
 		std::string instance_map = "";
 
 		Sprite* view_texture = NULL;
@@ -105,6 +109,7 @@ class BEE::Room: public Resource {
 		int add_particle_system(ParticleSystem*);
 		int add_particle(ParticleSystem*, Particle*, int, int);
 		int clear_particles();
+		int expand_collision_tree(int, int);
 
 		int load_media();
 		int free_media();

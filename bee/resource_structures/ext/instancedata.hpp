@@ -55,6 +55,8 @@ class BEE::InstanceData {
 
 		int set_alarm(int, Uint32);
 
+		int set_object(Object*);
+
 		double get_xstart();
 		double get_ystart();
 		int get_width();
@@ -88,10 +90,14 @@ class BEE::InstanceData {
 		bool is_place_empty(int, int);
 		bool is_place_meeting(int, int, Object*);
 		bool is_place_meeting(int, int, int);
+		bool is_move_free(double, double);
 		bool is_snapped(int, int);
 
 		int move_random(int, int);
+		std::pair<int,int> get_snapped(int, int);
+		std::pair<int,int> get_snapped();
 		int move_snap(int, int);
+		int move_snap();
 		int move_wrap(bool, bool, int);
 
 		double get_distance(int, int);
@@ -120,6 +126,8 @@ class BEE::InstanceData {
 		int draw(RGBA);
 		int draw(rgba_t);
 		int draw(SDL_RendererFlip);
+
+		int draw_path();
 
 		int draw_debug();
 };

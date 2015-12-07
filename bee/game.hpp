@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <time.h>
+#include <functional>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
@@ -36,8 +37,8 @@ enum rgba_t {c_aqua, c_black, c_blue, c_dkgray, c_fuchsia, c_gray, c_green, c_li
 
 class BEE {
 	public:
-		class Sprite; class Sound; class Background; class Font; class Path; class Object; class Room;
-		class GameOptions; class InstanceData; class RGBA;
+		class Sprite; class Sound; class Background; class Font; class Path; class Timeline; class Object; class Room;
+		class GameOptions; class InstanceData; class CollisionTree; class RGBA;
 		class Particle; class ParticleData; class ParticleEmitter; class ParticleAttractor; class ParticleDestroyer; class ParticleDeflector; class ParticleChanger; class ParticleSystem;
 		class SoundGroup;
 		class NetworkData;
@@ -64,6 +65,7 @@ class BEE {
 		SDL_Window* window = NULL;
 		SDL_Renderer* renderer = NULL;
 		unsigned int fps_max, fps_goal, fps_count, fps_stable;
+		Uint32 frame_number = 0;
 		const Uint8* keystate;
 
 		Sprite* texture_before;
@@ -99,6 +101,7 @@ class BEE {
 		Background* add_background(std::string, std::string);
 		Font* add_font(std::string, std::string, int);
 		Path* add_path(std::string, std::string);
+		Timeline* add_timeline(std::string, std::string);
 		Object* add_object(std::string, std::string);
 		Room* add_room(std::string, std::string);
 
@@ -107,6 +110,7 @@ class BEE {
 		static Background* get_background(int);
 		static Font* get_font(int);
 		static Path* get_path(int);
+		static Timeline* get_timeline(int);
 		static Object* get_object(int);
 		static Room* get_room(int);
 
@@ -115,6 +119,7 @@ class BEE {
 		// bee/game.cpp
 		Uint32 get_ticks();
 		Uint32 get_seconds();
+		Uint32 get_frame();
 
 		int render();
 		int render_clear();
@@ -254,6 +259,7 @@ class BEE::RGBA {
 };
 
 typedef std::tuple<int, int, double> path_coord;
+typedef std::multimap<Uint32, std::pair<std::string,std::function<void()>>> timeline_list;
 
 class ViewData {
 	public:
@@ -306,8 +312,10 @@ class BEE::NetworkData {
 #include "resource_structures/background.hpp"
 #include "resource_structures/font.hpp"
 #include "resource_structures/path.hpp"
+#include "resource_structures/timeline.hpp"
 #include "resource_structures/object.hpp"
 #include "resource_structures/ext/instancedata.hpp"
+#include "resource_structures/ext/collisiontree.hpp"
 #include "resource_structures/ext/particle.hpp"
 #include "resource_structures/ext/soundgroup.hpp"
 #include "resource_structures/room.hpp"

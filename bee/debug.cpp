@@ -11,7 +11,7 @@
 
 #include "debug.hpp"
 
-std::string debug_indent(std::string input, int amount) {
+std::string debug_indent(std::string input, int amount, std::string delimiter) {
 	if (input.size() > 0) {
 		input.pop_back();
 		std::istringstream input_stream (input);
@@ -20,12 +20,17 @@ std::string debug_indent(std::string input, int amount) {
 			std::string tmp;
 			getline(input_stream, tmp);
 			tmp.append("\n");
+			output.append(delimiter);
 			output.append(amount, '\t');
 			output.append(tmp);
 		}
 		return output;
 	}
 	return "\n";
+}
+
+std::string debug_indent(std::string input, int amount) {
+	return debug_indent(input, amount, "");
 }
 
 #endif // _BEE_DEBUG

@@ -59,6 +59,7 @@ std::string string_upper(std::string);
 std::string string_letters(std::string);
 std::string string_digits(std::string);
 std::string string_lettersdigits(std::string);
+std::map<int,std::string> split(std::string, char);
 std::map<int,std::string> handle_newlines(std::string);
 std::string ltrim(std::string);
 std::string rtrim(std::string);

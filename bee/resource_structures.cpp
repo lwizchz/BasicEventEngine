@@ -53,6 +53,7 @@ int MetaResourceList::reset() {
 	backgrounds.reset();
 	fonts.reset();
 	paths.reset();
+	timelines.reset();
 	objects.reset();
 	rooms.reset();
 	return 0;

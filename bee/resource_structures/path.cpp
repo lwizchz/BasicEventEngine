@@ -159,4 +159,23 @@ int BEE::Path::set_is_closed(bool new_is_closed) {
 	return 0;
 }
 
+int BEE::Path::draw(int xstart, int ystart) {
+	for (std::vector<path_coord>::iterator it = coordinate_list.begin(); it != coordinate_list.end(); ++it) {
+		if (it != --coordinate_list.end()) {
+			int xs = xstart;
+			int ys = ystart;
+
+			int x1 = std::get<0>(*it);
+			int y1 = std::get<1>(*it);
+			++it;
+			int x2 = std::get<0>(*it);
+			int y2 = std::get<1>(*it);
+			--it;
+
+			game->draw_line(x1+xs, y1+ys, x2+xs, y2+ys, c_aqua);
+		}
+	}
+	return 0;
+}
+
 #endif // _BEE_PATH

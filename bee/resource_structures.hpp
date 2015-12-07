@@ -44,7 +44,7 @@ class ResourceList {
 };
 class MetaResourceList {
 	public:
-		ResourceList sprites, sounds, backgrounds, fonts, paths, objects, rooms;
+		ResourceList sprites, sounds, backgrounds, fonts, paths, timelines, objects, rooms;
 
 		int reset();
 };
