@@ -680,7 +680,13 @@ int BEE::Room::step_mid() {
 	// Run timelines
 	for (auto& t : BEE::resource_list->timelines.resources) {
 		if (game->get_timeline(t.first)->get_is_running()) {
-			game->get_timeline(t.first)->step(game->get_frame());
+			int r = game->get_timeline(t.first)->step(game->get_frame());
+			if (r == 2) {
+				game->get_timeline(t.first)->end();
+				if (game->get_timeline(t.first)->get_is_looping()) {
+					game->get_timeline(t.first)->start();
+				}
+			}
 		}
 	}
 
@@ -689,8 +695,8 @@ int BEE::Room::step_mid() {
 		i.first->xprevious = i.first->x;
 		i.first->yprevious = i.first->y;
 
-		double x=0.0, y=0.0;
 		std::tie (i.first->x, i.first->y) = i.first->get_motion();
+		std::tie (i.first->x, i.first->y) = i.first->get_applied_gravity();
 
 		i.first->old_velocity.clear();
 		i.first->old_velocity.swap(i.first->velocity);

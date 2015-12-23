@@ -110,7 +110,15 @@ std::string BEE::Timeline::get_action_string() {
 	return "none\n";
 }
 bool BEE::Timeline::get_is_running() {
-	return (start_frame == 0xffffffff) ? false : true;
+	if (is_paused) {
+		return false;
+	}
+
+	if (start_frame == 0xffffffff) {
+		return false;
+	} else {
+		return true;
+	}
 }
 bool BEE::Timeline::get_is_looping() {
 	return is_looping;
@@ -157,6 +165,21 @@ int BEE::Timeline::set_is_looping(bool new_is_looping) {
 	is_looping = new_is_looping;
 	return 0;
 }
+int BEE::Timeline::add_ending(std::function<void()> callback) {
+	end_action = callback;
+	return 0;
+}
+int BEE::Timeline::set_pause(bool new_is_paused) {
+	if (is_paused == new_is_paused) {
+		return 1;
+	}
+
+	pause_offset = game->get_frame() - pause_offset;
+
+	is_paused = new_is_paused;
+
+	return 0;
+}
 
 int BEE::Timeline::start() {
 	start_frame = game->get_frame() - start_offset;
@@ -168,7 +191,7 @@ int BEE::Timeline::step(Uint32 new_frame) {
 		return 1;
 	}
 
-	position_frame = new_frame - start_frame;
+	position_frame = new_frame - start_frame - pause_offset;
 	if (next_action == action_list.end()) {
 		return 1;
 	}
@@ -187,10 +210,23 @@ int BEE::Timeline::step(Uint32 new_frame) {
 			++next_action;
 		}
 
-		if (next_action == action_list.end()) {
+		if ((next_action == action_list.end())||(position_frame >= (*action_list.rbegin()).first)) {
 			start_frame = 0xffffffff;
+			return 2;
 		}
 	}
+
+	return 0;
+}
+int BEE::Timeline::end() {
+	pause_offset = 0;
+	is_paused = false;
+
+	if (end_action == NULL) {
+		return 1;
+	}
+
+	end_action();
 
 	return 0;
 }

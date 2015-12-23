@@ -128,6 +128,10 @@ int BEE::Background::get_tile_width() {
 int BEE::Background::get_tile_height() {
 	return tile_height;
 }
+bool BEE::Background::get_is_loaded() {
+	return is_loaded;
+}
+
 int BEE::Background::set_name(std::string new_name) {
 	name = new_name;
 	return 0;

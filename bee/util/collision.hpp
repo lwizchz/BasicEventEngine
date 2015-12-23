@@ -55,24 +55,82 @@ bool check_collision_circle(double x1, double y1, double r1, double x2, double y
         return true;
 }
 bool check_collision_line(Line line1, Line line2) {
-        double m1 = (line1.y2-line1.y1) / (line1.x2-line1.x1); // Slope
-        double m2 = (line2.y2-line2.y1) / (line2.x2-line2.x1);
-        double b1 = line1.y1 - m1*line1.x1; // y-intercept
-        double b2 = line2.y1 - m2*line2.x1;
-
-        if ((m1 == m2)&&(b1 == b2)) {
-                return true;
+        bool v1 = false, v2 = false; // vertical lines
+        if (line1.x1 == line1.x2) {
+                v1 = true;
+        }
+        if (line2.x1 == line2.x2) {
+                v2 = true;
+        }
+        double m1 = 0.0, m2 = 0.0;
+        double b1 = 0.0, b2 = 0.0;
+        if (!v1) {
+                m1 = (line1.y2-line1.y1) / (line1.x2-line1.x1); // Slope
+                b1 = line1.y1 - m1*line1.x1; // y-intercept
+        }
+        if (!v2) {
+                m2 = (line2.y2-line2.y1) / (line2.x2-line2.x1);
+                b2 = line2.y1 - m2*line2.x1;
         }
 
-        double cx = (b2-b1) / (m2-m1); // Possible collision
+        if ((v1 ^ v2) == 0) { // either both or none are vertical
+                if (m1 == m2) {
+                        if (b1 == b2) { // same line
+                                if (v1) {
+                                        if (is_between(line1.y1, line2.y1, line2.y2)) {
+                                                return true;
+                                        }
+                                        if (is_between(line2.y1, line1.y1, line1.y2)) {
+                                                return true;
+                                        }
+                                }
+                                return true;
+                        }
+                } else {
+                        return false;
+                }
+        } else if (v1) {
+                if (is_between(line1.x1, line2.x1, line2.x2)) {
+                        return true;
+                }
+        } else if (v2) {
+                if (is_between(line2.x1, line1.x1, line1.x2)) {
+                        return true;
+                }
+        }
 
-        if ((cx >= line1.x1)&&(cx <= line1.x2)) {
-                if ((cx >= line2.x1)&&(cx <= line2.x2)) {
+        double cx = (b2-b1) / (m1-m2); // Possible collision
+
+        if (is_between(cx, line1.x1, line1.x2)) {
+                if (is_between(cx, line2.x1, line2.x2)) {
                         return true;
                 }
         }
 
         return false;
+}
+bool check_collision_aligned_line(Line line1, Line line2) {
+        bool r = false;
+
+        if (line1.x1 == line1.x2) {
+                if (line2.x1 == line2.x2) {
+                        if (line1.x1 == line2.x1) {
+                                r = is_between(line1.y1, line2.y1, line2.y2) || is_between(line2.y1, line1.y1, line1.y2);
+                        }
+                } else if (line2.y1 == line2.y2) {
+                        r = is_between(line2.y1, line1.y1, line1.y2) && is_between(line1.x1, line2.x1, line2.x2);
+                }
+        } else if (line1.y1 == line1.y2) {
+                if (line2.x1 == line2.x2) {
+                        r = is_between(line1.y1, line2.y1, line2.y2) && is_between(line2.x1, line1.x1, line1.x2);
+                } else if (line2.y1 == line2.y2) {
+                        if (line1.y1 == line2.y1) {
+                                r = is_between(line2.x1, line1.x1, line1.x2) || is_between(line1.x1, line2.x1, line2.x2);
+                        }
+                }
+        }
+
+        return r;
 }
 bool check_collision(SDL_Rect* rect, Line line) {
         double left, right, top, bottom;

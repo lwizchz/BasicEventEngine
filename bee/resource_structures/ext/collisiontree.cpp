@@ -220,39 +220,33 @@ int BEE::CollisionTree::check_collisions() {
 		}
 
 		for (auto& i1 : instances) {
-			SDL_Rect a = {(int)i1->x, (int)i1->y, 0, 0};
-			if (i1->object->get_mask() != NULL) {
-				a.w = i1->object->get_mask()->get_subimage_width();
-				a.h = i1->object->get_mask()->get_height();
-			}
+			i1->mask.x = (int)i1->x;
+			i1->mask.y = (int)i1->y;
 
 			for (auto& i2 : instances) {
 				if (i1 == i2) {
 					continue;
 				}
 
-				SDL_Rect b = {(int)i2->x, (int)i2->y, 0, 0};
-				if (i2->object->get_mask() != NULL) {
-					b.w = i2->object->get_mask()->get_subimage_width();
-					b.h = i2->object->get_mask()->get_height();
+				if ((!i1->object->check_collision_list(i2->object))||(!i2->object->check_collision_list(i1->object))) {
+					continue;
 				}
 
-				if (check_collision(&a, &b)) {
-					if ((i1->object->get_is_solid())&&(i2->object->get_is_solid())) {
-						if ((i1->object->check_collision_list(i2->object))&&(i2->object->check_collision_list(i1->object))) {
-							if ((i1->x != i1->xprevious)||(i1->y != i1->yprevious)) {
-								i1->x = i1->xprevious;
-								i1->y = i1->yprevious;
-								i1->move_avoid(&b);
-								a.x = i1->x;
-								a.y = i1->y;
-							}
+				i2->mask.x = (int)i2->x;
+				i2->mask.y = (int)i2->y;
 
-							if ((i2->x != i2->xprevious)||(i2->y != i2->yprevious)) {
-								i2->x = i2->xprevious;
-								i2->y = i2->yprevious;
-								i2->move_avoid(&a);
-							}
+				if (i1->check_collision_polygon(i2->mask)) {
+					if ((i1->object->get_is_solid())&&(i2->object->get_is_solid())) {
+						if ((i1->x != i1->xprevious)||(i1->y != i1->yprevious)) {
+							i1->x = i1->xprevious;
+							i1->y = i1->yprevious;
+							i1->move_avoid(i2->mask);
+						}
+
+						if ((i2->x != i2->xprevious)||(i2->y != i2->yprevious)) {
+							i2->x = i2->xprevious;
+							i2->y = i2->yprevious;
+							i2->move_avoid(i1->mask);
 						}
 					}
 

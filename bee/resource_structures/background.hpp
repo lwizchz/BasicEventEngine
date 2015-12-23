@@ -42,6 +42,7 @@ class BEE::Background: public Resource {
 		bool get_is_tiling();
 		int get_tile_width();
 		int get_tile_height();
+		bool get_is_loaded();
 
 		int set_name(std::string);
 		int set_path(std::string);

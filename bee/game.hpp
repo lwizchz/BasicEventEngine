@@ -38,7 +38,7 @@ enum rgba_t {c_aqua, c_black, c_blue, c_dkgray, c_fuchsia, c_gray, c_green, c_li
 class BEE {
 	public:
 		class Sprite; class Sound; class Background; class Font; class Path; class Timeline; class Object; class Room;
-		class GameOptions; class InstanceData; class CollisionTree; class RGBA;
+		class GameOptions; class InstanceData; class CollisionTree; class CollisionPolygon; class RGBA;
 		class Particle; class ParticleData; class ParticleEmitter; class ParticleAttractor; class ParticleDestroyer; class ParticleDeflector; class ParticleChanger; class ParticleSystem;
 		class SoundGroup;
 		class NetworkData;
@@ -48,6 +48,13 @@ class BEE {
 		bool quit, is_ready, is_paused;
 		Room *first_room = NULL, *current_room = NULL;
 		GameOptions* options;
+
+		// 0=Linux, 1=Windows
+		#ifdef _WINDOWS
+			const int platform = 1;
+		#else // _WINDOWS
+			const int platform = 0;
+		#endif // _WINDOWS else
 
 		int width, height;
 		SDL_Cursor* cursor;
@@ -64,7 +71,8 @@ class BEE {
 	public:
 		SDL_Window* window = NULL;
 		SDL_Renderer* renderer = NULL;
-		unsigned int fps_max, fps_goal, fps_count, fps_stable;
+		unsigned int fps_max, fps_goal, fps_unfocused;
+		unsigned int fps_count, fps_stable;
 		Uint32 frame_number = 0;
 		const Uint8* keystate;
 
@@ -123,6 +131,7 @@ class BEE {
 
 		int render();
 		int render_clear();
+		int render_reset();
 
 		int restart_game();
 		int end_game();
@@ -239,6 +248,9 @@ class BEE {
 		int net_session_end();
 };
 
+typedef std::tuple<int, int, double> path_coord;
+typedef std::multimap<Uint32, std::pair<std::string,std::function<void()>>> timeline_list;
+
 class BEE::GameOptions {
 	public:
 		// Window flags
@@ -253,13 +265,25 @@ class BEE::GameOptions {
 		bool is_network_enabled;
 };
 
+class Line {
+        public:
+                double x1, y1, x2, y2;
+};
+class BEE::CollisionPolygon {
+	public:
+		class coords {
+			public:
+				double x, y, speed;
+		};
+		double x, y, w, h;
+		//std::vector<coords> vertices;
+		std::vector<Line> vertices;
+};
+
 class BEE::RGBA {
 	public:
 		Uint8 r, g, b, a;
 };
-
-typedef std::tuple<int, int, double> path_coord;
-typedef std::multimap<Uint32, std::pair<std::string,std::function<void()>>> timeline_list;
 
 class ViewData {
 	public:

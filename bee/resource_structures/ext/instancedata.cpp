@@ -41,6 +41,20 @@ int BEE::InstanceData::init(int new_id, Object* new_object, int new_x, int new_y
 		alarm_end[i] = 0xffffffff;
 	}
 
+	if (object->get_mask() != NULL) {
+		mask = {x, y, (double)get_width(), (double)get_height(), {}};
+
+		/*mask.vertices.push_back({0.0, 0.0, 1.0}); // vertices
+		mask.vertices.push_back({(double)get_width(), 0.0, 1.0});
+		mask.vertices.push_back({(double)get_width(), (double)get_height(), 1.0});
+		mask.vertices.push_back({0.0, (double)get_height(), 1.0});*/
+
+		/*mask.vertices.push_back({0.0, 0.0, (double)get_width(), 0.0}); // lines
+		mask.vertices.push_back({(double)get_width(), 0.0, (double)get_width(), (double)get_height()});
+		mask.vertices.push_back({(double)get_width(), (double)get_height(), 0.0, (double)get_height()});
+		mask.vertices.push_back({0.0, (double)get_height(), 0.0, 0.0});*/
+	}
+
 	return 0;
 }
 int BEE::InstanceData::print() {
@@ -148,6 +162,111 @@ int BEE::InstanceData::reset_gravity_acceleration() {
 	acceleration_amount = 0.0;
 	return 0;
 }
+bool BEE::InstanceData::check_collision_polygon(CollisionPolygon& m1, CollisionPolygon& m2) {
+	if ((m1.vertices.empty())||(m2.vertices.empty())) {
+		SDL_Rect a = {(int)m1.x, (int)m1.y, (int)m1.w, (int)m1.h};
+		SDL_Rect b = {(int)m2.x, (int)m2.y, (int)m2.w, (int)m2.h};
+		return check_collision(&a, &b);
+	} else {
+		for (auto& l1 : m1.vertices) {
+			for (auto& l2 : m2.vertices) {
+				//if (check_collision_aligned_line(l1, l2)) {
+				if (check_collision_line(l1, l2)) {
+					game->draw_line(l1.x1, l1.y1, l1.x2, l1.y2, c_aqua, true);
+					game->draw_line(l2.x1, l2.y1, l2.x2, l2.y2, c_red, true);
+					return true;
+				}
+			}
+		}
+		return false;
+
+		/*Line l1 = {0, 0, 0, 0};
+		Line l2 = {0, 0, 0, 0};
+		for (std::vector<CollisionPolygon::coords>::iterator v1=m1.vertices.begin(); v1 != m1.vertices.end(); ++v1) {
+			l1.x1 = m1.x + (*v1).x;
+			l1.y1 = m1.y + (*v1).y;
+			++v1;
+			if (v1 == m1.vertices.end()) {
+				v1 = m1.vertices.begin();
+				l1.x2 = m1.x + (*v1).x;
+				l1.y2 = m1.y + (*v1).y;
+				v1 = m1.vertices.end();
+				--v1;
+			} else {
+				l1.x2 = m1.x + (*v1).x;
+				l1.y2 = m1.y + (*v1).y;
+				--v1;
+			}
+
+			for (std::vector<CollisionPolygon::coords>::iterator v2=m2.vertices.begin(); v2 != m2.vertices.end(); ++v2) {
+				l2.x1 = m2.x + (*v2).x;
+				l2.y1 = m2.y + (*v2).y;
+				++v2;
+				if (v2 == m2.vertices.end()) {
+					v2 = m2.vertices.begin();
+					l2.x2 = m2.x + (*v2).x;
+					l2.y2 = m2.y + (*v2).y;
+					v2 = m2.vertices.end();
+					--v2;
+				} else {
+					l2.x2 = m2.x + (*v2).x;
+					l2.y2 = m2.y + (*v2).y;
+					--v2;
+				}
+
+				if (check_collision_line(l1, l2)) {
+					return true;
+				}
+			}
+		}
+
+		return false;*/
+	}
+}
+bool BEE::InstanceData::check_collision_polygon(CollisionPolygon& other) {
+	return check_collision_polygon(mask, other);
+}
+std::pair<double,double> BEE::InstanceData::move_outside_polygon(Line l, CollisionPolygon& m1, CollisionPolygon& m2) {
+	double dist = distance(l.x1, l.y1, l.x2, l.y2);
+	double dir = direction_of(l.x2, l.y2, l.x1, l.y1);
+	double mx = l.x2, my = l.y2;
+
+        int max_attempts = 10;
+        double delta = 1.0/((double)max_attempts);
+        int attempts = 0;
+
+        m1.x = mx; m1.y = my;
+        while ((check_collision_polygon(m1, m2))&&(attempts++ < max_attempts)) {
+                mx += sin(degtorad(dir)) * delta*dist;
+                my += -cos(degtorad(dir)) * delta*dist;
+                m1.x = mx;
+                m1.y = my;
+        }
+
+        return std::make_pair(mx, my);
+}
+int BEE::InstanceData::move_avoid(CollisionPolygon& other) {
+	mask.x = x;
+	mask.y = y;
+
+	for (auto v=old_velocity.begin(); v!=old_velocity.end(); ++v) {
+		xprevious = x;
+		yprevious = y;
+
+		x += sin(degtorad((*v).second)) * (*v).first;
+		y += -cos(degtorad((*v).second)) * (*v).first;
+		if (!is_place_free(x, y)) {
+			if ((x != xprevious)||(y != yprevious)) {
+				mask.x = x;
+				mask.y = y;
+				std::tie(x, y) = move_outside_polygon({x, y, xprevious, yprevious}, mask, other);
+				(*v).first = distance(x, y, xprevious, yprevious);
+			}
+		}
+	}
+
+	return 0;
+}
 int BEE::InstanceData::move_avoid(SDL_Rect* other) {
 	SDL_Rect r = {(int)x, (int)y, 0, 0};
 	if (object->get_mask() != NULL) {
@@ -181,6 +300,16 @@ std::pair<double,double> BEE::InstanceData::get_motion() {
 		ysum += -cos(degtorad(v.second))*v.first;
 	}
 
+	double d = direction_of(x, y, xsum, ysum);
+	xsum += sin(degtorad(d))*friction;
+	ysum += -cos(degtorad(d))*friction;
+
+	return std::make_pair(xsum, ysum);
+}
+std::pair<double,double> BEE::InstanceData::get_applied_gravity() {
+	double xsum = x;
+	double ysum = y;
+
 	if (gravity != 0.0) {
 		double g = gravity*pow(acceleration, acceleration_amount), gd = gravity_direction;
 		xsum += sin(degtorad(gd))*g;
@@ -189,10 +318,6 @@ std::pair<double,double> BEE::InstanceData::get_motion() {
 			acceleration_amount += 0.01;
 		}
 	}
-
-	double d = direction_of(x, y, xsum, ysum);
-	xsum += sin(degtorad(d))*friction;
-	ysum += -cos(degtorad(d))*friction;
 
 	return std::make_pair(xsum, ysum);
 }
@@ -237,25 +362,21 @@ double BEE::InstanceData::get_gravity_acceleration_amount() {
 
 bool BEE::InstanceData::is_place_free(int new_x, int new_y) {
 	bool is_collision = false;
-	SDL_Rect a = {new_x, new_y, 0, 0};
-	if (object->get_mask() != NULL) {
-		a.w = object->get_mask()->get_subimage_width();
-		a.h = object->get_mask()->get_height();
-	}
+
+	mask.x = new_x;
+	mask.y = new_y;
 
 	for (auto& i : game->get_current_room()->get_instances()) {
 		if (i.second == this) {
 			continue;
 		}
 
-		SDL_Rect b = {(int)i.second->x, (int)i.second->y, 0, 0};
-		if (i.second->object->get_mask() != NULL) {
-			b.w = i.second->object->get_mask()->get_subimage_width();
-			b.h = i.second->object->get_mask()->get_height();
-		}
+		i.second->mask.x = (int)i.second->x;
+		i.second->mask.y = (int)i.second->y;
 
 		if (i.second->object->get_is_solid()) {
-			if (check_collision(&a, &b)) {
+			//if (check_collision(&a, &b)) {
+			if (check_collision_polygon(i.second->mask)) {
 				if ((object->check_collision_list(i.second->object))&&(i.second->object->check_collision_list(object))) {
 					is_collision = true;
 					break;
@@ -267,24 +388,20 @@ bool BEE::InstanceData::is_place_free(int new_x, int new_y) {
 }
 bool BEE::InstanceData::is_place_empty(int new_x, int new_y) {
 	bool is_collision = false;
-	SDL_Rect a = {new_x, new_y, 0, 0};
-	if (object->get_mask() != NULL) {
-		a.w = object->get_mask()->get_subimage_width();
-		a.h = object->get_mask()->get_height();
-	}
+
+	mask.x = new_x;
+	mask.y = new_y;
 
 	for (auto& i : game->get_current_room()->get_instances()) {
 		if (i.second == this) {
 			continue;
 		}
 
-		SDL_Rect b = {(int)i.second->x, (int)i.second->y, 0, 0};
-		if (i.second->object->get_mask() != NULL) {
-			b.w = i.second->object->get_mask()->get_subimage_width();
-			b.h = i.second->object->get_mask()->get_height();
-		}
+		i.second->mask.x = (int)i.second->x;
+		i.second->mask.y = (int)i.second->y;
 
-		if (check_collision(&a, &b)) {
+		//if (check_collision(&a, &b)) {
+		if (check_collision_polygon(i.second->mask)) {
 			is_collision = true;
 			break;
 		}
@@ -293,24 +410,20 @@ bool BEE::InstanceData::is_place_empty(int new_x, int new_y) {
 }
 bool BEE::InstanceData::is_place_meeting(int new_x, int new_y, Object* other) {
 	bool is_collision = false;
-	SDL_Rect a = {new_x, new_y, 0, 0};
-	if (object->get_mask() != NULL) {
-		a.w = object->get_mask()->get_subimage_width();
-		a.h = object->get_mask()->get_height();
-	}
+
+	mask.x = new_x;
+	mask.y = new_y;
 
 	for (auto& i : other->get_instances()) {
 		if (i.second == this) {
 			continue;
 		}
 
-		SDL_Rect b = {(int)i.second->x, (int)i.second->y, 0, 0};
-		if (i.second->object->get_mask() != NULL) {
-			b.w = i.second->object->get_mask()->get_subimage_width();
-			b.h = i.second->object->get_mask()->get_height();
-		}
+		i.second->mask.x = (int)i.second->x;
+		i.second->mask.y = (int)i.second->y;
 
-		if (check_collision(&a, &b)) {
+		//if (check_collision(&a, &b)) {
+		if (check_collision_polygon(i.second->mask)) {
 			is_collision = true;
 			break;
 		}
@@ -319,24 +432,20 @@ bool BEE::InstanceData::is_place_meeting(int new_x, int new_y, Object* other) {
 }
 bool BEE::InstanceData::is_place_meeting(int new_x, int new_y, int other_id) {
 	bool is_collision = false;
-	SDL_Rect a = {new_x, new_y, 0, 0};
-	if (object->get_mask() != NULL) {
-		a.w = object->get_mask()->get_subimage_width();
-		a.h = object->get_mask()->get_height();
-	}
+
+	mask.x = new_x;
+	mask.y = new_y;
 
 	for (auto& i : game->get_object(other_id)->get_instances()) {
 		if (i.second == this) {
 			continue;
 		}
 
-		SDL_Rect b = {(int)i.second->x, (int)i.second->y, 0, 0};
-		if (i.second->object->get_mask() != NULL) {
-			b.w = i.second->object->get_mask()->get_subimage_width();
-			b.h = i.second->object->get_mask()->get_height();
-		}
+		i.second->mask.x = (int)i.second->x;
+		i.second->mask.y = (int)i.second->y;
 
-		if (check_collision(&a, &b)) {
+		//if (check_collision(&a, &b)) {
+		if (check_collision_polygon(i.second->mask)) {
 			is_collision = true;
 			break;
 		}
@@ -649,7 +758,36 @@ int BEE::InstanceData::draw_path() {
 }
 
 int BEE::InstanceData::draw_debug() {
-	if (object->get_mask() != NULL) {
+	if (mask.vertices.size() > 0) {
+		int xs = (int)x;
+		int ys = (int)y;
+		/*for (std::vector<CollisionPolygon::coords>::iterator it = mask.vertices.begin(); it != mask.vertices.end(); ++it) {
+			if (it != --mask.vertices.end()) {
+				int x1 = (*it).x;
+				int y1 = (*it).y;
+				++it;
+				int x2 = (*it).x;
+				int y2 = (*it).y;
+				--it;
+
+				game->draw_line(x1+xs, y1+ys, x2+xs, y2+ys, c_aqua);
+			} else {
+				int x1 = (*it).x;
+				int y1 = (*it).y;
+				it = mask.vertices.begin();
+				int x2 = (*it).x;
+				int y2 = (*it).y;
+				it = mask.vertices.end();
+				--it;
+
+				game->draw_line(x1+xs, y1+ys, x2+xs, y2+ys, c_aqua);
+			}
+		}*/
+		for (auto& l : mask.vertices) {
+			game->draw_line(l.x1+xs, l.y1+ys, l.x2+xs, l.y2+ys, c_aqua);
+		}
+		return 0;
+	} else if (object->get_mask() != NULL) {
 		int w = object->get_mask()->get_subimage_width();
 		int h = object->get_mask()->get_height();
 		return game->draw_rectangle(x, y, w, h, false, c_aqua);

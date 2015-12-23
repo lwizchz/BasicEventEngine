@@ -26,8 +26,9 @@ BEE::BEE(int new_argc, char** new_argv, Room** new_first_room, GameOptions* new_
 	has_focus = false;
 
 	fps_goal = DEFAULT_GAME_FPS;
-	fps_max = 300;
-	//fps_max = fps_goal;
+	//fps_max = 300;
+	fps_max = fps_goal;
+	fps_unfocused = fps_max/20;
 	fps_count = 0;
 	fps_stable = 0;
 
@@ -42,15 +43,15 @@ BEE::BEE(int new_argc, char** new_argv, Room** new_first_room, GameOptions* new_
 
 	int window_flags = SDL_WINDOW_SHOWN;
 	if (options->is_fullscreen) {
-#ifdef _WINDOWS
-		window_flags |= SDL_WINDOW_BORDERLESS;
-#else // _WINDOWS
-		if (options->is_resizable) {
-			window_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP; // Changes the window dimensions
-		} else {
-			window_flags |= SDL_WINDOW_FULLSCREEN; // Changes the video mode
+		if (platform == 0) {
+		       //if (options->is_resizable) {
+			       window_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP; // Changes the window dimensions
+		       /*} else {
+			       window_flags |= SDL_WINDOW_FULLSCREEN; // Changes the video mode
+		       }*/
+		} else if (platform == 1) { // _WINDOWS
+			window_flags |= SDL_WINDOW_BORDERLESS;
 		}
-#endif // _WINDOWS else
 	}
 	if (options->is_opengl) {
 		window_flags |= SDL_WINDOW_OPENGL;
@@ -158,15 +159,47 @@ int BEE::loop() {
 					}
 					case SDL_WINDOWEVENT: {
 						switch (event.window.event) {
-							case SDL_WINDOWEVENT_RESIZED:
-							case SDL_WINDOWEVENT_SIZE_CHANGED: {
+							case SDL_WINDOWEVENT_SHOWN: {
+								//render_reset();
+								render();
+								has_focus = true;
+								break;
+							}
+							case SDL_WINDOWEVENT_HIDDEN: {
+								has_focus = false;
+								break;
+							}
+							case SDL_WINDOWEVENT_EXPOSED: {
+								render();
+								break;
+							}
+							case SDL_WINDOWEVENT_MOVED: {
+								break;
+							}
+							case SDL_WINDOWEVENT_RESIZED: {
 								width = event.window.data1;
 								height = event.window.data2;
 								render();
 								break;
 							}
-							case SDL_WINDOWEVENT_EXPOSED: {
+							case SDL_WINDOWEVENT_SIZE_CHANGED: {
 								render();
+								break;
+							}
+							case SDL_WINDOWEVENT_MINIMIZED: {
+								is_minimized = true;
+								has_mouse = false;
+								has_focus = false;
+								break;
+							}
+							case SDL_WINDOWEVENT_MAXIMIZED: {
+								is_minimized = false;
+								has_focus = true;
+								break;
+							}
+							case SDL_WINDOWEVENT_RESTORED: {
+								is_minimized = false;
+								has_focus = true;
 								break;
 							}
 							case SDL_WINDOWEVENT_ENTER: {
@@ -185,18 +218,14 @@ int BEE::loop() {
 								has_focus = false;
 								break;
 							}
-							case SDL_WINDOWEVENT_MINIMIZED: {
-								is_minimized = true;
-								has_mouse = false;
+							case SDL_WINDOWEVENT_CLOSE: {
+								SDL_Event qe;
+								qe.type = SDL_QUIT;
+								SDL_PushEvent(&qe);
 								break;
 							}
-							case SDL_WINDOWEVENT_MAXIMIZED: {
-								is_minimized = false;
-								break;
-							}
-							case SDL_WINDOWEVENT_RESTORED: {
-								is_minimized = false;
-								break;
+							default: {
+								std::cerr << "other,";
 							}
 						}
 						current_room->window(&event);
@@ -251,9 +280,13 @@ int BEE::loop() {
 			fps_count++;
 			frame_number++;
 			new_tickstamp = get_ticks();
-			if (new_tickstamp - tickstamp < 1000/fps_max) {
+			unsigned int fps_desired = fps_max;
+			if (!has_focus) {
+				fps_desired = fps_unfocused;
+			}
+			if (new_tickstamp - tickstamp < 1000/fps_desired) {
 				if ((!options->is_vsync_enabled)||(!has_focus)) {
-					SDL_Delay((1000/fps_max) - (new_tickstamp - tickstamp));
+					SDL_Delay((1000/fps_desired) - (new_tickstamp - tickstamp));
 				}
 			}
 			tickstamp = get_ticks();
@@ -367,6 +400,43 @@ int BEE::render_clear() {
 		// OpenGL render clearing
 	} else {
 		SDL_RenderClear(renderer);
+	}
+	return 0;
+}
+int BEE::render_reset() {
+	if (options->is_opengl) {
+		// OpenGL render reset
+	} else {
+		SDL_DestroyRenderer(renderer);
+
+		int renderer_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE;
+		if (options->is_vsync_enabled) {
+			renderer_flags |= SDL_RENDERER_PRESENTVSYNC;
+		}
+		renderer = SDL_CreateRenderer(window, -1, renderer_flags);
+		if (renderer == NULL) {
+			throw std::string("Couldn't create SDL renderer: ") + SDL_GetError() + "\n";
+		}
+		SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+
+		for (int i=0; i<resource_list->sprites.get_amount(); i++) {
+			if (get_sprite(i) != NULL) {
+				Sprite* s = get_sprite(i);
+				if (s->get_is_loaded()) {
+					s->free();
+					s->load();
+				}
+			}
+		}
+		for (int i=0; i<resource_list->backgrounds.get_amount(); i++) {
+			if (get_background(i) != NULL) {
+				Background* s = get_background(i);
+				if (s->get_is_loaded()) {
+					s->free();
+					s->load();
+				}
+			}
+		}
 	}
 	return 0;
 }

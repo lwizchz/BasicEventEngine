@@ -21,11 +21,14 @@ class BEE::Timeline: public Resource {
 		std::string timeline_path;
 		timeline_list action_list;
 		timeline_list::iterator next_action;
+		std::function<void()> end_action = NULL;
 
 		Uint32 start_frame = 0xffffffff;
 		Uint32 position_frame = 0xffffffff;
 		Uint32 start_offset = 0;
+		Uint32 pause_offset = 0;
 		bool is_looping = false;
+		bool is_paused = false;
 	public:
 		Timeline();
 		Timeline(std::string, std::string);
@@ -50,9 +53,12 @@ class BEE::Timeline: public Resource {
 		int set_offset(Uint32);
 		int clip_offset();
 		int set_is_looping(bool);
+		int add_ending(std::function<void()>);
+		int set_pause(bool);
 
 		int start();
 		int step(Uint32);
+		int end();
 };
 
 #endif // _BEE_TIMELINE_H

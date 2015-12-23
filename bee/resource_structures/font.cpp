@@ -280,7 +280,7 @@ TextData* BEE::Font::draw(TextData* textdata, int x, int y, std::string text) {
 	SDL_Color color = {0, 0, 0, 255};
 	return draw(textdata, x, y, text, color);
 }
-int BEE::Font::draw_fast(int x, int y, std::string text, SDL_Color color) {
+int BEE::Font::draw_fast_internal(int x, int y, std::string text, SDL_Color color) {
 	if (is_loaded) {
 		if (text.size() > 0) {
 			SDL_Surface* tmp_surface;
@@ -311,6 +311,27 @@ int BEE::Font::draw_fast(int x, int y, std::string text, SDL_Color color) {
 		}
 
 		return 1;
+	}
+
+	std::cerr << "Failed to draw text, font not loaded: " << name << "\n";
+	return 1;
+}
+int BEE::Font::draw_fast(int x, int y, std::string text, SDL_Color color) {
+	if (is_loaded) {
+		std::map<int,std::string> lines = handle_newlines(text);
+
+		if (lineskip == 0) {
+			lineskip = TTF_FontLineSkip(font);
+		}
+
+		int r = 0;
+		for (auto& l : lines) {
+			int ri = draw_fast_internal(x, y+lineskip*l.first, l.second, color);
+			if (ri > r) {
+				r = ri;
+			}
+		}
+		return r;
 	}
 
 	std::cerr << "Failed to draw text, font not loaded: " << name << "\n";

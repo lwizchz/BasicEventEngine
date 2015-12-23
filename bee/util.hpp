@@ -9,6 +9,7 @@
 #ifndef _BEE_UTIL_H
 #define _BEE_UTIL_H 1
 
+#include <iostream>
 #include <map>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_net.h>
@@ -120,6 +121,7 @@ class Line;
 bool check_collision(SDL_Rect*, SDL_Rect*);
 bool check_collision_circle(double, double, double, double, double, double);
 bool check_collision_line(Line, Line);
+bool check_collision_aligned_line(Line, Line);
 bool check_collision(SDL_Rect*, Line);
 double angle_hbounce(double);
 double angle_vbounce(double);

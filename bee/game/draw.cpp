@@ -126,10 +126,9 @@ int BEE::draw_set_color(rgba_t new_color) {
 	return draw_set_color(get_enum_color(new_color));
 }
 BEE::RGBA BEE::draw_get_color() {
-	Uint8 r, g, b, a;
+	Uint8 r=0, g=0, b=0, a=0;
 	SDL_GetRenderDrawColor(renderer, &r, &g, &b, &a);
-	RGBA c = {r, g, b, a};
-	return c;
+	return {r, g, b, a};
 }
 BEE::RGBA BEE::get_pixel_color(int x, int y) {
 	SDL_Surface *screenshot = SDL_CreateRGBSurface(0, width, height, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);

@@ -133,10 +133,17 @@ template double dot_product<double>(std::pair<double,double>, std::pair<double,d
 
 template <typename T>
 bool is_between(T x, T a, T b) {
-        if ((x > a)&&(x < b)) {
-                return true;
+        if (a > b) {
+                if ((x <= a)&&(x >= b)) {
+                        return true;
+                }
+                return false;
+        } else {
+                if ((x >= a)&&(x <= b)) {
+                        return true;
+                }
+                return false;
         }
-        return false;
 }
 template bool is_between<int>(int, int, int);
 template bool is_between<double>(double, double, double);

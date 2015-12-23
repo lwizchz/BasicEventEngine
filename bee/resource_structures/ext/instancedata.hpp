@@ -44,6 +44,8 @@ class BEE::InstanceData {
 		std::list<std::pair<double,double>> velocity, old_velocity;
 		int path_xstart = 0, path_ystart = 0;
 
+		CollisionPolygon mask;
+
 		InstanceData();
 		InstanceData(BEE*, int, Object*, int, int);
 		int init(int, Object*, int, int);
@@ -72,9 +74,14 @@ class BEE::InstanceData {
 		int set_gravity_direction(double);
 		int set_gravity_acceleration(double);
 		int reset_gravity_acceleration();
+		bool check_collision_polygon(CollisionPolygon&, CollisionPolygon&);
+		bool check_collision_polygon(CollisionPolygon&);
+		std::pair<double,double> move_outside_polygon(Line, CollisionPolygon&, CollisionPolygon&);
+		int move_avoid(CollisionPolygon&);
 		int move_avoid(SDL_Rect*);
 
 		std::pair<double,double> get_motion();
+		std::pair<double,double> get_applied_gravity();
 		std::pair<double,double> get_position();
 		double get_hspeed();
 		double get_vspeed();
