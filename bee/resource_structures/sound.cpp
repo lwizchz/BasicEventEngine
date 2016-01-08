@@ -57,6 +57,10 @@ int BEE::Sound::add_to_resources(std::string path) {
 	}
 	BEE::resource_list->sounds.set_resource(id, this);
 
+	if (BEE::resource_list->sounds.game != NULL) {
+		game = BEE::resource_list->sounds.game;
+	}
+
 	return 0;
 }
 int BEE::Sound::reset() {

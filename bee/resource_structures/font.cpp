@@ -66,6 +66,10 @@ int BEE::Font::add_to_resources(std::string path) {
 	}
 	BEE::resource_list->fonts.set_resource(id, this);
 
+	if (BEE::resource_list->fonts.game != NULL) {
+		game = BEE::resource_list->fonts.game;
+	}
+
 	return 0;
 }
 int BEE::Font::reset() {
@@ -163,13 +167,20 @@ int BEE::Font::set_lineskip(int new_lineskip) {
 
 int BEE::Font::load() {
 	if (!is_loaded) {
-		font = TTF_OpenFont(font_path.c_str(), font_size);
-		if (font == NULL) {
-			std::cerr << "Failed to load font " << font_path << ": " << TTF_GetError() << "\n";
+		if (game->options->is_opengl) {
+			std::cerr << "Failed to load font \"" << name << "\" because OpenGL font rendering is not implemented.\n";
+			has_draw_failed = true;
 			return 1;
-		}
+		} else {
+			font = TTF_OpenFont(font_path.c_str(), font_size);
+			if (font == NULL) {
+				std::cerr << "Failed to load font " << font_path << ": " << TTF_GetError() << "\n";
+				return 1;
+			}
 
-		is_loaded = true;
+			is_loaded = true;
+			has_draw_failed = false;
+		}
 	}
 
 	return 0;
@@ -188,6 +199,8 @@ int BEE::Font::free() {
 TextData* BEE::Font::draw_internal(int x, int y, std::string text, SDL_Color color) {
 	if (is_loaded) {
 		if (text.size() > 0) {
+			text = string_replace(text, "\t", "    ");
+
 			SDL_Surface* tmp_surface;
 			tmp_surface = TTF_RenderUTF8_Blended(font, text.c_str(), color); // Slow but pretty
 			if (tmp_surface == NULL) {
@@ -209,6 +222,7 @@ TextData* BEE::Font::draw_internal(int x, int y, std::string text, SDL_Color col
 			rect.y = y;
 			SDL_QueryTexture(texture, NULL, NULL, &rect.w, &rect.h);
 
+			SDL_SetTextureAlphaMod(texture, color.a);
 			SDL_RenderCopy(game->renderer, texture, NULL, &rect);
 
 			TextData* textdata = new TextData(texture, text);
@@ -219,7 +233,10 @@ TextData* BEE::Font::draw_internal(int x, int y, std::string text, SDL_Color col
 		return NULL;
 	}
 
-	std::cerr << "Failed to draw text, font not loaded: " << name << "\n";
+	if (!has_draw_failed) {
+		std::cerr << "Failed to draw text, font not loaded: " << name << "\n";
+		has_draw_failed = true;
+	}
 	return NULL;
 }
 TextData* BEE::Font::draw(int x, int y, std::string text, SDL_Color color) {
@@ -245,7 +262,10 @@ TextData* BEE::Font::draw(int x, int y, std::string text, SDL_Color color) {
 		return textdata;
 	}
 
-	std::cerr << "Failed to draw text, font not loaded: " << name << "\n";
+	if (!has_draw_failed) {
+		std::cerr << "Failed to draw text, font not loaded: " << name << "\n";
+		has_draw_failed = true;
+	}
 	return NULL;
 }
 TextData* BEE::Font::draw(int x, int y, std::string text) {
@@ -262,6 +282,7 @@ TextData* BEE::Font::draw(TextData* textdata, int x, int y, std::string text, SD
 				rect.y = y;
 				SDL_QueryTexture(textdata->texture[l.first], NULL, NULL, &rect.w, &rect.h);
 
+				SDL_SetTextureAlphaMod(textdata->texture[l.first], color.a);
 				SDL_RenderCopy(game->renderer, textdata->texture[l.first], NULL, &rect);
 			}
 			return textdata;
@@ -273,7 +294,10 @@ TextData* BEE::Font::draw(TextData* textdata, int x, int y, std::string text, SD
 		}
 	}
 
-	std::cerr << "Failed to draw text, font not loaded: " << name << "\n";
+	if (!has_draw_failed) {
+		std::cerr << "Failed to draw text, font not loaded: " << name << "\n";
+		has_draw_failed = true;
+	}
 	return NULL;
 }
 TextData* BEE::Font::draw(TextData* textdata, int x, int y, std::string text) {
@@ -283,6 +307,8 @@ TextData* BEE::Font::draw(TextData* textdata, int x, int y, std::string text) {
 int BEE::Font::draw_fast_internal(int x, int y, std::string text, SDL_Color color) {
 	if (is_loaded) {
 		if (text.size() > 0) {
+			text = string_replace(text, "\t", "    ");
+
 			SDL_Surface* tmp_surface;
 			tmp_surface = TTF_RenderUTF8_Solid(font, text.c_str(), color); // Fast but ugly
 			if (tmp_surface == NULL) {
@@ -304,6 +330,7 @@ int BEE::Font::draw_fast_internal(int x, int y, std::string text, SDL_Color colo
 			rect.y = y;
 			SDL_QueryTexture(texture, NULL, NULL, &rect.w, &rect.h);
 
+			SDL_SetTextureAlphaMod(texture, color.a);
 			SDL_RenderCopy(game->renderer, texture, NULL, &rect);
 			SDL_DestroyTexture(texture);
 
@@ -313,7 +340,10 @@ int BEE::Font::draw_fast_internal(int x, int y, std::string text, SDL_Color colo
 		return 1;
 	}
 
-	std::cerr << "Failed to draw text, font not loaded: " << name << "\n";
+	if (!has_draw_failed) {
+		std::cerr << "Failed to draw text, font not loaded: " << name << "\n";
+		has_draw_failed = true;
+	}
 	return 1;
 }
 int BEE::Font::draw_fast(int x, int y, std::string text, SDL_Color color) {
@@ -334,7 +364,10 @@ int BEE::Font::draw_fast(int x, int y, std::string text, SDL_Color color) {
 		return r;
 	}
 
-	std::cerr << "Failed to draw text, font not loaded: " << name << "\n";
+	if (!has_draw_failed) {
+		std::cerr << "Failed to draw text, font not loaded: " << name << "\n";
+		has_draw_failed = true;
+	}
 	return 1;
 }
 int BEE::Font::draw_fast(int x, int y, std::string text) {
@@ -353,7 +386,10 @@ int BEE::Font::get_string_width(std::string text, int size) {
 		return w;
 	}
 
-	std::cerr << "Failed to draw text, font not loaded: " << name << "\n";
+	if (!has_draw_failed) {
+		std::cerr << "Failed to draw text, font not loaded: " << name << "\n";
+		has_draw_failed = true;
+	}
 	return -1;
 }
 int BEE::Font::get_string_width(std::string text) {
@@ -366,7 +402,10 @@ int BEE::Font::get_string_height(std::string text, int size) {
 		return h;
 	}
 
-	std::cerr << "Failed to draw text, font not loaded: " << name << "\n";
+	if (!has_draw_failed) {
+		std::cerr << "Failed to draw text, font not loaded: " << name << "\n";
+		has_draw_failed = true;
+	}
 	return -1;
 }
 int BEE::Font::get_string_height(std::string text) {

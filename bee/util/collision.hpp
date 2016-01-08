@@ -15,10 +15,15 @@
 
 #include "real.hpp"
 
-class Line {
-        public:
-                double x1, y1, x2, y2;
-};
+//bool Line::operator== (const Line& other) const {
+bool compare_lines(Line l1, Line l2) {
+	if ((l1.x1 == l2.x1)&&(l1.y1 == l2.y1)) {
+		if ((l1.x2 == l2.x2)&&(l1.y2 == l2.y2)) {
+			return true;
+		}
+	}
+	return false;
+}
 
 bool check_collision(SDL_Rect* a, SDL_Rect* b) {
 	int a_left, a_right, a_top, a_bottom;
@@ -77,26 +82,30 @@ bool check_collision_line(Line line1, Line line2) {
                 if (m1 == m2) {
                         if (b1 == b2) { // same line
                                 if (v1) {
-                                        if (is_between(line1.y1, line2.y1, line2.y2)) {
-                                                return true;
-                                        }
-                                        if (is_between(line2.y1, line1.y1, line1.y2)) {
-                                                return true;
-                                        }
-                                }
-                                return true;
-                        }
-                } else {
-                        return false;
+                                        return check_collision_aligned_line(line1, line2);
+                                } else {
+					return true;
+				}
+                        } else {
+				return false;
+			}
                 }
         } else if (v1) {
                 if (is_between(line1.x1, line2.x1, line2.x2)) {
-                        return true;
+			double cy = m2*line1.x1 + b2;
+			if (is_between(cy, line1.y1, line1.y2)) {
+				return true;
+			}
                 }
+		return false;
         } else if (v2) {
-                if (is_between(line2.x1, line1.x1, line1.x2)) {
-                        return true;
+		if (is_between(line2.x1, line1.x1, line1.x2)) {
+			double cy = m1*line2.x1 + b1;
+			if (is_between(cy, line2.y1, line2.y2)) {
+				return true;
+			}
                 }
+		return false;
         }
 
         double cx = (b2-b1) / (m1-m2); // Possible collision

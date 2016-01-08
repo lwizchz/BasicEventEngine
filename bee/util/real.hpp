@@ -133,13 +133,13 @@ template double dot_product<double>(std::pair<double,double>, std::pair<double,d
 
 template <typename T>
 bool is_between(T x, T a, T b) {
-        if (a > b) {
-                if ((x <= a)&&(x >= b)) {
+        if (a < b) {
+                if ((x >= a)&&(x <= b)) {
                         return true;
                 }
                 return false;
         } else {
-                if ((x >= a)&&(x <= b)) {
+                if ((x <= a)&&(x >= b)) {
                         return true;
                 }
                 return false;
@@ -154,5 +154,28 @@ bool is_angle_between(T x, T a, T b) {
 }
 template bool is_angle_between<int>(int, int, int);
 template bool is_angle_between<double>(double, double, double);
+
+template <typename T>
+T fit_bounds(T x, T a, T b) {
+        if (a < b) {
+                if (x < a) {
+                        return a;
+                }
+                if (x > b) {
+                        return b;
+                }
+                return x;
+        } else {
+                if (x < b) {
+                        return b;
+                }
+                if (x > a) {
+                        return a;
+                }
+                return x;
+        }
+}
+template int fit_bounds<int>(int, int, int);
+template double fit_bounds<double>(double, double, double);
 
 #endif // _BEE_UTIL_REAL_H

@@ -71,7 +71,7 @@ int BEE::change_room(Room* new_room, bool should_jump) {
 
 	if (transition_type != 0) {
 		render();
-		set_render_target(NULL);
+		reset_render_target();
 		draw_transition();
 	}
 

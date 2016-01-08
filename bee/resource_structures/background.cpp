@@ -70,6 +70,10 @@ int BEE::Background::add_to_resources(std::string path) {
 	}
 	BEE::resource_list->backgrounds.set_resource(id, this);
 
+	if (BEE::resource_list->backgrounds.game != NULL) {
+		game = BEE::resource_list->backgrounds.game;
+	}
+
 	return 0;
 }
 int BEE::Background::reset() {
@@ -130,6 +134,9 @@ int BEE::Background::get_tile_height() {
 }
 bool BEE::Background::get_is_loaded() {
 	return is_loaded;
+}
+SDL_Texture* BEE::Background::get_texture() {
+	return texture;
 }
 
 int BEE::Background::set_name(std::string new_name) {
@@ -303,6 +310,29 @@ int BEE::Background::draw(int x, int y, BackgroundData* b) {
 	}
 
 	return 0;
+}
+int BEE::Background::set_as_target(int w, int h) {
+	if (is_loaded) {
+		free();
+	}
+
+	texture = SDL_CreateTexture(game->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w, h);
+	if (texture == NULL) {
+		std::cerr << "Failed to create a blank texture: " << SDL_GetError() << "\n";
+		return 1;
+	}
+
+	width = w;
+	height = h;
+
+	SDL_SetRenderTarget(game->renderer, texture);
+
+	is_loaded = true;
+
+	return 0;
+}
+int BEE::Background::set_as_target() {
+	return set_as_target(game->get_width(), game->get_height());
 }
 
 #endif // _BEE_BACKGROUND

@@ -102,6 +102,32 @@ std::string trim(std::string str) {
         return rtrim(ltrim(str));
 }
 
+bool stringtobool(std::string str) {
+        str = string_lower(trim(str));
+        std::vector<std::string> false_values = {"0", "false"};
+        for (auto& s : false_values) {
+                if (str == s) {
+                        return false;
+                }
+        }
+        return true;
+}
+std::string booltostring(bool b) {
+        if (b) {
+                return "true";
+        }
+        return "false";
+}
+
+std::string string_replace(std::string str, std::string search, std::string replacement) {
+        size_t start_pos = 0;
+        while ((start_pos = str.find(search, start_pos)) != std::string::npos) {
+                str.replace(start_pos, search.length(), replacement);
+                start_pos += replacement.length();
+        }
+        return str;
+}
+
 bool clipboard_has_text() {
         return (SDL_HasClipboardText() == SDL_TRUE) ? true : false;
 }

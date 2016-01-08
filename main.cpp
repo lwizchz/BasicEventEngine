@@ -29,7 +29,8 @@ int main(int argc, char* argv[]) {
 			// Renderer flags
 			true,
 			// Miscellaneous flags
-			true
+			true,
+			false
 		};
 
 		// Init game engine

@@ -12,11 +12,18 @@
 #include <iostream>
 #include <time.h>
 #include <functional>
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_mixer.h>
 #include <SDL2/SDL_net.h>
+
+#include <GL/glew.h>
+#include <SDL2/SDL_opengl.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #define DEFAULT_WINDOW_WIDTH 1280
 #define DEFAULT_WINDOW_HEIGHT 720
@@ -33,7 +40,7 @@ class BEE;
 #include "resource_structures.hpp"
 #endif
 
-enum rgba_t {c_aqua, c_black, c_blue, c_dkgray, c_fuchsia, c_gray, c_green, c_lime, c_ltgray, c_maroon, c_navy, c_olive, c_orange, c_purple, c_red, c_silver, c_teal, c_white, c_yellow};
+enum rgba_t {c_cyan, c_aqua, c_black, c_blue, c_dkgray, c_magenta, c_fuchsia, c_gray, c_green, c_lime, c_silver, c_ltgray, c_maroon, c_navy, c_olive, c_orange, c_purple, c_red, c_teal, c_white, c_yellow};
 
 class BEE {
 	public:
@@ -47,7 +54,6 @@ class BEE {
 		char** argv;
 		bool quit, is_ready, is_paused;
 		Room *first_room = NULL, *current_room = NULL;
-		GameOptions* options;
 
 		// 0=Linux, 1=Windows
 		#ifdef _WINDOWS
@@ -59,6 +65,8 @@ class BEE {
 		int width, height;
 		SDL_Cursor* cursor;
 
+		RGBA* color;
+
 		bool is_minimized, is_fullscreen;
 		bool has_mouse, has_focus;
 
@@ -68,12 +76,24 @@ class BEE {
 		NetworkData* net;
 
 		double volume = 1.0;
+	protected:
+		GameOptions* options;
 	public:
 		SDL_Window* window = NULL;
 		SDL_Renderer* renderer = NULL;
+
+		SDL_GLContext context = NULL;
+		GLuint program = 0;
+		GLint vertex_location = -1;
+		GLint fragment_location = -1;
+		GLint model_location = -1;
+		GLint texture_location = -1;
+		GLint mvp_location = -1;
+
 		unsigned int fps_max, fps_goal, fps_unfocused;
 		unsigned int fps_count, fps_stable;
 		Uint32 frame_number = 0;
+
 		const Uint8* keystate;
 
 		Sprite* texture_before;
@@ -94,7 +114,6 @@ class BEE {
 		static int close_resources();
 
 		// bee/game/resources.cpp
-		int set_engine_pointer();
 		int load_media();
 		int free_media();
 
@@ -129,6 +148,14 @@ class BEE {
 		Uint32 get_seconds();
 		Uint32 get_frame();
 
+		GameOptions get_options();
+		int set_options(GameOptions);
+
+		int opengl_init();
+		int opengl_close();
+		int renderer_init(bool);
+		int renderer_close();
+
 		int render();
 		int render_clear();
 		int render_reset();
@@ -154,8 +181,11 @@ class BEE {
 		bool get_is_paused();
 
 		// bee/game/transition.cpp
+		int reset_render_target();
 		int set_render_target(Sprite*, int, int);
 		int set_render_target(Sprite*);
+		int set_render_target(Background*, int, int);
+		int set_render_target(Background*);
 		int draw_transition();
 
 		// bee/game/display.cpp
@@ -219,9 +249,12 @@ class BEE {
 		int draw_line(int, int, int, int, bool);
 		int draw_line(int, int, int, int, RGBA, bool);
 		int draw_line(int, int, int, int, rgba_t, bool);
+		int draw_line(Line, RGBA, bool);
 		int draw_rectangle(int, int, int, int, bool, bool);
 		int draw_rectangle(int, int, int, int, bool, RGBA, bool);
 		int draw_rectangle(int, int, int, int, bool, rgba_t, bool);
+		int draw_rectangle(SDL_Rect, bool, RGBA, bool);
+
 		int draw_point(int, int);
 		int draw_line(int, int, int, int);
 		int draw_line(int, int, int, int, RGBA);
@@ -263,21 +296,16 @@ class BEE::GameOptions {
 
 		// Miscellaneous flags
 		bool is_network_enabled;
+		bool is_debug_enabled;
 };
 
-class Line {
-        public:
-                double x1, y1, x2, y2;
-};
 class BEE::CollisionPolygon {
 	public:
-		class coords {
-			public:
-				double x, y, speed;
-		};
 		double x, y, w, h;
-		//std::vector<coords> vertices;
-		std::vector<Line> vertices;
+		std::vector<Line> lines;
+
+		int add_vertex(double, double);
+		int finalize();
 };
 
 class BEE::RGBA {

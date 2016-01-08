@@ -32,23 +32,23 @@ std::string BEE::CollisionTree::print() {
 	std::string s = "";
 	if (topleft == NULL) {
 		for (auto& i : instances) {
-			s += "| " + i->object->get_name() + "\n";
+			s += "\b\b\b\b\b" + i->object->get_name() + "\n";
 		}
 	} else {
 		s = "tree\n";
-		std::string t = debug_indent(topleft->print(), 1, "|");
+		std::string t = debug_indent(topleft->print(), 1, "│");
 		if (!trim(t).empty()) {
-			s += t + "|________\n";
+			s += t + "└────────\n";
 		}
-		t = debug_indent(topright->print(), 1, "|");
+		t = debug_indent(topright->print(), 1, "│");
 		if (!trim(t).empty()) {
-			s += t + "|________\n";
+			s += t + "└────────\n";
 		}
-		t = debug_indent(bottomleft->print(), 1, "|");
+		t = debug_indent(bottomleft->print(), 1, "│");
 		if (!trim(t).empty()) {
-			s += t + "|________\n";
+			s += t + "└────────\n";
 		}
-		s += debug_indent(bottomright->print(), 1, "|");
+		s += debug_indent(bottomright->print(), 1, "│");
 	}
 
 	return s;
@@ -129,12 +129,30 @@ int BEE::CollisionTree::divide() {
 	return 0;
 }
 int BEE::CollisionTree::combine() {
-	if (topleft != NULL) {
-		instances.reserve(max_capacity);
-		instances.insert(instances.end(), topleft->instances.begin(), topleft->instances.end());
-		instances.insert(instances.end(), topright->instances.begin(), topright->instances.end());
-		instances.insert(instances.end(), bottomleft->instances.begin(), bottomleft->instances.end());
-		instances.insert(instances.end(), bottomright->instances.begin(), bottomright->instances.end());
+	if (topleft == NULL) {
+		return 1;
+	} else {
+		int tl = topleft->combine();
+		int tr = topright->combine();
+		int bl = bottomleft->combine();
+		int br = bottomright->combine();
+
+		if (tl+tr+bl+br != 0) {
+			instances.reserve(max_capacity);
+		}
+
+		if (tl == 1) {
+			instances.insert(instances.end(), topleft->instances.begin(), topleft->instances.end());
+		}
+		if (tr == 1) {
+			instances.insert(instances.end(), topright->instances.begin(), topright->instances.end());
+		}
+		if (bl == 1) {
+			instances.insert(instances.end(), bottomleft->instances.begin(), bottomleft->instances.end());
+		}
+		if (br == 1) {
+			instances.insert(instances.end(), bottomright->instances.begin(), bottomright->instances.end());
+		}
 
 		delete topleft;
 		topleft = NULL;
@@ -228,7 +246,12 @@ int BEE::CollisionTree::check_collisions() {
 					continue;
 				}
 
-				if ((!i1->object->check_collision_list(i2->object))||(!i2->object->check_collision_list(i1->object))) {
+				i1->object->update(i1);
+				if (!i1->object->check_collision_list(i2->object)) {
+					continue;
+				}
+				i2->object->update(i2);
+				if (!i2->object->check_collision_list(i1->object)) {
 					continue;
 				}
 

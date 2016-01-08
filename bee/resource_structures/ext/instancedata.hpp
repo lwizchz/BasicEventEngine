@@ -30,6 +30,7 @@ class BEE::InstanceData {
 		int path_end_action = 0;
 		int path_current_node = 0;
 		bool path_is_drawn = false;
+		bool path_is_pausable = false;
 	public:
 		BEE* game = NULL;
 
@@ -118,12 +119,14 @@ class BEE::InstanceData {
 		int path_end();
 		int path_update_node();
 		int set_path_drawn(bool);
+		int set_path_pausable(bool);
 		int handle_path_end();
 		bool has_path();
 		bool get_path_drawn();
 		int get_path_speed();
 		int get_path_node();
 		std::vector<path_coord> get_path_coords();
+		bool get_path_pausable();
 
 		int draw(int, int, double, RGBA, SDL_RendererFlip);
 		int draw(int, int, double, rgba_t, SDL_RendererFlip);

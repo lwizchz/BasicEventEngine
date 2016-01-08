@@ -31,11 +31,12 @@ class Resource {
 };
 class ResourceList {
 	public:
+		BEE* game = NULL;
 		std::map<int,Resource*> resources;
 		int next_index;
 
 		ResourceList();
-		int reset();
+		int reset(BEE*);
 		int add_resource(Resource*);
 		int set_resource(int, Resource*);
 		Resource* get_resource(int);
@@ -46,7 +47,8 @@ class MetaResourceList {
 	public:
 		ResourceList sprites, sounds, backgrounds, fonts, paths, timelines, objects, rooms;
 
-		int reset();
+		MetaResourceList(BEE*);
+		int reset(BEE*);
 };
 
 #endif // _BEE_RESOURCE_STRUCTURES_H

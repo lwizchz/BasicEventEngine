@@ -11,9 +11,13 @@
 
 #include "../game.hpp"
 
+int BEE::reset_render_target() {
+	SDL_SetRenderTarget(renderer, NULL);
+	return 0;
+}
 int BEE::set_render_target(Sprite* sprite_target, int w, int h) {
 	if (sprite_target == NULL) {
-		SDL_SetRenderTarget(renderer, NULL);
+		reset_render_target();
 	} else {
 		sprite_target->set_as_target();
 	}
@@ -22,6 +26,18 @@ int BEE::set_render_target(Sprite* sprite_target, int w, int h) {
 }
 int BEE::set_render_target(Sprite* sprite_target) {
 	return set_render_target(sprite_target, get_width(), get_height());
+}
+int BEE::set_render_target(Background* background_target, int w, int h) {
+	if (background_target == NULL) {
+		reset_render_target();
+	} else {
+		background_target->set_as_target();
+	}
+
+	return 0;
+}
+int BEE::set_render_target(Background* background_target) {
+	return set_render_target(background_target, get_width(), get_height());
 }
 int BEE::draw_transition() {
 	switch (transition_type) {

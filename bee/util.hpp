@@ -48,6 +48,8 @@ template <typename T>
 bool is_between(T, T, T);
 template <typename T>
 bool is_angle_between(T, T, T);
+template <typename T>
+T fit_bounds(T, T, T);
 
 // String handling functions
 std::string chr(int);
@@ -65,6 +67,9 @@ std::map<int,std::string> handle_newlines(std::string);
 std::string ltrim(std::string);
 std::string rtrim(std::string);
 std::string trim(std::string);
+bool stringtobool(std::string);
+std::string booltostring(bool);
+std::string string_replace(std::string, std::string, std::string);
 bool clipboard_has_text();
 std::string clipboard_get_text();
 int clipboard_set_text(std::string);
@@ -117,7 +122,7 @@ int date_days_in_month(time_t);
 int date_days_in_year(time_t);
 
 // Collision checking functions
-class Line;
+class Line; // defined below
 bool check_collision(SDL_Rect*, SDL_Rect*);
 bool check_collision_circle(double, double, double, double, double, double);
 bool check_collision_line(Line, Line);
@@ -213,5 +218,10 @@ UDPpacket** network_packet_allocv(int, int);
 int network_packet_freev(UDPpacket**);
 
 #include "util/template.hpp"
+
+class Line {
+        public:
+                double x1, y1, x2, y2;
+};
 
 #endif // _BEE_UTIL_H

@@ -14,7 +14,8 @@
 ResourceList::ResourceList() {
 	next_index = 0;
 }
-int ResourceList::reset() {
+int ResourceList::reset(BEE* new_game) {
+	game = new_game;
 	resources.clear();
 	next_index = 0;
 	return 0;
@@ -47,15 +48,18 @@ int ResourceList::remove_resource(int id) {
 	return 0;
 }
 
-int MetaResourceList::reset() {
-	sprites.reset();
-	sounds.reset();
-	backgrounds.reset();
-	fonts.reset();
-	paths.reset();
-	timelines.reset();
-	objects.reset();
-	rooms.reset();
+MetaResourceList::MetaResourceList(BEE* game) {
+	reset(game);
+}
+int MetaResourceList::reset(BEE* game) {
+	sprites.reset(game);
+	sounds.reset(game);
+	backgrounds.reset(game);
+	fonts.reset(game);
+	paths.reset(game);
+	timelines.reset(game);
+	objects.reset(game);
+	rooms.reset(game);
 	return 0;
 }
 

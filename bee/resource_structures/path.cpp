@@ -53,6 +53,10 @@ int BEE::Path::add_to_resources(std::string path) {
 	}
 	BEE::resource_list->paths.set_resource(id, this);
 
+	if (BEE::resource_list->paths.game != NULL) {
+		game = BEE::resource_list->paths.game;
+	}
+
 	return 0;
 }
 int BEE::Path::reset() {

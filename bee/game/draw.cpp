@@ -10,26 +10,26 @@
 #define _BEE_GAME_DRAW 1
 
 #include "../game.hpp"
+#include <SDL2/SDL2_gfxPrimitives.h>
 
 BEE::RGBA BEE::get_enum_color(rgba_t c, Uint8 a) {
 	switch (c) {
-		case c_aqua: return {0, 255, 255, a};
+		case c_cyan: case c_aqua: return {0, 255, 255, a};
 		case c_black: return {0, 0, 0, a};
 		case c_blue: return {0, 0, 255, a};
 		case c_dkgray: return {64, 64, 64, a};
-		case c_fuchsia: return {255, 0, 255, a};
+		case c_magenta: case c_fuchsia: return {255, 0, 255, a};
 		case c_gray: return {128, 128, 128, a};
-		case c_green: return {0, 255, 0, a};
-		//case c_lime: return {255, 255, 255, a};
-		case c_ltgray: return {192, 192, 192, a};
-		//case c_maroon: return {255, 255, 255, a};
-		//case c_navy: return {255, 255, 255, a};
-		//case c_olive: return {255, 255, 255, a};
+		case c_green: return {0, 128, 0, a};
+		case c_lime: return {0, 255, 0, a};
+		case c_silver: case c_ltgray: return {192, 192, 192, a};
+		case c_maroon: return {128, 0, 0, a};
+		case c_navy: return {0, 0, 128, a};
+		case c_olive: return {128, 128, 0, a};
 		case c_orange: return {255, 128, 0, a};
 		case c_purple: return {128, 0, 255, a};
 		case c_red: return {255, 0, 0, a};
-		//case c_silver: return {255, 255, 255, a};
-		//case c_teal: return {255, 255, 255, a};
+		case c_teal: return {0, 128, 128, a};
 		case c_white: return {255, 255, 255, a};
 		case c_yellow: return {255, 255, 0, a};
 		default: return {0, 0, 0, a};
@@ -57,14 +57,14 @@ int BEE::draw_point(int x, int y, bool is_hud) {
 	if (!is_hud) {
 		convert_view_coords(x, y);
 	}
-	return SDL_RenderDrawPoint(renderer, x, y);
+	return pixelRGBA(renderer, x, y, color->r, color->g, color->b, color->a);
 }
 int BEE::draw_line(int x1, int y1, int x2, int y2, bool is_hud) {
 	if (!is_hud) {
 		convert_view_coords(x1, y1);
 		convert_view_coords(x2, y2);
 	}
-	return SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
+	return lineRGBA(renderer, x1, y1, x2, y2, color->r, color->g, color->b, color->a);
 }
 int BEE::draw_line(int x1, int y1, int x2, int y2, RGBA color, bool is_hud) {
 	RGBA c = draw_get_color();
@@ -76,15 +76,18 @@ int BEE::draw_line(int x1, int y1, int x2, int y2, RGBA color, bool is_hud) {
 int BEE::draw_line(int x1, int y1, int x2, int y2, rgba_t color, bool is_hud) {
 	return draw_line(x1, y1, x2, y2, get_enum_color(color), is_hud);
 }
+int BEE::draw_line(Line l, RGBA color, bool is_hud) {
+	return draw_line(l.x1, l.y1, l.x2, l.y2, color, is_hud);
+}
 int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled, bool is_hud) {
 	if (!is_hud) {
 		convert_view_coords(x, y);
 	}
 	SDL_Rect rect = {x, y, w, h};
 	if (is_filled) {
-		return SDL_RenderFillRect(renderer, &rect);
+		return boxRGBA(renderer, x+w, y, x, y+h, color->r, color->g, color->b, color->a);
 	} else {
-		return SDL_RenderDrawRect(renderer, &rect);
+		return rectangleRGBA(renderer, x+w, y, x, y+h, color->r, color->g, color->b, color->a);
 	}
 }
 int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled, RGBA color, bool is_hud) {
@@ -97,6 +100,10 @@ int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled, RGBA color, 
 int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled, rgba_t color, bool is_hud) {
 	return draw_rectangle(x, y, w, h, is_filled, get_enum_color(color), is_hud);
 }
+int BEE::draw_rectangle(SDL_Rect r, bool is_filled, RGBA color, bool is_hud) {
+	return draw_rectangle(r.x, r.y, r.w, r.h, is_filled, color, is_hud);
+}
+
 int BEE::draw_point(int x, int y) {
 	return draw_point(x, y, false);
 }
@@ -120,7 +127,16 @@ int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled, rgba_t color
 }
 
 int BEE::draw_set_color(RGBA new_color) {
-	return SDL_SetRenderDrawColor(renderer, new_color.r, new_color.g, new_color.b, new_color.a);
+	color->r = new_color.r;
+	color->g = new_color.g;
+	color->b = new_color.b;
+	color->a = new_color.a;
+	if (options->is_opengl) {
+		glClearColor(new_color.r, new_color.g, new_color.b, new_color.a);
+		return 0;
+	} else {
+		return SDL_SetRenderDrawColor(renderer, new_color.r, new_color.g, new_color.b, new_color.a);
+	}
 }
 int BEE::draw_set_color(rgba_t new_color) {
 	return draw_set_color(get_enum_color(new_color));
@@ -128,7 +144,11 @@ int BEE::draw_set_color(rgba_t new_color) {
 BEE::RGBA BEE::draw_get_color() {
 	Uint8 r=0, g=0, b=0, a=0;
 	SDL_GetRenderDrawColor(renderer, &r, &g, &b, &a);
-	return {r, g, b, a};
+	color->r = r;
+	color->g = g;
+	color->b = b;
+	color->a = a;
+	return *color;
 }
 BEE::RGBA BEE::get_pixel_color(int x, int y) {
 	SDL_Surface *screenshot = SDL_CreateRGBSurface(0, width, height, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
@@ -143,14 +163,14 @@ BEE::RGBA BEE::get_pixel_color(int x, int y) {
 }
 int BEE::save_screenshot(std::string filename) { // Slow, use sparingly
 	if (options->is_opengl) {
-		/*unsigned char* pixels = new unsigned char[width*height*4]; // 4 bytes for RGBA
+		unsigned char* pixels = new unsigned char[width*height*4]; // 4 bytes for RGBA
 		glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
 		SDL_Surface* screenshot  = SDL_CreateRGBSurfaceFrom(pixels, width, height, 8*4, width*4, 0,0,0,0);
-		SDL_SaveBMP(screenshot), filename.c_str());
+		SDL_SaveBMP(screenshot, filename.c_str());
 
 		SDL_FreeSurface(screenshot);
-		delete [] pixels;*/
+		delete [] pixels;
 	} else {
 		SDL_Surface *screenshot = SDL_CreateRGBSurface(0, width, height, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
 		SDL_RenderReadPixels(renderer, NULL, SDL_PIXELFORMAT_ARGB8888, screenshot->pixels, screenshot->pitch);

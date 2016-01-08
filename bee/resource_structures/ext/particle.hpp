@@ -93,6 +93,7 @@ class BEE::ParticleEmitter {
 	public:
 		int x = 0, y = 0;
 		int w = 0, h = 0;
+		InstanceData* following = NULL;
 
 		ps_shape_t shape = ps_shape_rectangle;
 		ps_distr_t distribution = ps_distr_linear;
@@ -112,6 +113,7 @@ enum ps_force_t {
 class BEE::ParticleAttractor {
 	public:
 		int x = 0, y = 0;
+		InstanceData* following = NULL;
 
 		double force = 0.0;
 		double max_distance = 0.0;
@@ -122,6 +124,7 @@ class BEE::ParticleDestroyer {
 	public:
 		int x = 0, y = 0;
 		int w = 0, h = 0;
+		InstanceData* following = NULL;
 
 		ps_shape_t shape = ps_shape_rectangle;
 };
@@ -130,6 +133,7 @@ class BEE::ParticleDeflector {
 	public:
 		int x = 0, y = 0;
 		int w = 0, h = 0;
+		InstanceData* following = NULL;
 
 		double friction = 0.0;
 };
@@ -144,6 +148,7 @@ class BEE::ParticleChanger {
 	public:
 		int x = 0, y = 0;
 		int w = 0, h = 0;
+		InstanceData* following = NULL;
 
 		ps_shape_t shape = ps_shape_rectangle;
 

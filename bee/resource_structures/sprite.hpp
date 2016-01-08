@@ -31,6 +31,10 @@ class BEE::Sprite: public Resource {
 		bool has_draw_failed = false;
 		std::vector<SDL_Rect> subimages;
 		SDL_Rect srect, drect;
+
+		GLuint vbo_vertices, vbo_texcoords;
+		GLuint ibo;
+		GLuint gl_texture;
 	public:
 		Sprite();
 		Sprite(std::string, std::string);

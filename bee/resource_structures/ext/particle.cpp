@@ -117,8 +117,8 @@ int BEE::Particle::print() {
 BEE::ParticleData::ParticleData(Particle* new_particle_type, int new_x, int new_y) {
 	particle_type = new_particle_type;
 
-	x = mean<int>(new_x, new_x + (int)random(25) - 12);
-	y = mean<int>(new_y, new_y + (int)random(25) - 12);
+	x = mean<int>(abs(new_x), abs(new_x) + (int)random(25) - 12) * sign(new_x);
+	y = mean<int>(abs(new_y), abs(new_y) + (int)random(25) - 12) * sign(new_y);
 	double s = particle_type->scale * random(100)/100;
 	w = particle_type->sprite->get_width() * s;
 	h = particle_type->sprite->get_height() * s;
@@ -162,8 +162,14 @@ int BEE::ParticleSystem::load() {
 int BEE::ParticleSystem::draw() {
 	for (auto& p : particles) {
 		for (auto& c : changers) {
-			SDL_Rect a = {p->x, p->y, 0, 0};
-			SDL_Rect b = {c->x, c->y, c->w, c->h};
+			int fx = 0, fy = 0;
+			if (c->following != NULL) {
+				fx = c->following->x;
+				fy = c->following->y;
+			}
+
+			SDL_Rect a = {p->x, p->y, p->w, p->h};
+			SDL_Rect b = {c->x+fx, c->y+fy, c->w, c->h};
 			if (check_collision(&a, &b)) {
 				if (p->particle_type == c->particle_before) {
 					p->particle_type = c->particle_after;
@@ -178,14 +184,26 @@ int BEE::ParticleSystem::draw() {
 		p->y += -cos(degtorad(dir)) * m;
 
 		for (auto& a : attractors) {
-			dir = direction_of(px, py, a->x, a->y);
+			int fx = 0, fy = 0;
+			if (a->following != NULL) {
+				fx = a->following->x;
+				fy = a->following->y;
+			}
+
+			dir = direction_of(px, py, a->x+fx, a->y+fy);
 			p->x += sin(degtorad(dir)) * a->force * p->randomness;
 			p->y += -cos(degtorad(dir)) * a->force * p->randomness;
 		}
 
 		for (auto& d : deflectors) {
-			SDL_Rect a = {p->x, p->y, 0, 0};
-			SDL_Rect b = {d->x, d->y, d->w, d->h};
+			int fx = 0, fy = 0;
+			if (d->following != NULL) {
+				fx = d->following->x;
+				fy = d->following->y;
+			}
+
+			SDL_Rect a = {p->x, p->y, p->w, p->h};
+			SDL_Rect b = {d->x+fx, d->y+fy, d->w, d->h};
 			if (check_collision(&a, &b)) {
 				dir = direction_of(px, py, p->x, p->y);
 				if (true) {
@@ -198,13 +216,19 @@ int BEE::ParticleSystem::draw() {
 	}
 
 	for (auto& e : emitters) {
+		int fx = 0, fy = 0;
+		if (e->following != NULL) {
+			fx = e->following->x;
+			fy = e->following->y;
+		}
+
 		if (e->number >= 0) {
 			for (int i=0; i<e->number; i++) {
-				add_particle(e->particle_type, e->x + random(e->w), e->y + random(e->h));
+				add_particle(e->particle_type, fx + e->x + random(e->w), fy + e->y + random(e->h));
 			}
 		} else {
 			if (e->number_count++ >= -e->number) {
-				add_particle(e->particle_type, e->x + random(e->w), e->y + random(e->h));
+				add_particle(e->particle_type, fx + e->x + random(e->w), fy + e->y + random(e->h));
 				e->number_count = 0;
 			}
 		}
@@ -235,8 +259,14 @@ int BEE::ParticleSystem::draw() {
 					return true;
 				} else {
 					for (auto& d : destroyers) {
-						SDL_Rect a = {p->x, p->y, 0, 0};
-						SDL_Rect b = {d->x, d->y, d->w, d->y};
+						int fx = 0, fy = 0;
+						if (d->following != NULL) {
+							fx = d->following->x;
+							fy = d->following->y;
+						}
+
+						SDL_Rect a = {p->x, p->y, p->w, p->h};
+						SDL_Rect b = {d->x+fx, d->y+fy, d->w, d->h};
 						if (check_collision(&a, &b)) {
 							delete p;
 							return true;

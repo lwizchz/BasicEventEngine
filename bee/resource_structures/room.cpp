@@ -66,6 +66,10 @@ int BEE::Room::add_to_resources(std::string path) {
 	}
 	BEE::resource_list->rooms.set_resource(id, this);
 
+	if (BEE::resource_list->rooms.game != NULL) {
+		game = BEE::resource_list->rooms.game;
+	}
+
 	return 0;
 }
 int BEE::Room::reset() {
@@ -649,6 +653,10 @@ int BEE::Room::step_begin() {
 		i.first->object->step_begin(i.first);
 	}
 
+	if (game->options->is_debug_enabled) {
+		game->render_clear();
+	}
+
 	return 0;
 }
 int BEE::Room::step_mid() {
@@ -661,6 +669,10 @@ int BEE::Room::step_mid() {
 	// Move instances along their paths
 	for (auto& i : instances_sorted) {
 		if (i.first->has_path()) {
+			if ((game->get_is_paused())&&(i.first->get_path_pausable())) {
+				continue;
+			}
+
 			i.first->path_update_node();
 
 			path_coord c = std::make_tuple(0, 0, 0);
@@ -873,7 +885,9 @@ int BEE::Room::draw() {
 		if (view_texture->game == NULL) {
 			view_texture->game = game;
 		}
-		game->render_clear();
+		if (!game->options->is_debug_enabled) {
+			game->render_clear();
+		}
 
 		SDL_Rect viewport, viewcoords;
 		for (auto& v : views) {
@@ -924,7 +938,9 @@ int BEE::Room::draw() {
 		viewport = {0, 0, game->get_width(), game->get_height()};
 		SDL_RenderSetViewport(game->renderer, &viewport);
 	} else {
-		game->render_clear();
+		if (!game->options->is_debug_enabled) {
+			game->render_clear();
+		}
 		draw_view();
 	}
 
@@ -955,7 +971,9 @@ int BEE::Room::draw_view() {
 		}
 	}
 
-	//collision_tree->draw();
+	if (game->options->is_debug_enabled) {
+		collision_tree->draw();
+	}
 
 	// Draw particles
 	for (auto& p : particles) {

@@ -34,6 +34,7 @@ class BEE::Font: public Resource {
 
 		TTF_Font* font;
 		bool is_loaded = false;
+		bool has_draw_failed = false;
 	public:
 		Font();
 		Font(std::string, std::string, int);

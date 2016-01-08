@@ -28,9 +28,31 @@ std::string debug_indent(std::string input, int amount, std::string delimiter) {
 	}
 	return "\n";
 }
-
 std::string debug_indent(std::string input, int amount) {
 	return debug_indent(input, amount, "");
+}
+
+std::string get_shader_error(GLuint shader) {
+	int length = 0;
+	glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
+
+	char* log = new char[length];
+	glGetShaderInfoLog(shader, length, NULL, log);
+	std::string s (log);
+	delete[] log;
+
+	return s;
+}
+std::string get_program_error(GLuint program) {
+	int length = 0;
+	glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
+
+	char* log = new char[length];
+	glGetProgramInfoLog(program, length, NULL, log);
+	std::string s (log);
+	delete[] log;
+
+	return s;
 }
 
 #endif // _BEE_DEBUG

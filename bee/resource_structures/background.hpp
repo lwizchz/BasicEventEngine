@@ -43,6 +43,7 @@ class BEE::Background: public Resource {
 		int get_tile_width();
 		int get_tile_height();
 		bool get_is_loaded();
+		SDL_Texture* get_texture();
 
 		int set_name(std::string);
 		int set_path(std::string);
@@ -54,6 +55,8 @@ class BEE::Background: public Resource {
 		int load();
 		int free();
 		int draw(int, int, BackgroundData*);
+		int set_as_target(int, int);
+		int set_as_target();
 };
 
 #endif // _BEE_BACKGROUND_H

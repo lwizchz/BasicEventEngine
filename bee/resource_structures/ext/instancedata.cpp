@@ -11,6 +11,35 @@
 
 #include "instancedata.hpp"
 
+int BEE::CollisionPolygon::add_vertex(double vx, double vy) {
+	if (lines.empty()) {
+		lines.push_back({vx, vy, vx, vy});
+	} else {
+		double x1 = lines.back().x2;
+		double y1 = lines.back().y2;
+		lines.push_back({x1, y1, vx, vy});
+	}
+
+	return 0;
+}
+int BEE::CollisionPolygon::finalize() {
+	if (!lines.empty()) {
+		lines.front().x1 = lines.back().x2;
+		lines.front().y1 = lines.back().y2;
+
+		// Reorder lines
+		/*std::vector<Line> new_polygon;
+		new_polygon.reserve(lines.size());
+		Line last = lines.front();
+		for (std::vector<Line>::iterator it = ++lines.begin(); it != lines.end(); ++it) {
+			new_polygon.push_back((*it));
+		}
+		new_polygon.push_back(last);
+		lines = new_polygon;*/
+	}
+	return 0;
+}
+
 BEE::InstanceData::InstanceData() {
 	velocity.clear();
 	for (int i=0; i<ALARM_COUNT; i++) {
@@ -44,15 +73,11 @@ int BEE::InstanceData::init(int new_id, Object* new_object, int new_x, int new_y
 	if (object->get_mask() != NULL) {
 		mask = {x, y, (double)get_width(), (double)get_height(), {}};
 
-		/*mask.vertices.push_back({0.0, 0.0, 1.0}); // vertices
-		mask.vertices.push_back({(double)get_width(), 0.0, 1.0});
-		mask.vertices.push_back({(double)get_width(), (double)get_height(), 1.0});
-		mask.vertices.push_back({0.0, (double)get_height(), 1.0});*/
-
-		/*mask.vertices.push_back({0.0, 0.0, (double)get_width(), 0.0}); // lines
-		mask.vertices.push_back({(double)get_width(), 0.0, (double)get_width(), (double)get_height()});
-		mask.vertices.push_back({(double)get_width(), (double)get_height(), 0.0, (double)get_height()});
-		mask.vertices.push_back({0.0, (double)get_height(), 0.0, 0.0});*/
+		mask.add_vertex(0.0, 0.0);
+		mask.add_vertex((double)get_width(), 0.0);
+		mask.add_vertex((double)get_width(), (double)get_height());
+		mask.add_vertex(0.0, (double)get_height());
+		mask.finalize();
 	}
 
 	return 0;
@@ -163,64 +188,29 @@ int BEE::InstanceData::reset_gravity_acceleration() {
 	return 0;
 }
 bool BEE::InstanceData::check_collision_polygon(CollisionPolygon& m1, CollisionPolygon& m2) {
-	if ((m1.vertices.empty())||(m2.vertices.empty())) {
-		SDL_Rect a = {(int)m1.x, (int)m1.y, (int)m1.w, (int)m1.h};
-		SDL_Rect b = {(int)m2.x, (int)m2.y, (int)m2.w, (int)m2.h};
+	SDL_Rect a = {(int)m1.x, (int)m1.y, (int)m1.w, (int)m1.h};
+	SDL_Rect b = {(int)m2.x, (int)m2.y, (int)m2.w, (int)m2.h};
+
+	if ((m1.lines.empty())||(m2.lines.empty())) {
 		return check_collision(&a, &b);
 	} else {
-		for (auto& l1 : m1.vertices) {
-			for (auto& l2 : m2.vertices) {
-				//if (check_collision_aligned_line(l1, l2)) {
-				if (check_collision_line(l1, l2)) {
-					game->draw_line(l1.x1, l1.y1, l1.x2, l1.y2, c_aqua, true);
-					game->draw_line(l2.x1, l2.y1, l2.x2, l2.y2, c_red, true);
-					return true;
+		bool r = false;
+		if (check_collision(&a, &b)) {
+			for (auto& l1 : m1.lines) {
+				for (auto& l2 : m2.lines) {
+					if (game->options->is_debug_enabled) {
+						game->draw_line(l1.x1+m1.x, l1.y1+m1.y, l1.x2+m1.x, l1.y2+m1.y, {255, 0, 0, 255}, true);
+					}
+
+					if (check_collision_line({l1.x1+m1.x, l1.y1+m1.y, l1.x2+m1.x, l1.y2+m1.y}, {l2.x1+m2.x, l2.y1+m2.y, l2.x2+m2.x, l2.y2+m2.y})) {
+					//if (check_collision_aligned_line({l1.x1+m1.x, l1.y1+m1.y, l1.x2+m1.x, l1.y2+m1.y}, {l2.x1+m2.x, l2.y1+m2.y, l2.x2+m2.x, l2.y2+m2.y})) {
+						//return true;
+						r = true;
+					}
 				}
 			}
 		}
-		return false;
-
-		/*Line l1 = {0, 0, 0, 0};
-		Line l2 = {0, 0, 0, 0};
-		for (std::vector<CollisionPolygon::coords>::iterator v1=m1.vertices.begin(); v1 != m1.vertices.end(); ++v1) {
-			l1.x1 = m1.x + (*v1).x;
-			l1.y1 = m1.y + (*v1).y;
-			++v1;
-			if (v1 == m1.vertices.end()) {
-				v1 = m1.vertices.begin();
-				l1.x2 = m1.x + (*v1).x;
-				l1.y2 = m1.y + (*v1).y;
-				v1 = m1.vertices.end();
-				--v1;
-			} else {
-				l1.x2 = m1.x + (*v1).x;
-				l1.y2 = m1.y + (*v1).y;
-				--v1;
-			}
-
-			for (std::vector<CollisionPolygon::coords>::iterator v2=m2.vertices.begin(); v2 != m2.vertices.end(); ++v2) {
-				l2.x1 = m2.x + (*v2).x;
-				l2.y1 = m2.y + (*v2).y;
-				++v2;
-				if (v2 == m2.vertices.end()) {
-					v2 = m2.vertices.begin();
-					l2.x2 = m2.x + (*v2).x;
-					l2.y2 = m2.y + (*v2).y;
-					v2 = m2.vertices.end();
-					--v2;
-				} else {
-					l2.x2 = m2.x + (*v2).x;
-					l2.y2 = m2.y + (*v2).y;
-					--v2;
-				}
-
-				if (check_collision_line(l1, l2)) {
-					return true;
-				}
-			}
-		}
-
-		return false;*/
+		return r;
 	}
 }
 bool BEE::InstanceData::check_collision_polygon(CollisionPolygon& other) {
@@ -334,6 +324,9 @@ double BEE::InstanceData::get_vspeed() {
 double BEE::InstanceData::get_direction() {
 	double xsum=0.0, ysum=0.0;
 	std::tie (xsum, ysum) = get_motion();
+	if ((x == xsum)&&(y == ysum)) {
+		return direction_of(xprevious, yprevious, x, y);
+	}
 	return direction_of(x, y, xsum, ysum);
 }
 double BEE::InstanceData::get_speed() {
@@ -625,6 +618,10 @@ int BEE::InstanceData::set_path_drawn(bool new_path_is_drawn) {
 	path_is_drawn = new_path_is_drawn;
 	return 0;
 }
+int BEE::InstanceData::set_path_pausable(bool new_path_is_pausable) {
+	path_is_pausable = new_path_is_pausable;
+	return 0;
+}
 int BEE::InstanceData::handle_path_end() {
 	if (has_path()) {
 		switch (path_end_action) {
@@ -675,6 +672,9 @@ int BEE::InstanceData::get_path_node() {
 std::vector<path_coord> BEE::InstanceData::get_path_coords() {
 	std::vector<path_coord> no_path;
 	return (has_path()) ? path->get_coordinate_list() : no_path;
+}
+bool BEE::InstanceData::get_path_pausable() {
+	return path_is_pausable;
 }
 
 int BEE::InstanceData::draw(int w, int h, double angle, RGBA color, SDL_RendererFlip flip) {
@@ -758,32 +758,10 @@ int BEE::InstanceData::draw_path() {
 }
 
 int BEE::InstanceData::draw_debug() {
-	if (mask.vertices.size() > 0) {
+	if (mask.lines.size() > 0) {
 		int xs = (int)x;
 		int ys = (int)y;
-		/*for (std::vector<CollisionPolygon::coords>::iterator it = mask.vertices.begin(); it != mask.vertices.end(); ++it) {
-			if (it != --mask.vertices.end()) {
-				int x1 = (*it).x;
-				int y1 = (*it).y;
-				++it;
-				int x2 = (*it).x;
-				int y2 = (*it).y;
-				--it;
-
-				game->draw_line(x1+xs, y1+ys, x2+xs, y2+ys, c_aqua);
-			} else {
-				int x1 = (*it).x;
-				int y1 = (*it).y;
-				it = mask.vertices.begin();
-				int x2 = (*it).x;
-				int y2 = (*it).y;
-				it = mask.vertices.end();
-				--it;
-
-				game->draw_line(x1+xs, y1+ys, x2+xs, y2+ys, c_aqua);
-			}
-		}*/
-		for (auto& l : mask.vertices) {
+		for (auto& l : mask.lines) {
 			game->draw_line(l.x1+xs, l.y1+ys, l.x2+xs, l.y2+ys, c_aqua);
 		}
 		return 0;

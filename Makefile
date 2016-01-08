@@ -9,17 +9,12 @@ DEPS_BEE_UTIL = real string dates collision sound messagebox files script networ
 RES_OBJS = bee
 RES_ROOMS = test
 
-PKGDEPS = libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev libsdl2-net-dev chaiscript
-INCLUDE = sdl2 SDL2_image SDL2_ttf SDL2_mixer SDL2_net
-LIBS = ${shell pkg-config --libs $(INCLUDE)}
+PKGDEPS = libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev libsdl2-net-dev libsdl2-gfx-dev libglew-dev libglm-dev
+INCLUDE = sdl2 SDL2_image SDL2_ttf SDL2_mixer SDL2_net SDL2_gfx
+LIBS = ${shell pkg-config --libs $(INCLUDE)} -lGLEW -lGLU -lGL
 WARNS = -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable
 
 FLAGS = -g -pg -pipe -std=c++11 $(WARNS) ${shell pkg-config --cflags $(INCLUDE)}
-SCRIPTING = ${shell which chai 2>&1 > /dev/null; echo $$?}
-ifeq ($(SCRIPTING),0)
-#LIBS +=-ldl
-#FLAGS +=-D_BEE_SCRIPTING -I/usr/include/chaiscript
-endif
 
 CXX = g++
 BUILD = $(CXX) $(FLAGS) -o $(NAME)

@@ -53,6 +53,10 @@ int BEE::Timeline::add_to_resources(std::string path) {
 	}
 	BEE::resource_list->timelines.set_resource(id, this);
 
+	if (BEE::resource_list->timelines.game != NULL) {
+		game = BEE::resource_list->timelines.game;
+	}
+
 	return 0;
 }
 int BEE::Timeline::reset() {
