@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015 Luke Montalvo <lukemontalvo@gmail.com>
+* Copyright (c) 2015-16 Luke Montalvo <lukemontalvo@gmail.com>
 *
 * This file is part of BEE.
 * BEE is free software and comes with ABSOLUTELY NO WARANTY.

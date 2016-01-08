@@ -1,3 +1,11 @@
+/*
+* Copyright (c) 2015-16 Luke Montalvo <lukemontalvo@gmail.com>
+*
+* This file is part of BEE.
+* BEE is free software and comes with ABSOLUTELY NO WARANTY.
+* See LICENSE for more details.
+*/
+
 #version 140
 in vec2 LVertexPos2D;
 in vec2 LTexCoord;

@@ -1,12 +1,14 @@
+Copyright (c) 2015-16 Luke Montalvo <lukemontalvo@gmail.com>
+
 BasicEventEngine is an event-driven game engine which the user can interface with via the Sprite, Sound, Background, Font, Path, Object, and Room classes. The Room class is used to organize the resources for each section of the game and the Object class is used to act upon the events from the main loop. A small example is included with all non-engine code in the resources directory.
 
-The available events are the virtual functions of the Object class which are on lines 59 to 80 in the file bee/resource_structures/object.hpp
+The available events are the virtual functions of the Object class which are on lines 101 to 127 in the file bee/resource_structures/object.hpp
 
 The software is in early alpha so do not expect any sort of stability. If you have any questions or comments, feel free to email me. Also feel free to contribute to the engine code, either by email or via github.
 
-## How to use
+## How to use on Linux
 
-This program has only been compiled under Arch Linux and Ubuntu 15.10 and at the moment, no official support will be given to other platforms.
+This program can compile under Arch Linux, Ubuntu 15.10, and Windows 10 but at the moment support will only be offered for Linux.
 
 1. [Intall git-lfs][1] so that you can download the resources for the example.
 
@@ -16,17 +18,31 @@ This program has only been compiled under Arch Linux and Ubuntu 15.10 and at the
 2. Install the required libraries:
 
         # Arch Linux
-        sudo pacman -S sdl2 sdl2_image sdl2_ttf sdl2_mixer sdl2_net
+        sudo pacman -S sdl2 sdl2_image sdl2_ttf sdl2_mixer sdl2_net sdl2_gfx glew glm
         # Ubuntu
-        sudo apt-get install libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev libsdl2-net-dev
+        sudo apt-get install libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev libsdl2-net-dev libsdl2-gfx-dev libglew-dev libglm-dev
 
-3. (Optional) Install ChaiScript [from their website][2] in order to use scripting.
+3. Edit the file "resources/resources.hpp" in order to add or remove resources which are located in their corresponding subfolder.
+
+4. Compile the program with the `make` command, optionally the `run` target can be passed to it in order to automatically run the program after a successful compilation.
+
+## How to use on Windows
+
+Even though this program can compile on Windows 10, I am not offering any support for any Windows platform because it is terribly annoying to get anything to compile correctly. If you dare attempt to compile on Windows, then follow the below instructions.
+
+1. [Download and install Git LFS][2] for Windows to be able to download the resources for the example.
+
+2. Install the required libraries from their official websites: SDL2, SDL2_image, SDL2_ttf, SDL2_mixer, SDL2_net, SDL2_gfx, GLEW, GLM.  
+The project file assumes that each of these libraries has its DLL in the same directory as the executable (e.g. win/bin) and has its header file in a win/include subdirectory
+
+3. [Install Dev-C++][3] then use it to open the project file BasicEventEngine.dev
 
 4. Edit the file "resources/resources.hpp" in order to add or remove resources which are located in their corresponding subfolder.
 
-5. Compile the program with the `make` command, optionally the `run` target can be passed to it in order to automatically run the program after a successful compilation.
+5. Compile and run the program with Execute>Compile & Run
 
 This project is under the MIT License so feel free to do basically whatever you want with the code.
 
 [1]: https://git-lfs.github.com/                                "Git LFS instructions"
-[2]: https://github.com/ChaiScript/ChaiScript/releases          "ChaiScript download"
+[2]: https://github.com/github/git-lfs/releases/latest          "Git LFS for Windows"
+[3]: http://orwelldevcpp.blogspot.com/                          "Dev-C++"
