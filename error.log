@@ -1,0 +1,418 @@
+mkdir -p obj/bee/resource_structures/ext
+make: Circular obj/bee/game.o <- bee/game.hpp dependency dropped.
+Package SDL2_gfx was not found in the pkg-config search path.
+Perhaps you should add the directory containing `SDL2_gfx.pc'
+to the PKG_CONFIG_PATH environment variable
+No package 'SDL2_gfx' found
+Package SDL2_gfx was not found in the pkg-config search path.
+Perhaps you should add the directory containing `SDL2_gfx.pc'
+to the PKG_CONFIG_PATH environment variable
+No package 'SDL2_gfx' found
+g++ -g -pg -pipe -std=c++11 -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable  -o BasicEventEngine obj/bee/debug.o obj/bee/resource_structures.o obj/bee/util.o obj/bee/game.o obj/bee/resource_structures/sprite.o obj/bee/resource_structures/sound.o obj/bee/resource_structures/background.o obj/bee/resource_structures/font.o obj/bee/resource_structures/path.o obj/bee/resource_structures/timeline.o obj/bee/resource_structures/object.o obj/bee/resource_structures/room.o obj/bee/resource_structures/ext/instancedata.o obj/bee/resource_structures/ext/collisiontree.o obj/bee/resource_structures/ext/particle.o obj/bee/resource_structures/ext/soundgroup.o obj/main.o  -lGLEW -lGLU -lGL
+obj/bee/util.o: In function `clipboard_has_text()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/string.hpp:132: undefined reference to `SDL_HasClipboardText'
+obj/bee/util.o: In function `clipboard_get_text()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/string.hpp:135: undefined reference to `SDL_GetClipboardText'
+obj/bee/util.o: In function `clipboard_set_text(std::string)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/string.hpp:141: undefined reference to `SDL_SetClipboardText'
+obj/bee/util.o: In function `show_message(std::string)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/messagebox.hpp:19: undefined reference to `SDL_ShowSimpleMessageBox'
+obj/bee/util.o: In function `show_warning(std::string)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/messagebox.hpp:23: undefined reference to `SDL_ShowSimpleMessageBox'
+obj/bee/util.o: In function `show_error(std::string, bool)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/messagebox.hpp:27: undefined reference to `SDL_ShowSimpleMessageBox'
+obj/bee/util.o: In function `show_message(std::string, std::string, std::string, std::string)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/messagebox.hpp:69: undefined reference to `SDL_ShowMessageBox'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/messagebox.hpp:70: undefined reference to `SDL_GetError'
+obj/bee/util.o: In function `network_init()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:18: undefined reference to `SDLNet_Init'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:20: undefined reference to `SDLNet_GetError'
+obj/bee/util.o: In function `network_quit()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:25: undefined reference to `SDLNet_Quit'
+obj/bee/util.o: In function `network_resolve_host(std::string, int)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:32: undefined reference to `SDLNet_ResolveHost'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:33: undefined reference to `SDLNet_GetError'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:37: undefined reference to `SDLNet_ResolveHost'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:38: undefined reference to `SDLNet_GetError'
+obj/bee/util.o: In function `network_tcp_open(IPaddress*)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:52: undefined reference to `SDLNet_TCP_Open'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:54: undefined reference to `SDLNet_GetError'
+obj/bee/util.o: In function `network_tcp_close(_TCPsocket*)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:64: undefined reference to `SDLNet_TCP_Close'
+obj/bee/util.o: In function `network_tcp_accept(_TCPsocket*)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:69: undefined reference to `SDLNet_TCP_Accept'
+obj/bee/util.o: In function `network_get_peer_address(_TCPsocket*)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:72: undefined reference to `SDLNet_TCP_GetPeerAddress'
+obj/bee/util.o: In function `network_tcp_send(_TCPsocket*, void const*, int)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:75: undefined reference to `SDLNet_TCP_Send'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:77: undefined reference to `SDLNet_GetError'
+obj/bee/util.o: In function `network_tcp_recv(_TCPsocket*, void*, int)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:85: undefined reference to `SDLNet_TCP_Recv'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:87: undefined reference to `SDLNet_GetError'
+obj/bee/util.o: In function `network_udp_open(int)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:99: undefined reference to `SDLNet_UDP_Open'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:101: undefined reference to `SDLNet_GetError'
+obj/bee/util.o: In function `network_udp_close(_UDPsocket*)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:107: undefined reference to `SDLNet_UDP_Close'
+obj/bee/util.o: In function `network_udp_bind(_UDPsocket*, int, IPaddress*)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:120: undefined reference to `SDLNet_UDP_Bind'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:122: undefined reference to `SDLNet_GetError'
+obj/bee/util.o: In function `network_udp_unbind(_UDPsocket*, int)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:137: undefined reference to `SDLNet_UDP_Unbind'
+obj/bee/util.o: In function `network_get_peer_address(_UDPsocket*, int)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:143: undefined reference to `SDLNet_UDP_GetPeerAddress'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:145: undefined reference to `SDLNet_GetError'
+obj/bee/util.o: In function `network_udp_send(_UDPsocket*, int, UDPpacket*)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:152: undefined reference to `SDLNet_UDP_Send'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:154: undefined reference to `SDLNet_GetError'
+obj/bee/util.o: In function `network_udp_recv(_UDPsocket*, UDPpacket*)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:160: undefined reference to `SDLNet_UDP_Recv'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:162: undefined reference to `SDLNet_GetError'
+obj/bee/util.o: In function `network_udp_sendv(_UDPsocket*, UDPpacket**, int)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:168: undefined reference to `SDLNet_UDP_SendV'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:170: undefined reference to `SDLNet_GetError'
+obj/bee/util.o: In function `network_udp_recvv(_UDPsocket*, UDPpacket**)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:176: undefined reference to `SDLNet_UDP_RecvV'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:178: undefined reference to `SDLNet_GetError'
+obj/bee/util.o: In function `network_packet_alloc(int)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:199: undefined reference to `SDLNet_AllocPacket'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:201: undefined reference to `SDLNet_GetError'
+obj/bee/util.o: In function `network_packet_resize(UDPpacket*, int)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:207: undefined reference to `SDLNet_ResizePacket'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:209: undefined reference to `SDLNet_GetError'
+obj/bee/util.o: In function `network_packet_free(UDPpacket*)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:215: undefined reference to `SDLNet_FreePacket'
+obj/bee/util.o: In function `network_packet_allocv(int, int)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:226: undefined reference to `SDLNet_AllocPacketV'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:228: undefined reference to `SDLNet_GetError'
+obj/bee/util.o: In function `network_packet_freev(UDPpacket**)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/util/network.hpp:234: undefined reference to `SDLNet_FreePacketV'
+obj/bee/game.o: In function `BEE::BEE(int, char**, BEE::Room**, BEE::GameOptions*)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:40: undefined reference to `SDL_Init'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:41: undefined reference to `SDL_GetError'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:72: undefined reference to `SDL_CreateWindow'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:74: undefined reference to `SDL_GetError'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:77: undefined reference to `SDL_CreateSystemCursor'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:78: undefined reference to `SDL_SetCursor'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:80: undefined reference to `SDL_GetKeyboardState'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:90: undefined reference to `IMG_Init'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:91: undefined reference to `SDL_GetError'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:94: undefined reference to `TTF_Init'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:95: undefined reference to `SDL_GetError'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:98: undefined reference to `Mix_OpenAudio'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:99: undefined reference to `SDL_GetError'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:101: undefined reference to `Mix_ChannelFinished'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:102: undefined reference to `Mix_AllocateChannels'
+obj/bee/game.o: In function `BEE::loop()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:214: undefined reference to `SDL_PushEvent'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:144: undefined reference to `SDL_PollEvent'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:279: undefined reference to `SDL_Delay'
+obj/bee/game.o: In function `BEE::close()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:346: undefined reference to `SDL_DestroyWindow'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:356: undefined reference to `Mix_Quit'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:357: undefined reference to `TTF_Quit'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:358: undefined reference to `IMG_Quit'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:359: undefined reference to `SDL_Quit'
+obj/bee/game.o: In function `BEE::get_ticks()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:375: undefined reference to `SDL_GetTicks'
+obj/bee/game.o: In function `BEE::get_seconds()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:378: undefined reference to `SDL_GetTicks'
+obj/bee/game.o: In function `BEE::set_options(BEE::GameOptions)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:396: undefined reference to `SDL_SetWindowFullscreen'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:418: undefined reference to `SDL_SetWindowBordered'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:425: undefined reference to `SDL_SetWindowMaximumSize'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:426: undefined reference to `SDL_SetWindowMinimumSize'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:428: undefined reference to `SDL_SetWindowMaximumSize'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:429: undefined reference to `SDL_SetWindowMinimumSize'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:437: undefined reference to `SDL_MaximizeWindow'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:440: undefined reference to `SDL_RestoreWindow'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:442: undefined reference to `SDL_MinimizeWindow'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:457: undefined reference to `SDL_ShowWindow'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:459: undefined reference to `SDL_HideWindow'
+obj/bee/game.o: In function `BEE::opengl_init()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:491: undefined reference to `SDL_GL_SetAttribute'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:492: undefined reference to `SDL_GL_SetAttribute'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:493: undefined reference to `SDL_GL_SetAttribute'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:495: undefined reference to `SDL_GL_CreateContext'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:497: undefined reference to `SDL_GetError'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:508: undefined reference to `SDL_GL_SetSwapInterval'
+obj/bee/game.o: In function `BEE::opengl_close()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:607: undefined reference to `SDL_GL_DeleteContext'
+obj/bee/game.o: In function `BEE::renderer_init(bool)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:617: undefined reference to `SDL_CreateRenderer'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:619: undefined reference to `SDL_GetError'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:622: undefined reference to `SDL_SetRenderDrawColor'
+obj/bee/game.o: In function `BEE::renderer_close()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:627: undefined reference to `SDL_DestroyRenderer'
+obj/bee/game.o: In function `BEE::render()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:635: undefined reference to `SDL_GL_SwapWindow'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:637: undefined reference to `SDL_RenderPresent'
+obj/bee/game.o: In function `BEE::render_clear()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game.cpp:652: undefined reference to `SDL_RenderClear'
+obj/bee/game.o: In function `BEE::change_room(BEE::Room*, bool)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/room.cpp:56: undefined reference to `SDL_SetWindowTitle'
+obj/bee/game.o: In function `BEE::reset_render_target()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/transition.cpp:15: undefined reference to `SDL_SetRenderTarget'
+obj/bee/game.o: In function `BEE::get_display()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/display.cpp:17: undefined reference to `SDL_GetDesktopDisplayMode'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/display.cpp:18: undefined reference to `SDL_GetError'
+obj/bee/game.o: In function `BEE::set_display(int, int, int)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/display.cpp:38: undefined reference to `SDL_SetWindowDisplayMode'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/display.cpp:39: undefined reference to `SDL_GetError'
+obj/bee/game.o: In function `BEE::get_window_title()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/window.cpp:27: undefined reference to `SDL_GetWindowTitle'
+obj/bee/game.o: In function `BEE::get_window_x()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/window.cpp:34: undefined reference to `SDL_GetWindowPosition'
+obj/bee/game.o: In function `BEE::get_window_y()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/window.cpp:39: undefined reference to `SDL_GetWindowPosition'
+obj/bee/game.o: In function `BEE::set_is_visible(bool)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/window.cpp:51: undefined reference to `SDL_ShowWindow'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/window.cpp:53: undefined reference to `SDL_HideWindow'
+obj/bee/game.o: In function `BEE::set_is_fullscreen(bool)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/window.cpp:61: undefined reference to `SDL_SetWindowFullscreen'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/window.cpp:63: undefined reference to `SDL_SetWindowFullscreen'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/window.cpp:66: undefined reference to `SDL_SetWindowFullscreen'
+obj/bee/game.o: In function `BEE::set_window_title(std::string)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/window.cpp:71: undefined reference to `SDL_SetWindowTitle'
+obj/bee/game.o: In function `BEE::set_cursor(SDL_SystemCursor)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/window.cpp:75: undefined reference to `SDL_FreeCursor'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/window.cpp:76: undefined reference to `SDL_CreateSystemCursor'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/window.cpp:77: undefined reference to `SDL_SetCursor'
+obj/bee/game.o: In function `BEE::set_show_cursor(bool)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/window.cpp:81: undefined reference to `SDL_ShowCursor'
+obj/bee/game.o: In function `BEE::set_window_position(int, int)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/window.cpp:85: undefined reference to `SDL_SetWindowPosition'
+obj/bee/game.o: In function `BEE::set_window_size(int, int)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/window.cpp:100: undefined reference to `SDL_SetWindowSize'
+obj/bee/game.o: In function `BEE::get_mouse_global_position()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/input.cpp:16: undefined reference to `SDL_GetMouseState'
+obj/bee/game.o: In function `BEE::set_mouse_global_position(int, int)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/input.cpp:52: undefined reference to `SDL_WarpMouseInWindow'
+obj/bee/game.o: In function `BEE::get_key_state(int)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/input.cpp:72: undefined reference to `SDL_GetScancodeFromKey'
+obj/bee/game.o: In function `BEE::get_mod_state(unsigned char)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/input.cpp:75: undefined reference to `SDL_GetModState'
+obj/bee/game.o: In function `BEE::get_mouse_state(unsigned char)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/input.cpp:78: undefined reference to `SDL_GetMouseState'
+obj/bee/game.o: In function `BEE::append_input(std::string&, SDL_KeyboardEvent*)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/input.cpp:110: undefined reference to `SDL_GetKeyName'
+obj/bee/game.o: In function `BEE::draw_point(int, int, bool)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/draw.cpp:60: undefined reference to `pixelRGBA'
+obj/bee/game.o: In function `BEE::draw_line(int, int, int, int, bool)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/draw.cpp:67: undefined reference to `lineRGBA'
+obj/bee/game.o: In function `BEE::draw_rectangle(int, int, int, int, bool, bool)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/draw.cpp:88: undefined reference to `boxRGBA'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/draw.cpp:90: undefined reference to `rectangleRGBA'
+obj/bee/game.o: In function `BEE::draw_set_color(BEE::RGBA)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/draw.cpp:138: undefined reference to `SDL_SetRenderDrawColor'
+obj/bee/game.o: In function `BEE::draw_get_color()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/draw.cpp:146: undefined reference to `SDL_GetRenderDrawColor'
+obj/bee/game.o: In function `BEE::get_pixel_color(int, int)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/draw.cpp:154: undefined reference to `SDL_CreateRGBSurface'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/draw.cpp:155: undefined reference to `SDL_RenderReadPixels'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/draw.cpp:158: undefined reference to `SDL_GetRGBA'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/draw.cpp:160: undefined reference to `SDL_FreeSurface'
+obj/bee/game.o: In function `BEE::save_screenshot(std::string)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/draw.cpp:169: undefined reference to `SDL_CreateRGBSurfaceFrom'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/draw.cpp:170: undefined reference to `SDL_RWFromFile'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/draw.cpp:170: undefined reference to `SDL_SaveBMP_RW'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/draw.cpp:172: undefined reference to `SDL_FreeSurface'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/draw.cpp:175: undefined reference to `SDL_CreateRGBSurface'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/draw.cpp:176: undefined reference to `SDL_RenderReadPixels'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/draw.cpp:178: undefined reference to `SDL_RWFromFile'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/draw.cpp:178: undefined reference to `SDL_SaveBMP_RW'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/draw.cpp:180: undefined reference to `SDL_FreeSurface'
+obj/bee/game.o: In function `BEE::net_session_find()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/network.cpp:220: undefined reference to `SDL_GetTicks'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/network.cpp:222: undefined reference to `SDL_GetTicks'
+obj/bee/game.o: In function `BEE::net_session_join(std::string, std::string)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/network.cpp:256: undefined reference to `SDL_GetTicks'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/game/network.cpp:258: undefined reference to `SDL_GetTicks'
+obj/bee/resource_structures/sprite.o: In function `BEE::Sprite::load()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sprite.cpp:196: undefined reference to `IMG_Load'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sprite.cpp:198: undefined reference to `SDL_GetError'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sprite.cpp:265: undefined reference to `SDL_FreeSurface'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sprite.cpp:270: undefined reference to `SDL_CreateTextureFromSurface'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sprite.cpp:272: undefined reference to `SDL_GetError'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sprite.cpp:276: undefined reference to `SDL_FreeSurface'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sprite.cpp:278: undefined reference to `SDL_QueryTexture'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sprite.cpp:283: undefined reference to `SDL_SetTextureBlendMode'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sprite.cpp:284: undefined reference to `SDL_SetTextureAlphaMod'
+obj/bee/resource_structures/sprite.o: In function `BEE::Sprite::free()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sprite.cpp:300: undefined reference to `SDL_DestroyTexture'
+obj/bee/resource_structures/sprite.o: In function `BEE::Sprite::draw(int, int, unsigned int, int, int, double, BEE::RGBA, SDL_RendererFlip, bool)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sprite.cpp:316: undefined reference to `SDL_GetTicks'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sprite.cpp:390: undefined reference to `SDL_SetTextureColorMod'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sprite.cpp:392: undefined reference to `SDL_SetTextureAlphaMod'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sprite.cpp:394: undefined reference to `SDL_SetTextureAlphaMod'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sprite.cpp:403: undefined reference to `SDL_RenderCopyEx'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sprite.cpp:405: undefined reference to `SDL_RenderCopyEx'
+obj/bee/resource_structures/sprite.o: In function `BEE::Sprite::draw_simple(SDL_Rect*, SDL_Rect*)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sprite.cpp:438: undefined reference to `SDL_RenderCopy'
+obj/bee/resource_structures/sprite.o: In function `BEE::Sprite::set_as_target(int, int)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sprite.cpp:445: undefined reference to `SDL_CreateTexture'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sprite.cpp:447: undefined reference to `SDL_GetError'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sprite.cpp:455: undefined reference to `SDL_SetRenderTarget'
+obj/bee/resource_structures/sound.o: In function `BEE::Sound::set_volume(double)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:165: undefined reference to `Mix_VolumeMusic'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:167: undefined reference to `Mix_VolumeChunk'
+obj/bee/resource_structures/sound.o: In function `BEE::Sound::set_pan_internal(int)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:193: undefined reference to `Mix_SetPanning'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:195: undefined reference to `Mix_SetPanning'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:197: undefined reference to `Mix_SetPanning'
+obj/bee/resource_structures/sound.o: In function `BEE::Sound::load()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:225: undefined reference to `Mix_LoadMUS'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:227: undefined reference to `SDL_GetError'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:231: undefined reference to `SDL_RWFromFile'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:231: undefined reference to `Mix_LoadWAV_RW'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:233: undefined reference to `SDL_GetError'
+obj/bee/resource_structures/sound.o: In function `BEE::Sound::free()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:246: undefined reference to `Mix_FreeMusic'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:249: undefined reference to `Mix_FreeChunk'
+obj/bee/resource_structures/sound.o: In function `BEE::Sound::play()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:276: undefined reference to `Mix_PlayMusic'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:279: undefined reference to `Mix_PlayChannelTimed'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:284: undefined reference to `SDL_GetError'
+obj/bee/resource_structures/sound.o: In function `BEE::Sound::stop()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:304: undefined reference to `Mix_HaltMusic'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:309: undefined reference to `Mix_HaltChannel'
+obj/bee/resource_structures/sound.o: In function `BEE::Sound::rewind()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:328: undefined reference to `Mix_HaltMusic'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:330: undefined reference to `Mix_PlayMusic'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:332: undefined reference to `Mix_PlayMusic'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:337: undefined reference to `Mix_HaltChannel'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:339: undefined reference to `Mix_PlayChannelTimed'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:341: undefined reference to `Mix_PlayChannelTimed'
+obj/bee/resource_structures/sound.o: In function `BEE::Sound::pause()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:359: undefined reference to `Mix_PauseMusic'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:362: undefined reference to `Mix_Pause'
+obj/bee/resource_structures/sound.o: In function `BEE::Sound::resume()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:380: undefined reference to `Mix_ResumeMusic'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:383: undefined reference to `Mix_Resume'
+obj/bee/resource_structures/sound.o: In function `BEE::Sound::loop()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:408: undefined reference to `Mix_PlayMusic'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:411: undefined reference to `Mix_PlayChannelTimed'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:416: undefined reference to `SDL_GetError'
+obj/bee/resource_structures/sound.o: In function `BEE::Sound::fade_in(int)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:438: undefined reference to `Mix_FadeInMusic'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:440: undefined reference to `Mix_FadeInChannelTimed'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:445: undefined reference to `SDL_GetError'
+obj/bee/resource_structures/sound.o: In function `BEE::Sound::fade_out(int)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:471: undefined reference to `Mix_FadeOutMusic'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:475: undefined reference to `Mix_FadeOutChannel'
+obj/bee/resource_structures/sound.o: In function `BEE::Sound::effect_set(int, int)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:509: undefined reference to `Mix_UnregisterAllEffects'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:513: undefined reference to `Mix_RegisterEffect'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:516: undefined reference to `Mix_RegisterEffect'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:520: undefined reference to `Mix_RegisterEffect'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:524: undefined reference to `Mix_RegisterEffect'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:528: undefined reference to `Mix_RegisterEffect'
+obj/bee/resource_structures/sound.o:/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:532: more undefined references to `Mix_RegisterEffect' follow
+obj/bee/resource_structures/sound.o: In function `BEE::Sound::effect_remove(int, int)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:545: undefined reference to `Mix_UnregisterEffect'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:548: undefined reference to `Mix_UnregisterEffect'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:551: undefined reference to `Mix_UnregisterEffect'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:554: undefined reference to `Mix_UnregisterEffect'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:557: undefined reference to `Mix_UnregisterEffect'
+obj/bee/resource_structures/sound.o:/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:560: more undefined references to `Mix_UnregisterEffect' follow
+obj/bee/resource_structures/sound.o: In function `BEE::Sound::effect_set_post(int)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:571: undefined reference to `Mix_UnregisterAllEffects'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:575: undefined reference to `Mix_RegisterEffect'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:578: undefined reference to `Mix_RegisterEffect'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:582: undefined reference to `Mix_RegisterEffect'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:586: undefined reference to `Mix_RegisterEffect'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:590: undefined reference to `Mix_RegisterEffect'
+obj/bee/resource_structures/sound.o:/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:594: more undefined references to `Mix_RegisterEffect' follow
+obj/bee/resource_structures/sound.o: In function `BEE::Sound::effect_remove_post(int)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:607: undefined reference to `Mix_UnregisterEffect'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:610: undefined reference to `Mix_UnregisterEffect'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:613: undefined reference to `Mix_UnregisterEffect'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:616: undefined reference to `Mix_UnregisterEffect'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:619: undefined reference to `Mix_UnregisterEffect'
+obj/bee/resource_structures/sound.o:/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/sound.cpp:622: more undefined references to `Mix_UnregisterEffect' follow
+obj/bee/resource_structures/background.o: In function `BEE::Background::set_time_update()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/background.cpp:164: undefined reference to `SDL_GetTicks'
+obj/bee/resource_structures/background.o: In function `BEE::Background::load()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/background.cpp:171: undefined reference to `IMG_Load'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/background.cpp:173: undefined reference to `SDL_GetError'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/background.cpp:177: undefined reference to `SDL_CreateTextureFromSurface'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/background.cpp:179: undefined reference to `SDL_GetError'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/background.cpp:183: undefined reference to `SDL_FreeSurface'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/background.cpp:185: undefined reference to `SDL_QueryTexture'
+obj/bee/resource_structures/background.o: In function `BEE::Background::free()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/background.cpp:193: undefined reference to `SDL_DestroyTexture'
+obj/bee/resource_structures/background.o: In function `BEE::Background::tile_horizontal(SDL_Texture*, SDL_Rect*)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/background.cpp:218: undefined reference to `SDL_RenderCopy'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/background.cpp:226: undefined reference to `SDL_RenderCopy'
+obj/bee/resource_structures/background.o: In function `BEE::Background::tile_vertical(SDL_Texture*, SDL_Rect*)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/background.cpp:255: undefined reference to `SDL_RenderCopy'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/background.cpp:263: undefined reference to `SDL_RenderCopy'
+obj/bee/resource_structures/background.o: In function `BEE::Background::draw(int, int, BackgroundData*)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/background.cpp:280: undefined reference to `SDL_RenderCopy'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/background.cpp:282: undefined reference to `SDL_GetTicks'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/background.cpp:283: undefined reference to `SDL_GetTicks'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/background.cpp:308: undefined reference to `SDL_RenderCopy'
+obj/bee/resource_structures/background.o: In function `BEE::Background::set_as_target(int, int)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/background.cpp:319: undefined reference to `SDL_CreateTexture'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/background.cpp:321: undefined reference to `SDL_GetError'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/background.cpp:328: undefined reference to `SDL_SetRenderTarget'
+obj/bee/resource_structures/font.o: In function `TextData::~TextData()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/font.cpp:20: undefined reference to `SDL_DestroyTexture'
+obj/bee/resource_structures/font.o: In function `BEE::Font::get_lineskip_default()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/font.cpp:125: undefined reference to `TTF_FontLineSkip'
+obj/bee/resource_structures/font.o: In function `BEE::Font::get_fontname()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/font.cpp:132: undefined reference to `TTF_FontFaceFamilyName'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/font.cpp:133: undefined reference to `TTF_FontFaceStyleName'
+obj/bee/resource_structures/font.o: In function `BEE::Font::set_style(int)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/font.cpp:156: undefined reference to `TTF_SetFontStyle'
+obj/bee/resource_structures/font.o: In function `BEE::Font::load()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/font.cpp:175: undefined reference to `TTF_OpenFont'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/font.cpp:177: undefined reference to `SDL_GetError'
+obj/bee/resource_structures/font.o: In function `BEE::Font::free()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/font.cpp:190: undefined reference to `TTF_CloseFont'
+obj/bee/resource_structures/font.o: In function `BEE::Font::draw_internal(int, int, std::string, SDL_Color)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/font.cpp:205: undefined reference to `TTF_RenderUTF8_Blended'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/font.cpp:207: undefined reference to `SDL_GetError'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/font.cpp:212: undefined reference to `SDL_CreateTextureFromSurface'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/font.cpp:214: undefined reference to `SDL_GetError'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/font.cpp:218: undefined reference to `SDL_FreeSurface'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/font.cpp:223: undefined reference to `SDL_QueryTexture'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/font.cpp:225: undefined reference to `SDL_SetTextureAlphaMod'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/font.cpp:226: undefined reference to `SDL_RenderCopy'
+obj/bee/resource_structures/font.o: In function `BEE::Font::draw(int, int, std::string, SDL_Color)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/font.cpp:248: undefined reference to `TTF_FontLineSkip'
+obj/bee/resource_structures/font.o: In function `BEE::Font::draw(TextData*, int, int, std::string, SDL_Color)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/font.cpp:283: undefined reference to `SDL_QueryTexture'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/font.cpp:285: undefined reference to `SDL_SetTextureAlphaMod'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/font.cpp:286: undefined reference to `SDL_RenderCopy'
+obj/bee/resource_structures/font.o: In function `BEE::Font::draw_fast_internal(int, int, std::string, SDL_Color)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/font.cpp:313: undefined reference to `TTF_RenderUTF8_Solid'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/font.cpp:315: undefined reference to `SDL_GetError'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/font.cpp:320: undefined reference to `SDL_CreateTextureFromSurface'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/font.cpp:322: undefined reference to `SDL_GetError'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/font.cpp:326: undefined reference to `SDL_FreeSurface'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/font.cpp:331: undefined reference to `SDL_QueryTexture'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/font.cpp:333: undefined reference to `SDL_SetTextureAlphaMod'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/font.cpp:334: undefined reference to `SDL_RenderCopy'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/font.cpp:335: undefined reference to `SDL_DestroyTexture'
+obj/bee/resource_structures/font.o: In function `BEE::Font::draw_fast(int, int, std::string, SDL_Color)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/font.cpp:354: undefined reference to `TTF_FontLineSkip'
+obj/bee/resource_structures/font.o: In function `BEE::Font::get_string_width(std::string, int)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/font.cpp:385: undefined reference to `TTF_SizeUTF8'
+obj/bee/resource_structures/font.o: In function `BEE::Font::get_string_height(std::string, int)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/font.cpp:401: undefined reference to `TTF_SizeUTF8'
+obj/bee/resource_structures/room.o: In function `BEE::Room::check_alarms()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/room.cpp:638: undefined reference to `SDL_GetTicks'
+obj/bee/resource_structures/room.o: In function `BEE::Room::draw()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/room.cpp:932: undefined reference to `SDL_RenderSetViewport'
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/room.cpp:939: undefined reference to `SDL_RenderSetViewport'
+obj/bee/resource_structures/ext/instancedata.o: In function `BEE::InstanceData::init(int, BEE::Object*, int, int)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/ext/instancedata.cpp:56: undefined reference to `SDL_GetTicks'
+obj/bee/resource_structures/ext/instancedata.o: In function `BEE::InstanceData::set_alarm(int, unsigned int)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/ext/instancedata.cpp:114: undefined reference to `SDL_GetTicks'
+obj/bee/resource_structures/ext/particle.o: In function `BEE::ParticleData::ParticleData(BEE::Particle*, int, int)':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/ext/particle.cpp:127: undefined reference to `SDL_GetTicks'
+obj/bee/resource_structures/ext/particle.o: In function `operator()':
+/home/ryan/Programming/Workspace/BasicEventEngine/bee/resource_structures/ext/particle.cpp:246: undefined reference to `SDL_GetTicks'
+collect2: error: ld returned 1 exit status
+make: *** [main] Error 1

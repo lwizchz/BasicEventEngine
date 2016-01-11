@@ -10,11 +10,11 @@ RES_OBJS = bee
 RES_ROOMS = test
 
 PKGDEPS = libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev libsdl2-net-dev libsdl2-gfx-dev libglew-dev libglm-dev
-INCLUDE = sdl2 SDL2_image SDL2_ttf SDL2_mixer SDL2_net SDL2_gfx
-LIBS = ${shell pkg-config --libs $(INCLUDE)} -lGLEW -lGLU -lGL
+INCLUDE = sdl2 SDL2_image SDL2_ttf SDL2_mixer SDL2_net
+LIBS = -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lSDL2_net -lSDL2_gfx -lSDL2 -lGLEW -lGLU -lGL
 WARNS = -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable
 
-FLAGS = -g -pg -pipe -std=c++11 $(WARNS) ${shell pkg-config --cflags $(INCLUDE)}
+FLAGS = -g -pg -pipe -std=c++11 -flto -Wall -Wextra -Wpedantic -Wshadow -Wno-unused-parameter -Wno-unused-variable -D_REENTRANT -I/usr/include/SDL2
 
 CXX = g++
 BUILD = $(CXX) $(FLAGS) -o $(NAME)

@@ -55,13 +55,13 @@ std::string string_upper(std::string str) {
 }
 
 std::string string_letters(std::string str) {
-        return std::regex_replace(str, std::regex("[^[:alnum:]]"), std::string(""));
+        return std::regex_replace(str, std::regex("[^[:alnum:]]"), std::string<>(""));
 }
 std::string string_digits(std::string str) {
-        return std::regex_replace(str, std::regex("[^[:digit:]]"), std::string(""));
+        return std::regex_replace(str, std::regex("[^[:digit:]]"), std::string<>(""));
 }
 std::string string_lettersdigits(std::string str) {
-        return std::regex_replace(str, std::regex("[^[:alnum:][:digit:]]"), std::string(""));
+        return std::regex_replace(str, std::regex("[^[:alnum:][:digit:]]"), std::string<>(""));
 }
 
 std::map<int,std::string> split(std::string input, char delimiter) {
