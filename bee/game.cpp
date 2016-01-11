@@ -640,12 +640,9 @@ int BEE::render() {
 }
 int BEE::render_clear() {
 	if (options->is_opengl) {
-		//glm::mat4 model = glm::translate(glm::mat4(1.0), glm::vec3(0.0, 0.0, 0.0));
-		glm::mat4 model = glm::mat4(1.0);
-		//glm::mat4 view = glm::lookAt(glm::vec3(0.0, 0.0, 2.0), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
-		glm::mat4 view = glm::mat4(1.0);
-		//glm::mat4 projection = glm::perspective(45.0, (double)get_width()/get_height(), 0.0, 10.0);
-		glm::mat4 projection = glm::ortho(0.0, (double)get_width()*1.5, (double)get_height()*1.5, 0.0, 0.0, 10.0);
+		glm::mat4 model = glm::mat4(1.0f);
+		glm::mat4 view = glm::mat4(1.0f);
+		glm::mat4 projection = glm::ortho(0.0f, get_width()*1.5f, get_height()*1.5f, 0.0f, 0.0f, 10.0f);
 		glm::mat4 mvp = projection * view * model;
 		glUniformMatrix4fv(mvp_location, 1, GL_FALSE, glm::value_ptr(mvp));
 
