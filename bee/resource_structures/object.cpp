@@ -12,6 +12,10 @@
 #include "object.hpp"
 
 BEE::Object::Object () {
+	if (BEE::resource_list->objects.game != NULL) {
+		game = BEE::resource_list->objects.game;
+	}
+
 	reset();
 }
 BEE::Object::Object (std::string new_name, std::string path) {

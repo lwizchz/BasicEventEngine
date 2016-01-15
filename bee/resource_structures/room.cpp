@@ -12,6 +12,10 @@
 #include "room.hpp"
 
 BEE::Room::Room () {
+	if (BEE::resource_list->rooms.game != NULL) {
+		game = BEE::resource_list->rooms.game;
+	}
+
 	reset();
 }
 BEE::Room::Room (std::string new_name, std::string path) {
@@ -40,6 +44,7 @@ BEE::Room::~Room() {
 		view_texture = NULL;
 	}
 
+	free_media();
 	BEE::resource_list->rooms.remove_resource(id);
 }
 int BEE::Room::add_to_resources(std::string path) {
@@ -129,7 +134,7 @@ int BEE::Room::print() {
 	"\n	is_persistent			" << is_persistent <<
 	"\n	is_background_color_enabled	" << is_background_color_enabled;
 	if (is_background_color_enabled) {
-		std::cerr << "\n	background_color		" << background_color.r << ", " << background_color.g << ", " << background_color.b;
+		std::cerr << "\n	background_color		" << (int)background_color.r << ", " << (int)background_color.g << ", " << (int)background_color.b;
 	}
 	std::cerr <<
 	"\n	backgrounds			\n" << debug_indent(background_string, 2) <<
@@ -171,7 +176,7 @@ BEE::RGBA BEE::Room::get_background_color() {
 bool BEE::Room::get_is_background_color_enabled() {
 	return is_background_color_enabled;
 }
-std::map<int, BackgroundData*> BEE::Room::get_backgrounds() {
+std::map<int, BEE::BackgroundData*> BEE::Room::get_backgrounds() {
 	return backgrounds;
 }
 std::string BEE::Room::get_background_string() {
@@ -199,7 +204,7 @@ std::string BEE::Room::get_background_string() {
 bool BEE::Room::get_is_views_enabled() {
 	return is_views_enabled;
 }
-std::map<int, ViewData*> BEE::Room::get_views() {
+std::map<int, BEE::ViewData*> BEE::Room::get_views() {
 	return views;
 }
 std::string BEE::Room::get_view_string() {
@@ -257,7 +262,7 @@ std::string BEE::Room::get_instance_string() {
 	}
 	return "none\n";
 }
-ViewData* BEE::Room::get_current_view() {
+BEE::ViewData* BEE::Room::get_current_view() {
 	return view_current;
 }
 
@@ -837,7 +842,7 @@ int BEE::Room::outside_room() {
 		if (i.first->object->get_mask() != NULL) {
 			SDL_Rect a = {(int)i.first->x, (int)i.first->y, i.first->object->get_mask()->get_subimage_width(), i.first->object->get_mask()->get_height()};
 			SDL_Rect b = {0, 0, game->get_width(), game->get_height()};
-			if (!check_collision(&a, &b)) {
+			if (!check_collision(a, b)) {
 				i.first->object->update(i.first);
 				i.first->object->outside_room(i.first);
 			}
@@ -889,7 +894,6 @@ int BEE::Room::draw() {
 			game->render_clear();
 		}
 
-		SDL_Rect viewport, viewcoords;
 		for (auto& v : views) {
 			if (v.second->is_visible) {
 				view_current = v.second;
@@ -925,22 +929,17 @@ int BEE::Room::draw() {
 					view_current->view_y -= view_current->vertical_speed;
 				}
 
-				viewport.x = view_current->port_x;
-				viewport.y = view_current->port_y;
-				viewport.w = view_current->port_width;
-				viewport.h = view_current->port_height;
-				SDL_RenderSetViewport(game->renderer, &viewport);
-
+				game->set_viewport(view_current);
 				draw_view();
 			}
 		}
 		view_current = NULL;
-		viewport = {0, 0, game->get_width(), game->get_height()};
-		SDL_RenderSetViewport(game->renderer, &viewport);
+		game->set_viewport(NULL);
 	} else {
 		if (!game->options->is_debug_enabled) {
 			game->render_clear();
 		}
+		game->set_viewport(NULL);
 		draw_view();
 	}
 

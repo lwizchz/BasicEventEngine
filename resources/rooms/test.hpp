@@ -8,7 +8,7 @@
 
 class RmTest: public BEE::Room {
 	public:
-		ViewData vw_main = {
+		BEE::ViewData vw_main = {
 			true,
 			0, 0, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT,
 			100, 100, 1800, 600,

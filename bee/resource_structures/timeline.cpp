@@ -12,6 +12,10 @@
 #include "timeline.hpp"
 
 BEE::Timeline::Timeline () {
+	if (BEE::resource_list->timelines.game != NULL) {
+		game = BEE::resource_list->timelines.game;
+	}
+
 	reset();
 }
 BEE::Timeline::Timeline (std::string new_name, std::string path) {

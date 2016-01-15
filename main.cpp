@@ -6,12 +6,11 @@
 * See LICENSE for more details.
 */
 
-#include <stdio.h>
-#include <string>
+#include "bee/game.hpp" // Include the engine headers
+#include "resources/resources.hpp" // Include the resource definitions
 
-#include "bee/game.hpp"
-#include "resources/resources.hpp"
-
+// Undefine main() if it has been previously defined on the Windows platform
+// I think this occurs because of SDL2/SDL_main.hpp
 #ifdef _WINDOWS
 #ifdef main
 #undef main
@@ -19,8 +18,8 @@
 #endif // _WINDOWS
 
 int main(int argc, char* argv[]) {
-	try {
-		// Set game options;
+	try { // Catch all errors so that all resources will be freed properly
+		// Declare some game options, see bee/game.hpp for the type definition
 		BEE::GameOptions options = {
 			// Window flags
 			true, false, true,
@@ -33,18 +32,19 @@ int main(int argc, char* argv[]) {
 			false
 		};
 
-		// Init game engine
+		// Initialize the game engine
 		BEE* game = new BEE(argc, argv, &rm_test, &options);
 
-		// Loop event handling
+		// Run the game engine event loop
+		// This loop will run until the user closes the window, the game closes itself, or the game throws an exception
 		game->loop();
 
-		// Clean up
+		// Clean up resources and quit SDL and other libraries
 		game->close();
 	} catch (std::string e) {
-		std::cerr << e;
-		return 1;
+		std::cerr << e; // Output the caught exception string
+		return 1; // Return 1 on caught exception
 	}
 
-	return 0;
+	return 0; // Return 0 on successful run
 }

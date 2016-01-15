@@ -41,6 +41,11 @@ BEE::BEE(int new_argc, char** new_argv, Room** new_first_room, GameOptions* new_
 		throw std::string("Couldn't init SDL: ") + SDL_GetError() + "\n";
 	}
 
+	// Use "modern" OpenGL 3.1 core
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
 	int window_flags = SDL_WINDOW_OPENGL;
 	if (options->is_fullscreen) {
 		/*if (platform == 0) {
@@ -79,12 +84,12 @@ BEE::BEE(int new_argc, char** new_argv, Room** new_first_room, GameOptions* new_
 
 	keystate = SDL_GetKeyboardState(NULL);
 
+	color = new RGBA();
 	if (options->is_opengl) {
 		opengl_init();
 	} else { // if not OpenGL, init an SDL renderer
-		renderer_init(options->is_vsync_enabled);
+		renderer_init();
 	}
-	color = new RGBA();
 
 	int img_flags = IMG_INIT_PNG | IMG_INIT_JPG;
 	if (!(IMG_Init(img_flags) & img_flags)) {
@@ -115,9 +120,7 @@ BEE::BEE(int new_argc, char** new_argv, Room** new_first_room, GameOptions* new_
 	}
 
 	texture_before = new Sprite();
-	texture_before->game = this;
 	texture_after = new Sprite();
-	texture_after->game = this;
 
 	quit = false;
 	if (*new_first_room != NULL) {
@@ -137,6 +140,10 @@ int BEE::loop() {
 	tickstamp = get_ticks();
 	fps_ticks = get_ticks();
 	while (!quit) {
+		if (current_room == NULL) {
+			throw std::string("Aborted event loop because current_room == NULL\n");
+		}
+
 		try {
 			current_room->step_begin();
 			current_room->check_alarms();
@@ -348,7 +355,7 @@ int BEE::close() {
 	}
 
 	if (options->is_network_enabled) {
-		if (!network_quit()) {
+		if (!network_close()) {
 			net->is_initialized = false;
 		}
 	}
@@ -371,20 +378,20 @@ int BEE::close() {
 #include "game/resources.cpp"
 #endif // _WINDOWS
 
-Uint32 BEE::get_ticks() {
+Uint32 BEE::get_ticks() const {
 	return SDL_GetTicks();
 }
-Uint32 BEE::get_seconds() {
+Uint32 BEE::get_seconds() const {
 	return SDL_GetTicks()/1000;
 }
-Uint32 BEE::get_frame() {
+Uint32 BEE::get_frame() const {
 	return frame_number;
 }
 
-BEE::GameOptions BEE::get_options() {
+BEE::GameOptions BEE::get_options() const {
 	return *options;
 }
-int BEE::set_options(GameOptions new_options) {
+int BEE::set_options(const GameOptions& new_options) {
 	if ((options->is_fullscreen ^ new_options.is_fullscreen) == 1) {
 		// Change fullscreen state
 		options->is_fullscreen = new_options.is_fullscreen;
@@ -399,12 +406,12 @@ int BEE::set_options(GameOptions new_options) {
 		// Change OpenGL state
 		options->is_opengl = new_options.is_opengl;
 
-		if (renderer != NULL) { // Enter OpenGL mode
+		if (options->is_opengl) { // Enter OpenGL mode
 			renderer_close();
-			opengl_init();
-		} else { // Leave OpenGL mode
+			render_reset();
+		} else { // Enter SDL rendering mode
 			opengl_close();
-			renderer_init(options->is_vsync_enabled);
+			render_reset();
 		}
 	}
 	if ((options->is_borderless ^ new_options.is_borderless) == 1) {
@@ -474,7 +481,7 @@ int BEE::set_options(GameOptions new_options) {
 				net->is_initialized = true;
 			}
 		} else {
-			network_quit();
+			network_close();
 			net->is_initialized = false;
 		}
 	}
@@ -487,11 +494,6 @@ int BEE::set_options(GameOptions new_options) {
 }
 
 int BEE::opengl_init() {
-	// Use "modern" OpenGL 3.1 core
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-
 	context = SDL_GL_CreateContext(window);
 	if (context == NULL) {
 		throw std::string("Couldn't create OpenGL context: ") + SDL_GetError() + "\n";
@@ -512,9 +514,8 @@ int BEE::opengl_init() {
 
 	// Compile vertex shader
 	GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-	std::string vs = file_get_contents("bee/vertex_shader.glsl");
+	std::string vs = file_get_contents("resources/vertex_shader.glsl");
 	const GLchar* vertex_shader_source[] = {vs.c_str()};
-	//const GLchar* vertex_shader_source[] = {"#version 140\nin vec2 LVertexPos2D;void main() {gl_Position = vec4(LVertexPos2D.x, LVertexPos2D.y, 0.0, 1.0);}"};
 	glShaderSource(vertex_shader, 1, vertex_shader_source, NULL);
 	glCompileShader(vertex_shader);
 	GLint is_shader_compiled = GL_FALSE;
@@ -528,9 +529,8 @@ int BEE::opengl_init() {
 
 	// Compile fragment shader
 	GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-	std::string fs = file_get_contents("bee/fragment_shader.glsl");
+	std::string fs = file_get_contents("resources/fragment_shader.glsl");
 	const GLchar* fragment_shader_source[] = {fs.c_str()};
-	//const GLchar* fragment_shader_source[] = {"#version 140\nin vec4 LPolygonColor;out vec4 LFragment;void main() {LFragment = LPolygonColor;}"};
 	glShaderSource(fragment_shader, 1, fragment_shader_source, NULL);
 	glCompileShader(fragment_shader);
 	is_shader_compiled = GL_FALSE;
@@ -559,12 +559,36 @@ int BEE::opengl_init() {
 		glDeleteShader(fragment_shader);
 		throw std::string("Couldn't get location of 'LVertexPos2D' in the vertex shader\n");
 	}
-
 	fragment_location = glGetAttribLocation(program, "LTexCoord");
 	if (fragment_location == -1) {
 		glDeleteShader(vertex_shader);
 		glDeleteShader(fragment_shader);
 		throw std::string("Couldn't get location of 'LTexCoord' in the fragment shader\n");
+	}
+
+	projection_location = glGetUniformLocation(program, "projection");
+	if (projection_location == -1) {
+		glDeleteShader(vertex_shader);
+		glDeleteShader(fragment_shader);
+		throw std::string("Couldn't get location of 'projection' in the vertex shader\n");
+	}
+	view_location = glGetUniformLocation(program, "view");
+	if (view_location == -1) {
+		glDeleteShader(vertex_shader);
+		glDeleteShader(fragment_shader);
+		throw std::string("Couldn't get location of 'view' in the vertex shader\n");
+	}
+	model_location = glGetUniformLocation(program, "model");
+	if (model_location == -1) {
+		glDeleteShader(vertex_shader);
+		glDeleteShader(fragment_shader);
+		throw std::string("Couldn't get location of 'model' in the vertex shader\n");
+	}
+	port_location = glGetUniformLocation(program, "port");
+	if (port_location == -1) {
+		glDeleteShader(vertex_shader);
+		glDeleteShader(fragment_shader);
+		throw std::string("Couldn't get location of 'port' in the vertex shader\n");
 	}
 
 	texture_location = glGetUniformLocation(program, "LTexture");
@@ -573,24 +597,20 @@ int BEE::opengl_init() {
 		glDeleteShader(fragment_shader);
 		throw std::string("Couldn't get location of 'LTexture' in the fragment shader\n");
 	}
-
-	mvp_location = glGetUniformLocation(program, "mvp");
-	if (mvp_location == -1) {
+	colorize_location = glGetUniformLocation(program, "colorize");
+	if (colorize_location == -1) {
 		glDeleteShader(vertex_shader);
 		glDeleteShader(fragment_shader);
-		throw std::string("Couldn't get location of 'mvp' in the vertex shader\n");
+		throw std::string("Couldn't get location of 'colorize' in the fragment shader\n");
 	}
-
-	model_location = glGetUniformLocation(program, "model");
-	if (model_location == -1) {
+	flip_location = glGetUniformLocation(program, "flip");
+	if (flip_location == -1) {
 		glDeleteShader(vertex_shader);
 		glDeleteShader(fragment_shader);
-		throw std::string("Couldn't get location of 'model' in the fragment shader\n");
+		throw std::string("Couldn't get location of 'flip' in the fragment shader\n");
 	}
 
-	//glViewport(0.0, 0.0, width, height);
-
-	glClearColor(1.0, 1.0, 1.0, 1.0);
+	draw_set_color({255, 255, 255, 255});
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -601,16 +621,21 @@ int BEE::opengl_init() {
 	return 0;
 }
 int BEE::opengl_close() {
-	glDeleteProgram(program);
-	program = 0;
+	if (program != 0) {
+		glDeleteProgram(program);
+		program = 0;
+	}
 
-	SDL_GL_DeleteContext(context);
+	if (context != NULL) {
+		SDL_GL_DeleteContext(context);
+		context = NULL;
+	}
 
 	return 0;
 }
-int BEE::renderer_init(bool is_vsync_enabled) {
+int BEE::renderer_init() {
 	int renderer_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE;
-	if (is_vsync_enabled) {
+	if (options->is_vsync_enabled) {
 		renderer_flags |= SDL_RENDERER_PRESENTVSYNC;
 	}
 
@@ -620,31 +645,28 @@ int BEE::renderer_init(bool is_vsync_enabled) {
 	}
 
 	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
 	return 0;
 }
 int BEE::renderer_close() {
-	SDL_DestroyRenderer(renderer);
-	renderer = NULL;
+	if (renderer != NULL) {
+		SDL_DestroyRenderer(renderer);
+		renderer = NULL;
+	}
+
 	return 0;
 }
 
-int BEE::render() {
-	if (options->is_opengl) {
-		glUseProgram(0);
-		SDL_GL_SwapWindow(window);
-	} else {
-		SDL_RenderPresent(renderer);
-	}
-	return 0;
-}
 int BEE::render_clear() {
+	draw_set_color(*color);
 	if (options->is_opengl) {
-		glm::mat4 model = glm::mat4(1.0f);
-		glm::mat4 view = glm::mat4(1.0f);
-		glm::mat4 projection = glm::ortho(0.0f, get_width()*1.5f, get_height()*1.5f, 0.0f, 0.0f, 10.0f);
-		glm::mat4 mvp = projection * view * model;
-		glUniformMatrix4fv(mvp_location, 1, GL_FALSE, glm::value_ptr(mvp));
+		glm::mat4 projection = glm::ortho(0.0f, (float)get_width(), (float)get_height(), 0.0f, 0.0f, 10.0f);
+		glUniformMatrix4fv(projection_location, 1, GL_FALSE, glm::value_ptr(projection));
+
+		if (target > 0) {
+			glBindFramebuffer(GL_FRAMEBUFFER, target);
+		}
 
 		glClear(GL_COLOR_BUFFER_BIT);
 		glUseProgram(program);
@@ -653,40 +675,52 @@ int BEE::render_clear() {
 	}
 	return 0;
 }
-int BEE::render_reset() {
+int BEE::render() const {
 	if (options->is_opengl) {
-		// OpenGL render reset
+		glUseProgram(0);
+		SDL_GL_SwapWindow(window);
 	} else {
-		renderer_close();
-		renderer_init(options->is_vsync_enabled);
-
-		for (int i=0; i<resource_list->sprites.get_amount(); i++) {
-			if (get_sprite(i) != NULL) {
-				Sprite* s = get_sprite(i);
-				if (s->get_is_loaded()) {
-					s->free();
-					s->load();
-				}
-			}
-		}
-		for (int i=0; i<resource_list->backgrounds.get_amount(); i++) {
-			if (get_background(i) != NULL) {
-				Background* s = get_background(i);
-				if (s->get_is_loaded()) {
-					s->free();
-					s->load();
-				}
-			}
-		}
+		SDL_RenderPresent(renderer);
 	}
 	return 0;
 }
+int BEE::render_reset() {
+	if (options->is_opengl) {
+		opengl_close();
+		opengl_init();
+	} else {
+		renderer_close();
+		renderer_init();
+	}
 
-int BEE::restart_game() {
+	// Reload sprite and background textures
+	for (int i=0; i<resource_list->sprites.get_amount(); i++) {
+		if (get_sprite(i) != NULL) {
+			Sprite* s = get_sprite(i);
+			if (s->get_is_loaded()) {
+				s->free();
+				s->load();
+			}
+		}
+	}
+	for (int i=0; i<resource_list->backgrounds.get_amount(); i++) {
+		if (get_background(i) != NULL) {
+			Background* s = get_background(i);
+			if (s->get_is_loaded()) {
+				s->free();
+				s->load();
+			}
+		}
+	}
+
+	return 0;
+}
+
+int BEE::restart_game() const {
 	throw 2;
 	return 0;
 }
-int BEE::end_game() {
+int BEE::end_game() const {
 	throw 1;
 	return 0;
 }

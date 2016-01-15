@@ -202,7 +202,7 @@ void ObjBee::mouse(BEE::InstanceData* self, SDL_Event* e) {
 	if (e->motion.state & SDL_BUTTON_LMASK) {
 		SDL_Rect a = {(int)self->x, (int)self->y, get_mask()->get_subimage_width(), get_mask()->get_height()};
 		SDL_Rect b = {e->button.x, e->button.y, 20, 20};
-		if (check_collision(&a, &b)) {
+		if (check_collision(a, b)) {
 			std::tie(self->x, self->y) = coord_approach(self->x, self->y, game->get_mouse_x(), game->get_mouse_y(), 10);
 		} else if (self->id == 0) {
 			if (self->is_place_empty(game->get_mouse_x(), game->get_mouse_y())) {
@@ -216,7 +216,7 @@ void ObjBee::mouse_press(BEE::InstanceData* self, SDL_Event* e) {
 		case SDL_BUTTON_LEFT: {
 			SDL_Rect a = {(int)self->x, (int)self->y, get_mask()->get_subimage_width(), get_mask()->get_height()};
 			SDL_Rect b = {e->button.x, e->button.y, 20, 20};
-			if (check_collision(&a, &b)) {
+			if (check_collision(a, b)) {
 				std::tie(self->x, self->y) = coord_approach(self->x, self->y, game->get_mouse_x(), game->get_mouse_y(), 10);
 			} else if (self->id == 0) {
 				if (self->is_place_empty(game->get_mouse_x(), game->get_mouse_y())) {

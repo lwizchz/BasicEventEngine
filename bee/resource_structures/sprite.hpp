@@ -32,9 +32,12 @@ class BEE::Sprite: public Resource {
 		std::vector<SDL_Rect> subimages;
 		SDL_Rect srect, drect;
 
-		GLuint vbo_vertices, vbo_texcoords;
+		GLuint vbo_vertices;
 		GLuint ibo;
 		GLuint gl_texture;
+		std::vector<GLuint> vbo_texcoords;
+
+		GLuint framebuffer;
 	public:
 		Sprite();
 		Sprite(std::string, std::string);
@@ -68,8 +71,10 @@ class BEE::Sprite: public Resource {
 		int set_origin_xy(int, int);
 		int set_origin_center();
 
+		int load_from_surface(SDL_Surface*);
 		int load();
 		int free();
+		int draw_subimage(int, int, int, int, int, double, RGBA, SDL_RendererFlip, bool);
 		int draw(int, int, Uint32, int, int, double, RGBA, SDL_RendererFlip, bool);
 		int draw(int, int, Uint32);
 		int draw(int, int, Uint32, int, int);

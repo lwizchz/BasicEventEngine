@@ -11,11 +11,16 @@
 
 #include <string>
 #include <sstream>
+
+// Include the necessary OpenGL functions
 #include <GL/glew.h>
 #include <SDL2/SDL_opengl.h>
 
-std::string debug_indent(std::string, int, std::string);
-std::string debug_indent(std::string, int);
+// Format indentions for debug output
+std::string debug_indent(const std::string&, int, const std::string&);
+std::string debug_indent(const std::string&, int);
+
+// Return the error string when an OpenGL item fails to compile
 std::string get_shader_error(GLuint);
 std::string get_program_error(GLuint);
 

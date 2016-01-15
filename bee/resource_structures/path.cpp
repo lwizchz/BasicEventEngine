@@ -12,6 +12,10 @@
 #include "path.hpp"
 
 BEE::Path::Path () {
+	if (BEE::resource_list->paths.game != NULL) {
+		game = BEE::resource_list->paths.game;
+	}
+
 	reset();
 }
 BEE::Path::Path (std::string new_name, std::string path) {
@@ -176,7 +180,7 @@ int BEE::Path::draw(int xstart, int ystart) {
 			int y2 = std::get<1>(*it);
 			--it;
 
-			game->draw_line(x1+xs, y1+ys, x2+xs, y2+ys, c_aqua);
+			game->draw_line(x1+xs, y1+ys, x2+xs, y2+ys, c_aqua, false);
 		}
 	}
 	return 0;

@@ -170,7 +170,7 @@ int BEE::ParticleSystem::draw() {
 
 			SDL_Rect a = {p->x, p->y, p->w, p->h};
 			SDL_Rect b = {c->x+fx, c->y+fy, c->w, c->h};
-			if (check_collision(&a, &b)) {
+			if (check_collision(a, b)) {
 				if (p->particle_type == c->particle_before) {
 					p->particle_type = c->particle_after;
 				}
@@ -204,7 +204,7 @@ int BEE::ParticleSystem::draw() {
 
 			SDL_Rect a = {p->x, p->y, p->w, p->h};
 			SDL_Rect b = {d->x+fx, d->y+fy, d->w, d->h};
-			if (check_collision(&a, &b)) {
+			if (check_collision(a, b)) {
 				dir = direction_of(px, py, p->x, p->y);
 				if (true) {
 					p->velocity = std::make_pair(p->velocity.first * d->friction, angle_hbounce(dir));
@@ -267,7 +267,7 @@ int BEE::ParticleSystem::draw() {
 
 						SDL_Rect a = {p->x, p->y, p->w, p->h};
 						SDL_Rect b = {d->x+fx, d->y+fy, d->w, d->h};
-						if (check_collision(&a, &b)) {
+						if (check_collision(a, b)) {
 							delete p;
 							return true;
 						}

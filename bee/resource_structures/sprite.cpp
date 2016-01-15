@@ -12,6 +12,10 @@
 #include "sprite.hpp"
 
 BEE::Sprite::Sprite () {
+	if (BEE::resource_list->sprites.game != NULL) {
+		game = BEE::resource_list->sprites.game;
+	}
+
 	reset();
 }
 BEE::Sprite::Sprite (std::string new_name, std::string path) {
@@ -61,9 +65,7 @@ int BEE::Sprite::add_to_resources(std::string path) {
 	return 0;
 }
 int BEE::Sprite::reset() {
-	if (is_loaded) {
-		free();
-	}
+	free();
 
 	name = "";
 	image_path = "";
@@ -156,11 +158,42 @@ int BEE::Sprite::set_path(std::string path) {
 	return 0;
 }
 int BEE::Sprite::set_subimage_amount(int new_subimage_amount, int new_subimage_width) {
+	subimages.clear();
 	subimage_amount = new_subimage_amount;
 	subimage_width = new_subimage_width;
+
 	for (int i=0; i<subimage_amount; i++) {
 		subimages.push_back({i*subimage_width, 0, subimage_width, 0});
 	}
+
+	if (game->options->is_opengl) {
+		if (!vbo_texcoords.empty()) {
+			for (auto& t : vbo_texcoords) {
+				glDeleteBuffers(1, &t);
+			}
+			vbo_texcoords.clear();
+		}
+
+		GLfloat w = subimage_width;
+		if (width > 0) {
+			w /= width;
+		}
+		for (int i=0; i<subimage_amount; i++) {
+			GLuint new_texcoord;
+			GLfloat texcoords[] = {
+				w*i, 0.0,
+				w*(i+1), 0.0,
+				w*(i+1), 1.0,
+				w*i, 1.0,
+			};
+			glGenBuffers(1, &new_texcoord);
+			glBindBuffer(GL_ARRAY_BUFFER, new_texcoord);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(texcoords), texcoords, GL_STATIC_DRAW);
+
+			vbo_texcoords.push_back(new_texcoord);
+		}
+	}
+
 	return 0;
 }
 int BEE::Sprite::set_speed(double new_speed) {
@@ -190,54 +223,26 @@ int BEE::Sprite::set_origin_center() {
 	return 0;
 }
 
-int BEE::Sprite::load() {
+int BEE::Sprite::load_from_surface(SDL_Surface* tmp_surface) {
 	if (!is_loaded) {
-		SDL_Surface* tmp_surface;
-		tmp_surface = IMG_Load(image_path.c_str());
-		if (tmp_surface == NULL) {
-			std::cerr << "Failed to load sprite " << name << ": " << IMG_GetError() << "\n";
-			return 1;
-		}
-
 		if (game->options->is_opengl) {
 			width = tmp_surface->w;
 			height = tmp_surface->h;
 			if (subimage_amount <= 1) {
 				set_subimage_amount(1, width);
+			} else {
+				set_subimage_amount(subimage_amount, width/subimage_amount);
 			}
 
 			GLfloat vertices[] = {
 				0.0, 0.0,
-				(GLfloat)width, 0.0,
-				(GLfloat)width, (GLfloat)height,
+				(GLfloat)subimage_width, 0.0,
+				(GLfloat)subimage_width, (GLfloat)height,
 				0.0, (GLfloat)height,
 			};
-			/*GLfloat vertices[] = {
-				-1.0, 1.0,
-				1.0, 1.0,
-				1.0, -1.0,
-				-1.0, -1.0,
-			};*/
-			/*GLfloat w = width/2.0, h = height/2.0;
-			GLfloat vertices[] = {
-				-w, h,
-				w, h,
-				w, -h,
-				-w, -h,
-			};*/
 			glGenBuffers(1, &vbo_vertices);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
 			glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-			GLfloat texcoords[] = {
-				0.0, 0.0,
-				1.0, 0.0,
-				1.0, 1.0,
-				0.0, 1.0,
-			};
-			glGenBuffers(1, &vbo_texcoords);
-			glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(texcoords), texcoords, GL_STATIC_DRAW);
 
 			GLushort elements[] = {
 				0, 1, 2,
@@ -262,8 +267,6 @@ int BEE::Sprite::load() {
 				tmp_surface->pixels
 			);
 
-			SDL_FreeSurface(tmp_surface);
-
 			is_loaded = true;
 			has_draw_failed = false;
 		} else {
@@ -272,8 +275,6 @@ int BEE::Sprite::load() {
 				std::cerr << "Failed to create texture from surface: " << SDL_GetError() << "\n";
 				return 1;
 			}
-
-			SDL_FreeSurface(tmp_surface);
 
 			SDL_QueryTexture(texture, NULL, NULL, &width, &height);
 			if (subimage_amount <= 1) {
@@ -286,6 +287,24 @@ int BEE::Sprite::load() {
 			is_loaded = true;
 			has_draw_failed = false;
 		}
+	} else {
+		std::cerr << "Failed to load sprite from surface because it has already been loaded\n";
+		return 1;
+	}
+
+	return 0;
+}
+int BEE::Sprite::load() {
+	if (!is_loaded) {
+		SDL_Surface* tmp_surface;
+		tmp_surface = IMG_Load(image_path.c_str());
+		if (tmp_surface == NULL) {
+			std::cerr << "Failed to load sprite " << name << ": " << IMG_GetError() << "\n";
+			return 1;
+		}
+
+		load_from_surface(tmp_surface);
+		SDL_FreeSurface(tmp_surface);
 	}
 	return 0;
 }
@@ -293,9 +312,15 @@ int BEE::Sprite::free() {
 	if (is_loaded) {
 		if (game->options->is_opengl) {
 			glDeleteBuffers(1, &vbo_vertices);
-			glDeleteBuffers(1, &vbo_texcoords);
+
+			for (auto& t : vbo_texcoords) {
+				glDeleteBuffers(1, &t);
+			}
+			vbo_texcoords.clear();
+
 			glDeleteBuffers(1, &ibo);
 			glDeleteTextures(1, &gl_texture);
+			glDeleteFramebuffers(1, &framebuffer);
 		} else {
 			SDL_DestroyTexture(texture);
 			texture = NULL;
@@ -304,25 +329,22 @@ int BEE::Sprite::free() {
 	}
 	return 0;
 }
-int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h, double angle, RGBA new_color, SDL_RendererFlip flip, bool is_hud) {
+int BEE::Sprite::draw_subimage(int x, int y, int current_subimage, int w, int h, double angle, RGBA new_color, SDL_RendererFlip flip, bool is_hud) {
 	if (!is_loaded) {
 		if (!has_draw_failed) {
-			std::cerr << "Failed to draw sprite '" << name << "'" << " because it is not loaded\n";
+			std::cerr << "Failed to draw sprite \"" << name << "\" because it is not loaded\n";
 			has_draw_failed = true;
 		}
 		return 1;
 	}
 
-	int current_subimage = (int)round(speed*(SDL_GetTicks()-subimage_time)/game->fps_goal) % subimage_amount;
-	if (current_subimage == 0) {
-		is_animated = true;
-	}
-
 	drect.x = x;
 	drect.y = y;
 	if ((game->get_current_room()->get_is_views_enabled())&&(!is_hud)) {
-		drect.x += game->get_current_room()->get_current_view()->view_x;
-		drect.y += game->get_current_room()->get_current_view()->view_y;
+		if (game->get_current_room()->get_current_view() != NULL) {
+			drect.x += game->get_current_room()->get_current_view()->view_x;
+			drect.y += game->get_current_room()->get_current_view()->view_y;
+		}
 	}
 
 	if ((w >= 0)&&(h >= 0)) {
@@ -336,7 +358,7 @@ int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h, double a
 		drect.h = height;
 	}
 
-	if (game->is_on_screen(&drect)) {
+	if (game->is_on_screen(drect)) {
 		if (game->options->is_opengl) {
 			if (w <= 0) {
 				w = width;
@@ -346,7 +368,7 @@ int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h, double a
 			}
 
 			glm::mat4 model = glm::scale(glm::mat4(1.0), glm::vec3(w/width, h/height, 1.0));
-			model = glm::translate(model, glm::vec3(x, y, 0.0));
+			model = glm::translate(model, glm::vec3(drect.x, drect.y, 0.0));
 			if (angle != 0.0) {
 				model = glm::translate(model, glm::vec3((1+sin(degtorad(angle)))*width, -cos(degtorad(angle))*height, 0.0)); // rotational translation
 			}
@@ -356,6 +378,18 @@ int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h, double a
 			glActiveTexture(GL_TEXTURE0);
 			glUniform1i(game->texture_location, 0);
 			glBindTexture(GL_TEXTURE_2D, gl_texture);
+
+			glm::vec4 color = glm::vec4(new_color.r/255.0, new_color.g/255.0, new_color.b/255.0, new_color.a/255.0);
+			glUniform4fv(game->colorize_location, 1, glm::value_ptr(color));
+
+			int f = 0;
+			if (flip & SDL_FLIP_HORIZONTAL) {
+				f += 1;
+			}
+			if (flip & SDL_FLIP_VERTICAL) {
+				f += 2;
+			}
+			glUniform1i(game->flip_location, f);
 
 			glEnableVertexAttribArray(game->vertex_location);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
@@ -369,7 +403,7 @@ int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h, double a
 			);
 
 			glEnableVertexAttribArray(game->fragment_location);
-			glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords[current_subimage]);
 			glVertexAttribPointer(
 				game->fragment_location,
 				2,
@@ -398,7 +432,7 @@ int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h, double a
 				srect.x = subimages[current_subimage].x;
 				srect.y = 0;
 				srect.w = subimages[current_subimage].w;
-				srect.h 	= height;
+				srect.h = height;
 
 				SDL_RenderCopyEx(game->renderer, texture, &srect, &drect, angle, NULL, flip);
 			} else {
@@ -413,49 +447,118 @@ int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h, double a
 
 	return 0;
 }
+int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h, double angle, RGBA new_color, SDL_RendererFlip flip, bool is_hud) {
+	int current_subimage = (int)round(speed*(game->get_ticks()-subimage_time)/game->fps_goal) % subimage_amount;
+	if (current_subimage == 0) {
+		is_animated = true;
+	}
+
+	return draw_subimage(x, y, current_subimage, w, h, angle, new_color, flip, is_hud);
+}
 int BEE::Sprite::draw(int x, int y, Uint32 subimage_time) {
-	return draw(x, y, subimage_time, -1, -1, 0.0, {255, 255, 255, 0}, SDL_FLIP_NONE, false);
+	return draw(x, y, subimage_time, -1, -1, 0.0, {255, 255, 255, 255}, SDL_FLIP_NONE, false);
 }
 int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h) {
-	return draw(x, y, subimage_time, w, h, 0.0, {255, 255, 255, 0}, SDL_FLIP_NONE, false);
+	return draw(x, y, subimage_time, w, h, 0.0, {255, 255, 255, 255}, SDL_FLIP_NONE, false);
 }
 int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, double angle) {
-	return draw(x, y, subimage_time, -1, -1, angle, {255, 255, 255, 0}, SDL_FLIP_NONE, false);
+	return draw(x, y, subimage_time, -1, -1, angle, {255, 255, 255, 255}, SDL_FLIP_NONE, false);
 }
 int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, RGBA color) {
 	return draw(x, y, subimage_time, -1, -1, 0.0, color, SDL_FLIP_NONE, false);
 }
 int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, SDL_RendererFlip flip) {
-	return draw(x, y, subimage_time, -1, -1, 0.0, {255, 255, 255, 0}, flip, false);
+	return draw(x, y, subimage_time, -1, -1, 0.0, {255, 255, 255, 255}, flip, false);
 }
 int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, bool is_hud) {
-	return draw(x, y, subimage_time, -1, -1, 0.0, {255, 255, 255, 0}, SDL_FLIP_NONE, is_hud);
+	return draw(x, y, subimage_time, -1, -1, 0.0, {255, 255, 255, 255}, SDL_FLIP_NONE, is_hud);
 }
-int BEE::Sprite::draw_simple(SDL_Rect* srect, SDL_Rect* drect) {
+int BEE::Sprite::draw_simple(SDL_Rect* source, SDL_Rect* dest) {
 	if (!is_loaded) {
 		return 1;
 	}
-	return SDL_RenderCopy(game->renderer, texture, srect, drect);
+	if (game->options->is_opengl) {
+		return 2;
+	}
+	return SDL_RenderCopy(game->renderer, texture, source, dest);
 }
 int BEE::Sprite::set_as_target(int w, int h) {
 	if (is_loaded) {
 		free();
 	}
 
-	texture = SDL_CreateTexture(game->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w, h);
-	if (texture == NULL) {
-		std::cerr << "Failed to create a blank texture: " << SDL_GetError() << "\n";
-		return 1;
+	if (game->options->is_opengl) {
+		width = w;
+		height = h;
+		set_subimage_amount(1, width);
+
+		GLfloat vertices[] = {
+			0.0, 0.0,
+			(GLfloat)width, 0.0,
+			(GLfloat)width, (GLfloat)height,
+			0.0, (GLfloat)height,
+		};
+		glGenBuffers(1, &vbo_vertices);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+		GLushort elements[] = {
+			0, 1, 2,
+			2, 3, 0,
+		};
+		glGenBuffers(1, &ibo);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
+
+		glGenFramebuffers(1, &framebuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+		glGenTextures(1, &gl_texture);
+		glBindTexture(GL_TEXTURE_2D, gl_texture);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexImage2D(
+			GL_TEXTURE_2D,
+			0,
+			GL_RGBA,
+			width,
+			height,
+			0,
+			GL_RGBA,
+			GL_UNSIGNED_BYTE,
+			0
+		);
+
+		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, gl_texture, 0);
+		GLenum buffer[1] = {GL_COLOR_ATTACHMENT0};
+		glDrawBuffers(1, buffer);
+
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+			free();
+			return 0;
+		}
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		is_loaded = true;
+		has_draw_failed = false;
+
+		return (int)framebuffer;
+	} else {
+		texture = SDL_CreateTexture(game->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w, h);
+		if (texture == NULL) {
+			std::cerr << "Failed to create a blank texture: " << SDL_GetError() << "\n";
+			return 1;
+		}
+
+		width = w;
+		height = h;
+		set_subimage_amount(1, width);
+
+		SDL_SetRenderTarget(game->renderer, texture);
+
+		is_loaded = true;
+		has_draw_failed = false;
 	}
-
-	width = w;
-	height = h;
-	set_subimage_amount(1, width);
-
-	SDL_SetRenderTarget(game->renderer, texture);
-
-	is_loaded = true;
-	has_draw_failed = false;
 
 	return 0;
 }

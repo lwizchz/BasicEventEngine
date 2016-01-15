@@ -12,6 +12,10 @@
 #include "sound.hpp"
 
 BEE::Sound::Sound () {
+	if (BEE::resource_list->sounds.game != NULL) {
+		game = BEE::resource_list->sounds.game;
+	}
+
 	reset();
 }
 BEE::Sound::Sound (std::string new_name, std::string path, bool new_is_music) {
@@ -28,9 +32,7 @@ BEE::Sound::Sound (std::string new_name, std::string path, bool new_is_music) {
 	set_is_music(new_is_music);
 }
 BEE::Sound::~Sound() {
-	if (is_loaded) {
-		free();
-	}
+	free();
 	BEE::resource_list->sounds.remove_resource(id);
 }
 int BEE::Sound::add_to_resources(std::string path) {
@@ -64,9 +66,7 @@ int BEE::Sound::add_to_resources(std::string path) {
 	return 0;
 }
 int BEE::Sound::reset() {
-	if (is_loaded) {
-		free();
-	}
+	free();
 
 	name = "";
 	sound_path = "";
@@ -241,15 +241,17 @@ int BEE::Sound::load() {
 	return 0;
 }
 int BEE::Sound::free() {
-	stop();
-	if (is_music) {
-		Mix_FreeMusic(music);
-		music = NULL;
-	} else {
-		Mix_FreeChunk(chunk);
-		chunk = NULL;
+	if (is_loaded) {
+		stop();
+		if (is_music) {
+			Mix_FreeMusic(music);
+			music = NULL;
+		} else {
+			Mix_FreeChunk(chunk);
+			chunk = NULL;
+		}
+		is_loaded = false;
 	}
-	is_loaded = false;
 
 	return 0;
 }

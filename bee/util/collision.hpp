@@ -25,19 +25,19 @@ bool compare_lines(Line l1, Line l2) {
 	return false;
 }
 
-bool check_collision(SDL_Rect* a, SDL_Rect* b) {
+bool check_collision(const SDL_Rect& a, const SDL_Rect& b) {
 	int a_left, a_right, a_top, a_bottom;
 	int b_left, b_right, b_top, b_bottom;
 
-	a_left = a->x;
-	a_right = a->x + a->w;
-	a_top = a->y;
-	a_bottom = a->y + a->h;
+	a_left = a.x;
+	a_right = a.x + a.w;
+	a_top = a.y;
+	a_bottom = a.y + a.h;
 
-	b_left = b->x;
-	b_right = b->x + b->w;
-	b_top = b->y;
-	b_bottom = b->y + b->h;
+	b_left = b.x;
+	b_right = b.x + b.w;
+	b_top = b.y;
+	b_bottom = b.y + b.h;
 
 	if (a_bottom < b_top) {
                 return false;
@@ -50,8 +50,6 @@ bool check_collision(SDL_Rect* a, SDL_Rect* b) {
         }
 
 	return true;
-
-	//return (SDL_HasIntersection(a, b) == SDL_TRUE) ? true : false;
 }
 bool check_collision_circle(double x1, double y1, double r1, double x2, double y2, double r2) {
         if (distance(x1, y1, x2, y2) > r1+r2) {
@@ -185,7 +183,7 @@ double angle_vbounce(double a) {
         return a;
 }
 
-std::pair<double,double> move_outside(std::pair<double,double> p1, std::pair<double,double> p2, SDL_Rect* r1, SDL_Rect* r2) {
+std::pair<double,double> move_outside(const std::pair<double,double>& p1, const std::pair<double,double>& p2, SDL_Rect* r1, const SDL_Rect& r2) {
         double dist = distance(p1.first, p1.second, p2.first, p2.second);
         double dir = direction_of(p2.first, p2.second, p1.first, p1.second);
         double x = p2.first, y = p2.second;
@@ -195,7 +193,7 @@ std::pair<double,double> move_outside(std::pair<double,double> p1, std::pair<dou
         int attempts = 0;
 
         r1->x = p2.first; r1->y = p2.second;
-        while ((check_collision(r1, r2))&&(attempts++ < max_attempts)) {
+        while ((check_collision(*r1, r2))&&(attempts++ < max_attempts)) {
                 x += sin(degtorad(dir)) * delta*dist;
                 y += -cos(degtorad(dir)) * delta*dist;
                 r1->x = x;

@@ -16,12 +16,12 @@
 
 int network_init() {
         int r = SDLNet_Init();
-        if (r) {
+        if (r != 0) {
                 std::cerr << "Error initializing network functionality: " << SDLNet_GetError() << "\n";
         }
         return r;
 }
-int network_quit() {
+int network_close() {
         SDLNet_Quit();
         return 0;
 }
@@ -84,14 +84,20 @@ int network_tcp_send(TCPsocket tcp, std::string str) {
 int network_tcp_recv(TCPsocket tcp, void* data, int maxlen) {
         int r = SDLNet_TCP_Recv(tcp, data, maxlen);
         if (r <= 0) {
-                std::cerr << "Failed to recieve data over TCP: " << SDLNet_GetError() << "\n";
+                std::cerr << "Failed to receive data over TCP: " << SDLNet_GetError() << "\n";
         }
         return r;
 }
 std::string network_tcp_recv(TCPsocket tcp, int maxlen) {
-        char data[maxlen];
+        char* data;
+        data = new char[maxlen];
+
         network_tcp_recv(tcp, data, maxlen);
-        return std::string(data);
+
+        std::string d (data);
+        delete[] data;
+
+        return d;
 }
 
 UDPsocket network_udp_open(int port) {
@@ -143,7 +149,6 @@ IPaddress* network_get_peer_address(UDPsocket udp, int channel) {
         ipa = SDLNet_UDP_GetPeerAddress(udp, channel);
         if (ipa == NULL) {
                 std::cerr << "Failed to get UDP peer address: " << SDLNet_GetError() << "\n";
-                return NULL;
         }
         return ipa;
 }
@@ -159,7 +164,7 @@ int network_udp_recv(UDPsocket udp, UDPpacket* packet) {
         int recv = 0;
         recv = SDLNet_UDP_Recv(udp, packet);
         if (recv == -1) {
-                std::cerr << "Failed to recieve data over UDP: " << SDLNet_GetError() << "\n";
+                std::cerr << "Failed to receive data over UDP: " << SDLNet_GetError() << "\n";
         }
         return recv;
 }
@@ -175,7 +180,7 @@ int network_udp_recvv(UDPsocket udp, UDPpacket** packets) {
         int recv = 0;
         recv = SDLNet_UDP_RecvV(udp, packets);
         if (recv == -1) {
-                std::cerr << "Failed to recieve vector data over UDP: " << SDLNet_GetError() << "\n";
+                std::cerr << "Failed to receive vector data over UDP: " << SDLNet_GetError() << "\n";
         }
         return recv;
 }

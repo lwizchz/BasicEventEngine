@@ -11,10 +11,10 @@
 
 #include "background.hpp"
 
-BackgroundData::BackgroundData(BEE::Background* new_background, bool new_is_visible, bool new_is_foreground, int new_x, int new_y, bool new_is_horizontal_tile, bool new_is_vertical_tile, int new_horizontal_speed, int new_vertical_speed, bool new_is_stretched) {
+BEE::BackgroundData::BackgroundData(BEE::Background* new_background, bool new_is_visible, bool new_is_foreground, int new_x, int new_y, bool new_is_horizontal_tile, bool new_is_vertical_tile, int new_horizontal_speed, int new_vertical_speed, bool new_is_stretched) {
 	init(new_background, new_is_visible, new_is_foreground, new_x, new_y, new_is_horizontal_tile, new_is_vertical_tile, new_horizontal_speed, new_vertical_speed, new_is_stretched);
 }
-int BackgroundData::init(BEE::Background* new_background, bool new_is_visible, bool new_is_foreground, int new_x, int new_y, bool new_is_horizontal_tile, bool new_is_vertical_tile, int new_horizontal_speed, int new_vertical_speed, bool new_is_stretched) {
+int BEE::BackgroundData::init(BEE::Background* new_background, bool new_is_visible, bool new_is_foreground, int new_x, int new_y, bool new_is_horizontal_tile, bool new_is_vertical_tile, int new_horizontal_speed, int new_vertical_speed, bool new_is_stretched) {
 	background = new_background;
 	is_visible = new_is_visible;
 	is_foreground = new_is_foreground;
@@ -29,6 +29,10 @@ int BackgroundData::init(BEE::Background* new_background, bool new_is_visible, b
 }
 
 BEE::Background::Background () {
+	if (BEE::resource_list->backgrounds.game != NULL) {
+		game = BEE::resource_list->backgrounds.game;
+	}
+
 	reset();
 }
 BEE::Background::Background (std::string new_name, std::string path) {
@@ -44,6 +48,7 @@ BEE::Background::Background (std::string new_name, std::string path) {
 	set_path(path);
 }
 BEE::Background::~Background() {
+	free();
 	BEE::resource_list->backgrounds.remove_resource(id);
 }
 int BEE::Background::add_to_resources(std::string path) {
@@ -77,9 +82,7 @@ int BEE::Background::add_to_resources(std::string path) {
 	return 0;
 }
 int BEE::Background::reset() {
-	if (is_loaded) {
-		free();
-	}
+	free();
 
 	name = "";
 	background_path = "";

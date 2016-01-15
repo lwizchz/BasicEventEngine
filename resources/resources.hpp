@@ -34,7 +34,7 @@ int BEE::init_resources() {
 		bk_green = new Background("bk_green", "green.png");
 
 		// Init fonts
-		font_liberation = new Font("font_liberation", "liberation_mono.ttf", 24);
+		font_liberation = new Font("font_liberation", "liberation_mono.ttf", 24, false);
 			font_liberation->load();
 
 		// Init paths

@@ -65,7 +65,7 @@ int BEE::CollisionTree::draw() {
 }
 int BEE::CollisionTree::insert(InstanceData* inst) {
 	SDL_Rect r = {(int)inst->x, (int)inst->y, inst->get_width(), inst->get_height()};
-	if (!check_collision(&region, &r)) {
+	if (!check_collision(region, r)) {
 		return 1;
 	}
 

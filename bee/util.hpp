@@ -123,14 +123,14 @@ int date_days_in_year(time_t);
 
 // Collision checking functions
 class Line; // defined below
-bool check_collision(SDL_Rect*, SDL_Rect*);
+bool check_collision(const SDL_Rect&, const SDL_Rect&);
 bool check_collision_circle(double, double, double, double, double, double);
 bool check_collision_line(Line, Line);
 bool check_collision_aligned_line(Line, Line);
 bool check_collision(SDL_Rect*, Line);
 double angle_hbounce(double);
 double angle_vbounce(double);
-std::pair<double,double> move_outside(std::pair<double,double>, std::pair<double,double>, SDL_Rect*, SDL_Rect*);
+std::pair<double,double> move_outside(const std::pair<double,double>&, const std::pair<double,double>&, SDL_Rect*, const SDL_Rect&);
 
 // Sound effect functions
 class se_chorus_data;
@@ -185,7 +185,7 @@ std::map<std::string,T> load_map(std::string);
 
 // Networking functions
 int network_init();
-int network_quit();
+int network_close();
 IPaddress* network_resolve_host(std::string, int);
 std::string network_get_address(Uint32);
 TCPsocket network_tcp_open(std::string, int);

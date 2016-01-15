@@ -35,9 +35,12 @@ class BEE::Font: public Resource {
 		TTF_Font* font;
 		bool is_loaded = false;
 		bool has_draw_failed = false;
+
+		Sprite* sprite_font;
+		bool is_sprite = false;
 	public:
 		Font();
-		Font(std::string, std::string, int);
+		Font(std::string, std::string, int, bool);
 		~Font();
 		int add_to_resources(std::string);
 		int reset();
@@ -61,13 +64,13 @@ class BEE::Font: public Resource {
 		int load();
 		int free();
 
-		TextData* draw_internal(int, int, std::string, SDL_Color);
-		TextData* draw(int, int, std::string, SDL_Color);
+		TextData* draw_internal(int, int, std::string, RGBA);
+		TextData* draw(int, int, std::string, RGBA);
 		TextData* draw(int, int, std::string);
-		TextData* draw(TextData*, int, int, std::string, SDL_Color);
+		TextData* draw(TextData*, int, int, std::string, RGBA);
 		TextData* draw(TextData*, int, int, std::string);
-		int draw_fast_internal(int, int, std::string, SDL_Color);
-		int draw_fast(int, int, std::string, SDL_Color);
+		int draw_fast_internal(int, int, std::string, RGBA);
+		int draw_fast(int, int, std::string, RGBA);
 		int draw_fast(int, int, std::string);
 		int draw_fast(int, int, std::string, rgba_t);
 

@@ -187,15 +187,15 @@ int BEE::InstanceData::reset_gravity_acceleration() {
 	acceleration_amount = 0.0;
 	return 0;
 }
-bool BEE::InstanceData::check_collision_polygon(CollisionPolygon& m1, CollisionPolygon& m2) {
+bool BEE::InstanceData::check_collision_polygon(const CollisionPolygon& m1, const CollisionPolygon& m2) {
 	SDL_Rect a = {(int)m1.x, (int)m1.y, (int)m1.w, (int)m1.h};
 	SDL_Rect b = {(int)m2.x, (int)m2.y, (int)m2.w, (int)m2.h};
 
 	if ((m1.lines.empty())||(m2.lines.empty())) {
-		return check_collision(&a, &b);
+		return check_collision(a, b);
 	} else {
 		bool r = false;
-		if (check_collision(&a, &b)) {
+		if (check_collision(a, b)) {
 			for (auto& l1 : m1.lines) {
 				for (auto& l2 : m2.lines) {
 					if (game->options->is_debug_enabled) {
@@ -213,10 +213,10 @@ bool BEE::InstanceData::check_collision_polygon(CollisionPolygon& m1, CollisionP
 		return r;
 	}
 }
-bool BEE::InstanceData::check_collision_polygon(CollisionPolygon& other) {
+bool BEE::InstanceData::check_collision_polygon(const CollisionPolygon& other) {
 	return check_collision_polygon(mask, other);
 }
-std::pair<double,double> BEE::InstanceData::move_outside_polygon(Line l, CollisionPolygon& m1, CollisionPolygon& m2) {
+std::pair<double,double> BEE::InstanceData::move_outside_polygon(const Line& l, CollisionPolygon* m1, const CollisionPolygon& m2) {
 	double dist = distance(l.x1, l.y1, l.x2, l.y2);
 	double dir = direction_of(l.x2, l.y2, l.x1, l.y1);
 	double mx = l.x2, my = l.y2;
@@ -225,17 +225,17 @@ std::pair<double,double> BEE::InstanceData::move_outside_polygon(Line l, Collisi
         double delta = 1.0/((double)max_attempts);
         int attempts = 0;
 
-        m1.x = mx; m1.y = my;
-        while ((check_collision_polygon(m1, m2))&&(attempts++ < max_attempts)) {
+        m1->x = mx; m1->y = my;
+        while ((check_collision_polygon(*m1, m2))&&(attempts++ < max_attempts)) {
                 mx += sin(degtorad(dir)) * delta*dist;
                 my += -cos(degtorad(dir)) * delta*dist;
-                m1.x = mx;
-                m1.y = my;
+                m1->x = mx;
+                m1->y = my;
         }
 
         return std::make_pair(mx, my);
 }
-int BEE::InstanceData::move_avoid(CollisionPolygon& other) {
+int BEE::InstanceData::move_avoid(const CollisionPolygon& other) {
 	mask.x = x;
 	mask.y = y;
 
@@ -249,7 +249,7 @@ int BEE::InstanceData::move_avoid(CollisionPolygon& other) {
 			if ((x != xprevious)||(y != yprevious)) {
 				mask.x = x;
 				mask.y = y;
-				std::tie(x, y) = move_outside_polygon({x, y, xprevious, yprevious}, mask, other);
+				std::tie(x, y) = move_outside_polygon({x, y, xprevious, yprevious}, &mask, other);
 				(*v).first = distance(x, y, xprevious, yprevious);
 			}
 		}
@@ -257,7 +257,7 @@ int BEE::InstanceData::move_avoid(CollisionPolygon& other) {
 
 	return 0;
 }
-int BEE::InstanceData::move_avoid(SDL_Rect* other) {
+int BEE::InstanceData::move_avoid(const SDL_Rect& other) {
 	SDL_Rect r = {(int)x, (int)y, 0, 0};
 	if (object->get_mask() != NULL) {
 		r.w = object->get_mask()->get_subimage_width();
@@ -762,13 +762,13 @@ int BEE::InstanceData::draw_debug() {
 		int xs = (int)x;
 		int ys = (int)y;
 		for (auto& l : mask.lines) {
-			game->draw_line(l.x1+xs, l.y1+ys, l.x2+xs, l.y2+ys, c_aqua);
+			game->draw_line(l.x1+xs, l.y1+ys, l.x2+xs, l.y2+ys, c_aqua, false);
 		}
 		return 0;
 	} else if (object->get_mask() != NULL) {
 		int w = object->get_mask()->get_subimage_width();
 		int h = object->get_mask()->get_height();
-		return game->draw_rectangle(x, y, w, h, false, c_aqua);
+		return game->draw_rectangle(x, y, w, h, false, c_aqua, false);
 	}
 	return 1;
 }
