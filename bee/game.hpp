@@ -33,7 +33,7 @@
 #define DEFAULT_GAME_FPS 60
 
 #ifndef BEE_GAME_ID // BEE_GAME_ID should always be defined but just in case
-#define BEE_GAME_ID 4294967295 // pow(2,32)
+#define BEE_GAME_ID 4294967295 // pow(2,32), the maximum value
 #endif // BEE_GAME_ID
 
 #include "debug.hpp"
@@ -306,7 +306,8 @@ class BEE::GameOptions {
 
 class BEE::CollisionPolygon {
 	public:
-		double x, y, w, h;
+		unsigned int line_amount = 0;
+		double x=0.0, y=0.0, w=0.0, h=0.0;
 		std::vector<Line> lines;
 
 		int add_vertex(double, double);

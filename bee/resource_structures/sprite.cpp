@@ -350,7 +350,7 @@ int BEE::Sprite::draw_subimage(int x, int y, int current_subimage, int w, int h,
 	if ((w >= 0)&&(h >= 0)) {
 		drect.w = w;
 		drect.h = h;
-	} else if (!subimages.empty()) {
+	} else if (subimage_amount > 1) {
 		drect.w = subimage_width;
 		drect.h = height;
 	} else {

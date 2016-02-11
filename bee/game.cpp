@@ -15,6 +15,10 @@ MetaResourceList* BEE::resource_list;
 bool BEE::is_initialized = false;
 
 BEE::BEE(int new_argc, char** new_argv, Room** new_first_room, GameOptions* new_options) {
+	if (!verify_assertions()) {
+		throw std::string("Couldn't verify assertions\n");
+	}
+
 	argc = new_argc;
 	argv = new_argv;
 	is_ready = false;

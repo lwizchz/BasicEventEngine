@@ -9,30 +9,220 @@
 #ifndef _BEE_UTIL
 #define _BEE_UTIL 1
 
-#include "util.hpp"
+#include "util.hpp" // Include function definitions
 
-#include "util/platform.hpp"
-#include "util/real.hpp"
-#include "util/string.hpp"
-#include "util/dates.hpp"
-#include "util/collision.hpp"
-#include "util/sound.hpp"
-#include "util/messagebox.hpp"
-#include "util/files.hpp"
-#include "util/script.hpp"
-#include "util/network.hpp"
+#include "util/platform.hpp" // Include platform compatibility function declarations
+#include "util/real.hpp" // Include real number functions
+#include "util/string.hpp" // Include string handling functions
+#include "util/dates.hpp" // Include date and time funcitons
+#include "util/collision.hpp" // Include collision checking functions
+#include "util/sound.hpp" // Include sound effect functions
+#include "util/messagebox.hpp" // Include message box functions
+#include "util/files.hpp" // Include file handling functions
+#include "util/network.hpp" // Include networking functions
 
-std::pair<int,int> coord_approach(int x1, int y1, int x2, int y2, int speed) {
-	float d = distance(x1, y1, x2, y2);
-	if (d <= speed) {
-		return std::make_pair(x2, y2);
-	}
- 	float ratio = speed/d;
+#ifndef NDEBUG
 
-	int x3 = x1 + (x2-x1)*ratio;
-	int y3 = y1 + (y2-y1)*ratio;
+#define CATCH_CONFIG_RUNNER
+#include <catch.hpp> // Include the necessary library headers
 
-	return std::make_pair(x3, y3);
+// Real number function assertions
+TEST_CASE("real/random", "The random functions work") {
+	REQUIRE(random(20) < 20);
+	REQUIRE(is_between((int)random_range(20, 40), 20, 40));
+	REQUIRE(random_set_seed(5) == 5);
+	REQUIRE(random_reset_seed() != DEFAULT_RANDOM_SEED);
+	REQUIRE(randomize() != DEFAULT_RANDOM_SEED);
 }
+TEST_CASE("real/math", "The math functions work") {
+	REQUIRE(sign(5) == 1);
+	REQUIRE(sign(0) == 0);
+	REQUIRE(sign(-5) == -1);
+	REQUIRE(sign(5.0) == 1);
+	REQUIRE(sign(0.0) == 0);
+	REQUIRE(sign(-5.0) == -1);
+	REQUIRE(sqr(5) == 25);
+	REQUIRE(sqr(5.0) == 25.0);
+	REQUIRE(logn(5.0, 1.0) == 0.0);
+	REQUIRE(logn(5.0, 5.0) == 1.0);
+	REQUIRE(logn(5.0, 10.0) == Approx(1.431).epsilon(0.001));
+	REQUIRE(degtorad(90.0) == Approx(PI/2.0));
+	REQUIRE(degtorad(360.0) == Approx(2.0*PI));
+	REQUIRE(radtodeg(PI) == Approx(180.0));
+	REQUIRE(radtodeg(PI/3.0) == Approx(60.0));
+	REQUIRE(opposite_angle(0.0) == 180.0);
+	REQUIRE(opposite_angle(60.0) == 240.0);
+	REQUIRE(opposite_angle(270.0) == 90.0);
+	REQUIRE(opposite_angle(360.0) == 180.0);
+	REQUIRE(opposite_angle(-90.0) == 90.0);
+}
+TEST_CASE("real/movement", "The movement functions work") {
+	REQUIRE(direction_of(1.0, 2.0, 3.0, 4.0) == Approx(opposite_angle(direction_of(3.0, 4.0, 1.0, 2.0))));
+	REQUIRE(direction_of(0.0, 0.0, 0.0, -1.0) == Approx(0.0));
+	REQUIRE(direction_of(0.0, 0.0, 1.0, 0.0) == Approx(90.0));
+	REQUIRE(direction_of(0.0, 0.0, 0.0, 1.0) == Approx(180.0));
+	REQUIRE(direction_of(0.0, 0.0, -1.0, 0.0) == Approx(270.0));
+	REQUIRE(distance(0.0, 0.0, 1.0, 0.0) == 1.0);
+	REQUIRE(distance(0.0, 0.0, 3.0, 4.0) == 5.0);
+	REQUIRE(distance(0.0, 0.0, 0.0, 0.0) == 0.0);
+}
+TEST_CASE("real/dot_product", "The dot product functions work") {
+	REQUIRE(dot_product(1, 2, 3, 4) == 11);
+	REQUIRE(dot_product(1.0, 2.0, 3.0, 4.0) == 11.0);
+	REQUIRE(dot_product(std::make_pair(1, 2), std::make_pair(3, 4)) == 11);
+}
+TEST_CASE("real/bounds", "The bounding functions work") {
+	REQUIRE(is_between(5, 3, 6) == true);
+	REQUIRE(is_between(6, 3, 6) == true);
+	REQUIRE(is_between(7, 3, 6) == false);
+	REQUIRE(is_between(5, 6, 3) == true);
+	REQUIRE(is_between(5.0, 3.0, 6.0) == true);
+	REQUIRE(is_angle_between(90, 0, 180) == true);
+	REQUIRE(is_angle_between(180, 0, 180) == true);
+	REQUIRE(is_angle_between(270, 0, 180) == false);
+	REQUIRE(is_angle_between(90.0, 0.0, 180.0) == true);
+	REQUIRE(is_angle_between(0, 270, 90) == true);
+	REQUIRE(is_angle_between(360, 270, 90) == true);
+	REQUIRE(fit_bounds(5, 3, 6) == 5);
+	REQUIRE(fit_bounds(6, 3, 6) == 6);
+	REQUIRE(fit_bounds(7, 3, 6) == 6);
+	REQUIRE(fit_bounds(5, 6, 3) == 5);
+	REQUIRE(fit_bounds(5.0, 3.0, 6.0) == 5.0);
+}
+
+// String handling function assertions
+TEST_CASE("string/charcode", "The char code conversion functions work") {
+	REQUIRE(chr(65) == "A");
+	REQUIRE(ord('A') == 65);
+	REQUIRE(ord("ABC") == 65);
+	Uint8 ca[] = {3, 65, 66, 67};
+	REQUIRE(chra(ca) == std::string("ABC"));
+	REQUIRE(chra(orda("ABC")) == chra(ca));
+}
+TEST_CASE("string/alteration", "The string alteration functions work") {
+	REQUIRE(string_lower("ABC") == "abc");
+	REQUIRE(string_upper("abc") == "ABC");
+	REQUIRE(string_letters("ABC123,./") == "ABC");
+	REQUIRE(string_digits("ABC123,./") == "123");
+	REQUIRE(string_lettersdigits("ABC123,./") == "ABC123");
+
+	std::map<int,std::string> m = {{0, "a"}, {1, "b"}, {2, "c"}};
+	REQUIRE(split("a,b,c", ',') == m);
+	REQUIRE(handle_newlines("a\nb\nc") == m);
+
+	REQUIRE(ltrim("  ABC  ") == "ABC  ");
+	REQUIRE(rtrim("  ABC  ") == "  ABC");
+	REQUIRE(trim("  ABC  ") == "ABC");
+}
+TEST_CASE("string/misc", "The miscellaneous string functions work") {
+	REQUIRE(stringtobool("true") == true);
+	REQUIRE(stringtobool("false") == false);
+	REQUIRE(stringtobool("0") == false);
+	REQUIRE(stringtobool("1") == true);
+	REQUIRE(stringtobool("True") == true);
+	REQUIRE(stringtobool("False") == false);
+	REQUIRE(stringtobool("iowhjoidj") == true);
+	REQUIRE(stringtobool("20") == true);
+
+	REQUIRE(booltostring(true) == "true");
+	REQUIRE(booltostring(false) == "false");
+
+	REQUIRE(string_replace("a,b,c", ",", ":") == "a:b:c");
+	REQUIRE(string_replace("a:test:b:test:c", ":test:", ",") == "a,b,c");
+
+	/*REQUIRE(clipboard_set_text("test") == 0); // These functions require SDL to be initialized
+	REQUIRE(clipboard_get_text() == "test");
+	REQUIRE(clipboard_has_text() == true);*/
+}
+
+// Date and time function assertions
+TEST_CASE("date/setters", "The date setter functions work") {
+	time_t t = date_create_datetime(2015, 11, 1, 11, 45, 24);
+	REQUIRE(date_date_of(t) == date_create_date(2015, 11, 1));
+	REQUIRE(date_time_of(t) == date_create_time(11, 45, 24));
+
+	REQUIRE(date_inc_year(t, 5) == date_create_datetime(2020, 11, 1, 11, 45, 24));
+	REQUIRE(date_inc_month(t, 5) == date_create_datetime(2015, 16, 1, 11, 45, 24));
+	REQUIRE(date_inc_week(t, 5) == date_create_datetime(2015, 11, 36, 11, 45, 24));
+	REQUIRE(date_inc_day(t, 5) == date_create_datetime(2015, 11, 6, 11, 45, 24));
+	REQUIRE(date_inc_hour(t, 5) == date_create_datetime(2015, 11, 1, 16, 45, 24));
+	REQUIRE(date_inc_minute(t, 5) == date_create_datetime(2015, 11, 1, 11, 50, 24));
+	REQUIRE(date_inc_second(t, 5) == date_create_datetime(2015, 11, 1, 11, 45, 29));
+}
+TEST_CASE("date/getters", "The date getter functions work") {
+	time_t t = date_create_datetime(2015, 11, 1, 11, 45, 24);
+	REQUIRE(date_get_year(t) == 2015);
+	REQUIRE(date_get_month(t) == 11);
+	REQUIRE(date_get_week(t) == 44);
+	REQUIRE(date_get_day(t) == 1);
+	REQUIRE(date_get_hour(t) == 11);
+	REQUIRE(date_get_minute(t) == 45);
+	REQUIRE(date_get_second(t) == 24);
+	REQUIRE(date_get_weekday(t) == 0);
+	REQUIRE(date_get_day_of_year(t) == 304);
+	REQUIRE(date_get_hour_of_year(t) == 7307);
+	REQUIRE(date_get_minute_of_year(t) == 438465);
+	REQUIRE(date_get_second_of_year(t) == 26307924);
+
+	time_t ot = date_create_datetime(1997, 1, 24, 4, 25, 00);
+	REQUIRE(date_year_span(t, ot) == Approx(18.78).epsilon(0.01));
+	REQUIRE(date_month_span(t, ot) == Approx(228.51).epsilon(0.01));
+	REQUIRE(date_week_span(t, ot) == Approx(979.33).epsilon(0.01));
+	REQUIRE(date_day_span(t, ot) == Approx(6855.31).epsilon(0.01));
+	REQUIRE(date_hour_span(t, ot) == Approx(164527.34).epsilon(0.01));
+	REQUIRE(date_minute_span(t, ot) == Approx(9871640.40).epsilon(0.01));
+	REQUIRE(date_second_span(t, ot) == Approx(592298424.00).epsilon(0.01));
+	REQUIRE(date_compare_datetime(t, ot) == 1);
+	REQUIRE(date_compare_date(t, ot) == 1);
+	REQUIRE(date_compare_time(t, ot) == 1);
+	REQUIRE(date_datetime_string(t) == "Sun Nov 01 11:45:24 2015");
+	REQUIRE(date_date_string(t) == "Sun Nov 01 2015");
+	REQUIRE(date_time_string(t) == "11:45:24");
+	REQUIRE(date_is_leap_year(t) == false);
+	REQUIRE(date_is_leap_year() == true);
+	REQUIRE(date_is_today(t) == false);
+	REQUIRE(date_is_today(date_current_datetime()) == true);
+	REQUIRE(date_days_in_month(t) == 30);
+	REQUIRE(date_days_in_month(ot) == 31);
+	REQUIRE(date_days_in_year(t) == 365);
+}
+
+// Collision checking function assertions, TODO: add more tests for each case
+TEST_CASE("collision/rect", "The rectangle collision checking functions work") {
+	SDL_Rect a = {0, 0, 10, 10};
+	SDL_Rect b = {5, 5, 10, 20};
+	REQUIRE(check_collision(a, b) == true);
+}
+TEST_CASE("collision/circle", "The circle collision checking functions work") {
+	REQUIRE(check_collision_circle(0, 0, 5, 0, 7, 3) == true);
+}
+TEST_CASE("collision/line", "The line collision checking functions work") {
+	Line l1 = {0, 0, 5, 10};
+	Line l2 = {5, 5, 0, 10};
+	REQUIRE(check_collision_line(l1, l2) == true);
+
+	l1 = {0, 0, 10, 0};
+	l2 = {5, 5, 5, -5};
+	REQUIRE(check_collision_line(l1, l2) == true);
+}
+TEST_CASE("collision/bounce", "The collision bouncing functions work") {
+	REQUIRE(angle_hbounce(60.0) == 120.0);
+	REQUIRE(angle_hbounce(120.0) == 60.0);
+
+	REQUIRE(angle_vbounce(60.0) == 300.0);
+	REQUIRE(angle_vbounce(300.0) == 60.0);
+}
+
+bool verify_assertions() {
+	return !(bool)Catch::Session().run();
+}
+
+#else // NDEBUG
+
+bool verify_assertions() {
+	return true;
+}
+
+#endif // NDEBUG
 
 #endif // _BEE_UTIL

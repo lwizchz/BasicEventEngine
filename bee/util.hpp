@@ -9,26 +9,28 @@
 #ifndef _BEE_UTIL_H
 #define _BEE_UTIL_H 1
 
-#include <iostream>
+#include <string> // Include the necessary library headers
 #include <map>
-#include <SDL2/SDL.h>
+
+#include <SDL2/SDL.h> // Include the necessary SDL headers
 #include <SDL2/SDL_net.h>
 
-// General utility
-std::pair<int,int> coord_approach(int, int, int, int, int);
+// General utility functions bee/util.cpp
+bool verify_assertions();
 
-// Platform compatibility functions
+// Platform compatibility functions, bee/util/platform.hpp
+int bee_get_platform();
 int bee_mkdir(const char*, mode_t);
-std::string bee_mkdtemp(char*);
+std::string bee_mkdtemp(const std::string&);
 std::string bee_inet_ntop(const void* src);
 
-// Real number functions
+// Real number functions, bee/util/real.hpp
 #define PI 3.14159265
 unsigned int random_internal(unsigned int, unsigned int, unsigned int);
 unsigned int random(int);
 unsigned int random_range(unsigned int, unsigned int);
-unsigned random_get_seed();
-unsigned random_set_seed(unsigned int);
+unsigned int random_get_seed();
+unsigned int random_set_seed(unsigned int);
 unsigned int random_reset_seed();
 unsigned int randomize();
 template <typename T>
@@ -38,12 +40,14 @@ T sqr(T);
 double logn(double, double);
 double degtorad(double);
 double radtodeg(double);
+double opposite_angle(double);
 double direction_of(double, double, double, double);
 double distance(double, double, double, double);
+std::pair<int,int> coord_approach(int, int, int, int, int);
 template <typename T>
 T dot_product(T, T, T, T);
 template <typename T>
-T dot_product(std::pair<T,T>, std::pair<T,T>);
+T dot_product(const std::pair<T,T>&, const std::pair<T,T>&);
 template <typename T>
 bool is_between(T, T, T);
 template <typename T>
@@ -51,30 +55,30 @@ bool is_angle_between(T, T, T);
 template <typename T>
 T fit_bounds(T, T, T);
 
-// String handling functions
+// String handling functions, bee/util/string.hpp
 std::string chr(int);
 int ord(char);
-int ord(std::string);
+int ord(const std::string&);
 std::string chra(Uint8*);
-Uint8* orda(std::string);
-std::string string_lower(std::string);
-std::string string_upper(std::string);
-std::string string_letters(std::string);
-std::string string_digits(std::string);
-std::string string_lettersdigits(std::string);
-std::map<int,std::string> split(std::string, char);
-std::map<int,std::string> handle_newlines(std::string);
-std::string ltrim(std::string);
-std::string rtrim(std::string);
-std::string trim(std::string);
-bool stringtobool(std::string);
+Uint8* orda(const std::string&);
+std::string string_lower(const std::string&);
+std::string string_upper(const std::string&);
+std::string string_letters(const std::string&);
+std::string string_digits(const std::string&);
+std::string string_lettersdigits(const std::string&);
+std::map<int,std::string> split(const std::string&, char);
+std::map<int,std::string> handle_newlines(const std::string&);
+std::string ltrim(const std::string&);
+std::string rtrim(const std::string&);
+std::string trim(const std::string&);
+bool stringtobool(const std::string&);
 std::string booltostring(bool);
-std::string string_replace(std::string, std::string, std::string);
+std::string string_replace(const std::string&, const std::string&, const std::string&);
 bool clipboard_has_text();
 std::string clipboard_get_text();
-int clipboard_set_text(std::string);
+int clipboard_set_text(const std::string&);
 
-// Date and time functions
+// Date and time functions, bee/util/dates.hpp
 time_t date_date_of(time_t);
 time_t date_time_of(time_t);
 time_t date_current_datetime();
@@ -121,18 +125,17 @@ bool date_is_today(time_t);
 int date_days_in_month(time_t);
 int date_days_in_year(time_t);
 
-// Collision checking functions
+// Collision checking functions, bee/util/collision.hpp
 class Line; // defined below
 bool check_collision(const SDL_Rect&, const SDL_Rect&);
 bool check_collision_circle(double, double, double, double, double, double);
-bool check_collision_line(Line, Line);
-bool check_collision_aligned_line(Line, Line);
-bool check_collision(SDL_Rect*, Line);
+bool check_collision_line(const Line&, const Line&);
+bool check_collision_aligned_line(const Line&, const Line&);
+bool check_collision(const SDL_Rect&, const Line&);
 double angle_hbounce(double);
 double angle_vbounce(double);
-std::pair<double,double> move_outside(const std::pair<double,double>&, const std::pair<double,double>&, SDL_Rect*, const SDL_Rect&);
 
-// Sound effect functions
+// Sound effect functions, bee/util/sound.hpp
 class se_chorus_data;
 void sound_effect_chorus(int, void*, int, void*);
 void sound_effect_chorus_cleanup(int, void*);
@@ -155,7 +158,7 @@ class se_equalizer_data;
 void sound_effect_equalizer(int, void*, int, void*);
 void sound_effect_equalizer_cleanup(int, void*);
 
-// Message box functions
+// Message box functions, bee/util/messagebox.hpp
 int show_message(std::string);
 int show_warning(std::string);
 int show_error(std::string, bool);
@@ -163,7 +166,7 @@ int show_error(std::string);
 int show_message(std::string, std::string, std::string, std::string);
 bool show_question(std::string);
 
-// File handling functions
+// File handling functions, bee/util/files.hpp
 bool file_exists(std::string);
 int file_delete(std::string);
 int file_rename(std::string, std::string);
@@ -173,17 +176,7 @@ bool directory_exists(std::string);
 int directory_create(std::string);
 std::string directory_get_temp();
 
-// Scripting functions
-template <typename T>
-T execute_string(std::string);
-template <typename T>
-T execute_file(std::string);
-template <typename T>
-int save_map(std::string, std::map<std::string,T>);
-template <typename T>
-std::map<std::string,T> load_map(std::string);
-
-// Networking functions
+// Networking functions, bee/util/network.hpp
 int network_init();
 int network_close();
 IPaddress* network_resolve_host(std::string, int);
@@ -217,8 +210,9 @@ int network_packet_realloc(UDPpacket*, int);
 UDPpacket** network_packet_allocv(int, int);
 int network_packet_freev(UDPpacket**);
 
-#include "util/template.hpp"
+#include "util/template.hpp" // Include functions which require templates
 
+// Define a struct for line data
 class Line {
         public:
                 double x1, y1, x2, y2;

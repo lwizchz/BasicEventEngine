@@ -44,9 +44,12 @@ class BEE::Room: public Resource {
 		std::map<int,BackgroundData*> backgrounds;
 		bool is_views_enabled;
 		std::map<int,ViewData*> views;
+
 		std::map<int,InstanceData*> instances;
 		std::map<InstanceData*,int,InstanceDataSort> instances_sorted;
 		std::vector<InstanceData*> destroyed_instances;
+		bool should_sort = false;
+
 		std::map<int,ParticleSystem*> particles;
 		int particle_count = 0;
 		int next_instance_id = 0;
@@ -82,7 +85,7 @@ class BEE::Room: public Resource {
 		bool get_is_views_enabled();
 		std::map<int,ViewData*> get_views();
 		std::string get_view_string();
-		std::map<int,InstanceData*> get_instances();
+		const std::map<int,InstanceData*>& get_instances();
 		std::string get_instance_string();
 		ViewData* get_current_view();
 
@@ -106,6 +109,7 @@ class BEE::Room: public Resource {
 		int add_instance_grid(int, Object*, double, double);
 		int remove_instance(int);
 		int sort_instances();
+		int request_instance_sort();
 		int add_particle_system(ParticleSystem*);
 		int add_particle(ParticleSystem*, Particle*, int, int);
 		int clear_particles();

@@ -12,6 +12,7 @@
 // Networking functions
 
 #include <string>
+
 #include <SDL2/SDL_net.h>
 
 int network_init() {

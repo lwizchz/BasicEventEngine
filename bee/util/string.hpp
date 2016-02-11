@@ -11,133 +11,227 @@
 
 // String handling functions
 
-#include <string>
+#include <string> // Include the necessary library headers
 #include <algorithm>
 #include <regex>
-#include <map>
-#include <SDL2/SDL.h>
 
+#include <SDL2/SDL.h> // Include the SDL2 headers for clipboard access
+
+/*
+* chr() - Convert the given character code to a string
+* @c: the character code to convert
+*/
 std::string chr(int c) {
-        char character = c;
-        return std::to_string(character);
+        std::string str = "0";
+        str[0] = c;
+        return str;
 }
-
+/*
+* ord() - Convert the given character to a character code
+* @c: the character to convert
+*/
 int ord(char c) {
-        std::string str = std::to_string(c);
-        return str[0];
+        return (int)c;
 }
-int ord(std::string s) {
+/*
+* ord() - Convert the given string's first character into a character code
+* @s: the string to operate on
+*/
+int ord(const std::string& s) {
         return s[0];
 }
+/*
+* chra() - Convert the given array of character data into a string
+* ! Note that the first element must be the total length of the array
+* @carray: the array to convert
+*/
 std::string chra(Uint8* carray) {
-        std::string str;
-        for (unsigned int i=0; i<carray[0]; i++) {
-                str += chr(carray[i+1]);
+        std::string str = ""; // Initialize an empty string to store the data in
+        for (unsigned int i=0; i<carray[0]; i++) { // Iterate over the array and append each element as a character
+                str.append(chr(carray[i+1]));
         }
-        return str;
+        return str; // Return the string on success
 }
-Uint8* orda(std::string s) {
-        Uint8* carray = (Uint8*)malloc(s.length()+1);
-        carray[0] = s.length()+1;
-        for (unsigned int i=0; i<s.length(); i++) {
+/*
+* orda() - Convert the given string into an array of character data
+* ! The array format is the same as accepted by chra()
+* ! Be sure to free the character array when you are done using it
+* @s: the string to convert
+*/
+Uint8* orda(const std::string& s) {
+        //Uint8* carray = (Uint8*)malloc(s.length()+1); // Allocate space for the string and the metadata
+        Uint8* carray = new Uint8[s.length()+1]; // Allocate space for the string and the metadata
+        carray[0] = s.length(); // Prepend the length of the string
+        for (unsigned int i=0; i<s.length(); i++) { // Iterate over the string and add each character to the array
                 carray[i+1] = s[i];
         }
-        return carray;
+        return carray; // Return the array on success
 }
 
-std::string string_lower(std::string str) {
-        std::transform(str.begin(), str.end(), str.begin(), ::tolower);
-        return str;
+/*
+* string_lower() - Change the characters in the string so that they are all lowercase
+* @str: the string to operate on
+*/
+std::string string_lower(const std::string& str) {
+        std::string s = ""; // Declare a new string of the same size as the given string
+        s.resize(str.length());
+        std::transform(str.begin(), str.end(), s.begin(), ::tolower); // Transform the given string to lowercase
+        return s;
 }
-std::string string_upper(std::string str) {
-        std::transform(str.begin(), str.end(), str.begin(), ::toupper);
-        return str;
+/*
+* string_upper() - Change the characters in the string so that they are all uppercase
+* @str: the string to operate on
+*/
+std::string string_upper(const std::string& str) {
+        std::string s = ""; // Declare a new string of the same size as the given string
+        s.resize(str.length());
+        std::transform(str.begin(), str.end(), s.begin(), ::toupper); // Transform the given string to uppercase
+        return s;
 }
-
-std::string string_letters(std::string str) {
-        return std::regex_replace(str, std::regex("[^[:alnum:]]"), std::string(""));
+/*
+* string_letters() - Filter the characters in the string so that only alphabetical characters are returned
+* @str: the string to operate on
+*/
+std::string string_letters(const std::string& str) {
+        return std::regex_replace(str, std::regex("[^[:alpha:]]"), std::string(""));
 }
-std::string string_digits(std::string str) {
+/*
+* string_letters() - Filter the characters in the string so that only digits are returned
+* @str: the string to operate on
+*/
+std::string string_digits(const std::string& str) {
         return std::regex_replace(str, std::regex("[^[:digit:]]"), std::string(""));
 }
-std::string string_lettersdigits(std::string str) {
-        return std::regex_replace(str, std::regex("[^[:alnum:][:digit:]]"), std::string(""));
+/*
+* string_letters() - Filter the characters in the string so that only alphanumeric characters are returned
+* @str: the string to operate on
+*/
+std::string string_lettersdigits(const std::string& str) {
+        return std::regex_replace(str, std::regex("[^[:alnum:]]"), std::string(""));
 }
 
-std::map<int,std::string> split(std::string input, char delimiter) {
-        std::map<int,std::string> output;
-	if (input.size() > 0) {
-		std::istringstream input_stream (input);
-		while (!input_stream.eof()) {
+/*
+* split() - Split a string by a given delimiter and return the data as a map
+* @input: the string to operate on
+* @delimiter: the character to use to split the string
+*/
+std::map<int,std::string> split(const std::string& input, char delimiter) {
+        std::map<int,std::string> output; // Declare a map to store the split strings
+	if (!input.empty()) { // Only attempt to operate if the input is not empty
+		std::istringstream input_stream (input); // Convert the string to a string stream for iteration
+		while (!input_stream.eof()) { // While there is more data in the string stream
 			std::string tmp;
-			getline(input_stream, tmp, delimiter);
-			output.insert(std::make_pair(output.size(), tmp));
+			getline(input_stream, tmp, delimiter); // Fetch the next substring before the given delimiter and store it in the temporary string
+			output.insert(std::make_pair(output.size(), tmp)); // Insert the substring into the map
 		}
 	}
-	return output;
+	return output; // Return the map on success
 }
-std::map<int,std::string> handle_newlines(std::string input) {
+/*
+* handle_newlines() - Split a string by newlines and return the data as a map
+* @input: the string to operate on
+*/
+std::map<int,std::string> handle_newlines(const std::string& input) {
 	return split(input, '\n');
 }
 
-std::string ltrim(std::string str) {
+/*
+* ltrim() - Trim the string for whitespace on the left side
+* @str: the string to operate on
+*/
+std::string ltrim(const std::string& str) {
         unsigned int i;
-        for (i=0; i<str.length(); i++) {
+        for (i=0; i<str.length(); i++) { // Iterate over the given string until there is a non-space character
                 if (!isspace(str[i])) {
                         break;
                 }
         }
-        return str.substr(i);
+        return str.substr(i); // Return the string beginning at the first non-space character
 }
-std::string rtrim(std::string str) {
+/*
+* rtrim() - Trim the string for whitespace on the right side
+* @str: the string to operate on
+*/
+std::string rtrim(const std::string& str) {
         int i;
-        for (i=str.length()-1; i>=0; i--) {
+        for (i=str.length()-1; i>=0; i--) { // Reverse iterate over the given string until there is a non-space character
                 if (!isspace(str[i])) {
                         break;
                 }
         }
-        return str.substr(0, i+1);
+        return str.substr(0, i+1); // Return the string ending at the first non-space character
 }
-std::string trim(std::string str) {
+/*
+* trim() - Trim the string for whitespace on both sides
+* @str: the string to operate on
+*/
+std::string trim(const std::string& str) {
         return rtrim(ltrim(str));
 }
 
-bool stringtobool(std::string str) {
-        str = string_lower(trim(str));
-        std::vector<std::string> false_values = {"0", "false"};
-        for (auto& s : false_values) {
-                if (str == s) {
-                        return false;
+/*
+* stringtobool() - Convert the given string to a boolean value
+* ! Currently everything besides "0" and "false" will evaluate to true
+* @str: the string to convert
+*/
+bool stringtobool(const std::string& str) {
+        std::string lstr = string_lower(trim(str)); // Trim the string and convert it to lowercase
+        std::vector<std::string> false_values = {"0", "false"}; // Declare the values which shall evaluate to false
+        for (auto& s : false_values) { // Iterate over the false values and compare them to the string
+                if (lstr == s) {
+                        return false; // Return false if the string is one of the false values
                 }
         }
-        return true;
+        return true; // Return true if the string is not any of the false values
 }
+/*
+* booltostring() - Convert the given boolean value to a string
+* @b: the bool to convert
+*/
 std::string booltostring(bool b) {
         if (b) {
-                return "true";
+                return "true"; // Return "true" if true
         }
-        return "false";
+        return "false"; // Otherwise, return false
 }
 
-std::string string_replace(std::string str, std::string search, std::string replacement) {
-        size_t start_pos = 0;
-        while ((start_pos = str.find(search, start_pos)) != std::string::npos) {
-                str.replace(start_pos, search.length(), replacement);
-                start_pos += replacement.length();
+/*
+* string_replace() - Replace all occurences of the given search string with the given replacement
+* @str: the string to operate on
+* @search: the string to search and replace
+* @replacment: the string to replace the search
+*/
+std::string string_replace(const std::string& str, const std::string& search, const std::string& replacement) {
+        std::string s (str); // Create a new string so that the given string is not modified
+        size_t start_pos = 0; // Start at the beginning of the string
+        while ((start_pos = s.find(search, start_pos)) != std::string::npos) { // Continue to search through the string for the given substring
+                s.replace(start_pos, search.length(), replacement); // Replace the substring
+                start_pos += replacement.length(); // Start from the end of the replacement
         }
-        return str;
+        return s; // Return the modified string
 }
 
+/*
+* clipboard_has_text() - Return whether there is currently text in the clipboard
+*/
 bool clipboard_has_text() {
         return (SDL_HasClipboardText() == SDL_TRUE) ? true : false;
 }
+/*
+* clipboard_get_text() - Return the text that is currently in the clipboard
+*/
 std::string clipboard_get_text() {
-        char* cstr = SDL_GetClipboardText();
+        char* cstr = SDL_GetClipboardText(); // Get the clipboard text and convert it to a string
         std::string s (cstr);
         free(cstr);
-        return s;
+        return s; // Return the string on success
 }
-int clipboard_set_text(std::string str) {
+/*
+* clipboard_set_text() - Copy the given text to the clipboard
+* ! See https://wiki.libsdl.org/SDL_SetClipboardText for details
+* @str: the string to copy
+*/
+int clipboard_set_text(const std::string& str) {
         return SDL_SetClipboardText(str.c_str());
 }
 

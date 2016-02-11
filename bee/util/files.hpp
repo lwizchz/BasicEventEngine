@@ -11,6 +11,7 @@
 
 // File handling functions
 
+#include <string>
 #include <fstream>
 #include <sys/stat.h>
 

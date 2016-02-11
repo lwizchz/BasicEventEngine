@@ -9,9 +9,11 @@
 #ifndef _BEE_UTIL_TEMPLATE_H
 #define _BEE_UTIL_TEMPLATE_H 1
 
+#include <string>
 #include <vector>
 #include <algorithm>
 #include <sstream>
+#include <map>
 
 // Template requiring functions
 

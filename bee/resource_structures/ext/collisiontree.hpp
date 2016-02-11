@@ -14,7 +14,7 @@
 class BEE::CollisionTree {
 	public:
 		const unsigned int max_depth = 8;
-		const unsigned int default_capacity = 8;
+		const unsigned int default_capacity = 16;
 		unsigned int max_capacity = default_capacity;
 
 		BEE* game = NULL;

@@ -72,6 +72,7 @@ int BEE::CollisionTree::insert(InstanceData* inst) {
 	if (topleft == NULL) {
 		if (instances.size() < max_capacity) {
 			instances.push_back(inst);
+			std::sort(instances.begin(), instances.end());
 			return 0;
 		}
 
@@ -153,6 +154,8 @@ int BEE::CollisionTree::combine() {
 		if (br == 1) {
 			instances.insert(instances.end(), bottomright->instances.begin(), bottomright->instances.end());
 		}
+
+		std::sort(instances.begin(), instances.end());
 
 		delete topleft;
 		topleft = NULL;

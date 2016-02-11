@@ -27,6 +27,8 @@ int BEE::CollisionPolygon::finalize() {
 		lines.front().x1 = lines.back().x2;
 		lines.front().y1 = lines.back().y2;
 
+		line_amount = lines.size();
+
 		// Reorder lines
 		/*std::vector<Line> new_polygon;
 		new_polygon.reserve(lines.size());
@@ -71,7 +73,11 @@ int BEE::InstanceData::init(int new_id, Object* new_object, int new_x, int new_y
 	}
 
 	if (object->get_mask() != NULL) {
-		mask = {x, y, (double)get_width(), (double)get_height(), {}};
+		mask = {};
+		mask.x = x;
+		mask.y = y;
+		mask.w = (double)get_width();
+		mask.h = (double)get_height();
 
 		mask.add_vertex(0.0, 0.0);
 		mask.add_vertex((double)get_width(), 0.0);
@@ -191,20 +197,21 @@ bool BEE::InstanceData::check_collision_polygon(const CollisionPolygon& m1, cons
 	SDL_Rect a = {(int)m1.x, (int)m1.y, (int)m1.w, (int)m1.h};
 	SDL_Rect b = {(int)m2.x, (int)m2.y, (int)m2.w, (int)m2.h};
 
-	if ((m1.lines.empty())||(m2.lines.empty())) {
+	if ((m1.line_amount == 0)||(m2.line_amount == 0)) {
 		return check_collision(a, b);
 	} else {
 		bool r = false;
 		if (check_collision(a, b)) {
-			for (auto& l1 : m1.lines) {
-				for (auto& l2 : m2.lines) {
+			for (const auto& l1 : m1.lines) {
+				for (const auto& l2 : m2.lines) {
 					if (game->options->is_debug_enabled) {
 						game->draw_line(l1.x1+m1.x, l1.y1+m1.y, l1.x2+m1.x, l1.y2+m1.y, {255, 0, 0, 255}, true);
 					}
 
 					if (check_collision_line({l1.x1+m1.x, l1.y1+m1.y, l1.x2+m1.x, l1.y2+m1.y}, {l2.x1+m2.x, l2.y1+m2.y, l2.x2+m2.x, l2.y2+m2.y})) {
-					//if (check_collision_aligned_line({l1.x1+m1.x, l1.y1+m1.y, l1.x2+m1.x, l1.y2+m1.y}, {l2.x1+m2.x, l2.y1+m2.y, l2.x2+m2.x, l2.y2+m2.y})) {
-						//return true;
+						if (!game->options->is_debug_enabled) {
+							return true;
+						}
 						r = true;
 					}
 				}
@@ -216,24 +223,32 @@ bool BEE::InstanceData::check_collision_polygon(const CollisionPolygon& m1, cons
 bool BEE::InstanceData::check_collision_polygon(const CollisionPolygon& other) {
 	return check_collision_polygon(mask, other);
 }
-std::pair<double,double> BEE::InstanceData::move_outside_polygon(const Line& l, CollisionPolygon* m1, const CollisionPolygon& m2) {
+int BEE::InstanceData::move_outside(const Line& l, const CollisionPolygon& m) {
 	double dist = distance(l.x1, l.y1, l.x2, l.y2);
-	double dir = direction_of(l.x2, l.y2, l.x1, l.y1);
-	double mx = l.x2, my = l.y2;
+	double dir = direction_of(l.x1, l.y1, l.x2, l.y2);
+	x = l.x1;
+	y = l.y1;
 
         int max_attempts = 10;
         double delta = 1.0/((double)max_attempts);
         int attempts = 0;
 
-        m1->x = mx; m1->y = my;
-        while ((check_collision_polygon(*m1, m2))&&(attempts++ < max_attempts)) {
-                mx += sin(degtorad(dir)) * delta*dist;
-                my += -cos(degtorad(dir)) * delta*dist;
-                m1->x = mx;
-                m1->y = my;
+        mask.x = x; mask.y = y;
+        while ((check_collision_polygon(mask, m))&&(attempts++ < max_attempts)) {
+                x += sin(degtorad(dir)) * delta*dist;
+                y += -cos(degtorad(dir)) * delta*dist;
+                mask.x = x;
+                mask.y = y;
         }
 
-        return std::make_pair(mx, my);
+	if (check_collision_polygon(mask, m)) {
+		x -= sin(degtorad(dir)) * delta*dist;
+                y -= -cos(degtorad(dir)) * delta*dist;
+                mask.x = x;
+                mask.y = y;
+	}
+
+        return 0;
 }
 int BEE::InstanceData::move_avoid(const CollisionPolygon& other) {
 	mask.x = x;
@@ -245,36 +260,42 @@ int BEE::InstanceData::move_avoid(const CollisionPolygon& other) {
 
 		x += sin(degtorad((*v).second)) * (*v).first;
 		y += -cos(degtorad((*v).second)) * (*v).first;
+		double resultant_magnitude = (*v).first;
 		if (!is_place_free(x, y)) {
 			if ((x != xprevious)||(y != yprevious)) {
-				mask.x = x;
-				mask.y = y;
-				std::tie(x, y) = move_outside_polygon({x, y, xprevious, yprevious}, &mask, other);
+				move_outside({xprevious, yprevious, x, y}, other);
+				resultant_magnitude -= distance(x, y, xprevious, yprevious);
+
+				if (resultant_magnitude > 0.0) {
+					bool check_right = true;
+					if (is_angle_between((*v).second, 180.0, 360.0)) {
+						check_right = false;
+					}
+
+					int d = 180;
+					while ((d > 0)&&(d < 360)) {
+						double px = sin(degtorad(d)) * resultant_magnitude;
+						double py = -cos(degtorad(d)) * resultant_magnitude;
+						mask.x = x+px;
+						mask.y = y+py;
+
+						if (!check_collision_polygon(mask, other)) {
+							if (is_place_free(x+px, y+py)) {
+								x += px;
+								y += py;
+								break;
+							}
+						}
+
+						if (check_right) {
+							d -= 5;
+						} else {
+							d += 5;
+						}
+					}
+				}
 				(*v).first = distance(x, y, xprevious, yprevious);
 			}
-		}
-	}
-
-	return 0;
-}
-int BEE::InstanceData::move_avoid(const SDL_Rect& other) {
-	SDL_Rect r = {(int)x, (int)y, 0, 0};
-	if (object->get_mask() != NULL) {
-		r.w = object->get_mask()->get_subimage_width();
-		r.h = object->get_mask()->get_height();
-	}
-
-	for (auto v=old_velocity.begin(); v!=old_velocity.end(); ++v) {
-		xprevious = x;
-		yprevious = y;
-
-		x += sin(degtorad((*v).second)) * (*v).first;
-		y += -cos(degtorad((*v).second)) * (*v).first;
-		if (!is_place_free(x, y)) {
-			r.x = (int)x;
-			r.y = (int)y;
-			std::tie(x, y) = move_outside(std::make_pair(x, y), std::make_pair(xprevious, yprevious), &r, other);
-			(*v).first = distance(x, y, xprevious, yprevious);
 		}
 	}
 
@@ -354,8 +375,6 @@ double BEE::InstanceData::get_gravity_acceleration_amount() {
 }
 
 bool BEE::InstanceData::is_place_free(int new_x, int new_y) {
-	bool is_collision = false;
-
 	mask.x = new_x;
 	mask.y = new_y;
 
@@ -368,20 +387,20 @@ bool BEE::InstanceData::is_place_free(int new_x, int new_y) {
 		i.second->mask.y = (int)i.second->y;
 
 		if (i.second->object->get_is_solid()) {
-			//if (check_collision(&a, &b)) {
 			if (check_collision_polygon(i.second->mask)) {
-				if ((object->check_collision_list(i.second->object))&&(i.second->object->check_collision_list(object))) {
-					is_collision = true;
-					break;
+				object->update(this);
+				if (object->check_collision_list(i.second->object)) {
+					i.second->object->update(i.second);
+					if (i.second->object->check_collision_list(object)) {
+						return false;
+					}
 				}
 			}
 		}
 	}
-	return !is_collision;
+	return true;
 }
 bool BEE::InstanceData::is_place_empty(int new_x, int new_y) {
-	bool is_collision = false;
-
 	mask.x = new_x;
 	mask.y = new_y;
 
@@ -393,17 +412,13 @@ bool BEE::InstanceData::is_place_empty(int new_x, int new_y) {
 		i.second->mask.x = (int)i.second->x;
 		i.second->mask.y = (int)i.second->y;
 
-		//if (check_collision(&a, &b)) {
 		if (check_collision_polygon(i.second->mask)) {
-			is_collision = true;
-			break;
+			return false;
 		}
 	}
-	return !is_collision;
+	return true;
 }
 bool BEE::InstanceData::is_place_meeting(int new_x, int new_y, Object* other) {
-	bool is_collision = false;
-
 	mask.x = new_x;
 	mask.y = new_y;
 
@@ -415,35 +430,14 @@ bool BEE::InstanceData::is_place_meeting(int new_x, int new_y, Object* other) {
 		i.second->mask.x = (int)i.second->x;
 		i.second->mask.y = (int)i.second->y;
 
-		//if (check_collision(&a, &b)) {
 		if (check_collision_polygon(i.second->mask)) {
-			is_collision = true;
-			break;
+			return true;
 		}
 	}
-	return is_collision;
+	return false;
 }
 bool BEE::InstanceData::is_place_meeting(int new_x, int new_y, int other_id) {
-	bool is_collision = false;
-
-	mask.x = new_x;
-	mask.y = new_y;
-
-	for (auto& i : game->get_object(other_id)->get_instances()) {
-		if (i.second == this) {
-			continue;
-		}
-
-		i.second->mask.x = (int)i.second->x;
-		i.second->mask.y = (int)i.second->y;
-
-		//if (check_collision(&a, &b)) {
-		if (check_collision_polygon(i.second->mask)) {
-			is_collision = true;
-			break;
-		}
-	}
-	return is_collision;
+	return is_place_meeting(new_x, new_y, game->get_object(other_id));
 }
 bool BEE::InstanceData::is_move_free(double magnitude, double direction) {
 	double dx = sin(degtorad(direction)) * magnitude;
@@ -544,13 +538,13 @@ double BEE::InstanceData::get_distance(Object* other) {
 	}
 	return shortest_distance;
 }
-double BEE::InstanceData::get_direction(int dx, int dy) {
+double BEE::InstanceData::get_direction_of(int dx, int dy) {
 	return direction_of(x, y, dx, dy);
 }
-double BEE::InstanceData::get_direction(InstanceData* other) {
+double BEE::InstanceData::get_direction_of(InstanceData* other) {
 	return direction_of(x, y, other->x, other->y);
 }
-double BEE::InstanceData::get_direction(Object* other) {
+double BEE::InstanceData::get_direction_of(Object* other) {
 	double shortest_distance = 0.0, current_distance = 0.0;
 	InstanceData* closest_instance = NULL;
 	for (auto& i : game->get_current_room()->get_instances()) {
@@ -567,6 +561,18 @@ double BEE::InstanceData::get_direction(Object* other) {
 		return direction_of(x, y, closest_instance->x, closest_instance->y);
 	}
 	return 0.0;
+}
+int BEE::InstanceData::get_relation(InstanceData* other) {
+	if ((other->get_center_y() < get_center_y())&&(abs(other->get_center_x() - get_center_x()) < other->get_width()/2 + get_width()/2)) { // Top block
+		return 1;
+	} else if ((other->get_center_x() > get_center_x())&&(abs(other->get_center_y() - get_center_y()) < other->get_height()/2 + get_height()/2)) { // Right block
+		return 2;
+	} else if ((other->get_center_y() > get_center_y())&&(abs(other->get_center_x() - get_center_x()) < other->get_width()/2 + get_width()/2)) { // Bottom block
+		return 3;
+	} else if ((other->get_center_x() < get_center_x())&&(abs(other->get_center_y() - get_center_y()) < other->get_height()/2 + get_height()/2)) { // Left block
+		return 4;
+	}
+	return 0;
 }
 
 int BEE::InstanceData::path_start(Path* new_path, double new_path_speed, int new_end_action, bool absolute) {
@@ -593,6 +599,16 @@ int BEE::InstanceData::path_end() {
 	path_ystart = 0;
 	path_current_node = 0;
 	return 0;
+}
+int BEE::InstanceData::path_reset() {
+	bool a = false;
+	if (path_xstart == std::get<0>(path->get_coordinate_list().front())) {
+		if (path_ystart == std::get<1>(path->get_coordinate_list().front())) {
+			a = true;
+		}
+	}
+
+	return path_start(path, path_speed, path_end_action, a);
 }
 int BEE::InstanceData::path_update_node() {
 	if (has_path()) {

@@ -77,9 +77,8 @@ class BEE::InstanceData {
 		int reset_gravity_acceleration();
 		bool check_collision_polygon(const CollisionPolygon&, const CollisionPolygon&);
 		bool check_collision_polygon(const CollisionPolygon&);
-		std::pair<double,double> move_outside_polygon(const Line&, CollisionPolygon*, const CollisionPolygon&);
+		int move_outside(const Line&, const CollisionPolygon&);
 		int move_avoid(const CollisionPolygon&);
-		int move_avoid(const SDL_Rect&);
 
 		std::pair<double,double> get_motion();
 		std::pair<double,double> get_applied_gravity();
@@ -111,12 +110,14 @@ class BEE::InstanceData {
 		double get_distance(int, int);
 		double get_distance(InstanceData*);
 		double get_distance(Object*);
-		double get_direction(int, int);
-		double get_direction(InstanceData*);
-		double get_direction(Object*);
+		double get_direction_of(int, int);
+		double get_direction_of(InstanceData*);
+		double get_direction_of(Object*);
+		int get_relation(InstanceData*);
 
 		int path_start(Path*, double, int, bool);
 		int path_end();
+		int path_reset();
 		int path_update_node();
 		int set_path_drawn(bool);
 		int set_path_pausable(bool);

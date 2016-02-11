@@ -9,8 +9,6 @@
 #ifndef _BEE_GAME_DISPLAY
 #define _BEE_GAME_DISPLAY 1
 
-#include <SDL2/SDL.h> // Include the necessary SDL functions
-
 #include "../game.hpp" // Include the engine headers
 
 /*
