@@ -27,7 +27,7 @@ int BEE::init_resources() {
 		// Init sounds
 		snd_chirp = new Sound("snd_chirp", "chirp.wav", false);
 			snd_chirp->load();
-		snd_music = new Sound("snd_chirp", "music.wav", false);
+		snd_music = new Sound("snd_chirp", "music2.wav", false);
 			snd_music->load();
 
 		// Init backgrounds

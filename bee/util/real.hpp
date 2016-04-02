@@ -22,7 +22,7 @@
 * random_internal() - Return a random value seeded by the given seed and bounded by the given min and max
 * ! This function should probably never be called directly by the user because there are wrapper functions for it
 * ! This function contains two static variables to ensure that the engine stays seeded with the correct value
-* @new_seed: The integer to seed the random number engine with
+* @new_seed: the integer to seed the random number engine with
 * @minimum: the minimum value to return
 * @maximum: the maximum value to return
 */

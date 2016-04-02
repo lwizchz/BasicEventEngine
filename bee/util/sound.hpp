@@ -11,153 +11,158 @@
 
 // Sound effect functions, not fully implemented
 
+#include <iostream>
 #include <cmath>
 #include <vector>
 #include <SDL2/SDL_mixer.h>
 
 #include "real.hpp"
 
-class se_chorus_data {
-        public:
-                double wet = 0.5;       // Ratio of processed signal from 0.0 to 1.0
-                double depth = 0.5;     // Percentage by which delay is modulated from 0.0 to 1.0
-                double feedback = 0.0;  // Percentage of output to feed back into the input from 0.0 to 1.0
-                int frequency = 10;     // Frequency of the Low Frequency Oscillator from 0 to 20
-                int delay = 0;          // Number of milliseconds to offset the processed signal from the input signal from 0 to 20
-
-                std::vector<Sint16> stream;
-                int ticks;
-};
+/*
+* sound_effect_chorus() - Operate on the given sound data to produce a chorus effect
+* ! See http://jcatki.no-ip.org:8080/SDL_mixer/SDL_mixer.html#SEC76 for details
+* @channel: the mixer channel which the sound is playing on
+* @stream: the new stream data
+* @length: the length of the new stream data in bytes
+* @udata: the effect data struct
+*/
 void sound_effect_chorus(int channel, void* stream, int length, void* udata) {
-        /*Sint16* oldstream;
-        Sint16* newstream = (Sint16*) stream;
-        se_chorus_data* data = (se_chorus_data*) udata;
+        Sint16* newstream = (Sint16*) stream; // Cast the stream into the correct data format
+        se_chorus_data* data = (se_chorus_data*) udata; // Cast the effect struct into the correct format
 
-        oldstream = (Sint16*)malloc(length);
+        Sint16* oldstream = (Sint16*)malloc(length); // Make a copy of the data stream in order to operate on the dry signal
         memcpy(oldstream, newstream, length);
 
-        for (int i=0, e=0; i<length; i+=sizeof(Sint16)*2, e+=2, data->ticks+=2) {
-                int lfo = max<int>(1, data->delay) * data->depth * abs(radtodeg(sin(degtorad(2*PI * data->frequency * data->ticks))));
-                if (data->ticks >= lfo) {
-                        if ((!data->stream.empty())&&(lfo < data->ticks)) {
-                                //std::cerr << "o:" << lfo << ",";
-                                newstream[e] = (oldstream[e] * (1.0 - data->wet)) + (data->stream[data->ticks - lfo - 2] * data->wet);
-                                newstream[e+1] = (oldstream[e+1] * (1.0 - data->wet)) + (data->stream[data->ticks - lfo - 1] * data->wet);
-                        } else if (lfo <= e) {
-                                newstream[e] = (oldstream[e] * (1.0 - data->wet)) + (oldstream[e] * data->wet);
-                                newstream[e+1] = (oldstream[e+1] * (1.0 - data->wet)) + (oldstream[e+1] * data->wet);
-                        }
-                        if (lfo < length) {
-                                newstream[e] += sign(newstream[e]) * ((newstream[e] * (1.0 - data->wet)) + (newstream[length - lfo - 2] * data->wet)) * data->feedback;
-                                newstream[e+1] += sign(newstream[e+1]) * ((newstream[e+1] * (1.0 - data->wet)) + (newstream[length - lfo - 1] * data->wet)) * data->feedback;
-                        }
+        for (int i=0, e=0; i<length-1; i+=sizeof(Sint16)*2, e+=2, data->ticks+=2) { // Iterate over the ticks of the data stream
+                int lfo = 44.1 * (sin(PI/10.0 * data->frequency * data->ticks)*30.0*data->depth + 30.0 + data->delay); // Calculate the offset of the low frequency oscillator
+                if (data->ticks > lfo) { // Modify the stream data as long as the offset is within the bounds
+                        // Left stereo
+                        newstream[e] = (oldstream[e] * (1.0 - data->wet)) + (data->stream[data->ticks - lfo] * data->wet); // Calculate the new stream value from the lfo offset
+                        newstream[e] += data->stream[data->ticks - lfo] * data->feedback; // Add the stream feedback
+                        // Right stereo
+                        newstream[e+1] = (oldstream[e+1] * (1.0 - data->wet)) + (data->stream[data->ticks - lfo + 1] * data->wet);
+                        newstream[e+1] += data->stream[data->ticks - lfo + 1] * data->feedback;
                 }
-                data->stream.push_back(oldstream[e]);
-                data->stream.push_back(oldstream[e+1]);
+                data->stream.push_back(newstream[e]); // Add the stream data to the effect struct copy
+                data->stream.push_back(newstream[e+1]);
         }
 
-        free(oldstream);
-
-        return;*/
+        free(oldstream); // Free the copy of the stream data
 }
+/*
+* sound_effect_chorus_cleanup() - Clean up the effect's data struct
+* @channel: the mixer channel which the sound is playing on
+* @udata: the effect data struct
+*/
 void sound_effect_chorus_cleanup(int channel, void* udata) {
-        /*se_chorus_data* data = (se_chorus_data*) udata;
-        data->stream.clear();
-        data->ticks = 0;*/
+        se_chorus_data* data = (se_chorus_data*) udata; // Cast the effect struct into the correct format
+        data->stream.clear(); // Clear the copy of the stream data
+        data->ticks = 0; // Reset the stream position to the beginning
 }
-class se_echo_data {
-        public:
-                double wet = 0.5;       // Ratio of processed signal from 0.0 to 1.0
-                double feedback = 0.2;  // Percentage of output to feed back into the input from 0.0 to 1.0
-                int delay = 500;        // Number of milliseconds to offset the processed signal from the input signal from 1 to 2000
-
-                std::vector<Sint16> stream;
-                int ticks = 0;
-};
+/*
+* sound_effect_echo() - Operate on the given sound data to produce an echo effect
+* @channel: the mixer channel which the sound is playing on
+* @stream: the new stream data
+* @length: the length of the new stream data in bytes
+* @udata: the effect data struct
+*/
 void sound_effect_echo(int channel, void* stream, int length, void* udata) {
-        Sint16* oldstream;
-        Sint16* newstream = (Sint16*) stream;
-        se_echo_data* data = (se_echo_data*) udata;
+        Sint16* newstream = (Sint16*) stream; // Cast the stream into the correct data format
+        se_echo_data* data = (se_echo_data*) udata; // Cast the effect struct into the correct format
 
-        oldstream = (Sint16*)malloc(length);
+        Sint16* oldstream = (Sint16*)malloc(length); // Make a copy of the data stream in order to operate on the dry signal
         memcpy(oldstream, newstream, length);
 
-        int offset = data->delay * 44.1 * 2;
-        for (int i=0, e=0; i<length; i+=sizeof(Sint16), e++, data->ticks++) {
-                if (data->ticks >= offset) {
-                        if ((!data->stream.empty())&&(data->ticks >= offset)&&(e < offset)) {
-                                newstream[e] = (oldstream[e] * (1.0 - data->wet)) + (data->stream[data->ticks - offset] * data->wet);
-                        } else if (e >= offset) {
-                                newstream[e] = (oldstream[e] * (1.0 - data->wet)) + (oldstream[e - offset] * data->wet);
-                        }
-                        if (e >= offset) {
-                                newstream[e] += sign(newstream[e]) * ((newstream[e] * (1.0 - data->wet)) + (newstream[e - offset] * data->wet)) * data->feedback;
-                        }
+        int offset = 44.1 * data->delay; // Calculate the offset based on the effect struct
+        for (int i=0, e=0; i<length-1; i+=sizeof(Sint16)*2, e+=2, data->ticks+=2) { // Iterate over the ticks of the data stream
+                if (data->ticks > offset) { // Modify the stream data as long as the offset is within the bounds
+                        // Left stereo
+                        newstream[e] = (oldstream[e] * (1.0 - data->wet)) + (data->stream[data->ticks - offset] * data->wet); // Calculate the new stream value from the echo offset
+                        newstream[e] += data->stream[data->ticks - offset] * data->feedback; // Add the stream feedback
+                        // Right stereo
+                        newstream[e+1] = (oldstream[e+1] * (1.0 - data->wet)) + (data->stream[data->ticks - offset + 1] * data->wet);
+                        newstream[e+1] += data->stream[data->ticks - offset + 1] * data->feedback;
                 }
-                data->stream.push_back(newstream[e]);
+                data->stream.push_back(newstream[e]); // Add the stream data to the effect struct copy
+                data->stream.push_back(newstream[e+1]);
         }
 
-        free(oldstream);
-
-        return;
+        free(oldstream); // Free the copy of the stream data
 }
+/*
+* sound_effect_echo_cleanup() - Clean up the effect's data struct
+* @channel: the mixer channel which the sound is playing on
+* @udata: the effect data struct
+*/
 void sound_effect_echo_cleanup(int channel, void* udata) {
-        se_echo_data* data = (se_echo_data*) udata;
-        data->stream.clear();
-        data->ticks = 0;
+        se_echo_data* data = (se_echo_data*) udata; // Cast the effect struct into the correct format
+        data->stream.clear(); // Clear the copy of the stream data
+        data->ticks = 0; // Reset the stream position to the beginning
 }
-class se_flanger_data {
-        public:
-                float wet = 0.5, depth = 0.25, feedback = 0.0;
-                int frequency = 0, wavetype = 1, delay = 0, phase = 2;
-};
+/*
+* sound_effect_flanger() - Operate on the given sound data to produce a flanger effect
+* @channel: the mixer channel which the sound is playing on
+* @stream: the new stream data
+* @length: the length of the new stream data in bytes
+* @udata: the effect data struct
+*/
 void sound_effect_flanger(int channel, void* stream, int length, void* udata) {
+        Sint16* newstream = (Sint16*) stream; // Cast the stream into the correct data format
+        se_flanger_data* data = (se_flanger_data*) udata; // Cast the effect struct into the correct format
 
+        Sint16* oldstream = (Sint16*)malloc(length); // Make a copy of the data stream in order to operate on the dry signal
+        memcpy(oldstream, newstream, length);
+
+        double d = 0.5*data->delay; // Calculate the offset based on the effect struct
+        for (int i=0, e=0; i<length-1; i+=sizeof(Sint16)*2, e+=2, data->ticks+=2) { // Iterate over the ticks of the data stream
+                int lfo = 44.1 * ((sin(PI/220500.0 * data->frequency * data->ticks) + 1.0) * data->depth + 1.0) * d + d; // Calculate the offset of the low frequency oscillator
+                if (data->ticks > lfo) { // Modify the stream data as long as the offset is within the bounds
+                        // Left stereo
+                        newstream[e] = (oldstream[e] * (1.0 - data->wet)) + (data->stream[data->ticks - lfo] * data->wet); // Calculate the new stream value from the lfo offset
+                        newstream[e] += data->stream[data->ticks - lfo] * data->feedback; // Add the stream feedback
+                        // Right stereo
+                        newstream[e+1] = (oldstream[e+1] * (1.0 - data->wet)) + (data->stream[data->ticks - lfo + 1] * data->wet); // Calculate the new stream value from the lfo offset
+                        newstream[e+1] += data->stream[data->ticks - lfo + 1] * data->feedback; // Add the stream feedback
+                }
+                data->stream.push_back(newstream[e]); // Add the stream data to the effect struct copy
+                data->stream.push_back(newstream[e+1]);
+        }
+
+        free(oldstream); // Free the copy of the stream data
 }
+/*
+* sound_effect_flanger_cleanup() - Clean up the effect's data struct
+* @channel: the mixer channel which the sound is playing on
+* @udata: the effect data struct
+*/
 void sound_effect_flanger_cleanup(int channel, void* udata) {
-
+        se_flanger_data* data = (se_flanger_data*) udata; // Cast the effect struct into the correct format
+        data->stream.clear(); // Clear the copy of the stream data
+        data->ticks = 0; // Reset the stream position to the beginning
 }
-class se_gargle_data {
-        public:
-                int rate = 1, wavetype = 1;
-};
 void sound_effect_gargle(int channel, void* stream, int length, void* udata) {
-
+        // The gargle sound effect is currently unimplemented and will have no effect
 }
 void sound_effect_gargle_cleanup(int channel, void* udata) {
-
+        // The gargle sound effect is currently unimplemented and will have no effect
 }
-class se_reverb_data {
-        public:
-                double gain = 0.0, mix = 0.0, time = 1000.0, ratio = 0.001;
-};
 void sound_effect_reverb(int channel, void* stream, int length, void* udata) {
-
+        // The reverb sound effect is currently unimplemented and will have no effect
 }
 void sound_effect_reverb_cleanup(int channel, void* udata) {
-
+        // The reverb sound effect is currently unimplemented and will have no effect
 }
-class se_compressor_data {
-        public:
-                double gain = 0.0, attack = 0.01, threshold = -10.0, ratio = 0.1;
-                int release = 50, delay = 0;
-};
 void sound_effect_compressor(int channel, void* stream, int length, void* udata) {
-
+        // The compressor sound effect is currently unimplemented and will have no effect
 }
 void sound_effect_compressor_cleanup(int channel, void* udata) {
-
+        // The compressor sound effect is currently unimplemented and will have no effect
 }
-class se_equalizer_data {
-        public:
-                double gain = 0.0;
-                int center = 10000, bandwidth = 36;
-};
 void sound_effect_equalizer(int channel, void* stream, int length, void* udata) {
-
+        // The equalizer sound effect is currently unimplemented and will have no effect
 }
 void sound_effect_equalizer_cleanup(int channel, void* udata) {
-
+        // The equalizer sound effect is currently unimplemented and will have no effect
 }
 
 #endif // _BEE_UTIL_SOUND_H

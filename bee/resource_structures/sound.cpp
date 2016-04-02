@@ -85,6 +85,8 @@ int BEE::Sound::reset() {
 	current_channels.clear();
 	has_play_failed = false;
 
+	effect_reset_data();
+
 	return 0;
 }
 int BEE::Sound::print() {
@@ -509,32 +511,31 @@ int BEE::Sound::effect_add(int new_sound_effects) {
 int BEE::Sound::effect_set(int channel, int se_mask) {
 	if (se_mask & se_none) {
 		Mix_UnregisterAllEffects(channel);
+		effect_reset_data();
 	} else {
 		if (se_mask & se_chorus) {
-			std::cerr << "The requested sound effect 'se_chorus' is not implemented and will not be applied\n";
 			Mix_RegisterEffect(channel, sound_effect_chorus, sound_effect_chorus_cleanup, chorus_data);
 		}
 		if (se_mask & se_echo) {
 			Mix_RegisterEffect(channel, sound_effect_echo, sound_effect_echo_cleanup, echo_data);
 		}
 		if (se_mask & se_flanger) {
-			std::cerr << "The requested sound effect 'se_flanger' is not implemented and will not be applied\n";
 			Mix_RegisterEffect(channel, sound_effect_flanger, sound_effect_flanger_cleanup, flanger_data);
 		}
 		if (se_mask & se_gargle) {
-			std::cerr << "The requested sound effect 'se_gargle' is not implemented and will not be applied\n";
+			std::cerr << "The gargle sound effect is currently unimplemented and will have no effect.\n";
 			Mix_RegisterEffect(channel, sound_effect_gargle, sound_effect_gargle_cleanup, gargle_data);
 		}
 		if (se_mask & se_reverb) {
-			std::cerr << "The requested sound effect 'se_reverb' is not implemented and will not be applied\n";
+			std::cerr << "The reverb sound effect is currently unimplemented and will have no effect.\n";
 			Mix_RegisterEffect(channel, sound_effect_reverb, sound_effect_reverb_cleanup, reverb_data);
 		}
 		if (se_mask & se_compressor) {
-			std::cerr << "The requested sound effect 'se_compressor' is not implemented and will not be applied\n";
+			std::cerr << "The compressor sound effect is currently unimplemented and will have no effect.\n";
 			Mix_RegisterEffect(channel, sound_effect_compressor, sound_effect_compressor_cleanup, compressor_data);
 		}
 		if (se_mask & se_equalizer) {
-			std::cerr << "The requested sound effect 'se_equalizer' is not implemented and will not be applied\n";
+			std::cerr << "The equalizer sound effect is currently unimplemented and will have no effect.\n";
 			Mix_RegisterEffect(channel, sound_effect_equalizer, sound_effect_equalizer_cleanup, equalizer_data);
 		}
 	}
@@ -571,32 +572,31 @@ int BEE::Sound::effect_remove(int channel, int se_mask) {
 int BEE::Sound::effect_set_post(int se_mask) {
 	if (se_mask & se_none) {
 		Mix_UnregisterAllEffects(MIX_CHANNEL_POST);
+		effect_reset_data();
 	} else {
 		if (se_mask & se_chorus) {
-			std::cerr << "The requested sound effect 'se_chorus' is not implemented and will not be applied\n";
 			Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_chorus, sound_effect_chorus_cleanup, chorus_data);
 		}
 		if (se_mask & se_echo) {
 			Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_echo, sound_effect_echo_cleanup, echo_data);
 		}
 		if (se_mask & se_flanger) {
-			std::cerr << "The requested sound effect 'se_flanger' is not implemented and will not be applied\n";
 			Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_flanger, sound_effect_flanger_cleanup, flanger_data);
 		}
 		if (se_mask & se_gargle) {
-			std::cerr << "The requested sound effect 'se_gargle' is not implemented and will not be applied\n";
+			std::cerr << "The gargle sound effect is currently unimplemented and will have no effect.\n";
 			Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_gargle, sound_effect_gargle_cleanup, gargle_data);
 		}
 		if (se_mask & se_reverb) {
-			std::cerr << "The requested sound effect 'se_reverb' is not implemented and will not be applied\n";
+			std::cerr << "The reverb sound effect is currently unimplemented and will have no effect.\n";
 			Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_reverb, sound_effect_reverb_cleanup, reverb_data);
 		}
 		if (se_mask & se_compressor) {
-			std::cerr << "The requested sound effect 'se_compressor' is not implemented and will not be applied\n";
+			std::cerr << "The compressor sound effect is currently unimplemented and will have no effect.\n";
 			Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_compressor, sound_effect_compressor_cleanup, compressor_data);
 		}
 		if (se_mask & se_equalizer) {
-			std::cerr << "The requested sound effect 'se_equalizer' is not implemented and will not be applied\n";
+			std::cerr << "The equalizer sound effect is currently unimplemented and will have no effect.\n";
 			Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_equalizer, sound_effect_equalizer_cleanup, equalizer_data);
 		}
 	}
@@ -626,6 +626,51 @@ int BEE::Sound::effect_remove_post(int se_mask) {
 		if ((se_mask & se_equalizer)&&(!(sound_effects & se_equalizer))) {
 			Mix_UnregisterEffect(MIX_CHANNEL_POST, sound_effect_equalizer);
 		}
+	}
+
+	return 0;
+}
+int BEE::Sound::effect_reset_data() {
+	if (chorus_data == NULL) {
+		chorus_data = new se_chorus_data();
+	} else {
+		sound_effect_chorus_cleanup(-1, (void*)chorus_data);
+	}
+
+	if (echo_data == NULL) {
+		echo_data = new se_echo_data();
+	} else {
+		sound_effect_echo_cleanup(-1, (void*)echo_data);
+	}
+
+	if (flanger_data == NULL) {
+		flanger_data = new se_flanger_data();
+	} else {
+		sound_effect_flanger_cleanup(-1, (void*)flanger_data);
+	}
+
+	if (gargle_data == NULL) {
+		gargle_data = new se_gargle_data();
+	} else {
+		sound_effect_gargle_cleanup(-1, (void*)gargle_data);
+	}
+
+	if (reverb_data == NULL) {
+		reverb_data = new se_reverb_data();
+	} else {
+		sound_effect_reverb_cleanup(-1, (void*)reverb_data);
+	}
+
+	if (compressor_data == NULL) {
+		compressor_data = new se_compressor_data();
+	} else {
+		sound_effect_compressor_cleanup(-1, (void*)compressor_data);
+	}
+
+	if (equalizer_data == NULL) {
+		equalizer_data = new se_equalizer_data();
+	} else {
+		sound_effect_equalizer_cleanup(-1, (void*)equalizer_data);
 	}
 
 	return 0;

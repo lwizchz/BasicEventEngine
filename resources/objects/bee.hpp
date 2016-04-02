@@ -165,6 +165,14 @@ void ObjBee::keyboard_press(BEE::InstanceData* self, SDL_Event* e) {
 			}
 			break;
 		}
+		case SDLK_2: {
+			if (self->id == 0) {
+				snd_music->stop();
+				snd_music->effect_add(se_echo);
+				snd_music->play();
+			}
+			break;
+		}
 
 		case SDLK_p: {
 			game->save_screenshot("screenshot.bmp");
