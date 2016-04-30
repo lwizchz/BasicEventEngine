@@ -20,9 +20,10 @@ This program can compile under Arch Linux, Ubuntu 15.10, and Windows 10 but at t
 2. Install the required libraries:
 
         # Arch Linux
-        sudo pacman -S sdl2 sdl2_image sdl2_ttf sdl2_mixer sdl2_net sdl2_gfx glew glm
+        sudo pacman -S sdl2 sdl2_image sdl2_ttf sdl2_mixer sdl2_net glew glm freeglut libxmu
+        pacaur -y libcatch-cpp-headers
         # Ubuntu
-        sudo apt-get install cmake libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev libsdl2-net-dev libsdl2-gfx-dev libglew-dev libglm-dev
+        sudo apt-get install cmake libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev libsdl2-net-dev libglew-dev libglm-dev freeglut3-dev libxmu-dev catch
 
 3. Edit the file "resources/resources.hpp" in order to add or remove resources which are located in their corresponding subfolder.
 

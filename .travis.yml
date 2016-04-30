@@ -7,7 +7,7 @@ os: linux
 
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get install -qq cmake libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev libsdl2-net-dev libsdl2-gfx-dev libglew-dev libglm-dev catch
+  - sudo apt-get install -qq cmake libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev libsdl2-net-dev libglew-dev libglm-dev freeglut3-dev libxmu-dev catch
 before_script:
   - mkdir build
   - cd build

@@ -11,12 +11,18 @@ set(BEE_GAME_ID "11111111")
 
 set(warns "-Wall -Wextra -Wpedantic -Wshadow -Wno-unused-parameter -Wno-unused-variable")
 set(defines "-DBEE_GAME_ID=${BEE_GAME_ID} -DBEE_VERSION_MAJOR=${VERSION_MAJOR} -DBEE_VERSION_MINOR=${VERSION_MINOR} -DBEE_VERSION_RELEASE=${VERSION_RELEASE}")
-set(CMAKE_CXX_FLAGS "-g -pg -pipe -std=c++11 -flto ${warns} -D_REENTRANT ${defines}")
+set(CMAKE_CXX_FLAGS "-g -pg -pipe -std=c++11 ${warns} -D_REENTRANT ${defines}")
+
+# Enable link time optimization if it is supported
+if(GXX_HAS_LTO_FLAG)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto")
+endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 add_subdirectory(bee)
 
 add_executable(${PROJECT_NAME} main.cpp)
+target_link_libraries(${PROJECT_NAME} BEE)
 
 # Include SDL2 libraries
 include(FindPkgConfig)
@@ -37,5 +43,3 @@ find_package(OpenGL REQUIRED)
 
 include_directories(${GLEW_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRECTORIES} ${OPENGL_INCLUDE_DIRECTORIES})
 target_link_libraries(${PROJECT_NAME} ${GLEW_LIBRARIES} ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES})
-
-target_link_libraries(${PROJECT_NAME} BEE)
