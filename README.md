@@ -1,5 +1,7 @@
 Copyright (c) 2015-16 Luke Montalvo <lukemontalvo@gmail.com>
 
+[![Build Status](https://travis-ci.org/piluke/BasicEventEngine.svg?branch=master)](https://travis-ci.org/piluke/BasicEventEngine)
+
 BasicEventEngine is an event-driven game engine which the user can interface with via the Sprite, Sound, Background, Font, Path, Object, and Room classes. The Room class is used to organize the resources for each section of the game and the Object class is used to act upon the events from the main loop. A small example is included with all non-engine code in the resources directory.
 
 The available events are the virtual functions of the Object class which are on lines 101 to 127 in the file bee/resource_structures/object.hpp
@@ -20,11 +22,21 @@ This program can compile under Arch Linux, Ubuntu 15.10, and Windows 10 but at t
         # Arch Linux
         sudo pacman -S sdl2 sdl2_image sdl2_ttf sdl2_mixer sdl2_net sdl2_gfx glew glm
         # Ubuntu
-        sudo apt-get install libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev libsdl2-net-dev libsdl2-gfx-dev libglew-dev libglm-dev
+        sudo apt-get install cmake libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev libsdl2-net-dev libsdl2-gfx-dev libglew-dev libglm-dev
 
 3. Edit the file "resources/resources.hpp" in order to add or remove resources which are located in their corresponding subfolder.
 
-4. Compile the program with the `make` command, optionally the `run` target can be passed to it in order to automatically run the program after a successful compilation.
+4. Create a build directory and compile the program with the following commands:
+
+        mkdir build
+        cd build
+        cmake ..
+        make
+
+5. Run the program by moving back to the top directory:
+
+        cd ..
+        ./build/BasicEventEngine
 
 ## How to use on Windows
 
