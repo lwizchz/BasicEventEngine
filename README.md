@@ -20,7 +20,7 @@ This program can compile under Arch Linux, Ubuntu 15.10, and Windows 10 but at t
 2. Install the required libraries:
 
         # Arch Linux
-        sudo pacman -S sdl2 sdl2_image sdl2_ttf sdl2_mixer sdl2_net glew glm freeglut libxmu
+        sudo pacman -S cmake sdl2 sdl2_image sdl2_ttf sdl2_mixer sdl2_net glew glm freeglut libxmu
         pacaur -y libcatch-cpp-headers
         # Ubuntu
         sudo apt-get install cmake libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev libsdl2-net-dev libglew-dev libglm-dev freeglut3-dev libxmu-dev catch
@@ -41,11 +41,11 @@ This program can compile under Arch Linux, Ubuntu 15.10, and Windows 10 but at t
 
 ## How to use on Windows
 
-Even though this program can compile on Windows 10, I am not offering any support for any Windows platform because it is terribly annoying to get anything to compile correctly. If you dare attempt to compile on Windows, then follow the below instructions.
+Even though this program can compile on Windows 10, I am not offering any support for any Windows platform because it is terribly annoying to get anything to compile correctly. If you dare attempt to compile on Windows, then follow the below instructions. Hopefully in the near future I'll be able to get CMake to work properly on Windows.
 
 1. [Download and install Git LFS][2] for Windows to be able to download the resources for the example.
 
-2. Install the required libraries from their official websites: SDL2, SDL2_image, SDL2_ttf, SDL2_mixer, SDL2_net, SDL2_gfx, GLEW, GLM.  
+2. Install the required libraries from their official websites: SDL2, SDL2_image, SDL2_ttf, SDL2_mixer, SDL2_net, GLEW, GLM.  
 The project file assumes that each of these libraries has its DLL in the same directory as the executable (e.g. win/bin) and has its header file in a win/include subdirectory
 
 3. [Install Dev-C++][3] then use it to open the project file BasicEventEngine.dev

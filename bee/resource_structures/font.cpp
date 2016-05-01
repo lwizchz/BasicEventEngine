@@ -11,15 +11,15 @@
 
 #include "font.hpp"
 
-TextData::TextData(SDL_Texture* new_texture, std::string new_text) {
-	texture.insert(std::make_pair(0, new_texture));
+TextData::TextData(BEE::Sprite* new_sprite, std::string new_text) {
+	sprite.insert(std::make_pair(0, new_sprite));
 	text = new_text;
 }
 TextData::~TextData() {
-	for (auto& t : texture) {
-		SDL_DestroyTexture(t.second);
+	for (auto& s : sprite) {
+		s.second->free();
 	}
-	texture.clear();
+	sprite.clear();
 	text = "";
 }
 
@@ -185,7 +185,7 @@ int BEE::Font::load() {
 			has_draw_failed = false;
 		} else {
 			if (game->options->is_opengl) {
-				std::cerr << "Please note that TTF font rendering is currently broken in OpenGL\n";
+				std::cerr << "Please note that TTF fast font rendering is currently broken in OpenGL\n";
 			}
 
 			font = TTF_OpenFont(font_path.c_str(), font_size);
@@ -229,24 +229,14 @@ TextData* BEE::Font::draw_internal(int x, int y, std::string text, RGBA color) {
 				return NULL;
 			}
 
-			SDL_Texture* texture;
-			texture = SDL_CreateTextureFromSurface(game->renderer, tmp_surface);
-			if (texture == NULL) {
-				std::cerr << "Failed to create texture from surface: " << SDL_GetError() << "\n";
-				return NULL;
-			}
+			Sprite* tmp_sprite = new Sprite();
+
+			tmp_sprite->load_from_surface(tmp_surface);
+			tmp_sprite->draw_subimage(x, y, 0, -1, -1, 0.0, {255, 255, 255, 255}, SDL_FLIP_NONE, true);
 
 			SDL_FreeSurface(tmp_surface);
 
-			SDL_Rect rect;
-			rect.x = x;
-			rect.y = y;
-			SDL_QueryTexture(texture, NULL, NULL, &rect.w, &rect.h);
-
-			SDL_SetTextureAlphaMod(texture, color.a);
-			SDL_RenderCopy(game->renderer, texture, NULL, &rect);
-
-			TextData* textdata = new TextData(texture, text);
+			TextData* textdata = new TextData(tmp_sprite, text);
 
 			return textdata;
 		}
@@ -275,7 +265,7 @@ TextData* BEE::Font::draw(int x, int y, std::string text, RGBA color) {
 				if (textdata == NULL) {
 					textdata = r;
 				} else {
-					textdata->texture.insert(std::make_pair(textdata->texture.size(), r->texture[0]));
+					textdata->sprite.insert(std::make_pair(textdata->sprite.size(), r->sprite[0]));
 					delete r;
 				}
 			}
@@ -297,13 +287,7 @@ TextData* BEE::Font::draw(TextData* textdata, int x, int y, std::string text, RG
 		if ((textdata != NULL)&&(textdata->text == text)) {
 			std::map<int,std::string> lines = handle_newlines(text);
 			for (auto& l : lines) {
-				SDL_Rect rect;
-				rect.x = x;
-				rect.y = y;
-				SDL_QueryTexture(textdata->texture[l.first], NULL, NULL, &rect.w, &rect.h);
-
-				SDL_SetTextureAlphaMod(textdata->texture[l.first], color.a);
-				SDL_RenderCopy(game->renderer, textdata->texture[l.first], NULL, &rect);
+				textdata->sprite[l.first]->draw(x, y, 0);
 			}
 			return textdata;
 		} else {
@@ -343,33 +327,13 @@ int BEE::Font::draw_fast_internal(int x, int y, std::string text, RGBA color) {
 					return 1;
 				}
 
-				if (game->options->is_opengl) {
-					Sprite* tmp_sprite = new Sprite();
+				Sprite* tmp_sprite = new Sprite();
 
-					tmp_sprite->load_from_surface(tmp_surface);
-					tmp_sprite->draw_subimage(x, y, 0, -1, -1, 0.0, {255, 255, 255, 255}, SDL_FLIP_NONE, true);
+				tmp_sprite->load_from_surface(tmp_surface);
+				tmp_sprite->draw_subimage(x, y, 0, -1, -1, 0.0, {255, 255, 255, 255}, SDL_FLIP_NONE, true);
 
-					SDL_FreeSurface(tmp_surface);
-					delete tmp_sprite;
-				} else {
-					SDL_Texture* texture;
-					texture = SDL_CreateTextureFromSurface(game->renderer, tmp_surface);
-					if (texture == NULL) {
-						std::cerr << "Failed to create texture from surface: " << SDL_GetError() << "\n";
-						return 1;
-					}
-
-					SDL_FreeSurface(tmp_surface);
-
-					SDL_Rect rect;
-					rect.x = x;
-					rect.y = y;
-					SDL_QueryTexture(texture, NULL, NULL, &rect.w, &rect.h);
-
-					SDL_SetTextureAlphaMod(texture, color.a);
-					SDL_RenderCopy(game->renderer, texture, NULL, &rect);
-					SDL_DestroyTexture(texture);
-				}
+				SDL_FreeSurface(tmp_surface);
+				delete tmp_sprite;
 			}
 
 			return 0;

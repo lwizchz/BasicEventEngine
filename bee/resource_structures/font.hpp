@@ -16,10 +16,10 @@
 
 class TextData {
 	public:
-		std::map<int,SDL_Texture*> texture;
+		std::map<int,BEE::Sprite*> sprite;
 		std::string text;
-		TextData() {texture.clear();text="";};
-		TextData(SDL_Texture*, std::string);
+		TextData() {sprite.clear();text="";};
+		TextData(BEE::Sprite*, std::string);
 		~TextData();
 };
 

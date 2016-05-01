@@ -168,6 +168,76 @@ int BEE::Background::set_time_update() {
 	return 0;
 }
 
+int BEE::Background::load_from_surface(SDL_Surface* tmp_surface) {
+	if (!is_loaded) {
+		if (game->options->is_opengl) {
+			width = tmp_surface->w;
+			height = tmp_surface->h;
+
+			GLfloat texcoords[] = {
+				0.0, 0.0,
+				(GLfloat)width, 0.0,
+				(GLfloat)width, 1.0,
+				0.0, 1.0,
+			};
+			glGenBuffers(1, &vbo_texcoords);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(texcoords), texcoords, GL_STATIC_DRAW);
+
+			GLfloat vertices[] = {
+				0.0, 0.0,
+				(GLfloat)width, 0.0,
+				(GLfloat)width, (GLfloat)height,
+				0.0, (GLfloat)height,
+			};
+			glGenBuffers(1, &vbo_vertices);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+			GLushort elements[] = {
+				0, 1, 2,
+				2, 3, 0,
+			};
+			glGenBuffers(1, &ibo);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
+
+			glGenTextures(1, &gl_texture);
+			glBindTexture(GL_TEXTURE_2D, gl_texture);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexImage2D(
+				GL_TEXTURE_2D,
+				0,
+				GL_RGBA,
+				width,
+				height,
+				0,
+				GL_RGBA,
+				GL_UNSIGNED_BYTE,
+				tmp_surface->pixels
+			);
+
+			is_loaded = true;
+			has_draw_failed = false;
+		} else {
+			texture = SDL_CreateTextureFromSurface(game->renderer, tmp_surface);
+			if (texture == NULL) {
+				std::cerr << "Failed to create texture from surface: " << SDL_GetError() << "\n";
+				return 1;
+			}
+
+			SDL_QueryTexture(texture, NULL, NULL, &width, &height);
+
+			is_loaded = true;
+			has_draw_failed = false;
+		}
+	} else {
+		std::cerr << "Failed to load background from surface because it has already been loaded\n";
+		return 1;
+	}
+
+	return 0;
+}
 int BEE::Background::load() {
 	if (!is_loaded) {
 		SDL_Surface* tmp_surface;
@@ -177,29 +247,70 @@ int BEE::Background::load() {
 			return 1;
 		}
 
-		texture = SDL_CreateTextureFromSurface(game->renderer, tmp_surface);
-		if (texture == NULL) {
-			std::cerr << "Failed to create texture from surface: " << SDL_GetError() << "\n";
-			return 1;
-		}
-
+		load_from_surface(tmp_surface);
 		SDL_FreeSurface(tmp_surface);
-
-		SDL_QueryTexture(texture, NULL, NULL, &width, &height);
-
-		is_loaded = true;
 	}
 	return 0;
 }
 int BEE::Background::free() {
 	if (is_loaded) {
-		SDL_DestroyTexture(texture);
-		texture = NULL;
+		if (game->options->is_opengl) {
+			glDeleteBuffers(1, &vbo_vertices);
+			glDeleteBuffers(1, &vbo_texcoords);
+			glDeleteBuffers(1, &ibo);
+			glDeleteTextures(1, &gl_texture);
+		} else {
+			SDL_DestroyTexture(texture);
+			texture = NULL;
+		}
 		is_loaded = false;
 	}
 	return 0;
 }
-int BEE::Background::tile_horizontal(SDL_Texture* t, SDL_Rect* r) {
+int BEE::Background::draw_internal(SDL_Rect* src, SDL_Rect* dest) {
+	if (game->options->is_opengl) {
+		glm::mat4 model = glm::translate(model, glm::vec3(dest->x, dest->y, 0.0));
+		glUniformMatrix4fv(game->model_location, 1, GL_FALSE, glm::value_ptr(model));
+
+		glActiveTexture(GL_TEXTURE0);
+		glUniform1i(game->texture_location, 0);
+		glBindTexture(GL_TEXTURE_2D, gl_texture);
+
+		glEnableVertexAttribArray(game->vertex_location);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
+		glVertexAttribPointer(
+			game->vertex_location,
+			2,
+			GL_FLOAT,
+			GL_FALSE,
+			0,
+			0
+		);
+
+		glEnableVertexAttribArray(game->fragment_location);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords);
+		glVertexAttribPointer(
+			game->fragment_location,
+			2,
+			GL_FLOAT,
+			GL_FALSE,
+			0,
+			0
+		);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+		int size;
+		glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+		glDrawElements(GL_TRIANGLES, size/sizeof(GLushort), GL_UNSIGNED_SHORT, 0);
+
+		glDisableVertexAttribArray(game->vertex_location);
+		glDisableVertexAttribArray(game->fragment_location);
+	} else {
+		SDL_RenderCopy(game->renderer, texture, src, dest);
+	}
+	return 0;
+}
+int BEE::Background::tile_horizontal(SDL_Rect* r) {
 	if (r->w <= 0) {
 		return -1;
 	}
@@ -218,7 +329,7 @@ int BEE::Background::tile_horizontal(SDL_Texture* t, SDL_Rect* r) {
 			r->w = game->get_room_width() - r->x;
 		}
 
-		SDL_RenderCopy(game->renderer, t, &src, r);
+		draw_internal(&src, r);
 		i++;
 		src.w = ow;
 		r->w = ow;
@@ -226,7 +337,7 @@ int BEE::Background::tile_horizontal(SDL_Texture* t, SDL_Rect* r) {
 	}
 	r->x = ox;
 	while (r->x+r->w > 0) {
-		SDL_RenderCopy(game->renderer, t, &src, r);
+		draw_internal(&src, r);
 		i++;
 		r->x -= r->w;
 	}
@@ -236,7 +347,7 @@ int BEE::Background::tile_horizontal(SDL_Texture* t, SDL_Rect* r) {
 
 	return i;
 }
-int BEE::Background::tile_vertical(SDL_Texture* t, SDL_Rect* r) {
+int BEE::Background::tile_vertical(SDL_Rect* r) {
 	if (r->w <= 0) {
 		return -1;
 	}
@@ -255,7 +366,7 @@ int BEE::Background::tile_vertical(SDL_Texture* t, SDL_Rect* r) {
 			r->h = game->get_room_height() - r->y;
 		}
 
-		SDL_RenderCopy(game->renderer, t, &src, r);
+		draw_internal(&src, r);
 		i++;
 		src.h = oh;
 		r->h = oh;
@@ -263,7 +374,7 @@ int BEE::Background::tile_vertical(SDL_Texture* t, SDL_Rect* r) {
 	}
 	r->y = oy - r->h;
 	while (r->y+r->h > 0) {
-		SDL_RenderCopy(game->renderer, t, &src, r);
+		draw_internal(&src, r);
 		i++;
 		r->y -= oh;
 	}
@@ -280,7 +391,7 @@ int BEE::Background::draw(int x, int y, BackgroundData* b) {
 		rect.y = 0;
 		rect.w = game->get_room_width();
 		rect.h = game->get_room_height();
-		SDL_RenderCopy(game->renderer, texture, NULL, &rect);
+		draw_internal(NULL, &rect);
 	} else {
 		int dx = b->horizontal_speed*(SDL_GetTicks()-animation_time)/game->fps_goal;
 		int dy = b->vertical_speed*(SDL_GetTicks()-animation_time)/game->fps_goal;
@@ -297,18 +408,18 @@ int BEE::Background::draw(int x, int y, BackgroundData* b) {
 
 		if (b->is_horizontal_tile && b->is_vertical_tile) {
 			for (;rect.y < game->get_room_height(); rect.y+=rect.h) {
-				tile_horizontal(texture, &rect);
+				tile_horizontal(&rect);
 			}
 			rect.y = y+dy;
 			for (;rect.y+height > 0; rect.y-=rect.h) {
-				tile_horizontal(texture, &rect);
+				tile_horizontal(&rect);
 			}
 		} else if (b->is_horizontal_tile) {
-			tile_horizontal(texture, &rect);
+			tile_horizontal(&rect);
 		} else if (b->is_vertical_tile) {
-			tile_vertical(texture, &rect);
+			tile_vertical(&rect);
 		} else {
-			SDL_RenderCopy(game->renderer, texture, NULL, &rect);
+			draw_internal(NULL, &rect);
 		}
 	}
 

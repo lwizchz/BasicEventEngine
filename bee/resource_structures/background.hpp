@@ -23,9 +23,16 @@ class BEE::Background: public Resource {
 
 		SDL_Texture* texture;
 		bool is_loaded = false;
+		bool has_draw_failed = false;
 
-		int tile_horizontal(SDL_Texture*, SDL_Rect*);
-		int tile_vertical(SDL_Texture*, SDL_Rect*);
+		GLuint vbo_vertices;
+		GLuint ibo;
+		GLuint gl_texture;
+		GLuint vbo_texcoords;
+
+		int draw_internal(SDL_Rect*, SDL_Rect*);
+		int tile_horizontal(SDL_Rect*);
+		int tile_vertical(SDL_Rect*);
 	public:
 		Background();
 		Background(std::string, std::string);
@@ -52,6 +59,7 @@ class BEE::Background: public Resource {
 		int set_tile_height(int);
 		int set_time_update();
 
+		int load_from_surface(SDL_Surface*);
 		int load();
 		int free();
 		int draw(int, int, BackgroundData*);
