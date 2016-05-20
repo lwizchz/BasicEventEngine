@@ -11,11 +11,11 @@
 
 #include "particle.hpp"
 
-BEE::Particle::Particle(BEE* new_game, Sprite* new_sprite, double new_scale, Uint32 new_max_time) {
+BEE::Particle::Particle(BEE* new_game, Sprite* new_sprite, double new_scale, Uint32 new_max_time, bool new_should_reanimate) {
 	game = new_game;
-	init(new_sprite, new_scale, new_max_time);
+	init(new_sprite, new_scale, new_max_time, new_should_reanimate);
 }
-BEE::Particle::Particle(BEE* new_game, pt_shape_t new_shape, double new_scale, Uint32 new_max_time) {
+BEE::Particle::Particle(BEE* new_game, pt_shape_t new_shape, double new_scale, Uint32 new_max_time, bool new_should_reanimate) {
 	game = new_game;
 	Sprite* new_sprite;
 
@@ -77,21 +77,33 @@ BEE::Particle::Particle(BEE* new_game, pt_shape_t new_shape, double new_scale, U
 			break;
 		}
 		default: // This should never happen
+			std::cerr << "Couldn't initialize particle: unknown particle type\n";
 			return;
 	}
 
-	init(new_sprite, new_scale, new_max_time);
+	init(new_sprite, new_scale, new_max_time, new_should_reanimate);
 }
-int BEE::Particle::init(Sprite* new_sprite, double new_scale, Uint32 new_max_time) {
+int BEE::Particle::init(Sprite* new_sprite, double new_scale, Uint32 new_max_time, bool new_should_reanimate) {
 	sprite = new_sprite;
 	scale = new_scale;
 	max_time = new_max_time;
+
+	rotation_cache.clear();
+	rotation_cache.reserve(360);
+	for (int a=0; a<360; a++) {
+		glm::mat4 r = glm::translate(glm::mat4(1.0f), glm::vec3((float)sprite->get_subimage_width()/2.0f, (float)sprite->get_height()/2.0f, 0.0f));
+		r = glm::rotate(r, (float)degtorad(a), glm::vec3(0.0f, 0.0f, 1.0f));
+		r = glm::translate(r, glm::vec3(-(float)sprite->get_subimage_width()/2.0f, -(float)sprite->get_height()/2.0f, 0.0f));
+		rotation_cache.push_back(r);
+	}
 
 	on_death = [] (BEE::ParticleSystem* sys, BEE::ParticleData* pd, BEE::Particle* p) {
 		for (int i = 0; i < pd->particle_type->death_amount; i++) {
 			p->game->get_current_room()->add_particle(sys, p, pd->x, pd->y);
 		}
 	};
+
+	should_reanimate = new_should_reanimate;
 
 	return 0;
 }
@@ -109,37 +121,60 @@ int BEE::Particle::print() {
 	"\n	max_time		" << max_time <<
 	"\n	death_type		" << death_type <<
 	"\n	death_amount		" << death_amount <<
+	"\n	should_reanimate	" << should_reanimate <<
 	"\n}\n";
 
 	return 0;
 }
 
-BEE::ParticleData::ParticleData(Particle* new_particle_type, int new_x, int new_y) {
+BEE::ParticleData::ParticleData(Particle* new_particle_type, int new_x, int new_y, Uint32 now) {
 	particle_type = new_particle_type;
+	sprite_data = new SpriteDrawData();
 
-	x = mean<int>(abs(new_x), abs(new_x) + (int)random(25) - 12) * sign(new_x);
-	y = mean<int>(abs(new_y), abs(new_y) + (int)random(25) - 12) * sign(new_y);
-	double s = particle_type->scale * random(100)/100;
-	w = particle_type->sprite->get_width() * s;
+	init(new_x, new_y, now);
+}
+int BEE::ParticleData::init(int new_x, int new_y, Uint32 now) {
+	x = new_x;
+	y = new_y;
+
+	randomness = random(75) + 25;
+	double s = particle_type->scale * randomness/100;
+	randomness %= 3;
+	randomness++;
+
+	w = particle_type->sprite->get_subimage_width() * s;
 	h = particle_type->sprite->get_height() * s;
 
 	velocity = particle_type->velocity;
-	creation_time = SDL_GetTicks();
+	creation_time = now;
+	is_old = false;
 
-	randomness = random(3) + 1;
+	return 0;
+}
+double BEE::ParticleData::get_angle(Uint32 ticks) {
+	return particle_type->angle + particle_type->angle_increase * ticks * (sin(randomness)+2)/randomness/4 * (((int)randomness - 3 >= 0)  ? 1 : -1);
 }
 int BEE::ParticleData::draw(int sx, int sy, Uint32 ticks) {
-	double a = particle_type->angle + particle_type->angle_increase * ticks * ((double)randomness / 2);
-	return particle_type->sprite->draw((sx+x) - w/2, (sy+y) - h/2, creation_time, w, h, a, particle_type->color, SDL_FLIP_NONE, false);
+	return particle_type->sprite->draw((sx+x) - w/2, (sy+y) - h/2, creation_time, w, h, get_angle(ticks), particle_type->color, SDL_FLIP_NONE, false);
 }
 bool BEE::ParticleData::is_dead(Uint32 ticks) {
-	if (particle_type->sprite->get_subimage_amount() > 1) {
+	if ((!particle_type->should_reanimate)&&(particle_type->sprite->get_subimage_amount() > 1)) {
 		if (!particle_type->sprite->get_is_animated()) {
 			return true;
 		}
-	} else if (ticks + (int)random(particle_type->max_time/4) > particle_type->max_time) {
+	} else if (ticks > particle_type->max_time - w*1000) {
 		return true;
 	}
+
+	if (ticks + 1000 > particle_type->max_time - w*1000) {
+		w /= 1.0 + (double)randomness/50;
+		h /= 1.0 + (double)randomness/50;
+	}
+
+	if ((w <= 1.0) || (h <= 1.0)) {
+		return true;
+	}
+
 	return false;
 }
 bool BEE::ParticleData::operator< (const ParticleData& other) {
@@ -149,7 +184,8 @@ bool BEE::ParticleData::operator< (const ParticleData& other) {
 	return (depth > other.depth);
 }
 
-BEE::ParticleSystem::ParticleSystem() {
+BEE::ParticleSystem::ParticleSystem(BEE* new_game) {
+	game = new_game;
 	following = NULL;
 	clear();
 }
@@ -159,17 +195,87 @@ int BEE::ParticleSystem::load() {
 	}
 	return 0;
 }
+int BEE::ParticleSystem::fast_forward(int frames) { // Fast-forwading more than 500 milliseconds is not recommended due to how long it takes to calculate
+	int t = game->get_ticks();
+	int step = 1000.0/game->get_fps_goal();
+	for (int i=0; i<frames; i++) {
+		time_offset += step;
+		draw(t+time_offset, false);
+	}
+
+	particles.erase(
+		std::remove_if(
+			particles.begin(),
+			particles.end(),
+			[&] (ParticleData* p) -> bool {
+				if (p->is_old){
+					return true;
+				}
+
+				Uint32 ticks = t+time_offset - p->creation_time;
+				if (t+time_offset < p->creation_time) {
+					ticks = 0;
+				}
+
+				if (p->is_dead(ticks)) {
+					if ((p->particle_type->death_type != NULL)&&(p->particle_type->on_death != NULL)) {
+						p->particle_type->on_death(this, p, p->particle_type->death_type);
+					}
+					p->is_old = true;
+					p->particle_type->old_particles.push_back(p);
+					return true;
+				}
+				return false;
+			}
+		),
+		particles.end()
+	);
+
+	return 0;
+}
 int BEE::ParticleSystem::draw() {
+	return draw(game->get_ticks()+time_offset, true);
+}
+int BEE::ParticleSystem::draw(Uint32 now, bool should_draw) {
+	int sx = xoffset, sy = yoffset;
+	if (following != NULL) {
+		sx += following->x;
+		sy += following->y;
+	}
+
 	for (auto& p : particles) {
-		for (auto& c : changers) {
-			int fx = 0, fy = 0;
-			if (c->following != NULL) {
-				fx = c->following->x;
-				fy = c->following->y;
+		if (p->is_old){
+			continue;
+		}
+
+		for (auto& d : destroyers) {
+			int dx = sx, dy = sy;
+			if (d->following != NULL) {
+				dx = d->following->x;
+				dy = d->following->y;
 			}
 
 			SDL_Rect a = {p->x, p->y, p->w, p->h};
-			SDL_Rect b = {c->x+fx, c->y+fy, c->w, c->h};
+			SDL_Rect b = {dx+d->x, dy+d->y, d->w, d->h};
+			if (check_collision(a, b)) {
+				p->is_old = true;
+				p->particle_type->old_particles.push_back(p);
+				break;
+			}
+		}
+		if (p->is_old){
+			continue;
+		}
+
+		for (auto& c : changers) {
+			int cx = sx, cy = sy;
+			if (c->following != NULL) {
+				cx = c->following->x;
+				cy = c->following->y;
+			}
+
+			SDL_Rect a = {p->x, p->y, p->w, p->h};
+			SDL_Rect b = {cx+c->x, cy+c->y, c->w, c->h};
 			if (check_collision(a, b)) {
 				if (p->particle_type == c->particle_before) {
 					p->particle_type = c->particle_after;
@@ -178,32 +284,32 @@ int BEE::ParticleSystem::draw() {
 		}
 
 		int px = p->x, py = p->y;
-		double m = p->velocity.first * p->randomness;
+		double m = p->velocity.first * (p->randomness+1.0);
 		double dir = p->velocity.second;
 		p->x += sin(degtorad(dir)) * m;
 		p->y += -cos(degtorad(dir)) * m;
 
 		for (auto& a : attractors) {
-			int fx = 0, fy = 0;
+			int ax = sx, ay = sy;
 			if (a->following != NULL) {
-				fx = a->following->x;
-				fy = a->following->y;
+				ax = a->following->x;
+				ay = a->following->y;
 			}
 
-			dir = direction_of(px, py, a->x+fx, a->y+fy);
+			dir = direction_of(px, py, ax+a->x, ay+a->y);
 			p->x += sin(degtorad(dir)) * a->force * p->randomness;
 			p->y += -cos(degtorad(dir)) * a->force * p->randomness;
 		}
 
 		for (auto& d : deflectors) {
-			int fx = 0, fy = 0;
+			int dx = sx, dy = sy;
 			if (d->following != NULL) {
-				fx = d->following->x;
-				fy = d->following->y;
+				dx = d->following->x;
+				dy = d->following->y;
 			}
 
 			SDL_Rect a = {p->x, p->y, p->w, p->h};
-			SDL_Rect b = {d->x+fx, d->y+fy, d->w, d->h};
+			SDL_Rect b = {dx+d->x, dy+d->y, d->w, d->h};
 			if (check_collision(a, b)) {
 				dir = direction_of(px, py, p->x, p->y);
 				if (true) {
@@ -216,87 +322,158 @@ int BEE::ParticleSystem::draw() {
 	}
 
 	for (auto& e : emitters) {
-		int fx = 0, fy = 0;
+		int ex = sx, ey = sy;
 		if (e->following != NULL) {
-			fx = e->following->x;
-			fy = e->following->y;
+			ex = e->following->x;
+			ey = e->following->y;
 		}
 
 		if (e->number >= 0) {
 			for (int i=0; i<e->number; i++) {
-				add_particle(e->particle_type, fx + e->x + random(e->w), fy + e->y + random(e->h));
+				add_particle(e->particle_type, ex + e->x + random(e->w), ey + e->y + random(e->h));
 			}
 		} else {
 			if (e->number_count++ >= -e->number) {
-				add_particle(e->particle_type, fx + e->x + random(e->w), fy + e->y + random(e->h));
+				add_particle(e->particle_type, ex + e->x + random(e->w), ey + e->y + random(e->h));
 				e->number_count = 0;
 			}
 		}
 	}
 
-	particles.sort();
-	if (!is_oldfirst) {
-		particles.reverse();
-	}
-	particles.erase(
-		std::remove_if(
-			particles.begin(),
-			particles.end(),
+	if (should_draw) {
+		draw_data.clear();
+		particles.remove_if(
 			[&] (ParticleData* p) -> bool {
-				Uint32 ticks = SDL_GetTicks() - p->creation_time;
-
-				if (following != NULL) {
-					p->draw(following->x + xoffset, following->y + yoffset, ticks);
-				} else {
-					p->draw(xoffset, yoffset, ticks);
+				if (p->is_old) {
+					return true;
 				}
+
+				Uint32 ticks = now - p->creation_time;
+				if (now < p->creation_time) {
+					ticks = 0;
+				}
+
+				p->sprite_data->x = xoffset + p->x - p->w/2;
+				p->sprite_data->y = yoffset + p->y - p->h/2;
+				if (following != NULL) {
+					p->sprite_data->x += following->x;
+					p->sprite_data->y += following->y;
+				}
+				p->sprite_data->subimage_time = p->creation_time;
+				p->sprite_data->w = p->w;
+				p->sprite_data->h = p->h;
+				if ((p->w >= 10.0)&&(p->h >= 10.0)) {
+					p->sprite_data->angle = absolute_angle(p->get_angle(ticks));
+				}
+				draw_data[p->particle_type].push_back(p->sprite_data);
 
 				if (p->is_dead(ticks)) {
 					if ((p->particle_type->death_type != NULL)&&(p->particle_type->on_death != NULL)) {
 						p->particle_type->on_death(this, p, p->particle_type->death_type);
 					}
-					delete p;
+					p->is_old = true;
+					p->particle_type->old_particles.push_back(p);
 					return true;
-				} else {
-					for (auto& d : destroyers) {
-						int fx = 0, fy = 0;
-						if (d->following != NULL) {
-							fx = d->following->x;
-							fy = d->following->y;
-						}
-
-						SDL_Rect a = {p->x, p->y, p->w, p->h};
-						SDL_Rect b = {d->x+fx, d->y+fy, d->w, d->h};
-						if (check_collision(a, b)) {
-							delete p;
-							return true;
-						}
-					}
 				}
 				return false;
 			}
-		),
-		particles.end()
-	);
+		);
+		for (auto& s : draw_data) {
+			s.first->sprite->draw_array(s.second, s.first->rotation_cache, s.first->color, SDL_FLIP_NONE, false);
+		}
+	}
 
+	return 0;
+}
+int BEE::ParticleSystem::draw_debug() {
+	int sx = xoffset, sy = yoffset;
+	if (following != NULL) {
+		sx += following->x;
+		sy += following->y;
+	}
+
+	for (auto& p : particles) {
+		game->draw_rectangle((sx+p->x) - p->w/2, (sy+p->y) - p->h/2, p->w, p->h, false, c_aqua, false);
+	}
+	for (auto& e : emitters) {
+		int ex = sx, ey = sy;
+		if (e->following != NULL) {
+			ex = e->following->x;
+			ey = e->following->y;
+		}
+		game->draw_rectangle(ex+e->x, ey+e->y, e->w, e->h, false, c_green, false);
+	}
+	for (auto& a : attractors) {
+		int ax = sx, ay = sy;
+		if (a->following != NULL) {
+			ax = a->following->x;
+			ay = a->following->y;
+		}
+		game->draw_rectangle(ax+a->x, ay+a->y, a->w, a->h, false, c_magenta, false);
+	}
+	for (auto& d : destroyers) {
+		int dx = sx, dy = sx;
+		if (d->following != NULL) {
+			dx = d->following->x;
+			dy = d->following->y;
+		}
+		game->draw_rectangle(dx+d->x, dy+d->y, d->w, d->h, false, c_red, false);
+	}
+	for (auto& d : deflectors) {
+		int dx = sx, dy = sx;
+		if (d->following != NULL) {
+			dx = d->following->x;
+			dy = d->following->y;
+		}
+		game->draw_rectangle(dx+d->x, dy+d->y, d->w, d->h, false, c_navy, false);
+	}
+	for (auto& c : changers) {
+		int cx = sx, cy = sx;
+		if (c->following != NULL) {
+			cx = c->following->x;
+			cy = c->following->y;
+		}
+		game->draw_rectangle(cx+c->x, cy+c->y, c->w, c->h, false, c_yellow, false);
+	}
 	return 0;
 }
 int BEE::ParticleSystem::clear() {
 	for (auto& p : particles) {
-		delete p;
+		if (p != NULL) {
+			p->particle_type->old_particles.remove_if(
+				[&] (ParticleData* pd) -> bool {
+					delete pd->sprite_data;
+					pd->sprite_data = NULL;
+					delete pd;
+					pd = NULL;
+					return true;
+				}
+			);
+		}
 	}
+
 	particles.clear();
 	emitters.clear();
 	attractors.clear();
 	destroyers.clear();
 	deflectors.clear();
 	changers.clear();
+
+	draw_data.clear();
+
 	return 0;
 }
 
 int BEE::ParticleSystem::add_particle(Particle* p, int x, int y) {
-	ParticleData* pd = new ParticleData(p, x, y);
-	particles.push_back(pd);
+	if (!p->old_particles.empty()) {
+		ParticleData* pd = p->old_particles.front();
+		pd->init(x, y, game->get_ticks()+time_offset);
+		p->old_particles.pop_front();
+		particles.push_back(pd);
+	} else {
+		ParticleData* pd = new ParticleData(p, x, y, game->get_ticks()+time_offset);
+		particles.push_back(pd);
+	}
 	return 0;
 }
 

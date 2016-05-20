@@ -42,6 +42,7 @@ class BEE::Particle {
 
 		double angle = 0.0;
 		double angle_increase = 0.0;
+		std::vector<glm::mat4> rotation_cache;
 
 		RGBA color = {255, 255, 255, 255};
 
@@ -49,29 +50,36 @@ class BEE::Particle {
 		std::function<void (ParticleSystem*, ParticleData*, Particle*)> on_death = NULL;
 		Particle* death_type = NULL;
 		int death_amount = 1;
+		std::list<ParticleData*> old_particles;
 
-		Particle(BEE*, Sprite*, double, Uint32);
-		Particle(BEE*, pt_shape_t, double, Uint32);
-		int init(Sprite*, double, Uint32);
+		bool should_reanimate = true;
+
+		Particle(BEE*, Sprite*, double, Uint32, bool);
+		Particle(BEE*, pt_shape_t, double, Uint32, bool);
+		int init(Sprite*, double, Uint32, bool);
 		int print();
 };
 
 class BEE::ParticleData {
 	public:
 		Particle* particle_type;
+		SpriteDrawData* sprite_data = NULL;
 
 		int x = 0, y = 0;
-		int w = 0, h = 0;
+		int w = 1, h = 1;
 
 		int depth = 0;
 
 		std::pair<double,double> velocity;
 
 		Uint32 creation_time;
+		bool is_old = true;
 
 		unsigned int randomness = 1;
 
-		ParticleData(Particle*, int, int);
+		ParticleData(Particle*, int, int, Uint32);
+		int init(int, int, Uint32);
+		double get_angle(Uint32);
 		int draw(int, int, Uint32);
 		bool is_dead(Uint32);
 
@@ -92,7 +100,7 @@ enum ps_distr_t {
 class BEE::ParticleEmitter {
 	public:
 		int x = 0, y = 0;
-		int w = 0, h = 0;
+		int w = 1, h = 1;
 		InstanceData* following = NULL;
 
 		ps_shape_t shape = ps_shape_rectangle;
@@ -113,6 +121,7 @@ enum ps_force_t {
 class BEE::ParticleAttractor {
 	public:
 		int x = 0, y = 0;
+		int w = 1, h = 1;
 		InstanceData* following = NULL;
 
 		double force = 0.0;
@@ -123,7 +132,7 @@ class BEE::ParticleAttractor {
 class BEE::ParticleDestroyer {
 	public:
 		int x = 0, y = 0;
-		int w = 0, h = 0;
+		int w = 1, h = 1;
 		InstanceData* following = NULL;
 
 		ps_shape_t shape = ps_shape_rectangle;
@@ -132,7 +141,7 @@ class BEE::ParticleDestroyer {
 class BEE::ParticleDeflector {
 	public:
 		int x = 0, y = 0;
-		int w = 0, h = 0;
+		int w = 1, h = 1;
 		InstanceData* following = NULL;
 
 		double friction = 0.0;
@@ -147,7 +156,7 @@ enum ps_change_t {
 class BEE::ParticleChanger {
 	public:
 		int x = 0, y = 0;
-		int w = 0, h = 0;
+		int w = 1, h = 1;
 		InstanceData* following = NULL;
 
 		ps_shape_t shape = ps_shape_rectangle;
@@ -160,6 +169,7 @@ class BEE::ParticleChanger {
 
 class BEE::ParticleSystem {
 	public:
+		BEE* game = NULL;
 		int id = -1;
 
 		bool is_oldfirst = true;
@@ -168,6 +178,8 @@ class BEE::ParticleSystem {
 		int xoffset = 0, yoffset = 0;
 		InstanceData* following = NULL;
 
+		Uint32 time_offset = 0;
+
 		std::list<ParticleData*> particles;
 		std::list<ParticleEmitter*> emitters;
 		std::list<ParticleAttractor*> attractors;
@@ -175,10 +187,15 @@ class BEE::ParticleSystem {
 		std::list<ParticleDeflector*> deflectors;
 		std::list<ParticleChanger*> changers;
 
-		ParticleSystem();
+		std::map<Particle*,std::list<SpriteDrawData*>> draw_data;
+
+		ParticleSystem(BEE*);
 		int print();
 		int load();
+		int fast_forward(int);
 		int draw();
+		int draw(Uint32, bool);
+		int draw_debug();
 		int clear();
 
 		int add_particle(Particle*, int, int);
