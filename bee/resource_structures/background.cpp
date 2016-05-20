@@ -176,8 +176,8 @@ int BEE::Background::load_from_surface(SDL_Surface* tmp_surface) {
 
 			GLfloat texcoords[] = {
 				0.0, 0.0,
-				(GLfloat)width, 0.0,
-				(GLfloat)width, 1.0,
+				1.0, 0.0,
+				1.0, 1.0,
 				0.0, 1.0,
 			};
 			glGenBuffers(1, &vbo_texcoords);
@@ -267,9 +267,10 @@ int BEE::Background::free() {
 	}
 	return 0;
 }
-int BEE::Background::draw_internal(SDL_Rect* src, SDL_Rect* dest) {
+int BEE::Background::draw_internal(const SDL_Rect* src, const SDL_Rect* dest) const {
 	if (game->options->is_opengl) {
-		glm::mat4 model = glm::translate(model, glm::vec3(dest->x, dest->y, 0.0));
+		glm::mat4 model = glm::scale(glm::mat4(1.0), glm::vec3((double)dest->w/width, (double)dest->h/height, 1.0));
+		model = glm::translate(model, glm::vec3(dest->x, dest->y, 0.0));
 		glUniformMatrix4fv(game->model_location, 1, GL_FALSE, glm::value_ptr(model));
 
 		glActiveTexture(GL_TEXTURE0);
@@ -305,82 +306,61 @@ int BEE::Background::draw_internal(SDL_Rect* src, SDL_Rect* dest) {
 
 		glDisableVertexAttribArray(game->vertex_location);
 		glDisableVertexAttribArray(game->fragment_location);
+
+		glUniformMatrix4fv(game->model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0)));
+		glBindTexture(GL_TEXTURE_2D, 0);
 	} else {
 		SDL_RenderCopy(game->renderer, texture, src, dest);
 	}
 	return 0;
 }
-int BEE::Background::tile_horizontal(SDL_Rect* r) {
+int BEE::Background::tile_horizontal(const SDL_Rect* r) const {
 	if (r->w <= 0) {
 		return -1;
 	}
 
 	SDL_Rect src = {0, 0, r->w, r->h};
-	int ox=r->x, ow=r->w, oh=r->h, i=0;
+	SDL_Rect dest = {r->x, r->y, r->w, r->h};
+	int i=0;
 
-	if (r->y + r->h > game->get_room_height()) {
-		src.h = game->get_room_height() - r->y;
-		r->h = game->get_room_height() - r->y;
-	}
-
-	while (r->x < game->get_room_width()) {
-		if (r->x + src.w > game->get_room_width()) {
-			src.w = game->get_room_width() - r->x;
-			r->w = game->get_room_width() - r->x;
-		}
-
-		draw_internal(&src, r);
+	while (dest.x < game->get_room_width()) {
+		draw_internal(&src, &dest);
 		i++;
-		src.w = ow;
-		r->w = ow;
-		r->x += r->w;
+		src.w = r->w;
+		dest.w = r->w;
+		dest.x += dest.w;
 	}
-	r->x = ox;
-	while (r->x+r->w > 0) {
-		draw_internal(&src, r);
+	dest.x = r->x;
+	while (dest.x + dest.w > 0) {
+		draw_internal(&src, &dest);
 		i++;
-		r->x -= r->w;
+		dest.x -= dest.w;
 	}
-	r->x = ox;
-	r->h = oh;
-	src.h = oh;
 
 	return i;
 }
-int BEE::Background::tile_vertical(SDL_Rect* r) {
+int BEE::Background::tile_vertical(const SDL_Rect* r) const {
 	if (r->w <= 0) {
 		return -1;
 	}
 
 	SDL_Rect src = {0, 0, r->w, r->h};
-	int oy=r->y, oh=r->h, ow=r->w, i=0;
+	SDL_Rect dest = {r->x, r->y, r->w, r->h};
+	int i=0;
 
-	if (r->x + src.w > game->get_room_width()) {
-		src.w = game->get_room_width() - r->x;
-		r->w = game->get_room_width() - r->x;
-	}
-
-	while (r->y < game->get_room_height()) {
-		if (r->y + src.h > game->get_room_height()) {
-			src.h = game->get_room_height() - r->y;
-			r->h = game->get_room_height() - r->y;
-		}
-
-		draw_internal(&src, r);
+	while (dest.y < game->get_room_height()) {
+		draw_internal(&src, &dest);
 		i++;
-		src.h = oh;
-		r->h = oh;
-		r->y += oh;
+		src.h = r->h;
+		dest.h = r->h;
+		dest.y += r->h;
 	}
-	r->y = oy - r->h;
-	while (r->y+r->h > 0) {
-		draw_internal(&src, r);
+	dest.y = r->y - dest.h;
+	while (dest.y + dest.h > 0) {
+		draw_internal(&src, &dest);
 		i++;
-		r->y -= oh;
+		dest.y -= r->h;
 	}
-	r->y = oy;
-	r->w = ow;
-	src.w = ow;
 
 	return i;
 }
@@ -407,12 +387,14 @@ int BEE::Background::draw(int x, int y, BackgroundData* b) {
 		rect.h = height;
 
 		if (b->is_horizontal_tile && b->is_vertical_tile) {
-			for (;rect.y < game->get_room_height(); rect.y+=rect.h) {
+			while (rect.y-rect.h < game->get_room_height()) {
 				tile_horizontal(&rect);
+				rect.y += rect.h;
 			}
-			rect.y = y+dy;
-			for (;rect.y+height > 0; rect.y-=rect.h) {
+			rect.y = y + dy - rect.h;
+			while (rect.y+rect.h > 0) {
 				tile_horizontal(&rect);
+				rect.y -= rect.h;
 			}
 		} else if (b->is_horizontal_tile) {
 			tile_horizontal(&rect);

@@ -142,13 +142,26 @@ double radtodeg(double a) {
 }
 /*
 * opposite_angle() - Return the angle (in degrees) which is opposite to the given one on the unit circle
+* @a: the angle to find the opposite of
 */
 double opposite_angle(double a) {
-        a = fmod(a, 360.0); // Make sure that the angle is between 0.0 and 360.0
+        a = absolute_angle(a); // Make sure that the angle is between 0.0 and 360.0
         if (a < 180.0) { // If the angle is on the top side of the unit circle then return the angle 180 degrees in front of it
                 return a+180.0;
         }
         return a-180.0; // Otherwise, return the angle 180 degrees behind it
+}
+/*
+* absolute_angle() - Return the angle absolute to the unit circle
+* ! The primary use case is to correctly determine negative angles
+* @a: the angle to find
+*/
+double absolute_angle(double a) {
+        a = fmod(a, 360.0); // Make sure that the angle is between -360.0 and 360.0
+        if (a < 0) {
+                return a+360.0; // Return the equivalent angle if the given one is negative
+        }
+        return a; // Return the given angle
 }
 
 /*
@@ -255,7 +268,7 @@ template bool is_between<double>(double, double, double);
 */
 template <typename T>
 bool is_angle_between(T x, T a, T b) {
-        x = fmod(x, 360.0); // Make sure the angle is between 0.0 and 360.0 degrees
+        x = absolute_angle(x); // Make sure the angle is between 0.0 and 360.0 degrees
         if (a < b) { // If the bounds are normal
                 return is_between(x, a, b);
         } else { // If the bounds are at the top of the unit circle e.g. from 315 to 45

@@ -217,7 +217,7 @@ int BEE::net_handle_events() {
 							UDPsocket sock = NULL;
 							network_udp_bind(sock, -1, p.second); // Bind a socket to the player's IP address
 
-							net->players.insert(std::pair<int,UDPsocket>(std::stoi(p.first), sock)); // Insert the player's id and IP address into our copy of the player map
+							net->players.insert(std::pair<int,UDPsocket>(bee_stoi(p.first), sock)); // Insert the player's id and IP address into our copy of the player map
 						}
 
 						break;

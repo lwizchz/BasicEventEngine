@@ -137,7 +137,7 @@ int network_udp_bind(UDPsocket udp, int channel, std::string ipp) {
         std::string ip;
         int port;
         ip = ipp.substr(0, ipp.find(":"));
-        port = std::stoi(ipp.substr(ipp.find(":")));
+        port = bee_stoi(ipp.substr(ipp.find(":")));
         return network_udp_bind(udp, channel, network_resolve_host(ip, port));
 }
 int network_udp_unbind(UDPsocket udp, int channel) {

@@ -88,10 +88,13 @@ int BEE::draw_point(int x, int y, bool is_hud) {
 
 	if (options->is_opengl) {
 		// Right now all primitives are drawn using the fixed function OpenGL pipeline
+		glUniform1i(primitive_location, 1); // Enable primitive mode so that the color is correctly applied
 		glBegin(GL_POINTS); // Add point vertex
 			glVertex2f(x, y);
 		glEnd();
-		return 1;
+		glUniform1i(primitive_location, 0);
+		
+		return 0;
 	} else {
 		return SDL_RenderDrawPoint(renderer, x, y); // Draw the given point
 	}
@@ -111,19 +114,19 @@ int BEE::draw_line(int x1, int y1, int x2, int y2, const RGBA& c, bool is_hud) {
 		convert_view_coords(x2, y2);
 	}
 
+	draw_set_color(c);
+
 	if (options->is_opengl) {
 		// Right now all primitives are drawn using the fixed function OpenGL pipeline
-		glm::vec4 uc = glm::vec4(c.r/255.0, c.g/255.0, c.b/255.0, c.a/255.0); // Change the fragment to the given color
-		glUniform4fv(colorize_location, 1, glm::value_ptr(uc));
-
+		glUniform1i(primitive_location, 1); // Enable primitive mode so that the color is correctly applied
 		glBegin(GL_LINES); // Add line vertices
 			glVertex2f(x1, y1);
 			glVertex2f(x2, y2);
 		glEnd();
+		glUniform1i(primitive_location, 0);
 
-		return 1;
+		return 0;
 	} else {
-		draw_set_color(c);
 		return SDL_RenderDrawLine(renderer, x1, y1, x2, y2); // Draw the given point in the given color
 	}
 }
@@ -178,10 +181,11 @@ int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled, const RGBA& 
 		convert_view_coords(x, y);
 	}
 
+	draw_set_color(c);
+
 	if (options->is_opengl) {
 		// Right now all primitives are drawn using the fixed function OpenGL pipeline
-		glm::vec4 uc = glm::vec4(c.r/255.0, c.g/255.0, c.b/255.0, c.a/255.0); // Change the fragment to the given color
-		glUniform4fv(colorize_location, 1, glm::value_ptr(uc));
+		glUniform1i(primitive_location, 1); // Enable primitive mode so that the color is correctly applied
 
 		// Set polygon fill mode
 		if (is_filled) {
@@ -199,9 +203,10 @@ int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled, const RGBA& 
 
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Reset polygon to fill so that textures are drawn correctly
 
-		return 1;
+		glUniform1i(primitive_location, 0);
+
+		return 0;
 	} else {
-		draw_set_color(c);
 		SDL_Rect r = {x, y, w, h};
 		if (is_filled) {
 			return SDL_RenderFillRect(renderer, &r); // Fill the given rectangle with the given color
@@ -264,6 +269,8 @@ int BEE::draw_set_color(const RGBA& new_color) {
 	if (options->is_opengl) {
 		glClearColor(new_color.r/255.0f, new_color.g/255.0f, new_color.b/255.0f, new_color.a/255.0f); // Set the OpenGL clear and draw colors as floats from [0.0, 1.0]
 		glColor4f(new_color.r/255.0f, new_color.g/255.0f, new_color.b/255.0f, new_color.a/255.0f);
+		glm::vec4 uc = glm::vec4(new_color.r/255.0f, new_color.g/255.0f, new_color.b/255.0f, new_color.a/255.0f); // Change the fragment to the given color
+		glUniform4fv(colorize_location, 1, glm::value_ptr(uc));
 		return 0;
 	} else {
 		return SDL_SetRenderDrawColor(renderer, new_color.r, new_color.g, new_color.b, new_color.a); // Set the SDL draw color as Uint8's from [0, 255]
@@ -286,6 +293,8 @@ BEE::RGBA BEE::draw_get_color() const {
 	if (options->is_opengl) {
 		glClearColor(color->r/255.0f, color->g/255.0f, color->b/255.0f, color->a/255.0f); // Set the OpenGL clear and draw colors as floats from [0.0, 1.0]
 		glColor4f(color->r/255.0f, color->g/255.0f, color->b/255.0f, color->a/255.0f);
+		glm::vec4 uc = glm::vec4(color->r/255.0f, color->g/255.0f, color->b/255.0f, color->a/255.0f); // Change the fragment to the given color
+		glUniform4fv(colorize_location, 1, glm::value_ptr(uc));
 	} else {
 		SDL_GetRenderDrawColor(renderer, &c.r, &c.g, &c.b, &c.a); // Get the current SDL renderer color
 
@@ -331,14 +340,24 @@ BEE::RGBA BEE::get_pixel_color(int x, int y) const {
 */
 int BEE::save_screenshot(const std::string& filename) const {
 	if (options->is_opengl) {
-		unsigned char* pixels = new unsigned char[width*height*4]; // Allocate 4 bytes per pixel for RGBA
-		glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels); // Read the screen pixels into the array
+		unsigned char* upsidedown_pixels = new unsigned char[width*height*4]; // Allocate 4 bytes per pixel for RGBA
+		glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, upsidedown_pixels); // Read the screen pixels into the array
 
-		SDL_Surface* screenshot  = SDL_CreateRGBSurfaceFrom(pixels, width, height, 8*4, width*4, 0,0,0,0); // Create a surface from the screen pixels
+		unsigned char* pixels = new unsigned char[width*height*4];
+		for (int i=0; i<height; i++) { // Reverse the order of the rows from glReadPixels() because the OpenGL origin is bottom-left and the SDL origin is top-left
+			for (int e=0; e<width; e++) {
+				for (int o=0; o<4; o++) {
+					pixels[i*width*4 + e*4 + o] = upsidedown_pixels[(height-i)*width*4 + e*4 + o];
+				}
+			}
+		}
+
+		SDL_Surface* screenshot  = SDL_CreateRGBSurfaceFrom(pixels, width, height, 8*4, width*4, 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000); // Create a surface from the screen pixels
 		SDL_SaveBMP(screenshot, filename.c_str()); // Save the surface to the given filename as a bitmap
 
 		SDL_FreeSurface(screenshot); // Free the surface and pixel data
 		delete[] pixels;
+		delete[] upsidedown_pixels;
 	} else {
 		SDL_Surface *screenshot = SDL_CreateRGBSurface(0, width, height, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000); // Create a surface from the screen pixels
 		SDL_RenderReadPixels(renderer, NULL, SDL_PIXELFORMAT_ARGB8888, screenshot->pixels, screenshot->pitch);

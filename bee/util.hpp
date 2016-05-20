@@ -20,6 +20,8 @@ bool verify_assertions();
 
 // Platform compatibility functions, bee/util/platform.hpp
 int bee_get_platform();
+std::string bee_itos(int);
+int bee_stoi(const std::string&);
 int bee_mkdir(const char*, mode_t);
 std::string bee_mkdtemp(const std::string&);
 std::string bee_inet_ntop(const void* src);
@@ -41,6 +43,7 @@ double logn(double, double);
 double degtorad(double);
 double radtodeg(double);
 double opposite_angle(double);
+double absolute_angle(double);
 double direction_of(double, double, double, double);
 double distance(double, double, double, double);
 std::pair<int,int> coord_approach(int, int, int, int, int);

@@ -220,7 +220,7 @@ bool check_collision(const SDL_Rect& rect, const Line& line) {
 * @a: the angle to operate on
 */
 double angle_hbounce(double a) {
-	a = fmod(a, 360.0); // Ensure that the given angle is between 0.0 and 360.0
+	a = absolute_angle(a); // Ensure that the given angle is between 0.0 and 360.0
 	if ((a > 0)&&(a < 180)) {
                 a = (90 - a) + 90;
         } else if ((a > 180)&&(a < 360)) {
@@ -228,14 +228,14 @@ double angle_hbounce(double a) {
         } else {
                 a += 180;
         }
-        return fmod(a, 360.0); // Return a new angle, ensuring that it is between 0.0 and 360.0
+        return absolute_angle(a); // Return a new angle, ensuring that it is between 0.0 and 360.0
 }
 /*
 * angle_vbounce() - Return the given angle after reflecting it over the x-axis
 * @a: the angle to operate on
 */
 double angle_vbounce(double a) {
-	a = fmod(a, 360.0); // Ensure that the given angle is between 0.0 and 360.0
+	a = absolute_angle(a); // Ensure that the given angle is between 0.0 and 360.0
 	if ((a > 0)&&(a < 90)) {
                 a = (90 - a) + 270;
         } else if ((a > 270)&&(a < 360)) {
@@ -245,7 +245,7 @@ double angle_vbounce(double a) {
         } else {
                 a += 180;
         }
-        return fmod(a, 360.0); // Return a new angle, ensuring that it is between 0.0 and 360.0
+        return absolute_angle(a); // Return a new angle, ensuring that it is between 0.0 and 360.0
 }
 
 #endif // _BEE_UTIL_COLLISION_H

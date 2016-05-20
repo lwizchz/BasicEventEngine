@@ -18,6 +18,7 @@
 #include <ws2tcpip.h> // Include the required Windows headers
 #include <winsock2.h>
 #include <windows.h>
+#include <direct.h>
 
 /*
 * bee_get_platform() - Return the platform id
@@ -28,13 +29,34 @@ int bee_get_platform() {
 }
 
 /*
+* bee_itos() - Convert an integer to a string
+* @i: the integer to convert
+*/
+std::string bee_itos(int i) {
+        std::stringstream ss;
+        ss << i;
+        return ss.str();
+}
+
+/*
+* bee_stoi() - Convert a string to an integer
+* @s: the string to convert
+*/
+int bee_stoi(const std::string& s) {
+        std::stringstream ss (s);
+        int i;
+        ss >> i;
+        return i;
+}
+
+/*
 * bee_mkdir() - Attempt to create a directory with the given path
 * ! This function accepts a second argument for file permissions but it is unused on Windows
 * @path: the path of the new directory
 * @mode: the permissions of the directory (unused on Windows)
 */
 int bee_mkdir(const char* path, mode_t mode) {
-        return mkdir(path); // Return whether the directory was successfully created or not
+        return _mkdir(path); // Return whether the directory was successfully created or not
 }
 /*
 * bee_mkdtemp() - Return a path for a temporary directory
@@ -73,6 +95,22 @@ std::string bee_inet_ntop(const void* src) {
 */
 int bee_get_platform() {
         return 0;
+}
+
+/*
+* bee_itos() - Convert an integer to a string
+* @i: the integer to convert
+*/
+std::string bee_itos(int i) {
+        return std::to_string(i);
+}
+
+/*
+* bee_stoi() - Convert a string to an integer
+* @s: the string to convert
+*/
+int bee_stoi(const std::string& s) {
+        return std::stoi(s);
 }
 
 /*

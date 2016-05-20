@@ -18,7 +18,11 @@
 std::pair<int,int> BEE::get_mouse_global_position() const {
 	int mx, my;
 	SDL_GetMouseState(&mx, &my); // Fetch the mouse coordinates into (mx, my)
-	return std::make_pair(mx, my); // Return the pair on success
+
+	double xscale = (double)get_room_width()/get_width(); // Scale the coordinates if the room size if different from the window
+	double yscale = (double)get_room_height()/get_height();
+
+	return std::make_pair(mx*xscale, my*yscale); // Return the pair on success
 }
 /*
 * BEE::get_mouse_global_x() - Return the mouse x-coordinate relative to the window

@@ -30,9 +30,9 @@ class BEE::Background: public Resource {
 		GLuint gl_texture;
 		GLuint vbo_texcoords;
 
-		int draw_internal(SDL_Rect*, SDL_Rect*);
-		int tile_horizontal(SDL_Rect*);
-		int tile_vertical(SDL_Rect*);
+		int draw_internal(const SDL_Rect*, const SDL_Rect*) const;
+		int tile_horizontal(const SDL_Rect*) const;
+		int tile_vertical(const SDL_Rect*) const;
 	public:
 		Background();
 		Background(std::string, std::string);
