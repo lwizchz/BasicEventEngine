@@ -30,8 +30,8 @@ BEE::BEE(int new_argc, char** new_argv, Room** new_first_room, GameOptions* new_
 	has_focus = false;
 
 	fps_goal = DEFAULT_GAME_FPS;
-	//fps_max = 300;
-	fps_max = fps_goal;
+	fps_max = 300;
+	//fps_max = fps_goal;
 	fps_unfocused = fps_max/20;
 	fps_count = 0;
 	fps_stable = 0;
@@ -137,15 +137,12 @@ BEE::~BEE() {
 	close();
 }
 int BEE::loop() {
-	if (current_room == NULL) {
-		throw std::string("Failed to start event loop, i.e. current_room == NULL\n");
-	}
-
 	tickstamp = get_ticks();
 	fps_ticks = get_ticks();
 	while (!quit) {
 		if (current_room == NULL) {
-			throw std::string("Aborted event loop because current_room == NULL\n");
+			std::cerr << "Aborted event loop because current_room == NULL\n";
+			return 1;
 		}
 
 		try {
@@ -161,7 +158,6 @@ int BEE::loop() {
 					case SDL_WINDOWEVENT: {
 						switch (event.window.event) {
 							case SDL_WINDOWEVENT_SHOWN: {
-								//render_reset();
 								render();
 								has_focus = true;
 								break;
@@ -226,7 +222,8 @@ int BEE::loop() {
 								break;
 							}
 							default: {
-								std::cerr << "other,";
+								std::cerr << "Unknown window event: " << event.window.event << "\n";
+								break;
 							}
 						}
 						current_room->window(&event);
@@ -257,13 +254,53 @@ int BEE::loop() {
 						current_room->mouse_release(&event);
 						break;
 					}
+					case SDL_CONTROLLERAXISMOTION: {
+						current_room->controller_axis(&event);
+						break;
+					}
+					case SDL_CONTROLLERBUTTONDOWN: {
+						current_room->controller_press(&event);
+						break;
+					}
+					case SDL_CONTROLLERBUTTONUP: {
+						current_room->controller_release(&event);
+						break;
+					}
+					case SDL_CONTROLLERDEVICEADDED:
+					case SDL_CONTROLLERDEVICEREMOVED:
+					case SDL_CONTROLLERDEVICEREMAPPED: {
+						current_room->controller_modify(&event);
+						break;
+					}
+
+					case SDL_AUDIODEVICEADDED:
+					case SDL_AUDIODEVICEREMOVED:
+					case SDL_DOLLARGESTURE:
+					case SDL_DOLLARRECORD:
+					case SDL_DROPFILE:
+					case SDL_FINGERMOTION:
+					case SDL_FINGERDOWN:
+					case SDL_FINGERUP:
+					case SDL_JOYAXISMOTION:
+					case SDL_JOYBALLMOTION:
+					case SDL_JOYHATMOTION:
+					case SDL_JOYBUTTONDOWN:
+					case SDL_JOYBUTTONUP:
+					case SDL_JOYDEVICEADDED:
+					case SDL_JOYDEVICEREMOVED:
+					case SDL_MULTIGESTURE:
+					case SDL_SYSWMEVENT:
+					case SDL_TEXTEDITING:
+					case SDL_TEXTINPUT:
+					case SDL_USEREVENT: {
+						// For events which we don't care about or currently support
+						break;
+					}
 					default:
-						//std::cerr << "Unknown event type: " << event.type << "\n";
+						std::cerr << "Unknown event type: " << event.type << "\n";
 						break;
 				}
 			}
-			current_room->keyboard();
-			current_room->mouse();
 
 			current_room->step_mid();
 			current_room->check_paths();
@@ -300,7 +337,8 @@ int BEE::loop() {
 		} catch (int e) {
 			switch (e) {
 				case -1: { // Resource error
-					throw std::string("Aborting due to resource error\n");
+					std::cerr << "Aborting due to resource error\n";
+					return 2;
 				}
 				case 1: { // Quit
 					quit = true;
@@ -316,6 +354,10 @@ int BEE::loop() {
 				}
 				case 4: { // Jump to loop end, e.g. change room
 					break;
+				}
+				default: {
+					std::cerr << "Unknown error: " << e << "\n";
+					return e;
 				}
 			}
 		}
@@ -390,6 +432,9 @@ Uint32 BEE::get_seconds() const {
 }
 Uint32 BEE::get_frame() const {
 	return frame_number;
+}
+unsigned int BEE::get_fps_goal() const {
+	return fps_goal;
 }
 
 BEE::GameOptions BEE::get_options() const {
@@ -527,9 +572,25 @@ int BEE::opengl_init() {
 	if (is_shader_compiled != GL_TRUE) {
 		std::cerr << get_shader_error(vertex_shader);
 		glDeleteShader(vertex_shader);
-		throw std::string("Couldn't compile OpenGL vertex shader: ") + std::to_string(vertex_shader) + "\n";
+		throw std::string("Couldn't compile OpenGL vertex shader: ") + bee_itos(vertex_shader) + "\n";
 	}
 	glAttachShader(program, vertex_shader);
+
+	// Compile geometry shader
+	GLuint geometry_shader = glCreateShader(GL_GEOMETRY_SHADER);
+	std::string gs = file_get_contents("resources/geometry_shader.glsl");
+	const GLchar* geometry_shader_source[] = {gs.c_str()};
+	glShaderSource(geometry_shader, 1, geometry_shader_source, NULL);
+	glCompileShader(geometry_shader);
+	is_shader_compiled = GL_FALSE;
+	glGetShaderiv(geometry_shader, GL_COMPILE_STATUS, &is_shader_compiled);
+	if (is_shader_compiled != GL_TRUE) {
+		std::cerr << get_shader_error(geometry_shader);
+		glDeleteShader(vertex_shader);
+		glDeleteShader(geometry_shader);
+		throw std::string("Couldn't compile OpenGL geometry shader: ") + bee_itos(geometry_shader) + "\n";
+	}
+	glAttachShader(program, geometry_shader);
 
 	// Compile fragment shader
 	GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -542,8 +603,9 @@ int BEE::opengl_init() {
 	if (is_shader_compiled != GL_TRUE) {
 		std::cerr << get_shader_error(fragment_shader);
 		glDeleteShader(vertex_shader);
+		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
-		throw std::string("Couldn't compile OpenGL fragment shader: ") + std::to_string(fragment_shader) + "\n";
+		throw std::string("Couldn't compile OpenGL fragment shader: ") + bee_itos(fragment_shader) + "\n";
 	}
 	glAttachShader(program, fragment_shader);
 
@@ -553,63 +615,99 @@ int BEE::opengl_init() {
 	if (is_program_linked != GL_TRUE) {
 		std::cerr << get_program_error(program);
 		glDeleteShader(vertex_shader);
+		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
-		throw std::string("Couldn't link OpenGL program: ") + std::to_string(program) + "\n";
+		throw std::string("Couldn't link OpenGL program: ") + bee_itos(program) + "\n";
 	}
 
 	vertex_location = glGetAttribLocation(program, "LVertexPos2D");
 	if (vertex_location == -1) {
+		std::cerr << get_program_error(program);
 		glDeleteShader(vertex_shader);
+		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
 		throw std::string("Couldn't get location of 'LVertexPos2D' in the vertex shader\n");
 	}
 	fragment_location = glGetAttribLocation(program, "LTexCoord");
 	if (fragment_location == -1) {
+		std::cerr << get_program_error(program);
 		glDeleteShader(vertex_shader);
+		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
-		throw std::string("Couldn't get location of 'LTexCoord' in the fragment shader\n");
+		throw std::string("Couldn't get location of 'LTexCoord' in the vertex shader\n");
 	}
 
 	projection_location = glGetUniformLocation(program, "projection");
 	if (projection_location == -1) {
+		std::cerr << get_program_error(program);
 		glDeleteShader(vertex_shader);
+		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
 		throw std::string("Couldn't get location of 'projection' in the vertex shader\n");
 	}
 	view_location = glGetUniformLocation(program, "view");
 	if (view_location == -1) {
+		std::cerr << get_program_error(program);
 		glDeleteShader(vertex_shader);
+		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
 		throw std::string("Couldn't get location of 'view' in the vertex shader\n");
 	}
 	model_location = glGetUniformLocation(program, "model");
 	if (model_location == -1) {
+		std::cerr << get_program_error(program);
 		glDeleteShader(vertex_shader);
+		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
 		throw std::string("Couldn't get location of 'model' in the vertex shader\n");
 	}
 	port_location = glGetUniformLocation(program, "port");
 	if (port_location == -1) {
+		std::cerr << get_program_error(program);
 		glDeleteShader(vertex_shader);
+		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
 		throw std::string("Couldn't get location of 'port' in the vertex shader\n");
 	}
 
+	rotation_location = glGetUniformLocation(program, "rotation");
+	if (rotation_location == -1) {
+		std::cerr << get_program_error(program);
+		glDeleteShader(vertex_shader);
+		glDeleteShader(geometry_shader);
+		glDeleteShader(fragment_shader);
+		throw std::string("Couldn't get location of 'rotation' in the fragment shader\n");
+	}
+
 	texture_location = glGetUniformLocation(program, "LTexture");
 	if (texture_location == -1) {
+		std::cerr << get_program_error(program);
 		glDeleteShader(vertex_shader);
+		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
 		throw std::string("Couldn't get location of 'LTexture' in the fragment shader\n");
 	}
 	colorize_location = glGetUniformLocation(program, "colorize");
 	if (colorize_location == -1) {
+		std::cerr << get_program_error(program);
 		glDeleteShader(vertex_shader);
+		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
 		throw std::string("Couldn't get location of 'colorize' in the fragment shader\n");
 	}
+	primitive_location = glGetUniformLocation(program, "is_primitive");
+	if (primitive_location == -1) {
+		std::cerr << get_program_error(program);
+		glDeleteShader(vertex_shader);
+		glDeleteShader(geometry_shader);
+		glDeleteShader(fragment_shader);
+		throw std::string("Couldn't get location of 'is_primitive' in the fragment shader\n");
+	}
 	flip_location = glGetUniformLocation(program, "flip");
 	if (flip_location == -1) {
+		std::cerr << get_program_error(program);
 		glDeleteShader(vertex_shader);
+		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
 		throw std::string("Couldn't get location of 'flip' in the fragment shader\n");
 	}
@@ -620,6 +718,7 @@ int BEE::opengl_init() {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glDeleteShader(vertex_shader);
+	glDeleteShader(geometry_shader);
 	glDeleteShader(fragment_shader);
 
 	return 0;
@@ -665,7 +764,7 @@ int BEE::renderer_close() {
 int BEE::render_clear() {
 	draw_set_color(*color);
 	if (options->is_opengl) {
-		glm::mat4 projection = glm::ortho(0.0f, (float)get_width(), (float)get_height(), 0.0f, 0.0f, 10.0f);
+		glm::mat4 projection = glm::ortho(0.0f, (float)get_room_width(), (float)get_room_height(), 0.0f, 0.0f, 10.0f);
 		glUniformMatrix4fv(projection_location, 1, GL_FALSE, glm::value_ptr(projection));
 
 		if (target > 0) {
@@ -698,21 +797,23 @@ int BEE::render_reset() {
 	}
 
 	// Reload sprite and background textures
+	Sprite* s;
 	for (int i=0; i<resource_list->sprites.get_amount(); i++) {
 		if (get_sprite(i) != NULL) {
-			Sprite* s = get_sprite(i);
+			s = get_sprite(i);
 			if (s->get_is_loaded()) {
 				s->free();
 				s->load();
 			}
 		}
 	}
+	Background* b;
 	for (int i=0; i<resource_list->backgrounds.get_amount(); i++) {
 		if (get_background(i) != NULL) {
-			Background* s = get_background(i);
-			if (s->get_is_loaded()) {
-				s->free();
-				s->load();
+			b = get_background(i);
+			if (b->get_is_loaded()) {
+				b->free();
+				b->load();
 			}
 		}
 	}

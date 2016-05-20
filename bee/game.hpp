@@ -21,6 +21,8 @@
 
 #define GLM_FORCE_RADIANS
 
+#define GLEW_STATIC
+
 #include <GL/glew.h>
 #include <SDL2/SDL_opengl.h>
 #include <glm/glm.hpp>
@@ -51,13 +53,15 @@ class BEE {
 		class Sprite; class Sound; class Background; class Font; class Path; class Timeline; class Object; class Room;
 		class GameOptions; class InstanceData; class CollisionTree; class CollisionPolygon; class RGBA;
 		class Particle; class ParticleData; class ParticleEmitter; class ParticleAttractor; class ParticleDestroyer; class ParticleDeflector; class ParticleChanger; class ParticleSystem;
-		class SoundGroup;
+		class SpriteDrawData; class SoundGroup;
 		class ViewData; class BackgroundData; class NetworkData;
 	private:
 		int argc;
 		char** argv;
 		bool quit, is_ready, is_paused;
 		Room *first_room = NULL, *current_room = NULL;
+
+		GameOptions* options = NULL;
 
 		// 0=Linux, 1=Windows
 		#ifdef _WINDOWS
@@ -68,6 +72,28 @@ class BEE {
 
 		int width, height;
 		SDL_Cursor* cursor = NULL;
+
+		SDL_Window* window = NULL;
+		SDL_Renderer* renderer = NULL;
+
+		SDL_GLContext context = NULL;
+
+		GLuint program = 0;
+		GLint vertex_location = -1;
+		GLint fragment_location = -1;
+		GLuint target = 0;
+
+		GLint projection_location = -1;
+		GLint view_location = -1;
+		GLint model_location = -1;
+		GLint port_location = -1;
+
+		GLint rotation_location = -1;
+
+		GLint texture_location = -1;
+		GLint colorize_location = -1;
+		GLint primitive_location = -1;
+		GLint flip_location = -1;
 
 		RGBA* color = NULL;
 
@@ -80,38 +106,20 @@ class BEE {
 		NetworkData* net = NULL;
 
 		double volume = 1.0;
-	protected:
-		GameOptions* options = NULL;
-	public:
-		SDL_Window* window = NULL;
-		SDL_Renderer* renderer = NULL;
-
-		SDL_GLContext context = NULL;
-		GLuint program = 0;
-		GLint vertex_location = -1;
-		GLint fragment_location = -1;
-		GLuint target = 0;
-
-		GLint projection_location = -1;
-		GLint view_location = -1;
-		GLint model_location = -1;
-		GLint port_location = -1;
-
-		GLint texture_location = -1;
-		GLint colorize_location = -1;
-		GLint flip_location = -1;
 
 		unsigned int fps_max, fps_goal, fps_unfocused;
-		unsigned int fps_count, fps_stable;
+		unsigned int fps_count;
 		Uint32 frame_number = 0;
-
-		const Uint8* keystate;
 
 		Sprite* texture_before = NULL;
 		Sprite* texture_after = NULL;
 		int transition_type = 0;
 		unsigned int transition_speed = 80;
 		const int transition_max = 21;
+
+		const Uint8* keystate;
+	public:
+		unsigned int fps_stable;
 
 		static MetaResourceList* resource_list;
 		static bool is_initialized;
@@ -159,6 +167,7 @@ class BEE {
 		Uint32 get_ticks() const;
 		Uint32 get_seconds() const;
 		Uint32 get_frame() const;
+		unsigned int get_fps_goal() const;
 
 		GameOptions get_options() const;
 		int set_options(const GameOptions&);

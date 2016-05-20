@@ -56,6 +56,9 @@ std::string debug_indent(const std::string& input, int amount) {
 std::string get_shader_error(GLuint shader) {
 	int length = 0;
 	glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length); // Get the length of the error string
+	if (length <= 0) { // If the log length is not enough, then return an empty string
+		return "";
+	}
 
 	char* log = new char[length]; // Allocate a new char array to store the log
 	glGetShaderInfoLog(shader, length, NULL, log); // Fetch the error string into the char array
@@ -71,6 +74,9 @@ std::string get_shader_error(GLuint shader) {
 std::string get_program_error(GLuint program) {
 	int length = 0;
 	glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length); // Get the length of the error string
+	if (length <= 0) { // If the log length is not enough, then return an empty string
+		return "";
+	}
 
 	char* log = new char[length]; // Allocate a new char array to store the log
 	glGetProgramInfoLog(program, length, NULL, log); // Fetch the error string into the char array

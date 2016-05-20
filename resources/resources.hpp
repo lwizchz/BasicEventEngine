@@ -61,8 +61,10 @@ int BEE::close_resources() {
 	delete spr_bee;
 	delete spr_dot;
 	delete snd_chirp;
+	delete snd_music;
 	delete bk_green;
 	delete font_liberation;
+	delete path_bee;
 	delete obj_bee;
 	delete rm_test;
 

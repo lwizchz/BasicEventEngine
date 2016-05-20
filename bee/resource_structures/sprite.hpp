@@ -11,9 +11,18 @@
 
 #include <string>
 #include <vector>
+#include <list>
 #include <SDL2/SDL.h>
 
 #include "../game.hpp"
+
+class BEE::SpriteDrawData {
+	public:
+		int x = 0, y = 0;
+		Uint32 subimage_time = 0;
+		int w = 0, h = 0;
+		double angle = 0.0;
+};
 
 class BEE::Sprite: public Resource {
 		// Add new variables to the print() debugging method
@@ -83,6 +92,7 @@ class BEE::Sprite: public Resource {
 		int draw(int, int, Uint32, SDL_RendererFlip);
 		int draw(int, int, Uint32, bool);
 		int draw_simple(SDL_Rect*, SDL_Rect*);
+		int draw_array(const std::list<SpriteDrawData*>&, const std::vector<glm::mat4>&, RGBA, SDL_RendererFlip, bool);
 		int set_as_target(int, int);
 		int set_as_target();
 };

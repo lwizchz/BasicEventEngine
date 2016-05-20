@@ -18,33 +18,35 @@
 #endif // _WINDOWS
 
 int main(int argc, char* argv[]) {
+	BEE* game;
+
 	try { // Catch all errors so that all resources will be freed properly
 		// Declare some game options, see bee/game.hpp for the type definition
 		BEE::GameOptions options = {
 			// Window flags
-			true, false, true,
+			true, true, true,
 			true, true, false,
 			true,
 			// Renderer flags
-			true,
+			false,
 			// Miscellaneous flags
 			true,
 			false
 		};
 
 		// Initialize the game engine
-		BEE* game = new BEE(argc, argv, &rm_test, &options);
-
-		// Run the game engine event loop
-		// This loop will run until the user closes the window, the game closes itself, or the game throws an exception
-		game->loop();
-
-		// Clean up resources and quit SDL and other libraries
-		game->close();
+		game = new BEE(argc, argv, &rm_test, &options);
 	} catch (std::string e) {
 		std::cerr << e; // Output the caught exception string
 		return 1; // Return 1 on caught exception
 	}
+
+	// Run the game engine event loop
+	// This loop will run until the user closes the window, the game closes itself, or the game throws an exception
+	game->loop();
+
+	// Clean up resources and quit SDL and other libraries
+	game->close();
 
 	return 0; // Return 0 on successful run
 }

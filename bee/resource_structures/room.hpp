@@ -36,7 +36,6 @@ class BEE::Room: public Resource {
 		std::string room_path;
 		int width, height;
 		bool is_isometric;
-		int speed;
 		bool is_persistent;
 
 		RGBA background_color;
@@ -76,7 +75,6 @@ class BEE::Room: public Resource {
 		int get_width();
 		int get_height();
 		bool get_is_isometric();
-		int get_speed();
 		bool get_is_persistent();
 		RGBA get_background_color();
 		bool get_is_background_color_enabled();
@@ -94,7 +92,6 @@ class BEE::Room: public Resource {
 		int set_width(int);
 		int set_height(int);
 		int set_is_isometric(bool);
-		int set_speed(int);
 		int set_is_persistent(bool);
 		int set_background_color(RGBA);
 		int set_background_color(Uint8, Uint8, Uint8);
@@ -133,14 +130,16 @@ class BEE::Room: public Resource {
 		int step_begin();
 		int step_mid();
 		int step_end();
-		int keyboard();
-		int mouse();
 		int keyboard_press(SDL_Event*);
 		int mouse_press(SDL_Event*);
 		int keyboard_input(SDL_Event*);
 		int mouse_input(SDL_Event*);
 		int keyboard_release(SDL_Event*);
 		int mouse_release(SDL_Event*);
+		int controller_axis(SDL_Event*);
+		int controller_press(SDL_Event*);
+		int controller_release(SDL_Event*);
+		int controller_modify(SDL_Event*);
 		int check_paths();
 		int outside_room();
 		int intersect_boundary();

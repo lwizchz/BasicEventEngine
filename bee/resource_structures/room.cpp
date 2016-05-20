@@ -83,7 +83,6 @@ int BEE::Room::reset() {
 	width = DEFAULT_WINDOW_WIDTH;
 	height = DEFAULT_WINDOW_HEIGHT;
 	is_isometric = false;
-	speed = DEFAULT_GAME_FPS;
 	is_persistent = false;
 
 	background_color = {255, 255, 255, 255};
@@ -133,7 +132,6 @@ int BEE::Room::print() {
 	"\n	width				" << width <<
 	"\n	height				" << height <<
 	"\n	is_isometric			" << is_isometric <<
-	"\n	speed				" << speed <<
 	"\n	is_persistent			" << is_persistent <<
 	"\n	is_background_color_enabled	" << is_background_color_enabled;
 	if (is_background_color_enabled) {
@@ -166,9 +164,6 @@ int BEE::Room::get_height() {
 }
 bool BEE::Room::get_is_isometric() {
 	return is_isometric;
-}
-int BEE::Room::get_speed() {
-	return speed;
 }
 bool BEE::Room::get_is_persistent() {
 	return is_persistent;
@@ -278,10 +273,6 @@ int BEE::Room::set_height(int new_height) {
 }
 int BEE::Room::set_is_isometric(bool new_is_isometric) {
 	is_isometric = new_is_isometric;
-	return 0;
-}
-int BEE::Room::set_speed(int new_speed) {
-	speed = new_speed;
 	return 0;
 }
 int BEE::Room::set_is_persistent(bool new_is_persistent) {
@@ -573,8 +564,8 @@ int BEE::Room::load_instance_map(std::string fname) {
 
                         std::string d = tmp.substr(tmp.find(",")+1);
                         d = trim(d);
-			int x = std::stoi(d.substr(0, d.find(",")));
-			int y = std::stoi(d.substr(d.find(",")+1));
+			int x = bee_stoi(d.substr(0, d.find(",")));
+			int y = bee_stoi(d.substr(d.find(",")+1));
 
 			if (game->get_object_by_name(v) == NULL) {
 				std::cerr << "Error loading instance map: unknown object \"" << v << "\"\n";
@@ -758,22 +749,6 @@ int BEE::Room::step_end() {
 
 	return 0;
 }
-int BEE::Room::keyboard() {
-	for (auto& i : instances_sorted) {
-		i.first->object->update(i.first);
-		i.first->object->keyboard(i.first);
-	}
-
-	return 0;
-}
-int BEE::Room::mouse() {
-	for (auto& i : instances_sorted) {
-		i.first->object->update(i.first);
-		i.first->object->mouse(i.first);
-	}
-
-	return 0;
-}
 int BEE::Room::keyboard_press(SDL_Event* e) {
 	for (auto& i : instances_sorted) {
 		i.first->object->update(i.first);
@@ -821,6 +796,38 @@ int BEE::Room::mouse_release(SDL_Event* e) {
 
 	return 0;
 }
+int BEE::Room::controller_axis(SDL_Event* e) {
+	for (auto& i : instances_sorted) {
+		i.first->object->update(i.first);
+		i.first->object->controller_axis(i.first, e);
+	}
+
+	return 0;
+}
+int BEE::Room::controller_press(SDL_Event* e) {
+	for (auto& i : instances_sorted) {
+		i.first->object->update(i.first);
+		i.first->object->controller_press(i.first, e);
+	}
+
+	return 0;
+}
+int BEE::Room::controller_release(SDL_Event* e) {
+	for (auto& i : instances_sorted) {
+		i.first->object->update(i.first);
+		i.first->object->controller_release(i.first, e);
+	}
+
+	return 0;
+}
+int BEE::Room::controller_modify(SDL_Event* e) {
+	for (auto& i : instances_sorted) {
+		i.first->object->update(i.first);
+		i.first->object->controller_modify(i.first, e);
+	}
+
+	return 0;
+}
 int BEE::Room::check_paths() {
 	for (auto& i : instances_sorted) {
 		if (i.first->has_path()) {
@@ -840,7 +847,7 @@ int BEE::Room::outside_room() {
 	for (auto& i : instances_sorted) {
 		if (i.first->object->get_mask() != NULL) {
 			SDL_Rect a = {(int)i.first->x, (int)i.first->y, i.first->object->get_mask()->get_subimage_width(), i.first->object->get_mask()->get_height()};
-			SDL_Rect b = {0, 0, game->get_width(), game->get_height()};
+			SDL_Rect b = {0, 0, get_width(), get_height()};
 			if (!check_collision(a, b)) {
 				i.first->object->update(i.first);
 				i.first->object->outside_room(i.first);
@@ -949,23 +956,12 @@ int BEE::Room::draw_view() {
 		}
 	}
 
-	// Draw paths
-	for (auto& i : instances_sorted) {
-		if ((i.first->has_path())&&(i.first->get_path_drawn())) {
-			i.first->draw_path();
-		}
-	}
-
 	// Draw instances
 	for (auto& i : instances_sorted) {
 		if (i.first->object->get_is_visible()) {
 			i.first->object->update(i.first);
 			i.first->object->draw(i.first);
 		}
-	}
-
-	if (game->options->is_debug_enabled) {
-		collision_tree->draw();
 	}
 
 	// Draw particles
@@ -977,6 +973,22 @@ int BEE::Room::draw_view() {
 	for (auto& b : backgrounds) {
 		if (b.second->is_visible && b.second->is_foreground) {
 			b.second->background->draw(b.second->x, b.second->y, b.second);
+		}
+	}
+
+	if (game->options->is_debug_enabled) {
+		collision_tree->draw();
+
+		// Draw paths
+		for (auto& i : instances_sorted) {
+			if ((i.first->has_path())&&(i.first->get_path_drawn())) {
+				i.first->draw_path();
+			}
+		}
+
+		// Draw particle system bounding boxes
+		for (auto& p : particles) {
+			p.second->draw_debug();
 		}
 	}
 

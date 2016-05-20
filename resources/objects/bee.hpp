@@ -16,7 +16,7 @@ class ObjBee : public BEE::Object {
 		void alarm(BEE::InstanceData*, int);
 		void step_mid(BEE::InstanceData*);
 		void keyboard_press(BEE::InstanceData*, SDL_Event*);
-		void mouse(BEE::InstanceData*, SDL_Event*);
+		void mouse_input(BEE::InstanceData*, SDL_Event*);
 		void mouse_press(BEE::InstanceData*, SDL_Event*);
 		void collision(BEE::InstanceData*, BEE::InstanceData*);
 		void draw(BEE::InstanceData*);
@@ -40,29 +40,34 @@ void ObjBee::create(BEE::InstanceData* self) {
 	//std::cerr << execute_string<int>("3+5");
 
 	if (self->id == 0) {
-		BEE::ParticleSystem* part_system = new BEE::ParticleSystem();
+		BEE::ParticleSystem* part_system = new BEE::ParticleSystem(game);
 		//part_system->following = NULL;
 
 		//BEE::Particle* part_done = new BEE::Particle(game, pt_shape_explosion, 0.5, 100);
 
-		BEE::Particle* part_firework = new BEE::Particle(game, pt_shape_snow, 0.5, 20000);
-		part_firework->velocity = {-1.0, 0.0};
-		part_firework->angle_increase = 0.5;
+		BEE::Particle* part_firework = new BEE::Particle(game, pt_shape_snow, 0.5, 20000, true);
+		//BEE::Particle* part_firework = new BEE::Particle(game, spr_bee, 0.5, 20000, true);
+		part_firework->velocity = {-0.75, 0.0};
+		part_firework->angle_increase = 0.3;
 		//part_firework->color = game->get_enum_color(c_orange, 100);
 		//part_firework->death_type = part_done;
 
 		BEE::ParticleEmitter* part_emitter = new BEE::ParticleEmitter();
-		part_emitter->w = 1280;
+		part_emitter->w = 1920;
 		part_emitter->particle_type = part_firework;
 		part_emitter->number = 5;
 		part_system->emitters.push_back(part_emitter);
 
 		BEE::ParticleDestroyer* part_destroyer = new BEE::ParticleDestroyer();
-		part_destroyer->y = 620;
-		part_destroyer->w = 1280;
+		part_destroyer->y = 1000;
+		part_destroyer->w = 1920;
 		part_system->destroyers.push_back(part_destroyer);
 
 		game->get_current_room()->add_particle_system(part_system);
+		/*Uint32 t1 = game->get_ticks();
+		part_system->fast_forward(300);
+		Uint32 t2 = game->get_ticks();
+		std::cerr << (t2-t1) << "\n";*/
 	}
 }
 void ObjBee::alarm(BEE::InstanceData* self, int a) {
@@ -76,11 +81,11 @@ void ObjBee::alarm(BEE::InstanceData* self, int a) {
 
 }
 void ObjBee::step_mid(BEE::InstanceData* self) {
-	/*int mx, my;
+	int mx, my;
 	SDL_GetMouseState(&mx, &my);
 	std::pair<int,int> c = coord_approach(self->x, self->y, mx, my, 10);
 	self->x = c.first;
-	self->y = c.second;*/
+	self->y = c.second;
 }
 void ObjBee::keyboard_press(BEE::InstanceData* self, SDL_Event* e) {
 	switch (e->key.keysym.sym) {
@@ -109,14 +114,6 @@ void ObjBee::keyboard_press(BEE::InstanceData* self, SDL_Event* e) {
 		case SDLK_e: {
 			self->path_start(path_bee, 5.0, 3, true);
 			self->set_path_drawn(true);
-			break;
-		}
-		case SDLK_r: {
-			if (self->id == 0) {
-				if (game->get_sprite(54) == NULL) {
-					show_error("No such sprite");
-				}
-			}
 			break;
 		}
 
@@ -180,7 +177,7 @@ void ObjBee::keyboard_press(BEE::InstanceData* self, SDL_Event* e) {
 		}
 	}
 }
-void ObjBee::mouse(BEE::InstanceData* self, SDL_Event* e) {
+void ObjBee::mouse_input(BEE::InstanceData* self, SDL_Event* e) {
 	if (e->type == SDL_MOUSEMOTION) {
 		//spr_bee->set_alpha(0.25);
 	}
@@ -219,14 +216,12 @@ void ObjBee::draw(BEE::InstanceData* self) {
 	// draw event
 	int mx, my;
 	std::tie(mx, my) = game->get_mouse_position();
-	int s = 100;//distance(self->x, self->y, mx, my)/2;
+	int s = 100;
 	self->draw(s, s, direction_of(self->x, self->y, mx, my), c_white, SDL_FLIP_NONE);
 
-	font_liberation->draw_fast(self->x, self->y, std::to_string(self->id));
-	//font_liberation->draw_fast(self->x, self->y, std::to_string(self->get_path_node()));
+	font_liberation->draw_fast(self->x, self->y, bee_itos(self->id));
 
 	if (self->id == 0) {
-		fps_display = font_liberation->draw(fps_display, 0, 0, "FPS: \n" + std::to_string(game->fps_stable));
-		//font_liberation->draw_fast(0, 0, "FPS: " + std::to_string(game->fps_stable));
+		fps_display = font_liberation->draw(fps_display, 0, 0, "FPS: " + bee_itos(game->fps_stable));
 	}
 }

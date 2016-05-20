@@ -360,19 +360,26 @@ int BEE::Sprite::draw_subimage(int x, int y, int current_subimage, int w, int h,
 
 	if (game->is_on_screen(drect)) {
 		if (game->options->is_opengl) {
+			int rect_width = width;
+			if (subimage_amount > 1) {
+				rect_width = subimage_width;
+			}
+
 			if (w <= 0) {
-				w = width;
+				w = rect_width;
 			}
 			if (h <= 0) {
 				h = height;
 			}
 
-			glm::mat4 model = glm::scale(glm::mat4(1.0), glm::vec3(w/width, h/height, 1.0));
-			model = glm::translate(model, glm::vec3(drect.x, drect.y, 0.0));
+			glm::mat4 model = glm::translate(glm::mat4(1.0), glm::vec3(drect.x, drect.y, 0.0));
+			model = glm::scale(model, glm::vec3((double)w/rect_width, (double)h/height, 1.0));
 			if (angle != 0.0) {
-				model = glm::translate(model, glm::vec3((1+sin(degtorad(angle)))*width, -cos(degtorad(angle))*height, 0.0)); // rotational translation
+				glm::mat4 rotation = glm::translate(glm::mat4(1.0), glm::vec3((double)rect_width/2.0, (double)height/2.0, 0.0));
+				rotation = glm::rotate(rotation, (float)degtorad(angle), glm::vec3(0.0, 0.0, 1.0));
+				rotation = glm::translate(rotation, glm::vec3(-(double)rect_width/2.0, -(double)height/2.0, 0.0));
+				glUniformMatrix4fv(game->rotation_location, 1, GL_FALSE, glm::value_ptr(rotation));
 			}
-			model = glm::rotate(model, (float)degtorad(angle), glm::vec3(0.0, 0.0, 1.0));
 			glUniformMatrix4fv(game->model_location, 1, GL_FALSE, glm::value_ptr(model));
 
 			glActiveTexture(GL_TEXTURE0);
@@ -420,6 +427,11 @@ int BEE::Sprite::draw_subimage(int x, int y, int current_subimage, int w, int h,
 
 			glDisableVertexAttribArray(game->vertex_location);
 			glDisableVertexAttribArray(game->fragment_location);
+
+			glUniformMatrix4fv(game->model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0)));
+			glBindTexture(GL_TEXTURE_2D, 0);
+			glUniform1i(game->flip_location, 0);
+			glUniformMatrix4fv(game->rotation_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0)));
 		} else {
 			SDL_SetTextureColorMod(texture, new_color.r, new_color.g, new_color.b);
 			if (new_color.a == 0) {
@@ -481,6 +493,164 @@ int BEE::Sprite::draw_simple(SDL_Rect* source, SDL_Rect* dest) {
 		return 2;
 	}
 	return SDL_RenderCopy(game->renderer, texture, source, dest);
+}
+int BEE::Sprite::draw_array(const std::list<SpriteDrawData*>& draw_list, const std::vector<glm::mat4>& rotation_cache, RGBA new_color, SDL_RendererFlip flip, bool is_hud) {
+	if (!is_loaded) {
+		if (!has_draw_failed) {
+			std::cerr << "Failed to draw sprite \"" << name << "\" because it is not loaded\n";
+			has_draw_failed = true;
+		}
+		return 1;
+	}
+
+	if (game->options->is_opengl) {
+		glActiveTexture(GL_TEXTURE0);
+		glUniform1i(game->texture_location, 0);
+		glBindTexture(GL_TEXTURE_2D, gl_texture);
+
+		glm::vec4 color = glm::vec4(new_color.r/255.0, new_color.g/255.0, new_color.b/255.0, new_color.a/255.0);
+		glUniform4fv(game->colorize_location, 1, glm::value_ptr(color));
+
+		int f = 0;
+		if (flip & SDL_FLIP_HORIZONTAL) {
+			f += 1;
+		}
+		if (flip & SDL_FLIP_VERTICAL) {
+			f += 2;
+		}
+		glUniform1i(game->flip_location, f);
+
+		glEnableVertexAttribArray(game->vertex_location);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
+		glVertexAttribPointer(
+			game->vertex_location,
+			2,
+			GL_FLOAT,
+			GL_FALSE,
+			0,
+			0
+		);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+		int size;
+		glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+
+		Uint32 t = game->get_ticks();
+		for (auto& s : draw_list) {
+			int current_subimage = (int)round(speed*(t-s->subimage_time)/game->get_fps_goal()) % subimage_amount;
+			if (current_subimage == 0) {
+				is_animated = true;
+			}
+
+			drect.x = s->x;
+			drect.y = s->y;
+			if ((game->get_current_room()->get_is_views_enabled())&&(!is_hud)) {
+				if (game->get_current_room()->get_current_view() != NULL) {
+					drect.x += game->get_current_room()->get_current_view()->view_x;
+					drect.y += game->get_current_room()->get_current_view()->view_y;
+				}
+			}
+
+			if ((s->w >= 0)&&(s->h >= 0)) {
+				drect.w = s->w;
+				drect.h = s->h;
+			} else if (subimage_amount > 1) {
+				drect.w = subimage_width;
+				drect.h = height;
+			} else {
+				drect.w = width;
+				drect.h = height;
+			}
+
+			int rect_width = width;
+			if (subimage_amount > 1) {
+				rect_width = subimage_width;
+			}
+
+			if (s->w <= 0) {
+				s->w = rect_width;
+			}
+			if (s->h <= 0) {
+				s->h = height;
+			}
+
+			glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3((float)drect.x, (float)drect.y, 0.0f));
+			model = glm::scale(model, glm::vec3((float)s->w/rect_width, (float)s->h/height, 1.0));
+			if (s->angle != 0.0) {
+				glUniformMatrix4fv(game->rotation_location, 1, GL_FALSE, glm::value_ptr(rotation_cache[s->angle]));
+			}
+			glUniformMatrix4fv(game->model_location, 1, GL_FALSE, glm::value_ptr(model));
+
+			glEnableVertexAttribArray(game->fragment_location);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords[current_subimage]);
+			glVertexAttribPointer(
+				game->fragment_location,
+				2,
+				GL_FLOAT,
+				GL_FALSE,
+				0,
+				0
+			);
+
+			glDrawElements(GL_TRIANGLES, size/sizeof(GLushort), GL_UNSIGNED_SHORT, 0);
+		}
+
+		glDisableVertexAttribArray(game->vertex_location);
+		glDisableVertexAttribArray(game->fragment_location);
+
+		glUniformMatrix4fv(game->model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0)));
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glUniform1i(game->flip_location, 0);
+		glUniformMatrix4fv(game->rotation_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0)));
+	} else {
+		SDL_SetTextureColorMod(texture, new_color.r, new_color.g, new_color.b);
+		if (new_color.a == 0) {
+			SDL_SetTextureAlphaMod(texture, alpha*255);
+		} else {
+			SDL_SetTextureAlphaMod(texture, new_color.a);
+		}
+
+		Uint32 t = game->get_ticks();
+		for (auto& s : draw_list) {
+			int current_subimage = (int)round(speed*(t-s->subimage_time)/game->get_fps_goal()) % subimage_amount;
+			if (current_subimage == 0) {
+				is_animated = true;
+			}
+
+			drect.x = s->x;
+			drect.y = s->y;
+			if ((game->get_current_room()->get_is_views_enabled())&&(!is_hud)) {
+				if (game->get_current_room()->get_current_view() != NULL) {
+					drect.x += game->get_current_room()->get_current_view()->view_x;
+					drect.y += game->get_current_room()->get_current_view()->view_y;
+				}
+			}
+
+			if ((s->w >= 0)&&(s->h >= 0)) {
+				drect.w = s->w;
+				drect.h = s->h;
+			} else if (subimage_amount > 1) {
+				drect.w = subimage_width;
+				drect.h = height;
+			} else {
+				drect.w = width;
+				drect.h = height;
+			}
+
+			if (!subimages.empty()) {
+				srect.x = subimages[current_subimage].x;
+				srect.y = 0;
+				srect.w = subimages[current_subimage].w;
+				srect.h = height;
+
+				SDL_RenderCopyEx(game->renderer, texture, &srect, &drect, s->angle, NULL, flip);
+			} else {
+				SDL_RenderCopyEx(game->renderer, texture, NULL, &drect, s->angle, NULL, flip);
+			}
+		}
+	}
+
+	return 0;
 }
 int BEE::Sprite::set_as_target(int w, int h) {
 	if (is_loaded) {

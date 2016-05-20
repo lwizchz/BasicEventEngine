@@ -232,7 +232,7 @@ TextData* BEE::Font::draw_internal(int x, int y, std::string text, RGBA color) {
 			Sprite* tmp_sprite = new Sprite();
 
 			tmp_sprite->load_from_surface(tmp_surface);
-			tmp_sprite->draw_subimage(x, y, 0, -1, -1, 0.0, {255, 255, 255, 255}, SDL_FLIP_NONE, true);
+			tmp_sprite->draw(x, y, 0, false);
 
 			SDL_FreeSurface(tmp_surface);
 
@@ -287,7 +287,7 @@ TextData* BEE::Font::draw(TextData* textdata, int x, int y, std::string text, RG
 		if ((textdata != NULL)&&(textdata->text == text)) {
 			std::map<int,std::string> lines = handle_newlines(text);
 			for (auto& l : lines) {
-				textdata->sprite[l.first]->draw(x, y, 0);
+				textdata->sprite[l.first]->draw(x, y, 0, false);
 			}
 			return textdata;
 		} else {
@@ -330,7 +330,7 @@ int BEE::Font::draw_fast_internal(int x, int y, std::string text, RGBA color) {
 				Sprite* tmp_sprite = new Sprite();
 
 				tmp_sprite->load_from_surface(tmp_surface);
-				tmp_sprite->draw_subimage(x, y, 0, -1, -1, 0.0, {255, 255, 255, 255}, SDL_FLIP_NONE, true);
+				tmp_sprite->draw(x, y, 0, false);
 
 				SDL_FreeSurface(tmp_surface);
 				delete tmp_sprite;

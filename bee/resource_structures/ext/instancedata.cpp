@@ -28,16 +28,6 @@ int BEE::CollisionPolygon::finalize() {
 		lines.front().y1 = lines.back().y2;
 
 		line_amount = lines.size();
-
-		// Reorder lines
-		/*std::vector<Line> new_polygon;
-		new_polygon.reserve(lines.size());
-		Line last = lines.front();
-		for (std::vector<Line>::iterator it = ++lines.begin(); it != lines.end(); ++it) {
-			new_polygon.push_back((*it));
-		}
-		new_polygon.push_back(last);
-		lines = new_polygon;*/
 	}
 	return 0;
 }
@@ -158,7 +148,7 @@ int BEE::InstanceData::move(double new_magnitude, double new_direction) {
 		new_direction -= 180.0;
 		new_magnitude = fabs(new_magnitude);
 	}
-	new_direction = fmod(new_direction, 360.0);
+	new_direction = absolute_angle(new_direction);
 	velocity.push_back(std::make_pair(new_magnitude, new_direction));
 	return 0;
 }

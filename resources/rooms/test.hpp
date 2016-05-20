@@ -30,6 +30,9 @@ int RmTest::init() {
 	set_view(0, &vw_main);
 	set_is_views_enabled(true);*/
 
+	set_width(1920);
+	set_height(1080);
+
 	// set backgrounds
 	add_background(-1, bk_green, true, false, 0, 0, true, true, 10, 10, false);
 
