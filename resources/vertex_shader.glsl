@@ -6,7 +6,7 @@
 * See LICENSE for more details.
 */
 
-#version 330 core
+// Version is included before OpenGL initialization
 
 in vec2 LVertexPos2D;
 in vec2 LTexCoord;

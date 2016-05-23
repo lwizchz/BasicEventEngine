@@ -6,7 +6,7 @@
 * See LICENSE for more details.
 */
 
-#version 330 core
+// Version is included before OpenGL initialization
 
 in vec2 f_texcoord;
 in vec2 f_should_draw;
@@ -26,13 +26,13 @@ void main() {
 			LFragment = colorize;
 		} else {
 			if (flip == 0) {
-				LFragment = texture2D(LTexture, f_texcoord);
+				LFragment = texture(LTexture, f_texcoord);
 			} else if (flip == 1) {
-				LFragment = texture2D(LTexture, vec2(1.0-f_texcoord.x, f_texcoord.y));
+				LFragment = texture(LTexture, vec2(1.0-f_texcoord.x, f_texcoord.y));
 			} else if (flip == 2) {
-				LFragment = texture2D(LTexture, vec2(f_texcoord.x, 1.0-f_texcoord.y));
+				LFragment = texture(LTexture, vec2(f_texcoord.x, 1.0-f_texcoord.y));
 			} else if (flip == 3) {
-				LFragment = texture2D(LTexture, 1.0-f_texcoord);
+				LFragment = texture(LTexture, 1.0-f_texcoord);
 			}
 
 			LFragment *= colorize;

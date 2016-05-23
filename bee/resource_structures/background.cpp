@@ -170,7 +170,7 @@ int BEE::Background::set_time_update() {
 
 int BEE::Background::load_from_surface(SDL_Surface* tmp_surface) {
 	if (!is_loaded) {
-		if (game->options->is_opengl) {
+		if (game->options->renderer_type != BEE_RENDERER_SDL) {
 			width = tmp_surface->w;
 			height = tmp_surface->h;
 
@@ -254,7 +254,7 @@ int BEE::Background::load() {
 }
 int BEE::Background::free() {
 	if (is_loaded) {
-		if (game->options->is_opengl) {
+		if (game->options->renderer_type != BEE_RENDERER_SDL) {
 			glDeleteBuffers(1, &vbo_vertices);
 			glDeleteBuffers(1, &vbo_texcoords);
 			glDeleteBuffers(1, &ibo);
@@ -268,7 +268,7 @@ int BEE::Background::free() {
 	return 0;
 }
 int BEE::Background::draw_internal(const SDL_Rect* src, const SDL_Rect* dest) const {
-	if (game->options->is_opengl) {
+	if (game->options->renderer_type != BEE_RENDERER_SDL) {
 		glm::mat4 model = glm::scale(glm::mat4(1.0), glm::vec3((double)dest->w/width, (double)dest->h/height, 1.0));
 		model = glm::translate(model, glm::vec3(dest->x, dest->y, 0.0));
 		glUniformMatrix4fv(game->model_location, 1, GL_FALSE, glm::value_ptr(model));

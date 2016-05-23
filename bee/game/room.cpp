@@ -172,7 +172,7 @@ bool BEE::is_on_screen(const SDL_Rect& rect) const {
 * @viewport: the rectangle defining the desired viewport
 */
 int BEE::set_viewport(ViewData* viewport) const {
-	if (options->is_opengl) {
+	if (options->renderer_type != BEE_RENDERER_SDL) {
 		glm::mat4 view;
 		glm::vec4 port;
 

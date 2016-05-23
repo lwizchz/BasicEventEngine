@@ -16,7 +16,7 @@
 * ! See https://wiki.libsdl.org/SDL_SetRenderTarget for details
 */
 int BEE::reset_render_target() {
-	if (options->is_opengl) {
+	if (options->renderer_type != BEE_RENDERER_SDL) {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0); // Reset the bound framebuffer
 		target = 0; // Reset the target
 	} else {

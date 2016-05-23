@@ -45,10 +45,30 @@ BEE::BEE(int new_argc, char** new_argv, Room** new_first_room, GameOptions* new_
 		throw std::string("Couldn't init SDL: ") + SDL_GetError() + "\n";
 	}
 
-	// Use "modern" OpenGL 3.1 core
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+	// Use the highest version of OpenGL available
+	switch (options->renderer_type) {
+		case BEE_RENDERER_OPENGL4:
+			if (GL_VERSION_4_1) {
+				options->renderer_type = BEE_RENDERER_OPENGL4;
+				SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+				SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+				//SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+				SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY); // Currently the compatibility profile must be used because there are unknown uses of the deprecated functions in the code base
+				break;
+			}
+		case BEE_RENDERER_OPENGL3:
+			if (GL_VERSION_3_3) {
+				options->renderer_type = BEE_RENDERER_OPENGL3;
+				SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+				SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+				//SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+				SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY); // Currently the compatibility profile must be used because there are unknown uses of the deprecated functions in the code base
+				break;
+			}
+		case BEE_RENDERER_SDL:
+		default:
+			options->renderer_type = BEE_RENDERER_SDL;
+	}
 
 	int window_flags = SDL_WINDOW_OPENGL;
 	if (options->is_fullscreen) {
@@ -89,10 +109,10 @@ BEE::BEE(int new_argc, char** new_argv, Room** new_first_room, GameOptions* new_
 	keystate = SDL_GetKeyboardState(NULL);
 
 	color = new RGBA();
-	if (options->is_opengl) {
+	if (options->renderer_type != BEE_RENDERER_SDL) {
 		opengl_init();
 	} else { // if not OpenGL, init an SDL renderer
-		renderer_init();
+		sdl_renderer_init();
 	}
 
 	int img_flags = IMG_INIT_PNG | IMG_INIT_JPG;
@@ -273,8 +293,10 @@ int BEE::loop() {
 						break;
 					}
 
-					case SDL_AUDIODEVICEADDED:
-					case SDL_AUDIODEVICEREMOVED:
+					#ifdef SDL_AUDIODEVICEADDED
+						case SDL_AUDIODEVICEADDED:
+						case SDL_AUDIODEVICEREMOVED:
+					#endif
 					case SDL_DOLLARGESTURE:
 					case SDL_DOLLARRECORD:
 					case SDL_DROPFILE:
@@ -393,7 +415,7 @@ int BEE::close() {
 		opengl_close();
 	}
 	if (renderer != NULL) {
-		renderer_close();
+		sdl_renderer_close();
 	}
 	if (window != NULL) {
 		SDL_DestroyWindow(window);
@@ -451,12 +473,12 @@ int BEE::set_options(const GameOptions& new_options) {
 		}
 		SDL_SetWindowFullscreen(window, b);
 	}
-	if ((options->is_opengl ^ new_options.is_opengl) == 1) {
+	if (options->renderer_type != new_options.renderer_type) {
 		// Change OpenGL state
-		options->is_opengl = new_options.is_opengl;
+		options->renderer_type = new_options.renderer_type;
 
-		if (options->is_opengl) { // Enter OpenGL mode
-			renderer_close();
+		if (options->renderer_type != BEE_RENDERER_SDL) { // Enter OpenGL mode
+			sdl_renderer_close();
 			render_reset();
 		} else { // Enter SDL rendering mode
 			opengl_close();
@@ -557,6 +579,8 @@ int BEE::opengl_init() {
 
 	if (options->is_vsync_enabled) {
 		SDL_GL_SetSwapInterval(1);
+	} else {
+		SDL_GL_SetSwapInterval(0);
 	}
 
 	program = glCreateProgram();
@@ -564,6 +588,7 @@ int BEE::opengl_init() {
 	// Compile vertex shader
 	GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
 	std::string vs = file_get_contents("resources/vertex_shader.glsl");
+	vs = opengl_prepend_version(vs);
 	const GLchar* vertex_shader_source[] = {vs.c_str()};
 	glShaderSource(vertex_shader, 1, vertex_shader_source, NULL);
 	glCompileShader(vertex_shader);
@@ -579,6 +604,7 @@ int BEE::opengl_init() {
 	// Compile geometry shader
 	GLuint geometry_shader = glCreateShader(GL_GEOMETRY_SHADER);
 	std::string gs = file_get_contents("resources/geometry_shader.glsl");
+	gs = opengl_prepend_version(gs);
 	const GLchar* geometry_shader_source[] = {gs.c_str()};
 	glShaderSource(geometry_shader, 1, geometry_shader_source, NULL);
 	glCompileShader(geometry_shader);
@@ -595,6 +621,7 @@ int BEE::opengl_init() {
 	// Compile fragment shader
 	GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
 	std::string fs = file_get_contents("resources/fragment_shader.glsl");
+	fs = opengl_prepend_version(fs);
 	const GLchar* fragment_shader_source[] = {fs.c_str()};
 	glShaderSource(fragment_shader, 1, fragment_shader_source, NULL);
 	glCompileShader(fragment_shader);
@@ -721,6 +748,12 @@ int BEE::opengl_init() {
 	glDeleteShader(geometry_shader);
 	glDeleteShader(fragment_shader);
 
+	if (options->renderer_type == BEE_RENDERER_OPENGL4) {
+		std::cout << "Now rendering with OpenGL 4.1\n";
+	} else if (options->renderer_type == BEE_RENDERER_OPENGL3) {
+		std::cout << "Now rendering with OpenGL 3.3\n";
+	}
+
 	return 0;
 }
 int BEE::opengl_close() {
@@ -736,7 +769,25 @@ int BEE::opengl_close() {
 
 	return 0;
 }
-int BEE::renderer_init() {
+std::string BEE::opengl_prepend_version(const std::string& shader) {
+	switch (options->renderer_type) {
+		case BEE_RENDERER_OPENGL4:
+			if (GL_VERSION_4_1) {
+				options->renderer_type = BEE_RENDERER_OPENGL4;
+				return "#version 410\n" + shader;
+			}
+		case BEE_RENDERER_OPENGL3:
+			if (GL_VERSION_3_3) {
+				options->renderer_type = BEE_RENDERER_OPENGL3;
+				return "#version 330\n" + shader;
+			}
+		case BEE_RENDERER_SDL:
+		default:
+			options->renderer_type = BEE_RENDERER_SDL;
+			return shader;
+	}
+}
+int BEE::sdl_renderer_init() {
 	int renderer_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE;
 	if (options->is_vsync_enabled) {
 		renderer_flags |= SDL_RENDERER_PRESENTVSYNC;
@@ -750,9 +801,11 @@ int BEE::renderer_init() {
 	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
+	std::cout << "Now rendering with SDL2\n";
+
 	return 0;
 }
-int BEE::renderer_close() {
+int BEE::sdl_renderer_close() {
 	if (renderer != NULL) {
 		SDL_DestroyRenderer(renderer);
 		renderer = NULL;
@@ -763,7 +816,7 @@ int BEE::renderer_close() {
 
 int BEE::render_clear() {
 	draw_set_color(*color);
-	if (options->is_opengl) {
+	if (options->renderer_type != BEE_RENDERER_SDL) {
 		glm::mat4 projection = glm::ortho(0.0f, (float)get_room_width(), (float)get_room_height(), 0.0f, 0.0f, 10.0f);
 		glUniformMatrix4fv(projection_location, 1, GL_FALSE, glm::value_ptr(projection));
 
@@ -779,7 +832,7 @@ int BEE::render_clear() {
 	return 0;
 }
 int BEE::render() const {
-	if (options->is_opengl) {
+	if (options->renderer_type != BEE_RENDERER_SDL) {
 		glUseProgram(0);
 		SDL_GL_SwapWindow(window);
 	} else {
@@ -788,12 +841,12 @@ int BEE::render() const {
 	return 0;
 }
 int BEE::render_reset() {
-	if (options->is_opengl) {
+	if (options->renderer_type != BEE_RENDERER_SDL) {
 		opengl_close();
 		opengl_init();
 	} else {
-		renderer_close();
-		renderer_init();
+		sdl_renderer_close();
+		sdl_renderer_init();
 	}
 
 	// Reload sprite and background textures

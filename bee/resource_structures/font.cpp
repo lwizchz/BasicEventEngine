@@ -184,7 +184,7 @@ int BEE::Font::load() {
 			is_loaded = true;
 			has_draw_failed = false;
 		} else {
-			if (game->options->is_opengl) {
+			if (game->options->renderer_type != BEE_RENDERER_SDL) {
 				std::cerr << "Please note that TTF fast font rendering is currently broken in OpenGL\n";
 			}
 
@@ -386,7 +386,9 @@ int BEE::Font::draw_fast(int x, int y, std::string text, rgba_t color) {
 int BEE::Font::get_string_width(std::string text, int size) {
 	if (is_loaded) {
 		int w = 0;
-		TTF_SizeUTF8(font, text.c_str(), &w, NULL);
+		if (size == font_size) {
+			TTF_SizeUTF8(font, text.c_str(), &w, NULL);
+		}
 		return w;
 	}
 
@@ -402,7 +404,9 @@ int BEE::Font::get_string_width(std::string text) {
 int BEE::Font::get_string_height(std::string text, int size) {
 	if (is_loaded) {
 		int h = 0;
-		TTF_SizeUTF8(font, text.c_str(), NULL, &h);
+		if (size == font_size) {
+			TTF_SizeUTF8(font, text.c_str(), NULL, &h);
+		}
 		return h;
 	}
 

@@ -24,14 +24,15 @@ int main(int argc, char* argv[]) {
 		// Declare some game options, see bee/game.hpp for the type definition
 		BEE::GameOptions options = {
 			// Window flags
-			true, true, true,
-			true, true, false,
-			true,
+			true, true,
+			true, true,
+			false, true,
 			// Renderer flags
-			false,
+			BEE_RENDERER_OPENGL3,
+			true,
 			// Miscellaneous flags
 			true,
-			false
+			true
 		};
 
 		// Initialize the game engine

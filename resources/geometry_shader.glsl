@@ -6,8 +6,7 @@
 * See LICENSE for more details.
 */
 
-#version 330 core
-#extension GL_EXT_geometry_shader4 : enable
+// Version is included before OpenGL initialization
 
 layout (triangles) in;
 
@@ -23,12 +22,13 @@ out vec2 f_should_draw;
 uniform mat4 rotation;
 
 void main() {
-	for(int i=0; i<gl_VerticesIn; i++) {
-		gl_Position = g_model[i] * rotation * gl_PositionIn[i];
+	for(int i=0; i<3; i++) {
+		gl_Position = g_model[i] * rotation * gl_in[i].gl_Position;
 		f_texcoord = g_texcoord[i];
 		f_should_draw = g_should_draw[i];
 
 		EmitVertex();
 	}
+
 	EndPrimitive();
 }

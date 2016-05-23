@@ -45,7 +45,7 @@ void ObjBee::create(BEE::InstanceData* self) {
 
 		//BEE::Particle* part_done = new BEE::Particle(game, pt_shape_explosion, 0.5, 100);
 
-		BEE::Particle* part_firework = new BEE::Particle(game, pt_shape_snow, 0.5, 20000, true);
+		BEE::Particle* part_firework = new BEE::Particle(game, pt_shape_snow, 0.5, 10000, true);
 		//BEE::Particle* part_firework = new BEE::Particle(game, spr_bee, 0.5, 20000, true);
 		part_firework->velocity = {-0.75, 0.0};
 		part_firework->angle_increase = 0.3;
@@ -62,6 +62,15 @@ void ObjBee::create(BEE::InstanceData* self) {
 		part_destroyer->y = 1000;
 		part_destroyer->w = 1920;
 		part_system->destroyers.push_back(part_destroyer);
+
+		BEE::ParticleAttractor* part_attr = new BEE::ParticleAttractor();
+		part_attr->x = 300;
+		part_attr->y = 600;
+		part_attr->w = 200;
+		part_attr->h = 50;
+		part_attr->max_distance = 500;
+		part_attr->force_type = ps_force_constant;
+		part_system->attractors.push_back(part_attr);
 
 		game->get_current_room()->add_particle_system(part_system);
 		/*Uint32 t1 = game->get_ticks();

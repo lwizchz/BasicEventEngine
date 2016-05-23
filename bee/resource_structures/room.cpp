@@ -979,11 +979,13 @@ int BEE::Room::draw_view() {
 	if (game->options->is_debug_enabled) {
 		collision_tree->draw();
 
-		// Draw paths
+		// Draw instance paths and bounding boxes
 		for (auto& i : instances_sorted) {
 			if ((i.first->has_path())&&(i.first->get_path_drawn())) {
 				i.first->draw_path();
 			}
+
+			i.first->draw_debug();
 		}
 
 		// Draw particle system bounding boxes

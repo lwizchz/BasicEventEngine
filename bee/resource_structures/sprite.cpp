@@ -166,7 +166,7 @@ int BEE::Sprite::set_subimage_amount(int new_subimage_amount, int new_subimage_w
 		subimages.push_back({i*subimage_width, 0, subimage_width, 0});
 	}
 
-	if (game->options->is_opengl) {
+	if (game->options->renderer_type != BEE_RENDERER_SDL) {
 		if (!vbo_texcoords.empty()) {
 			for (auto& t : vbo_texcoords) {
 				glDeleteBuffers(1, &t);
@@ -225,7 +225,7 @@ int BEE::Sprite::set_origin_center() {
 
 int BEE::Sprite::load_from_surface(SDL_Surface* tmp_surface) {
 	if (!is_loaded) {
-		if (game->options->is_opengl) {
+		if (game->options->renderer_type != BEE_RENDERER_SDL) {
 			width = tmp_surface->w;
 			height = tmp_surface->h;
 			if (subimage_amount <= 1) {
@@ -310,7 +310,7 @@ int BEE::Sprite::load() {
 }
 int BEE::Sprite::free() {
 	if (is_loaded) {
-		if (game->options->is_opengl) {
+		if (game->options->renderer_type != BEE_RENDERER_SDL) {
 			glDeleteBuffers(1, &vbo_vertices);
 
 			for (auto& t : vbo_texcoords) {
@@ -359,7 +359,7 @@ int BEE::Sprite::draw_subimage(int x, int y, int current_subimage, int w, int h,
 	}
 
 	if (game->is_on_screen(drect)) {
-		if (game->options->is_opengl) {
+		if (game->options->renderer_type != BEE_RENDERER_SDL) {
 			int rect_width = width;
 			if (subimage_amount > 1) {
 				rect_width = subimage_width;
@@ -489,7 +489,7 @@ int BEE::Sprite::draw_simple(SDL_Rect* source, SDL_Rect* dest) {
 	if (!is_loaded) {
 		return 1;
 	}
-	if (game->options->is_opengl) {
+	if (game->options->renderer_type != BEE_RENDERER_SDL) {
 		return 2;
 	}
 	return SDL_RenderCopy(game->renderer, texture, source, dest);
@@ -503,7 +503,7 @@ int BEE::Sprite::draw_array(const std::list<SpriteDrawData*>& draw_list, const s
 		return 1;
 	}
 
-	if (game->options->is_opengl) {
+	if (game->options->renderer_type != BEE_RENDERER_SDL) {
 		glActiveTexture(GL_TEXTURE0);
 		glUniform1i(game->texture_location, 0);
 		glBindTexture(GL_TEXTURE_2D, gl_texture);
@@ -657,7 +657,7 @@ int BEE::Sprite::set_as_target(int w, int h) {
 		free();
 	}
 
-	if (game->options->is_opengl) {
+	if (game->options->renderer_type != BEE_RENDERER_SDL) {
 		width = w;
 		height = h;
 		set_subimage_amount(1, width);

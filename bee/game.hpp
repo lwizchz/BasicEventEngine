@@ -174,8 +174,9 @@ class BEE {
 
 		int opengl_init();
 		int opengl_close();
-		int renderer_init();
-		int renderer_close();
+		std::string opengl_prepend_version(const std::string&);
+		int sdl_renderer_init();
+		int sdl_renderer_close();
 
 		int render_clear();
 		int render() const;
@@ -266,7 +267,6 @@ class BEE {
 		int convert_view_coords(int&, int&) const;
 		int convert_window_coords(int&, int&) const;
 
-		int draw_point(int, int, bool);
 		int draw_line(int, int, int, int, const RGBA&, bool);
 		int draw_line(int, int, int, int, bool);
 		int draw_line(int, int, int, int, rgba_t, bool);
@@ -298,14 +298,17 @@ class BEE {
 typedef std::tuple<int, int, double> path_coord;
 typedef std::multimap<Uint32, std::pair<std::string,std::function<void()>>> timeline_list;
 
+enum bee_renderer_t {BEE_RENDERER_SDL, BEE_RENDERER_OPENGL3, BEE_RENDERER_OPENGL4};
+
 class BEE::GameOptions {
 	public:
 		// Window flags
-		bool is_fullscreen, is_opengl, is_borderless;
-		bool is_resizable, is_maximized, is_highdpi;
-		bool is_visible;
+		bool is_fullscreen, is_borderless;
+		bool is_resizable, is_maximized;
+		bool is_highdpi, is_visible;
 
 		// Renderer flags
+		bee_renderer_t renderer_type;
 		bool is_vsync_enabled;
 
 		// Miscellaneous flags
