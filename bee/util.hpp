@@ -45,6 +45,7 @@ double radtodeg(double);
 double opposite_angle(double);
 double absolute_angle(double);
 double direction_of(double, double, double, double);
+double dist_sqr(double, double, double, double);
 double distance(double, double, double, double);
 std::pair<int,int> coord_approach(int, int, int, int, int);
 template <typename T>

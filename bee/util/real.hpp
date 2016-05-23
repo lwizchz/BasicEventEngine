@@ -186,6 +186,16 @@ double direction_of(double x1, double y1, double x2, double y2) {
 	return 90.0 + radtodeg(atan2(dy, dx)); // Otherwise calculate and return the angle of the vector
 }
 /*
+* dist_sqr() - Return the square of the distance from (x1, y1) to (x2, y2) in order to avoid costly square roots
+* @x1: the x-coordinate of the first point
+* @y1: the y-coordinate of the first point
+* @x2: the x-coordinate of the second point
+* @y2: the y-coordinate of the second point
+*/
+double dist_sqr(double x1, double y1, double x2, double y2) {
+        return sqr(x1-x2) + sqr(y1-y2);
+}
+/*
 * distance() - Return the distance from (x1, y1) to (x2, y2)
 * @x1: the x-coordinate of the first point
 * @y1: the y-coordinate of the first point

@@ -148,8 +148,10 @@ BEE::Timeline* BEE::add_timeline(const std::string& name, const std::string& pat
 * @path: the path to initialize the object with
 */
 BEE::Object* BEE::add_object(const std::string& name, const std::string& path) {
-	Object* new_object = new Object(name, path);
-	return new_object;
+	/*Object* new_object = new Object(name, path);
+	return new_object;*/
+
+	return NULL; // It doesn't really make sense to add a generic object on the fly
 }
 /*
 * BEE::add_room() - Initiliaze, load, and return a newly created room resource

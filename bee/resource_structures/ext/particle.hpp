@@ -124,8 +124,8 @@ class BEE::ParticleAttractor {
 		int w = 1, h = 1;
 		InstanceData* following = NULL;
 
-		double force = 0.0;
-		double max_distance = 0.0;
+		double force = 1.0;
+		double max_distance = 100.0;
 		ps_force_t force_type = ps_force_linear;
 };
 
@@ -144,7 +144,7 @@ class BEE::ParticleDeflector {
 		int w = 1, h = 1;
 		InstanceData* following = NULL;
 
-		double friction = 0.0;
+		double friction = 1.0;
 };
 
 enum ps_change_t {

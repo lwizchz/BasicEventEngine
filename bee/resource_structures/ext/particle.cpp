@@ -296,9 +296,25 @@ int BEE::ParticleSystem::draw(Uint32 now, bool should_draw) {
 				ay = a->following->y;
 			}
 
-			dir = direction_of(px, py, ax+a->x, ay+a->y);
-			p->x += sin(degtorad(dir)) * a->force * p->randomness;
-			p->y += -cos(degtorad(dir)) * a->force * p->randomness;
+			double ds = dist_sqr(p->x, p->y, ax+a->x, ay+a->y);
+			if (ds <= sqr(a->max_distance)) {
+				dir = direction_of(px, py, ax+a->x, ay+a->y);
+				switch (a->force_type) {
+					case ps_force_constant:
+						p->x += sin(degtorad(dir)) * a->force * p->randomness;
+						p->y += -cos(degtorad(dir)) * a->force * p->randomness;
+						break;
+					case ps_force_linear:
+					default:
+						p->x += sin(degtorad(dir)) * a->force * p->randomness * (a->max_distance - ds) / a->max_distance;
+						p->y += -cos(degtorad(dir)) * a->force * p->randomness * (a->max_distance - ds) / a->max_distance;
+						break;
+					case ps_force_quadratic:
+						p->x += sin(degtorad(dir)) * a->force * p->randomness * sqr(a->max_distance - ds) / a->max_distance;
+						p->y += -cos(degtorad(dir)) * a->force * p->randomness * sqr(a->max_distance - ds) / a->max_distance;
+						break;
+				}
+			}
 		}
 
 		for (auto& d : deflectors) {
@@ -312,11 +328,7 @@ int BEE::ParticleSystem::draw(Uint32 now, bool should_draw) {
 			SDL_Rect b = {dx+d->x, dy+d->y, d->w, d->h};
 			if (check_collision(a, b)) {
 				dir = direction_of(px, py, p->x, p->y);
-				if (true) {
-					p->velocity = std::make_pair(p->velocity.first * d->friction, angle_hbounce(dir));
-				} else {
-					p->velocity = std::make_pair(p->velocity.first * d->friction, angle_vbounce(dir));
-				}
+				p->velocity = std::make_pair(p->velocity.first * d->friction * -1, dir);
 			}
 		}
 	}

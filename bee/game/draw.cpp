@@ -76,30 +76,6 @@ int BEE::convert_window_coords(int& x, int& y) const {
 }
 
 /*
-* BEE::draw_point() - Draw a single pixel at the given coordinates
-* @x: the x-coordinate at which to draw the pixel
-* @y: the y-coordinate at which to draw the pixel
-* @is_hud: whether the coordinates should be left unconverted or not
-*/
-int BEE::draw_point(int x, int y, bool is_hud) {
-	if (!is_hud) { // Only convert the coordinates if they should not be drawn relative to the window
-		convert_view_coords(x, y);
-	}
-
-	if (options->is_opengl) {
-		// Right now all primitives are drawn using the fixed function OpenGL pipeline
-		glUniform1i(primitive_location, 1); // Enable primitive mode so that the color is correctly applied
-		glBegin(GL_POINTS); // Add point vertex
-			glVertex2f(x, y);
-		glEnd();
-		glUniform1i(primitive_location, 0);
-		
-		return 0;
-	} else {
-		return SDL_RenderDrawPoint(renderer, x, y); // Draw the given point
-	}
-}
-/*
 * BEE::draw_line() - Draw a line from (x1, y1) to (x2, y2) in the given color c
 * @x1: the first x-coordinate of the line
 * @y1: the first y-coordinate of the line
@@ -116,13 +92,54 @@ int BEE::draw_line(int x1, int y1, int x2, int y2, const RGBA& c, bool is_hud) {
 
 	draw_set_color(c);
 
-	if (options->is_opengl) {
-		// Right now all primitives are drawn using the fixed function OpenGL pipeline
+	if (options->renderer_type != BEE_RENDERER_SDL) {
 		glUniform1i(primitive_location, 1); // Enable primitive mode so that the color is correctly applied
-		glBegin(GL_LINES); // Add line vertices
-			glVertex2f(x1, y1);
-			glVertex2f(x2, y2);
-		glEnd();
+
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Enable line drawing (i.e. wireframe) mode so that the line will be drawn correctly
+
+		// If the second pair of coordinates are less than the first, swap them
+		int w = x2-x1, h = y2-y1;
+		if ((w < 0)&&(h < 0)) {
+			int xx = x1, yy = y1;
+			x1 = x2; y1 = y2;
+			x2 = xx; y2 = yy;
+			w *= -1; h *= -1;
+		}
+
+		// Generate the list of triangle vertices for the line
+		GLuint vbo;
+		glGenBuffers(1, &vbo);
+		GLfloat vertices[] = {
+			0.0, 0.0,
+			(GLfloat)w, (GLfloat)h,
+			0.0, 0.0,
+		};
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+		// Offset the line model by the given coordinates
+		glm::mat4 model = glm::translate(glm::mat4(1.0), glm::vec3(x1, y1, 0.0));
+		glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(model));
+
+		// Bind the vertices to the vertex array buffer
+		glEnableVertexAttribArray(vertex_location);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glVertexAttribPointer(
+			vertex_location,
+			2,
+			GL_FLOAT,
+			GL_FALSE,
+			0,
+			0
+		);
+
+		glDrawArrays(GL_TRIANGLES, 0, 3); // Draw the triangle
+
+		// Reset things to their default state
+		glDisableVertexAttribArray(vertex_location);
+		glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0)));
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
 		glUniform1i(primitive_location, 0);
 
 		return 0;
@@ -183,25 +200,49 @@ int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled, const RGBA& 
 
 	draw_set_color(c);
 
-	if (options->is_opengl) {
-		// Right now all primitives are drawn using the fixed function OpenGL pipeline
+	if (options->renderer_type != BEE_RENDERER_SDL) {
 		glUniform1i(primitive_location, 1); // Enable primitive mode so that the color is correctly applied
 
-		// Set polygon fill mode
-		if (is_filled) {
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		} else {
+		if (!is_filled) { // If filling is disabled, only draw a wireframe (note that this will draw a diagonal down the middle of the rectangle)
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		}
 
-		glBegin(GL_POLYGON); // Add rectangle vertices
-			glVertex2f(x, y);
-			glVertex2f(x+w, y);
-			glVertex2f(x+w, y+h);
-			glVertex2f(x, y+h);
-		glEnd();
+		// Generate the list of triangle vertices for the rectangle
+		GLuint vbo;
+		glGenBuffers(1, &vbo);
+		GLfloat vertices[] = {
+			0.0, 0.0,
+			(GLfloat)w, 0.0,
+			(GLfloat)w, (GLfloat)h,
+			(GLfloat)w, (GLfloat)h,
+			0.0, (GLfloat)h,
+			0.0, 0.0,
+		};
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Reset polygon to fill so that textures are drawn correctly
+		// Offset the rectangle model by the given coordinates
+		glm::mat4 model = glm::translate(glm::mat4(1.0), glm::vec3(x, y, 0.0));
+		glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(model));
+
+		// Bind the vertices to the vertex array buffer
+		glEnableVertexAttribArray(vertex_location);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glVertexAttribPointer(
+			vertex_location,
+			2,
+			GL_FLOAT,
+			GL_FALSE,
+			0,
+			0
+		);
+
+		glDrawArrays(GL_TRIANGLES, 0, 6); // Draw the triangles
+
+		// Reset things to their default state
+		glDisableVertexAttribArray(vertex_location);
+		glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0)));
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 		glUniform1i(primitive_location, 0);
 
@@ -266,9 +307,8 @@ int BEE::draw_set_color(const RGBA& new_color) {
 	color->b = new_color.b;
 	color->a = new_color.a;
 
-	if (options->is_opengl) {
+	if (options->renderer_type != BEE_RENDERER_SDL) {
 		glClearColor(new_color.r/255.0f, new_color.g/255.0f, new_color.b/255.0f, new_color.a/255.0f); // Set the OpenGL clear and draw colors as floats from [0.0, 1.0]
-		glColor4f(new_color.r/255.0f, new_color.g/255.0f, new_color.b/255.0f, new_color.a/255.0f);
 		glm::vec4 uc = glm::vec4(new_color.r/255.0f, new_color.g/255.0f, new_color.b/255.0f, new_color.a/255.0f); // Change the fragment to the given color
 		glUniform4fv(colorize_location, 1, glm::value_ptr(uc));
 		return 0;
@@ -290,9 +330,8 @@ int BEE::draw_set_color(rgba_t new_color) {
 BEE::RGBA BEE::draw_get_color() const {
 	RGBA c = {0, 0, 0, 0};
 
-	if (options->is_opengl) {
+	if (options->renderer_type != BEE_RENDERER_SDL) {
 		glClearColor(color->r/255.0f, color->g/255.0f, color->b/255.0f, color->a/255.0f); // Set the OpenGL clear and draw colors as floats from [0.0, 1.0]
-		glColor4f(color->r/255.0f, color->g/255.0f, color->b/255.0f, color->a/255.0f);
 		glm::vec4 uc = glm::vec4(color->r/255.0f, color->g/255.0f, color->b/255.0f, color->a/255.0f); // Change the fragment to the given color
 		glUniform4fv(colorize_location, 1, glm::value_ptr(uc));
 	} else {
@@ -312,7 +351,7 @@ BEE::RGBA BEE::draw_get_color() const {
 * @y: the y-coordinate of the pixel
 */
 BEE::RGBA BEE::get_pixel_color(int x, int y) const {
-	if (options->is_opengl) {
+	if (options->renderer_type != BEE_RENDERER_SDL) {
 		unsigned char* pixel = new unsigned char[4]; // Allocate 4 bytes per pixel for RGBA
 		glReadPixels(x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel); // Read the screen pixel into the array
 
@@ -339,7 +378,7 @@ BEE::RGBA BEE::get_pixel_color(int x, int y) const {
 * @filename: the location at which to save the bitmap
 */
 int BEE::save_screenshot(const std::string& filename) const {
-	if (options->is_opengl) {
+	if (options->renderer_type != BEE_RENDERER_SDL) {
 		unsigned char* upsidedown_pixels = new unsigned char[width*height*4]; // Allocate 4 bytes per pixel for RGBA
 		glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, upsidedown_pixels); // Read the screen pixels into the array
 
