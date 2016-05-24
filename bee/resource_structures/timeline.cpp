@@ -102,7 +102,7 @@ std::string BEE::Timeline::get_name() {
 std::string BEE::Timeline::get_path() {
 	return timeline_path;
 }
-timeline_list BEE::Timeline::get_action_list() {
+bee_timeline_list BEE::Timeline::get_action_list() {
 	return action_list;
 }
 std::string BEE::Timeline::get_action_string() {
@@ -211,9 +211,9 @@ int BEE::Timeline::step(Uint32 new_frame) {
 	}
 
 	if (action_list.find(position_frame) != action_list.end()) {
-		std::pair <timeline_list::iterator,timeline_list::iterator> range;
+		std::pair <bee_timeline_list::iterator,bee_timeline_list::iterator> range;
 		range = action_list.equal_range(position_frame);
-		for (timeline_list::iterator it=range.first; it!=range.second; ++it) {
+		for (bee_timeline_list::iterator it=range.first; it!=range.second; ++it) {
 			it->second.second();
 			++next_action;
 		}

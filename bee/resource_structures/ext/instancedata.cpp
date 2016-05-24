@@ -225,15 +225,15 @@ int BEE::InstanceData::move_outside(const Line& l, const CollisionPolygon& m) {
 
         mask.x = x; mask.y = y;
         while ((check_collision_polygon(mask, m))&&(attempts++ < max_attempts)) {
-                x += sin(degtorad(dir)) * delta*dist;
-                y += -cos(degtorad(dir)) * delta*dist;
+                x += cos(degtorad(dir)) * delta*dist;
+                y += sin(degtorad(dir)) * delta*dist;
                 mask.x = x;
                 mask.y = y;
         }
 
 	if (check_collision_polygon(mask, m)) {
-		x -= sin(degtorad(dir)) * delta*dist;
-                y -= -cos(degtorad(dir)) * delta*dist;
+		x -= cos(degtorad(dir)) * delta*dist;
+                y -= sin(degtorad(dir)) * delta*dist;
                 mask.x = x;
                 mask.y = y;
 	}
@@ -248,8 +248,8 @@ int BEE::InstanceData::move_avoid(const CollisionPolygon& other) {
 		xprevious = x;
 		yprevious = y;
 
-		x += sin(degtorad((*v).second)) * (*v).first;
-		y += -cos(degtorad((*v).second)) * (*v).first;
+		x += cos(degtorad((*v).second)) * (*v).first;
+		y += sin(degtorad((*v).second)) * (*v).first;
 		double resultant_magnitude = (*v).first;
 		if (!is_place_free(x, y)) {
 			if ((x != xprevious)||(y != yprevious)) {
@@ -297,13 +297,13 @@ std::pair<double,double> BEE::InstanceData::get_motion() {
 	double ysum = y;
 
 	for (auto& v : velocity) {
-		xsum += sin(degtorad(v.second))*v.first;
-		ysum += -cos(degtorad(v.second))*v.first;
+		xsum += cos(degtorad(v.second))*v.first;
+		ysum += sin(degtorad(v.second))*v.first;
 	}
 
 	double d = direction_of(x, y, xsum, ysum);
-	xsum += sin(degtorad(d))*friction;
-	ysum += -cos(degtorad(d))*friction;
+	xsum += cos(degtorad(d))*friction;
+	ysum += sin(degtorad(d))*friction;
 
 	return std::make_pair(xsum, ysum);
 }
@@ -313,8 +313,8 @@ std::pair<double,double> BEE::InstanceData::get_applied_gravity() {
 
 	if (gravity != 0.0) {
 		double g = gravity*pow(acceleration, acceleration_amount), gd = gravity_direction;
-		xsum += sin(degtorad(gd))*g;
-		ysum += -cos(degtorad(gd))*g;
+		xsum += cos(degtorad(gd))*g;
+		ysum += sin(degtorad(gd))*g;
 		if (acceleration_amount < 10) {
 			acceleration_amount += 0.01;
 		}
@@ -430,8 +430,8 @@ bool BEE::InstanceData::is_place_meeting(int new_x, int new_y, int other_id) {
 	return is_place_meeting(new_x, new_y, game->get_object(other_id));
 }
 bool BEE::InstanceData::is_move_free(double magnitude, double direction) {
-	double dx = sin(degtorad(direction)) * magnitude;
-	double dy = -cos(degtorad(direction)) * magnitude;
+	double dx = cos(degtorad(direction)) * magnitude;
+	double dy = sin(degtorad(direction)) * magnitude;
 	return is_place_free(x+dx, y+dy);
 }
 bool BEE::InstanceData::is_snapped(int hsnap, int vsnap) {
@@ -604,13 +604,13 @@ int BEE::InstanceData::path_update_node() {
 	if (has_path()) {
 		if (path_speed >= 0) {
 			if (path_current_node+1 < (int) path->get_coordinate_list().size()) {
-				path_coord c = path->get_coordinate_list().at(path_current_node+1);
+				bee_path_coord c = path->get_coordinate_list().at(path_current_node+1);
 				if (distance(x, y, path_xstart+std::get<0>(c), path_ystart+std::get<1>(c)) < get_speed()) {
 					path_current_node++;
 				}
 			}
 		} else {
-			path_coord c = path->get_coordinate_list().at(path_current_node);
+			bee_path_coord c = path->get_coordinate_list().at(path_current_node);
 			if (distance(x, y, path_xstart+std::get<0>(c), path_ystart+std::get<1>(c)) < get_speed()) {
 				path_current_node--;
 			}
@@ -675,8 +675,8 @@ int BEE::InstanceData::get_path_speed() {
 int BEE::InstanceData::get_path_node() {
 	return path_current_node;
 }
-std::vector<path_coord> BEE::InstanceData::get_path_coords() {
-	std::vector<path_coord> no_path;
+std::vector<bee_path_coord> BEE::InstanceData::get_path_coords() {
+	std::vector<bee_path_coord> no_path;
 	return (has_path()) ? path->get_coordinate_list() : no_path;
 }
 bool BEE::InstanceData::get_path_pausable() {
@@ -693,7 +693,7 @@ int BEE::InstanceData::draw(int w, int h, double angle, RGBA color, SDL_Renderer
 	}
 	return object->get_sprite()->draw(x-xo, y-yo, subimage_time, w, h, angle, color, flip, false);
 }
-int BEE::InstanceData::draw(int w, int h, double angle, rgba_t color, SDL_RendererFlip flip) {
+int BEE::InstanceData::draw(int w, int h, double angle, bee_rgba_t color, SDL_RendererFlip flip) {
 	if (object->get_sprite() == NULL) {
 		return 1;
 	}
@@ -739,7 +739,7 @@ int BEE::InstanceData::draw(RGBA color) {
 	}
 	return object->get_sprite()->draw(x-xo, y-yo, subimage_time, color);
 }
-int BEE::InstanceData::draw(rgba_t color) {
+int BEE::InstanceData::draw(bee_rgba_t color) {
 	if (object->get_sprite() == NULL) {
 		return 1;
 	}

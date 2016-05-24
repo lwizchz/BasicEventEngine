@@ -21,7 +21,7 @@ class BEE::Path: public Resource {
 		int id = -1;
 		std::string name;
 		std::string path_path;
-		std::vector<path_coord> coordinate_list; // [x, y, speed]
+		std::vector<bee_path_coord> coordinate_list; // [x, y, speed]
 		int connection_type; // Straight vs smooth curve
 		bool is_closed;
 	public:
@@ -35,14 +35,14 @@ class BEE::Path: public Resource {
 		int get_id();
 		std::string get_name();
 		std::string get_path();
-		std::vector<path_coord> get_coordinate_list();
+		std::vector<bee_path_coord> get_coordinate_list();
 		std::string get_coordinate_string();
 		int get_connection_type();
 		bool get_is_closed();
 
 		int set_name(std::string);
 		int set_path(std::string);
-		int add_coordinate(path_coord);
+		int add_coordinate(bee_path_coord);
 		int add_coordinate(int, int, double);
 		int remove_last_coordinate();
 		int remove_coordinate(unsigned int);

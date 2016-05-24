@@ -255,8 +255,8 @@ int BEE::ParticleSystem::draw(Uint32 now, bool should_draw) {
 				dy = d->following->y;
 			}
 
-			SDL_Rect a = {p->x, p->y, p->w, p->h};
-			SDL_Rect b = {dx+d->x, dy+d->y, d->w, d->h};
+			SDL_Rect a = {(int)p->x, (int)p->y, p->w, p->h};
+			SDL_Rect b = {dx+(int)d->x, dy+(int)d->y, d->w, d->h};
 			if (check_collision(a, b)) {
 				p->is_old = true;
 				p->particle_type->old_particles.push_back(p);
@@ -274,8 +274,8 @@ int BEE::ParticleSystem::draw(Uint32 now, bool should_draw) {
 				cy = c->following->y;
 			}
 
-			SDL_Rect a = {p->x, p->y, p->w, p->h};
-			SDL_Rect b = {cx+c->x, cy+c->y, c->w, c->h};
+			SDL_Rect a = {(int)p->x, (int)p->y, p->w, p->h};
+			SDL_Rect b = {cx+(int)c->x, cy+(int)c->y, c->w, c->h};
 			if (check_collision(a, b)) {
 				if (p->particle_type == c->particle_before) {
 					p->particle_type = c->particle_after;
@@ -286,8 +286,8 @@ int BEE::ParticleSystem::draw(Uint32 now, bool should_draw) {
 		int px = p->x, py = p->y;
 		double m = p->velocity.first * (p->randomness+1.0);
 		double dir = p->velocity.second;
-		p->x += sin(degtorad(dir)) * m;
-		p->y += -cos(degtorad(dir)) * m;
+		p->x += cos(degtorad(dir)) * m * game->get_delta();
+		p->y += sin(degtorad(dir)) * m * game->get_delta();
 
 		for (auto& a : attractors) {
 			int ax = sx, ay = sy;
@@ -296,24 +296,22 @@ int BEE::ParticleSystem::draw(Uint32 now, bool should_draw) {
 				ay = a->following->y;
 			}
 
-			double ds = dist_sqr(p->x, p->y, ax+a->x, ay+a->y);
-			if (ds <= sqr(a->max_distance)) {
-				dir = direction_of(px, py, ax+a->x, ay+a->y);
+			double ds = dist_sqr(p->x, p->y, ax+a->x+a->w/2, ay+a->y+a->h/2);
+			if (ds < sqr(a->max_distance)) {
+				double f = 0.0;
 				switch (a->force_type) {
 					case ps_force_constant:
-						p->x += sin(degtorad(dir)) * a->force * p->randomness;
-						p->y += -cos(degtorad(dir)) * a->force * p->randomness;
+						f = a->force * (p->randomness+1.0);
 						break;
 					case ps_force_linear:
 					default:
-						p->x += sin(degtorad(dir)) * a->force * p->randomness * (a->max_distance - ds) / a->max_distance;
-						p->y += -cos(degtorad(dir)) * a->force * p->randomness * (a->max_distance - ds) / a->max_distance;
+						f = a->force * (p->randomness+1.0) * (sqr(a->max_distance) - ds) / sqr(a->max_distance);
 						break;
 					case ps_force_quadratic:
-						p->x += sin(degtorad(dir)) * a->force * p->randomness * sqr(a->max_distance - ds) / a->max_distance;
-						p->y += -cos(degtorad(dir)) * a->force * p->randomness * sqr(a->max_distance - ds) / a->max_distance;
+						f = a->force * (p->randomness+1.0) * sqr((sqr(a->max_distance) - ds) / sqr(a->max_distance));
 						break;
 				}
+				std::tie(p->x, p->y) = coord_approach(p->x, p->y, ax+a->x+a->w/2, ay+a->y+a->h/2, f, game->get_delta());
 			}
 		}
 
@@ -324,8 +322,8 @@ int BEE::ParticleSystem::draw(Uint32 now, bool should_draw) {
 				dy = d->following->y;
 			}
 
-			SDL_Rect a = {p->x, p->y, p->w, p->h};
-			SDL_Rect b = {dx+d->x, dy+d->y, d->w, d->h};
+			SDL_Rect a = {(int)p->x, (int)p->y, p->w, p->h};
+			SDL_Rect b = {dx+(int)d->x, dy+(int)d->y, d->w, d->h};
 			if (check_collision(a, b)) {
 				dir = direction_of(px, py, p->x, p->y);
 				p->velocity = std::make_pair(p->velocity.first * d->friction * -1, dir);

@@ -11,7 +11,7 @@ BEE::Font* font_liberation;
 BEE::Path* path_bee;
 
 #include "objects/bee.hpp"
-BEE::Object* obj_bee;
+ObjBee* obj_bee;
 
 #include "rooms/test.hpp"
 BEE::Room* rm_test;

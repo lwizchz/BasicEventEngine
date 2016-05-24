@@ -287,7 +287,7 @@ int BEE::Room::set_background_color(Uint8 r, Uint8 g, Uint8 b) {
 	background_color = {r, g, b, 255};
 	return 0;
 }
-int BEE::Room::set_background_color(rgba_t new_background_color) {
+int BEE::Room::set_background_color(bee_rgba_t new_background_color) {
 	background_color = game->get_enum_color(new_background_color);
 	return 0;
 }
@@ -680,7 +680,7 @@ int BEE::Room::step_mid() {
 
 			i.first->path_update_node();
 
-			path_coord c = std::make_tuple(0, 0, 0);
+			bee_path_coord c = std::make_tuple(0, 0, 0);
 			if (i.first->get_path_speed() >= 0) {
 				if (i.first->get_path_node()+1 < (int) i.first->get_path_coords().size()) {
 					c = i.first->get_path_coords().at(i.first->get_path_node()+1);

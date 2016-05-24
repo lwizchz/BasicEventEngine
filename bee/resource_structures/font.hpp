@@ -72,7 +72,7 @@ class BEE::Font: public Resource {
 		int draw_fast_internal(int, int, std::string, RGBA);
 		int draw_fast(int, int, std::string, RGBA);
 		int draw_fast(int, int, std::string);
-		int draw_fast(int, int, std::string, rgba_t);
+		int draw_fast(int, int, std::string, bee_rgba_t);
 
 		int get_string_width(std::string, int);
 		int get_string_width(std::string);

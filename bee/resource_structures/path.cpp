@@ -96,14 +96,14 @@ std::string BEE::Path::get_name() {
 std::string BEE::Path::get_path() {
 	return path_path;
 }
-std::vector<path_coord> BEE::Path::get_coordinate_list() {
+std::vector<bee_path_coord> BEE::Path::get_coordinate_list() {
 	return coordinate_list;
 }
 std::string BEE::Path::get_coordinate_string() {
 	if (coordinate_list.size() > 0) {
 		std::ostringstream coordinate_string;
 		coordinate_string << "(x	y	speed)\n";
-		for (std::vector<path_coord>::iterator it = coordinate_list.begin(); it != coordinate_list.end(); ++it) {
+		for (std::vector<bee_path_coord>::iterator it = coordinate_list.begin(); it != coordinate_list.end(); ++it) {
 			coordinate_string <<
 			std::get<0>(*it) << "\t" <<
 			std::get<1>(*it) << "\t" <<
@@ -135,12 +135,12 @@ int BEE::Path::set_path(std::string path) {
 	 */
 	return 0;
 }
-int BEE::Path::add_coordinate(path_coord new_coordinate) {
+int BEE::Path::add_coordinate(bee_path_coord new_coordinate) {
 	coordinate_list.push_back(new_coordinate);
 	return 0;
 }
 int BEE::Path::add_coordinate(int x, int y, double speed) {
-	path_coord new_coordinate (x, y, speed);
+	bee_path_coord new_coordinate (x, y, speed);
 	coordinate_list.push_back(new_coordinate);
 	return 0;
 }
@@ -168,7 +168,7 @@ int BEE::Path::set_is_closed(bool new_is_closed) {
 }
 
 int BEE::Path::draw(int xstart, int ystart) {
-	for (std::vector<path_coord>::iterator it = coordinate_list.begin(); it != coordinate_list.end(); ++it) {
+	for (std::vector<bee_path_coord>::iterator it = coordinate_list.begin(); it != coordinate_list.end(); ++it) {
 		if (it != --coordinate_list.end()) {
 			int xs = xstart;
 			int ys = ystart;

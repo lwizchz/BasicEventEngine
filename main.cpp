@@ -28,11 +28,11 @@ int main(int argc, char* argv[]) {
 			true, true,
 			false, true,
 			// Renderer flags
-			BEE_RENDERER_OPENGL3,
-			true,
+			BEE_RENDERER_OPENGL4,
+			false,
 			// Miscellaneous flags
 			true,
-			true
+			false
 		};
 
 		// Initialize the game engine

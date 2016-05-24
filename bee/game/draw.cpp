@@ -12,11 +12,11 @@
 #include "../game.hpp" // Include the engine headers
 
 /*
-* BEE::get_enum_color() - Return the BEE::RGBA value of the given rgba_t enumeration
-* @c: the rgba_t enumeration to convert
+* BEE::get_enum_color() - Return the BEE::RGBA value of the given bee_rgba_t enumeration
+* @c: the bee_rgba_t enumeration to convert
 * @a: the alpha value to use
 */
-BEE::RGBA BEE::get_enum_color(rgba_t c, Uint8 a) const {
+BEE::RGBA BEE::get_enum_color(bee_rgba_t c, Uint8 a) const {
 	// Return a BEE::RGBA value with the given alpha value
 	switch (c) {
 		case c_cyan: case c_aqua: return {0, 255, 255, a};
@@ -40,11 +40,11 @@ BEE::RGBA BEE::get_enum_color(rgba_t c, Uint8 a) const {
 	}
 }
 /*
-* BEE::get_enum_color() - Return the BEE::RGBA value of the given rgba_t enumeration
+* BEE::get_enum_color() - Return the BEE::RGBA value of the given bee_rgba_t enumeration
 * ! When the function is called without an alpha value, simply call it with full opacity
-* @c: the rgba_t enumeration to convert
+* @c: the bee_rgba_t enumeration to convert
 */
-BEE::RGBA BEE::get_enum_color(rgba_t c) const {
+BEE::RGBA BEE::get_enum_color(bee_rgba_t c) const {
 	return get_enum_color(c, 255);
 }
 
@@ -162,7 +162,7 @@ int BEE::draw_line(int x1, int y1, int x2, int y2, bool is_hud) {
 }
 /*
 * BEE::draw_line() - Draw a line from (x1, y1) to (x2, y2) in the given color c
-* ! When the function is called with an rgba_t, simply convert it to an RGBA and call the function again
+* ! When the function is called with an bee_rgba_t, simply convert it to an RGBA and call the function again
 * @x1: the first x-coordinate of the line
 * @y1: the first y-coordinate of the line
 * @x2: the second x-coordinate of the line
@@ -170,7 +170,7 @@ int BEE::draw_line(int x1, int y1, int x2, int y2, bool is_hud) {
 * @c: the color with which to draw the line
 * @is_hud: whether the coordinates should be left unconverted or not
 */
-int BEE::draw_line(int x1, int y1, int x2, int y2, rgba_t c, bool is_hud) {
+int BEE::draw_line(int x1, int y1, int x2, int y2, bee_rgba_t c, bool is_hud) {
 	return draw_line(x1, y1, x2, y2, get_enum_color(c), is_hud);
 }
 /*
@@ -272,7 +272,7 @@ int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled, bool is_hud)
 }
 /*
 * BEE::draw_rectangle() - Draw a rectangle at the given coordinates
-* ! When the function is called with an rgba_t, simply convert it to an RGBA and call the function again
+* ! When the function is called with an bee_rgba_t, simply convert it to an RGBA and call the function again
 * @x: the x-coordinate of the top left of the rectangle
 * @y: the y-coordinate of the top left of the rectangle
 * @w: the width of the rectangle
@@ -281,7 +281,7 @@ int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled, bool is_hud)
 * @c: the color with which to draw the rectangle
 * @is_hud: whether the coordinates should be left unconverted or not
 */
-int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled, rgba_t c, bool is_hud) {
+int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled, bee_rgba_t c, bool is_hud) {
 	return draw_rectangle(x, y, w, h, is_filled, get_enum_color(c), is_hud);
 }
 /*
@@ -318,10 +318,10 @@ int BEE::draw_set_color(const RGBA& new_color) {
 }
 /*
 * BEE::draw_set_color() - Set the current drawing color to the given value
-* ! When the function is called with an rgba_t, simply convert it and call the function again
+* ! When the function is called with an bee_rgba_t, simply convert it and call the function again
 * @new_color: the new color with which to draw and clear the screen
 */
-int BEE::draw_set_color(rgba_t new_color) {
+int BEE::draw_set_color(bee_rgba_t new_color) {
 	return draw_set_color(get_enum_color(new_color));
 }
 /*

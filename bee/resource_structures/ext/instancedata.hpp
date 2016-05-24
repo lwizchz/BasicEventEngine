@@ -126,16 +126,16 @@ class BEE::InstanceData {
 		bool get_path_drawn();
 		int get_path_speed();
 		int get_path_node();
-		std::vector<path_coord> get_path_coords();
+		std::vector<bee_path_coord> get_path_coords();
 		bool get_path_pausable();
 
 		int draw(int, int, double, RGBA, SDL_RendererFlip);
-		int draw(int, int, double, rgba_t, SDL_RendererFlip);
+		int draw(int, int, double, bee_rgba_t, SDL_RendererFlip);
 		int draw();
 		int draw(int, int);
 		int draw(double);
 		int draw(RGBA);
-		int draw(rgba_t);
+		int draw(bee_rgba_t);
 		int draw(SDL_RendererFlip);
 
 		int draw_path();

@@ -349,6 +349,7 @@ int BEE::loop() {
 					SDL_Delay((1000/fps_desired) - (new_tickstamp - tickstamp));
 				}
 			}
+			tick_delta = get_ticks() - tickstamp;
 			tickstamp = get_ticks();
 
 			if (tickstamp - fps_ticks >= 1000) {
@@ -454,6 +455,9 @@ Uint32 BEE::get_seconds() const {
 }
 Uint32 BEE::get_frame() const {
 	return frame_number;
+}
+double BEE::get_delta() const {
+	return get_fps_goal()/1000.0*tick_delta;
 }
 unsigned int BEE::get_fps_goal() const {
 	return fps_goal;

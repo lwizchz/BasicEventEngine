@@ -46,7 +46,7 @@ class BEE;
 #include "resource_structures.hpp"
 #endif
 
-enum rgba_t {c_cyan, c_aqua, c_black, c_blue, c_dkgray, c_magenta, c_fuchsia, c_gray, c_green, c_lime, c_silver, c_ltgray, c_maroon, c_navy, c_olive, c_orange, c_purple, c_red, c_teal, c_white, c_yellow};
+#include "enum.hpp"
 
 class BEE {
 	public:
@@ -101,7 +101,7 @@ class BEE {
 		bool has_mouse, has_focus;
 
 		SDL_Event event;
-		Uint32 tickstamp, new_tickstamp, fps_ticks;
+		Uint32 tickstamp, new_tickstamp, fps_ticks, tick_delta;
 
 		NetworkData* net = NULL;
 
@@ -167,6 +167,7 @@ class BEE {
 		Uint32 get_ticks() const;
 		Uint32 get_seconds() const;
 		Uint32 get_frame() const;
+		double get_delta() const;
 		unsigned int get_fps_goal() const;
 
 		GameOptions get_options() const;
@@ -261,23 +262,23 @@ class BEE {
 		char append_input(std::string*, SDL_KeyboardEvent*);
 
 		// bee/game/draw.cpp
-		RGBA get_enum_color(rgba_t, Uint8) const;
-		RGBA get_enum_color(rgba_t) const;
+		RGBA get_enum_color(bee_rgba_t, Uint8) const;
+		RGBA get_enum_color(bee_rgba_t) const;
 
 		int convert_view_coords(int&, int&) const;
 		int convert_window_coords(int&, int&) const;
 
 		int draw_line(int, int, int, int, const RGBA&, bool);
 		int draw_line(int, int, int, int, bool);
-		int draw_line(int, int, int, int, rgba_t, bool);
+		int draw_line(int, int, int, int, bee_rgba_t, bool);
 		int draw_line(const Line&, const RGBA&, bool);
 		int draw_rectangle(int, int, int, int, bool, const RGBA&, bool);
 		int draw_rectangle(int, int, int, int, bool, bool);
-		int draw_rectangle(int, int, int, int, bool, rgba_t, bool);
+		int draw_rectangle(int, int, int, int, bool, bee_rgba_t, bool);
 		int draw_rectangle(const SDL_Rect&, bool, const RGBA&, bool);
 
 		int draw_set_color(const RGBA&);
-		int draw_set_color(rgba_t);
+		int draw_set_color(bee_rgba_t);
 		RGBA draw_get_color() const;
 		RGBA get_pixel_color(int, int) const;
 		int save_screenshot(const std::string&) const;
@@ -295,10 +296,8 @@ class BEE {
 		int net_session_end();
 };
 
-typedef std::tuple<int, int, double> path_coord;
-typedef std::multimap<Uint32, std::pair<std::string,std::function<void()>>> timeline_list;
-
-enum bee_renderer_t {BEE_RENDERER_SDL, BEE_RENDERER_OPENGL3, BEE_RENDERER_OPENGL4};
+typedef std::tuple<int, int, double> bee_path_coord;
+typedef std::multimap<Uint32, std::pair<std::string,std::function<void()>>> bee_timeline_list;
 
 class BEE::GameOptions {
 	public:

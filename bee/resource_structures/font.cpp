@@ -379,7 +379,7 @@ int BEE::Font::draw_fast(int x, int y, std::string text, RGBA color) {
 int BEE::Font::draw_fast(int x, int y, std::string text) {
 	return draw_fast(x, y, text, {0, 0, 0, 255});
 }
-int BEE::Font::draw_fast(int x, int y, std::string text, rgba_t color) {
+int BEE::Font::draw_fast(int x, int y, std::string text, bee_rgba_t color) {
 	return draw_fast(x, y, text, game->get_enum_color(color));
 }
 

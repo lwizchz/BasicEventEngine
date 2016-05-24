@@ -58,10 +58,10 @@ TEST_CASE("real/math", "The math functions work") {
 }
 TEST_CASE("real/movement", "The movement functions work") {
 	REQUIRE(direction_of(1.0, 2.0, 3.0, 4.0) == Approx(opposite_angle(direction_of(3.0, 4.0, 1.0, 2.0))));
-	REQUIRE(direction_of(0.0, 0.0, 0.0, -1.0) == Approx(0.0));
-	REQUIRE(direction_of(0.0, 0.0, 1.0, 0.0) == Approx(90.0));
-	REQUIRE(direction_of(0.0, 0.0, 0.0, 1.0) == Approx(180.0));
-	REQUIRE(direction_of(0.0, 0.0, -1.0, 0.0) == Approx(270.0));
+	REQUIRE(direction_of(0.0, 0.0, 1.0, 0.0) == Approx(0.0));
+	REQUIRE(direction_of(0.0, 0.0, 0.0, 1.0) == Approx(90.0));
+	REQUIRE(direction_of(0.0, 0.0, -1.0, 0.0) == Approx(180.0));
+	REQUIRE(direction_of(0.0, 0.0, 0.0, -1.0) == Approx(270.0));
 	REQUIRE(distance(0.0, 0.0, 1.0, 0.0) == 1.0);
 	REQUIRE(distance(0.0, 0.0, 3.0, 4.0) == 5.0);
 	REQUIRE(distance(0.0, 0.0, 0.0, 0.0) == 0.0);

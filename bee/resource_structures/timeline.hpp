@@ -19,8 +19,8 @@ class BEE::Timeline: public Resource {
 		int id = -1;
 		std::string name;
 		std::string timeline_path;
-		timeline_list action_list;
-		timeline_list::iterator next_action;
+		bee_timeline_list action_list;
+		bee_timeline_list::iterator next_action;
 		std::function<void()> end_action = NULL;
 
 		Uint32 start_frame = 0xffffffff;
@@ -40,7 +40,7 @@ class BEE::Timeline: public Resource {
 		int get_id();
 		std::string get_name();
 		std::string get_path();
-		timeline_list get_action_list();
+		bee_timeline_list get_action_list();
 		std::string get_action_string();
 		bool get_is_running();
 		bool get_is_looping();

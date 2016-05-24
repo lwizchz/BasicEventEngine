@@ -10,6 +10,7 @@
 #define _BEE_OBJECT_H 1
 
 #include <string>
+#include <map>
 
 #include "../game.hpp"
 
@@ -71,35 +72,7 @@ class BEE::Object: public Resource {
 		InstanceData* get_instance(int);
 		std::string get_instance_string();
 
-		/*void (*update)(InstanceData*);
-		void (*create)(InstanceData*);
-		void (*destroy)(InstanceData*);
-		void (*alarm)(InstanceData*, int);
-		void (*step_begin)(InstanceData*);
-		void (*step_mid)(InstanceData*);
-		void (*step_end)(InstanceData*);
-		void (*keyboard_press)(InstanceData*, SDL_Event*);
-		void (*mouse_press)(InstanceData*, SDL_Event*);
-		void (*keyboard_input)(InstanceData*, SDL_Event*);
-		void (*mouse_input)(InstanceData*, SDL_Event*);
-		void (*keyboard_release)(InstanceData*, SDL_Event*);
-		void (*mouse_release)(InstanceData*, SDL_Event*);
-		void (*controller_axis)(InstanceData*, SDL_Event*);
-		void (*controller_press)(InstanceData*, SDL_Event*);
-		void (*controller_release)(InstanceData*, SDL_Event*);
-		void (*controller_modify)(InstanceData*, SDL_Event*);
-		void (*path_end)(InstanceData*);
-		void (*outside_room)(InstanceData*);
-		void (*intersect_boundary)(InstanceData*);
-		void (*collision)(InstanceData*, InstanceData*);
-		void (*draw)(InstanceData*);
-		void (*animation_end)(InstanceData*);
-		void (*room_start)(InstanceData*);
-		void (*room_end)(InstanceData*);
-		void (*game_start)(InstanceData*);
-		void (*game_end)(InstanceData*);
-		void (*window)(InstanceData*, SDL_Event*);*/
-
+		std::map<bee_event_t,bool> implemented_events;
 		virtual void update(InstanceData*) {};
 		virtual void create(InstanceData*) {};
 		virtual void destroy(InstanceData*) {};

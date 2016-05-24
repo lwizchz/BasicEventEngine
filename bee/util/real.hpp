@@ -172,18 +172,7 @@ double absolute_angle(double a) {
 * @y2: the y-coordinate of the second point
 */
 double direction_of(double x1, double y1, double x2, double y2) {
-	double dx = x2-x1;
-	double dy = y2-y1;
-
-	if (dx == 0.0) { // If the coordinates form a vertical line
-		if (dy <= 0.0) {
-			return 0.0; // Return 0.0 if the vector is pointing upwards
-		} else {
-			return 180.0; // Return 180.0 if the vector is pointing downwards
-		}
-	}
-
-	return 90.0 + radtodeg(atan2(dy, dx)); // Otherwise calculate and return the angle of the vector
+	return absolute_angle(radtodeg(atan2(y2-y1, x2-x1))); // Calculate and return the angle of the vector
 }
 /*
 * dist_sqr() - Return the square of the distance from (x1, y1) to (x2, y2) in order to avoid costly square roots
@@ -213,15 +202,15 @@ double distance(double x1, double y1, double x2, double y2) {
 * @y2: the y-coordinate of the desired destination
 * @speed: the factor by which to move towards the destination
 */
-std::pair<int,int> coord_approach(int x1, int y1, int x2, int y2, int speed) {
-	float d = distance(x1, y1, x2, y2);
+std::pair<double,double> coord_approach(double x1, double y1, double x2, double y2, double speed, double dt) {
+	double d = distance(x1, y1, x2, y2);
 	if (d <= speed) { // If the distance between the points is less than the speed, simply return the destination point
 		return std::make_pair(x2, y2);
 	}
- 	float ratio = speed/d;
+ 	double ratio = speed/d;
 
-	int x3 = x1 + (x2-x1)*ratio;
-	int y3 = y1 + (y2-y1)*ratio;
+	double x3 = x1 + (x2-x1)*ratio*dt;
+	double y3 = y1 + (y2-y1)*ratio*dt;
 
 	return std::make_pair(x3, y3); // Return a point somewhere in between the given points based on the given speed
 }

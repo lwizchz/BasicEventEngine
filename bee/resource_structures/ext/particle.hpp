@@ -65,7 +65,7 @@ class BEE::ParticleData {
 		Particle* particle_type;
 		SpriteDrawData* sprite_data = NULL;
 
-		int x = 0, y = 0;
+		double x = 0.0, y = 0.0;
 		int w = 1, h = 1;
 
 		int depth = 0;
@@ -99,7 +99,7 @@ enum ps_distr_t {
 
 class BEE::ParticleEmitter {
 	public:
-		int x = 0, y = 0;
+		double x = 0, y = 0;
 		int w = 1, h = 1;
 		InstanceData* following = NULL;
 
@@ -120,7 +120,7 @@ enum ps_force_t {
 
 class BEE::ParticleAttractor {
 	public:
-		int x = 0, y = 0;
+		double x = 0, y = 0;
 		int w = 1, h = 1;
 		InstanceData* following = NULL;
 
@@ -131,7 +131,7 @@ class BEE::ParticleAttractor {
 
 class BEE::ParticleDestroyer {
 	public:
-		int x = 0, y = 0;
+		double x = 0, y = 0;
 		int w = 1, h = 1;
 		InstanceData* following = NULL;
 
@@ -140,7 +140,7 @@ class BEE::ParticleDestroyer {
 
 class BEE::ParticleDeflector {
 	public:
-		int x = 0, y = 0;
+		double x = 0, y = 0;
 		int w = 1, h = 1;
 		InstanceData* following = NULL;
 
@@ -155,7 +155,7 @@ enum ps_change_t {
 
 class BEE::ParticleChanger {
 	public:
-		int x = 0, y = 0;
+		double x = 0, y = 0;
 		int w = 1, h = 1;
 		InstanceData* following = NULL;
 
@@ -175,7 +175,7 @@ class BEE::ParticleSystem {
 		bool is_oldfirst = true;
 		int depth = 0;
 
-		int xoffset = 0, yoffset = 0;
+		double xoffset = 0, yoffset = 0;
 		InstanceData* following = NULL;
 
 		Uint32 time_offset = 0;
