@@ -340,12 +340,6 @@ int BEE::Sprite::draw_subimage(int x, int y, int current_subimage, int w, int h,
 
 	drect.x = x;
 	drect.y = y;
-	if ((game->get_current_room()->get_is_views_enabled())&&(!is_hud)) {
-		if (game->get_current_room()->get_current_view() != NULL) {
-			drect.x += game->get_current_room()->get_current_view()->view_x;
-			drect.y += game->get_current_room()->get_current_view()->view_y;
-		}
-	}
 
 	if ((w >= 0)&&(h >= 0)) {
 		drect.w = w;
@@ -358,81 +352,88 @@ int BEE::Sprite::draw_subimage(int x, int y, int current_subimage, int w, int h,
 		drect.h = height;
 	}
 
-	if (game->is_on_screen(drect)) {
-		if (game->options->renderer_type != BEE_RENDERER_SDL) {
-			int rect_width = width;
-			if (subimage_amount > 1) {
-				rect_width = subimage_width;
+	if (game->options->renderer_type != BEE_RENDERER_SDL) {
+		int rect_width = width;
+		if (subimage_amount > 1) {
+			rect_width = subimage_width;
+		}
+
+		if (w <= 0) {
+			w = rect_width;
+		}
+		if (h <= 0) {
+			h = height;
+		}
+
+		glm::mat4 model = glm::translate(glm::mat4(1.0), glm::vec3(drect.x, drect.y, 0.0));
+		model = glm::scale(model, glm::vec3((double)w/rect_width, (double)h/height, 1.0));
+		if (angle != 0.0) {
+			glm::mat4 rotation = glm::translate(glm::mat4(1.0), glm::vec3((double)rect_width/2.0, (double)height/2.0, 0.0));
+			rotation = glm::rotate(rotation, (float)degtorad(angle), glm::vec3(0.0, 0.0, 1.0));
+			rotation = glm::translate(rotation, glm::vec3(-(double)rect_width/2.0, -(double)height/2.0, 0.0));
+			glUniformMatrix4fv(game->rotation_location, 1, GL_FALSE, glm::value_ptr(rotation));
+		}
+		glUniformMatrix4fv(game->model_location, 1, GL_FALSE, glm::value_ptr(model));
+
+		glActiveTexture(GL_TEXTURE0);
+		glUniform1i(game->texture_location, 0);
+		glBindTexture(GL_TEXTURE_2D, gl_texture);
+
+		glm::vec4 color = glm::vec4(new_color.r/255.0, new_color.g/255.0, new_color.b/255.0, new_color.a/255.0);
+		glUniform4fv(game->colorize_location, 1, glm::value_ptr(color));
+
+		int f = 0;
+		if (flip & SDL_FLIP_HORIZONTAL) {
+			f += 1;
+		}
+		if (flip & SDL_FLIP_VERTICAL) {
+			f += 2;
+		}
+		glUniform1i(game->flip_location, f);
+
+		glEnableVertexAttribArray(game->vertex_location);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
+		glVertexAttribPointer(
+			game->vertex_location,
+			2,
+			GL_FLOAT,
+			GL_FALSE,
+			0,
+			0
+		);
+
+		glEnableVertexAttribArray(game->fragment_location);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords[current_subimage]);
+		glVertexAttribPointer(
+			game->fragment_location,
+			2,
+			GL_FLOAT,
+			GL_FALSE,
+			0,
+			0
+		);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+		int size;
+		glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+		glDrawElements(GL_TRIANGLES, size/sizeof(GLushort), GL_UNSIGNED_SHORT, 0);
+
+		glDisableVertexAttribArray(game->vertex_location);
+		glDisableVertexAttribArray(game->fragment_location);
+
+		glUniformMatrix4fv(game->model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0)));
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glUniform1i(game->flip_location, 0);
+		glUniformMatrix4fv(game->rotation_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0)));
+	} else {
+		if ((game->get_current_room()->get_is_views_enabled())&&(!is_hud)) {
+			if (game->get_current_room()->get_current_view() != NULL) {
+				drect.x += game->get_current_room()->get_current_view()->view_x;
+				drect.y += game->get_current_room()->get_current_view()->view_y;
 			}
+		}
 
-			if (w <= 0) {
-				w = rect_width;
-			}
-			if (h <= 0) {
-				h = height;
-			}
-
-			glm::mat4 model = glm::translate(glm::mat4(1.0), glm::vec3(drect.x, drect.y, 0.0));
-			model = glm::scale(model, glm::vec3((double)w/rect_width, (double)h/height, 1.0));
-			if (angle != 0.0) {
-				glm::mat4 rotation = glm::translate(glm::mat4(1.0), glm::vec3((double)rect_width/2.0, (double)height/2.0, 0.0));
-				rotation = glm::rotate(rotation, (float)degtorad(angle), glm::vec3(0.0, 0.0, 1.0));
-				rotation = glm::translate(rotation, glm::vec3(-(double)rect_width/2.0, -(double)height/2.0, 0.0));
-				glUniformMatrix4fv(game->rotation_location, 1, GL_FALSE, glm::value_ptr(rotation));
-			}
-			glUniformMatrix4fv(game->model_location, 1, GL_FALSE, glm::value_ptr(model));
-
-			glActiveTexture(GL_TEXTURE0);
-			glUniform1i(game->texture_location, 0);
-			glBindTexture(GL_TEXTURE_2D, gl_texture);
-
-			glm::vec4 color = glm::vec4(new_color.r/255.0, new_color.g/255.0, new_color.b/255.0, new_color.a/255.0);
-			glUniform4fv(game->colorize_location, 1, glm::value_ptr(color));
-
-			int f = 0;
-			if (flip & SDL_FLIP_HORIZONTAL) {
-				f += 1;
-			}
-			if (flip & SDL_FLIP_VERTICAL) {
-				f += 2;
-			}
-			glUniform1i(game->flip_location, f);
-
-			glEnableVertexAttribArray(game->vertex_location);
-			glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
-			glVertexAttribPointer(
-				game->vertex_location,
-				2,
-				GL_FLOAT,
-				GL_FALSE,
-				0,
-				0
-			);
-
-			glEnableVertexAttribArray(game->fragment_location);
-			glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords[current_subimage]);
-			glVertexAttribPointer(
-				game->fragment_location,
-				2,
-				GL_FLOAT,
-				GL_FALSE,
-				0,
-				0
-			);
-
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-			int size;
-			glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
-			glDrawElements(GL_TRIANGLES, size/sizeof(GLushort), GL_UNSIGNED_SHORT, 0);
-
-			glDisableVertexAttribArray(game->vertex_location);
-			glDisableVertexAttribArray(game->fragment_location);
-
-			glUniformMatrix4fv(game->model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0)));
-			glBindTexture(GL_TEXTURE_2D, 0);
-			glUniform1i(game->flip_location, 0);
-			glUniformMatrix4fv(game->rotation_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0)));
-		} else {
+		if (game->is_on_screen(drect)) {
 			SDL_SetTextureColorMod(texture, new_color.r, new_color.g, new_color.b);
 			if (new_color.a == 0) {
 				SDL_SetTextureAlphaMod(texture, alpha*255);
@@ -544,12 +545,6 @@ int BEE::Sprite::draw_array(const std::list<SpriteDrawData*>& draw_list, const s
 
 			drect.x = s->x;
 			drect.y = s->y;
-			if ((game->get_current_room()->get_is_views_enabled())&&(!is_hud)) {
-				if (game->get_current_room()->get_current_view() != NULL) {
-					drect.x += game->get_current_room()->get_current_view()->view_x;
-					drect.y += game->get_current_room()->get_current_view()->view_y;
-				}
-			}
 
 			if ((s->w >= 0)&&(s->h >= 0)) {
 				drect.w = s->w;

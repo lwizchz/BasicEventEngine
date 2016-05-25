@@ -185,7 +185,7 @@ int BEE::Font::load() {
 			has_draw_failed = false;
 		} else {
 			if (game->options->renderer_type != BEE_RENDERER_SDL) {
-				std::cerr << "Please note that TTF fast font rendering is currently broken in OpenGL\n";
+				std::cerr << "Please note that TTF fast font rendering is currently broken in OpenGL\n\tThe current behavior will simply draw slowly and discard the texture data.\n";
 			}
 
 			font = TTF_OpenFont(font_path.c_str(), font_size);
@@ -250,8 +250,12 @@ TextData* BEE::Font::draw_internal(int x, int y, std::string text, RGBA color) {
 	}
 	return NULL;
 }
-TextData* BEE::Font::draw(int x, int y, std::string text, RGBA color) {
+TextData* BEE::Font::draw(int x, int y, std::string text, RGBA color, bool is_hud) {
 	if (is_loaded) {
+		if (is_hud) { // Only convert the coordinates if they should not be drawn relative to the window
+			game->convert_window_coords(x, y);
+		}
+
 		TextData *r = NULL, *textdata = NULL;
 		std::map<int,std::string> lines = handle_newlines(text);
 
@@ -279,10 +283,10 @@ TextData* BEE::Font::draw(int x, int y, std::string text, RGBA color) {
 	}
 	return NULL;
 }
-TextData* BEE::Font::draw(int x, int y, std::string text) {
-	return draw(x, y, text, {0, 0, 0, 255});
+TextData* BEE::Font::draw(int x, int y, std::string text, bool is_hud) {
+	return draw(x, y, text, {0, 0, 0, 255}, is_hud);
 }
-TextData* BEE::Font::draw(TextData* textdata, int x, int y, std::string text, RGBA color) {
+TextData* BEE::Font::draw(TextData* textdata, int x, int y, std::string text, RGBA color, bool is_hud) {
 	if (is_loaded) {
 		if ((textdata != NULL)&&(textdata->text == text)) {
 			std::map<int,std::string> lines = handle_newlines(text);
@@ -294,7 +298,7 @@ TextData* BEE::Font::draw(TextData* textdata, int x, int y, std::string text, RG
 			if (textdata != NULL) {
 				delete textdata;
 			}
-			return draw(x, y, text, color);
+			return draw(x, y, text, color, is_hud);
 		}
 	}
 
@@ -304,8 +308,8 @@ TextData* BEE::Font::draw(TextData* textdata, int x, int y, std::string text, RG
 	}
 	return NULL;
 }
-TextData* BEE::Font::draw(TextData* textdata, int x, int y, std::string text) {
-	return draw(textdata, x, y, text, {0, 0, 0, 255});
+TextData* BEE::Font::draw(TextData* textdata, int x, int y, std::string text, bool is_hud) {
+	return draw(textdata, x, y, text, {0, 0, 0, 255}, is_hud);
 }
 int BEE::Font::draw_fast_internal(int x, int y, std::string text, RGBA color) {
 	if (is_loaded) {
@@ -321,7 +325,11 @@ int BEE::Font::draw_fast_internal(int x, int y, std::string text, RGBA color) {
 				}
 			} else {
 				SDL_Surface* tmp_surface;
-				tmp_surface = TTF_RenderUTF8_Solid(font, text.c_str(), {color.r, color.g, color.b, color.a}); // Fast but ugly
+				if (game->options->renderer_type != BEE_RENDERER_SDL) { // Fast font rendering is currently broken in OpenGL
+					tmp_surface = TTF_RenderUTF8_Blended(font, text.c_str(), {color.r, color.g, color.b, color.a}); // Slow but pretty
+				} else {
+					tmp_surface = TTF_RenderUTF8_Solid(font, text.c_str(), {color.r, color.g, color.b, color.a}); // Fast but ugly
+				}
 				if (tmp_surface == NULL) {
 					std::cerr << "Failed to draw with font " << name << ": " << TTF_GetError() << "\n";
 					return 1;
@@ -348,8 +356,12 @@ int BEE::Font::draw_fast_internal(int x, int y, std::string text, RGBA color) {
 	}
 	return 1;
 }
-int BEE::Font::draw_fast(int x, int y, std::string text, RGBA color) {
+int BEE::Font::draw_fast(int x, int y, std::string text, RGBA color, bool is_hud) {
 	if (is_loaded) {
+		if (is_hud) { // Only convert the coordinates if they should not be drawn relative to the window
+			game->convert_window_coords(x, y);
+		}
+
 		std::map<int,std::string> lines = handle_newlines(text);
 
 		if (lineskip == 0) {
@@ -376,11 +388,11 @@ int BEE::Font::draw_fast(int x, int y, std::string text, RGBA color) {
 	}
 	return 1;
 }
-int BEE::Font::draw_fast(int x, int y, std::string text) {
-	return draw_fast(x, y, text, {0, 0, 0, 255});
+int BEE::Font::draw_fast(int x, int y, std::string text, bool is_hud) {
+	return draw_fast(x, y, text, {0, 0, 0, 255}, is_hud);
 }
-int BEE::Font::draw_fast(int x, int y, std::string text, bee_rgba_t color) {
-	return draw_fast(x, y, text, game->get_enum_color(color));
+int BEE::Font::draw_fast(int x, int y, std::string text, bee_rgba_t color, bool is_hud) {
+	return draw_fast(x, y, text, game->get_enum_color(color), is_hud);
 }
 
 int BEE::Font::get_string_width(std::string text, int size) {

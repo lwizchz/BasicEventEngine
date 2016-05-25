@@ -287,7 +287,7 @@ int BEE::ParticleSystem::draw(Uint32 now, bool should_draw) {
 		double m = p->velocity.first * (p->randomness+1.0);
 		double dir = p->velocity.second;
 		p->x += cos(degtorad(dir)) * m * game->get_delta();
-		p->y += sin(degtorad(dir)) * m * game->get_delta();
+		p->y += -sin(degtorad(dir)) * m * game->get_delta();
 
 		for (auto& a : attractors) {
 			int ax = sx, ay = sy;

@@ -55,7 +55,7 @@ void ObjBee::create(BEE::InstanceData* self) {
 
 		BEE::Particle* part_firework = new BEE::Particle(game, pt_shape_snow, 0.5, 10000, true);
 		//BEE::Particle* part_firework = new BEE::Particle(game, spr_bee, 0.5, 10000, true);
-		part_firework->velocity = {-0.75, 270.0};
+		part_firework->velocity = {0.75, 270.0};
 		part_firework->angle_increase = 0.3;
 		//part_firework->color = game->get_enum_color(c_orange, 100);
 		//part_firework->death_type = part_done;
@@ -235,9 +235,9 @@ void ObjBee::draw(BEE::InstanceData* self) {
 	int s = 100;
 	self->draw(s, s, direction_of(self->x, self->y, mx, my), c_white, SDL_FLIP_NONE);
 
-	font_liberation->draw_fast(self->x, self->y, bee_itos(self->id));
+	font_liberation->draw_fast(self->x, self->y, bee_itos(self->id), false);
 
 	if (self->id == 0) {
-		fps_display = font_liberation->draw(fps_display, 0, 0, "FPS: " + bee_itos(game->fps_stable));
+		fps_display = font_liberation->draw(fps_display, 0, 0, "FPS: " + bee_itos(game->fps_stable), true);
 	}
 }

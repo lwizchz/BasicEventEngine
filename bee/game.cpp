@@ -821,9 +821,6 @@ int BEE::sdl_renderer_close() {
 int BEE::render_clear() {
 	draw_set_color(*color);
 	if (options->renderer_type != BEE_RENDERER_SDL) {
-		glm::mat4 projection = glm::ortho(0.0f, (float)get_room_width(), (float)get_room_height(), 0.0f, 0.0f, 10.0f);
-		glUniformMatrix4fv(projection_location, 1, GL_FALSE, glm::value_ptr(projection));
-
 		if (target > 0) {
 			glBindFramebuffer(GL_FRAMEBUFFER, target);
 		}

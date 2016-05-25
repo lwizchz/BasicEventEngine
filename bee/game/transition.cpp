@@ -88,6 +88,11 @@ int BEE::set_transition_type(int new_type) {
 * BEE::draw_transition() - Draw the defined transition type
 */
 int BEE::draw_transition() {
+	SDL_RendererFlip f = SDL_FLIP_NONE;
+	if (options->renderer_type != BEE_RENDERER_SDL) {
+		f = SDL_FLIP_VERTICAL;
+	}
+
 	switch (transition_type) {
 		case 0: { // No transition
 			break;
@@ -113,37 +118,37 @@ int BEE::draw_transition() {
 			break;
 		}
 		case 6: { // Shift from left
-			for (int i=-get_width(); i<0; i+=transition_speed) {
+			for (double i=-get_width(); i<0; i+=transition_speed*sqr(get_delta())) {
 				render_clear();
-				texture_before->draw(0, 0, 0);
-				texture_after->draw(i, 0, 0);
+				texture_before->draw(0, 0, 0, f);
+				texture_after->draw(i, 0, 0,  f);
 				render();
 			}
 			break;
 		}
 		case 7: { // Shift from right
-			for (int i=get_width(); i>=0; i-=transition_speed) {
+			for (double i=get_width(); i>=0; i-=transition_speed*sqr(get_delta())) {
 				render_clear();
-				texture_before->draw(0, 0, 0);
-				texture_after->draw(i, 0, 0);
+				texture_before->draw(0, 0, 0, f);
+				texture_after->draw(i, 0, 0, f);
 				render();
 			}
 			break;
 		}
 		case 8: { // Shift from top
-			for (int i=-get_height(); i<0; i+=transition_speed) {
+			for (double i=-get_height(); i<0; i+=transition_speed*sqr(get_delta())) {
 				render_clear();
-				texture_before->draw(0, 0, 0);
-				texture_after->draw(0, i, 0);
+				texture_before->draw(0, 0, 0, f);
+				texture_after->draw(0, i, 0, f);
 				render();
 			}
 			break;
 		}
 		case 9: { // Shift from bottom
-			for (int i=get_height(); i>=0; i-=transition_speed) {
+			for (double i=get_height(); i>=0; i-=transition_speed*sqr(get_delta())) {
 				render_clear();
-				texture_before->draw(0, 0, 0);
-				texture_after->draw(0, i, 0);
+				texture_before->draw(0, 0, 0, f);
+				texture_after->draw(0, i, 0, f);
 				render();
 			}
 			break;
@@ -166,40 +171,40 @@ int BEE::draw_transition() {
 		}
 		case 14: { // Push from left
 			int w = get_width();
-			for (int i=-w; i<0; i+=transition_speed) {
+			for (double i=-w; i<0; i+=transition_speed*sqr(get_delta())) {
 				render_clear();
-				texture_before->draw(i+w, 0, 0);
-				texture_after->draw(i, 0, 0);
+				texture_before->draw(i+w, 0, 0, f);
+				texture_after->draw(i, 0, 0, f);
 				render();
 			}
 			break;
 		}
 		case 15: { // Push from right
 			int w = get_width();
-			for (int i=w; i>=0; i-=transition_speed) {
+			for (double i=w; i>=0; i-=transition_speed*sqr(get_delta())) {
 				render_clear();
-				texture_before->draw(i-w, 0, 0);
-				texture_after->draw(i, 0, 0);
+				texture_before->draw(i-w, 0, 0, f);
+				texture_after->draw(i, 0, 0, f);
 				render();
 			}
 			break;
 		}
 		case 16: { // Push from top
 			int h = get_height();
-			for (int i=-h; i<0; i+=transition_speed) {
+			for (double i=-h; i<0; i+=transition_speed*sqr(get_delta())) {
 				render_clear();
-				texture_before->draw(i+h, 0, 0);
-				texture_after->draw(i, 0, 0);
+				texture_before->draw(i+h, 0, 0, f);
+				texture_after->draw(i, 0, 0, f);
 				render();
 			}
 			break;
 		}
 		case 17: { // Push from bottom
 			int h = get_height();
-			for (int i=h; i>=0; i-=transition_speed) {
+			for (double i=h; i>=0; i-=transition_speed*sqr(get_delta())) {
 				render_clear();
-				texture_before->draw(i-h, 0, 0);
-				texture_after->draw(i, 0, 0);
+				texture_before->draw(i-h, 0, 0, f);
+				texture_after->draw(i, 0, 0, f);
 				render();
 			}
 			break;

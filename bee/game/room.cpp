@@ -173,19 +173,22 @@ bool BEE::is_on_screen(const SDL_Rect& rect) const {
 */
 int BEE::set_viewport(ViewData* viewport) const {
 	if (options->renderer_type != BEE_RENDERER_SDL) {
-		glm::mat4 view;
+		glm::mat4 view, projection;
 		glm::vec4 port;
 
 		if (viewport == NULL) { // If the viewport is not defined then set the drawing area to the entire screen
 			view = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 			port = glm::vec4(0.0f, 0.0f, (float)get_room_width(), (float)get_room_height());
+			projection = glm::ortho(0.0f, (float)get_width(), (float)get_height(), 0.0f, 0.0f, 10.0f);
 		} else { // If the viewport is defined then use it
 			view = glm::translate(glm::mat4(1.0f), glm::vec3((float)viewport->view_x, (float)viewport->view_y, 0.0f));
 			port = glm::vec4(viewport->port_x, viewport->port_y, viewport->port_width, viewport->port_height);
+			projection = glm::ortho(0.0f, (float)viewport->view_width, (float)viewport->view_height, 0.0f, 0.0f, 10.0f);
 		}
 
 		glUniformMatrix4fv(view_location, 1, GL_FALSE, glm::value_ptr(view));
 		glUniform4fv(port_location, 1, glm::value_ptr(port));
+		glUniformMatrix4fv(projection_location, 1, GL_FALSE, glm::value_ptr(projection));
 
 		return 0;
 	} else {

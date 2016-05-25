@@ -225,15 +225,15 @@ int BEE::InstanceData::move_outside(const Line& l, const CollisionPolygon& m) {
 
         mask.x = x; mask.y = y;
         while ((check_collision_polygon(mask, m))&&(attempts++ < max_attempts)) {
-                x += cos(degtorad(dir)) * delta*dist;
-                y += sin(degtorad(dir)) * delta*dist;
+                x += cos(degtorad(dir)) * delta*dist * game->get_delta();
+                y += -sin(degtorad(dir)) * delta*dist * game->get_delta();
                 mask.x = x;
                 mask.y = y;
         }
 
 	if (check_collision_polygon(mask, m)) {
-		x -= cos(degtorad(dir)) * delta*dist;
-                y -= sin(degtorad(dir)) * delta*dist;
+		x -= cos(degtorad(dir)) * delta*dist * game->get_delta();
+                y -= -sin(degtorad(dir)) * delta*dist * game->get_delta();
                 mask.x = x;
                 mask.y = y;
 	}
@@ -248,8 +248,8 @@ int BEE::InstanceData::move_avoid(const CollisionPolygon& other) {
 		xprevious = x;
 		yprevious = y;
 
-		x += cos(degtorad((*v).second)) * (*v).first;
-		y += sin(degtorad((*v).second)) * (*v).first;
+		x += cos(degtorad((*v).second)) * (*v).first * game->get_delta();
+		y += -sin(degtorad((*v).second)) * (*v).first * game->get_delta();
 		double resultant_magnitude = (*v).first;
 		if (!is_place_free(x, y)) {
 			if ((x != xprevious)||(y != yprevious)) {
@@ -264,8 +264,8 @@ int BEE::InstanceData::move_avoid(const CollisionPolygon& other) {
 
 					int d = 180;
 					while ((d > 0)&&(d < 360)) {
-						double px = sin(degtorad(d)) * resultant_magnitude;
-						double py = -cos(degtorad(d)) * resultant_magnitude;
+						double px = cos(degtorad(d)) * resultant_magnitude * game->get_delta();
+						double py = -sin(degtorad(d)) * resultant_magnitude * game->get_delta();
 						mask.x = x+px;
 						mask.y = y+py;
 
@@ -297,13 +297,13 @@ std::pair<double,double> BEE::InstanceData::get_motion() {
 	double ysum = y;
 
 	for (auto& v : velocity) {
-		xsum += cos(degtorad(v.second))*v.first;
-		ysum += sin(degtorad(v.second))*v.first;
+		xsum += cos(degtorad(v.second))*v.first * game->get_delta();
+		ysum += -sin(degtorad(v.second))*v.first * game->get_delta();
 	}
 
 	double d = direction_of(x, y, xsum, ysum);
-	xsum += cos(degtorad(d))*friction;
-	ysum += sin(degtorad(d))*friction;
+	xsum += cos(degtorad(d))*friction * game->get_delta();
+	ysum += -sin(degtorad(d))*friction * game->get_delta();
 
 	return std::make_pair(xsum, ysum);
 }
@@ -312,10 +312,10 @@ std::pair<double,double> BEE::InstanceData::get_applied_gravity() {
 	double ysum = y;
 
 	if (gravity != 0.0) {
-		double g = gravity*pow(acceleration, acceleration_amount), gd = gravity_direction;
-		xsum += cos(degtorad(gd))*g;
-		ysum += sin(degtorad(gd))*g;
-		if (acceleration_amount < 10) {
+		double g = gravity*pow(acceleration, acceleration_amount);
+		xsum += cos(degtorad(gravity_direction))*g * game->get_delta();
+		ysum += -sin(degtorad(gravity_direction))*g * game->get_delta();
+		if (acceleration_amount < 10.0) {
 			acceleration_amount += 0.01;
 		}
 	}
@@ -431,7 +431,7 @@ bool BEE::InstanceData::is_place_meeting(int new_x, int new_y, int other_id) {
 }
 bool BEE::InstanceData::is_move_free(double magnitude, double direction) {
 	double dx = cos(degtorad(direction)) * magnitude;
-	double dy = sin(degtorad(direction)) * magnitude;
+	double dy = -sin(degtorad(direction)) * magnitude;
 	return is_place_free(x+dx, y+dy);
 }
 bool BEE::InstanceData::is_snapped(int hsnap, int vsnap) {

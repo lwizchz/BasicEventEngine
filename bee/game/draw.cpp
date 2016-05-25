@@ -85,21 +85,21 @@ int BEE::convert_window_coords(int& x, int& y) const {
 * @is_hud: whether the coordinates should be left unconverted or not
 */
 int BEE::draw_line(int x1, int y1, int x2, int y2, const RGBA& c, bool is_hud) {
-	if (!is_hud) { // Only convert the coordinates if they should not be drawn relative to the window
-		convert_view_coords(x1, y1);
-		convert_view_coords(x2, y2);
-	}
-
 	draw_set_color(c);
 
 	if (options->renderer_type != BEE_RENDERER_SDL) {
+		if (is_hud) {// Only convert the coordinates if they should be drawn relative to the window
+			convert_window_coords(x1, y1);
+			convert_window_coords(x2, y2);
+		}
+
 		glUniform1i(primitive_location, 1); // Enable primitive mode so that the color is correctly applied
 
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Enable line drawing (i.e. wireframe) mode so that the line will be drawn correctly
 
 		// If the second pair of coordinates are less than the first, swap them
 		int w = x2-x1, h = y2-y1;
-		if ((w < 0)&&(h < 0)) {
+		if ((w < 0)||(h < 0)) {
 			int xx = x1, yy = y1;
 			x1 = x2; y1 = y2;
 			x2 = xx; y2 = yy;
@@ -144,6 +144,11 @@ int BEE::draw_line(int x1, int y1, int x2, int y2, const RGBA& c, bool is_hud) {
 
 		return 0;
 	} else {
+		if (!is_hud) {// Only convert the coordinates if they should not be drawn relative to the window
+			convert_view_coords(x1, y1);
+			convert_view_coords(x2, y2);
+		}
+
 		return SDL_RenderDrawLine(renderer, x1, y1, x2, y2); // Draw the given point in the given color
 	}
 }
@@ -194,60 +199,66 @@ int BEE::draw_line(const Line& l, const RGBA& c, bool is_hud) {
 * @is_hud: whether the coordinates should be left unconverted or not
 */
 int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled, const RGBA& c, bool is_hud) {
-	if (!is_hud) { // Only convert the coordinates if they should not be drawn relative to the window
-		convert_view_coords(x, y);
-	}
-
 	draw_set_color(c);
 
 	if (options->renderer_type != BEE_RENDERER_SDL) {
-		glUniform1i(primitive_location, 1); // Enable primitive mode so that the color is correctly applied
+		if (is_filled) { // If filling is disabled, only draw a wireframe (note that this will draw a diagonal down the middle of the rectangle)
+			if (is_hud) {// Only convert the coordinates if they should be drawn relative to the window
+				convert_window_coords(x, y);
+			}
 
-		if (!is_filled) { // If filling is disabled, only draw a wireframe (note that this will draw a diagonal down the middle of the rectangle)
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			glUniform1i(primitive_location, 1); // Enable primitive mode so that the color is correctly applied
+
+			// Generate the list of triangle vertices for the rectangle
+			GLuint vbo;
+			glGenBuffers(1, &vbo);
+			GLfloat vertices[] = {
+				0.0, 0.0,
+				(GLfloat)w, 0.0,
+				(GLfloat)w, (GLfloat)h,
+				(GLfloat)w, (GLfloat)h,
+				0.0, (GLfloat)h,
+				0.0, 0.0,
+			};
+			glBindBuffer(GL_ARRAY_BUFFER, vbo);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+			// Offset the rectangle model by the given coordinates
+			glm::mat4 model = glm::translate(glm::mat4(1.0), glm::vec3(x, y, 0.0));
+			glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(model));
+
+			// Bind the vertices to the vertex array buffer
+			glEnableVertexAttribArray(vertex_location);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo);
+			glVertexAttribPointer(
+				vertex_location,
+				2,
+				GL_FLOAT,
+				GL_FALSE,
+				0,
+				0
+			);
+
+			glDrawArrays(GL_TRIANGLES, 0, 6); // Draw the triangles
+
+			// Reset things to their default state
+			glDisableVertexAttribArray(vertex_location);
+			glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0)));
+
+			glUniform1i(primitive_location, 0);
+		} else {
+			draw_line(x, y, x+w, y, c, is_hud);
+			draw_line(x+w, y, x+w, y+h, c, is_hud);
+			draw_line(x+w, y+h, x, y+h, c, is_hud);
+			draw_line(x, y+h, x, y, c, is_hud);
 		}
-
-		// Generate the list of triangle vertices for the rectangle
-		GLuint vbo;
-		glGenBuffers(1, &vbo);
-		GLfloat vertices[] = {
-			0.0, 0.0,
-			(GLfloat)w, 0.0,
-			(GLfloat)w, (GLfloat)h,
-			(GLfloat)w, (GLfloat)h,
-			0.0, (GLfloat)h,
-			0.0, 0.0,
-		};
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-		// Offset the rectangle model by the given coordinates
-		glm::mat4 model = glm::translate(glm::mat4(1.0), glm::vec3(x, y, 0.0));
-		glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(model));
-
-		// Bind the vertices to the vertex array buffer
-		glEnableVertexAttribArray(vertex_location);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glVertexAttribPointer(
-			vertex_location,
-			2,
-			GL_FLOAT,
-			GL_FALSE,
-			0,
-			0
-		);
-
-		glDrawArrays(GL_TRIANGLES, 0, 6); // Draw the triangles
-
-		// Reset things to their default state
-		glDisableVertexAttribArray(vertex_location);
-		glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0)));
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-		glUniform1i(primitive_location, 0);
 
 		return 0;
 	} else {
+		if (!is_hud) { // Only convert the coordinates if they should not be drawn relative to the window
+			convert_view_coords(x, y);
+		}
+
 		SDL_Rect r = {x, y, w, h};
 		if (is_filled) {
 			return SDL_RenderFillRect(renderer, &r); // Fill the given rectangle with the given color

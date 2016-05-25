@@ -65,14 +65,14 @@ class BEE::Font: public Resource {
 		int free();
 
 		TextData* draw_internal(int, int, std::string, RGBA);
-		TextData* draw(int, int, std::string, RGBA);
-		TextData* draw(int, int, std::string);
-		TextData* draw(TextData*, int, int, std::string, RGBA);
-		TextData* draw(TextData*, int, int, std::string);
+		TextData* draw(int, int, std::string, RGBA, bool);
+		TextData* draw(int, int, std::string, bool);
+		TextData* draw(TextData*, int, int, std::string, RGBA, bool);
+		TextData* draw(TextData*, int, int, std::string, bool);
 		int draw_fast_internal(int, int, std::string, RGBA);
-		int draw_fast(int, int, std::string, RGBA);
-		int draw_fast(int, int, std::string);
-		int draw_fast(int, int, std::string, bee_rgba_t);
+		int draw_fast(int, int, std::string, RGBA, bool);
+		int draw_fast(int, int, std::string, bool);
+		int draw_fast(int, int, std::string, bee_rgba_t, bool);
 
 		int get_string_width(std::string, int);
 		int get_string_width(std::string);

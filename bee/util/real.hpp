@@ -284,7 +284,7 @@ template bool is_angle_between<double>(double, double, double);
 */
 template <typename T>
 T fit_bounds(T x, T a, T b) {
-        if (a < b) { // Handle the case where the minimum is less than the maximum
+        if (a <= b) { // Handle the case where the minimum is less than the maximum
                 if (x < a) { // If x is less than the minimum then return the minimum
                         return a;
                 }
