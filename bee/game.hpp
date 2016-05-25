@@ -118,6 +118,9 @@ class BEE {
 		const int transition_max = 21;
 
 		const Uint8* keystate;
+
+		std::vector<std::string> console_input;
+		int console_line = 0;
 	public:
 		unsigned int fps_stable;
 

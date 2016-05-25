@@ -22,6 +22,7 @@ bool verify_assertions();
 int bee_get_platform();
 std::string bee_itos(int);
 int bee_stoi(const std::string&);
+bool bee_has_console_input();
 int bee_mkdir(const char*, mode_t);
 std::string bee_mkdtemp(const std::string&);
 std::string bee_inet_ntop(const void* src);

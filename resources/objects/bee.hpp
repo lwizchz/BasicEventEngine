@@ -18,6 +18,7 @@ class ObjBee : public BEE::Object {
 		void keyboard_press(BEE::InstanceData*, SDL_Event*);
 		void mouse_press(BEE::InstanceData*, SDL_Event*);
 		void mouse_input(BEE::InstanceData*, SDL_Event*);
+		void console_input(BEE::InstanceData*, const std::string&);
 		void collision(BEE::InstanceData*, BEE::InstanceData*);
 		void draw(BEE::InstanceData*);
 };
@@ -28,6 +29,7 @@ ObjBee::ObjBee() : Object("obj_bee", "bee.hpp") {
 	implemented_events[BEE_EVENT_KEYBOARD_PRESS] = true;
 	implemented_events[BEE_EVENT_MOUSE_PRESS] = true;
 	implemented_events[BEE_EVENT_MOUSE_INPUT] = true;
+	implemented_events[BEE_EVENT_CONSOLE_INPUT] = true;
 	implemented_events[BEE_EVENT_COLLISION] = true;
 	implemented_events[BEE_EVENT_DRAW] = true;
 
@@ -224,6 +226,10 @@ void ObjBee::mouse_input(BEE::InstanceData* self, SDL_Event* e) {
 			}
 		}
 	}
+}
+
+void ObjBee::console_input(BEE::InstanceData* self, const std::string& s) {
+	std::cout << "~~~" << s << "~~~\n";
 }
 void ObjBee::collision(BEE::InstanceData* self, BEE::InstanceData* other) {
 	self->move_away(2.0, other->x, other->y);

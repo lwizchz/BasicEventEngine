@@ -90,6 +90,7 @@ class BEE::Object: public Resource {
 		virtual void controller_press(InstanceData*, SDL_Event*) {};
 		virtual void controller_release(InstanceData*, SDL_Event*) {};
 		virtual void controller_modify(InstanceData*, SDL_Event*) {};
+		virtual void console_input(InstanceData*, const std::string&) {};
 		virtual void path_end(InstanceData*) {};
 		virtual void outside_room(InstanceData*) {};
 		virtual void intersect_boundary(InstanceData*) {};

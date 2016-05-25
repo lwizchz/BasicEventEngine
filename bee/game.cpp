@@ -107,6 +107,7 @@ BEE::BEE(int new_argc, char** new_argv, Room** new_first_room, GameOptions* new_
 	SDL_SetCursor(cursor);
 
 	keystate = SDL_GetKeyboardState(NULL);
+	console_input.clear();
 
 	color = new RGBA();
 	if (options->renderer_type != BEE_RENDERER_SDL) {
@@ -322,6 +323,11 @@ int BEE::loop() {
 						std::cerr << "Unknown event type: " << event.type << "\n";
 						break;
 				}
+			}
+			if (bee_has_console_input()) {
+				console_input.push_back("");
+				std::cin >> console_input[console_line];
+				current_room->console_input(console_input[console_line++]);
 			}
 
 			current_room->step_mid();

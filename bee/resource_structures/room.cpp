@@ -828,6 +828,14 @@ int BEE::Room::controller_modify(SDL_Event* e) {
 
 	return 0;
 }
+int BEE::Room::console_input(const std::string& input) {
+	for (auto& i : instances_sorted) {
+		i.first->object->update(i.first);
+		i.first->object->console_input(i.first, input);
+	}
+
+	return 0;
+}
 int BEE::Room::check_paths() {
 	for (auto& i : instances_sorted) {
 		if (i.first->has_path()) {

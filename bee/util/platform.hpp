@@ -19,6 +19,7 @@
 #include <winsock2.h>
 #include <windows.h>
 #include <direct.h>
+#include <conio.h> // Include the required functions for non-blocking console input
 
 /*
 * bee_get_platform() - Return the platform id
@@ -37,7 +38,6 @@ std::string bee_itos(int i) {
         ss << i;
         return ss.str();
 }
-
 /*
 * bee_stoi() - Convert a string to an integer
 * @s: the string to convert
@@ -47,6 +47,13 @@ int bee_stoi(const std::string& s) {
         int i;
         ss >> i;
         return i;
+}
+
+/*
+* bee_has_console_input() - Return whether there is input in the console without blocking
+*/
+bool bee_has_console_input() {
+        return _kbhit();
 }
 
 /*
@@ -87,6 +94,9 @@ std::string bee_inet_ntop(const void* src) {
 
 #else // _WINDOWS
 
+#include <sys/time.h> // Include the required functions for non-blocking console input
+#include <sys/types.h>
+#include <unistd.h>
 #include <arpa/inet.h> // Include the required network functions
 
 /*
@@ -104,13 +114,24 @@ int bee_get_platform() {
 std::string bee_itos(int i) {
         return std::to_string(i);
 }
-
 /*
 * bee_stoi() - Convert a string to an integer
 * @s: the string to convert
 */
 int bee_stoi(const std::string& s) {
         return std::stoi(s);
+}
+
+/*
+* bee_has_console_input() - Return whether there is input in the console without blocking
+*/
+bool bee_has_console_input() {
+        struct timeval tv = {0, 0}; // Wait 0 seconds and 0 microseconds for input
+        fd_set rfds; // Declare a new set of input streams
+        FD_ZERO(&rfds); // Clear the set
+        FD_SET(0, &rfds); // Add standard input to the set
+
+        return (select(1, &rfds, 0, 0, &tv) > 0); // Return true when the given input is waiting to be read
 }
 
 /*

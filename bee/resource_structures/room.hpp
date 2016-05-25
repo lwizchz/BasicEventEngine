@@ -140,6 +140,7 @@ class BEE::Room: public Resource {
 		int controller_press(SDL_Event*);
 		int controller_release(SDL_Event*);
 		int controller_modify(SDL_Event*);
+		int console_input(const std::string&);
 		int check_paths();
 		int outside_room();
 		int intersect_boundary();
