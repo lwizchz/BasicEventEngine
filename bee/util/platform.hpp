@@ -30,6 +30,15 @@ int bee_get_platform() {
 }
 
 /*
+* bee_get_path() - Return the path of the executable
+*/
+std::string bee_get_path() {
+        char buffer[1024];
+        GetModuleFileName(NULL, buffer, 1024);
+        return std::string(buffer);
+}
+
+/*
 * bee_itos() - Convert an integer to a string
 * @i: the integer to convert
 */
@@ -105,6 +114,15 @@ std::string bee_inet_ntop(const void* src) {
 */
 int bee_get_platform() {
         return 0;
+}
+
+/*
+* bee_get_path() - Return the path of the executable
+*/
+std::string bee_get_path() {
+        char buffer[1024];
+        readlink("/proc/self/exe", buffer, 1024);
+        return std::string(buffer);
 }
 
 /*

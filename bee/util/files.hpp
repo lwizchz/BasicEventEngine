@@ -63,4 +63,25 @@ std::string directory_get_temp() {
         return bee_mkdtemp(t);
 }
 
+std::string file_basename(std::string path) {
+        return {
+                std::find_if(path.rbegin(), path.rend(),
+                        [] (char c) {
+                                return c == '/' || c == '\\';
+                        }
+                ).base(),
+                path.end()
+        };
+}
+std::string file_dirname(std::string path) {
+        return {
+                path.begin(),
+                std::find_if(path.rbegin(), path.rend(),
+                        [] (char c) {
+                                return c == '/' || c == '\\';
+                        }
+                ).base()
+        };
+}
+
 #endif // _BEE_UTIL_FILES_H

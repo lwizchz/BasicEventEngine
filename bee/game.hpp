@@ -12,6 +12,8 @@
 #include <iostream>
 #include <time.h>
 #include <functional>
+#include <list>
+#include <getopt.h>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -51,13 +53,14 @@ class BEE;
 class BEE {
 	public:
 		class Sprite; class Sound; class Background; class Font; class Path; class Timeline; class Object; class Room;
-		class GameOptions; class InstanceData; class CollisionTree; class CollisionPolygon; class RGBA;
+		class ProgramFlags; class GameOptions; class InstanceData; class CollisionTree; class CollisionPolygon; class RGBA;
 		class Particle; class ParticleData; class ParticleEmitter; class ParticleAttractor; class ParticleDestroyer; class ParticleDeflector; class ParticleChanger; class ParticleSystem;
 		class SpriteDrawData; class SoundGroup;
 		class ViewData; class BackgroundData; class NetworkData;
 	private:
 		int argc;
 		char** argv;
+		std::list<ProgramFlags*> flags;
 		bool quit, is_ready, is_paused;
 		Room *first_room = NULL, *current_room = NULL;
 
@@ -127,8 +130,9 @@ class BEE {
 		static MetaResourceList* resource_list;
 		static bool is_initialized;
 
-		BEE(int, char**, Room**, GameOptions*);
+		BEE(int, char**, const std::list<ProgramFlags*>&, Room**, GameOptions*);
 		~BEE();
+		int handle_flags(const std::list<ProgramFlags*>&, bool);
 		int loop();
 		int close();
 
@@ -188,6 +192,10 @@ class BEE {
 
 		int restart_game() const;
 		int end_game() const;
+
+		// bee/game/info.cpp
+		static std::list<BEE::ProgramFlags*> get_standard_flags();
+		static std::string get_usage_text();
 
 		// bee/game/room.cpp
 		void restart_room() const;
@@ -302,20 +310,40 @@ class BEE {
 typedef std::tuple<int, int, double> bee_path_coord;
 typedef std::multimap<Uint32, std::pair<std::string,std::function<void()>>> bee_timeline_list;
 
+class BEE::ProgramFlags {
+	public:
+		ProgramFlags(std::string l, char s, bool p, int a, std::function<void (BEE*, char*)> f) {
+			longopt = l; shortopt = s; pre_init = p; has_arg = a; func = f;
+		}
+		std::string longopt = "";
+		char shortopt = '\0';
+		bool pre_init = true;
+		int has_arg = no_argument;
+		std::function<void (BEE*, char*)> func = NULL;
+};
 class BEE::GameOptions {
 	public:
-		// Window flags
+		GameOptions(bool f, bool b, bool r, bool m, bool h, bool v, bee_renderer_t rend, bool vsync, bool n, bool d) {
+			is_fullscreen = f; is_borderless = b; is_resizable = r; is_maximized = m; is_highdpi = h; is_visible = v;
+			renderer_type = rend; is_vsync_enabled = vsync; is_network_enabled = n; is_debug_enabled = d;
+		}
+
+		// Window options
 		bool is_fullscreen, is_borderless;
 		bool is_resizable, is_maximized;
 		bool is_highdpi, is_visible;
 
-		// Renderer flags
+		// Renderer options
 		bee_renderer_t renderer_type;
 		bool is_vsync_enabled;
 
-		// Miscellaneous flags
+		// Miscellaneous options
 		bool is_network_enabled;
 		bool is_debug_enabled;
+
+		// Commandline flags
+		bool should_assert = true;
+		bool single_run = false;
 };
 
 class BEE::CollisionPolygon {

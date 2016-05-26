@@ -20,6 +20,7 @@ bool verify_assertions();
 
 // Platform compatibility functions, bee/util/platform.hpp
 int bee_get_platform();
+std::string bee_get_path();
 std::string bee_itos(int);
 int bee_stoi(const std::string&);
 bool bee_has_console_input();
@@ -180,6 +181,8 @@ std::string file_get_contents(std::string);
 bool directory_exists(std::string);
 int directory_create(std::string);
 std::string directory_get_temp();
+std::string file_basename(std::string);
+std::string file_dirname(std::string);
 
 // Networking functions, bee/util/network.hpp
 int network_init();

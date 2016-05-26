@@ -14,15 +14,10 @@
 MetaResourceList* BEE::resource_list;
 bool BEE::is_initialized = false;
 
-BEE::BEE(int new_argc, char** new_argv, Room** new_first_room, GameOptions* new_options) {
-	if (!verify_assertions()) {
-		throw std::string("Couldn't verify assertions\n");
-	}
-
+BEE::BEE(int new_argc, char** new_argv, const std::list<ProgramFlags*>& new_flags, Room** new_first_room, GameOptions* new_options) {
 	argc = new_argc;
 	argv = new_argv;
 	is_ready = false;
-	options = new_options;
 
 	is_minimized = false;
 	is_fullscreen = false;
@@ -38,6 +33,15 @@ BEE::BEE(int new_argc, char** new_argv, Room** new_first_room, GameOptions* new_
 
 	width = DEFAULT_WINDOW_WIDTH;
 	height = DEFAULT_WINDOW_HEIGHT;
+
+	options = new_options;
+	handle_flags(new_flags, true);
+
+	if (options->should_assert) {
+		if (!verify_assertions()) {
+			throw std::string("Couldn't verify assertions\n");
+		}
+	}
 
 	net = new NetworkData();
 
@@ -72,15 +76,6 @@ BEE::BEE(int new_argc, char** new_argv, Room** new_first_room, GameOptions* new_
 
 	int window_flags = SDL_WINDOW_OPENGL;
 	if (options->is_fullscreen) {
-		/*if (platform == 0) {
-		       //if (options->is_resizable) {
-				window_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP; // Changes the window dimensions
-			//} else {
-			//	window_flags |= SDL_WINDOW_FULLSCREEN; // Changes the video mode
-			//}
-		} else if (platform == 1) { // _WINDOWS
-			window_flags |= SDL_WINDOW_BORDERLESS;
-		}*/
 		window_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 	}
 	if (options->is_borderless) {
@@ -153,9 +148,65 @@ BEE::BEE(int new_argc, char** new_argv, Room** new_first_room, GameOptions* new_
 			throw std::string("Couldn't load first room\n");
 		}
 	}
+
+	handle_flags(new_flags, false);
 }
 BEE::~BEE() {
 	close();
+}
+int BEE::handle_flags(const std::list<ProgramFlags*>& new_flags, bool pre_init) {
+	flags = new_flags;
+
+	if (flags.empty()) {
+		return 0;
+	}
+
+	int l = 0;
+	struct option* long_options = new struct option[flags.size()+1];
+	std::string optstring = "";
+	for (auto& f : flags) {
+		if (f->shortopt > 0) {
+			optstring += f->shortopt;
+			if (f->has_arg == optional_argument) {
+				optstring += "::";
+			} else if (f->has_arg == required_argument) {
+				optstring += ":";
+			}
+		}
+
+		long_options[l].name = f->longopt.c_str();
+		long_options[l].has_arg = f->has_arg;
+		long_options[l].flag = NULL;
+		long_options[l].val = f->shortopt;
+		l++;
+	}
+	long_options[l++] = {0, 0, 0, 0};
+
+	optind = 1;
+	int index = -1;
+	int c = -1;
+	int amount = 0;
+	while ((c = getopt_long(argc, argv, optstring.c_str(), long_options, &index)) != -1) {
+		for (auto& f : flags) {
+			if (((c != 0)&&(c == f->shortopt))||((c == 0)&&(strcmp(long_options[index].name, f->longopt.c_str()) == 0))) {
+				if (f->pre_init == pre_init) {
+					if (f->func != NULL) {
+						if ((f->has_arg != no_argument)&&(optarg)) {
+							f->func(this, optarg);
+						} else {
+							f->func(this, (char*)NULL);
+						}
+					}
+					amount++;
+				}
+				break;
+			}
+		}
+	}
+
+	delete[] long_options;
+
+	return amount;
 }
 int BEE::loop() {
 	tickstamp = get_ticks();
@@ -362,6 +413,10 @@ int BEE::loop() {
 				fps_stable = fps_count / ((tickstamp-fps_ticks)/1000);
 				fps_count = 0;
 				fps_ticks = tickstamp;
+			}
+
+			if (options->single_run) {
+				quit = true;
 			}
 		} catch (int e) {
 			switch (e) {
@@ -891,6 +946,7 @@ int BEE::end_game() const {
 }
 
 #ifndef _WINDOWS
+#include "game/info.cpp"
 #include "game/room.cpp"
 #include "game/transition.cpp"
 #include "game/display.cpp"

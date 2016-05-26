@@ -20,23 +20,23 @@
 int main(int argc, char* argv[]) {
 	BEE* game;
 
-	try { // Catch all errors so that all resources will be freed properly
-		// Declare some game options, see bee/game.hpp for the type definition
-		BEE::GameOptions options = {
-			// Window flags
-			true, true,
-			true, true,
-			false, true,
-			// Renderer flags
-			BEE_RENDERER_OPENGL4,
-			false,
-			// Miscellaneous flags
-			true,
-			false
-		};
+	// Declare some game options, see bee/game.hpp for the type definition
+	BEE::GameOptions options = {
+		// Window flags
+		true, true,
+		true, true,
+		false, true,
+		// Renderer flags
+		BEE_RENDERER_OPENGL4,
+		false,
+		// Miscellaneous flags
+		true,
+		false
+	};
 
+	try { // Catch all errors so that all resources will be freed properly
 		// Initialize the game engine
-		game = new BEE(argc, argv, &rm_test, &options);
+		game = new BEE(argc, argv, BEE::get_standard_flags(), &rm_test, &options);
 	} catch (std::string e) {
 		std::cerr << e; // Output the caught exception string
 		return 1; // Return 1 on caught exception
