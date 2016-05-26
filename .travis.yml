@@ -13,4 +13,6 @@ before_script:
   - cd build
   - cmake ..
 script: make
-after_success: ./build/BasicEventEngine --single-run
+after_success:
+ - cd ..
+ - ./build/BasicEventEngine --single-run
