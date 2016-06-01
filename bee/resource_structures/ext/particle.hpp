@@ -53,6 +53,7 @@ class BEE::Particle {
 		std::list<ParticleData*> old_particles;
 
 		bool should_reanimate = true;
+		bool is_lightable = true;
 
 		Particle(BEE*, Sprite*, double, Uint32, bool);
 		Particle(BEE*, pt_shape_t, double, Uint32, bool);

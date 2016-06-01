@@ -51,7 +51,7 @@ BEE::BEE(int new_argc, char** new_argv, const std::list<ProgramFlags*>& new_flag
 
 	// Use the highest version of OpenGL available
 	switch (options->renderer_type) {
-		case BEE_RENDERER_OPENGL4:
+		case BEE_RENDERER_OPENGL4: {
 			if (GL_VERSION_4_1) {
 				options->renderer_type = BEE_RENDERER_OPENGL4;
 				SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
@@ -60,7 +60,8 @@ BEE::BEE(int new_argc, char** new_argv, const std::list<ProgramFlags*>& new_flag
 				SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY); // Currently the compatibility profile must be used because there are unknown uses of the deprecated functions in the code base
 				break;
 			}
-		case BEE_RENDERER_OPENGL3:
+		}
+		case BEE_RENDERER_OPENGL3: {
 			if (GL_VERSION_3_3) {
 				options->renderer_type = BEE_RENDERER_OPENGL3;
 				SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
@@ -69,9 +70,11 @@ BEE::BEE(int new_argc, char** new_argv, const std::list<ProgramFlags*>& new_flag
 				SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY); // Currently the compatibility profile must be used because there are unknown uses of the deprecated functions in the code base
 				break;
 			}
+		}
 		case BEE_RENDERER_SDL:
-		default:
+		default: {
 			options->renderer_type = BEE_RENDERER_SDL;
+		}
 	}
 
 	int window_flags = SDL_WINDOW_OPENGL;
@@ -416,6 +419,8 @@ int BEE::loop() {
 			}
 
 			if (options->single_run) {
+				current_room->draw();
+				save_screenshot("single_run.bmp");
 				quit = true;
 			}
 		} catch (int e) {
@@ -804,6 +809,30 @@ int BEE::opengl_init() {
 		throw std::string("Couldn't get location of 'flip' in the fragment shader\n");
 	}
 
+	lightable_location = glGetUniformLocation(program, "is_lightable");
+	if (lightable_location == -1) {
+		std::cerr << get_program_error(program);
+		glDeleteShader(vertex_shader);
+		glDeleteShader(geometry_shader);
+		glDeleteShader(fragment_shader);
+		throw std::string("Couldn't get location of 'is_lightable' in the fragment shader\n");
+	}
+	light_amount_location = glGetUniformLocation(program, "light_amount");
+	if (light_amount_location == -1) {
+		std::cerr << get_program_error(program);
+		glDeleteShader(vertex_shader);
+		glDeleteShader(geometry_shader);
+		glDeleteShader(fragment_shader);
+		throw std::string("Couldn't get location of 'light_amount' in the fragment shader\n");
+	}
+	for (int i=0; i<BEE_MAX_LIGHTS; i++) {
+		lighting_location[i].type = glGetUniformLocation(program, std::string("lighting[" + bee_itos(i) + "].type").c_str());
+		lighting_location[i].position = glGetUniformLocation(program, std::string("lighting[" + bee_itos(i) + "].position").c_str());
+		lighting_location[i].direction = glGetUniformLocation(program, std::string("lighting[" + bee_itos(i) + "].direction").c_str());
+		lighting_location[i].attenuation = glGetUniformLocation(program, std::string("lighting[" + bee_itos(i) + "].attenuation").c_str());
+		lighting_location[i].color = glGetUniformLocation(program, std::string("lighting[" + bee_itos(i) + "].color").c_str());
+	}
+
 	draw_set_color({255, 255, 255, 255});
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
@@ -836,20 +865,23 @@ int BEE::opengl_close() {
 }
 std::string BEE::opengl_prepend_version(const std::string& shader) {
 	switch (options->renderer_type) {
-		case BEE_RENDERER_OPENGL4:
+		case BEE_RENDERER_OPENGL4: {
 			if (GL_VERSION_4_1) {
 				options->renderer_type = BEE_RENDERER_OPENGL4;
 				return "#version 410\n" + shader;
 			}
-		case BEE_RENDERER_OPENGL3:
+		}
+		case BEE_RENDERER_OPENGL3: {
 			if (GL_VERSION_3_3) {
 				options->renderer_type = BEE_RENDERER_OPENGL3;
 				return "#version 330\n" + shader;
 			}
+		}
 		case BEE_RENDERER_SDL:
-		default:
+		default: {
 			options->renderer_type = BEE_RENDERER_SDL;
 			return shader;
+		}
 	}
 }
 int BEE::sdl_renderer_init() {
@@ -863,7 +895,7 @@ int BEE::sdl_renderer_init() {
 		throw std::string("Couldn't create SDL renderer: ") + SDL_GetError() + "\n";
 	}
 
-	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
 	std::cout << "Now rendering with SDL2\n";

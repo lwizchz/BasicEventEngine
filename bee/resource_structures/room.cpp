@@ -434,6 +434,63 @@ int BEE::Room::clear_particles() {
 	particle_count = 0;
 	return 0;
 }
+int BEE::Room::add_light(LightData* lighting) {
+	lights.push_back(lighting);
+	return 0;
+}
+int BEE::Room::handle_lights() {
+	if (game->options->renderer_type != BEE_RENDERER_SDL) {
+		int i = 0;
+		for (auto& l : lights) {
+			if (i >= BEE_MAX_LIGHTS) {
+				break;
+			}
+
+			glm::vec4 c = glm::vec4((float)l->color.r/255.0f, (float)l->color.g/255.0f, (float)l->color.b/255.0f, (float)l->color.a/255.0f);
+
+			glUniform1i(game->lighting_location[i].type, l->type);
+			glUniform4fv(game->lighting_location[i].position, 1, glm::value_ptr(l->position));
+			glUniform4fv(game->lighting_location[i].direction, 1, glm::value_ptr(l->direction));
+			glUniform4fv(game->lighting_location[i].attenuation, 1, glm::value_ptr(l->attenuation));
+			glUniform4fv(game->lighting_location[i].color, 1, glm::value_ptr(c));
+
+			i++;
+		}
+		glUniform1i(game->light_amount_location, i);
+	} else {
+		int a = 0;
+		int w = get_width(), h = get_height();
+		game->draw_set_blend(SDL_BLENDMODE_MOD);
+		for (auto& l : lights) {
+			switch (l->type) {
+				case BEE_LIGHT_AMBIENT: {
+					a += l->color.a;
+					game->draw_rectangle(0, 0, w, h, true, l->color, false);
+					break;
+				}
+				case BEE_LIGHT_DIFFUSE: {
+					break;
+				}
+				case BEE_LIGHT_POINT: {
+					a += l->color.a/2;
+					int r = 1000.0/l->attenuation.y;
+					game->add_sprite("pt_sprite_sphere", "particles/07_sphere.png")->draw(l->position.x-r/2, l->position.y-r/2, 0, r, r, 0.0, l->color, SDL_FLIP_NONE, false);
+					break;
+				}
+				case BEE_LIGHT_SPOT: {
+					break;
+				}
+			}
+		}
+		if (a < 255) {
+			game->draw_rectangle(0, 0, w, h, true, {0, 0, 0, (Uint8)(255-a)}, false);
+		}
+		game->draw_set_blend(SDL_BLENDMODE_BLEND);
+	}
+	lights.clear();
+
+	return 0;
+}
 int BEE::Room::expand_collision_tree(int expand_x, int expand_y) {
 	CollisionTree* ct = collision_tree;
 
@@ -504,6 +561,8 @@ int BEE::Room::reset_properties() {
 	destroyed_instances.clear();
 	next_instance_id = 0;
 	should_sort = false;
+
+	lights.clear();
 
 	tree_x = 0;
 	tree_y = 0;
@@ -903,6 +962,10 @@ int BEE::Room::draw() {
 			game->render_clear();
 		}
 
+		if (game->options->renderer_type != BEE_RENDERER_SDL) {
+			handle_lights();
+		}
+
 		for (auto& v : views) {
 			if (v.second->is_visible) {
 				view_current = v.second;
@@ -940,6 +1003,10 @@ int BEE::Room::draw() {
 
 				game->set_viewport(view_current);
 				draw_view();
+
+				if (game->options->renderer_type == BEE_RENDERER_SDL) {
+					handle_lights();
+				}
 			}
 		}
 		view_current = NULL;
@@ -948,8 +1015,16 @@ int BEE::Room::draw() {
 		if (!game->options->is_debug_enabled) {
 			game->render_clear();
 		}
+		if (game->options->renderer_type != BEE_RENDERER_SDL) {
+			handle_lights();
+		}
+
 		game->set_viewport(NULL);
 		draw_view();
+
+		if (game->options->renderer_type == BEE_RENDERER_SDL) {
+			handle_lights();
+		}
 	}
 
 	game->render();

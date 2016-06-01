@@ -183,6 +183,8 @@ int directory_create(std::string);
 std::string directory_get_temp();
 std::string file_basename(std::string);
 std::string file_dirname(std::string);
+std::string file_plainname(std::string);
+std::string file_extname(std::string);
 
 // Networking functions, bee/util/network.hpp
 int network_init();

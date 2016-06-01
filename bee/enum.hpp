@@ -69,4 +69,11 @@ enum bee_event_t {
 	BEE_EVENT_WINDOW
 };
 
+enum bee_light_t {
+	BEE_LIGHT_AMBIENT = 1,
+	BEE_LIGHT_DIFFUSE,
+	BEE_LIGHT_POINT,
+	BEE_LIGHT_SPOT
+};
+
 #endif // _BEE_ENUM_H

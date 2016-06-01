@@ -83,5 +83,25 @@ std::string file_dirname(std::string path) {
                 ).base()
         };
 }
+std::string file_plainname(std::string path) {
+        return {
+                path.begin(),
+                std::find_if(path.rbegin(), path.rend(),
+                        [] (char c) {
+                                return c == '.';
+                        }
+                ).base()-1
+        };
+}
+std::string file_extname(std::string path) {
+        return {
+                std::find_if(path.rbegin(), path.rend(),
+                        [] (char c) {
+                                return c == '.';
+                        }
+                ).base()-1,
+                path.end()
+        };
+}
 
 #endif // _BEE_UTIL_FILES_H

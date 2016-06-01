@@ -300,16 +300,19 @@ int BEE::ParticleSystem::draw(Uint32 now, bool should_draw) {
 			if (ds < sqr(a->max_distance)) {
 				double f = 0.0;
 				switch (a->force_type) {
-					case ps_force_constant:
+					case ps_force_constant: {
 						f = a->force * (p->randomness+1.0);
 						break;
+					}
 					case ps_force_linear:
-					default:
+					default: {
 						f = a->force * (p->randomness+1.0) * (sqr(a->max_distance) - ds) / sqr(a->max_distance);
 						break;
-					case ps_force_quadratic:
+					}
+					case ps_force_quadratic: {
 						f = a->force * (p->randomness+1.0) * sqr((sqr(a->max_distance) - ds) / sqr(a->max_distance));
 						break;
+					}
 				}
 				std::tie(p->x, p->y) = coord_approach(p->x, p->y, ax+a->x+a->w/2, ay+a->y+a->h/2, f, game->get_delta());
 			}
@@ -389,7 +392,11 @@ int BEE::ParticleSystem::draw(Uint32 now, bool should_draw) {
 			}
 		);
 		for (auto& s : draw_data) {
+			if (!s.first->is_lightable) {
+				game->set_is_lightable(false);
+			}
 			s.first->sprite->draw_array(s.second, s.first->rotation_cache, s.first->color, SDL_FLIP_NONE, false);
+			game->set_is_lightable(true);
 		}
 	}
 

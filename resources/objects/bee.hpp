@@ -189,6 +189,15 @@ void ObjBee::keyboard_press(BEE::InstanceData* self, SDL_Event* e) {
 			break;
 		}
 
+		case SDLK_n: {
+			lt_bee->set_attenuation({2.0, 100.0, 2000.0, 0.0});
+			break;
+		}
+		case SDLK_m: {
+			lt_bee->set_attenuation({2.0, 100.0, -2000.0, 0.0});
+			break;
+		}
+
 		case SDLK_p: {
 			game->save_screenshot("screenshot.bmp");
 			break;
@@ -235,7 +244,6 @@ void ObjBee::collision(BEE::InstanceData* self, BEE::InstanceData* other) {
 	self->move_away(2.0, other->x, other->y);
 }
 void ObjBee::draw(BEE::InstanceData* self) {
-	// draw event
 	int mx, my;
 	std::tie(mx, my) = game->get_mouse_position();
 	int s = 100;
@@ -244,6 +252,10 @@ void ObjBee::draw(BEE::InstanceData* self) {
 	font_liberation->draw_fast(self->x, self->y, bee_itos(self->id), false);
 
 	if (self->id == 0) {
+		lt_ambient->queue();
+		lt_bee->set_position(glm::vec4(mx, my, 0.0, 1.0));
+		lt_bee->queue();
+
 		fps_display = font_liberation->draw(fps_display, 0, 0, "FPS: " + bee_itos(game->fps_stable), true);
 	}
 }

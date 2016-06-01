@@ -356,6 +356,28 @@ BEE::RGBA BEE::draw_get_color() const {
 	return *color; // Return the current draw color
 }
 /*
+* draw_set_blend() - Set the current drawing blend mode to the given type
+* ! After calling this function it is the user's job to reset the blend mode to the previous state
+* @blend: the new blend mode to use
+*/
+int BEE::draw_set_blend(SDL_BlendMode blend) {
+	if (options->renderer_type == BEE_RENDERER_SDL) {
+		SDL_SetRenderDrawBlendMode(renderer, blend);
+	}
+	return 0;
+}
+/*
+* draw_get_blend() - Return the current drawing blend mode
+*/
+SDL_BlendMode BEE::draw_get_blend() {
+	SDL_BlendMode blend = SDL_BLENDMODE_BLEND;
+	if (options->renderer_type == BEE_RENDERER_SDL) {
+		SDL_GetRenderDrawBlendMode(renderer, &blend);
+	}
+	return blend;
+}
+
+/*
 * BEE::get_pixel_color() - Return the color of the given pixel in the window
 * ! This function is somewhat slow and should be used sparingly
 * @x: the x-coordinate of the pixel
@@ -389,6 +411,15 @@ BEE::RGBA BEE::get_pixel_color(int x, int y) const {
 * @filename: the location at which to save the bitmap
 */
 int BEE::save_screenshot(const std::string& filename) const {
+	std::string fn (filename);
+	if (file_exists(fn)) { // If the file already exists, append a timestamp
+		fn = file_plainname(fn) + "-" + bee_itos(time(NULL)) + file_extname(fn);
+		if (file_exists(fn)) { // If the appended file already exists, abort
+			std::cerr << "Failed to save screenshot: files already exist: \"" << filename << "\" and \"" << fn << "\"\n"; // Output filename info
+			return -1; // Return -1 on filename error
+		}
+	}
+
 	if (options->renderer_type != BEE_RENDERER_SDL) {
 		unsigned char* upsidedown_pixels = new unsigned char[width*height*4]; // Allocate 4 bytes per pixel for RGBA
 		glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, upsidedown_pixels); // Read the screen pixels into the array
@@ -403,7 +434,7 @@ int BEE::save_screenshot(const std::string& filename) const {
 		}
 
 		SDL_Surface* screenshot  = SDL_CreateRGBSurfaceFrom(pixels, width, height, 8*4, width*4, 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000); // Create a surface from the screen pixels
-		SDL_SaveBMP(screenshot, filename.c_str()); // Save the surface to the given filename as a bitmap
+		SDL_SaveBMP(screenshot, fn.c_str()); // Save the surface to the given filename as a bitmap
 
 		SDL_FreeSurface(screenshot); // Free the surface and pixel data
 		delete[] pixels;
@@ -412,12 +443,32 @@ int BEE::save_screenshot(const std::string& filename) const {
 		SDL_Surface *screenshot = SDL_CreateRGBSurface(0, width, height, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000); // Create a surface from the screen pixels
 		SDL_RenderReadPixels(renderer, NULL, SDL_PIXELFORMAT_ARGB8888, screenshot->pixels, screenshot->pitch);
 
-		SDL_SaveBMP(screenshot, filename.c_str()); // Save the surface to the given filename as a bitmap
+		SDL_SaveBMP(screenshot, fn.c_str()); // Save the surface to the given filename as a bitmap
 
 		SDL_FreeSurface(screenshot); // Free the surface
 	}
 
-	return 0; // Return 0 on success
+	if (filename != fn) {
+		return 1; // Return 1 on successful save
+	}
+
+	return 0; // Return 0 on successfull save and filename
+}
+
+/*
+* BEE::set_is_lightable() - Set whether to enable lighting or not
+* ! This should be used to disable lighting only on specific elements, e.g. the HUD
+* ! After calling this function it is the user's job to reset the lighting to the previous state
+* @new_is_lightable: whether to enable lighting
+*/
+int BEE::set_is_lightable(bool new_is_lightable) {
+	if (options->renderer_type == BEE_RENDERER_SDL) {
+		return 1;
+	}
+
+	glUniform1i(lightable_location, (new_is_lightable) ? 1 : 0);
+
+	return 0;
 }
 
 #endif // _BEE_GAME_DRAW

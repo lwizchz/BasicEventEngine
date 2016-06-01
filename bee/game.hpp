@@ -36,6 +36,8 @@
 
 #define DEFAULT_GAME_FPS 60
 
+#define BEE_MAX_LIGHTS 8
+
 #ifndef BEE_GAME_ID // BEE_GAME_ID should always be defined but just in case
 #define BEE_GAME_ID 4294967295 // pow(2,32), the maximum value
 #endif // BEE_GAME_ID
@@ -53,9 +55,10 @@ class BEE;
 class BEE {
 	public:
 		class Sprite; class Sound; class Background; class Font; class Path; class Timeline; class Object; class Room;
-		class ProgramFlags; class GameOptions; class InstanceData; class CollisionTree; class CollisionPolygon; class RGBA;
 		class Particle; class ParticleData; class ParticleEmitter; class ParticleAttractor; class ParticleDestroyer; class ParticleDeflector; class ParticleChanger; class ParticleSystem;
-		class SpriteDrawData; class SoundGroup;
+		class Light;
+		class ProgramFlags; class GameOptions; class InstanceData; class CollisionTree; class CollisionPolygon; class RGBA;
+		class SpriteDrawData; class SoundGroup; class LightData;
 		class ViewData; class BackgroundData; class NetworkData;
 	private:
 		int argc;
@@ -97,6 +100,16 @@ class BEE {
 		GLint colorize_location = -1;
 		GLint primitive_location = -1;
 		GLint flip_location = -1;
+
+		GLint lightable_location = -1;
+		GLint light_amount_location = -1;
+		struct {
+			GLint type;
+			GLint position;
+			GLint direction;
+			GLint attenuation;
+			GLint color;
+		} lighting_location[BEE_MAX_LIGHTS];
 
 		RGBA* color = NULL;
 
@@ -291,8 +304,13 @@ class BEE {
 		int draw_set_color(const RGBA&);
 		int draw_set_color(bee_rgba_t);
 		RGBA draw_get_color() const;
+		int draw_set_blend(SDL_BlendMode);
+		SDL_BlendMode draw_get_blend();
+
 		RGBA get_pixel_color(int, int) const;
 		int save_screenshot(const std::string&) const;
+
+		int set_is_lightable(bool);
 
 		// bee/game/network.cpp
 		int net_init();
@@ -414,6 +432,7 @@ class BEE::NetworkData {
 #include "resource_structures/path.hpp"
 #include "resource_structures/timeline.hpp"
 #include "resource_structures/object.hpp"
+#include "resource_structures/light.hpp"
 #include "resource_structures/ext/instancedata.hpp"
 #include "resource_structures/ext/collisiontree.hpp"
 #include "resource_structures/ext/particle.hpp"

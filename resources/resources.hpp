@@ -10,6 +10,9 @@ BEE::Font* font_liberation;
 
 BEE::Path* path_bee;
 
+BEE::Light* lt_ambient;
+BEE::Light* lt_bee;
+
 #include "objects/bee.hpp"
 BEE::Object* obj_bee;
 
@@ -21,7 +24,7 @@ int BEE::init_resources() {
 		// Init sprites
 		spr_bee = new Sprite("spr_bee", "bee.png");
 			spr_bee->set_subimage_amount(2, 100);
-			spr_bee->set_speed(0.5);
+			spr_bee->set_speed(1.0);
 		spr_dot = new Sprite("spr_dot", "dot.png");
 
 		// Init sounds
@@ -43,6 +46,14 @@ int BEE::init_resources() {
 			path_bee->add_coordinate(200, 400, 1.0);
 			path_bee->add_coordinate(800, 400, 1.0);
 			path_bee->add_coordinate(500, 200, 1.0);
+
+		// Init lights
+		lt_ambient = new Light();
+			lt_ambient->set_color({255, 255, 255, 192});
+		lt_bee = new Light();
+			lt_bee->set_type(BEE_LIGHT_POINT);
+			lt_bee->set_attenuation({2.0, 100.0, 2000.0, 0.0});
+			lt_bee->set_color({255, 0, 255, 255});
 
 		// Init objects
 		obj_bee = new ObjBee();

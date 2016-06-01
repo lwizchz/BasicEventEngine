@@ -59,6 +59,7 @@ int MetaResourceList::reset(BEE* game) {
 	paths.reset(game);
 	timelines.reset(game);
 	objects.reset(game);
+	lights.reset(game);
 	rooms.reset(game);
 	return 0;
 }
