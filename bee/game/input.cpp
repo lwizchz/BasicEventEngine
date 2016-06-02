@@ -44,11 +44,11 @@ std::pair<int,int> BEE::get_mouse_position() const {
 	std::tie(mx, my) = get_mouse_global_position(); // Fetch the global coordinates into (mx, my)
 
 	ViewData* v = get_current_room()->get_current_view(); // Get the current view
-	if ((v == NULL)&&(get_current_room()->get_views().size() > 0)) { // If this function is called outside of view drawing then simply use the first view
+	if ((v == nullptr)&&(get_current_room()->get_views().size() > 0)) { // If this function is called outside of view drawing then simply use the first view
 		v = get_current_room()->get_views().begin()->second;
 	}
 
-	if (v != NULL) { // If the view exists then adjust the coordinates
+	if (v != nullptr) { // If the view exists then adjust the coordinates
 		mx -= v->port_x;
 		my -= v->port_y;
 	}
@@ -131,7 +131,7 @@ bool BEE::get_mod_state(Uint8 k) const {
 * @b: the given button to check
 */
 bool BEE::get_mouse_state(Uint8 b) const {
-	return (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(b)); // Return the button state of the given button as a boolean value
+	return (SDL_GetMouseState(nullptr, nullptr) & SDL_BUTTON(b)); // Return the button state of the given button as a boolean value
 }
 
 /*

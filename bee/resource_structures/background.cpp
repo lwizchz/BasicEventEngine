@@ -29,7 +29,7 @@ int BEE::BackgroundData::init(BEE::Background* new_background, bool new_is_visib
 }
 
 BEE::Background::Background () {
-	if (BEE::resource_list->backgrounds.game != NULL) {
+	if (BEE::resource_list->backgrounds.game != nullptr) {
 		game = BEE::resource_list->backgrounds.game;
 	}
 
@@ -61,7 +61,7 @@ int BEE::Background::add_to_resources(std::string path) {
 		id = -1;
 	} else {
 		for (auto b : BEE::resource_list->backgrounds.resources) {
-			if ((b.second != NULL)&&(b.second->get_path() == path)) {
+			if ((b.second != nullptr)&&(b.second->get_path() == path)) {
 				list_id = b.first;
 				break;
 			}
@@ -75,7 +75,7 @@ int BEE::Background::add_to_resources(std::string path) {
 	}
 	BEE::resource_list->backgrounds.set_resource(id, this);
 
-	if (BEE::resource_list->backgrounds.game != NULL) {
+	if (BEE::resource_list->backgrounds.game != nullptr) {
 		game = BEE::resource_list->backgrounds.game;
 	}
 
@@ -93,7 +93,7 @@ int BEE::Background::reset() {
 	tile_height = 0;
 	animation_time = 0;
 
-	texture = NULL;
+	texture = nullptr;
 	is_loaded = false;
 
 	return 0;
@@ -221,12 +221,12 @@ int BEE::Background::load_from_surface(SDL_Surface* tmp_surface) {
 			has_draw_failed = false;
 		} else {
 			texture = SDL_CreateTextureFromSurface(game->renderer, tmp_surface);
-			if (texture == NULL) {
+			if (texture == nullptr) {
 				std::cerr << "Failed to create texture from surface: " << SDL_GetError() << "\n";
 				return 1;
 			}
 
-			SDL_QueryTexture(texture, NULL, NULL, &width, &height);
+			SDL_QueryTexture(texture, nullptr, nullptr, &width, &height);
 
 			is_loaded = true;
 			has_draw_failed = false;
@@ -242,7 +242,7 @@ int BEE::Background::load() {
 	if (!is_loaded) {
 		SDL_Surface* tmp_surface;
 		tmp_surface = IMG_Load(background_path.c_str());
-		if (tmp_surface == NULL) {
+		if (tmp_surface == nullptr) {
 			std::cerr << "Failed to load background " << name << ": " << IMG_GetError() << "\n";
 			return 1;
 		}
@@ -261,7 +261,7 @@ int BEE::Background::free() {
 			glDeleteTextures(1, &gl_texture);
 		} else {
 			SDL_DestroyTexture(texture);
-			texture = NULL;
+			texture = nullptr;
 		}
 		is_loaded = false;
 	}
@@ -371,7 +371,7 @@ int BEE::Background::draw(int x, int y, BackgroundData* b) {
 		rect.y = 0;
 		rect.w = game->get_room_width();
 		rect.h = game->get_room_height();
-		draw_internal(NULL, &rect);
+		draw_internal(nullptr, &rect);
 	} else {
 		int dx = b->horizontal_speed*(SDL_GetTicks()-animation_time)/game->fps_goal;
 		int dy = b->vertical_speed*(SDL_GetTicks()-animation_time)/game->fps_goal;
@@ -401,7 +401,7 @@ int BEE::Background::draw(int x, int y, BackgroundData* b) {
 		} else if (b->is_vertical_tile) {
 			tile_vertical(&rect);
 		} else {
-			draw_internal(NULL, &rect);
+			draw_internal(nullptr, &rect);
 		}
 	}
 
@@ -413,7 +413,7 @@ int BEE::Background::set_as_target(int w, int h) {
 	}
 
 	texture = SDL_CreateTexture(game->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w, h);
-	if (texture == NULL) {
+	if (texture == nullptr) {
 		std::cerr << "Failed to create a blank texture: " << SDL_GetError() << "\n";
 		return 1;
 	}

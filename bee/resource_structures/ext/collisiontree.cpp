@@ -19,7 +19,7 @@ BEE::CollisionTree::CollisionTree(BEE* new_game, int x, int y, int w, int new_de
 	depth = new_depth;
 }
 BEE::CollisionTree::~CollisionTree() {
-	if (topleft != NULL) {
+	if (topleft != nullptr) {
 		delete topleft;
 		delete topright;
 		delete bottomleft;
@@ -30,7 +30,7 @@ BEE::CollisionTree::~CollisionTree() {
 }
 std::string BEE::CollisionTree::print() {
 	std::string s = "";
-	if (topleft == NULL) {
+	if (topleft == nullptr) {
 		for (auto& i : instances) {
 			s += "\b\b\b\b\b" + i->object->get_name() + "\n";
 		}
@@ -54,7 +54,7 @@ std::string BEE::CollisionTree::print() {
 	return s;
 }
 int BEE::CollisionTree::draw() {
-	if (topleft != NULL) {
+	if (topleft != nullptr) {
 		topleft->draw();
 		topright->draw();
 		bottomleft->draw();
@@ -69,7 +69,7 @@ int BEE::CollisionTree::insert(InstanceData* inst) {
 		return 1;
 	}
 
-	if (topleft == NULL) {
+	if (topleft == nullptr) {
 		if (instances.size() < max_capacity) {
 			instances.push_back(inst);
 			std::sort(instances.begin(), instances.end());
@@ -90,7 +90,7 @@ int BEE::CollisionTree::insert(InstanceData* inst) {
 }
 int BEE::CollisionTree::remove(InstanceData* inst) {
 	unsigned int n = 0;
-	if (topleft == NULL) {
+	if (topleft == nullptr) {
 		instances.erase(std::remove_if(instances.begin(), instances.end(), [&](const InstanceData* i) {
 			return (i == inst);
 		}), instances.end());
@@ -130,7 +130,7 @@ int BEE::CollisionTree::divide() {
 	return 0;
 }
 int BEE::CollisionTree::combine() {
-	if (topleft == NULL) {
+	if (topleft == nullptr) {
 		return 1;
 	} else {
 		int tl = topleft->combine();
@@ -158,13 +158,13 @@ int BEE::CollisionTree::combine() {
 		std::sort(instances.begin(), instances.end());
 
 		delete topleft;
-		topleft = NULL;
+		topleft = nullptr;
 		delete topright;
-		topright = NULL;
+		topright = nullptr;
 		delete bottomleft;
-		bottomleft = NULL;
+		bottomleft = nullptr;
 		delete bottomright;
-		bottomright = NULL;
+		bottomright = nullptr;
 	}
 
 	return 0;
@@ -181,7 +181,7 @@ int BEE::CollisionTree::reset(int x, int y, int w) {
 	instances.clear();
 	instances.reserve(max_capacity);
 
-	if (topleft != NULL) {
+	if (topleft != nullptr) {
 		topleft->reset(x, y, w);
 		topright->reset(x, y, w);
 		bottomleft->reset(x, y, w);
@@ -192,10 +192,10 @@ int BEE::CollisionTree::reset(int x, int y, int w) {
 		delete bottomleft;
 		delete bottomright;
 
-		topleft = NULL;
-		topright = NULL;
-		bottomleft = NULL;
-		bottomright = NULL;
+		topleft = nullptr;
+		topright = nullptr;
+		bottomleft = nullptr;
+		bottomright = nullptr;
 	}
 
 	return 0;
@@ -203,7 +203,7 @@ int BEE::CollisionTree::reset(int x, int y, int w) {
 int BEE::CollisionTree::set_capacity(int new_capacity) {
 	max_capacity = new_capacity;
 
-	if (topleft != NULL) {
+	if (topleft != nullptr) {
 		topleft->set_capacity(max_capacity);
 		topright->set_capacity(max_capacity);
 		bottomleft->set_capacity(max_capacity);
@@ -216,7 +216,7 @@ int BEE::CollisionTree::set_capacity(int new_capacity) {
 }
 
 std::vector<BEE::InstanceData*> BEE::CollisionTree::get_instances() {
-	if (topleft == NULL) {
+	if (topleft == nullptr) {
 		return instances;
 	}
 
@@ -235,7 +235,7 @@ std::vector<BEE::InstanceData*> BEE::CollisionTree::get_instances() {
 	return r;
 }
 int BEE::CollisionTree::check_collisions() {
-	if (topleft == NULL) {
+	if (topleft == nullptr) {
 		if (instances.size() < 2) {
 			return 0;
 		}

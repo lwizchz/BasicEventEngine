@@ -19,8 +19,6 @@ BEE::BEE(int new_argc, char** new_argv, const std::list<ProgramFlags*>& new_flag
 	argv = new_argv;
 	is_ready = false;
 
-	is_minimized = false;
-	is_fullscreen = false;
 	has_mouse = false;
 	has_focus = false;
 
@@ -97,14 +95,17 @@ BEE::BEE(int new_argc, char** new_argv, const std::list<ProgramFlags*>& new_flag
 		window_flags |= SDL_WINDOW_SHOWN;
 	}
 	window = SDL_CreateWindow("Basic Event Engine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, window_flags);
-	if (window == NULL) {
+	if (window == nullptr) {
 		throw std::string("Couldn't create SDL window: ") + SDL_GetError() + "\n";
+	}
+	if (options->is_minimized) {
+		SDL_MinimizeWindow(window);
 	}
 
 	cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
 	SDL_SetCursor(cursor);
 
-	keystate = SDL_GetKeyboardState(NULL);
+	keystate = SDL_GetKeyboardState(nullptr);
 	console_input.clear();
 
 	color = new RGBA();
@@ -146,7 +147,7 @@ BEE::BEE(int new_argc, char** new_argv, const std::list<ProgramFlags*>& new_flag
 	texture_after = new Sprite();
 
 	quit = false;
-	if (*new_first_room != NULL) {
+	if (*new_first_room != nullptr) {
 		if (change_room(*new_first_room, false)) {
 			throw std::string("Couldn't load first room\n");
 		}
@@ -179,7 +180,7 @@ int BEE::handle_flags(const std::list<ProgramFlags*>& new_flags, bool pre_init) 
 
 		long_options[l].name = f->longopt.c_str();
 		long_options[l].has_arg = f->has_arg;
-		long_options[l].flag = NULL;
+		long_options[l].flag = nullptr;
 		long_options[l].val = f->shortopt;
 		l++;
 	}
@@ -193,11 +194,11 @@ int BEE::handle_flags(const std::list<ProgramFlags*>& new_flags, bool pre_init) 
 		for (auto& f : flags) {
 			if (((c != 0)&&(c == f->shortopt))||((c == 0)&&(strcmp(long_options[index].name, f->longopt.c_str()) == 0))) {
 				if (f->pre_init == pre_init) {
-					if (f->func != NULL) {
+					if (f->func != nullptr) {
 						if ((f->has_arg != no_argument)&&(optarg)) {
 							f->func(this, optarg);
 						} else {
-							f->func(this, (char*)NULL);
+							f->func(this, (char*)nullptr);
 						}
 					}
 					amount++;
@@ -215,8 +216,8 @@ int BEE::loop() {
 	tickstamp = get_ticks();
 	fps_ticks = get_ticks();
 	while (!quit) {
-		if (current_room == NULL) {
-			std::cerr << "Aborted event loop because current_room == NULL\n";
+		if (current_room == nullptr) {
+			std::cerr << "Aborted event loop because current_room == nullptr\n";
 			return 1;
 		}
 
@@ -259,18 +260,18 @@ int BEE::loop() {
 								break;
 							}
 							case SDL_WINDOWEVENT_MINIMIZED: {
-								is_minimized = true;
+								options->is_minimized = true;
 								has_mouse = false;
 								has_focus = false;
 								break;
 							}
 							case SDL_WINDOWEVENT_MAXIMIZED: {
-								is_minimized = false;
+								options->is_minimized = false;
 								has_focus = true;
 								break;
 							}
 							case SDL_WINDOWEVENT_RESTORED: {
-								is_minimized = false;
+								options->is_minimized = false;
 								has_focus = true;
 								break;
 							}
@@ -465,28 +466,28 @@ int BEE::close() {
 		close_resources();
 	}
 
-	if (texture_before != NULL) {
+	if (texture_before != nullptr) {
 		texture_before->free();
 		delete texture_before;
-		texture_before = NULL;
+		texture_before = nullptr;
 	}
-	if (texture_after != NULL) {
+	if (texture_after != nullptr) {
 		texture_after->free();
 		delete texture_after;
-		texture_after = NULL;
+		texture_after = nullptr;
 	}
 
 	delete color;
 
-	if (context != NULL) {
+	if (context != nullptr) {
 		opengl_close();
 	}
-	if (renderer != NULL) {
+	if (renderer != nullptr) {
 		sdl_renderer_close();
 	}
-	if (window != NULL) {
+	if (window != nullptr) {
 		SDL_DestroyWindow(window);
-		window = NULL;
+		window = nullptr;
 	}
 
 	if (options->is_network_enabled) {
@@ -500,10 +501,10 @@ int BEE::close() {
 	IMG_Quit();
 	SDL_Quit();
 
-	if (resource_list != NULL) {
-		resource_list->reset(NULL);
+	if (resource_list != nullptr) {
+		resource_list->reset(nullptr);
 		delete resource_list;
-		resource_list = NULL;
+		resource_list = nullptr;
 	}
 
 	return 0;
@@ -533,7 +534,7 @@ BEE::GameOptions BEE::get_options() const {
 	return *options;
 }
 int BEE::set_options(const GameOptions& new_options) {
-	if ((options->is_fullscreen ^ new_options.is_fullscreen) == 1) {
+	if (options->is_fullscreen != new_options.is_fullscreen) {
 		// Change fullscreen state
 		options->is_fullscreen = new_options.is_fullscreen;
 
@@ -543,19 +544,7 @@ int BEE::set_options(const GameOptions& new_options) {
 		}
 		SDL_SetWindowFullscreen(window, b);
 	}
-	if (options->renderer_type != new_options.renderer_type) {
-		// Change OpenGL state
-		options->renderer_type = new_options.renderer_type;
-
-		if (options->renderer_type != BEE_RENDERER_SDL) { // Enter OpenGL mode
-			sdl_renderer_close();
-			render_reset();
-		} else { // Enter SDL rendering mode
-			opengl_close();
-			render_reset();
-		}
-	}
-	if ((options->is_borderless ^ new_options.is_borderless) == 1) {
+	if (options->is_borderless != new_options.is_borderless) {
 		// Change borderless state
 		options->is_borderless = new_options.is_borderless;
 
@@ -565,7 +554,7 @@ int BEE::set_options(const GameOptions& new_options) {
 		}
 		SDL_SetWindowBordered(window, b);
 	}
-	if ((options->is_resizable ^ new_options.is_resizable) == 1) {
+	if (options->is_resizable != new_options.is_resizable) {
 		// Change resizable state
 		options->is_resizable = new_options.is_resizable;
 
@@ -577,7 +566,7 @@ int BEE::set_options(const GameOptions& new_options) {
 			SDL_SetWindowMinimumSize(window, get_width(), get_height());
 		}
 	}
-	if ((options->is_maximized ^ new_options.is_maximized) == 1) {
+	if (options->is_maximized != new_options.is_maximized) {
 		// Change maximized state
 		options->is_maximized = new_options.is_maximized;
 
@@ -591,13 +580,13 @@ int BEE::set_options(const GameOptions& new_options) {
 			}
 		}
 	}
-	if ((options->is_highdpi ^ new_options.is_highdpi) == 1) {
+	if (options->is_highdpi != new_options.is_highdpi) {
 		// Change highdpi state
 		options->is_highdpi = new_options.is_highdpi;
 
 		// I currently have no way to test highdpi functionality
 	}
-	if ((options->is_visible ^ new_options.is_visible) == 1) {
+	if (options->is_visible != new_options.is_visible) {
 		// Change visible state
 		options->is_visible = new_options.is_visible;
 
@@ -607,13 +596,35 @@ int BEE::set_options(const GameOptions& new_options) {
 			SDL_HideWindow(window);
 		}
 	}
-	if ((options->is_vsync_enabled ^ new_options.is_vsync_enabled) == 1) {
+	if (options->is_minimized != new_options.is_minimized) {
+		// Change minimization state
+		options->is_minimized = new_options.is_minimized;
+
+		if (options->is_minimized) {
+			SDL_MinimizeWindow(window);
+		} else {
+			SDL_RestoreWindow(window);
+		}
+	}
+	if (options->renderer_type != new_options.renderer_type) {
+		// Change OpenGL state
+		options->renderer_type = new_options.renderer_type;
+
+		if (options->renderer_type != BEE_RENDERER_SDL) { // Enter OpenGL mode
+			sdl_renderer_close();
+			render_reset();
+		} else { // Enter SDL rendering mode
+			opengl_close();
+			render_reset();
+		}
+	}
+	if (options->is_vsync_enabled != new_options.is_vsync_enabled) {
 		// Change vsync state
 		options->is_vsync_enabled = new_options.is_vsync_enabled;
 
 		render_reset();
 	}
-	if ((options->is_network_enabled ^ new_options.is_network_enabled) == 1) {
+	if (options->is_network_enabled != new_options.is_network_enabled) {
 		// Change networking state
 		options->is_network_enabled = new_options.is_network_enabled;
 
@@ -626,7 +637,7 @@ int BEE::set_options(const GameOptions& new_options) {
 			net->is_initialized = false;
 		}
 	}
-	if ((options->is_debug_enabled ^ new_options.is_debug_enabled) == 1) {
+	if (options->is_debug_enabled != new_options.is_debug_enabled) {
 		// Change debugging state
 		options->is_debug_enabled = new_options.is_debug_enabled;
 	}
@@ -636,7 +647,7 @@ int BEE::set_options(const GameOptions& new_options) {
 
 int BEE::opengl_init() {
 	context = SDL_GL_CreateContext(window);
-	if (context == NULL) {
+	if (context == nullptr) {
 		throw std::string("Couldn't create OpenGL context: ") + SDL_GetError() + "\n";
 	}
 
@@ -660,7 +671,7 @@ int BEE::opengl_init() {
 	std::string vs = file_get_contents("resources/vertex_shader.glsl");
 	vs = opengl_prepend_version(vs);
 	const GLchar* vertex_shader_source[] = {vs.c_str()};
-	glShaderSource(vertex_shader, 1, vertex_shader_source, NULL);
+	glShaderSource(vertex_shader, 1, vertex_shader_source, nullptr);
 	glCompileShader(vertex_shader);
 	GLint is_shader_compiled = GL_FALSE;
 	glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &is_shader_compiled);
@@ -676,7 +687,7 @@ int BEE::opengl_init() {
 	std::string gs = file_get_contents("resources/geometry_shader.glsl");
 	gs = opengl_prepend_version(gs);
 	const GLchar* geometry_shader_source[] = {gs.c_str()};
-	glShaderSource(geometry_shader, 1, geometry_shader_source, NULL);
+	glShaderSource(geometry_shader, 1, geometry_shader_source, nullptr);
 	glCompileShader(geometry_shader);
 	is_shader_compiled = GL_FALSE;
 	glGetShaderiv(geometry_shader, GL_COMPILE_STATUS, &is_shader_compiled);
@@ -693,7 +704,7 @@ int BEE::opengl_init() {
 	std::string fs = file_get_contents("resources/fragment_shader.glsl");
 	fs = opengl_prepend_version(fs);
 	const GLchar* fragment_shader_source[] = {fs.c_str()};
-	glShaderSource(fragment_shader, 1, fragment_shader_source, NULL);
+	glShaderSource(fragment_shader, 1, fragment_shader_source, nullptr);
 	glCompileShader(fragment_shader);
 	is_shader_compiled = GL_FALSE;
 	glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &is_shader_compiled);
@@ -856,9 +867,9 @@ int BEE::opengl_close() {
 		program = 0;
 	}
 
-	if (context != NULL) {
+	if (context != nullptr) {
 		SDL_GL_DeleteContext(context);
-		context = NULL;
+		context = nullptr;
 	}
 
 	return 0;
@@ -891,7 +902,7 @@ int BEE::sdl_renderer_init() {
 	}
 
 	renderer = SDL_CreateRenderer(window, -1, renderer_flags);
-	if (renderer == NULL) {
+	if (renderer == nullptr) {
 		throw std::string("Couldn't create SDL renderer: ") + SDL_GetError() + "\n";
 	}
 
@@ -903,9 +914,9 @@ int BEE::sdl_renderer_init() {
 	return 0;
 }
 int BEE::sdl_renderer_close() {
-	if (renderer != NULL) {
+	if (renderer != nullptr) {
 		SDL_DestroyRenderer(renderer);
-		renderer = NULL;
+		renderer = nullptr;
 	}
 
 	return 0;
@@ -946,7 +957,7 @@ int BEE::render_reset() {
 	// Reload sprite and background textures
 	Sprite* s;
 	for (int i=0; i<resource_list->sprites.get_amount(); i++) {
-		if (get_sprite(i) != NULL) {
+		if (get_sprite(i) != nullptr) {
 			s = get_sprite(i);
 			if (s->get_is_loaded()) {
 				s->free();
@@ -956,7 +967,7 @@ int BEE::render_reset() {
 	}
 	Background* b;
 	for (int i=0; i<resource_list->backgrounds.get_amount(); i++) {
-		if (get_background(i) != NULL) {
+		if (get_background(i) != nullptr) {
 			b = get_background(i);
 			if (b->get_is_loaded()) {
 				b->free();

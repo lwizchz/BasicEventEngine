@@ -9,11 +9,10 @@
 #ifndef _BEE_DEBUG_H
 #define _BEE_DEBUG_H 1
 
-#include <string>
+#include <string> // Include the required library headers
 #include <sstream>
 
-// Include the necessary OpenGL functions
-#include <GL/glew.h>
+#include <GL/glew.h> // Include the required OpenGL headers
 #include <SDL2/SDL_opengl.h>
 
 // Format indentions for debug output

@@ -24,7 +24,7 @@
 * @button2: the text on the second button
 * @button3: the text on the third button
 */
-int show_message(std::string str, std::string button1, std::string button2, std::string button3) {
+int show_message(const std::string& str, const std::string& button1, const std::string& button2, const std::string& button3) {
 	SDL_MessageBoxButtonData buttons[3]; // Initialize a new array of SDL message box buttons
 	int numbuttons = 0; // Set the initial button amount to 0
 	if (button3.empty()) { // If there is no third button
@@ -45,12 +45,12 @@ int show_message(std::string str, std::string button1, std::string button2, std:
 
 	SDL_MessageBoxData data = { // Construct the message box structure
 		SDL_MESSAGEBOX_INFORMATION, // Message type
-		NULL, // Window
+		nullptr, // Window
 		"Message", // Title
 		str.c_str(), // Message
 		numbuttons, // Number of buttons
 		buttons, // List of buttons
-		NULL // Color scheme
+		nullptr // Color scheme
 	};
 
 	int brid = -1; // The index of the selected button
@@ -64,7 +64,7 @@ int show_message(std::string str, std::string button1, std::string button2, std:
 * show_question() - Display a modal messagebox with the given yes/no question
 * @str: the question to display
 */
-bool show_question(std::string str) {
+bool show_question(const std::string& str) {
 	return (show_message(str, "Yes", "No", "") == 0) ? true : false; // Return whether the user selected the yes button or not
 }
 
@@ -73,7 +73,7 @@ bool show_question(std::string str) {
 * ! When the function is called without the button text, simply provide it with a single "OK" button
 * @str: the string to display
 */
-int show_message(std::string str) {
+int show_message(const std::string& str) {
 	std::cout << str << "\n"; // Output the message
 	return show_message(str, "OK", "", "");
 }
@@ -81,18 +81,18 @@ int show_message(std::string str) {
 * show_warning() - Display a modal message box with the given warning
 * @str: the string to display
 */
-int show_warning(std::string str) {
+int show_warning(const std::string& str) {
 	std::cerr << str << "\n"; // Output the message
-	return SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "Warning", str.c_str(), NULL); // Return the status of the message box
+	return SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "Warning", str.c_str(), nullptr); // Return the status of the message box
 }
 /*
 * show_error() - Display a modal message box with the given error
 * @str: the string to display
 * @is_fatal: whether to abort the program after displaying the message
 */
-int show_error(std::string str, bool is_fatal) {
+int show_error(const std::string& str, bool is_fatal) {
 	std::cerr << str << "\n"; // Output the message
-	int r = SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", str.c_str(), NULL); // Display the message box
+	int r = SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", str.c_str(), nullptr); // Display the message box
 
 	if (is_fatal) { // If the error should be considered fatal, throw and exception
 		throw 1;
@@ -105,7 +105,7 @@ int show_error(std::string str, bool is_fatal) {
 * ! When the function is called without the fatality, simply treat it as non-fatal
 * @str: the string to display
 */
-int show_error(std::string str) {
+int show_error(const std::string& str) {
 	return show_error(str, false);
 }
 

@@ -12,7 +12,7 @@
 #include "object.hpp"
 
 BEE::Object::Object () {
-	if (BEE::resource_list->objects.game != NULL) {
+	if (BEE::resource_list->objects.game != nullptr) {
 		game = BEE::resource_list->objects.game;
 	}
 
@@ -48,7 +48,7 @@ int BEE::Object::add_to_resources(std::string path) {
 		id = -1;
 	} else {
 		for (auto i : BEE::resource_list->objects.resources) {
-			if ((i.second != NULL)&&(i.second->get_path() == path)) {
+			if ((i.second != nullptr)&&(i.second->get_path() == path)) {
 				list_id = i.first;
 				break;
 			}
@@ -62,7 +62,7 @@ int BEE::Object::add_to_resources(std::string path) {
 	}
 	BEE::resource_list->objects.set_resource(id, this);
 
-	if (BEE::resource_list->objects.game != NULL) {
+	if (BEE::resource_list->objects.game != nullptr) {
 		game = BEE::resource_list->objects.game;
 	}
 
@@ -71,13 +71,13 @@ int BEE::Object::add_to_resources(std::string path) {
 int BEE::Object::reset() {
 	name = "";
 	object_path = "";
-	sprite = NULL;
+	sprite = nullptr;
 	is_solid = false;
 	is_visible = true;
 	is_persistent = false;
 	depth = 0;
-	parent = NULL;
-	mask = NULL;
+	parent = nullptr;
+	mask = nullptr;
 	xoffset = 0;
 	yoffset = 0;
 
@@ -93,25 +93,25 @@ int BEE::Object::print() {
 	"\n	id		" << id <<
 	"\n	name		" << name <<
 	"\n	object_path	" << object_path;
-	if (sprite != NULL) {
+	if (sprite != nullptr) {
 		std::cout << "\n	sprite		" << sprite->get_id() << ", " << sprite->get_name();
 	} else {
-		std::cout << "\n	sprite		NULL";
+		std::cout << "\n	sprite		nullptr";
 	}
 	std::cout <<
 	"\n	is_solid	" << is_solid <<
 	"\n	is_visible	" << is_visible <<
 	"\n	is_persistent	" << is_persistent <<
 	"\n	depth		" << depth;
-	if (parent != NULL) {
+	if (parent != nullptr) {
 		std::cout << "\n	parent		" << parent->get_id() << ", " << parent->get_name();
 	} else {
-		std::cout << "\n	parent		NULL";
+		std::cout << "\n	parent		nullptr";
 	}
-	if (mask != NULL) {
+	if (mask != nullptr) {
 		std::cout << "\n	mask		" << mask->get_id() << ", " << mask->get_name();
 	} else {
-		std::cout << "\n	mask		NULL";
+		std::cout << "\n	mask		nullptr";
 	}
 	std::cout << "\n	instances\n" << debug_indent(instance_string, 2) <<
 	"\n}\n";
@@ -173,7 +173,7 @@ int BEE::Object::set_path(std::string path) {
 }
 int BEE::Object::set_sprite(Sprite* new_sprite) {
 	sprite = new_sprite;
-	if (mask == NULL) {
+	if (mask == nullptr) {
 		mask = new_sprite;
 	}
 	return 0;
@@ -247,7 +247,7 @@ BEE::InstanceData* BEE::Object::get_instance(int inst_id) {
 		}
 		i++;
 	}
-	return NULL;
+	return nullptr;
 }
 std::string BEE::Object::get_instance_string() {
 	if (instances.size() > 0) {

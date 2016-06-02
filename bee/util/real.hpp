@@ -34,7 +34,7 @@ unsigned int random_internal(unsigned int new_seed, unsigned int minimum, unsign
                 seed = new_seed;
                 engine.seed(seed);
         } else if (seed == DEFAULT_RANDOM_SEED) { // If the current seed is the terrible default seed then seed the engine with the current time
-                seed = time(NULL);
+                seed = time(nullptr);
                 engine.seed(seed);
         }
 
@@ -84,7 +84,7 @@ unsigned int random_set_seed(unsigned int new_seed) {
 * random_reset_seed() - Set the seed of the random number engine to the current time
 */
 unsigned int random_reset_seed() {
-        return random_set_seed(time(NULL));
+        return random_set_seed(time(nullptr));
 }
 /*
 * randomize() - Set the seed of the random number engine to a random number

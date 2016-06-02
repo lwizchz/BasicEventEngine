@@ -21,7 +21,7 @@ class BEE::Timeline: public Resource {
 		std::string timeline_path;
 		bee_timeline_list action_list;
 		bee_timeline_list::iterator next_action;
-		std::function<void()> end_action = NULL;
+		std::function<void()> end_action = nullptr;
 
 		Uint32 start_frame = 0xffffffff;
 		Uint32 position_frame = 0xffffffff;

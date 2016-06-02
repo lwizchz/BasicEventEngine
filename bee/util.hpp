@@ -9,10 +9,10 @@
 #ifndef _BEE_UTIL_H
 #define _BEE_UTIL_H 1
 
-#include <string> // Include the necessary library headers
+#include <string> // Include the required library headers
 #include <map>
 
-#include <SDL2/SDL.h> // Include the necessary SDL headers
+#include <SDL2/SDL.h> // Include the required SDL headers
 #include <SDL2/SDL_net.h>
 
 // General utility functions bee/util.cpp
@@ -30,7 +30,7 @@ std::string bee_mkdtemp(const std::string&);
 std::string bee_inet_ntop(const void* src);
 
 // Real number functions, bee/util/real.hpp
-#define PI 3.14159265
+#define PI 3.141592653589793238462643383279502884197 // 40 digits of pi, sufficient to calculate the circumference of the observable universe to the width of one atom
 unsigned int random_internal(unsigned int, unsigned int, unsigned int);
 unsigned int random(int);
 unsigned int random_range(unsigned int, unsigned int);
@@ -166,26 +166,27 @@ void sound_effect_equalizer(int, void*, int, void*);
 void sound_effect_equalizer_cleanup(int, void*);
 
 // Message box functions, bee/util/messagebox.hpp
-int show_message(std::string, std::string, std::string, std::string);
-bool show_question(std::string);
-int show_message(std::string);
-int show_warning(std::string);
-int show_error(std::string, bool);
-int show_error(std::string);
+int show_message(const std::string&, const std::string&, const std::string&, const std::string&);
+bool show_question(const std::string&);
+int show_message(const std::string&);
+int show_warning(const std::string&);
+int show_error(const std::string&, bool);
+int show_error(const std::string&);
 
 // File handling functions, bee/util/files.hpp
-bool file_exists(std::string);
-int file_delete(std::string);
-int file_rename(std::string, std::string);
-int file_copy(std::string, std::string);
-std::string file_get_contents(std::string);
-bool directory_exists(std::string);
-int directory_create(std::string);
+bool file_exists(const std::string&);
+int file_delete(const std::string&);
+int file_rename(const std::string&, const std::string&);
+int file_copy(const std::string&, const std::string&);
+std::string file_get_contents(const std::string&);
+unsigned long long file_put_contents(const std::string&, const std::string&);
+bool directory_exists(const std::string&);
+int directory_create(const std::string&);
 std::string directory_get_temp();
-std::string file_basename(std::string);
-std::string file_dirname(std::string);
-std::string file_plainname(std::string);
-std::string file_extname(std::string);
+std::string file_basename(const std::string&);
+std::string file_dirname(const std::string&);
+std::string file_plainname(const std::string&);
+std::string file_extname(const std::string&);
 
 // Networking functions, bee/util/network.hpp
 int network_init();

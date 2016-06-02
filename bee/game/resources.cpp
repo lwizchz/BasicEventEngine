@@ -15,7 +15,7 @@
 * BEE::load_media() - Load the media (i.e. sprites and backgrounds) for the current room
 */
 int BEE::load_media() const {
-	if (current_room != NULL) { // If we are currently in a room, load its media
+	if (current_room != nullptr) { // If we are currently in a room, load its media
 		current_room->load_media();
 	}
 
@@ -25,7 +25,7 @@ int BEE::load_media() const {
 * BEE::free_media() - Free the media (i.e. sprites and backgrounds) for the current room
 */
 int BEE::free_media() const {
-	if (current_room != NULL) { // If we are currently in a room, free its media
+	if (current_room != nullptr) { // If we are currently in a room, free its media
 		current_room->free_media();
 	}
 
@@ -39,7 +39,7 @@ int BEE::free_media() const {
 */
 void BEE::sound_finished(int channel) {
 	for (int i=0; i<resource_list->sounds.get_amount(); i++) { // Iterate over the sounds in order to remove finished channels from each sound's list
-		if (get_sound(i) != NULL) {
+		if (get_sound(i) != nullptr) {
 			if (!get_sound(i)->get_is_music()) { // Music cannot be played on multiple channels
 				get_sound(i)->finished(channel); // Remove the finished channel from the list
 			}
@@ -61,7 +61,7 @@ int BEE::set_volume(double new_volume) {
 	volume = new_volume; // Set the volume
 
 	for (int i=0; i<resource_list->sounds.get_amount(); i++) { // Iterate over the sounds and update them to the new volume
-		if (get_sound(i) != NULL) {
+		if (get_sound(i) != nullptr) {
 			get_sound(i)->update_volume();
 		}
 	}
@@ -73,7 +73,7 @@ int BEE::set_volume(double new_volume) {
 */
 int BEE::sound_stop_all() const {
 	for (int i=0; i<resource_list->sounds.get_amount(); i++) { // Iterate over the sounds and stop them individually
-		if (get_sound(i) != NULL) {
+		if (get_sound(i) != nullptr) {
 			get_sound(i)->stop();
 		}
 	}
@@ -151,7 +151,7 @@ BEE::Object* BEE::add_object(const std::string& name, const std::string& path) {
 	/*Object* new_object = new Object(name, path);
 	return new_object;*/
 
-	return NULL; // It doesn't really make sense to add a generic object on the fly
+	return nullptr; // It doesn't really make sense to add a generic object on the fly
 }
 /*
 * BEE::add_room() - Initiliaze, load, and return a newly created room resource
@@ -163,7 +163,7 @@ BEE::Room* BEE::add_room(const std::string& name, const std::string& path) {
 	new_room->load();
 	return new_room;*/
 
-	return NULL; // Right now rooms cannot be added on the fly because they must be compiled
+	return nullptr; // Right now rooms cannot be added on the fly because they must be compiled
 }
 
 /*
@@ -229,13 +229,13 @@ BEE::Room* BEE::get_room(int id) {
 */
 BEE::Object* BEE::get_object_by_name(const std::string& name) const {
 	for (int i=0; i<resource_list->objects.get_amount(); i++) { // Iterate over the objects in order to find the first one with the given name
-		if (get_object(i) != NULL) {
+		if (get_object(i) != nullptr) {
 			if (get_object(i)->get_name() == name) {
 				return get_object(i); // Return the desired object on success
 			}
 		}
 	}
-	return NULL; // Return NULL on failure
+	return nullptr; // Return nullptr on failure
 }
 
 #endif // _BEE_GAME_RESOURCES

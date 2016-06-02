@@ -12,7 +12,7 @@
 #include "sprite.hpp"
 
 BEE::Sprite::Sprite () {
-	if (BEE::resource_list->sprites.game != NULL) {
+	if (BEE::resource_list->sprites.game != nullptr) {
 		game = BEE::resource_list->sprites.game;
 	}
 
@@ -44,7 +44,7 @@ int BEE::Sprite::add_to_resources(std::string path) {
 		id = -1;
 	} else {
 		for (auto s : BEE::resource_list->sprites.resources) {
-			if ((s.second != NULL)&&(s.second->get_path() == path)) {
+			if ((s.second != nullptr)&&(s.second->get_path() == path)) {
 				list_id = s.first;
 				break;
 			}
@@ -58,7 +58,7 @@ int BEE::Sprite::add_to_resources(std::string path) {
 	}
 	BEE::resource_list->sprites.set_resource(id, this);
 
-	if (BEE::resource_list->sprites.game != NULL) {
+	if (BEE::resource_list->sprites.game != nullptr) {
 		game = BEE::resource_list->sprites.game;
 	}
 
@@ -79,7 +79,7 @@ int BEE::Sprite::reset() {
 	origin_x = 0;
 	origin_y = 0;
 
-	texture = NULL;
+	texture = nullptr;
 	is_loaded = false;
 	subimages.clear();
 	has_draw_failed = false;
@@ -271,12 +271,12 @@ int BEE::Sprite::load_from_surface(SDL_Surface* tmp_surface) {
 			has_draw_failed = false;
 		} else {
 			texture = SDL_CreateTextureFromSurface(game->renderer, tmp_surface);
-			if (texture == NULL) {
+			if (texture == nullptr) {
 				std::cerr << "Failed to create texture from surface: " << SDL_GetError() << "\n";
 				return 1;
 			}
 
-			SDL_QueryTexture(texture, NULL, NULL, &width, &height);
+			SDL_QueryTexture(texture, nullptr, nullptr, &width, &height);
 			if (subimage_amount <= 1) {
 				set_subimage_amount(1, width);
 			}
@@ -298,7 +298,7 @@ int BEE::Sprite::load() {
 	if (!is_loaded) {
 		SDL_Surface* tmp_surface;
 		tmp_surface = IMG_Load(image_path.c_str());
-		if (tmp_surface == NULL) {
+		if (tmp_surface == nullptr) {
 			std::cerr << "Failed to load sprite " << name << ": " << IMG_GetError() << "\n";
 			return 1;
 		}
@@ -323,7 +323,7 @@ int BEE::Sprite::free() {
 			glDeleteFramebuffers(1, &framebuffer);
 		} else {
 			SDL_DestroyTexture(texture);
-			texture = NULL;
+			texture = nullptr;
 		}
 		is_loaded = false;
 	}
@@ -427,7 +427,7 @@ int BEE::Sprite::draw_subimage(int x, int y, int current_subimage, int w, int h,
 		glUniformMatrix4fv(game->rotation_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0)));
 	} else {
 		if ((game->get_current_room()->get_is_views_enabled())&&(!is_hud)) {
-			if (game->get_current_room()->get_current_view() != NULL) {
+			if (game->get_current_room()->get_current_view() != nullptr) {
 				drect.x += game->get_current_room()->get_current_view()->view_x;
 				drect.y += game->get_current_room()->get_current_view()->view_y;
 			}
@@ -447,9 +447,9 @@ int BEE::Sprite::draw_subimage(int x, int y, int current_subimage, int w, int h,
 				srect.w = subimages[current_subimage].w;
 				srect.h = height;
 
-				SDL_RenderCopyEx(game->renderer, texture, &srect, &drect, angle, NULL, flip);
+				SDL_RenderCopyEx(game->renderer, texture, &srect, &drect, angle, nullptr, flip);
 			} else {
-				SDL_RenderCopyEx(game->renderer, texture, NULL, &drect, angle, NULL, flip);
+				SDL_RenderCopyEx(game->renderer, texture, nullptr, &drect, angle, nullptr, flip);
 			}
 		}
 	}
@@ -615,7 +615,7 @@ int BEE::Sprite::draw_array(const std::list<SpriteDrawData*>& draw_list, const s
 			drect.x = s->x;
 			drect.y = s->y;
 			if ((game->get_current_room()->get_is_views_enabled())&&(!is_hud)) {
-				if (game->get_current_room()->get_current_view() != NULL) {
+				if (game->get_current_room()->get_current_view() != nullptr) {
 					drect.x += game->get_current_room()->get_current_view()->view_x;
 					drect.y += game->get_current_room()->get_current_view()->view_y;
 				}
@@ -638,9 +638,9 @@ int BEE::Sprite::draw_array(const std::list<SpriteDrawData*>& draw_list, const s
 				srect.w = subimages[current_subimage].w;
 				srect.h = height;
 
-				SDL_RenderCopyEx(game->renderer, texture, &srect, &drect, s->angle, NULL, flip);
+				SDL_RenderCopyEx(game->renderer, texture, &srect, &drect, s->angle, nullptr, flip);
 			} else {
-				SDL_RenderCopyEx(game->renderer, texture, NULL, &drect, s->angle, NULL, flip);
+				SDL_RenderCopyEx(game->renderer, texture, nullptr, &drect, s->angle, nullptr, flip);
 			}
 		}
 	}
@@ -710,7 +710,7 @@ int BEE::Sprite::set_as_target(int w, int h) {
 		return (int)framebuffer;
 	} else {
 		texture = SDL_CreateTexture(game->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w, h);
-		if (texture == NULL) {
+		if (texture == nullptr) {
 			std::cerr << "Failed to create a blank texture: " << SDL_GetError() << "\n";
 			return 1;
 		}

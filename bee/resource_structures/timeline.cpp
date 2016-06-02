@@ -12,7 +12,7 @@
 #include "timeline.hpp"
 
 BEE::Timeline::Timeline () {
-	if (BEE::resource_list->timelines.game != NULL) {
+	if (BEE::resource_list->timelines.game != nullptr) {
 		game = BEE::resource_list->timelines.game;
 	}
 
@@ -43,7 +43,7 @@ int BEE::Timeline::add_to_resources(std::string path) {
 		id = -1;
 	} else {
 		for (auto i : BEE::resource_list->timelines.resources) {
-			if ((i.second != NULL)&&(i.second->get_path() == path)) {
+			if ((i.second != nullptr)&&(i.second->get_path() == path)) {
 				list_id = i.first;
 				break;
 			}
@@ -57,7 +57,7 @@ int BEE::Timeline::add_to_resources(std::string path) {
 	}
 	BEE::resource_list->timelines.set_resource(id, this);
 
-	if (BEE::resource_list->timelines.game != NULL) {
+	if (BEE::resource_list->timelines.game != nullptr) {
 		game = BEE::resource_list->timelines.game;
 	}
 
@@ -230,7 +230,7 @@ int BEE::Timeline::end() {
 	pause_offset = 0;
 	is_paused = false;
 
-	if (end_action == NULL) {
+	if (end_action == nullptr) {
 		return 1;
 	}
 

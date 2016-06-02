@@ -33,9 +33,9 @@ enum pt_shape_t {
 
 class BEE::Particle {
 	public:
-		BEE* game = NULL;
+		BEE* game = nullptr;
 
-		Sprite* sprite = NULL;
+		Sprite* sprite = nullptr;
 
 		double scale = 1.0;
 		std::pair<double,double> velocity = {0.0, 0.0};
@@ -47,8 +47,8 @@ class BEE::Particle {
 		RGBA color = {255, 255, 255, 255};
 
 		Uint32 max_time = 100;
-		std::function<void (ParticleSystem*, ParticleData*, Particle*)> on_death = NULL;
-		Particle* death_type = NULL;
+		std::function<void (ParticleSystem*, ParticleData*, Particle*)> on_death = nullptr;
+		Particle* death_type = nullptr;
 		int death_amount = 1;
 		std::list<ParticleData*> old_particles;
 
@@ -64,7 +64,7 @@ class BEE::Particle {
 class BEE::ParticleData {
 	public:
 		Particle* particle_type;
-		SpriteDrawData* sprite_data = NULL;
+		SpriteDrawData* sprite_data = nullptr;
 
 		double x = 0.0, y = 0.0;
 		int w = 1, h = 1;
@@ -102,7 +102,7 @@ class BEE::ParticleEmitter {
 	public:
 		double x = 0, y = 0;
 		int w = 1, h = 1;
-		InstanceData* following = NULL;
+		InstanceData* following = nullptr;
 
 		ps_shape_t shape = ps_shape_rectangle;
 		ps_distr_t distribution = ps_distr_linear;
@@ -123,7 +123,7 @@ class BEE::ParticleAttractor {
 	public:
 		double x = 0, y = 0;
 		int w = 1, h = 1;
-		InstanceData* following = NULL;
+		InstanceData* following = nullptr;
 
 		double force = 1.0;
 		double max_distance = 100.0;
@@ -134,7 +134,7 @@ class BEE::ParticleDestroyer {
 	public:
 		double x = 0, y = 0;
 		int w = 1, h = 1;
-		InstanceData* following = NULL;
+		InstanceData* following = nullptr;
 
 		ps_shape_t shape = ps_shape_rectangle;
 };
@@ -143,7 +143,7 @@ class BEE::ParticleDeflector {
 	public:
 		double x = 0, y = 0;
 		int w = 1, h = 1;
-		InstanceData* following = NULL;
+		InstanceData* following = nullptr;
 
 		double friction = 1.0;
 };
@@ -158,7 +158,7 @@ class BEE::ParticleChanger {
 	public:
 		double x = 0, y = 0;
 		int w = 1, h = 1;
-		InstanceData* following = NULL;
+		InstanceData* following = nullptr;
 
 		ps_shape_t shape = ps_shape_rectangle;
 
@@ -170,14 +170,14 @@ class BEE::ParticleChanger {
 
 class BEE::ParticleSystem {
 	public:
-		BEE* game = NULL;
+		BEE* game = nullptr;
 		int id = -1;
 
 		bool is_oldfirst = true;
 		int depth = 0;
 
 		double xoffset = 0, yoffset = 0;
-		InstanceData* following = NULL;
+		InstanceData* following = nullptr;
 
 		Uint32 time_offset = 0;
 

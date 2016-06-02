@@ -12,7 +12,7 @@
 #include "path.hpp"
 
 BEE::Path::Path () {
-	if (BEE::resource_list->paths.game != NULL) {
+	if (BEE::resource_list->paths.game != nullptr) {
 		game = BEE::resource_list->paths.game;
 	}
 
@@ -43,7 +43,7 @@ int BEE::Path::add_to_resources(std::string path) {
 		id = -1;
 	} else {
 		for (auto i : BEE::resource_list->paths.resources) {
-			if ((i.second != NULL)&&(i.second->get_path() == path)) {
+			if ((i.second != nullptr)&&(i.second->get_path() == path)) {
 				list_id = i.first;
 				break;
 			}
@@ -57,7 +57,7 @@ int BEE::Path::add_to_resources(std::string path) {
 	}
 	BEE::resource_list->paths.set_resource(id, this);
 
-	if (BEE::resource_list->paths.game != NULL) {
+	if (BEE::resource_list->paths.game != nullptr) {
 		game = BEE::resource_list->paths.game;
 	}
 

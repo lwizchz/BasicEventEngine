@@ -20,7 +20,7 @@ class BEE::SoundGroup {
 	bool is_playing, is_looping;
 
 	public:
-		BEE* game = NULL;
+		BEE* game = nullptr;
 
 		SoundGroup();
 		SoundGroup(std::string, std::map<std::string,std::string>);

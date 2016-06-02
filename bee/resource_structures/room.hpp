@@ -55,14 +55,14 @@ class BEE::Room: public Resource {
 
 		std::vector<LightData*> lights;
 
-		CollisionTree* collision_tree = NULL;
+		CollisionTree* collision_tree = nullptr;
 		int tree_width;
 		int tree_x, tree_y;
 
 		std::string instance_map = "";
 
-		Sprite* view_texture = NULL;
-		ViewData* view_current = NULL;
+		Sprite* view_texture = nullptr;
+		ViewData* view_current = nullptr;
 	public:
 		Room();
 		Room(std::string, std::string);

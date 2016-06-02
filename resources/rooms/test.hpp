@@ -12,7 +12,7 @@ class RmTest: public BEE::Room {
 			true,
 			0, 0, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT,
 			100, 100, 1800, 600,
-			NULL,
+			nullptr,
 			50, 50,
 			0, 0
 		};

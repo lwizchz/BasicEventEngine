@@ -395,7 +395,7 @@ BEE::RGBA BEE::get_pixel_color(int x, int y) const {
 		return c; // Return the pixel color
 	} else {
 		SDL_Surface *screenshot = SDL_CreateRGBSurface(0, width, height, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000); // Create a surface from the screen pixels
-		SDL_RenderReadPixels(renderer, NULL, SDL_PIXELFORMAT_ARGB8888, screenshot->pixels, screenshot->pitch);
+		SDL_RenderReadPixels(renderer, nullptr, SDL_PIXELFORMAT_ARGB8888, screenshot->pixels, screenshot->pitch);
 
 		RGBA c;
 		SDL_GetRGBA(((Uint32*)screenshot->pixels)[x+y*height], screenshot->format, &c.r, &c.g, &c.b, &c.a); // Fetch the pixel data from the surface into an RGBA
@@ -413,7 +413,7 @@ BEE::RGBA BEE::get_pixel_color(int x, int y) const {
 int BEE::save_screenshot(const std::string& filename) const {
 	std::string fn (filename);
 	if (file_exists(fn)) { // If the file already exists, append a timestamp
-		fn = file_plainname(fn) + "-" + bee_itos(time(NULL)) + file_extname(fn);
+		fn = file_plainname(fn) + "-" + bee_itos(time(nullptr)) + file_extname(fn);
 		if (file_exists(fn)) { // If the appended file already exists, abort
 			std::cerr << "Failed to save screenshot: files already exist: \"" << filename << "\" and \"" << fn << "\"\n"; // Output filename info
 			return -1; // Return -1 on filename error
@@ -441,7 +441,7 @@ int BEE::save_screenshot(const std::string& filename) const {
 		delete[] upsidedown_pixels;
 	} else {
 		SDL_Surface *screenshot = SDL_CreateRGBSurface(0, width, height, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000); // Create a surface from the screen pixels
-		SDL_RenderReadPixels(renderer, NULL, SDL_PIXELFORMAT_ARGB8888, screenshot->pixels, screenshot->pitch);
+		SDL_RenderReadPixels(renderer, nullptr, SDL_PIXELFORMAT_ARGB8888, screenshot->pixels, screenshot->pitch);
 
 		SDL_SaveBMP(screenshot, fn.c_str()); // Save the surface to the given filename as a bitmap
 

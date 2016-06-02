@@ -12,7 +12,7 @@
 #include "light.hpp"
 
 BEE::Light::Light () {
-	if (BEE::resource_list->lights.game != NULL) {
+	if (BEE::resource_list->lights.game != nullptr) {
 		game = BEE::resource_list->lights.game;
 	}
 
@@ -43,7 +43,7 @@ int BEE::Light::add_to_resources(std::string path) {
 		id = -1;
 	} else {
 		for (auto i : BEE::resource_list->lights.resources) {
-			if ((i.second != NULL)&&(i.second->get_path() == path)) {
+			if ((i.second != nullptr)&&(i.second->get_path() == path)) {
 				list_id = i.first;
 				break;
 			}
@@ -57,7 +57,7 @@ int BEE::Light::add_to_resources(std::string path) {
 	}
 	BEE::resource_list->lights.set_resource(id, this);
 
-	if (BEE::resource_list->lights.game != NULL) {
+	if (BEE::resource_list->lights.game != nullptr) {
 		game = BEE::resource_list->lights.game;
 	}
 

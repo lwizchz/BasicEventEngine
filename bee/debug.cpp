@@ -9,7 +9,7 @@
 #ifndef _BEE_DEBUG
 #define _BEE_DEBUG 1
 
-#include "debug.hpp" // Include the declarations for the below functions
+#include "debug.hpp" // Include the function declarations
 
 /*
 * debug_indent() - Format the given string with a certain amount of indentation and a delimiter prepended to each line
@@ -61,7 +61,7 @@ std::string get_shader_error(GLuint shader) {
 	}
 
 	char* log = new char[length]; // Allocate a new char array to store the log
-	glGetShaderInfoLog(shader, length, NULL, log); // Fetch the error string into the char array
+	glGetShaderInfoLog(shader, length, nullptr, log); // Fetch the error string into the char array
 	std::string s (log); // Convert the char array into a string in order to return it more easily
 	delete[] log; // Free the memory of the char array
 
@@ -79,7 +79,7 @@ std::string get_program_error(GLuint program) {
 	}
 
 	char* log = new char[length]; // Allocate a new char array to store the log
-	glGetProgramInfoLog(program, length, NULL, log); // Fetch the error string into the char array
+	glGetProgramInfoLog(program, length, nullptr, log); // Fetch the error string into the char array
 	std::string s (log); // Convert the char array into a string in order to return it more easily
 	delete[] log; // Free the memory of the char array
 

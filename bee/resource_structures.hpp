@@ -9,16 +9,14 @@
 #ifndef _BEE_RESOURCE_STRUCTURES_H
 #define _BEE_RESOURCE_STRUCTURES_H 1
 
-#include <string>
+#include <string> // Include the required library headers
 #include <map>
 
-#ifndef _BEE_GAME_H
 class BEE;
-#endif
 
-class Resource {
+class Resource { // The abstract class for all resource types
 	public:
-		BEE* game = NULL;
+		BEE* game = nullptr;
 
 		virtual ~Resource() {};
 		virtual int reset() =0;
@@ -29,9 +27,9 @@ class Resource {
 		virtual int set_name(std::string) =0;
 		virtual int set_path(std::string) =0;
 };
-class ResourceList {
+class ResourceList { // The class which holds a list of each individual resource type
 	public:
-		BEE* game = NULL;
+		BEE* game = nullptr;
 		std::map<int,Resource*> resources;
 		int next_index;
 
@@ -43,7 +41,7 @@ class ResourceList {
 		int get_amount();
 		int remove_resource(int);
 };
-class MetaResourceList {
+class MetaResourceList { // The class which holds a list of all of the lists of resource types
 	public:
 		ResourceList sprites, sounds, backgrounds, fonts, paths, timelines, objects, lights, rooms;
 

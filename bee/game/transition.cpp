@@ -20,7 +20,7 @@ int BEE::reset_render_target() {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0); // Reset the bound framebuffer
 		target = 0; // Reset the target
 	} else {
-		SDL_SetRenderTarget(renderer, NULL); // Reset the SDL render target
+		SDL_SetRenderTarget(renderer, nullptr); // Reset the SDL render target
 	}
 	return 0;
 }
@@ -31,7 +31,7 @@ int BEE::reset_render_target() {
 * @h: the height to use
 */
 int BEE::set_render_target(Sprite* sprite_target, int w, int h) {
-	if (sprite_target == NULL) { // If the given target is NULL then reset the render target
+	if (sprite_target == nullptr) { // If the given target is nullptr then reset the render target
 		reset_render_target();
 	} else {
 		target = sprite_target->set_as_target(w, h);
@@ -54,7 +54,7 @@ int BEE::set_render_target(Sprite* sprite_target) {
 * @h: the height to use
 */
 int BEE::set_render_target(Background* background_target, int w, int h) {
-	if (background_target == NULL) { // If the given target is NULL then reset the render target
+	if (background_target == nullptr) { // If the given target is nullptr then reset the render target
 		reset_render_target();
 	} else {
 		target = background_target->set_as_target(w, h);

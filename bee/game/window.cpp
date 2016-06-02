@@ -29,7 +29,7 @@ SDL_Cursor* BEE::get_cursor()  const {
 */
 int BEE::get_window_x() const {
 	int wx;
-	SDL_GetWindowPosition(window, &wx, NULL);
+	SDL_GetWindowPosition(window, &wx, nullptr);
 	return wx;
 }
 /*
@@ -37,7 +37,7 @@ int BEE::get_window_x() const {
 */
 int BEE::get_window_y() const {
 	int wy;
-	SDL_GetWindowPosition(window, NULL, &wy);
+	SDL_GetWindowPosition(window, nullptr, &wy);
 	return wy;
 }
 /*

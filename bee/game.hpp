@@ -9,82 +9,90 @@
 #ifndef _BEE_GAME_H
 #define _BEE_GAME_H 1
 
-#include <iostream>
+#include <iostream> // Include the required library headers
 #include <time.h>
 #include <functional>
 #include <list>
 #include <getopt.h>
 
-#include <SDL2/SDL.h>
+#include <SDL2/SDL.h> // Include the required SDL headers
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_mixer.h>
 #include <SDL2/SDL_net.h>
 
-#define GLM_FORCE_RADIANS
+#define GLM_FORCE_RADIANS // Force all GLM functions to use radians instead of degrees
 
-#define GLEW_STATIC
+#define GLEW_STATIC // Statically link GLEW
 
-#include <GL/glew.h>
+#include <GL/glew.h> // Include the required OpenGL headers
 #include <SDL2/SDL_opengl.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#define DEFAULT_WINDOW_WIDTH 1280
+#define DEFAULT_WINDOW_WIDTH 1280 // Define the default window dimensions
 #define DEFAULT_WINDOW_HEIGHT 720
 
-#define DEFAULT_GAME_FPS 60
+#define DEFAULT_GAME_FPS 60 // Define the default game fps goal
 
-#define BEE_MAX_LIGHTS 8
+#define BEE_MAX_LIGHTS 8 // Define the maximum amount of processed lights
 
 #ifndef BEE_GAME_ID // BEE_GAME_ID should always be defined but just in case
 #define BEE_GAME_ID 4294967295 // pow(2,32), the maximum value
 #endif // BEE_GAME_ID
 
-#include "debug.hpp"
+#include "debug.hpp" // Include the required debug and utility functions
 #include "util.hpp"
 
-class BEE;
 #ifndef _BEE_RESOURCE_STRUCTURES_H
-#include "resource_structures.hpp"
+#include "resource_structures.hpp" // Include the resource structure classes
 #endif
 
-#include "enum.hpp"
+#include "enum.hpp" // Include the required engine enumerations
 
-class BEE {
+class BEE { // The master engine class which effectively acts as a namespace
 	public:
-		class Sprite; class Sound; class Background; class Font; class Path; class Timeline; class Object; class Room;
-		class Particle; class ParticleData; class ParticleEmitter; class ParticleAttractor; class ParticleDestroyer; class ParticleDeflector; class ParticleChanger; class ParticleSystem;
-		class Light;
-		class ProgramFlags; class GameOptions; class InstanceData; class CollisionTree; class CollisionPolygon; class RGBA;
-		class SpriteDrawData; class SoundGroup; class LightData;
-		class ViewData; class BackgroundData; class NetworkData;
+		class Sprite; class Sound; class Background; class Font; class Path; class Timeline; class Object; class Room; // The main resource types
+		class Particle; class ParticleData; class ParticleEmitter; class ParticleAttractor; class ParticleDestroyer; class ParticleDeflector; class ParticleChanger; class ParticleSystem; // The particle system components
+		class Light; // The OpenGL-only resources (poor SDL implementations may exist)
+		class ProgramFlags; class GameOptions; class CollisionTree; class CollisionPolygon; class RGBA; // The engine related data
+		class SpriteDrawData; class SoundGroup; class InstanceData; class LightData; // The additional resource data types
+		class ViewData; class BackgroundData; class NetworkData; // The configurational structs
 	private:
+		// These contain data about the engine initialization
 		int argc;
-		char** argv;
-		std::list<ProgramFlags*> flags;
+		char** argv; // The provided commandline flags
+		std::list<ProgramFlags*> flags; // The available commandline flags
+		GameOptions* options = nullptr; // The engine options
+
+		// These contain data about the event loop
 		bool quit, is_ready, is_paused;
-		Room *first_room = NULL, *current_room = NULL;
+		Room *first_room = nullptr, *current_room = nullptr;
 
-		GameOptions* options = NULL;
-
-		// 0=Linux, 1=Windows
-		#ifdef _WINDOWS
-			const int platform = 1;
-		#else // _WINDOWS
+		// This defines the platform where 0=Linux, 1=Windows, 2=OSX, 3=other
+		#ifdef __linux__
 			const int platform = 0;
-		#endif // _WINDOWS else
+		#elif _WIN32
+			const int platform = 1;
+		#elif __APPLE__
+			const int platform = 2;
+		#else
+			const int platform = 3;
+		#endif
 
 		int width, height;
-		SDL_Cursor* cursor = NULL;
+		SDL_Cursor* cursor = nullptr;
 
-		SDL_Window* window = NULL;
-		SDL_Renderer* renderer = NULL;
+		// These are used for the SDL renderer
+		SDL_Window* window = nullptr;
+		SDL_Renderer* renderer = nullptr;
 
-		SDL_GLContext context = NULL;
+		// This is the OpenGL renderer context
+		SDL_GLContext context = nullptr;
 
-		GLuint program = 0;
+		// The following GLint's are all uniforms in the OpenGL shaders
+		GLuint program = 0; // This is the location of the OpenGL program (where the shaders are compiled)
 		GLint vertex_location = -1;
 		GLint fragment_location = -1;
 		GLuint target = 0;
@@ -111,15 +119,16 @@ class BEE {
 			GLint color;
 		} lighting_location[BEE_MAX_LIGHTS];
 
-		RGBA* color = NULL;
+		// This is the current drawing color
+		RGBA* color = nullptr;
 
-		bool is_minimized, is_fullscreen;
+		// These contain data about the current window state
 		bool has_mouse, has_focus;
 
 		SDL_Event event;
 		Uint32 tickstamp, new_tickstamp, fps_ticks, tick_delta;
 
-		NetworkData* net = NULL;
+		NetworkData* net = nullptr;
 
 		double volume = 1.0;
 
@@ -127,8 +136,8 @@ class BEE {
 		unsigned int fps_count;
 		Uint32 frame_number = 0;
 
-		Sprite* texture_before = NULL;
-		Sprite* texture_after = NULL;
+		Sprite* texture_before = nullptr;
+		Sprite* texture_after = nullptr;
 		int transition_type = 0;
 		unsigned int transition_speed = 80;
 		const int transition_max = 21;
@@ -337,7 +346,7 @@ class BEE::ProgramFlags {
 		char shortopt = '\0';
 		bool pre_init = true;
 		int has_arg = no_argument;
-		std::function<void (BEE*, char*)> func = NULL;
+		std::function<void (BEE*, char*)> func = nullptr;
 };
 class BEE::GameOptions {
 	public:
@@ -350,6 +359,7 @@ class BEE::GameOptions {
 		bool is_fullscreen, is_borderless;
 		bool is_resizable, is_maximized;
 		bool is_highdpi, is_visible;
+		bool is_minimized = false;
 
 		// Renderer options
 		bee_renderer_t renderer_type;
@@ -391,15 +401,15 @@ class BEE::ViewData {
 
 class BEE::BackgroundData { // Used to pass data to the Room class in bee/resource_structures/room.hpp
 	public:
-		BEE::Background* background;
-		bool is_visible;
-		bool is_foreground;
-		int x, y;
-		bool is_horizontal_tile, is_vertical_tile;
-		int horizontal_speed, vertical_speed;
-		bool is_stretched;
+		BEE::Background* background = nullptr;
+		bool is_visible = false;
+		bool is_foreground = false;
+		int x=0, y=0;
+		bool is_horizontal_tile=false, is_vertical_tile=false;
+		int horizontal_speed=0, vertical_speed=0;
+		bool is_stretched=false;
 
-		BackgroundData() {background=NULL;is_visible=false;is_foreground=false;x=0;y=0;is_horizontal_tile=false;is_vertical_tile=false;horizontal_speed=0;vertical_speed=0;is_stretched=false;};
+		BackgroundData();
 		BackgroundData(BEE::Background*, bool, bool, int, int, bool, bool, int, int, bool);
 		int init(BEE::Background*, bool, bool, int, int, bool, bool, int, int, bool);
 };
@@ -407,9 +417,9 @@ class BEE::BackgroundData { // Used to pass data to the Room class in bee/resour
 class BEE::NetworkData {
 	public:
 		bool is_initialized = false;
-		UDPsocket udp_send = NULL;
-		UDPsocket udp_recv = NULL;
-		UDPpacket* udp_data = NULL;
+		UDPsocket udp_send = nullptr;
+		UDPsocket udp_recv = nullptr;
+		UDPpacket* udp_data = nullptr;
 
 		int id = BEE_GAME_ID >> 4;
 		bool is_connected = false;

@@ -38,7 +38,7 @@ time_t date_time_of(time_t date) {
 * date_current_datetime() - Return a timestamp corresponding to now
 */
 time_t date_current_datetime() {
-        return time(NULL);
+        return time(nullptr);
 }
 /*
 * date_current_date() - Return a timestamp corresponding to the date right now

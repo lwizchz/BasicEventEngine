@@ -186,7 +186,7 @@ bool BEE::ParticleData::operator< (const ParticleData& other) {
 
 BEE::ParticleSystem::ParticleSystem(BEE* new_game) {
 	game = new_game;
-	following = NULL;
+	following = nullptr;
 	clear();
 }
 int BEE::ParticleSystem::load() {
@@ -218,7 +218,7 @@ int BEE::ParticleSystem::fast_forward(int frames) { // Fast-forwading more than 
 				}
 
 				if (p->is_dead(ticks)) {
-					if ((p->particle_type->death_type != NULL)&&(p->particle_type->on_death != NULL)) {
+					if ((p->particle_type->death_type != nullptr)&&(p->particle_type->on_death != nullptr)) {
 						p->particle_type->on_death(this, p, p->particle_type->death_type);
 					}
 					p->is_old = true;
@@ -238,7 +238,7 @@ int BEE::ParticleSystem::draw() {
 }
 int BEE::ParticleSystem::draw(Uint32 now, bool should_draw) {
 	int sx = xoffset, sy = yoffset;
-	if (following != NULL) {
+	if (following != nullptr) {
 		sx += following->x;
 		sy += following->y;
 	}
@@ -250,7 +250,7 @@ int BEE::ParticleSystem::draw(Uint32 now, bool should_draw) {
 
 		for (auto& d : destroyers) {
 			int dx = sx, dy = sy;
-			if (d->following != NULL) {
+			if (d->following != nullptr) {
 				dx = d->following->x;
 				dy = d->following->y;
 			}
@@ -269,7 +269,7 @@ int BEE::ParticleSystem::draw(Uint32 now, bool should_draw) {
 
 		for (auto& c : changers) {
 			int cx = sx, cy = sy;
-			if (c->following != NULL) {
+			if (c->following != nullptr) {
 				cx = c->following->x;
 				cy = c->following->y;
 			}
@@ -291,7 +291,7 @@ int BEE::ParticleSystem::draw(Uint32 now, bool should_draw) {
 
 		for (auto& a : attractors) {
 			int ax = sx, ay = sy;
-			if (a->following != NULL) {
+			if (a->following != nullptr) {
 				ax = a->following->x;
 				ay = a->following->y;
 			}
@@ -320,7 +320,7 @@ int BEE::ParticleSystem::draw(Uint32 now, bool should_draw) {
 
 		for (auto& d : deflectors) {
 			int dx = sx, dy = sy;
-			if (d->following != NULL) {
+			if (d->following != nullptr) {
 				dx = d->following->x;
 				dy = d->following->y;
 			}
@@ -336,7 +336,7 @@ int BEE::ParticleSystem::draw(Uint32 now, bool should_draw) {
 
 	for (auto& e : emitters) {
 		int ex = sx, ey = sy;
-		if (e->following != NULL) {
+		if (e->following != nullptr) {
 			ex = e->following->x;
 			ey = e->following->y;
 		}
@@ -368,7 +368,7 @@ int BEE::ParticleSystem::draw(Uint32 now, bool should_draw) {
 
 				p->sprite_data->x = xoffset + p->x - p->w/2;
 				p->sprite_data->y = yoffset + p->y - p->h/2;
-				if (following != NULL) {
+				if (following != nullptr) {
 					p->sprite_data->x += following->x;
 					p->sprite_data->y += following->y;
 				}
@@ -381,7 +381,7 @@ int BEE::ParticleSystem::draw(Uint32 now, bool should_draw) {
 				draw_data[p->particle_type].push_back(p->sprite_data);
 
 				if (p->is_dead(ticks)) {
-					if ((p->particle_type->death_type != NULL)&&(p->particle_type->on_death != NULL)) {
+					if ((p->particle_type->death_type != nullptr)&&(p->particle_type->on_death != nullptr)) {
 						p->particle_type->on_death(this, p, p->particle_type->death_type);
 					}
 					p->is_old = true;
@@ -404,7 +404,7 @@ int BEE::ParticleSystem::draw(Uint32 now, bool should_draw) {
 }
 int BEE::ParticleSystem::draw_debug() {
 	int sx = xoffset, sy = yoffset;
-	if (following != NULL) {
+	if (following != nullptr) {
 		sx += following->x;
 		sy += following->y;
 	}
@@ -414,7 +414,7 @@ int BEE::ParticleSystem::draw_debug() {
 	}
 	for (auto& e : emitters) {
 		int ex = sx, ey = sy;
-		if (e->following != NULL) {
+		if (e->following != nullptr) {
 			ex = e->following->x;
 			ey = e->following->y;
 		}
@@ -422,7 +422,7 @@ int BEE::ParticleSystem::draw_debug() {
 	}
 	for (auto& a : attractors) {
 		int ax = sx, ay = sy;
-		if (a->following != NULL) {
+		if (a->following != nullptr) {
 			ax = a->following->x;
 			ay = a->following->y;
 		}
@@ -430,7 +430,7 @@ int BEE::ParticleSystem::draw_debug() {
 	}
 	for (auto& d : destroyers) {
 		int dx = sx, dy = sx;
-		if (d->following != NULL) {
+		if (d->following != nullptr) {
 			dx = d->following->x;
 			dy = d->following->y;
 		}
@@ -438,7 +438,7 @@ int BEE::ParticleSystem::draw_debug() {
 	}
 	for (auto& d : deflectors) {
 		int dx = sx, dy = sx;
-		if (d->following != NULL) {
+		if (d->following != nullptr) {
 			dx = d->following->x;
 			dy = d->following->y;
 		}
@@ -446,7 +446,7 @@ int BEE::ParticleSystem::draw_debug() {
 	}
 	for (auto& c : changers) {
 		int cx = sx, cy = sx;
-		if (c->following != NULL) {
+		if (c->following != nullptr) {
 			cx = c->following->x;
 			cy = c->following->y;
 		}
@@ -456,13 +456,13 @@ int BEE::ParticleSystem::draw_debug() {
 }
 int BEE::ParticleSystem::clear() {
 	for (auto& p : particles) {
-		if (p != NULL) {
+		if (p != nullptr) {
 			p->particle_type->old_particles.remove_if(
 				[&] (ParticleData* pd) -> bool {
 					delete pd->sprite_data;
-					pd->sprite_data = NULL;
+					pd->sprite_data = nullptr;
 					delete pd;
-					pd = NULL;
+					pd = nullptr;
 					return true;
 				}
 			);

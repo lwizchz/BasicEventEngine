@@ -12,7 +12,7 @@
 #include "room.hpp"
 
 BEE::Room::Room () {
-	if (BEE::resource_list->rooms.game != NULL) {
+	if (BEE::resource_list->rooms.game != nullptr) {
 		game = BEE::resource_list->rooms.game;
 	}
 
@@ -38,10 +38,10 @@ BEE::Room::~Room() {
 	destroyed_instances.clear();
 	collision_tree->reset(0, 0, get_width());
 
-	if (view_texture != NULL) {
+	if (view_texture != nullptr) {
 		view_texture->free();
 		delete view_texture;
-		view_texture = NULL;
+		view_texture = nullptr;
 	}
 
 	free_media();
@@ -57,7 +57,7 @@ int BEE::Room::add_to_resources(std::string path) {
 		id = -1;
 	} else {
 		for (auto& r : BEE::resource_list->rooms.resources) {
-			if ((r.second != NULL)&&(r.second->get_path() == path)) {
+			if ((r.second != nullptr)&&(r.second->get_path() == path)) {
 				list_id = r.first;
 				break;
 			}
@@ -71,7 +71,7 @@ int BEE::Room::add_to_resources(std::string path) {
 	}
 	BEE::resource_list->rooms.set_resource(id, this);
 
-	if (BEE::resource_list->rooms.game != NULL) {
+	if (BEE::resource_list->rooms.game != nullptr) {
 		game = BEE::resource_list->rooms.game;
 	}
 
@@ -104,16 +104,16 @@ int BEE::Room::reset() {
 	tree_x = 0;
 	tree_y = 0;
 	tree_width = get_width();
-	if (collision_tree != NULL) {
+	if (collision_tree != nullptr) {
 		delete collision_tree;
-		collision_tree = NULL;
+		collision_tree = nullptr;
 	}
 	collision_tree = new CollisionTree(game, tree_x, tree_y, tree_width, 0);
 
-	if (view_texture != NULL) {
+	if (view_texture != nullptr) {
 		view_texture->free();
 		delete view_texture;
-		view_texture = NULL;
+		view_texture = nullptr;
 	}
 	view_texture = new Sprite();
 
@@ -329,7 +329,7 @@ int BEE::Room::set_instance(int index, InstanceData* new_instance) {
 }
 int BEE::Room::add_instance(int index, Object* object, int x, int y) {
 	object->game = game;
-	if (object->get_sprite() != NULL) {
+	if (object->get_sprite() != nullptr) {
 		if (!object->get_sprite()->get_is_loaded()) {
 			std::cerr << "Automatically loading the sprite for object " << object->get_name() << "\n";
 			object->get_sprite()->load();
@@ -369,7 +369,7 @@ int BEE::Room::add_instance(int index, Object* object, int x, int y) {
 int BEE::Room::add_instance_grid(int index, Object* object, double x, double y) {
 	double xg = x, yg = y;
 
-	if (object->get_sprite() != NULL) {
+	if (object->get_sprite() != nullptr) {
 		if (!object->get_sprite()->get_is_loaded()) {
 			std::cerr << "Automatically loading the sprite for object " << object->get_name() << "\n";
 			object->get_sprite()->load();
@@ -523,7 +523,7 @@ int BEE::Room::expand_collision_tree(int expand_x, int expand_y) {
 int BEE::Room::load_media() {
 	// Load room sprites
 	for (auto& i : instances) {
-		if (i.second->object->get_sprite() != NULL) {
+		if (i.second->object->get_sprite() != nullptr) {
 			i.second->object->get_sprite()->load();
 		}
 	}
@@ -538,7 +538,7 @@ int BEE::Room::load_media() {
 int BEE::Room::free_media() {
 	// Free room sprites
 	for (auto& i : instances) {
-		if (i.second->object->get_sprite() != NULL) {
+		if (i.second->object->get_sprite() != nullptr) {
 			i.second->object->get_sprite()->free();
 		}
 	}
@@ -626,7 +626,7 @@ int BEE::Room::load_instance_map(std::string fname) {
 			int x = bee_stoi(d.substr(0, d.find(",")));
 			int y = bee_stoi(d.substr(d.find(",")+1));
 
-			if (game->get_object_by_name(v) == NULL) {
+			if (game->get_object_by_name(v) == nullptr) {
 				std::cerr << "Error loading instance map: unknown object \"" << v << "\"\n";
 			} else {
 				data.push_back(std::make_tuple(game->get_object_by_name(v), x, y));
@@ -912,7 +912,7 @@ int BEE::Room::check_paths() {
 }
 int BEE::Room::outside_room() {
 	for (auto& i : instances_sorted) {
-		if (i.first->object->get_mask() != NULL) {
+		if (i.first->object->get_mask() != nullptr) {
 			SDL_Rect a = {(int)i.first->x, (int)i.first->y, i.first->object->get_mask()->get_subimage_width(), i.first->object->get_mask()->get_height()};
 			SDL_Rect b = {0, 0, get_width(), get_height()};
 			if (!check_collision(a, b)) {
@@ -933,7 +933,7 @@ int BEE::Room::intersect_boundary() {
 	return 0;
 }
 int BEE::Room::collision() {
-	if (collision_tree == NULL) {
+	if (collision_tree == nullptr) {
 		tree_x = 0;
 		tree_y = 0;
 		tree_width = get_width();
@@ -955,7 +955,7 @@ int BEE::Room::draw() {
 	}
 
 	if (is_views_enabled) { // Render different viewports
-		if (view_texture->game == NULL) {
+		if (view_texture->game == nullptr) {
 			view_texture->game = game;
 		}
 		if (!game->options->is_debug_enabled) {
@@ -970,7 +970,7 @@ int BEE::Room::draw() {
 			if (v.second->is_visible) {
 				view_current = v.second;
 
-				if (view_current->following != NULL) {
+				if (view_current->following != nullptr) {
 					InstanceData* f = view_current->following;
 					if (instances_sorted.find(f) != instances_sorted.end()) {
 						SDL_Rect a = {(int)f->x, (int)f->y, f->get_width(), f->get_height()};
@@ -991,7 +991,7 @@ int BEE::Room::draw() {
 							view_current->view_y = b.h - (a.y + a.h + view_current->vertical_border);
 						}
 					} else {
-						view_current->following = NULL;
+						view_current->following = nullptr;
 					}
 				}
 				if (view_current->horizontal_speed != 0) {
@@ -1009,8 +1009,8 @@ int BEE::Room::draw() {
 				}
 			}
 		}
-		view_current = NULL;
-		game->set_viewport(NULL);
+		view_current = nullptr;
+		game->set_viewport(nullptr);
 	} else {
 		if (!game->options->is_debug_enabled) {
 			game->render_clear();
@@ -1019,7 +1019,7 @@ int BEE::Room::draw() {
 			handle_lights();
 		}
 
-		game->set_viewport(NULL);
+		game->set_viewport(nullptr);
 		draw_view();
 
 		if (game->options->renderer_type == BEE_RENDERER_SDL) {
@@ -1081,7 +1081,7 @@ int BEE::Room::draw_view() {
 }
 int BEE::Room::animation_end() {
 	for (auto& i : instances_sorted) {
-		if (i.first->object->get_sprite() != NULL) {
+		if (i.first->object->get_sprite() != nullptr) {
 			if (!i.first->object->get_sprite()->get_is_animated()) {
 				i.first->object->update(i.first);
 				i.first->object->animation_end(i.first);

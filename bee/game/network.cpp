@@ -95,7 +95,7 @@ int BEE::net_handle_events() {
 				if (net->players.size() < net->max_players) { // If there is still room for clients then allow the current one to connect
 					int id = net->players.size(); // Get an id for the client
 
-					UDPsocket sock = NULL;
+					UDPsocket sock = nullptr;
 					int c = network_udp_bind(sock, -1, &net->udp_data->address); // Bind a sending socket to the client who is requesting a connection
 
 					network_udp_send(sock, c, 0, 1, id); // Send the client their id
@@ -140,7 +140,7 @@ int BEE::net_handle_events() {
 						std::map <int,std::string> t;
 						for (auto& p : net->players) { // Iterate over the connected players and insert their id and IP address into the new map
 							IPaddress* ipa = network_get_peer_address(p.second, -1);
-							if (ipa != NULL) {
+							if (ipa != nullptr) {
 								t.insert(std::pair<int,std::string>(p.first, network_get_address(ipa->host)));
 							}
 						}
@@ -214,7 +214,7 @@ int BEE::net_handle_events() {
 
 						network_map_decode(net->udp_data->data+4, t); // Decode the player map from the data into t
 						for (auto& p : t) { // Iterate over the players in the temp map in order to generate sockets for each of them
-							UDPsocket sock = NULL;
+							UDPsocket sock = nullptr;
 							network_udp_bind(sock, -1, p.second); // Bind a socket to the player's IP address
 
 							net->players.insert(std::pair<int,UDPsocket>(bee_stoi(p.first), sock)); // Insert the player's id and IP address into our copy of the player map
@@ -245,7 +245,7 @@ int BEE::net_session_start(const std::string& session_name, int max_players, con
 	net->players.clear(); // Clear all old player data
 
 	net->udp_recv = network_udp_open(net->id); // Open a UDP listening socket to receive from all clients
-	if (net->udp_recv == NULL) {
+	if (net->udp_recv == nullptr) {
 		return 1; // Return 1 if the socket failed to open
 	}
 
@@ -253,7 +253,7 @@ int BEE::net_session_start(const std::string& session_name, int max_players, con
 	net->name = session_name;
 	net->max_players = max_players;
 	net->self_id = 0;
-	net->players.insert(std::pair<int,UDPsocket>(net->self_id, NULL)); // Insert ourself into the player map
+	net->players.insert(std::pair<int,UDPsocket>(net->self_id, nullptr)); // Insert ourself into the player map
 
 	// Set connection info
 	net->is_connected = true;
@@ -268,7 +268,7 @@ std::map<std::string,std::string> BEE::net_session_find() {
 	net->servers.clear(); // Clear the previously available servers
 
 	net->udp_recv = network_udp_open(net->id); // Open a UDP listening socket to receive responses from the servers
-	if (net->udp_recv == NULL) {
+	if (net->udp_recv == nullptr) {
 		std::cerr << "Net: net_session_find() : UDP listening socket failed to open\n"; // Output error string
 		return net->servers; // Return an empty map if the receiving socket failed to open
 	}
@@ -314,7 +314,7 @@ int BEE::net_session_join(const std::string& ip, const std::string& player_name)
 	net->players.clear(); // Clear the previous player map
 
 	net->udp_recv = network_udp_open(net->id); // Open a UDP listening socket to receive messages from the server
-	if (net->udp_recv == NULL) {
+	if (net->udp_recv == nullptr) {
 		return 1; // Return 1 if the receiving socket failed to open
 	}
 

@@ -24,7 +24,7 @@ TextData::~TextData() {
 }
 
 BEE::Font::Font () {
-	if (BEE::resource_list->fonts.game != NULL) {
+	if (BEE::resource_list->fonts.game != nullptr) {
 		game = BEE::resource_list->fonts.game;
 	}
 	reset();
@@ -57,7 +57,7 @@ int BEE::Font::add_to_resources(std::string path) {
 		id = -1;
 	} else {
 		for (auto i : BEE::resource_list->fonts.resources) {
-			if ((i.second != NULL)&&(i.second->get_path() == path)) {
+			if ((i.second != nullptr)&&(i.second->get_path() == path)) {
 				list_id = i.first;
 				break;
 			}
@@ -71,7 +71,7 @@ int BEE::Font::add_to_resources(std::string path) {
 	}
 	BEE::resource_list->fonts.set_resource(id, this);
 
-	if (BEE::resource_list->fonts.game != NULL) {
+	if (BEE::resource_list->fonts.game != nullptr) {
 		game = BEE::resource_list->fonts.game;
 	}
 
@@ -86,11 +86,11 @@ int BEE::Font::reset() {
 	style = TTF_STYLE_NORMAL;
 	lineskip = 0;
 
-	font = NULL;
+	font = nullptr;
 	is_loaded = false;
 	has_draw_failed = false;
 
-	sprite_font = NULL;
+	sprite_font = nullptr;
 	is_sprite = false;
 
 	return 0;
@@ -189,7 +189,7 @@ int BEE::Font::load() {
 			}
 
 			font = TTF_OpenFont(font_path.c_str(), font_size);
-			if (font == NULL) {
+			if (font == nullptr) {
 				std::cerr << "Failed to load font " << font_path << ": " << TTF_GetError() << "\n";
 				return 1;
 			}
@@ -205,10 +205,10 @@ int BEE::Font::free() {
 	if (is_loaded) {
 		if (is_sprite) {
 			delete sprite_font;
-			sprite_font = NULL;
+			sprite_font = nullptr;
 		} else {
 			TTF_CloseFont(font);
-			font = NULL;
+			font = nullptr;
 		}
 
 		is_loaded = false;
@@ -224,9 +224,9 @@ TextData* BEE::Font::draw_internal(int x, int y, std::string text, RGBA color) {
 
 			SDL_Surface* tmp_surface;
 			tmp_surface = TTF_RenderUTF8_Blended(font, text.c_str(), {color.r, color.g, color.b, color.a}); // Slow but pretty
-			if (tmp_surface == NULL) {
+			if (tmp_surface == nullptr) {
 				std::cerr << "Failed to draw with font " << name << ": " << TTF_GetError() << "\n";
-				return NULL;
+				return nullptr;
 			}
 
 			Sprite* tmp_sprite = new Sprite();
@@ -241,14 +241,14 @@ TextData* BEE::Font::draw_internal(int x, int y, std::string text, RGBA color) {
 			return textdata;
 		}
 
-		return NULL;
+		return nullptr;
 	}
 
 	if (!has_draw_failed) {
 		std::cerr << "Failed to draw text, font not loaded: " << name << "\n";
 		has_draw_failed = true;
 	}
-	return NULL;
+	return nullptr;
 }
 TextData* BEE::Font::draw(int x, int y, std::string text, RGBA color, bool is_hud) {
 	if (is_loaded) {
@@ -256,7 +256,7 @@ TextData* BEE::Font::draw(int x, int y, std::string text, RGBA color, bool is_hu
 			game->convert_window_coords(x, y);
 		}
 
-		TextData *r = NULL, *textdata = NULL;
+		TextData *r = nullptr, *textdata = nullptr;
 		std::map<int,std::string> lines = handle_newlines(text);
 
 		if (lineskip == 0) {
@@ -265,8 +265,8 @@ TextData* BEE::Font::draw(int x, int y, std::string text, RGBA color, bool is_hu
 
 		for (auto& l : lines) {
 			r = draw_internal(x, y+lineskip*l.first, l.second, color);
-			if (r != NULL) {
-				if (textdata == NULL) {
+			if (r != nullptr) {
+				if (textdata == nullptr) {
 					textdata = r;
 				} else {
 					textdata->sprite.insert(std::make_pair(textdata->sprite.size(), r->sprite[0]));
@@ -281,21 +281,21 @@ TextData* BEE::Font::draw(int x, int y, std::string text, RGBA color, bool is_hu
 		std::cerr << "Failed to draw text, font not loaded: " << name << "\n";
 		has_draw_failed = true;
 	}
-	return NULL;
+	return nullptr;
 }
 TextData* BEE::Font::draw(int x, int y, std::string text, bool is_hud) {
 	return draw(x, y, text, {0, 0, 0, 255}, is_hud);
 }
 TextData* BEE::Font::draw(TextData* textdata, int x, int y, std::string text, RGBA color, bool is_hud) {
 	if (is_loaded) {
-		if ((textdata != NULL)&&(textdata->text == text)) {
+		if ((textdata != nullptr)&&(textdata->text == text)) {
 			std::map<int,std::string> lines = handle_newlines(text);
 			for (auto& l : lines) {
 				textdata->sprite[l.first]->draw(x, y, 0, false);
 			}
 			return textdata;
 		} else {
-			if (textdata != NULL) {
+			if (textdata != nullptr) {
 				delete textdata;
 			}
 			return draw(x, y, text, color, is_hud);
@@ -306,7 +306,7 @@ TextData* BEE::Font::draw(TextData* textdata, int x, int y, std::string text, RG
 		std::cerr << "Failed to draw text, font not loaded: " << name << "\n";
 		has_draw_failed = true;
 	}
-	return NULL;
+	return nullptr;
 }
 TextData* BEE::Font::draw(TextData* textdata, int x, int y, std::string text, bool is_hud) {
 	return draw(textdata, x, y, text, {0, 0, 0, 255}, is_hud);
@@ -330,7 +330,7 @@ int BEE::Font::draw_fast_internal(int x, int y, std::string text, RGBA color) {
 				} else {
 					tmp_surface = TTF_RenderUTF8_Solid(font, text.c_str(), {color.r, color.g, color.b, color.a}); // Fast but ugly
 				}
-				if (tmp_surface == NULL) {
+				if (tmp_surface == nullptr) {
 					std::cerr << "Failed to draw with font " << name << ": " << TTF_GetError() << "\n";
 					return 1;
 				}
@@ -399,7 +399,7 @@ int BEE::Font::get_string_width(std::string text, int size) {
 	if (is_loaded) {
 		int w = 0;
 		if (size == font_size) {
-			TTF_SizeUTF8(font, text.c_str(), &w, NULL);
+			TTF_SizeUTF8(font, text.c_str(), &w, nullptr);
 		}
 		return w;
 	}
@@ -417,7 +417,7 @@ int BEE::Font::get_string_height(std::string text, int size) {
 	if (is_loaded) {
 		int h = 0;
 		if (size == font_size) {
-			TTF_SizeUTF8(font, text.c_str(), NULL, &h);
+			TTF_SizeUTF8(font, text.c_str(), nullptr, &h);
 		}
 		return h;
 	}

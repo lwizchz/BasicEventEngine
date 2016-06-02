@@ -29,12 +29,12 @@ int BEE::change_room(Room* new_room, bool should_jump) {
 		return 1; // Return 1 to satisfy the compiler
 	}
 
-	if (new_room == NULL) { // If the given room is NULL then abort
+	if (new_room == nullptr) { // If the given room is nullptr then abort
 		return 1; // Return 1 on invalid room resource
 	}
 
 	bool is_game_start = false;
-	if (current_room != NULL) { // if we are currently in a room
+	if (current_room != nullptr) { // if we are currently in a room
 		if (transition_type != 0) { // If a transition has been defined then draw the current room into the before buffer
 			set_render_target(texture_before);
 			render_clear();
@@ -109,7 +109,7 @@ int BEE::change_room(Room* new_room) {
 * @id: the id of the room to change to
 */
 int BEE::room_goto(int id) {
-	if (get_room(id) != NULL) { // If the room exists, change to it
+	if (get_room(id) != nullptr) { // If the room exists, change to it
 		return change_room(get_room(id));
 	}
 	return 3; // Return 3 on non-existent room
@@ -129,7 +129,7 @@ int BEE::room_goto_next() {
 
 /*
 * BEE::get_current_room() - Return the current room resource
-* ! While it is possible for this to return NULL, in practice this should never happen because the event loop will refuse to run
+* ! While it is possible for this to return nullptr, in practice this should never happen because the event loop will refuse to run
 */
 BEE::Room* BEE::get_current_room() const {
 	return current_room;
@@ -144,7 +144,7 @@ bool BEE::get_is_ready() const {
 * BEE::get_room_width() - Return the width of the current room
 */
 int BEE::get_room_width() const {
-	if (current_room != NULL) {
+	if (current_room != nullptr) {
 		return current_room->get_width();
 	}
 	return -1;
@@ -153,7 +153,7 @@ int BEE::get_room_width() const {
 * BEE::get_room_height() - Return the height of the current room
 */
 int BEE::get_room_height() const {
-	if (current_room != NULL) {
+	if (current_room != nullptr) {
 		return current_room->get_height();
 	}
 	return -1;
@@ -176,7 +176,7 @@ int BEE::set_viewport(ViewData* viewport) const {
 		glm::mat4 view, projection;
 		glm::vec4 port;
 
-		if (viewport == NULL) { // If the viewport is not defined then set the drawing area to the entire screen
+		if (viewport == nullptr) { // If the viewport is not defined then set the drawing area to the entire screen
 			view = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 			port = glm::vec4(0.0f, 0.0f, (float)get_room_width(), (float)get_room_height());
 			projection = glm::ortho(0.0f, (float)get_width(), (float)get_height(), 0.0f, 0.0f, 10.0f);
@@ -193,7 +193,7 @@ int BEE::set_viewport(ViewData* viewport) const {
 		return 0;
 	} else {
 		SDL_Rect v;
-		if (viewport == NULL) { // If the viewport is not defined then set the drawing area to the entire screen
+		if (viewport == nullptr) { // If the viewport is not defined then set the drawing area to the entire screen
 			v = {0, 0, get_width(), get_height()};
 		} else { // If the viewport is defined then use it
 			v = {viewport->port_x, viewport->port_y, viewport->port_width, viewport->port_height};

@@ -12,7 +12,7 @@
 #include "sound.hpp"
 
 BEE::Sound::Sound () {
-	if (BEE::resource_list->sounds.game != NULL) {
+	if (BEE::resource_list->sounds.game != nullptr) {
 		game = BEE::resource_list->sounds.game;
 	}
 
@@ -45,7 +45,7 @@ int BEE::Sound::add_to_resources(std::string path) {
 		id = -1;
 	} else {
 		for (auto i : BEE::resource_list->sounds.resources) {
-			if ((i.second != NULL)&&(i.second->get_path() == path)) {
+			if ((i.second != nullptr)&&(i.second->get_path() == path)) {
 				list_id = i.first;
 				break;
 			}
@@ -59,7 +59,7 @@ int BEE::Sound::add_to_resources(std::string path) {
 	}
 	BEE::resource_list->sounds.set_resource(id, this);
 
-	if (BEE::resource_list->sounds.game != NULL) {
+	if (BEE::resource_list->sounds.game != nullptr) {
 		game = BEE::resource_list->sounds.game;
 	}
 
@@ -225,13 +225,13 @@ int BEE::Sound::load() {
 	// Load SDL2 Mixer sound
 	if (is_music) {
 		music = Mix_LoadMUS(sound_path.c_str());
-		if (music == NULL) {
+		if (music == nullptr) {
 			std::cerr << "Failed to load sound " << name << " as music: " << Mix_GetError() << "\n";
 			return 1;
 		}
 	} else {
 		chunk = Mix_LoadWAV(sound_path.c_str());
-		if (chunk == NULL) {
+		if (chunk == nullptr) {
 			std::cerr << "Failed to load sound " << name << " as chunk: " << Mix_GetError() << "\n";
 			return 1;
 		}
@@ -247,10 +247,10 @@ int BEE::Sound::free() {
 		stop();
 		if (is_music) {
 			Mix_FreeMusic(music);
-			music = NULL;
+			music = nullptr;
 		} else {
 			Mix_FreeChunk(chunk);
-			chunk = NULL;
+			chunk = nullptr;
 		}
 		is_loaded = false;
 	}
@@ -631,43 +631,43 @@ int BEE::Sound::effect_remove_post(int se_mask) {
 	return 0;
 }
 int BEE::Sound::effect_reset_data() {
-	if (chorus_data == NULL) {
+	if (chorus_data == nullptr) {
 		chorus_data = new se_chorus_data();
 	} else {
 		sound_effect_chorus_cleanup(-1, (void*)chorus_data);
 	}
 
-	if (echo_data == NULL) {
+	if (echo_data == nullptr) {
 		echo_data = new se_echo_data();
 	} else {
 		sound_effect_echo_cleanup(-1, (void*)echo_data);
 	}
 
-	if (flanger_data == NULL) {
+	if (flanger_data == nullptr) {
 		flanger_data = new se_flanger_data();
 	} else {
 		sound_effect_flanger_cleanup(-1, (void*)flanger_data);
 	}
 
-	if (gargle_data == NULL) {
+	if (gargle_data == nullptr) {
 		gargle_data = new se_gargle_data();
 	} else {
 		sound_effect_gargle_cleanup(-1, (void*)gargle_data);
 	}
 
-	if (reverb_data == NULL) {
+	if (reverb_data == nullptr) {
 		reverb_data = new se_reverb_data();
 	} else {
 		sound_effect_reverb_cleanup(-1, (void*)reverb_data);
 	}
 
-	if (compressor_data == NULL) {
+	if (compressor_data == nullptr) {
 		compressor_data = new se_compressor_data();
 	} else {
 		sound_effect_compressor_cleanup(-1, (void*)compressor_data);
 	}
 
-	if (equalizer_data == NULL) {
+	if (equalizer_data == nullptr) {
 		equalizer_data = new se_equalizer_data();
 	} else {
 		sound_effect_equalizer_cleanup(-1, (void*)equalizer_data);

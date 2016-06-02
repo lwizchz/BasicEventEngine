@@ -9,17 +9,17 @@
 #ifndef _BEE_UTIL
 #define _BEE_UTIL 1
 
-#include "util.hpp" // Include function definitions
+#include "util.hpp" // Include the function declarations
 
-#include "util/platform.hpp" // Include platform compatibility function declarations
-#include "util/real.hpp" // Include real number functions
-#include "util/string.hpp" // Include string handling functions
-#include "util/dates.hpp" // Include date and time funcitons
-#include "util/collision.hpp" // Include collision checking functions
-#include "util/sound.hpp" // Include sound effect functions
-#include "util/messagebox.hpp" // Include message box functions
-#include "util/files.hpp" // Include file handling functions
-#include "util/network.hpp" // Include networking functions
+#include "util/platform.hpp" // Include the platform compatibility functions
+#include "util/real.hpp" // Include the real number functions
+#include "util/string.hpp" // Include the string handling functions
+#include "util/dates.hpp" // Include the date and time funcitons
+#include "util/collision.hpp" // Include the collision checking functions
+#include "util/sound.hpp" // Include the sound effect functions
+#include "util/messagebox.hpp" // Include the message box functions
+#include "util/files.hpp" // Include the file handling functions
+#include "util/network.hpp" // Include the networking functions
 
 #ifndef NDEBUG
 
@@ -218,6 +218,28 @@ TEST_CASE("messagebox/general") {
 	// Right now the message box functions can't be tested because they create a modal dialog
 }
 
+// File handling function assertions
+TEST_CASE("files") {
+	std::string tmpdir = directory_get_temp();
+	REQUIRE(tmpdir != "");
+	REQUIRE(directory_exists(tmpdir) == true);
+	REQUIRE(directory_create(tmpdir+"log/") == 0);
+	REQUIRE(file_put_contents(tmpdir+"test.txt", tmpdir) == tmpdir.size());
+	REQUIRE(file_get_contents(tmpdir+"test.txt") == tmpdir);
+	REQUIRE(file_rename(tmpdir+"test.txt", tmpdir+"log/test.txt") == 0);
+	REQUIRE(file_copy(tmpdir+"log/test.txt", tmpdir+"test.txt") == 0);
+	REQUIRE(file_exists(tmpdir+"log/test.txt") == true);
+	REQUIRE(file_delete(tmpdir+"log/test.txt") == 0);
+	REQUIRE(file_delete(tmpdir+"log/") == 0);
+	REQUIRE(file_delete(tmpdir+"test.txt") == 0);
+	REQUIRE(file_delete(tmpdir) == 0);
+
+	REQUIRE(file_basename(tmpdir+"log/test.txt") == "test.txt");
+	REQUIRE(file_dirname(tmpdir+"log/test.txt") == tmpdir+"log/");
+	REQUIRE(file_plainname(tmpdir+"log/test.txt") == tmpdir+"log/test");
+	REQUIRE(file_extname(tmpdir+"log/test.txt") == ".txt");
+}
+
 bool verify_assertions(int argc, char** argv) {
 	return !(bool)doctest::Context(argc, argv).run();
 }
@@ -231,7 +253,7 @@ bool verify_assertions(int argc, char** argv) {
 #endif // NDEBUG
 
 bool verify_assertions() {
-	return verify_assertions(0, (char**)NULL);
+	return verify_assertions(0, (char**)nullptr);
 }
 
 #endif // _BEE_UTIL

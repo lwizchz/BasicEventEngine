@@ -17,15 +17,15 @@ class BEE::CollisionTree {
 		const unsigned int default_capacity = 16;
 		unsigned int max_capacity = default_capacity;
 
-		BEE* game = NULL;
+		BEE* game = nullptr;
 		SDL_Rect region;
 		std::vector<BEE::InstanceData*> instances;
 
 		unsigned int depth = 0;
-		CollisionTree *topleft = NULL;
-		CollisionTree *topright = NULL;
-		CollisionTree *bottomleft = NULL;
-		CollisionTree *bottomright = NULL;
+		CollisionTree *topleft = nullptr;
+		CollisionTree *topright = nullptr;
+		CollisionTree *bottomleft = nullptr;
+		CollisionTree *bottomright = nullptr;
 
 		CollisionTree(BEE*, int, int, int, int);
 		~CollisionTree();

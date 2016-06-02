@@ -25,17 +25,17 @@ class BEE::InstanceData {
 		double gravity = 0.0, gravity_direction = 270.0;
 		double acceleration = 0.0, acceleration_amount = 0.0;
 
-		Path* path = NULL;
+		Path* path = nullptr;
 		double path_speed = 0.0;
 		int path_end_action = 0;
 		int path_current_node = 0;
 		bool path_is_drawn = false;
 		bool path_is_pausable = false;
 	public:
-		BEE* game = NULL;
+		BEE* game = nullptr;
 
 		int id = -1;
-		Object* object = NULL;
+		Object* object = nullptr;
 		Uint32 subimage_time = 0;
 		Uint32 alarm_end[ALARM_COUNT];
 		int depth = 0;

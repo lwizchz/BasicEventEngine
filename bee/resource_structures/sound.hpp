@@ -45,13 +45,13 @@ class BEE::Sound: public Resource {
 		bool has_play_failed = false;
 
 		int sound_effects = (1u << 0);
-		se_chorus_data* chorus_data = NULL;
-		se_echo_data* echo_data = NULL;
-		se_flanger_data* flanger_data = NULL;
-		se_gargle_data* gargle_data = NULL;
-		se_reverb_data* reverb_data = NULL;
-		se_compressor_data* compressor_data = NULL;
-		se_equalizer_data* equalizer_data = NULL;
+		se_chorus_data* chorus_data = nullptr;
+		se_echo_data* echo_data = nullptr;
+		se_flanger_data* flanger_data = nullptr;
+		se_gargle_data* gargle_data = nullptr;
+		se_reverb_data* reverb_data = nullptr;
+		se_compressor_data* compressor_data = nullptr;
+		se_equalizer_data* equalizer_data = nullptr;
 	public:
 		Sound();
 		Sound(std::string, std::string, bool);

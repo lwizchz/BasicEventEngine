@@ -34,7 +34,7 @@ ObjBee::ObjBee() : Object("obj_bee", "bee.hpp") {
 	implemented_events[BEE_EVENT_DRAW] = true;
 
 	set_sprite(spr_bee);
-	fps_display = NULL;
+	fps_display = nullptr;
 }
 ObjBee::~ObjBee() {
 	delete fps_display;
@@ -51,7 +51,7 @@ void ObjBee::create(BEE::InstanceData* self) {
 
 	if (self->id == 0) {
 		BEE::ParticleSystem* part_system = new BEE::ParticleSystem(game);
-		//part_system->following = NULL;
+		//part_system->following = nullptr;
 
 		//BEE::Particle* part_done = new BEE::Particle(game, pt_shape_explosion, 0.5, 100);
 
