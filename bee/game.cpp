@@ -38,7 +38,7 @@ BEE::BEE(int new_argc, char** new_argv, const std::list<ProgramFlags*>& new_flag
 	handle_flags(new_flags, true);
 
 	if (options->should_assert) {
-		if (!verify_assertions()) {
+		if (!verify_assertions(argc, argv)) {
 			throw std::string("Couldn't verify assertions\n");
 		}
 	}

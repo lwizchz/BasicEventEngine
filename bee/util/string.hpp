@@ -11,7 +11,7 @@
 
 // String handling functions
 
-#include <string> // Include the necessary library headers
+#include <string> // Include the required library headers
 #include <algorithm>
 #include <regex>
 

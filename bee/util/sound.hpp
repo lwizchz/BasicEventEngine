@@ -11,12 +11,13 @@
 
 // Sound effect functions, not fully implemented
 
-#include <iostream>
+#include <iostream> // Include the required library headers
 #include <cmath>
 #include <vector>
-#include <SDL2/SDL_mixer.h>
 
-#include "real.hpp"
+#include <SDL2/SDL_mixer.h> // Include the SDL2_mixer headers for the audio data types
+
+#include "real.hpp" // Include the required real number functions
 
 /*
 * sound_effect_chorus() - Operate on the given sound data to produce a chorus effect

@@ -11,7 +11,7 @@
 
 // Real number functions
 
-#include <string> // Include the necessary library headers
+#include <string> // Include the required library headers
 #include <random>
 #include <time.h>
 #include <tuple>

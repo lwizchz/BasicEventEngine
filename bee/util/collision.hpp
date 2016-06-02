@@ -11,7 +11,7 @@
 
 // Collision checking functions
 
-#include <SDL2/SDL.h> // Include the required library functions
+#include <SDL2/SDL.h> // Include the required library headers
 
 #include "real.hpp" // Include the required real number functions
 

@@ -23,18 +23,18 @@
 
 #ifndef NDEBUG
 
-#define CATCH_CONFIG_RUNNER
-#include <catch.hpp> // Include the necessary library headers
+#define DOCTEST_CONFIG_IMPLEMENT
+#include "../lib/doctest.h"
 
 // Real number function assertions
-TEST_CASE("real/random", "The random functions work") {
-	REQUIRE(random(20) < 20);
+TEST_CASE("real/random") {
+	REQUIRE(random(20) < (unsigned int)20);
 	REQUIRE(is_between((int)random_range(20, 40), 20, 40));
-	REQUIRE(random_set_seed(5) == 5);
-	REQUIRE(random_reset_seed() != DEFAULT_RANDOM_SEED);
-	REQUIRE(randomize() != DEFAULT_RANDOM_SEED);
+	REQUIRE(random_set_seed(5) == (unsigned int)5);
+	REQUIRE(random_reset_seed() != (unsigned int)DEFAULT_RANDOM_SEED);
+	REQUIRE(randomize() != (unsigned int)DEFAULT_RANDOM_SEED);
 }
-TEST_CASE("real/math", "The math functions work") {
+TEST_CASE("real/math") {
 	REQUIRE(sign(5) == 1);
 	REQUIRE(sign(0) == 0);
 	REQUIRE(sign(-5) == -1);
@@ -45,33 +45,33 @@ TEST_CASE("real/math", "The math functions work") {
 	REQUIRE(sqr(5.0) == 25.0);
 	REQUIRE(logn(5.0, 1.0) == 0.0);
 	REQUIRE(logn(5.0, 5.0) == 1.0);
-	REQUIRE(logn(5.0, 10.0) == Approx(1.431).epsilon(0.001));
-	REQUIRE(degtorad(90.0) == Approx(PI/2.0));
-	REQUIRE(degtorad(360.0) == Approx(2.0*PI));
-	REQUIRE(radtodeg(PI) == Approx(180.0));
-	REQUIRE(radtodeg(PI/3.0) == Approx(60.0));
+	REQUIRE(logn(5.0, 10.0) == doctest::Approx(1.431).epsilon(0.001));
+	REQUIRE(degtorad(90.0) == doctest::Approx(PI/2.0));
+	REQUIRE(degtorad(360.0) == doctest::Approx(2.0*PI));
+	REQUIRE(radtodeg(PI) == doctest::Approx(180.0));
+	REQUIRE(radtodeg(PI/3.0) == doctest::Approx(60.0));
 	REQUIRE(opposite_angle(0.0) == 180.0);
 	REQUIRE(opposite_angle(60.0) == 240.0);
 	REQUIRE(opposite_angle(270.0) == 90.0);
 	REQUIRE(opposite_angle(360.0) == 180.0);
 	REQUIRE(opposite_angle(-90.0) == 90.0);
 }
-TEST_CASE("real/movement", "The movement functions work") {
-	REQUIRE(direction_of(1.0, 2.0, 3.0, 4.0) == Approx(opposite_angle(direction_of(3.0, 4.0, 1.0, 2.0))));
-	REQUIRE(direction_of(0.0, 0.0, 1.0, 0.0) == Approx(0.0));
-	REQUIRE(direction_of(0.0, 0.0, 0.0, 1.0) == Approx(90.0));
-	REQUIRE(direction_of(0.0, 0.0, -1.0, 0.0) == Approx(180.0));
-	REQUIRE(direction_of(0.0, 0.0, 0.0, -1.0) == Approx(270.0));
+TEST_CASE("real/movement") {
+	REQUIRE(direction_of(1.0, 2.0, 3.0, 4.0) == doctest::Approx(opposite_angle(direction_of(3.0, 4.0, 1.0, 2.0))));
+	REQUIRE(direction_of(0.0, 0.0, 1.0, 0.0) == doctest::Approx(0.0));
+	REQUIRE(direction_of(0.0, 0.0, 0.0, 1.0) == doctest::Approx(90.0));
+	REQUIRE(direction_of(0.0, 0.0, -1.0, 0.0) == doctest::Approx(180.0));
+	REQUIRE(direction_of(0.0, 0.0, 0.0, -1.0) == doctest::Approx(270.0));
 	REQUIRE(distance(0.0, 0.0, 1.0, 0.0) == 1.0);
 	REQUIRE(distance(0.0, 0.0, 3.0, 4.0) == 5.0);
 	REQUIRE(distance(0.0, 0.0, 0.0, 0.0) == 0.0);
 }
-TEST_CASE("real/dot_product", "The dot product functions work") {
+TEST_CASE("real/dot_product") {
 	REQUIRE(dot_product(1, 2, 3, 4) == 11);
 	REQUIRE(dot_product(1.0, 2.0, 3.0, 4.0) == 11.0);
 	REQUIRE(dot_product(std::make_pair(1, 2), std::make_pair(3, 4)) == 11);
 }
-TEST_CASE("real/bounds", "The bounding functions work") {
+TEST_CASE("real/bounds") {
 	REQUIRE(is_between(5, 3, 6) == true);
 	REQUIRE(is_between(6, 3, 6) == true);
 	REQUIRE(is_between(7, 3, 6) == false);
@@ -91,7 +91,7 @@ TEST_CASE("real/bounds", "The bounding functions work") {
 }
 
 // String handling function assertions
-TEST_CASE("string/charcode", "The char code conversion functions work") {
+TEST_CASE("string/charcode") {
 	REQUIRE(chr(65) == "A");
 	REQUIRE(ord('A') == 65);
 	REQUIRE(ord("ABC") == 65);
@@ -99,7 +99,7 @@ TEST_CASE("string/charcode", "The char code conversion functions work") {
 	REQUIRE(chra(ca) == std::string("ABC"));
 	REQUIRE(chra(orda("ABC")) == chra(ca));
 }
-TEST_CASE("string/alteration", "The string alteration functions work") {
+TEST_CASE("string/alteration") {
 	REQUIRE(string_lower("ABC") == "abc");
 	REQUIRE(string_upper("abc") == "ABC");
 	REQUIRE(string_letters("ABC123,./") == "ABC");
@@ -114,7 +114,7 @@ TEST_CASE("string/alteration", "The string alteration functions work") {
 	REQUIRE(rtrim("  ABC  ") == "  ABC");
 	REQUIRE(trim("  ABC  ") == "ABC");
 }
-TEST_CASE("string/misc", "The miscellaneous string functions work") {
+TEST_CASE("string/misc") {
 	REQUIRE(stringtobool("true") == true);
 	REQUIRE(stringtobool("false") == false);
 	REQUIRE(stringtobool("0") == false);
@@ -136,7 +136,7 @@ TEST_CASE("string/misc", "The miscellaneous string functions work") {
 }
 
 // Date and time function assertions
-TEST_CASE("date/setters", "The date setter functions work") {
+TEST_CASE("date/setters") {
 	time_t t = date_create_datetime(2015, 11, 1, 11, 45, 24);
 	REQUIRE(date_date_of(t) == date_create_date(2015, 11, 1));
 	REQUIRE(date_time_of(t) == date_create_time(11, 45, 24));
@@ -149,7 +149,7 @@ TEST_CASE("date/setters", "The date setter functions work") {
 	REQUIRE(date_inc_minute(t, 5) == date_create_datetime(2015, 11, 1, 11, 50, 24));
 	REQUIRE(date_inc_second(t, 5) == date_create_datetime(2015, 11, 1, 11, 45, 29));
 }
-TEST_CASE("date/getters", "The date getter functions work") {
+TEST_CASE("date/getters") {
 	time_t t = date_create_datetime(2015, 11, 1, 11, 45, 24);
 	REQUIRE(date_get_year(t) == 2015);
 	REQUIRE(date_get_month(t) == 11);
@@ -165,13 +165,13 @@ TEST_CASE("date/getters", "The date getter functions work") {
 	REQUIRE(date_get_second_of_year(t) == 26307924);
 
 	time_t ot = date_create_datetime(1997, 1, 24, 4, 25, 00);
-	REQUIRE(date_year_span(t, ot) == Approx(18.78).epsilon(0.01));
-	REQUIRE(date_month_span(t, ot) == Approx(228.51).epsilon(0.01));
-	REQUIRE(date_week_span(t, ot) == Approx(979.33).epsilon(0.01));
-	REQUIRE(date_day_span(t, ot) == Approx(6855.31).epsilon(0.01));
-	REQUIRE(date_hour_span(t, ot) == Approx(164527.34).epsilon(0.01));
-	REQUIRE(date_minute_span(t, ot) == Approx(9871640.40).epsilon(0.01));
-	REQUIRE(date_second_span(t, ot) == Approx(592298424.00).epsilon(0.01));
+	REQUIRE(date_year_span(t, ot) == doctest::Approx(18.78).epsilon(0.01));
+	REQUIRE(date_month_span(t, ot) == doctest::Approx(228.51).epsilon(0.01));
+	REQUIRE(date_week_span(t, ot) == doctest::Approx(979.33).epsilon(0.01));
+	REQUIRE(date_day_span(t, ot) == doctest::Approx(6855.31).epsilon(0.01));
+	REQUIRE(date_hour_span(t, ot) == doctest::Approx(164527.34).epsilon(0.01));
+	REQUIRE(date_minute_span(t, ot) == doctest::Approx(9871640.40).epsilon(0.01));
+	REQUIRE(date_second_span(t, ot) == doctest::Approx(592298424.00).epsilon(0.01));
 	REQUIRE(date_compare_datetime(t, ot) == 1);
 	REQUIRE(date_compare_date(t, ot) == 1);
 	REQUIRE(date_compare_time(t, ot) == 1);
@@ -188,15 +188,15 @@ TEST_CASE("date/getters", "The date getter functions work") {
 }
 
 // Collision checking function assertions, TODO: add more tests for each case
-TEST_CASE("collision/rect", "The rectangle collision checking functions work") {
+TEST_CASE("collision/rect") {
 	SDL_Rect a = {0, 0, 10, 10};
 	SDL_Rect b = {5, 5, 10, 20};
 	REQUIRE(check_collision(a, b) == true);
 }
-TEST_CASE("collision/circle", "The circle collision checking functions work") {
+TEST_CASE("collision/circle") {
 	REQUIRE(check_collision_circle(0, 0, 5, 0, 7, 3) == true);
 }
-TEST_CASE("collision/line", "The line collision checking functions work") {
+TEST_CASE("collision/line") {
 	Line l1 = {0, 0, 5, 10};
 	Line l2 = {5, 5, 0, 10};
 	REQUIRE(check_collision_line(l1, l2) == true);
@@ -205,7 +205,7 @@ TEST_CASE("collision/line", "The line collision checking functions work") {
 	l2 = {5, 5, 5, -5};
 	REQUIRE(check_collision_line(l1, l2) == true);
 }
-TEST_CASE("collision/bounce", "The collision bouncing functions work") {
+TEST_CASE("collision/bounce") {
 	REQUIRE(angle_hbounce(60.0) == 120.0);
 	REQUIRE(angle_hbounce(120.0) == 60.0);
 
@@ -213,16 +213,25 @@ TEST_CASE("collision/bounce", "The collision bouncing functions work") {
 	REQUIRE(angle_vbounce(300.0) == 60.0);
 }
 
-bool verify_assertions() {
-	return !(bool)Catch::Session().run();
+// Message box function assertions
+TEST_CASE("messagebox/general") {
+	// Right now the message box functions can't be tested because they create a modal dialog
+}
+
+bool verify_assertions(int argc, char** argv) {
+	return !(bool)doctest::Context(argc, argv).run();
 }
 
 #else // NDEBUG
 
-bool verify_assertions() {
+bool verify_assertions(int argc, char** argv) {
 	return true;
 }
 
 #endif // NDEBUG
+
+bool verify_assertions() {
+	return verify_assertions(0, (char**)NULL);
+}
 
 #endif // _BEE_UTIL

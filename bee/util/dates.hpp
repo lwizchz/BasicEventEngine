@@ -11,7 +11,7 @@
 
 // Date and time functions
 
-#include <string> // Include the required library functions
+#include <string> // Include the required library headers
 #include <time.h>
 #include <cmath>
 

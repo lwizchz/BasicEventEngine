@@ -16,6 +16,7 @@
 #include <SDL2/SDL_net.h>
 
 // General utility functions bee/util.cpp
+bool verify_assertions(int, char**);
 bool verify_assertions();
 
 // Platform compatibility functions, bee/util/platform.hpp
@@ -165,12 +166,12 @@ void sound_effect_equalizer(int, void*, int, void*);
 void sound_effect_equalizer_cleanup(int, void*);
 
 // Message box functions, bee/util/messagebox.hpp
+int show_message(std::string, std::string, std::string, std::string);
+bool show_question(std::string);
 int show_message(std::string);
 int show_warning(std::string);
 int show_error(std::string, bool);
 int show_error(std::string);
-int show_message(std::string, std::string, std::string, std::string);
-bool show_question(std::string);
 
 // File handling functions, bee/util/files.hpp
 bool file_exists(std::string);
