@@ -18,6 +18,8 @@ set(warns "-Wall -Wextra -Wpedantic -Wshadow -Wno-unused-parameter -Wno-unused-v
 set(defines "-DBEE_GAME_ID=${BEE_GAME_ID} -DBEE_VERSION_MAJOR=${VERSION_MAJOR} -DBEE_VERSION_MINOR=${VERSION_MINOR} -DBEE_VERSION_RELEASE=${VERSION_RELEASE}")
 set(CMAKE_CXX_FLAGS "-g -pg -pipe -std=c++11 ${warns} -D_REENTRANT ${defines}")
 
+include_directories("lib/doctest/doctest/")
+
 # Enable link time optimization if it is supported
 if(GXX_HAS_LTO_FLAG)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto")

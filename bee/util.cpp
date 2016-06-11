@@ -24,7 +24,7 @@
 #ifndef NDEBUG
 
 #define DOCTEST_CONFIG_IMPLEMENT
-#include "../lib/doctest.h"
+#include "doctest.h"
 
 // Real number function assertions
 TEST_CASE("real/random") {
