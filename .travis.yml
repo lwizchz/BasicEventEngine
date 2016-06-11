@@ -12,9 +12,9 @@ before_install:
   - if [ "$CXX" = "g++" ]; then sudo apt-get install -qq g++-4.9; fi
   - if [ "$CXX" = "g++" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
   - curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
-  - sudo apt-get install -qq git-lfs
-  - git lfs init
-  - git pull
+  - sudo apt-get install -qq git-lfs=1.2.1
+  - git lfs install
+  - git lfs pull
 before_script:
   - mkdir build
   - cd build

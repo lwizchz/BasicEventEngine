@@ -386,22 +386,24 @@ int BEE::Background::draw(int x, int y, BackgroundData* b) {
 		rect.w = width;
 		rect.h = height;
 
-		if (b->is_horizontal_tile && b->is_vertical_tile) {
-			while (rect.y-rect.h < game->get_room_height()) {
+		if ((rect.w > 0)&&(rect.h > 0)) {
+			if (b->is_horizontal_tile && b->is_vertical_tile) {
+				while (rect.y-rect.h < game->get_room_height()) {
+					tile_horizontal(&rect);
+					rect.y += rect.h;
+				}
+				rect.y = y + dy - rect.h;
+				while (rect.y+rect.h > 0) {
+					tile_horizontal(&rect);
+					rect.y -= rect.h;
+				}
+			} else if (b->is_horizontal_tile) {
 				tile_horizontal(&rect);
-				rect.y += rect.h;
+			} else if (b->is_vertical_tile) {
+				tile_vertical(&rect);
+			} else {
+				draw_internal(nullptr, &rect);
 			}
-			rect.y = y + dy - rect.h;
-			while (rect.y+rect.h > 0) {
-				tile_horizontal(&rect);
-				rect.y -= rect.h;
-			}
-		} else if (b->is_horizontal_tile) {
-			tile_horizontal(&rect);
-		} else if (b->is_vertical_tile) {
-			tile_vertical(&rect);
-		} else {
-			draw_internal(nullptr, &rect);
 		}
 	}
 
