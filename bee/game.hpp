@@ -421,7 +421,7 @@ class BEE::NetworkData {
 		UDPsocket udp_recv = nullptr;
 		UDPpacket* udp_data = nullptr;
 
-		int id = BEE_GAME_ID >> 4;
+		int id = BEE_GAME_ID / 1000;
 		bool is_connected = false;
 		bool is_host = false;
 		int channel = -1;

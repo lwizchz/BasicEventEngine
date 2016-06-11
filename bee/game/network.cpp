@@ -96,7 +96,7 @@ int BEE::net_handle_events() {
 					int id = net->players.size(); // Get an id for the client
 
 					UDPsocket sock = nullptr;
-					int c = network_udp_bind(sock, -1, &net->udp_data->address); // Bind a sending socket to the client who is requesting a connection
+					int c = network_udp_bind(&sock, -1, &net->udp_data->address); // Bind a sending socket to the client who is requesting a connection
 
 					network_udp_send(sock, c, 0, 1, id); // Send the client their id
 
@@ -107,7 +107,7 @@ int BEE::net_handle_events() {
 				break;
 			}
 			case 2: { // Client disconnected
-				network_udp_close(net->players[net->udp_data->data[1]]); // Close the sending socket to the client who has disconnected
+				network_udp_close(&net->players[net->udp_data->data[1]]); // Close the sending socket to the client who has disconnected
 
 				net->players.erase(net->udp_data->data[1]); // Remove them from the list of clients
 
@@ -194,8 +194,8 @@ int BEE::net_handle_events() {
 			}
 			case 2: { // Disconnected by host
 				net->is_connected = false; // Mark our networking as unconnected
-				network_udp_close(net->udp_send); // Close our sockets which pointed at the host
-				network_udp_close(net->udp_recv);
+				network_udp_close(&net->udp_send); // Close our sockets which pointed at the host
+				network_udp_close(&net->udp_recv);
 				break;
 			}
 			case 3: { // Server info received
@@ -212,10 +212,10 @@ int BEE::net_handle_events() {
 						std::map <std::string,std::string> t; // Temp map to store IP addresses in
 						net->players.clear(); // Remove all players in order to clean out old connections
 
-						network_map_decode(net->udp_data->data+4, t); // Decode the player map from the data into t
+						network_map_decode(net->udp_data->data+4, &t); // Decode the player map from the data into t
 						for (auto& p : t) { // Iterate over the players in the temp map in order to generate sockets for each of them
 							UDPsocket sock = nullptr;
-							network_udp_bind(sock, -1, p.second); // Bind a socket to the player's IP address
+							network_udp_bind(&sock, -1, p.second); // Bind a socket to the player's IP address
 
 							net->players.insert(std::pair<int,UDPsocket>(bee_stoi(p.first), sock)); // Insert the player's id and IP address into our copy of the player map
 						}
@@ -223,7 +223,7 @@ int BEE::net_handle_events() {
 						break;
 					}
 					case 3: { // Received data map
-						network_map_decode(net->udp_data->data+4, net->data); // Decode the data map directly into net->data in order to immediately replace all old data
+						network_map_decode(net->udp_data->data+4, &net->data); // Decode the data map directly into net->data in order to immediately replace all old data
 						break;
 					}
 				}
@@ -273,9 +273,9 @@ std::map<std::string,std::string> BEE::net_session_find() {
 		return net->servers; // Return an empty map if the receiving socket failed to open
 	}
 
-	net->channel = network_udp_bind(net->udp_send, -1, "255.255.255.255", net->id); // Bind a sending socket to the broadcast IP 255.255.255.255
+	net->channel = network_udp_bind(&net->udp_send, -1, "255.255.255.255", net->id); // Bind a sending socket to the broadcast IP 255.255.255.255
 	if (net->channel == -1) {
-		network_udp_close(net->udp_recv); // Close the receiving socket
+		network_udp_close(&net->udp_recv); // Close the receiving socket
 
 		std::cerr << "Net: net_session_find() : UDP broadcast socket failed to bind\n"; // Output error string
 		return net->servers; // Return an empty map if the sending socket failed to bind
@@ -284,8 +284,8 @@ std::map<std::string,std::string> BEE::net_session_find() {
 	network_udp_send(net->udp_send, net->channel, net->self_id, 3, 0); // Send a server name info request
 
 	if (network_packet_realloc(net->udp_data, 8)) { // Attempt to allocate space to receive data
-		network_udp_close(net->udp_recv); // Close the sockets
-		network_udp_close(net->udp_send);
+		network_udp_close(&net->udp_recv); // Close the sockets
+		network_udp_close(&net->udp_send);
 
 		std::cerr << "Net: net_session_find() : Failed to allocate space to receive data\n";
 		return net->servers; // Return an empty map if the allocation failed
@@ -301,8 +301,8 @@ std::map<std::string,std::string> BEE::net_session_find() {
 		r = network_udp_recv(net->udp_recv, net->udp_data); // Attempt to receive more data
 	}
 
-	network_udp_close(net->udp_recv); // Close the receiving socket
-	network_udp_close(net->udp_send); // Close the sending socket
+	network_udp_close(&net->udp_recv); // Close the receiving socket
+	network_udp_close(&net->udp_send); // Close the sending socket
 	return net->servers; // Return the filled map on success
 }
 /*
@@ -318,9 +318,9 @@ int BEE::net_session_join(const std::string& ip, const std::string& player_name)
 		return 1; // Return 1 if the receiving socket failed to open
 	}
 
-	net->channel = network_udp_bind(net->udp_send, -1, ip, net->id); // Bind a sending socket to the given server IP address
+	net->channel = network_udp_bind(&net->udp_send, -1, ip, net->id); // Bind a sending socket to the given server IP address
 	if (net->channel == -1) {
-		network_udp_close(net->udp_recv); // Close the receiving socket
+		network_udp_close(&net->udp_recv); // Close the receiving socket
 
 		return 2; // Return 2 if the sending socket failed to bind
 	}
@@ -328,8 +328,8 @@ int BEE::net_session_join(const std::string& ip, const std::string& player_name)
 	network_udp_send(net->udp_send, net->channel, 0, 1, 0); // Send a server connection request
 
 	if (network_packet_realloc(net->udp_data, 8)) { // Attempt to allocate space to receive data
-		network_udp_close(net->udp_recv); // Close the sockets
-		network_udp_close(net->udp_send);
+		network_udp_close(&net->udp_recv); // Close the sockets
+		network_udp_close(&net->udp_send);
 
 		return 3; // Return 3 if the allocation failed
 	}
@@ -341,8 +341,8 @@ int BEE::net_session_join(const std::string& ip, const std::string& player_name)
 	}
 
 	if ((r < 1)||(net->udp_data->data[0] != 1)) { // If no data was received or if the data was not a connection response
-		network_udp_close(net->udp_recv); // Close the sockets
-		network_udp_close(net->udp_send);
+		network_udp_close(&net->udp_recv); // Close the sockets
+		network_udp_close(&net->udp_send);
 
 		std::cerr << "Net: net_session_join() : Failed to connect to " << ip << "\n"; // Output error string
 		return 4; // Return 4 on failed to connect
@@ -369,7 +369,7 @@ int BEE::net_session_end() {
 	if (net->is_host) { // If we are the host
 		for (auto& p : net->players) { // Iterate over the clients to disconnect them
 			network_udp_send(p.second, net->channel, net->self_id, 2, 0); // Send a disconnection signal
-			network_udp_close(p.second); // Close the socket
+			network_udp_close(&p.second); // Close the socket
 		}
 
 		// Reset connection info
@@ -379,8 +379,8 @@ int BEE::net_session_end() {
 	}
 
 	// Close sockets and free data
-	network_udp_close(net->udp_send);
-	network_udp_close(net->udp_recv);
+	network_udp_close(&net->udp_send);
+	network_udp_close(&net->udp_recv);
 	network_packet_free(net->udp_data);
 
 	// Reset connection and client info

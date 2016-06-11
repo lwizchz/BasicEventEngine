@@ -240,6 +240,77 @@ TEST_CASE("files") {
 	REQUIRE(file_extname(tmpdir+"log/test.txt") == ".txt");
 }
 
+// Networking function assertions
+TEST_CASE("network") {
+	REQUIRE(network_init() == 0);
+	int port = BEE_GAME_ID / 1000;
+	REQUIRE(network_get_address(network_resolve_host("127.0.0.1", port)->host) == "127.0.0.1");
+
+	TCPsocket tcp = network_tcp_open("", port);
+	REQUIRE(tcp != (TCPsocket)nullptr);
+	REQUIRE(network_tcp_close(&tcp) == 0);
+	REQUIRE(tcp == (TCPsocket)nullptr);
+
+	UDPsocket udp = network_udp_open(port);
+	REQUIRE(udp != (UDPsocket)nullptr);
+	REQUIRE(network_udp_close(&udp) == 0);
+	REQUIRE(udp == (UDPsocket)nullptr);
+	REQUIRE(network_udp_bind(&udp, -1, "127.0.0.1", port) != -1);
+	REQUIRE(network_udp_unbind(&udp, -1) == 0);
+
+	REQUIRE(network_close() == 0);
+}
+
+// Template-requiring function assertions
+TEST_CASE("template") {
+	int c1 = choose<int>(1, 2, 3, 4);
+	REQUIRE(((c1 == 1)||(c1 == 2)||(c1 == 3)||(c1 == 4)));
+	double c2 = choose<double>(1.0, 2.0, 3.0, 4.0);
+	REQUIRE(((c2 == 1.0)||(c2 == 2.0)||(c2 == 3.0)||(c2 == 4.0)));
+	std::string c3 = choose<std::string>("a", "b", "c", "d");
+	REQUIRE(((c3 == "a")||(c3 == "b")||(c3 == "c")||(c3 == "d")));
+
+	int min1 = min<int>(1, 2, 3, 4);
+	REQUIRE(min1 == 1);
+	double min2 = min<double>(1.0, 2.0, 3.0, 4.0);
+	REQUIRE(min2 == 1.0);
+	std::string min3 = min<std::string>("a", "b", "c", "d");
+	REQUIRE(min3 == "a");
+
+	int max1 = max<int>(1, 2, 3, 4);
+	REQUIRE(max1 == 4);
+	double max2 = max<double>(1.0, 2.0, 3.0, 4.0);
+	REQUIRE(max2 == 4.0);
+	std::string max3 = max<std::string>("a", "b", "c", "d");
+	REQUIRE(max3 == "d");
+
+	int mean1 = mean<int>(1, 2, 3, 4);
+	REQUIRE(mean1 == 2);
+	double mean2 = mean<double>(1.0, 2.0, 3.0, 4.0);
+	REQUIRE(mean2 == 2.5);
+
+	int median1 = median<int>(1, 2, 3, 4);
+	REQUIRE(median1 == 2);
+	int median2 = median<int>(1, 2, 3, 4, 5);
+	REQUIRE(median2 == 3);
+	double median3 = median<double>(1.0, 2.0, 3.0, 4.0);
+	REQUIRE(median3 == 2.5);
+	double median4 = median<double>(1.0, 2.0, 3.0, 4.0, 5.0);
+	REQUIRE(median4 == 3.0);
+
+	std::map<std::string, int> m = {
+		{ "a", 1 },
+		{ "b", 2 },
+		{ "c", 3 },
+		{ "d", 4 }
+	};
+	std::map<std::string, int> n;
+	Uint8* a = network_map_encode(m);
+	REQUIRE(a[0] == 24);
+	REQUIRE((network_map_decode(a, &n) == 0));
+	REQUIRE(std::equal(m.begin(), m.end(), n.begin()));
+}
+
 bool verify_assertions(int argc, char** argv) {
 	return !(bool)doctest::Context(argc, argv).run();
 }
