@@ -27,8 +27,12 @@ std::string BEE::get_usage_text() {
 		"		Set the dimensions of the window to width w and height h\n"
 		"	--fullscreen, -f\n"
 		"		Enable fullscreen mode, this will resize the window to fit the screen\n"
+		"	--opengl, -f\n"
+		"		Use the highest version of OpenGL renderer available (currently either 4.1 or 3.3)\n"
 		"	--no-assert\n"
 		"		Disable assertion verification for the utility functions\n"
+		"	--sdl\n"
+		"		Use the SDL renderer\n"
 		"	--single-run\n"
 		"		Run the main loop a single time to verify that things are in working order\n"
 		"	--windowed, -w\n"
@@ -66,9 +70,19 @@ std::list<BEE::ProgramFlags*> BEE::get_standard_flags() {
 				g->options->is_fullscreen = true;
 			}
 		);
+		ProgramFlags* f_opengl = new ProgramFlags(
+			"opengl", '\0', true, no_argument, [] (BEE* g, char* arg) -> void {
+				g->options->renderer_type = BEE_RENDERER_OPENGL4;
+			}
+		);
 		ProgramFlags* f_noassert = new ProgramFlags(
 			"no-assert", '\0', true, no_argument, [] (BEE* g, char* arg) -> void {
 				g->options->should_assert = false;
+			}
+		);
+		ProgramFlags* f_sdl = new ProgramFlags(
+			"sdl", '\0', true, no_argument, [] (BEE* g, char* arg) -> void {
+				g->options->renderer_type = BEE_RENDERER_SDL;
 			}
 		);
 		ProgramFlags* f_singlerun = new ProgramFlags(
@@ -82,7 +96,7 @@ std::list<BEE::ProgramFlags*> BEE::get_standard_flags() {
 			}
 		);
 
-		flag_list = {f_help, f_debug, f_dimensions, f_fullscreen, f_noassert, f_singlerun, f_windowed};
+		flag_list = {f_help, f_debug, f_dimensions, f_fullscreen, f_opengl, f_noassert, f_sdl, f_singlerun, f_windowed};
 	}
 	return flag_list;
 }
