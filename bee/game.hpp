@@ -138,14 +138,16 @@ class BEE { // The master engine class which effectively acts as a namespace
 
 		Sprite* texture_before = nullptr;
 		Sprite* texture_after = nullptr;
-		int transition_type = 0;
-		unsigned int transition_speed = 80;
-		const int transition_max = 21;
+		bee_transition_t transition_type = BEE_TRANSITION_NONE;
+		double transition_speed = 80.0/DEFAULT_GAME_FPS;
+		std::function<void (BEE*, Sprite*, Sprite*)> transition_custom_func = nullptr;
 
 		const Uint8* keystate;
 
 		std::vector<std::string> console_input;
 		int console_line = 0;
+
+		int update_delta();
 	public:
 		unsigned int fps_stable;
 
@@ -245,7 +247,11 @@ class BEE { // The master engine class which effectively acts as a namespace
 		int set_render_target(Background*, int, int);
 		int set_render_target(Background*);
 
-		int set_transition_type(int);
+		int get_transition_type() const;
+		int set_transition_type(bee_transition_t);
+		int set_transition_custom(std::function<void (BEE*, Sprite*, Sprite*)>);
+		double get_transition_speed() const;
+		int set_transition_speed(double);
 		int draw_transition();
 
 		// bee/game/display.cpp

@@ -108,10 +108,12 @@ void ObjBee::step_mid(BEE::InstanceData* self) {
 void ObjBee::keyboard_press(BEE::InstanceData* self, SDL_Event* e) {
 	switch (e->key.keysym.sym) {
 		case SDLK_RETURN: {
+			game->set_transition_type((bee_transition_t)(game->get_transition_type()+1));
 			game->restart_room();
 			break;
 		}
 		case SDLK_q: {
+			game->set_transition_type(BEE_TRANSITION_NONE);
 			game->end_game();
 			break;
 		}

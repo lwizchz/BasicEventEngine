@@ -11,10 +11,8 @@ before_install:
   - sudo apt-get install -qq cmake libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev libsdl2-net-dev libglew-dev libglm-dev freeglut3-dev libxmu-dev
   - if [ "$CXX" = "g++" ]; then sudo apt-get install -qq g++-4.9; fi
   - if [ "$CXX" = "g++" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
-  - curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
-  - sudo apt-get install -qq git-lfs=1.2.1
-  - git lfs install
-  - git lfs pull
+  - wget https://lukemontalvo.us/BasicEventEngine/resources.tar.gz
+  - tar xzf resources.tar.gz
 before_script:
   - mkdir build
   - cd build

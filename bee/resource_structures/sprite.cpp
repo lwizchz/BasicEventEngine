@@ -73,11 +73,14 @@ int BEE::Sprite::reset() {
 	height = 0;
 	subimage_amount = 1;
 	subimage_width = 0;
+	crop = {0, 0, 0, 0};
 	speed = 0.0;
 	alpha = 1.0;
 	is_animated = false;
 	origin_x = 0;
 	origin_y = 0;
+	rotate_x = 0.5;
+	rotate_y = 0.5;
 
 	texture = nullptr;
 	is_loaded = false;
@@ -142,6 +145,12 @@ int BEE::Sprite::get_origin_x() {
 int BEE::Sprite::get_origin_y() {
 	return origin_y;
 }
+double BEE::Sprite::get_rotate_x() {
+	return rotate_x;
+}
+double BEE::Sprite::get_rotate_y() {
+	return rotate_y;
+}
 SDL_Texture* BEE::Sprite::get_texture() {
 	return texture;
 }
@@ -163,7 +172,7 @@ int BEE::Sprite::set_subimage_amount(int new_subimage_amount, int new_subimage_w
 	subimage_width = new_subimage_width;
 
 	for (int i=0; i<subimage_amount; i++) {
-		subimages.push_back({i*subimage_width, 0, subimage_width, 0});
+		subimages.push_back({i*subimage_width, 0, subimage_width, height});
 	}
 
 	if (game->options->renderer_type != BEE_RENDERER_SDL) {
@@ -196,6 +205,57 @@ int BEE::Sprite::set_subimage_amount(int new_subimage_amount, int new_subimage_w
 
 	return 0;
 }
+int BEE::Sprite::crop_image(SDL_Rect new_crop) {
+	crop = new_crop;
+
+	if ((crop.w == -1)&&(crop.h == -1)) {
+		set_subimage_amount(1, width);
+		crop = {0, 0, width, height};
+		return 0;
+	}
+
+	set_subimage_amount(1, crop.w);
+	subimages[0] = crop;
+
+	if (game->options->renderer_type != BEE_RENDERER_SDL) {
+		if (!vbo_texcoords.empty()) {
+			for (auto& t : vbo_texcoords) {
+				glDeleteBuffers(1, &t);
+			}
+			vbo_texcoords.clear();
+		}
+
+
+		GLfloat x, y, w, h;
+		x = crop.x; y = crop.y;
+		w = crop.w; h = crop.h;
+		x /= width; w /= width;
+		y /= height; h /= height;
+
+		GLuint new_texcoord;
+		GLfloat texcoords[] = {
+			x, y,
+			x+w, y,
+			x+w, y+h,
+			x, y+h
+		};
+		glGenBuffers(1, &new_texcoord);
+		glBindBuffer(GL_ARRAY_BUFFER, new_texcoord);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(texcoords), texcoords, GL_STATIC_DRAW);
+
+		vbo_texcoords.push_back(new_texcoord);
+	}
+
+	return 0;
+}
+int BEE::Sprite::crop_image_width(int new_crop_width) {
+	crop.w = new_crop_width;
+	return crop_image(crop);
+}
+int BEE::Sprite::crop_image_height(int new_crop_height) {
+	crop.h = new_crop_height;
+	return crop_image(crop);
+}
 int BEE::Sprite::set_speed(double new_speed) {
 	speed = new_speed;
 	return 0;
@@ -222,6 +282,19 @@ int BEE::Sprite::set_origin_center() {
 	set_origin_y(height/2);
 	return 0;
 }
+int BEE::Sprite::set_rotate_x(double new_rotate_x) {
+	rotate_x = new_rotate_x;
+	return 0;
+}
+int BEE::Sprite::set_rotate_y(double new_rotate_y) {
+	rotate_y = new_rotate_y;
+	return 0;
+}
+int BEE::Sprite::set_rotate_xy(double new_rotate_x, double new_rotate_y) {
+	set_rotate_x(new_rotate_x);
+	set_rotate_y(new_rotate_y);
+	return 0;
+}
 
 int BEE::Sprite::load_from_surface(SDL_Surface* tmp_surface) {
 	if (!is_loaded) {
@@ -233,6 +306,7 @@ int BEE::Sprite::load_from_surface(SDL_Surface* tmp_surface) {
 			} else {
 				set_subimage_amount(subimage_amount, width/subimage_amount);
 			}
+			crop = {0, 0, width, height};
 
 			GLfloat vertices[] = {
 				0.0, 0.0,
@@ -368,9 +442,9 @@ int BEE::Sprite::draw_subimage(int x, int y, int current_subimage, int w, int h,
 		glm::mat4 model = glm::translate(glm::mat4(1.0), glm::vec3(drect.x, drect.y, 0.0));
 		model = glm::scale(model, glm::vec3((double)w/rect_width, (double)h/height, 1.0));
 		if (angle != 0.0) {
-			glm::mat4 rotation = glm::translate(glm::mat4(1.0), glm::vec3((double)rect_width/2.0, (double)height/2.0, 0.0));
+			glm::mat4 rotation = glm::translate(glm::mat4(1.0), glm::vec3((double)rect_width*rotate_x, (double)height*rotate_y, 0.0));
 			rotation = glm::rotate(rotation, (float)degtorad(angle), glm::vec3(0.0, 0.0, 1.0));
-			rotation = glm::translate(rotation, glm::vec3(-(double)rect_width/2.0, -(double)height/2.0, 0.0));
+			rotation = glm::translate(rotation, glm::vec3(-(double)rect_width*rotate_x, -(double)height*rotate_y, 0.0));
 			glUniformMatrix4fv(game->rotation_location, 1, GL_FALSE, glm::value_ptr(rotation));
 		}
 		glUniformMatrix4fv(game->model_location, 1, GL_FALSE, glm::value_ptr(model));
@@ -442,11 +516,7 @@ int BEE::Sprite::draw_subimage(int x, int y, int current_subimage, int w, int h,
 			}
 
 			if (!subimages.empty()) {
-				srect.x = subimages[current_subimage].x;
-				srect.y = 0;
-				srect.w = subimages[current_subimage].w;
-				srect.h = height;
-
+				srect = subimages[current_subimage];
 				SDL_RenderCopyEx(game->renderer, texture, &srect, &drect, angle, nullptr, flip);
 			} else {
 				SDL_RenderCopyEx(game->renderer, texture, nullptr, &drect, angle, nullptr, flip);
@@ -656,6 +726,7 @@ int BEE::Sprite::set_as_target(int w, int h) {
 		width = w;
 		height = h;
 		set_subimage_amount(1, width);
+		crop = {0, 0, width, height};
 
 		GLfloat vertices[] = {
 			0.0, 0.0,
@@ -718,6 +789,7 @@ int BEE::Sprite::set_as_target(int w, int h) {
 		width = w;
 		height = h;
 		set_subimage_amount(1, width);
+		crop = {0, 0, width, height};
 
 		SDL_SetRenderTarget(game->renderer, texture);
 

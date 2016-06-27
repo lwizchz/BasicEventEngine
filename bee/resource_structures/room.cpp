@@ -577,10 +577,7 @@ int BEE::Room::reset_properties() {
 	}
 	backgrounds.clear();
 
-	for (auto& p : particles) {
-		p.second->clear();
-	}
-	particles.clear();
+	clear_particles();
 
 	return 0;
 }

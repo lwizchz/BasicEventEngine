@@ -31,9 +31,11 @@ class BEE::Sprite: public Resource {
 		std::string image_path;
 		int width, height;
 		int subimage_amount, subimage_width;
+		SDL_Rect crop;
 		double speed, alpha;
 		bool is_animated;
 		int origin_x, origin_y;
+		double rotate_x, rotate_y;
 
 		SDL_Texture* texture;
 		bool is_loaded = false;
@@ -67,18 +69,26 @@ class BEE::Sprite: public Resource {
 		bool get_is_animated();
 		int get_origin_x();
 		int get_origin_y();
+		double get_rotate_x();
+		double get_rotate_y();
 		SDL_Texture* get_texture();
 		bool get_is_loaded();
 
 		int set_name(std::string);
 		int set_path(std::string);
 		int set_subimage_amount(int, int);
+		int crop_image(SDL_Rect);
+		int crop_image_width(int);
+		int crop_image_height(int);
 		int set_speed(double);
 		int set_alpha(double);
 		int set_origin_x(int);
 		int set_origin_y(int);
 		int set_origin_xy(int, int);
 		int set_origin_center();
+		int set_rotate_x(double);
+		int set_rotate_y(double);
+		int set_rotate_xy(double, double);
 
 		int load_from_surface(SDL_Surface*);
 		int load();

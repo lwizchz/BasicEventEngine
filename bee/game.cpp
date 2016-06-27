@@ -410,8 +410,7 @@ int BEE::loop() {
 					SDL_Delay((1000/fps_desired) - (new_tickstamp - tickstamp));
 				}
 			}
-			tick_delta = get_ticks() - tickstamp;
-			tickstamp = get_ticks();
+			update_delta();
 
 			if (tickstamp - fps_ticks >= 1000) {
 				fps_stable = fps_count / ((tickstamp-fps_ticks)/1000);
@@ -455,8 +454,8 @@ int BEE::loop() {
 
 	current_room->room_end();
 	current_room->game_end();
+	change_room(nullptr, false);
 	is_ready = false;
-	current_room->reset_properties();
 
 	return 0;
 }
@@ -514,6 +513,11 @@ int BEE::close() {
 #include "game/resources.cpp"
 #endif // _WINDOWS
 
+int BEE::update_delta() {
+	tick_delta = get_ticks() - tickstamp;
+	tickstamp = get_ticks();
+	return 0;
+}
 Uint32 BEE::get_ticks() const {
 	return SDL_GetTicks();
 }

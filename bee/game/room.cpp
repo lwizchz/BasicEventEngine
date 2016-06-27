@@ -24,18 +24,14 @@ void BEE::restart_room() const {
 * @should_jump: whether we should jump to the end of the event loop or not when we finish setting up the new room
 */
 int BEE::change_room(Room* new_room, bool should_jump) {
-	if (quit) { // If the quit flag is set then abort room change
+	if (((quit)^(new_room != nullptr)) == false) { // Abort the room change if either the quit flag is set without a null room or if the quit flag is unset with a null room
 		throw 4; // Throw an exception to jump to the end of the event loop
 		return 1; // Return 1 to satisfy the compiler
 	}
 
-	if (new_room == nullptr) { // If the given room is nullptr then abort
-		return 1; // Return 1 on invalid room resource
-	}
-
 	bool is_game_start = false;
 	if (current_room != nullptr) { // if we are currently in a room
-		if (transition_type != 0) { // If a transition has been defined then draw the current room into the before buffer
+		if (transition_type != BEE_TRANSITION_NONE) { // If a transition has been defined then draw the current room into the before buffer
 			set_render_target(texture_before);
 			render_clear();
 			current_room->draw();
@@ -44,7 +40,7 @@ int BEE::change_room(Room* new_room, bool should_jump) {
 		current_room->room_end(); // Run the room_end event for the current room
 		current_room->reset_properties(); // Reset the current room's properties
 	} else { // if we are not in a room
-		if (transition_type != 0) { // If a transition has been defined then draw nothing into the before buffer
+		if (transition_type != BEE_TRANSITION_NONE) { // If a transition has been defined then draw nothing into the before buffer
 			set_render_target(texture_before);
 			render_clear();
 			render();
@@ -55,6 +51,18 @@ int BEE::change_room(Room* new_room, bool should_jump) {
 
 	sound_stop_all(); // Stop all sounds from the previous room
 	free_media(); // Free all resources from the previous room
+
+	if (new_room == nullptr) { // If we're transitioning to a null room, i.e. the game is ending
+		if (transition_type != BEE_TRANSITION_NONE) { // If a transition has been defined then prepare for drawing an empty room into the after buffer
+			set_render_target(texture_after);
+			render_clear();
+			render();
+			reset_render_target();
+			draw_transition(); // Animate the defined transition from the before and after buffers
+		}
+		quit = true; // Set the quit flag just in case this was called in the main loop
+		return 0;
+	}
 
 	current_room = new_room; // Set the new room as the current room
 	is_ready = false; // Set the event loop as not running
@@ -69,7 +77,7 @@ int BEE::change_room(Room* new_room, bool should_jump) {
 	SDL_SetWindowTitle(window, current_room->get_name().c_str()); // Set the window title to the room's name
 	std::cout << current_room->get_instance_string(); // Output the list of instances in the room
 
-	if (transition_type != 0) { // If a transition has been defined then prepare for drawing the new room into the after buffer
+	if (transition_type != BEE_TRANSITION_NONE) { // If a transition has been defined then prepare for drawing the new room into the after buffer
 		set_render_target(texture_after);
 	} else { // Otherwise reset the render target just to be sure
 		reset_render_target();
@@ -84,7 +92,7 @@ int BEE::change_room(Room* new_room, bool should_jump) {
 	current_room->room_start(); // Run the room_start event for the new room
 	current_room->draw(); // Run the draw event for the new room
 
-	if (transition_type != 0) { // If a transition has been defined then finish drawing the new room into the after buffer
+	if (transition_type != BEE_TRANSITION_NONE) { // If a transition has been defined then finish drawing the new room into the after buffer
 		render();
 		reset_render_target();
 		draw_transition(); // Animate the defined transition from the before and after buffers
