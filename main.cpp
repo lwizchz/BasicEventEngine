@@ -11,11 +11,11 @@
 
 // Undefine main() if it has been previously defined on the Windows platform
 // I think this occurs because of SDL2/SDL_main.hpp
-#ifdef _WINDOWS
+#ifdef _WIN32
 #ifdef main
 #undef main
 #endif // main
-#endif // _WINDOWS
+#endif // _WIN32
 
 int main(int argc, char* argv[]) {
 	BEE* game;

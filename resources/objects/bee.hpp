@@ -100,7 +100,7 @@ void ObjBee::alarm(BEE::InstanceData* self, int a) {
 }
 void ObjBee::step_mid(BEE::InstanceData* self) {
 	int mx, my;
-	SDL_GetMouseState(&mx, &my);
+	std::tie(mx, my) = game->get_mouse_position();
 	std::pair<int,int> c = coord_approach(self->x, self->y, mx, my, 10, game->get_delta());
 	self->x = c.first;
 	self->y = c.second;

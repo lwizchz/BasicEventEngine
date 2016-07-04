@@ -12,6 +12,7 @@
 #include <string> // Include the required library headers
 #include <sstream>
 
+#define GLEW_STATIC // Statically link GLEW
 #include <GL/glew.h> // Include the required OpenGL headers
 #include <SDL2/SDL_opengl.h>
 

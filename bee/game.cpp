@@ -509,9 +509,9 @@ int BEE::close() {
 	return 0;
 }
 
-#ifndef _WINDOWS
+#ifndef _WIN32
 #include "game/resources.cpp"
-#endif // _WINDOWS
+#endif // _WIN32
 
 int BEE::update_delta() {
 	tick_delta = get_ticks() - tickstamp;
@@ -992,7 +992,6 @@ int BEE::end_game() const {
 	return 0;
 }
 
-#ifndef _WINDOWS
 #include "game/info.cpp"
 #include "game/room.cpp"
 #include "game/transition.cpp"
@@ -1001,6 +1000,5 @@ int BEE::end_game() const {
 #include "game/input.cpp"
 #include "game/draw.cpp"
 #include "game/network.cpp"
-#endif // _WINDOWS
 
 #endif // _BEE_GAME

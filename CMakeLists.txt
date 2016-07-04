@@ -1,9 +1,4 @@
 cmake_minimum_required(VERSION 3.0)
-
-if (WIN32)
-	set(CMAKE_CXX_COMPILER "C:/MinGW/bin/g++.exe")
-endif()
-
 project("BasicEventEngine" CXX C)
 
 set(VERSION_MAJOR "0")
@@ -37,8 +32,9 @@ if (WIN32) # Include Windows libraries manually
 		set(LIBRARY_HEADERS ${LIBRARY_HEADERS} win/include/GL/${l}.h)
 	endforeach(l)
 
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_WINDOWS \"-L${${PROJECT_NAME}_SOURCE_DIR}/win/lib\"")
-	add_executable(${PROJECT_NAME} main.cpp ${LIBRARY_HEADERS})
+	set(SRC ${${PROJECT_NAME}_SOURCE_DIR})
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-shadow \"-L${SRC}/win/lib\" \"-I${SRC}/win/include\" \"-I${SRC}/lib/doctest/doctest\"")
+	add_executable(${PROJECT_NAME} main.cpp ${LIBRARY_HEADERS} resources/resources.hpp)
 	target_link_libraries(${PROJECT_NAME} BEE)
 
 	# Include SDL2 libraries
@@ -47,10 +43,19 @@ if (WIN32) # Include Windows libraries manually
 	endforeach(l)
 
 	# Include OpenGL libraries
-	add_subdirectory(win/src)
-	target_link_libraries(${PROJECT_NAME} GLEW)
+	set(GLEW_INCLUDE_DIR ${SRC}/win/include)
+	set(GLEW_LIBRARY ${SRC}/win/lib/glew32s.lib)
+	set(GLUT_INCLUDE_DIR ${SRC}/win/include)
+	set(GLUT_glut_LIBRARY ${SRC}/win/lib/libfreeglut_static.a)
+
+	find_package(GLEW REQUIRED)
+	find_package(GLUT REQUIRED)
+	find_package(OpenGL REQUIRED)
+
+	include_directories(${GLEW_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRECTORIES} ${OPENGL_INCLUDE_DIRECTORIES})
+	target_link_libraries(${PROJECT_NAME} ${GLEW_LIBRARIES} ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES})
 else() # Include Unix libraries automatically
-	add_executable(${PROJECT_NAME} main.cpp)
+	add_executable(${PROJECT_NAME} main.cpp resources/resources.hpp)
 	target_link_libraries(${PROJECT_NAME} BEE)
 
 	# Include SDL2 libraries
