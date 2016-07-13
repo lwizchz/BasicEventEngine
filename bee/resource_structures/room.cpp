@@ -434,24 +434,54 @@ int BEE::Room::clear_particles() {
 	particle_count = 0;
 	return 0;
 }
-int BEE::Room::add_light(LightData* lighting) {
+int BEE::Room::add_lightable(LightableData* lightable) {
+	lightables.push_back(lightable);
+	return 0;
+}
+int BEE::Room::add_light(LightData lighting) {
+	lighting.attenuation.x = 10000.0/lighting.attenuation.x;
+	lighting.attenuation.y = 1000.0/lighting.attenuation.y;
+	lighting.attenuation.z = 1000.0/lighting.attenuation.z;
 	lights.push_back(lighting);
 	return 0;
 }
 int BEE::Room::handle_lights() {
 	if (game->options->renderer_type != BEE_RENDERER_SDL) {
 		int i = 0;
-		for (auto& l : lights) {
-			if (i >= BEE_MAX_LIGHTS) {
+		for (auto& l : lightables) {
+			if (i > BEE_MAX_LIGHTABLES) {
 				break;
 			}
 
-			glm::vec4 c = glm::vec4((float)l->color.r/255.0f, (float)l->color.g/255.0f, (float)l->color.b/255.0f, (float)l->color.a/255.0f);
+			glUniform4fv(game->lightable_location[i].position, 1, glm::value_ptr(l->position));
+			int e = 0;
+			for (auto& v : l->mask) {
+				if (e >= BEE_MAX_MASK_VERTICES) {
+					break;
+				}
 
-			glUniform1i(game->lighting_location[i].type, l->type);
-			glUniform4fv(game->lighting_location[i].position, 1, glm::value_ptr(l->position));
-			glUniform4fv(game->lighting_location[i].direction, 1, glm::value_ptr(l->direction));
-			glUniform4fv(game->lighting_location[i].attenuation, 1, glm::value_ptr(l->attenuation));
+				glUniform4fv(game->lightable_location[i].mask[e], 1, glm::value_ptr(v));
+
+				e++;
+			}
+			glUniform1i(game->lightable_location[i].vertex_amount, e);
+
+			i++;
+		}
+		glUniform1i(game->lightable_amount_location, i);
+
+		i = 0;
+		for (auto& l : lights) {
+			if (i > BEE_MAX_LIGHTS) {
+				break;
+			}
+
+			glm::vec4 c = glm::vec4((float)l.color.r/255.0f, (float)l.color.g/255.0f, (float)l.color.b/255.0f, (float)l.color.a/255.0f);
+
+			glUniform1i(game->lighting_location[i].type, l.type);
+			glUniform4fv(game->lighting_location[i].position, 1, glm::value_ptr(l.position));
+			glUniform4fv(game->lighting_location[i].direction, 1, glm::value_ptr(l.direction));
+			glUniform4fv(game->lighting_location[i].attenuation, 1, glm::value_ptr(l.attenuation));
 			glUniform4fv(game->lighting_location[i].color, 1, glm::value_ptr(c));
 
 			i++;
@@ -462,19 +492,19 @@ int BEE::Room::handle_lights() {
 		int w = get_width(), h = get_height();
 		game->draw_set_blend(SDL_BLENDMODE_MOD);
 		for (auto& l : lights) {
-			switch (l->type) {
+			switch (l.type) {
 				case BEE_LIGHT_AMBIENT: {
-					a += l->color.a;
-					game->draw_rectangle(0, 0, w, h, true, l->color, false);
+					a += l.color.a;
+					game->draw_rectangle(0, 0, w, h, true, l.color, false);
 					break;
 				}
 				case BEE_LIGHT_DIFFUSE: {
 					break;
 				}
 				case BEE_LIGHT_POINT: {
-					a += l->color.a/2;
-					int r = 1000.0/l->attenuation.y;
-					game->add_sprite("pt_sprite_sphere", "particles/07_sphere.png")->draw(l->position.x-r/2, l->position.y-r/2, 0, r, r, 0.0, l->color, SDL_FLIP_NONE, false);
+					a += l.color.a/2;
+					int r = 1000.0/l.attenuation.y;
+					game->add_sprite("pt_sprite_sphere", "particles/07_sphere.png")->draw(l.position.x-r/2, l.position.y-r/2, 0, r, r, 0.0, l.color, SDL_FLIP_NONE, false);
 					break;
 				}
 				case BEE_LIGHT_SPOT: {
@@ -487,6 +517,7 @@ int BEE::Room::handle_lights() {
 		}
 		game->draw_set_blend(SDL_BLENDMODE_BLEND);
 	}
+	lightables.clear();
 	lights.clear();
 
 	return 0;

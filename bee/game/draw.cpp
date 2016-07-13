@@ -466,7 +466,7 @@ int BEE::set_is_lightable(bool new_is_lightable) {
 		return 1;
 	}
 
-	glUniform1i(lightable_location, (new_is_lightable) ? 1 : 0);
+	glUniform1i(is_lightable_location, (new_is_lightable) ? 1 : 0);
 
 	return 0;
 }

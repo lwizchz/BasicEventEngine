@@ -232,6 +232,7 @@ TextData* BEE::Font::draw_internal(int x, int y, std::string text, RGBA color) {
 			Sprite* tmp_sprite = new Sprite();
 
 			tmp_sprite->load_from_surface(tmp_surface);
+			tmp_sprite->set_is_lightable(false);
 			tmp_sprite->draw(x, y, 0, false);
 
 			SDL_FreeSurface(tmp_surface);
@@ -338,6 +339,7 @@ int BEE::Font::draw_fast_internal(int x, int y, std::string text, RGBA color) {
 				Sprite* tmp_sprite = new Sprite();
 
 				tmp_sprite->load_from_surface(tmp_surface);
+				tmp_sprite->set_is_lightable(false);
 				tmp_sprite->draw(x, y, 0, false);
 
 				SDL_FreeSurface(tmp_surface);

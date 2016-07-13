@@ -273,7 +273,6 @@ int BEE::Background::draw_internal(const SDL_Rect* src, const SDL_Rect* dest) co
 		model = glm::translate(model, glm::vec3(dest->x, dest->y, 0.0));
 		glUniformMatrix4fv(game->model_location, 1, GL_FALSE, glm::value_ptr(model));
 
-		glActiveTexture(GL_TEXTURE0);
 		glUniform1i(game->texture_location, 0);
 		glBindTexture(GL_TEXTURE_2D, gl_texture);
 
@@ -309,6 +308,8 @@ int BEE::Background::draw_internal(const SDL_Rect* src, const SDL_Rect* dest) co
 
 		glUniformMatrix4fv(game->model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0)));
 		glBindTexture(GL_TEXTURE_2D, 0);
+		glUniform1i(game->flip_location, 0);
+		glUniformMatrix4fv(game->rotation_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0)));
 	} else {
 		SDL_RenderCopy(game->renderer, texture, src, dest);
 	}

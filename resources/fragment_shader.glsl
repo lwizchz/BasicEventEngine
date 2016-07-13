@@ -19,6 +19,11 @@ uniform int flip = 0;
 uniform vec4 port;
 uniform int is_lightable = 1;
 
+struct Line {
+	vec4 start;
+	vec4 end;
+};
+
 // Lighting
 const int BEE_LIGHT_AMBIENT = 1;
 const int BEE_LIGHT_DIFFUSE = 2;
@@ -36,6 +41,18 @@ struct Light {
 	vec4 color;
 };
 uniform Light lighting[BEE_MAX_LIGHTS];
+
+// Shadows
+const int BEE_MAX_LIGHTABLES = 96;
+const int BEE_MAX_MASK_VERTICES = 8;
+
+uniform int lightable_amount = 0;
+struct Lightable {
+	vec4 position;
+	int vertex_amount;
+	vec4 mask[BEE_MAX_MASK_VERTICES];
+};
+uniform Lightable lightables[BEE_MAX_LIGHTABLES];
 
 vec4 calc_light_ambient(Light l) {
 	return l.color*l.color.w;
@@ -56,6 +73,77 @@ vec4 calc_light_point(Light l) {
 }
 vec4 calc_light_spot(Light l) {
 	return calc_light_ambient(l);
+}
+
+float fast_length(vec4 a) {
+	return a.x*a.x + a.y*a.y + a.z*a.z;
+}
+float distance_to_line(Line l, vec4 p) {
+	vec4 dir = l.end - l.start;
+	vec3 normal_dir = cross(dir.xyz, vec3(0.0, 0.0, 1.0));
+	vec4 point_dir = l.start - p;
+	return dot(normalize(normal_dir), point_dir.xyz);
+}
+bool check_is_inside(vec4 p, vec4 vertices[BEE_MAX_MASK_VERTICES]) {
+	bool is_intersecting = false;
+	int v = BEE_MAX_MASK_VERTICES;
+	for (int i=0, e=v-1; i<v; e=i++) {
+		if ((
+			(vertices[i].y > p.y) != (vertices[e].y > p.y)
+		)&&(
+			p.x < (vertices[e].x - vertices[i].x) * (p.y - vertices[i].y) / (vertices[e].y - vertices[i].y) + vertices[i].x
+		)) {
+			is_intersecting = !is_intersecting;
+		}
+	}
+
+	return is_intersecting;
+}
+float calc_shadow_intersect(Light l, Lightable s) {
+	/*if (check_is_inside(l.position-s.position, s.mask)) {
+		return true;
+	}
+	if (check_is_inside(vec4(gl_FragCoord.x-s.position.x, -gl_FragCoord.y + port.w - s.position.y, 0.0, 1.0), s.mask)) {
+		return false;
+	}*/
+
+	Line line = Line(l.position, vec4(gl_FragCoord.x, -gl_FragCoord.y + port.w, 0.0, 1.0)); // Note that port.w is actually the port height
+
+	int c = -1;
+	float d = distance_to_line(line, s.position+s.mask[0]);
+	for (int i=1; i<BEE_MAX_MASK_VERTICES; i++) {
+		if (i >= s.vertex_amount) {
+			break;
+		}
+
+		vec4 p = s.position+s.mask[i];
+		if (fast_length(line.end-line.start) < fast_length(p-line.end)) {
+			continue;
+		}
+		if (fast_length(line.end-line.start) < fast_length(line.start-p)) {
+			return 0.0;
+		}
+
+		float dd = distance_to_line(line, p);
+		if (dd * d < 0) { // If the sign changed then there is an intersection
+			//c = i;
+			//break;
+
+			c = 1;
+		}
+
+		if (abs(dd) < abs(d)) {
+			d = dd;
+		}
+	}
+
+	/*if (c > 0) {
+		vec4 p = s.position+s.mask[c];
+		return abs(distance_to_line(Line(line.start, p), line.end));
+	}
+	return 0.0;*/
+	//return abs(d)*c;
+	return 20.0*c;
 }
 
 void main() {
@@ -83,24 +171,46 @@ void main() {
 				for (int i=0; i<light_amount; i++) {
 					l = lighting[i];
 					l.position = vec4(l.position.xy + port.xy, l.position.zw);
+
+					vec4 ff = vec4(0.0, 0.0, 0.0, 0.0);
 					switch (l.type) {
 						case BEE_LIGHT_AMBIENT: {
-							f += calc_light_ambient(l);
+							ff = calc_light_ambient(l);
 							break;
 						}
 						case BEE_LIGHT_DIFFUSE: {
-							f += calc_light_diffuse(l);
+							ff = calc_light_diffuse(l);
 							break;
 						}
 						case BEE_LIGHT_POINT: {
-							f += calc_light_point(l);
+							if (length(l.position - vec4(gl_FragCoord.x, -gl_FragCoord.y + port.w, 0.0, 1.0)) > 50.0/l.attenuation.z) {
+								continue; // If the fragment is outside of the range of the light, abort early
+							}
+							ff = calc_light_point(l);
 							break;
 						}
 						case BEE_LIGHT_SPOT: {
-							f += calc_light_spot(l);
+							ff = calc_light_spot(l);
 							break;
 						}
 					}
+
+					if (l.type != BEE_LIGHT_AMBIENT) {
+						float shadow_amount = 0.0;
+						for (int e=0; e<lightable_amount; e++) {
+							float s = calc_shadow_intersect(l, lightables[e]);
+							if (s > 0) {
+								shadow_amount += s/50.0;
+							}
+						}
+
+						float d = length(l.position - vec4(gl_FragCoord.x, -gl_FragCoord.y + port.w, 0.0, 1.0)) / 100.0;
+						if (d < 1.0) {
+							d = 1.0;
+						}
+						ff /= pow(d, shadow_amount);
+					}
+					f += ff;
 				}
 				LFragment *= vec4(f.xyz, LFragment.w);
 

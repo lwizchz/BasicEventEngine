@@ -47,6 +47,7 @@ class BEE::Sprite: public Resource {
 		GLuint ibo;
 		GLuint gl_texture;
 		std::vector<GLuint> vbo_texcoords;
+		bool is_lightable = true;
 
 		GLuint framebuffer;
 	public:
@@ -73,6 +74,7 @@ class BEE::Sprite: public Resource {
 		double get_rotate_y();
 		SDL_Texture* get_texture();
 		bool get_is_loaded();
+		bool get_is_lightable();
 
 		int set_name(std::string);
 		int set_path(std::string);
@@ -89,6 +91,7 @@ class BEE::Sprite: public Resource {
 		int set_rotate_x(double);
 		int set_rotate_y(double);
 		int set_rotate_xy(double, double);
+		int set_is_lightable(bool);
 
 		int load_from_surface(SDL_Surface*);
 		int load();

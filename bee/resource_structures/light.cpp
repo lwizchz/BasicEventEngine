@@ -160,9 +160,6 @@ int BEE::Light::set_direction(glm::vec4 new_direction) {
 }
 int BEE::Light::set_attenuation(glm::vec4 new_attenuation) {
 	lighting.attenuation = new_attenuation;
-	lighting.attenuation.x = 10000.0/lighting.attenuation.x;
-	lighting.attenuation.y = 1000.0/lighting.attenuation.y;
-	lighting.attenuation.z = 1000.0/lighting.attenuation.z;
 	return 0;
 }
 int BEE::Light::set_color(RGBA new_color) {
@@ -178,7 +175,7 @@ int BEE::Light::queue() {
 		}
 	}
 
-	game->get_current_room()->add_light(&lighting);
+	game->get_current_room()->add_light(lighting);
 
 	return 0;
 }

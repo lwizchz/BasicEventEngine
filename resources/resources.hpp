@@ -49,11 +49,14 @@ int BEE::init_resources() {
 
 		// Init lights
 		lt_ambient = new Light();
-			lt_ambient->set_color({255, 255, 255, 192});
+			//lt_ambient->set_color({255, 255, 255, 192});
+			lt_ambient->set_color({255, 255, 255, 30});
 		lt_bee = new Light();
 			lt_bee->set_type(BEE_LIGHT_POINT);
-			lt_bee->set_attenuation({2.0, 100.0, 2000.0, 0.0});
-			lt_bee->set_color({255, 0, 255, 255});
+			//lt_bee->set_attenuation({2.0, 100.0, 2000.0, 0.0});
+			lt_bee->set_attenuation({2.0, 100.0, 20000.0, 0.0});
+			//lt_bee->set_attenuation({5.0, 1000.0, 40000.0, 0.0});
+			lt_bee->set_color({255, 255, 255, 255});
 
 		// Init objects
 		obj_bee = new ObjBee();

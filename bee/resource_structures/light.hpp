@@ -19,6 +19,11 @@ class BEE::LightData {
 		glm::vec4 attenuation; // The components of attenuation: x=the brightness, y=the cone width, z=the range, all roughly in pixels
 		RGBA color; // The alpha value is treated as the light intensity
 };
+class BEE::LightableData {
+	public:
+		glm::vec4 position;
+		std::vector<glm::vec4> mask;
+};
 
 class BEE::Light: public Resource {
 		// Add new variables to the print() debugging method

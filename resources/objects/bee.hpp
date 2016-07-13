@@ -99,11 +99,11 @@ void ObjBee::alarm(BEE::InstanceData* self, int a) {
 
 }
 void ObjBee::step_mid(BEE::InstanceData* self) {
-	int mx, my;
+	/*int mx, my;
 	std::tie(mx, my) = game->get_mouse_position();
 	std::pair<int,int> c = coord_approach(self->x, self->y, mx, my, 10, game->get_delta());
 	self->x = c.first;
-	self->y = c.second;
+	self->y = c.second;*/
 }
 void ObjBee::keyboard_press(BEE::InstanceData* self, SDL_Event* e) {
 	switch (e->key.keysym.sym) {
@@ -253,10 +253,14 @@ void ObjBee::draw(BEE::InstanceData* self) {
 
 	font_liberation->draw_fast(self->x, self->y, bee_itos(self->id), false);
 
+	lt_bee->set_position(glm::vec4(self->x, self->y, 0.0, 1.0));
+	lt_bee->set_color({(Uint8)(self->id*50), (Uint8)(self->id*20), 255, 255});
+	lt_bee->queue();
+
 	if (self->id == 0) {
 		lt_ambient->queue();
-		lt_bee->set_position(glm::vec4(mx, my, 0.0, 1.0));
-		lt_bee->queue();
+		/*lt_bee->set_position(glm::vec4(mx, my, 0.0, 1.0));
+		lt_bee->queue();*/
 
 		fps_display = font_liberation->draw(fps_display, 0, 0, "FPS: " + bee_itos(game->fps_stable), true);
 	}

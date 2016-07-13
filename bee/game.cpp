@@ -55,6 +55,7 @@ BEE::BEE(int new_argc, char** new_argv, const std::list<ProgramFlags*>& new_flag
 				SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
 				SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 				//SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+				//SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
 				SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY); // Currently the compatibility profile must be used because there are unknown uses of the deprecated functions in the code base
 				break;
 			}
@@ -65,6 +66,7 @@ BEE::BEE(int new_argc, char** new_argv, const std::list<ProgramFlags*>& new_flag
 				SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 				SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 				//SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+				//SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
 				SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY); // Currently the compatibility profile must be used because there are unknown uses of the deprecated functions in the code base
 				break;
 			}
@@ -349,7 +351,7 @@ int BEE::loop() {
 						break;
 					}
 
-					#ifdef SDL_AUDIODEVICEADDED
+					#if SDL_VERSION_ATLEAST(2, 0, 4)
 						case SDL_AUDIODEVICEADDED:
 						case SDL_AUDIODEVICEREMOVED:
 					#endif
@@ -824,8 +826,8 @@ int BEE::opengl_init() {
 		throw std::string("Couldn't get location of 'flip' in the fragment shader\n");
 	}
 
-	lightable_location = glGetUniformLocation(program, "is_lightable");
-	if (lightable_location == -1) {
+	is_lightable_location = glGetUniformLocation(program, "is_lightable");
+	if (is_lightable_location == -1) {
 		std::cerr << get_program_error(program);
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
@@ -848,6 +850,22 @@ int BEE::opengl_init() {
 		lighting_location[i].color = glGetUniformLocation(program, std::string("lighting[" + bee_itos(i) + "].color").c_str());
 	}
 
+	lightable_amount_location = glGetUniformLocation(program, "lightable_amount");
+	if (lightable_amount_location == -1) {
+		std::cerr << get_program_error(program);
+		glDeleteShader(vertex_shader);
+		glDeleteShader(geometry_shader);
+		glDeleteShader(fragment_shader);
+		throw std::string("Couldn't get location of 'lightable_amount' in the fragment shader\n");
+	}
+	for (int i=0; i<BEE_MAX_LIGHTABLES; i++) {
+		lightable_location[i].position = glGetUniformLocation(program, std::string("lightables[" + bee_itos(i) + "].position").c_str());
+		lightable_location[i].vertex_amount = glGetUniformLocation(program, std::string("lightables[" + bee_itos(i) + "].vertex_amount").c_str());
+		for (int e=0; e<BEE_MAX_MASK_VERTICES; e++) {
+			lightable_location[i].mask[e] = glGetUniformLocation(program, std::string("lightables[" + bee_itos(i) + "].mask[" + bee_itos(e) + "]").c_str());
+		}
+	}
+
 	draw_set_color({255, 255, 255, 255});
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
@@ -862,6 +880,11 @@ int BEE::opengl_init() {
 	} else if (options->renderer_type == BEE_RENDERER_OPENGL3) {
 		std::cout << "Now rendering with OpenGL 3.3\n";
 	}
+
+	int va = 0, vi = 0;
+	SDL_GL_GetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, &va);
+	SDL_GL_GetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, &vi);
+	std::cerr << "GLversion: " << va << "." << vi << "\n";
 
 	return 0;
 }

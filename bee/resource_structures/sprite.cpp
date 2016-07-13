@@ -86,6 +86,7 @@ int BEE::Sprite::reset() {
 	is_loaded = false;
 	subimages.clear();
 	has_draw_failed = false;
+	is_lightable = true;
 
 	return 0;
 }
@@ -157,6 +158,10 @@ SDL_Texture* BEE::Sprite::get_texture() {
 bool BEE::Sprite::get_is_loaded() {
 	return is_loaded;
 }
+bool BEE::Sprite::get_is_lightable() {
+	return is_lightable;
+}
+
 int BEE::Sprite::set_name(std::string new_name) {
 	name = new_name;
 	return 0;
@@ -293,6 +298,10 @@ int BEE::Sprite::set_rotate_y(double new_rotate_y) {
 int BEE::Sprite::set_rotate_xy(double new_rotate_x, double new_rotate_y) {
 	set_rotate_x(new_rotate_x);
 	set_rotate_y(new_rotate_y);
+	return 0;
+}
+int BEE::Sprite::set_is_lightable(bool new_is_lightable) {
+	is_lightable = new_is_lightable;
 	return 0;
 }
 
@@ -449,7 +458,6 @@ int BEE::Sprite::draw_subimage(int x, int y, int current_subimage, int w, int h,
 		}
 		glUniformMatrix4fv(game->model_location, 1, GL_FALSE, glm::value_ptr(model));
 
-		glActiveTexture(GL_TEXTURE0);
 		glUniform1i(game->texture_location, 0);
 		glBindTexture(GL_TEXTURE_2D, gl_texture);
 
@@ -464,6 +472,17 @@ int BEE::Sprite::draw_subimage(int x, int y, int current_subimage, int w, int h,
 			f += 2;
 		}
 		glUniform1i(game->flip_location, f);
+
+		// Shadows
+		if (is_lightable) {
+			LightableData* l = new LightableData();
+			l->position = glm::vec4(drect.x, drect.y, 0.0, 0.0);
+			l->mask.push_back(glm::vec4(0.0, 0.0, 0.0, 0.0));
+			l->mask.push_back(glm::vec4(rect_width, 0.0, 0.0, 0.0));
+			l->mask.push_back(glm::vec4(rect_width, height, 0.0, 0.0));
+			l->mask.push_back(glm::vec4(0.0, height, 0.0, 0.0));
+			game->get_current_room()->add_lightable(l);
+		}
 
 		glEnableVertexAttribArray(game->vertex_location);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
@@ -575,7 +594,6 @@ int BEE::Sprite::draw_array(const std::list<SpriteDrawData*>& draw_list, const s
 	}
 
 	if (game->options->renderer_type != BEE_RENDERER_SDL) {
-		glActiveTexture(GL_TEXTURE0);
 		glUniform1i(game->texture_location, 0);
 		glBindTexture(GL_TEXTURE_2D, gl_texture);
 

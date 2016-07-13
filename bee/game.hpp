@@ -37,6 +37,8 @@
 #define DEFAULT_GAME_FPS 60 // Define the default game fps goal
 
 #define BEE_MAX_LIGHTS 8 // Define the maximum amount of processed lights
+#define BEE_MAX_LIGHTABLES 96
+#define BEE_MAX_MASK_VERTICES 8
 
 #ifndef BEE_GAME_ID // BEE_GAME_ID should always be defined but just in case
 #define BEE_GAME_ID 4294967295 // pow(2,32), the maximum value
@@ -57,7 +59,7 @@ class BEE { // The master engine class which effectively acts as a namespace
 		class Particle; class ParticleData; class ParticleEmitter; class ParticleAttractor; class ParticleDestroyer; class ParticleDeflector; class ParticleChanger; class ParticleSystem; // The particle system components
 		class Light; // The OpenGL-only resources (poor SDL implementations may exist)
 		class ProgramFlags; class GameOptions; class CollisionTree; class CollisionPolygon; class RGBA; // The engine related data
-		class SpriteDrawData; class SoundGroup; class InstanceData; class LightData; // The additional resource data types
+		class SpriteDrawData; class SoundGroup; class InstanceData; class LightData; class LightableData; // The additional resource data types
 		class ViewData; class BackgroundData; class NetworkData; // The configurational structs
 	private:
 		// These contain data about the engine initialization
@@ -109,7 +111,7 @@ class BEE { // The master engine class which effectively acts as a namespace
 		GLint primitive_location = -1;
 		GLint flip_location = -1;
 
-		GLint lightable_location = -1;
+		GLint is_lightable_location = -1;
 		GLint light_amount_location = -1;
 		struct {
 			GLint type;
@@ -118,6 +120,13 @@ class BEE { // The master engine class which effectively acts as a namespace
 			GLint attenuation;
 			GLint color;
 		} lighting_location[BEE_MAX_LIGHTS];
+
+		GLint lightable_amount_location = -1;
+		struct {
+			GLint position;
+			GLint vertex_amount;
+			GLint mask[BEE_MAX_MASK_VERTICES];
+		} lightable_location[BEE_MAX_LIGHTABLES];
 
 		// This is the current drawing color
 		RGBA* color = nullptr;
