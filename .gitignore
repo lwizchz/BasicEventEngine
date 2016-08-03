@@ -1,7 +1,6 @@
-/BasicEventEngine
+/build/
+gmon.out
 
 *.o
-
-*.bmp
 
 *.exe

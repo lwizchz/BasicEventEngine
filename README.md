@@ -2,7 +2,7 @@ Copyright (c) 2015-16 Luke Montalvo <lukemontalvo@gmail.com>
 
 [![Build Status](https://travis-ci.org/piluke/BasicEventEngine.svg?branch=master)](https://travis-ci.org/piluke/BasicEventEngine)
 
-![In-Game Screenshot](https://github.com/piluke/BasicEventEngine/raw/master/screenshot.png)
+![In-Game Screenshot](https://github.com/piluke/BasicEventEngine/raw/master/screenshot.bmp)
 
 BasicEventEngine is an event-driven game engine which the user can interface
 with via the Sprite, Sound, Background, Font, Path, Object, and Room classes.
