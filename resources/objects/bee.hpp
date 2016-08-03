@@ -41,13 +41,11 @@ ObjBee::~ObjBee() {
 }
 void ObjBee::create(BEE::InstanceData* self) {
 	// create event
-	std::cout << "u r a b " << self->id << ", : " << game->get_display_refresh_rate() << "\n";
+	std::cout << "u r a b " << self->id << "\n";
 	//self->set_alarm(0, 2000);
 	//spr_bee->set_alpha(0.5);
 	//self->set_gravity(7.0);
 	//show_message(font_liberation->get_fontname());
-
-	//std::cerr << execute_string<int>("3+5");
 
 	if (self->id == 0) {
 		BEE::ParticleSystem* part_system = new BEE::ParticleSystem(game);
@@ -81,11 +79,8 @@ void ObjBee::create(BEE::InstanceData* self) {
 		part_attr->max_distance = 500;
 		part_system->attractors.push_back(part_attr);
 
-		game->get_current_room()->add_particle_system(part_system);
-		/*Uint32 t1 = game->get_ticks();
-		part_system->fast_forward(300);
-		Uint32 t2 = game->get_ticks();
-		std::cerr << (t2-t1) << "\n";*/
+		//game->get_current_room()->add_particle_system(part_system);
+		//part_system->fast_forward(300);
 	}
 }
 void ObjBee::alarm(BEE::InstanceData* self, int a) {
@@ -99,11 +94,11 @@ void ObjBee::alarm(BEE::InstanceData* self, int a) {
 
 }
 void ObjBee::step_mid(BEE::InstanceData* self) {
-	/*int mx, my;
+	int mx, my;
 	std::tie(mx, my) = game->get_mouse_position();
 	std::pair<int,int> c = coord_approach(self->x, self->y, mx, my, 10, game->get_delta());
 	self->x = c.first;
-	self->y = c.second;*/
+	self->y = c.second;
 }
 void ObjBee::keyboard_press(BEE::InstanceData* self, SDL_Event* e) {
 	switch (e->key.keysym.sym) {

@@ -102,7 +102,7 @@ int BEE::net_handle_events() {
 
 					net->players.insert(std::pair<int,UDPsocket>(id, sock)); // Add the client to the list of clients
 
-					std::cout << "Net: client accepted\n"; // Output success string
+					messenger_send({"engine", "network"}, BEE_MESSAGE_INFO, "Client accepted");
 				}
 				break;
 			}
@@ -111,7 +111,7 @@ int BEE::net_handle_events() {
 
 				net->players.erase(net->udp_data->data[1]); // Remove them from the list of clients
 
-				std::cout << "Net: client disconnected\n"; // Output a success string
+				messenger_send({"engine", "network"}, BEE_MESSAGE_INFO, "Client disconnected");
 
 				break;
 			}
@@ -189,7 +189,7 @@ int BEE::net_handle_events() {
 			case 1: { // Connection accepted
 				net->self_id = net->udp_data->data[3]; // Read the id that the server assigned to us
 				net->is_connected = true; // Mark our networking as connected
-				std::cout << "Net: connected with id " << net->udp_data->data[3] << "\n"; // Output success message
+				messenger_send({"engine", "network"}, BEE_MESSAGE_INFO, "Connected to server with id " + net->udp_data->data[3]);
 				break;
 			}
 			case 2: { // Disconnected by host
@@ -269,7 +269,7 @@ std::map<std::string,std::string> BEE::net_session_find() {
 
 	net->udp_recv = network_udp_open(net->id); // Open a UDP listening socket to receive responses from the servers
 	if (net->udp_recv == nullptr) {
-		std::cerr << "Net: net_session_find() : UDP listening socket failed to open\n"; // Output error string
+		messenger_send({"engine", "network"}, BEE_MESSAGE_WARNING, "net_session_find() : UDP listening socket failed to open");
 		return net->servers; // Return an empty map if the receiving socket failed to open
 	}
 
@@ -277,7 +277,7 @@ std::map<std::string,std::string> BEE::net_session_find() {
 	if (net->channel == -1) {
 		network_udp_close(&net->udp_recv); // Close the receiving socket
 
-		std::cerr << "Net: net_session_find() : UDP broadcast socket failed to bind\n"; // Output error string
+		messenger_send({"engine", "network"}, BEE_MESSAGE_WARNING, "net_session_find() : UDP broadcast socket failed to bind");
 		return net->servers; // Return an empty map if the sending socket failed to bind
 	}
 
@@ -287,7 +287,7 @@ std::map<std::string,std::string> BEE::net_session_find() {
 		network_udp_close(&net->udp_recv); // Close the sockets
 		network_udp_close(&net->udp_send);
 
-		std::cerr << "Net: net_session_find() : Failed to allocate space to receive data\n";
+		messenger_send({"engine", "network"}, BEE_MESSAGE_WARNING, "net_session_find() : Failed to allocate space to receive data");
 		return net->servers; // Return an empty map if the allocation failed
 	}
 
@@ -344,7 +344,7 @@ int BEE::net_session_join(const std::string& ip, const std::string& player_name)
 		network_udp_close(&net->udp_recv); // Close the sockets
 		network_udp_close(&net->udp_send);
 
-		std::cerr << "Net: net_session_join() : Failed to connect to " << ip << "\n"; // Output error string
+		messenger_send({"engine", "network"}, BEE_MESSAGE_WARNING, "net_session_join() : Failed to connect to " + ip);
 		return 4; // Return 4 on failed to connect
 	}
 
@@ -352,7 +352,7 @@ int BEE::net_session_join(const std::string& ip, const std::string& player_name)
 	net->self_id = net->udp_data->data[1];
 	net->is_connected = true;
 
-	std::cout << "Net: net_session_join() : Connected with id " << net->udp_data->data[1] << "\n"; // Output success string
+	messenger_send({"engine", "network"}, BEE_MESSAGE_INFO, "net_session_join() : Connected to server with id " + net->udp_data->data[1]);
 
 	return 0; // Return 0 on success
 }

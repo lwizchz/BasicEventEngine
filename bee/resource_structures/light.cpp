@@ -23,7 +23,7 @@ BEE::Light::Light (std::string new_name, std::string path) {
 
 	add_to_resources("resources/lights/"+path);
 	if (id < 0) {
-		std::cerr << "Failed to add light resource: " << path << "\n";
+		game->messenger_send({"engine", "resource"}, BEE_MESSAGE_WARNING, "Failed to add light resource: " + path);
 		throw(-1);
 	}
 
@@ -41,20 +41,9 @@ int BEE::Light::add_to_resources(std::string path) {
 		}
 		BEE::resource_list->lights.remove_resource(id);
 		id = -1;
-	} else {
-		for (auto i : BEE::resource_list->lights.resources) {
-			if ((i.second != nullptr)&&(i.second->get_path() == path)) {
-				list_id = i.first;
-				break;
-			}
-		}
 	}
 
-	if (list_id >= 0) {
-		id = list_id;
-	} else {
-		id = BEE::resource_list->lights.add_resource(this);
-	}
+	id = BEE::resource_list->lights.add_resource(this);
 	BEE::resource_list->lights.set_resource(id, this);
 
 	if (BEE::resource_list->lights.game != nullptr) {
@@ -77,38 +66,40 @@ int BEE::Light::reset() {
 	return 0;
 }
 int BEE::Light::print() {
-	std::cout <<
+	std::stringstream s;
+	s <<
 	"Light { "
 	"\n	id		" << id <<
 	"\n	name		" << name <<
 	"\n	light_path	" << light_path;
 	switch (lighting.type) {
 		case BEE_LIGHT_AMBIENT: {
-			std::cout << "\n	type		ambient";
+			s << "\n	type		ambient";
 			break;
 		}
 		case BEE_LIGHT_DIFFUSE: {
-			std::cout << "\n	type		diffuse";
+			s << "\n	type		diffuse";
 			break;
 		}
 		case BEE_LIGHT_POINT: {
-			std::cout << "\n	type		point";
+			s << "\n	type		point";
 			break;
 		}
 		case BEE_LIGHT_SPOT: {
-			std::cout << "\n	type		spot";
+			s << "\n	type		spot";
 			break;
 		}
 		default: {
-			std::cout << "\n	type		unknown";
+			s << "\n	type		unknown";
 		}
 	}
-	std::cout <<
+	s <<
 	"\n	position	(" << lighting.position.x << ", " << lighting.position.y << ", " << lighting.position.z << ")" <<
 	"\n	direction	(" << lighting.direction.x << ", " << lighting.direction.y << ", " << lighting.direction.z << ")" <<
 	"\n	attenuation	(" << lighting.attenuation.x << ", " << lighting.attenuation.y << ", " << lighting.attenuation.z << ")" <<
 	"\n	color		" << (int)lighting.color.r << ", " << (int)lighting.color.g << ", " << (int)lighting.color.b <<
 	"\n}\n";
+	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str());
 
 	return 0;
 }
@@ -170,7 +161,7 @@ int BEE::Light::set_color(RGBA new_color) {
 int BEE::Light::queue() {
 	if (game->options->renderer_type == BEE_RENDERER_SDL) {
 		if (!has_drawn_sdl) {
-			std::cerr << "Lighting is not fully supported in SDL mode\n";
+			game->messenger_send({"engine", "light"}, BEE_MESSAGE_WARNING, "Lighting is not fully supported in SDL mode");
 			has_drawn_sdl = true;
 		}
 	}

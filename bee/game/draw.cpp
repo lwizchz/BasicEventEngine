@@ -19,14 +19,14 @@
 BEE::RGBA BEE::get_enum_color(bee_rgba_t c, Uint8 a) const {
 	// Return a BEE::RGBA value with the given alpha value
 	switch (c) {
-		case c_cyan: case c_aqua: return {0, 255, 255, a};
+		case c_cyan: return {0, 255, 255, a};
 		case c_blue: return {0, 0, 255, a};
 		case c_dkgray: return {64, 64, 64, a};
-		case c_magenta: case c_fuchsia: return {255, 0, 255, a};
+		case c_magenta: return {255, 0, 255, a};
 		case c_gray: return {128, 128, 128, a};
 		case c_green: return {0, 128, 0, a}; // Even though green is technically g=255, that color is called lime because it is quite bright
 		case c_lime: return {0, 255, 0, a};
-		case c_silver: case c_ltgray: return {192, 192, 192, a};
+		case c_ltgray: return {192, 192, 192, a};
 		case c_maroon: return {128, 0, 0, a};
 		case c_navy: return {0, 0, 128, a};
 		case c_olive: return {128, 128, 0, a};
@@ -410,12 +410,12 @@ BEE::RGBA BEE::get_pixel_color(int x, int y) const {
 * ! This function is somewhat slow and should be used sparingly
 * @filename: the location at which to save the bitmap
 */
-int BEE::save_screenshot(const std::string& filename) const {
+int BEE::save_screenshot(const std::string& filename) {
 	std::string fn (filename);
 	if (file_exists(fn)) { // If the file already exists, append a timestamp
 		fn = file_plainname(fn) + "-" + bee_itos(time(nullptr)) + file_extname(fn);
 		if (file_exists(fn)) { // If the appended file already exists, abort
-			std::cerr << "Failed to save screenshot: files already exist: \"" << filename << "\" and \"" << fn << "\"\n"; // Output filename info
+			messenger_send({"engine"}, BEE_MESSAGE_WARNING, "Failed to save screenshot: files already exist: \"" + filename + "\" and \"" + fn + "\"");
 			return -1; // Return -1 on filename error
 		}
 	}

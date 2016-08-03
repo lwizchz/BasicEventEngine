@@ -14,6 +14,7 @@
 
 #define GLEW_STATIC // Statically link GLEW
 #include <GL/glew.h> // Include the required OpenGL headers
+#include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 
 // Format indentions for debug output
@@ -23,5 +24,8 @@ std::string debug_indent(const std::string&, int);
 // Return the error string when an OpenGL item fails to compile
 std::string get_shader_error(GLuint);
 std::string get_program_error(GLuint);
+
+// Return the SDL error string as a C++ string
+std::string get_sdl_error();
 
 #endif // _BEE_DEBUG_H

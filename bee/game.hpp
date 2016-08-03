@@ -12,8 +12,11 @@
 #include <iostream> // Include the required library headers
 #include <time.h>
 #include <functional>
-#include <list>
 #include <getopt.h>
+#include <memory>
+#include <list>
+#include <unordered_map>
+#include <unordered_set>
 
 #include <SDL2/SDL.h> // Include the required SDL headers
 #include <SDL2/SDL_image.h>
@@ -61,6 +64,7 @@ class BEE { // The master engine class which effectively acts as a namespace
 		class ProgramFlags; class GameOptions; class CollisionTree; class CollisionPolygon; class RGBA; // The engine related data
 		class SpriteDrawData; class SoundGroup; class InstanceData; class LightData; class LightableData; // The additional resource data types
 		class ViewData; class BackgroundData; class NetworkData; // The configurational structs
+		class MessageContents; class MessageRecipient; // The messaging subsystem structs
 	private:
 		// These contain data about the engine initialization
 		int argc;
@@ -155,6 +159,10 @@ class BEE { // The master engine class which effectively acts as a namespace
 
 		std::vector<std::string> console_input;
 		int console_line = 0;
+
+		std::unordered_map<std::string,std::unordered_set<std::shared_ptr<MessageRecipient>>> recipients;
+		std::unordered_map<std::string,std::vector<std::shared_ptr<MessageContents>>> tagged_messages;
+		std::vector<std::shared_ptr<MessageContents>> messages;
 
 		int update_delta();
 	public:
@@ -264,14 +272,14 @@ class BEE { // The master engine class which effectively acts as a namespace
 		int draw_transition();
 
 		// bee/game/display.cpp
-		SDL_DisplayMode get_display() const;
-		Uint32 get_display_format() const;
-		int get_display_width() const;
-		int get_display_height() const;
-		int get_display_refresh_rate() const;
-		int set_display(int, int, int) const;
-		int set_display_size(int, int) const;
-		int set_display_refresh_rate(int) const;
+		SDL_DisplayMode get_display();
+		Uint32 get_display_format();
+		int get_display_width();
+		int get_display_height();
+		int get_display_refresh_rate();
+		int set_display(int, int, int);
+		int set_display_size(int, int);
+		int set_display_refresh_rate(int);
 
 		// bee/game/window.cpp
 		std::string get_window_title() const;
@@ -332,9 +340,20 @@ class BEE { // The master engine class which effectively acts as a namespace
 		SDL_BlendMode draw_get_blend();
 
 		RGBA get_pixel_color(int, int) const;
-		int save_screenshot(const std::string&) const;
+		int save_screenshot(const std::string&);
 
 		int set_is_lightable(bool);
+
+		// bee/game/messenger.cpp
+		int messenger_register(std::shared_ptr<MessageRecipient>);
+		int messenger_register(const std::vector<std::string>&, std::function<void (BEE*, std::shared_ptr<MessageContents>)>);
+		int messenger_unregister(std::shared_ptr<MessageRecipient>);
+		int messenger_unregister_all();
+
+		int messenger_send(std::shared_ptr<MessageContents>);
+		int messenger_send(const std::vector<std::string>&, bee_message_t, const std::string&);
+
+		int handle_messages();
 
 		// bee/game/network.cpp
 		int net_init();
@@ -354,22 +373,18 @@ typedef std::multimap<Uint32, std::pair<std::string,std::function<void()>>> bee_
 
 class BEE::ProgramFlags {
 	public:
-		ProgramFlags(std::string l, char s, bool p, int a, std::function<void (BEE*, char*)> f) {
-			longopt = l; shortopt = s; pre_init = p; has_arg = a; func = f;
-		}
 		std::string longopt = "";
 		char shortopt = '\0';
 		bool pre_init = true;
 		int has_arg = no_argument;
 		std::function<void (BEE*, char*)> func = nullptr;
+
+		ProgramFlags(std::string l, char s, bool p, int a, std::function<void (BEE*, char*)> f) {
+			longopt = l; shortopt = s; pre_init = p; has_arg = a; func = f;
+		}
 };
 class BEE::GameOptions {
 	public:
-		GameOptions(bool f, bool b, bool r, bool m, bool h, bool v, bee_renderer_t rend, bool vsync, bool n, bool d) {
-			is_fullscreen = f; is_borderless = b; is_resizable = r; is_maximized = m; is_highdpi = h; is_visible = v;
-			renderer_type = rend; is_vsync_enabled = vsync; is_network_enabled = n; is_debug_enabled = d;
-		}
-
 		// Window options
 		bool is_fullscreen, is_borderless;
 		bool is_resizable, is_maximized;
@@ -387,6 +402,11 @@ class BEE::GameOptions {
 		// Commandline flags
 		bool should_assert = true;
 		bool single_run = false;
+
+		GameOptions(bool f, bool b, bool r, bool m, bool h, bool v, bee_renderer_t rend, bool vsync, bool n, bool d) {
+			is_fullscreen = f; is_borderless = b; is_resizable = r; is_maximized = m; is_highdpi = h; is_visible = v;
+			renderer_type = rend; is_vsync_enabled = vsync; is_network_enabled = n; is_debug_enabled = d;
+		}
 };
 
 class BEE::CollisionPolygon {
@@ -448,6 +468,27 @@ class BEE::NetworkData {
 		int self_id = -1;
 		std::map<int,UDPsocket> players;
 		std::map<std::string,std::string> data;
+};
+
+class BEE::MessageContents {
+	public:
+		Uint32 tickstamp;
+		std::vector<std::string> tags;
+		bee_message_t type;
+		std::string data;
+
+		MessageContents(Uint32 tm, std::vector<std::string> tg, bee_message_t tp, std::string d) {
+			tickstamp = tm; tags = tg; type = tp; data = d;
+		}
+};
+class BEE::MessageRecipient {
+	public:
+		std::vector<std::string> tags;
+		std::function<void (BEE*, std::shared_ptr<MessageContents>)> func = nullptr;
+
+		MessageRecipient(std::vector<std::string> t, std::function<void (BEE*, std::shared_ptr<MessageContents>)> f) {
+			tags = t; func = f;
+		}
 };
 
 #include "resource_structures/sprite.hpp"

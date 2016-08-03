@@ -55,7 +55,7 @@ int show_message(const std::string& str, const std::string& button1, const std::
 
 	int brid = -1; // The index of the selected button
 	if (SDL_ShowMessageBox(&data, &brid) < 0) { // If the message box does not display correctly
-		std::cerr << "Failed to display message box: " << SDL_GetError() << "\n"; // Output the error
+		std::cerr << "Failed to display message box: " << get_sdl_error() << "\n"; // Output the error
 		return -2; // Return -2 on display failure
 	}
 	return brid; // Return the pressed button value on success
@@ -94,7 +94,7 @@ int show_error(const std::string& str, bool is_fatal) {
 	std::cerr << str << "\n"; // Output the message
 	int r = SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", str.c_str(), nullptr); // Display the message box
 
-	if (is_fatal) { // If the error should be considered fatal, throw and exception
+	if (is_fatal) { // If the error should be considered fatal, throw an exception
 		throw 1;
 	}
 

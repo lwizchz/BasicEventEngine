@@ -40,10 +40,12 @@ int BEE::SoundGroup::reset() {
 	return 0;
 }
 int BEE::SoundGroup::print() {
-	std::cout <<
+	std::stringstream s;
+	s <<
 	"SoundGroup { "
 	//"\n	id		" << id <<
 	"\n}\n";
+	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str());
 
 	return 0;
 }
@@ -98,7 +100,7 @@ int BEE::SoundGroup::set_is_looping(bool new_is_looping) {
 int BEE::SoundGroup::load() {
 	for (auto& s : sounds) {
 		if (s.second->load()) {
-			std::cerr << "Failed to load " << s.first << " from soundgroup " << name << ".\n";
+			game->messenger_send({"engine", "resource"}, BEE_MESSAGE_WARNING, "Failed to load " + s.first + " from soundgroup " + name);
 			return 1;
 		}
 	}

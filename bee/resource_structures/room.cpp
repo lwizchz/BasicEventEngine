@@ -23,7 +23,7 @@ BEE::Room::Room (std::string new_name, std::string path) {
 
 	add_to_resources("resources/rooms/"+path);
 	if (id < 0) {
-		std::cerr << "Failed to add room resource: " << path << "\n";
+		game->messenger_send({"engine", "resource"}, BEE_MESSAGE_WARNING, "Failed to add room resource: " + path);
 		throw(-1);
 	}
 
@@ -55,20 +55,9 @@ int BEE::Room::add_to_resources(std::string path) {
 		}
 		BEE::resource_list->rooms.remove_resource(id);
 		id = -1;
-	} else {
-		for (auto& r : BEE::resource_list->rooms.resources) {
-			if ((r.second != nullptr)&&(r.second->get_path() == path)) {
-				list_id = r.first;
-				break;
-			}
-		}
 	}
 
-	if (list_id >= 0) {
-		id = list_id;
-	} else {
-		id = BEE::resource_list->rooms.add_resource(this);
-	}
+	id = BEE::resource_list->rooms.add_resource(this);
 	BEE::resource_list->rooms.set_resource(id, this);
 
 	if (BEE::resource_list->rooms.game != nullptr) {
@@ -124,7 +113,8 @@ int BEE::Room::print() {
 	std::string view_string = get_view_string();
 	std::string instance_string = get_instance_string();
 
-	std::cout <<
+	std::stringstream s;
+	s <<
 	"Room { "
 	"\n	id				" << id <<
 	"\n	name				" << name <<
@@ -135,15 +125,16 @@ int BEE::Room::print() {
 	"\n	is_persistent			" << is_persistent <<
 	"\n	is_background_color_enabled	" << is_background_color_enabled;
 	if (is_background_color_enabled) {
-		std::cerr << "\n	background_color		" << (int)background_color.r << ", " << (int)background_color.g << ", " << (int)background_color.b;
+		s << "\n	background_color		" << (int)background_color.r << ", " << (int)background_color.g << ", " << (int)background_color.b;
 	}
-	std::cerr <<
+	s <<
 	"\n	backgrounds			\n" << debug_indent(background_string, 2) <<
 	"	is_views_enabled		" << is_views_enabled <<
 	"\n	views				\n" << debug_indent(view_string, 2) <<
 	"	instances			\n" << debug_indent(instance_string, 2) <<
 	"	collistion tree			\n" << debug_indent(collision_tree->print(), 2) <<
 	"}\n";
+	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str());
 
 	return 0;
 }
@@ -240,7 +231,7 @@ std::string BEE::Room::get_instance_string() {
 		for (auto& i : instances_sorted) {
 			instance_string <<
 			i.first->id << "\t" <<
-			i.first->object->get_name() << "\t" <<
+			i.first->object->get_name() << "\t\t" <<
 			i.first->depth << "\t" <<
 			i.first->x << "\t" <<
 			i.first->y << "\n";
@@ -331,9 +322,9 @@ int BEE::Room::add_instance(int index, Object* object, int x, int y) {
 	object->game = game;
 	if (object->get_sprite() != nullptr) {
 		if (!object->get_sprite()->get_is_loaded()) {
-			std::cerr << "Automatically loading the sprite for object " << object->get_name() << "\n";
+			game->messenger_send({"engine", "room"}, BEE_MESSAGE_INFO, "Automatically loading the sprite for object " + object->get_name());
 			object->get_sprite()->load();
-			//std::cerr << "An instance of " << object->get_name() << " has been created but its sprite has not been loaded\n";
+			//game->messenger_send({"engine", "room"}, BEE_MESSAGE_WARNING, "An instance of " + object->get_name() + "has been created but its sprite has not been loaded");
 		}
 	}
 
@@ -355,7 +346,7 @@ int BEE::Room::add_instance(int index, Object* object, int x, int y) {
 	}
 	if (r != 0) {
 		if (collision_tree->insert(new_instance) != 0) {
-			std::cerr << "Failed to add " << new_instance->object->get_name() << " with id " << new_instance->id << " to the collision tree: error " << r << "\n";
+			game->messenger_send({"engine", "room"}, BEE_MESSAGE_WARNING, "Failed to add " + new_instance->object->get_name() + "with id " + bee_itos(new_instance->id) + " to the collision tree: error " + bee_itos(r));
 			//new_instance->print();
 		}
 	}
@@ -371,7 +362,7 @@ int BEE::Room::add_instance_grid(int index, Object* object, double x, double y) 
 
 	if (object->get_sprite() != nullptr) {
 		if (!object->get_sprite()->get_is_loaded()) {
-			std::cerr << "Automatically loading the sprite for object " << object->get_name() << "\n";
+			game->messenger_send({"engine", "room"}, BEE_MESSAGE_INFO, "Automatically loading the sprite for object " + object->get_name());
 			object->get_sprite()->load();
 		}
 
@@ -488,34 +479,40 @@ int BEE::Room::handle_lights() {
 		}
 		glUniform1i(game->light_amount_location, i);
 	} else {
-		int a = 0;
-		int w = get_width(), h = get_height();
-		game->draw_set_blend(SDL_BLENDMODE_MOD);
-		for (auto& l : lights) {
-			switch (l.type) {
-				case BEE_LIGHT_AMBIENT: {
-					a += l.color.a;
-					game->draw_rectangle(0, 0, w, h, true, l.color, false);
-					break;
-				}
-				case BEE_LIGHT_DIFFUSE: {
-					break;
-				}
-				case BEE_LIGHT_POINT: {
-					a += l.color.a/2;
-					int r = 1000.0/l.attenuation.y;
-					game->add_sprite("pt_sprite_sphere", "particles/07_sphere.png")->draw(l.position.x-r/2, l.position.y-r/2, 0, r, r, 0.0, l.color, SDL_FLIP_NONE, false);
-					break;
-				}
-				case BEE_LIGHT_SPOT: {
-					break;
+		if (!lights.empty()) {
+			int w = get_width(), h = get_height();
+			game->set_render_target(light_map);
+			game->draw_set_color({0, 0, 0, 255});
+			game->render_clear();
+
+			Sprite* s = new Sprite("pt_sprite_sphere", "particles/07_sphere.png");
+			s->load();
+
+			for (auto& l : lights) {
+				switch (l.type) {
+					case BEE_LIGHT_AMBIENT: {
+						game->draw_rectangle(0, 0, w, h, true, l.color, false);
+						break;
+					}
+					case BEE_LIGHT_DIFFUSE: {
+						break;
+					}
+					case BEE_LIGHT_POINT: {
+						int r = 10000.0/l.attenuation.y;
+						s->draw(l.position.x-r/2, l.position.y-r/2, 0, r, r, 0.0, l.color, SDL_FLIP_NONE, false);
+						break;
+					}
+					case BEE_LIGHT_SPOT: {
+						break;
+					}
 				}
 			}
+			delete s;
+			game->reset_render_target();
+			game->draw_set_blend(SDL_BLENDMODE_MOD);
+			light_map->draw(0, 0, 0);
+			game->draw_set_blend(SDL_BLENDMODE_BLEND);
 		}
-		if (a < 255) {
-			game->draw_rectangle(0, 0, w, h, true, {0, 0, 0, (Uint8)(255-a)}, false);
-		}
-		game->draw_set_blend(SDL_BLENDMODE_BLEND);
 	}
 	lightables.clear();
 	lights.clear();
@@ -594,6 +591,10 @@ int BEE::Room::reset_properties() {
 	should_sort = false;
 
 	lights.clear();
+	if (light_map != nullptr) {
+		delete light_map;
+	}
+	light_map = new Sprite();
 
 	tree_x = 0;
 	tree_y = 0;
@@ -655,7 +656,7 @@ int BEE::Room::load_instance_map(std::string fname) {
 			int y = bee_stoi(d.substr(d.find(",")+1));
 
 			if (game->get_object_by_name(v) == nullptr) {
-				std::cerr << "Error loading instance map: unknown object \"" << v << "\"\n";
+				game->messenger_send({"engine", "room"}, BEE_MESSAGE_WARNING, "Error loading instance map: unknown object " + v);
 			} else {
 				data.push_back(std::make_tuple(game->get_object_by_name(v), x, y));
 			}
@@ -665,7 +666,7 @@ int BEE::Room::load_instance_map(std::string fname) {
 			add_instance(-1, std::get<0>(i), std::get<1>(i), std::get<2>(i));
 		}
         } else {
-		std::cerr << "No instances loaded.\n";
+		game->messenger_send({"engine", "room"}, BEE_MESSAGE_WARNING, "No instances loaded");
 		return 1;
 	}
 
@@ -820,7 +821,7 @@ int BEE::Room::step_mid() {
 			}
 			if (r != 0) {
 				if (collision_tree->insert(i.first) != 0) {
-					std::cerr << "Failed to add " << i.first->object->get_name() << " with id " << i.first->id << " to the collision tree: error " << r << "\n";
+					game->messenger_send({"engine", "room"}, BEE_MESSAGE_WARNING, "Failed to add " + i.first->object->get_name() + " with id " + bee_itos(i.first->id) + " to the collision tree: error " + bee_itos(r));
 				}
 			}
 		}

@@ -40,7 +40,7 @@ BEE::Background::Background (std::string new_name, std::string path) {
 
 	add_to_resources("resources/backgrounds/"+path);
 	if (id < 0) {
-		std::cerr << "Failed to add background resource: " << path << "\n";
+		game->messenger_send({"engine", "resource"}, BEE_MESSAGE_WARNING, "Failed to add background resource: " + path);
 		throw(-1);
 	}
 
@@ -59,20 +59,9 @@ int BEE::Background::add_to_resources(std::string path) {
 		}
 		BEE::resource_list->backgrounds.remove_resource(id);
 		id = -1;
-	} else {
-		for (auto b : BEE::resource_list->backgrounds.resources) {
-			if ((b.second != nullptr)&&(b.second->get_path() == path)) {
-				list_id = b.first;
-				break;
-			}
-		}
 	}
 
-	if (list_id >= 0) {
-		id = list_id;
-	} else {
-		id = BEE::resource_list->backgrounds.add_resource(this);
-	}
+	id = BEE::resource_list->backgrounds.add_resource(this);
 	BEE::resource_list->backgrounds.set_resource(id, this);
 
 	if (BEE::resource_list->backgrounds.game != nullptr) {
@@ -99,7 +88,8 @@ int BEE::Background::reset() {
 	return 0;
 }
 int BEE::Background::print() {
-	std::cout <<
+	std::stringstream s;
+	s <<
 	"Background { "
 	"\n	id		" << id <<
 	"\n	name		" << name <<
@@ -108,6 +98,7 @@ int BEE::Background::print() {
 	"\n	height		" << height <<
 	"\n	is_tiling	" << is_tiling <<
 	"\n}\n";
+	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str());
 
 	return 0;
 }
@@ -222,7 +213,7 @@ int BEE::Background::load_from_surface(SDL_Surface* tmp_surface) {
 		} else {
 			texture = SDL_CreateTextureFromSurface(game->renderer, tmp_surface);
 			if (texture == nullptr) {
-				std::cerr << "Failed to create texture from surface: " << SDL_GetError() << "\n";
+				game->messenger_send({"engine", "background"}, BEE_MESSAGE_WARNING, "Failed to create texture from surface: " + get_sdl_error());
 				return 1;
 			}
 
@@ -232,7 +223,7 @@ int BEE::Background::load_from_surface(SDL_Surface* tmp_surface) {
 			has_draw_failed = false;
 		}
 	} else {
-		std::cerr << "Failed to load background from surface because it has already been loaded\n";
+		game->messenger_send({"engine", "background"}, BEE_MESSAGE_WARNING, "Failed to load background from surface because it has already been loaded");
 		return 1;
 	}
 
@@ -243,7 +234,7 @@ int BEE::Background::load() {
 		SDL_Surface* tmp_surface;
 		tmp_surface = IMG_Load(background_path.c_str());
 		if (tmp_surface == nullptr) {
-			std::cerr << "Failed to load background " << name << ": " << IMG_GetError() << "\n";
+			game->messenger_send({"engine", "background"}, BEE_MESSAGE_WARNING, "Failed to load background " + name + ": " + IMG_GetError());
 			return 1;
 		}
 
@@ -417,7 +408,7 @@ int BEE::Background::set_as_target(int w, int h) {
 
 	texture = SDL_CreateTexture(game->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w, h);
 	if (texture == nullptr) {
-		std::cerr << "Failed to create a blank texture: " << SDL_GetError() << "\n";
+		game->messenger_send({"engine", "background"}, BEE_MESSAGE_WARNING, "Failed to create a blank texture: " + get_sdl_error());
 		return 1;
 	}
 

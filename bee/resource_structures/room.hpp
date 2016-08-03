@@ -55,6 +55,7 @@ class BEE::Room: public Resource {
 
 		std::vector<LightData> lights;
 		std::vector<LightableData*> lightables;
+		Sprite* light_map = nullptr;
 
 		CollisionTree* collision_tree = nullptr;
 		int tree_width;

@@ -23,7 +23,7 @@ BEE::Sound::Sound (std::string new_name, std::string path, bool new_is_music) {
 
 	add_to_resources("resources/sounds/"+path);
 	if (id < 0) {
-		std::cerr << "Failed to add sound resource: " << path << "\n";
+		game->messenger_send({"engine", "resource"}, BEE_MESSAGE_WARNING, "Failed to add sound resource: " + path);
 		throw(-1);
 	}
 
@@ -43,20 +43,9 @@ int BEE::Sound::add_to_resources(std::string path) {
 		}
 		BEE::resource_list->sounds.remove_resource(id);
 		id = -1;
-	} else {
-		for (auto i : BEE::resource_list->sounds.resources) {
-			if ((i.second != nullptr)&&(i.second->get_path() == path)) {
-				list_id = i.first;
-				break;
-			}
-		}
 	}
 
-	if (list_id >= 0) {
-		id = list_id;
-	} else {
-		id = BEE::resource_list->sounds.add_resource(this);
-	}
+	id = BEE::resource_list->sounds.add_resource(this);
 	BEE::resource_list->sounds.set_resource(id, this);
 
 	if (BEE::resource_list->sounds.game != nullptr) {
@@ -90,7 +79,8 @@ int BEE::Sound::reset() {
 	return 0;
 }
 int BEE::Sound::print() {
-	std::cout <<
+	std::stringstream s;
+	s <<
 	"Sound { "
 	"\n	id		" << id <<
 	"\n	name		" << name <<
@@ -104,6 +94,7 @@ int BEE::Sound::print() {
 	"\n	is_music	" << is_music <<
 	"\n	is_looping	" << is_looping <<
 	"\n}\n";
+	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str());
 
 	return 0;
 }
@@ -226,13 +217,13 @@ int BEE::Sound::load() {
 	if (is_music) {
 		music = Mix_LoadMUS(sound_path.c_str());
 		if (music == nullptr) {
-			std::cerr << "Failed to load sound " << name << " as music: " << Mix_GetError() << "\n";
+			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "Failed to load sound \"" + name + "\" as music: " + Mix_GetError());
 			return 1;
 		}
 	} else {
 		chunk = Mix_LoadWAV(sound_path.c_str());
 		if (chunk == nullptr) {
-			std::cerr << "Failed to load sound " << name << " as chunk: " << Mix_GetError() << "\n";
+			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "Failed to load sound \"" + name + "\" as chunk: " + Mix_GetError());
 			return 1;
 		}
 
@@ -270,7 +261,7 @@ int BEE::Sound::finished(int channel) {
 int BEE::Sound::play() {
 	if (!is_loaded) {
 		if (!has_play_failed) {
-			std::cerr << "Failed to play sound '" << name << "'" << " because it is not loaded\n";
+			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "Failed to play sound \"" + name + "\" because it is not loaded");
 			has_play_failed = true;
 		}
 		return 1;
@@ -285,7 +276,7 @@ int BEE::Sound::play() {
 			current_channels.remove(c);
 			current_channels.push_back(c);
 		} else {
-			std::cerr << "Failed to play sound " << name << ": " << Mix_GetError() << "\n";
+			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "Failed to play sound \"" + name + "\": " + Mix_GetError());
 			return 1;
 		}
 
@@ -321,7 +312,7 @@ int BEE::Sound::stop() {
 int BEE::Sound::rewind() {
 	if (!is_loaded) {
 		if (!has_play_failed) {
-			std::cerr << "Failed to rewind sound '" << name << "'" << " because it is not loaded\n";
+			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "Failed to rewind sound \"" + name + "\" because it is not loaded");
 			has_play_failed = true;
 		}
 		return 1;
@@ -353,7 +344,7 @@ int BEE::Sound::rewind() {
 int BEE::Sound::pause() {
 	if (!is_loaded) {
 		if (!has_play_failed) {
-			std::cerr << "Failed to pause sound '" << name << "'" << " because it is not loaded\n";
+			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "Failed to pause sound \"" + name + "\" because it is not loaded");
 			has_play_failed = true;
 		}
 		return 1;
@@ -374,7 +365,7 @@ int BEE::Sound::pause() {
 int BEE::Sound::resume() {
 	if (!is_loaded) {
 		if (!has_play_failed) {
-			std::cerr << "Failed to resume sound '" << name << "'" << " because it is not loaded\n";
+			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "Failed to resume sound \"" + name + "\" because it is not loaded");
 			has_play_failed = true;
 		}
 		return 1;
@@ -402,7 +393,7 @@ int BEE::Sound::toggle() {
 int BEE::Sound::loop() {
 	if (!is_loaded) {
 		if (!has_play_failed) {
-			std::cerr << "Failed to loop sound '" << name << "'" << " because it is not loaded\n";
+			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "Failed to loop sound \"" + name + "\" because it is not loaded");
 			has_play_failed = true;
 		}
 		return 1;
@@ -417,7 +408,7 @@ int BEE::Sound::loop() {
 			current_channels.remove(c);
 			current_channels.push_back(c);
 		} else {
-			std::cerr << "Failed to play sound " << name << ": " << Mix_GetError() << "\n";
+			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "Failed to play sound \"" + name + "\": " + Mix_GetError());
 			return 1;
 		}
 
@@ -432,7 +423,7 @@ int BEE::Sound::loop() {
 int BEE::Sound::fade_in(int ticks) {
 	if (!is_loaded) {
 		if (!has_play_failed) {
-			std::cerr << "Failed to fade in sound '" << name << "'" << " because it is not loaded\n";
+			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "Failed to fade in sound \"" + name + "\" because it is not loaded");
 			has_play_failed = true;
 		}
 		return 1;
@@ -446,7 +437,7 @@ int BEE::Sound::fade_in(int ticks) {
 			current_channels.remove(c);
 			current_channels.push_back(c);
 		} else {
-			std::cerr << "Failed to play sound " << name << ": " << Mix_GetError() << "\n";
+			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "Failed to play sound \"" + name + "\": " + Mix_GetError());
 			return 1;
 		}
 
@@ -462,7 +453,7 @@ int BEE::Sound::fade_in(int ticks) {
 int BEE::Sound::fade_out(int ticks) {
 	if (!is_loaded) {
 		if (!has_play_failed) {
-			std::cerr << "Failed to fade out sound '" << name << "'" << " because it is not loaded\n";
+			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "Failed to fade out sound \"" + name + "\" because it is not loaded");
 			has_play_failed = true;
 		}
 		return 1;
@@ -523,19 +514,19 @@ int BEE::Sound::effect_set(int channel, int se_mask) {
 			Mix_RegisterEffect(channel, sound_effect_flanger, sound_effect_flanger_cleanup, flanger_data);
 		}
 		if (se_mask & se_gargle) {
-			std::cerr << "The gargle sound effect is currently unimplemented and will have no effect.\n";
+			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "The gargle sound effect is currently unimplemented and will have no effect");
 			Mix_RegisterEffect(channel, sound_effect_gargle, sound_effect_gargle_cleanup, gargle_data);
 		}
 		if (se_mask & se_reverb) {
-			std::cerr << "The reverb sound effect is currently unimplemented and will have no effect.\n";
+			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "The reverb sound effect is currently unimplemented and will have no effect");
 			Mix_RegisterEffect(channel, sound_effect_reverb, sound_effect_reverb_cleanup, reverb_data);
 		}
 		if (se_mask & se_compressor) {
-			std::cerr << "The compressor sound effect is currently unimplemented and will have no effect.\n";
+			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "The compressor sound effect is currently unimplemented and will have no effect");
 			Mix_RegisterEffect(channel, sound_effect_compressor, sound_effect_compressor_cleanup, compressor_data);
 		}
 		if (se_mask & se_equalizer) {
-			std::cerr << "The equalizer sound effect is currently unimplemented and will have no effect.\n";
+			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "The equalizer sound effect is currently unimplemented and will have no effect");
 			Mix_RegisterEffect(channel, sound_effect_equalizer, sound_effect_equalizer_cleanup, equalizer_data);
 		}
 	}
@@ -584,19 +575,19 @@ int BEE::Sound::effect_set_post(int se_mask) {
 			Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_flanger, sound_effect_flanger_cleanup, flanger_data);
 		}
 		if (se_mask & se_gargle) {
-			std::cerr << "The gargle sound effect is currently unimplemented and will have no effect.\n";
+			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "The gargle sound effect is currently unimplemented and will have no effect");
 			Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_gargle, sound_effect_gargle_cleanup, gargle_data);
 		}
 		if (se_mask & se_reverb) {
-			std::cerr << "The reverb sound effect is currently unimplemented and will have no effect.\n";
+			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "The reverb sound effect is currently unimplemented and will have no effect");
 			Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_reverb, sound_effect_reverb_cleanup, reverb_data);
 		}
 		if (se_mask & se_compressor) {
-			std::cerr << "The compressor sound effect is currently unimplemented and will have no effect.\n";
+			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "The compressor sound effect is currently unimplemented and will have no effect");
 			Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_compressor, sound_effect_compressor_cleanup, compressor_data);
 		}
 		if (se_mask & se_equalizer) {
-			std::cerr << "The equalizer sound effect is currently unimplemented and will have no effect.\n";
+			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "The equalizer sound effect is currently unimplemented and will have no effect");
 			Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_equalizer, sound_effect_equalizer_cleanup, equalizer_data);
 		}
 	}

@@ -28,7 +28,7 @@ BEE::Object::Object (std::string new_name, std::string path) {
 
 	add_to_resources("resources/objects/"+path);
 	if (id < 0) {
-		std::cerr << "Failed to add object resource: " << path << "\n";
+		game->messenger_send({"engine", "resource"}, BEE_MESSAGE_WARNING, "Failed to add object resource: " + path);
 		throw(-1);
 	}
 
@@ -46,20 +46,9 @@ int BEE::Object::add_to_resources(std::string path) {
 		}
 		BEE::resource_list->objects.remove_resource(id);
 		id = -1;
-	} else {
-		for (auto i : BEE::resource_list->objects.resources) {
-			if ((i.second != nullptr)&&(i.second->get_path() == path)) {
-				list_id = i.first;
-				break;
-			}
-		}
 	}
 
-	if (list_id >= 0) {
-		id = list_id;
-	} else {
-		id = BEE::resource_list->objects.add_resource(this);
-	}
+	id = BEE::resource_list->objects.add_resource(this);
 	BEE::resource_list->objects.set_resource(id, this);
 
 	if (BEE::resource_list->objects.game != nullptr) {
@@ -88,33 +77,35 @@ int BEE::Object::reset() {
 int BEE::Object::print() {
 	std::string instance_string = get_instance_string();
 
-	std::cout <<
+	std::stringstream s;
+	s <<
 	"Object { "
 	"\n	id		" << id <<
 	"\n	name		" << name <<
 	"\n	object_path	" << object_path;
 	if (sprite != nullptr) {
-		std::cout << "\n	sprite		" << sprite->get_id() << ", " << sprite->get_name();
+		s << "\n	sprite		" << sprite->get_id() << ", " << sprite->get_name();
 	} else {
-		std::cout << "\n	sprite		nullptr";
+		s << "\n	sprite		nullptr";
 	}
-	std::cout <<
+	s <<
 	"\n	is_solid	" << is_solid <<
 	"\n	is_visible	" << is_visible <<
 	"\n	is_persistent	" << is_persistent <<
 	"\n	depth		" << depth;
 	if (parent != nullptr) {
-		std::cout << "\n	parent		" << parent->get_id() << ", " << parent->get_name();
+		s << "\n	parent		" << parent->get_id() << ", " << parent->get_name();
 	} else {
-		std::cout << "\n	parent		nullptr";
+		s << "\n	parent		nullptr";
 	}
 	if (mask != nullptr) {
-		std::cout << "\n	mask		" << mask->get_id() << ", " << mask->get_name();
+		s << "\n	mask		" << mask->get_id() << ", " << mask->get_name();
 	} else {
-		std::cout << "\n	mask		nullptr";
+		s << "\n	mask		nullptr";
 	}
-	std::cout << "\n	instances\n" << debug_indent(instance_string, 2) <<
+	s << "\n	instances\n" << debug_indent(instance_string, 2) <<
 	"\n}\n";
+	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str());
 
 	return 0;
 }

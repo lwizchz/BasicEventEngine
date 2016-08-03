@@ -10,15 +10,15 @@
 #define _BEE_ENUM_H 1
 
 enum bee_rgba_t {
-	c_cyan, c_aqua,
+	c_cyan, c_aqua = c_cyan,
 	c_black,
 	c_blue,
 	c_dkgray,
-	c_magenta, c_fuchsia,
+	c_magenta, c_fuchsia = c_magenta,
 	c_gray,
 	c_green,
 	c_lime,
-	c_silver, c_ltgray,
+	c_ltgray, c_silver = c_ltgray,
 	c_maroon,
 	c_navy,
 	c_olive,
@@ -101,6 +101,15 @@ enum bee_transition_t {
 	BEE_TRANSITION_FADE,
 	BEE_TRANSITION_CUSTOM,
 	BEE_TRANSITION_MAX
+};
+
+enum bee_message_t {
+	BEE_MESSAGE_GENERAL,
+	BEE_MESSAGE_START,
+	BEE_MESSAGE_END,
+	BEE_MESSAGE_INFO,
+	BEE_MESSAGE_WARNING,
+	BEE_MESSAGE_ERROR
 };
 
 #endif // _BEE_ENUM_H

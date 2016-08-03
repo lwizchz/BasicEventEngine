@@ -15,6 +15,8 @@
 #include <SDL2/SDL.h> // Include the required SDL headers
 #include <SDL2/SDL_net.h>
 
+#include "debug.hpp"
+
 // General utility functions bee/util.cpp
 bool verify_assertions(int, char**);
 bool verify_assertions();

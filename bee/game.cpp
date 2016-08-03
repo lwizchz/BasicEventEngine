@@ -44,13 +44,13 @@ BEE::BEE(int new_argc, char** new_argv, const std::list<ProgramFlags*>& new_flag
 	net = new NetworkData();
 
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) > 0) {
-		throw std::string("Couldn't init SDL: ") + SDL_GetError() + "\n";
+		throw "Couldn't init SDL: " + get_sdl_error() + "\n";
 	}
 
 	// Use the highest version of OpenGL available
 	switch (options->renderer_type) {
 		case BEE_RENDERER_OPENGL4: {
-			if (GL_VERSION_4_1) {
+			if (GL_VERSION_4_1) { // FIXME: Properly test for opengl support
 				options->renderer_type = BEE_RENDERER_OPENGL4;
 				SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
 				SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
@@ -65,9 +65,9 @@ BEE::BEE(int new_argc, char** new_argv, const std::list<ProgramFlags*>& new_flag
 				options->renderer_type = BEE_RENDERER_OPENGL3;
 				SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 				SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-				//SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-				//SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
-				SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY); // Currently the compatibility profile must be used because there are unknown uses of the deprecated functions in the code base
+				SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+				SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+				//SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY); // Currently the compatibility profile must be used because there are unknown uses of the deprecated functions in the code base
 				break;
 			}
 		}
@@ -76,6 +76,11 @@ BEE::BEE(int new_argc, char** new_argv, const std::list<ProgramFlags*>& new_flag
 			options->renderer_type = BEE_RENDERER_SDL;
 		}
 	}
+
+	/*int va = 0, vi = 0;
+	SDL_GL_GetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, &va);
+	SDL_GL_GetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, &vi);
+	messenger_send({"engine", "init"}, BEE_MESSAGE_INFO, "GLversion: " + bee_itos(va) + "." + bee_itos(vi));*/
 
 	int window_flags = SDL_WINDOW_OPENGL;
 	if (options->is_fullscreen) {
@@ -98,7 +103,7 @@ BEE::BEE(int new_argc, char** new_argv, const std::list<ProgramFlags*>& new_flag
 	}
 	window = SDL_CreateWindow("Basic Event Engine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, window_flags);
 	if (window == nullptr) {
-		throw std::string("Couldn't create SDL window: ") + SDL_GetError() + "\n";
+		throw "Couldn't create SDL window: " + get_sdl_error() + "\n";
 	}
 	if (options->is_minimized) {
 		SDL_MinimizeWindow(window);
@@ -111,10 +116,16 @@ BEE::BEE(int new_argc, char** new_argv, const std::list<ProgramFlags*>& new_flag
 	console_input.clear();
 
 	color = new RGBA();
-	if (options->renderer_type != BEE_RENDERER_SDL) {
-		opengl_init();
-	} else { // if not OpenGL, init an SDL renderer
-		sdl_renderer_init();
+	try {
+		if (options->renderer_type != BEE_RENDERER_SDL) {
+			opengl_init();
+		} else { // if not OpenGL, init an SDL renderer
+			sdl_renderer_init();
+		}
+	} catch (std::string e) {
+		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, e);
+		handle_messages();
+		throw e;
 	}
 
 	int img_flags = IMG_INIT_PNG | IMG_INIT_JPG;
@@ -217,9 +228,13 @@ int BEE::handle_flags(const std::list<ProgramFlags*>& new_flags, bool pre_init) 
 int BEE::loop() {
 	tickstamp = get_ticks();
 	fps_ticks = get_ticks();
+
+	messenger_send({"engine"}, BEE_MESSAGE_START, "gameloop");
+	handle_messages();
+
 	while (!quit) {
 		if (current_room == nullptr) {
-			std::cerr << "Aborted event loop because current_room == nullptr\n";
+			messenger_send({"engine"}, BEE_MESSAGE_ERROR, "Aborted event loop because current_room == nullptr");
 			return 1;
 		}
 
@@ -300,7 +315,7 @@ int BEE::loop() {
 								break;
 							}
 							default: {
-								std::cerr << "Unknown window event: " << event.window.event << "\n";
+								messenger_send({"engine"}, BEE_MESSAGE_WARNING, "Unknown window event: " + bee_itos(event.window.event));
 								break;
 							}
 						}
@@ -377,13 +392,14 @@ int BEE::loop() {
 						break;
 					}
 					default:
-						std::cerr << "Unknown event type: " << event.type << "\n";
+						messenger_send({"engine"}, BEE_MESSAGE_WARNING, "Unknown event type: " + bee_itos(event.type));
 						break;
 				}
 			}
 			if (bee_has_console_input()) {
 				console_input.push_back("");
 				std::cin >> console_input[console_line];
+				messenger_send({"engine", "console"}, BEE_MESSAGE_INFO, console_input[console_line]);
 				current_room->console_input(console_input[console_line++]);
 			}
 
@@ -399,6 +415,7 @@ int BEE::loop() {
 			current_room->destroy();
 
 			net_handle_events();
+			handle_messages();
 
 			fps_count++;
 			frame_number++;
@@ -428,7 +445,7 @@ int BEE::loop() {
 		} catch (int e) {
 			switch (e) {
 				case -1: { // Resource error
-					std::cerr << "Aborting due to resource error\n";
+					messenger_send({"engine"}, BEE_MESSAGE_ERROR, "Aborting due to resource error");
 					return 2;
 				}
 				case 1: { // Quit
@@ -447,12 +464,13 @@ int BEE::loop() {
 					break;
 				}
 				default: {
-					std::cerr << "Unknown error: " << e << "\n";
+					messenger_send({"engine"}, BEE_MESSAGE_ERROR, "Unknown error: " + bee_itos(e));
 					return e;
 				}
 			}
 		}
 	}
+	messenger_send({"engine"}, BEE_MESSAGE_END, "gameloop");
 
 	current_room->room_end();
 	current_room->game_end();
@@ -462,6 +480,8 @@ int BEE::loop() {
 	return 0;
 }
 int BEE::close() {
+	handle_messages();
+
 	if (is_initialized) {
 		free_media();
 		close_resources();
@@ -654,7 +674,7 @@ int BEE::set_options(const GameOptions& new_options) {
 int BEE::opengl_init() {
 	context = SDL_GL_CreateContext(window);
 	if (context == nullptr) {
-		throw std::string("Couldn't create OpenGL context: ") + SDL_GetError() + "\n";
+		throw "Couldn't create OpenGL context: " + get_sdl_error() + "\n";
 	}
 
 	// Initialize GLEW
@@ -682,7 +702,7 @@ int BEE::opengl_init() {
 	GLint is_shader_compiled = GL_FALSE;
 	glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &is_shader_compiled);
 	if (is_shader_compiled != GL_TRUE) {
-		std::cerr << get_shader_error(vertex_shader);
+		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_shader_error(vertex_shader));
 		glDeleteShader(vertex_shader);
 		throw std::string("Couldn't compile OpenGL vertex shader: ") + bee_itos(vertex_shader) + "\n";
 	}
@@ -698,7 +718,7 @@ int BEE::opengl_init() {
 	is_shader_compiled = GL_FALSE;
 	glGetShaderiv(geometry_shader, GL_COMPILE_STATUS, &is_shader_compiled);
 	if (is_shader_compiled != GL_TRUE) {
-		std::cerr << get_shader_error(geometry_shader);
+		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_shader_error(geometry_shader));
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		throw std::string("Couldn't compile OpenGL geometry shader: ") + bee_itos(geometry_shader) + "\n";
@@ -715,7 +735,8 @@ int BEE::opengl_init() {
 	is_shader_compiled = GL_FALSE;
 	glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &is_shader_compiled);
 	if (is_shader_compiled != GL_TRUE) {
-		std::cerr << get_shader_error(fragment_shader);
+		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_shader_error(fragment_shader));
+		handle_messages();
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
@@ -727,7 +748,7 @@ int BEE::opengl_init() {
 	GLint is_program_linked = GL_FALSE;
 	glGetProgramiv(program, GL_LINK_STATUS, &is_program_linked);
 	if (is_program_linked != GL_TRUE) {
-		std::cerr << get_program_error(program);
+		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_program_error(program));
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
@@ -736,7 +757,7 @@ int BEE::opengl_init() {
 
 	vertex_location = glGetAttribLocation(program, "LVertexPos2D");
 	if (vertex_location == -1) {
-		std::cerr << get_program_error(program);
+		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_program_error(program));
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
@@ -744,7 +765,7 @@ int BEE::opengl_init() {
 	}
 	fragment_location = glGetAttribLocation(program, "LTexCoord");
 	if (fragment_location == -1) {
-		std::cerr << get_program_error(program);
+		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_program_error(program));
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
@@ -753,7 +774,7 @@ int BEE::opengl_init() {
 
 	projection_location = glGetUniformLocation(program, "projection");
 	if (projection_location == -1) {
-		std::cerr << get_program_error(program);
+		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_program_error(program));
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
@@ -761,7 +782,7 @@ int BEE::opengl_init() {
 	}
 	view_location = glGetUniformLocation(program, "view");
 	if (view_location == -1) {
-		std::cerr << get_program_error(program);
+		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_program_error(program));
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
@@ -769,7 +790,7 @@ int BEE::opengl_init() {
 	}
 	model_location = glGetUniformLocation(program, "model");
 	if (model_location == -1) {
-		std::cerr << get_program_error(program);
+		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_program_error(program));
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
@@ -777,7 +798,7 @@ int BEE::opengl_init() {
 	}
 	port_location = glGetUniformLocation(program, "port");
 	if (port_location == -1) {
-		std::cerr << get_program_error(program);
+		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_program_error(program));
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
@@ -786,7 +807,7 @@ int BEE::opengl_init() {
 
 	rotation_location = glGetUniformLocation(program, "rotation");
 	if (rotation_location == -1) {
-		std::cerr << get_program_error(program);
+		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_program_error(program));
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
@@ -795,7 +816,7 @@ int BEE::opengl_init() {
 
 	texture_location = glGetUniformLocation(program, "LTexture");
 	if (texture_location == -1) {
-		std::cerr << get_program_error(program);
+		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_program_error(program));
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
@@ -803,7 +824,7 @@ int BEE::opengl_init() {
 	}
 	colorize_location = glGetUniformLocation(program, "colorize");
 	if (colorize_location == -1) {
-		std::cerr << get_program_error(program);
+		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_program_error(program));
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
@@ -811,7 +832,7 @@ int BEE::opengl_init() {
 	}
 	primitive_location = glGetUniformLocation(program, "is_primitive");
 	if (primitive_location == -1) {
-		std::cerr << get_program_error(program);
+		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_program_error(program));
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
@@ -819,7 +840,7 @@ int BEE::opengl_init() {
 	}
 	flip_location = glGetUniformLocation(program, "flip");
 	if (flip_location == -1) {
-		std::cerr << get_program_error(program);
+		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_program_error(program));
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
@@ -828,7 +849,7 @@ int BEE::opengl_init() {
 
 	is_lightable_location = glGetUniformLocation(program, "is_lightable");
 	if (is_lightable_location == -1) {
-		std::cerr << get_program_error(program);
+		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_program_error(program));
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
@@ -836,7 +857,7 @@ int BEE::opengl_init() {
 	}
 	light_amount_location = glGetUniformLocation(program, "light_amount");
 	if (light_amount_location == -1) {
-		std::cerr << get_program_error(program);
+		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_program_error(program));
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
@@ -852,7 +873,7 @@ int BEE::opengl_init() {
 
 	lightable_amount_location = glGetUniformLocation(program, "lightable_amount");
 	if (lightable_amount_location == -1) {
-		std::cerr << get_program_error(program);
+		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_program_error(program));
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
@@ -876,15 +897,15 @@ int BEE::opengl_init() {
 	glDeleteShader(fragment_shader);
 
 	if (options->renderer_type == BEE_RENDERER_OPENGL4) {
-		std::cout << "Now rendering with OpenGL 4.1\n";
+		messenger_send({"engine", "init"}, BEE_MESSAGE_INFO, "Now rendering with OpenGL 4.1");
 	} else if (options->renderer_type == BEE_RENDERER_OPENGL3) {
-		std::cout << "Now rendering with OpenGL 3.3\n";
+		messenger_send({"engine", "init"}, BEE_MESSAGE_INFO, "Now rendering with OpenGL 3.3");
 	}
 
 	int va = 0, vi = 0;
 	SDL_GL_GetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, &va);
 	SDL_GL_GetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, &vi);
-	std::cerr << "GLversion: " << va << "." << vi << "\n";
+	messenger_send({"engine", "init"}, BEE_MESSAGE_INFO, "GLversion: " + bee_itos(va) + "." + bee_itos(vi));
 
 	return 0;
 }
@@ -930,13 +951,13 @@ int BEE::sdl_renderer_init() {
 
 	renderer = SDL_CreateRenderer(window, -1, renderer_flags);
 	if (renderer == nullptr) {
-		throw std::string("Couldn't create SDL renderer: ") + SDL_GetError() + "\n";
+		throw "Couldn't create SDL renderer: " + get_sdl_error() + "\n";
 	}
 
 	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
-	std::cout << "Now rendering with SDL2\n";
+	messenger_send({"engine", "init"}, BEE_MESSAGE_INFO, "Now rendering with SDL2");
 
 	return 0;
 }
@@ -1022,6 +1043,7 @@ int BEE::end_game() const {
 #include "game/window.cpp"
 #include "game/input.cpp"
 #include "game/draw.cpp"
+#include "game/messenger.cpp"
 #include "game/network.cpp"
 
 #endif // _BEE_GAME

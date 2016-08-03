@@ -23,7 +23,7 @@ BEE::Timeline::Timeline (std::string new_name, std::string path) {
 
 	add_to_resources("resources/timelines/"+path);
 	if (id < 0) {
-		std::cerr << "Failed to add timeline resource: " << path << "\n";
+		game->messenger_send({"engine", "resource"}, BEE_MESSAGE_WARNING, "Failed to add timeline resource: " + path);
 		throw(-1);
 	}
 
@@ -41,20 +41,9 @@ int BEE::Timeline::add_to_resources(std::string path) {
 		}
 		BEE::resource_list->timelines.remove_resource(id);
 		id = -1;
-	} else {
-		for (auto i : BEE::resource_list->timelines.resources) {
-			if ((i.second != nullptr)&&(i.second->get_path() == path)) {
-				list_id = i.first;
-				break;
-			}
-		}
 	}
 
-	if (list_id >= 0) {
-		id = list_id;
-	} else {
-		id = BEE::resource_list->timelines.add_resource(this);
-	}
+	id = BEE::resource_list->timelines.add_resource(this);
 	BEE::resource_list->timelines.set_resource(id, this);
 
 	if (BEE::resource_list->timelines.game != nullptr) {
@@ -79,7 +68,8 @@ int BEE::Timeline::reset() {
 int BEE::Timeline::print() {
 	std::string action_string = get_action_string();
 
-	std::cout <<
+	std::stringstream s;
+	s <<
 	"Timeline { "
 	"\n	id		" << id <<
 	"\n	name		" << name <<
@@ -89,6 +79,7 @@ int BEE::Timeline::print() {
 	"\n	is_looping	" << is_looping <<
 	"\n	action_list \n" << debug_indent(action_string, 2) <<
 	"\n}\n";
+	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str());
 
 	return 0;
 }

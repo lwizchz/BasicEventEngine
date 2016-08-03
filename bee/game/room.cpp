@@ -70,12 +70,12 @@ int BEE::change_room(Room* new_room, bool should_jump) {
 	current_room->init(); // Initialize the room
 
 	if (load_media()) { // Attempt to load all resources for the new room
-		std::cerr << "Couldn't load room media for " << current_room->get_name() << "\n"; // Output error string
+		messenger_send({"engine", "room"}, BEE_MESSAGE_WARNING, "Couldn't load room media for " + current_room->get_name());
 		return 2; // Return 2 on resource loading error
 	}
 
 	SDL_SetWindowTitle(window, current_room->get_name().c_str()); // Set the window title to the room's name
-	std::cout << current_room->get_instance_string(); // Output the list of instances in the room
+	messenger_send({"engine", "room"}, BEE_MESSAGE_INFO, current_room->get_instance_string());
 
 	if (transition_type != BEE_TRANSITION_NONE) { // If a transition has been defined then prepare for drawing the new room into the after buffer
 		set_render_target(texture_after);
@@ -85,6 +85,7 @@ int BEE::change_room(Room* new_room, bool should_jump) {
 	render_clear();
 
 	is_ready = true; // Set the event loop as running
+	handle_messages();
 	current_room->create(); // Run the create event for the new room
 	if (is_game_start) { // If this is the first room then run the game_start event for the room
 		current_room->game_start();

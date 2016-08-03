@@ -77,7 +77,7 @@ BEE::Particle::Particle(BEE* new_game, pt_shape_t new_shape, double new_scale, U
 			break;
 		}
 		default: // This should never happen
-			std::cerr << "Couldn't initialize particle: unknown particle type\n";
+			game->messenger_send({"engine", "resource"}, BEE_MESSAGE_WARNING, "Couldn't initialize particle: unknown particle type");
 			return;
 	}
 
@@ -108,7 +108,8 @@ int BEE::Particle::init(Sprite* new_sprite, double new_scale, Uint32 new_max_tim
 	return 0;
 }
 int BEE::Particle::print() {
-	std::cout <<
+	std::stringstream s;
+	s <<
 	"Particle { "
 	"\n	sprite			" << sprite <<
 	"\n	scale			" << scale <<
@@ -123,6 +124,7 @@ int BEE::Particle::print() {
 	"\n	death_amount		" << death_amount <<
 	"\n	should_reanimate	" << should_reanimate <<
 	"\n}\n";
+	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str());
 
 	return 0;
 }

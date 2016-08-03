@@ -18,7 +18,7 @@
 #endif // _WIN32
 
 int main(int argc, char* argv[]) {
-	BEE* game;
+	BEE* game = nullptr;
 
 	// Declare some game options, see bee/game.hpp for the type definition
 	BEE::GameOptions options = {

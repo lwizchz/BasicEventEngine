@@ -21,10 +21,10 @@
 #include "util/files.hpp" // Include the file handling functions
 #include "util/network.hpp" // Include the networking functions
 
-#ifndef NDEBUG
+#ifndef NDEBUG // Allow the NDEBUG to disable debug support at compile time
 
 #define DOCTEST_CONFIG_IMPLEMENT
-#include "doctest.h"
+#include "doctest.h" // Include the required unit testing library which is a git submodule in lib/doctest
 
 // Real number function assertions
 TEST_CASE("real/random") {
@@ -215,7 +215,18 @@ TEST_CASE("collision/bounce") {
 
 // Message box function assertions
 TEST_CASE("messagebox/general") {
-	// Right now the message box functions can't be tested because they create a modal dialog
+	// Right now the message box functions cannot be tested without displaying the message boxes
+	/*REQUIRE(show_message("Press Button 1", "Button 1", "Button 2", "Button 3") == 0);
+	REQUIRE(show_message("Press Button 2", "Button 1", "Button 2", "Button 3") == 1);
+	REQUIRE(show_message("Press Button 3", "Button 1", "Button 2", "Button 3") == 2);
+	REQUIRE(show_message("Press Button 2", "Button 1", "Button 2", "") == 1);
+	REQUIRE(show_message("Press Button 1", "Button 1", "", "") == 0);
+	REQUIRE(show_question("Press Yes") == true);
+	REQUIRE(show_question("Press No") == false);
+	REQUIRE(show_message("Press OK") == 0);
+	REQUIRE(show_warning("Press OK") == 0);
+	REQUIRE(show_error("Press OK") == 0);
+	//REQUIRE(show_message("Press the Escape key") == -1);*/
 }
 
 // File handling function assertions
@@ -311,18 +322,30 @@ TEST_CASE("template") {
 	REQUIRE(std::equal(m.begin(), m.end(), n.begin()));
 }
 
+/*
+* verify_assertions() - Run the doctest unit tests to verify that all utility functions are working correctly
+* @argc: the argc from main()
+* @argv: the argv from main()
+*/
 bool verify_assertions(int argc, char** argv) {
 	return !(bool)doctest::Context(argc, argv).run();
 }
 
 #else // NDEBUG
 
+/*
+* verify_assertions() - If unit testing is disabled, simply return true
+*/
 bool verify_assertions(int argc, char** argv) {
 	return true;
 }
 
 #endif // NDEBUG
 
+/*
+* verify_assertions() - Run the doctest unit tests to verify that all utility functions are working correctly
+* ! When the main() arguments are not provided, simply call the function with an empty set
+*/
 bool verify_assertions() {
 	return verify_assertions(0, (char**)nullptr);
 }

@@ -214,22 +214,22 @@ int BEE::draw_transition() {
 		}
 		case BEE_TRANSITION_INTERLACE_LEFT: { // Interlaced from left
 			// Not yet implemented
-			std::cerr << "The interlace transitions are not yet implemented.\n";
+			messenger_send({"engine"}, BEE_MESSAGE_WARNING, "The interlace transitions are not yet implemented.");
 			break;
 		}
 		case BEE_TRANSITION_INTERLACE_RIGHT: { // Interlaced from right
 			// Not yet implemented
-			std::cerr << "The interlace transitions are not yet implemented.\n";
+			messenger_send({"engine"}, BEE_MESSAGE_WARNING, "The interlace transitions are not yet implemented.");
 			break;
 		}
 		case BEE_TRANSITION_INTERLACE_TOP: { // Interlaced from top
 			// Not yet implemented
-			std::cerr << "The interlace transitions are not yet implemented.\n";
+			messenger_send({"engine"}, BEE_MESSAGE_WARNING, "The interlace transitions are not yet implemented.");
 			break;
 		}
 		case BEE_TRANSITION_INTERLACE_BOTTOM: { // Interlaced from bottom
 			// Not yet implemented
-			std::cerr << "The interlace transitions are not yet implemented.\n";
+			messenger_send({"engine"}, BEE_MESSAGE_WARNING, "The interlace transitions are not yet implemented.");
 			break;
 		}
 		case BEE_TRANSITION_PUSH_LEFT: { // Push from left

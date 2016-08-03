@@ -23,7 +23,7 @@ BEE::Path::Path (std::string new_name, std::string path) {
 
 	add_to_resources("resources/paths/"+path);
 	if (id < 0) {
-		std::cerr << "Failed to add path resource: " << path << "\n";
+		game->messenger_send({"engine", "resource"}, BEE_MESSAGE_WARNING, "Failed to add path resource: " + path);
 		throw(-1);
 	}
 
@@ -41,20 +41,9 @@ int BEE::Path::add_to_resources(std::string path) {
 		}
 		BEE::resource_list->paths.remove_resource(id);
 		id = -1;
-	} else {
-		for (auto i : BEE::resource_list->paths.resources) {
-			if ((i.second != nullptr)&&(i.second->get_path() == path)) {
-				list_id = i.first;
-				break;
-			}
-		}
 	}
 
-	if (list_id >= 0) {
-		id = list_id;
-	} else {
-		id = BEE::resource_list->paths.add_resource(this);
-	}
+	id = BEE::resource_list->paths.add_resource(this);
 	BEE::resource_list->paths.set_resource(id, this);
 
 	if (BEE::resource_list->paths.game != nullptr) {
@@ -75,7 +64,8 @@ int BEE::Path::reset() {
 int BEE::Path::print() {
 	std::string coordinate_string = get_coordinate_string();
 
-	std::cout <<
+	std::stringstream s;
+	s <<
 	"Path { "
 	"\n	id		" << id <<
 	"\n	name		" << name <<
@@ -84,6 +74,7 @@ int BEE::Path::print() {
 	"	connection_type	" << connection_type <<
 	"\n	is_closed	" << is_closed <<
 	"\n}\n";
+	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str());
 
 	return 0;
 }

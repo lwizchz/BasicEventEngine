@@ -86,4 +86,11 @@ std::string get_program_error(GLuint program) {
 	return s; // Return the error string
 }
 
+/*
+* get_sdl_error() - Return the SDL error string as a C++ string
+*/
+std::string get_sdl_error() {
+	return std::string(SDL_GetError());
+}
+
 #endif // _BEE_DEBUG

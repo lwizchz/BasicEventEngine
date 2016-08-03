@@ -1,26 +1,38 @@
+// Define sprites
 BEE::Sprite* spr_bee;
 BEE::Sprite* spr_dot;
 
+// Define sounds
 BEE::Sound* snd_chirp;
 BEE::Sound* snd_music;
 
+// Define backgrounds
 BEE::Background* bk_green;
 
+// Define fonts
 BEE::Font* font_liberation;
 
+// Define paths
 BEE::Path* path_bee;
 
+// Define lights
 BEE::Light* lt_ambient;
 BEE::Light* lt_bee;
 
+// Include and define objects
 #include "objects/bee.hpp"
 BEE::Object* obj_bee;
 
+// Include and define rooms
 #include "rooms/test.hpp"
 BEE::Room* rm_test;
 
+/*
+* BEE::init_resources() - Initialize all game resources
+* ! Note that loading is note required at this stage, just initialization
+*/
 int BEE::init_resources() {
-	try {
+	try { // Catch any exceptions so that the engine can properly clean up
 		// Init sprites
 		spr_bee = new Sprite("spr_bee", "bee.png");
 			spr_bee->set_subimage_amount(2, 100);
@@ -64,25 +76,41 @@ int BEE::init_resources() {
 		// Init rooms
 		rm_test = new RmTest();
 
-		is_initialized = true;
+		is_initialized = true; // Set the engine initialization flag
 	} catch (...) {
-		return 1;
+		return 1; // Return 1 if any errors are encountered
 	}
 
-	return 0;
+	return 0; // Return 0 on success
 }
+/*
+* BEE::close_resources() - Destroy all game resources
+*/
 int BEE::close_resources() {
+	// Destroy sprites
 	delete spr_bee;
 	delete spr_dot;
+
+	// Destroy sounds
 	delete snd_chirp;
 	delete snd_music;
+
+	// Destroy backgrounds
 	delete bk_green;
+
+	// Destroy fonts
 	delete font_liberation;
+
+	// Destroy paths
 	delete path_bee;
+
+	// Destroy objects
 	delete obj_bee;
+
+	// Destroy rooms
 	delete rm_test;
 
-	is_initialized = false;
+	is_initialized = false; // Unset the engine initialization flag
 
-	return 0;
+	return 0; // Return 0 on success
 }

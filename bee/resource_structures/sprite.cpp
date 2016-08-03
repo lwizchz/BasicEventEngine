@@ -9,53 +9,57 @@
 #ifndef _BEE_SPRITE
 #define _BEE_SPRITE 1
 
-#include "sprite.hpp"
+#include "sprite.hpp" // Include the class resource header
 
+/*
+* BEE::Sprite::Sprite() - Construct the sprite, set its engine pointer, and reset all variables
+* ! This constructor should only be used for temporary sprites (e.g. framebuffers), the other should be used for all other cases
+*/
 BEE::Sprite::Sprite () {
 	if (BEE::resource_list->sprites.game != nullptr) {
-		game = BEE::resource_list->sprites.game;
+		game = BEE::resource_list->sprites.game; // Set the engine pointer
 	}
 
-	reset();
+	reset(); // Reset all resource variables
 }
+/*
+* BEE::Sprite::Sprite() - Construct the sprite, reset all variables, add it to the sprite resource list, and set the new name and path
+* @new_name: the name of the sprite to use
+* @new_path: the path of the sprite's image
+*/
 BEE::Sprite::Sprite (std::string new_name, std::string path) {
-	reset();
+	reset(); // Reset all resource variables
 
-	add_to_resources("resources/sprites/"+path);
-	if (id < 0) {
-		std::cerr << "Failed to add sprite resource: " << path << "\n";
-		throw(-1);
+	add_to_resources("resources/sprites/"+path); // Add the sprite to the appropriate resource list
+	if (id < 0) { // If the sprite could not be added to the resource list
+		game->messenger_send({"engine", "resource"}, BEE_MESSAGE_WARNING, "Failed to add sprite resource: " + path);
+		throw(-1); // Throw an exception
 	}
 
-	set_name(new_name);
-	set_path(path);
+	set_name(new_name); // Set the sprite name
+	set_path(path); // Set the sprite image path
 }
+/*
+* BEE::Sprite::~Sprite() - Free the sprite data and remove it from the resource list
+*/
 BEE::Sprite::~Sprite() {
-	free();
-	BEE::resource_list->sprites.remove_resource(id);
+	free(); // Free all sprite data
+	BEE::resource_list->sprites.remove_resource(id); // Remove the sprite from the resource list
 }
+/*
+* BEE::Sprite::add_to_resources() - Add the sprite to
+*/
 int BEE::Sprite::add_to_resources(std::string path) {
 	int list_id = -1;
 	if (id >= 0) {
 		if (path == image_path) {
-			return 1;
+			return 1; // Return 1 if the sprite already has already been added to the resource list
 		}
-		BEE::resource_list->sprites.remove_resource(id);
-		id = -1;
-	} else {
-		for (auto s : BEE::resource_list->sprites.resources) {
-			if ((s.second != nullptr)&&(s.second->get_path() == path)) {
-				list_id = s.first;
-				break;
-			}
-		}
+		BEE::resource_list->sprites.remove_resource(id); // Remove the sprite from the resource list if the existing entry is not the same
+		id = -1; // Reset the sprite id
 	}
 
-	if (list_id >= 0) {
-		id = list_id;
-	} else {
-		id = BEE::resource_list->sprites.add_resource(this);
-	}
+	id = BEE::resource_list->sprites.add_resource(this);
 	BEE::resource_list->sprites.set_resource(id, this);
 
 	if (BEE::resource_list->sprites.game != nullptr) {
@@ -91,7 +95,8 @@ int BEE::Sprite::reset() {
 	return 0;
 }
 int BEE::Sprite::print() {
-	std::cout <<
+	std::stringstream s;
+	s <<
 	"Sprite { "
 	"\n	id		" << id <<
 	"\n	name		" << name <<
@@ -107,6 +112,7 @@ int BEE::Sprite::print() {
 	"\n	texture		" << texture <<
 	"\n	is_loaded	" << is_loaded <<
 	"\n}\n";
+	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str());
 
 	return 0;
 }
@@ -307,16 +313,16 @@ int BEE::Sprite::set_is_lightable(bool new_is_lightable) {
 
 int BEE::Sprite::load_from_surface(SDL_Surface* tmp_surface) {
 	if (!is_loaded) {
-		if (game->options->renderer_type != BEE_RENDERER_SDL) {
-			width = tmp_surface->w;
-			height = tmp_surface->h;
-			if (subimage_amount <= 1) {
-				set_subimage_amount(1, width);
-			} else {
-				set_subimage_amount(subimage_amount, width/subimage_amount);
-			}
-			crop = {0, 0, width, height};
+		width = tmp_surface->w;
+		height = tmp_surface->h;
+		if (subimage_amount <= 1) {
+			set_subimage_amount(1, width);
+		} else {
+			set_subimage_amount(subimage_amount, width/subimage_amount);
+		}
+		crop = {0, 0, width, height};
 
+		if (game->options->renderer_type != BEE_RENDERER_SDL) {
 			GLfloat vertices[] = {
 				0.0, 0.0,
 				(GLfloat)subimage_width, 0.0,
@@ -355,13 +361,8 @@ int BEE::Sprite::load_from_surface(SDL_Surface* tmp_surface) {
 		} else {
 			texture = SDL_CreateTextureFromSurface(game->renderer, tmp_surface);
 			if (texture == nullptr) {
-				std::cerr << "Failed to create texture from surface: " << SDL_GetError() << "\n";
+				game->messenger_send({"engine", "sprite"}, BEE_MESSAGE_WARNING, "Failed to create texture from surface: " + get_sdl_error());
 				return 1;
-			}
-
-			SDL_QueryTexture(texture, nullptr, nullptr, &width, &height);
-			if (subimage_amount <= 1) {
-				set_subimage_amount(1, width);
 			}
 
 			SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
@@ -371,7 +372,7 @@ int BEE::Sprite::load_from_surface(SDL_Surface* tmp_surface) {
 			has_draw_failed = false;
 		}
 	} else {
-		std::cerr << "Failed to load sprite from surface because it has already been loaded\n";
+		game->messenger_send({"engine", "sprite"}, BEE_MESSAGE_WARNING, "Failed to load sprite from surface because it has already been loaded");
 		return 1;
 	}
 
@@ -382,7 +383,7 @@ int BEE::Sprite::load() {
 		SDL_Surface* tmp_surface;
 		tmp_surface = IMG_Load(image_path.c_str());
 		if (tmp_surface == nullptr) {
-			std::cerr << "Failed to load sprite " << name << ": " << IMG_GetError() << "\n";
+			game->messenger_send({"engine", "sprite"}, BEE_MESSAGE_WARNING, "Failed to load sprite \"" + name + "\": " + IMG_GetError());
 			return 1;
 		}
 
@@ -415,7 +416,7 @@ int BEE::Sprite::free() {
 int BEE::Sprite::draw_subimage(int x, int y, int current_subimage, int w, int h, double angle, RGBA new_color, SDL_RendererFlip flip, bool is_hud) {
 	if (!is_loaded) {
 		if (!has_draw_failed) {
-			std::cerr << "Failed to draw sprite \"" << name << "\" because it is not loaded\n";
+			game->messenger_send({"engine", "sprite"}, BEE_MESSAGE_WARNING, "Failed to draw sprite \"" + name + "\" because it is not loaded");
 			has_draw_failed = true;
 		}
 		return 1;
@@ -528,17 +529,18 @@ int BEE::Sprite::draw_subimage(int x, int y, int current_subimage, int w, int h,
 
 		if (game->is_on_screen(drect)) {
 			SDL_SetTextureColorMod(texture, new_color.r, new_color.g, new_color.b);
-			if (new_color.a == 0) {
-				SDL_SetTextureAlphaMod(texture, alpha*255);
-			} else {
-				SDL_SetTextureAlphaMod(texture, new_color.a);
-			}
+			SDL_SetTextureAlphaMod(texture, new_color.a);
+			SDL_Point r = {(int)(rotate_x*subimage_width), (int)(rotate_y*height)};
+
+			SDL_SetTextureBlendMode(texture, game->draw_get_blend());
 
 			if (!subimages.empty()) {
 				srect = subimages[current_subimage];
-				SDL_RenderCopyEx(game->renderer, texture, &srect, &drect, angle, nullptr, flip);
+				srect.h = height;
+				SDL_RenderCopyEx(game->renderer, texture, &srect, &drect, angle, &r, flip);
 			} else {
-				SDL_RenderCopyEx(game->renderer, texture, nullptr, &drect, angle, nullptr, flip);
+				srect = crop;
+				SDL_RenderCopyEx(game->renderer, texture, &srect, &drect, angle, &r, flip);
 			}
 		}
 	}
@@ -587,7 +589,7 @@ int BEE::Sprite::draw_simple(SDL_Rect* source, SDL_Rect* dest) {
 int BEE::Sprite::draw_array(const std::list<SpriteDrawData*>& draw_list, const std::vector<glm::mat4>& rotation_cache, RGBA new_color, SDL_RendererFlip flip, bool is_hud) {
 	if (!is_loaded) {
 		if (!has_draw_failed) {
-			std::cerr << "Failed to draw sprite \"" << name << "\" because it is not loaded\n";
+			game->messenger_send({"engine", "sprite"}, BEE_MESSAGE_WARNING, "Failed to draw sprite \"" + name + "\" because it is not loaded");
 			has_draw_failed = true;
 		}
 		return 1;
@@ -740,12 +742,12 @@ int BEE::Sprite::set_as_target(int w, int h) {
 		free();
 	}
 
-	if (game->options->renderer_type != BEE_RENDERER_SDL) {
-		width = w;
-		height = h;
-		set_subimage_amount(1, width);
-		crop = {0, 0, width, height};
+	width = w;
+	height = h;
+	set_subimage_amount(1, width);
+	crop = {0, 0, width, height};
 
+	if (game->options->renderer_type != BEE_RENDERER_SDL) {
 		GLfloat vertices[] = {
 			0.0, 0.0,
 			(GLfloat)width, 0.0,
@@ -800,14 +802,9 @@ int BEE::Sprite::set_as_target(int w, int h) {
 	} else {
 		texture = SDL_CreateTexture(game->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w, h);
 		if (texture == nullptr) {
-			std::cerr << "Failed to create a blank texture: " << SDL_GetError() << "\n";
+			game->messenger_send({"engine", "sprite"}, BEE_MESSAGE_WARNING, "Failed to create a blank texture: " + get_sdl_error());
 			return 1;
 		}
-
-		width = w;
-		height = h;
-		set_subimage_amount(1, width);
-		crop = {0, 0, width, height};
 
 		SDL_SetRenderTarget(game->renderer, texture);
 
