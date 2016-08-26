@@ -36,12 +36,12 @@ int BEE::get_mouse_global_y() const {
 * BEE::get_mouse_position() - Return the mouse coordinates relative to the viewport
 */
 std::pair<int,int> BEE::get_mouse_position() const {
-	if (!get_current_room()->get_is_views_enabled()) { // If views are disabled, simply return the coordinates relative to the window
-		return get_mouse_global_position();
-	}
-
 	int mx, my;
 	std::tie(mx, my) = get_mouse_global_position(); // Fetch the global coordinates into (mx, my)
+
+	if (!get_current_room()->get_is_views_enabled()) { // If views are disabled, simply return the coordinates relative to the window
+		return std::make_pair(mx, my); // Return the pair on success
+	}
 
 	ViewData* v = get_current_room()->get_current_view(); // Get the current view
 	if ((v == nullptr)&&(get_current_room()->get_views().size() > 0)) { // If this function is called outside of view drawing then simply use the first view

@@ -30,6 +30,8 @@ bool bee_has_console_input();
 int bee_mkdir(const char*, mode_t);
 std::string bee_mkdtemp(const std::string&);
 std::string bee_inet_ntop(const void* src);
+int bee_console_color(int);
+int bee_console_color_reset();
 
 // Real number functions, bee/util/real.hpp
 #define PI 3.141592653589793238462643383279502884197 // 40 digits of pi, sufficient to calculate the circumference of the observable universe to the width of one atom

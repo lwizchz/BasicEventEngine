@@ -97,7 +97,14 @@ int BEE::handle_messages() {
 		}
 		tags.pop_back();
 
-		std::cout << "MSG <" << tags << ">[" << msg->type << "](" << msg->tickstamp << "): ";
+		if (msg->type == BEE_MESSAGE_WARNING) {
+			bee_console_color(11);
+		}
+		if (msg->type == BEE_MESSAGE_ERROR) {
+			bee_console_color(9);
+		}
+
+		std::cout << "MSG <" << tags << ">[" << messenger_get_type_string(msg->type) << "](" << msg->tickstamp << "ms): ";
 
 		if (msg->data.find("\n") != std::string::npos) {
 			std::cout << "\n";
@@ -105,6 +112,8 @@ int BEE::handle_messages() {
 		} else {
 			std::cout << msg->data << "\n";
 		}
+
+		bee_console_color_reset();
 	}
 	std::cout << std::flush;
 
@@ -121,6 +130,21 @@ int BEE::handle_messages() {
 	tagged_messages.clear();
 	messages.clear();
 	return 0;
+}
+/*
+* BEE::messenger_get_type_string() - Return the name describing the message type
+* @type: the type of message to evaluate
+*/
+std::string BEE::messenger_get_type_string(bee_message_t type) {
+	switch (type) {
+		case BEE_MESSAGE_GENERAL: return "general";
+		case BEE_MESSAGE_START: return "start";
+		case BEE_MESSAGE_END: return "end";
+		case BEE_MESSAGE_INFO: return "info";
+		case BEE_MESSAGE_WARNING: return "warning";
+		case BEE_MESSAGE_ERROR: return "error";
+		default: return "unknown";
+	}
 }
 
 #endif // _BEE_GAME_MESSENGER

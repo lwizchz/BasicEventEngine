@@ -232,6 +232,12 @@ int BEE::loop() {
 	messenger_send({"engine"}, BEE_MESSAGE_START, "gameloop");
 	handle_messages();
 
+	messenger_register({"engine", "console"}, [] (BEE* g, std::shared_ptr<MessageContents> msg) {
+		if (msg->tags == std::vector<std::string>({"engine", "console"})) {
+			std::cout << "[" << msg->data << "]\n";
+		}
+	});
+
 	while (!quit) {
 		if (current_room == nullptr) {
 			messenger_send({"engine"}, BEE_MESSAGE_ERROR, "Aborted event loop because current_room == nullptr");
@@ -251,6 +257,7 @@ int BEE::loop() {
 					case SDL_WINDOWEVENT: {
 						switch (event.window.event) {
 							case SDL_WINDOWEVENT_SHOWN: {
+								render_set_camera(nullptr);
 								render();
 								has_focus = true;
 								break;
@@ -269,6 +276,7 @@ int BEE::loop() {
 							case SDL_WINDOWEVENT_RESIZED: {
 								width = event.window.data1;
 								height = event.window.data2;
+								render_set_camera(nullptr);
 								render();
 								break;
 							}
@@ -755,21 +763,21 @@ int BEE::opengl_init() {
 		throw std::string("Couldn't link OpenGL program: ") + bee_itos(program) + "\n";
 	}
 
-	vertex_location = glGetAttribLocation(program, "LVertexPos2D");
+	vertex_location = glGetAttribLocation(program, "v_position");
 	if (vertex_location == -1) {
 		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_program_error(program));
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
-		throw std::string("Couldn't get location of 'LVertexPos2D' in the vertex shader\n");
+		throw std::string("Couldn't get location of 'v_position' in the vertex shader\n");
 	}
-	fragment_location = glGetAttribLocation(program, "LTexCoord");
+	fragment_location = glGetAttribLocation(program, "v_texcoord");
 	if (fragment_location == -1) {
 		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_program_error(program));
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
-		throw std::string("Couldn't get location of 'LTexCoord' in the vertex shader\n");
+		throw std::string("Couldn't get location of 'v_texcoord' in the vertex shader\n");
 	}
 
 	projection_location = glGetUniformLocation(program, "projection");
@@ -811,16 +819,16 @@ int BEE::opengl_init() {
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
-		throw std::string("Couldn't get location of 'rotation' in the fragment shader\n");
+		throw std::string("Couldn't get location of 'rotation' in the geometry shader\n");
 	}
 
-	texture_location = glGetUniformLocation(program, "LTexture");
+	texture_location = glGetUniformLocation(program, "f_texture");
 	if (texture_location == -1) {
 		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_program_error(program));
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
-		throw std::string("Couldn't get location of 'LTexture' in the fragment shader\n");
+		throw std::string("Couldn't get location of 'f_texture' in the fragment shader\n");
 	}
 	colorize_location = glGetUniformLocation(program, "colorize");
 	if (colorize_location == -1) {

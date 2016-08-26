@@ -8,11 +8,12 @@
 
 // Version is included before OpenGL initialization
 
+in vec4 f_position;
 in vec2 f_texcoord;
 
-out vec4 LFragment;
+out vec4 f_fragment;
 
-uniform sampler2D LTexture;
+uniform sampler2D f_texture;
 uniform vec4 colorize = vec4(1.0, 1.0, 1.0, 1.0);
 uniform int is_primitive = 0;
 uniform int flip = 0;
@@ -54,6 +55,9 @@ struct Lightable {
 };
 uniform Lightable lightables[BEE_MAX_LIGHTABLES];
 
+float calc_attenuation_point(vec4 a, float d) {
+	return 10000.0 / (a.x + a.y * d + a.z * d*d);
+}
 vec4 calc_light_ambient(Light l) {
 	return l.color*l.color.w;
 }
@@ -61,12 +65,12 @@ vec4 calc_light_diffuse(Light l) {
 	return calc_light_ambient(l);
 }
 vec4 calc_light_point(Light l) {
-	vec4 dir = vec4(gl_FragCoord.x, -gl_FragCoord.y + port.w, 0.0, 1.0) - l.position; // Note that port.w is actually the port height
-	float d = length(dir.xy);
+	vec4 dir = f_position - l.position;
+	float d = length(dir.xyz);
 
 	float attenuation = 1.0;
 	if (l.attenuation.xyz != vec3(0.0, 0.0, 0.0)) {
-		attenuation = 10000.0 / (l.attenuation.x + l.attenuation.y * d + l.attenuation.z * d*d);
+		attenuation = calc_attenuation_point(l.attenuation, d);
 	}
 
 	return calc_light_ambient(l) * attenuation;
@@ -100,14 +104,7 @@ bool check_is_inside(vec4 p, vec4 vertices[BEE_MAX_MASK_VERTICES]) {
 	return is_intersecting;
 }
 float calc_shadow_intersect(Light l, Lightable s) {
-	/*if (check_is_inside(l.position-s.position, s.mask)) {
-		return true;
-	}
-	if (check_is_inside(vec4(gl_FragCoord.x-s.position.x, -gl_FragCoord.y + port.w - s.position.y, 0.0, 1.0), s.mask)) {
-		return false;
-	}*/
-
-	Line line = Line(l.position, vec4(gl_FragCoord.x, -gl_FragCoord.y + port.w, 0.0, 1.0)); // Note that port.w is actually the port height
+	Line line = Line(l.position, f_position);
 
 	int c = -1;
 	float d = distance_to_line(line, s.position+s.mask[0]);
@@ -137,7 +134,7 @@ float calc_shadow_intersect(Light l, Lightable s) {
 		}
 	}
 
-	/*if (c > 0) {
+	/*if (c >= 0) {
 		vec4 p = s.position+s.mask[c];
 		return abs(distance_to_line(Line(line.start, p), line.end));
 	}
@@ -147,21 +144,21 @@ float calc_shadow_intersect(Light l, Lightable s) {
 }
 
 void main() {
-	LFragment = vec4(0.0, 0.0, 0.0, 0.0);
+	f_fragment = vec4(0.0, 0.0, 0.0, 0.0);
 	if (is_primitive == 1) {
-		LFragment = colorize;
+		f_fragment = colorize;
 	} else {
 		if (flip == 1) {
-			LFragment = texture(LTexture, vec2(1.0-f_texcoord.x, f_texcoord.y));
+			f_fragment = texture(f_texture, vec2(1.0-f_texcoord.x, f_texcoord.y));
 		} else if (flip == 2) {
-			LFragment = texture(LTexture, vec2(f_texcoord.x, 1.0-f_texcoord.y));
+			f_fragment = texture(f_texture, vec2(f_texcoord.x, 1.0-f_texcoord.y));
 		} else if (flip == 3) {
-			LFragment = texture(LTexture, 1.0-f_texcoord);
+			f_fragment = texture(f_texture, 1.0-f_texcoord);
 		} else {
-			LFragment = texture(LTexture, f_texcoord);
+			f_fragment = texture(f_texture, f_texcoord);
 		}
 
-		LFragment *= colorize;
+		f_fragment *= colorize;
 
 		// Lighting
 		if (is_lightable > 0) {
@@ -183,7 +180,7 @@ void main() {
 							break;
 						}
 						case BEE_LIGHT_POINT: {
-							if (length(l.position - vec4(gl_FragCoord.x, -gl_FragCoord.y + port.w, 0.0, 1.0)) > 50.0/l.attenuation.z) {
+							if (length(l.position - f_position) > 50.0/l.attenuation.z) {
 								continue; // If the fragment is outside of the range of the light, abort early
 							}
 							ff = calc_light_point(l);
@@ -195,34 +192,36 @@ void main() {
 						}
 					}
 
-					if (l.type != BEE_LIGHT_AMBIENT) {
-						float shadow_amount = 0.0;
-						for (int e=0; e<lightable_amount; e++) {
-							float s = calc_shadow_intersect(l, lightables[e]);
-							if (s > 0) {
-								shadow_amount += s/50.0;
+					if (ff != vec4(0.0, 0.0, 0.0, 0.0)) {
+						if (l.type != BEE_LIGHT_AMBIENT) {
+							float shadow_amount = 0.0;
+							for (int e=0; e<lightable_amount; e++) {
+								float s = calc_shadow_intersect(l, lightables[e]);
+								if (s > 0) {
+									shadow_amount += s/50.0;
+								}
 							}
-						}
 
-						float d = length(l.position - vec4(gl_FragCoord.x, -gl_FragCoord.y + port.w, 0.0, 1.0)) / 100.0;
-						if (d < 1.0) {
-							d = 1.0;
+							float d = length(l.position - f_position) / 100.0;
+							if (d < 1.0) {
+								d = 1.0;
+							}
+							ff /= pow(d, shadow_amount);
 						}
-						ff /= pow(d, shadow_amount);
+						f += ff;
 					}
-					f += ff;
 				}
-				LFragment *= vec4(f.xyz, LFragment.w);
+				f_fragment *= vec4(f.xyz, f_fragment.w);
 
 				// Normalize(?) the fragment color
-				if (LFragment.x > 1.0) {
-					LFragment /= vec4(LFragment.xxx, 1.0);
+				if (f_fragment.x > 1.0) {
+					f_fragment /= vec4(f_fragment.xxx, 1.0);
 				}
-				if (LFragment.y > 1.0) {
-					LFragment /= vec4(LFragment.yyy, 1.0);
+				if (f_fragment.y > 1.0) {
+					f_fragment /= vec4(f_fragment.yyy, 1.0);
 				}
-				if (LFragment.z > 1.0) {
-					LFragment /= vec4(LFragment.zzz, 1.0);
+				if (f_fragment.z > 1.0) {
+					f_fragment /= vec4(f_fragment.zzz, 1.0);
 				}
 			}
 		}

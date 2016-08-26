@@ -99,6 +99,11 @@ void ObjBee::step_mid(BEE::InstanceData* self) {
 	std::pair<int,int> c = coord_approach(self->x, self->y, mx, my, 10, game->get_delta());
 	self->x = c.first;
 	self->y = c.second;
+
+	if (game->render_get_3d()) {
+		game->render_set_camera(new BEE::Camera(glm::vec3(1920.0-game->get_mouse_global_x(), 1080.0-game->get_mouse_global_y(), -540.0), glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
+		//game->render_set_camera(new BEE::Camera(glm::vec3(1920.0/2.0, 1080.0/2.0, -540.0), glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
+	}
 }
 void ObjBee::keyboard_press(BEE::InstanceData* self, SDL_Event* e) {
 	switch (e->key.keysym.sym) {
@@ -171,27 +176,27 @@ void ObjBee::keyboard_press(BEE::InstanceData* self, SDL_Event* e) {
 
 		case SDLK_1: {
 			if (self->id == 0) {
-				snd_music->stop();
-				snd_music->effect_add(se_none);
-				snd_music->play();
+				snd_chirp->stop();
+				snd_chirp->effect_add(se_none);
+				snd_chirp->play();
 			}
 			break;
 		}
 		case SDLK_2: {
 			if (self->id == 0) {
-				snd_music->stop();
-				snd_music->effect_add(se_echo);
-				snd_music->play();
+				snd_chirp->stop();
+				snd_chirp->effect_add(se_echo);
+				snd_chirp->play();
 			}
 			break;
 		}
 
 		case SDLK_n: {
-			lt_bee->set_attenuation({2.0, 100.0, 2000.0, 0.0});
+			game->render_set_3d(true);
 			break;
 		}
 		case SDLK_m: {
-			lt_bee->set_attenuation({2.0, 100.0, -2000.0, 0.0});
+			game->render_set_3d(false);
 			break;
 		}
 

@@ -4,7 +4,6 @@ BEE::Sprite* spr_dot;
 
 // Define sounds
 BEE::Sound* snd_chirp;
-BEE::Sound* snd_music;
 
 // Define backgrounds
 BEE::Background* bk_green;
@@ -42,8 +41,6 @@ int BEE::init_resources() {
 		// Init sounds
 		snd_chirp = new Sound("snd_chirp", "chirp.wav", false);
 			snd_chirp->load();
-		snd_music = new Sound("snd_chirp", "music2.wav", false);
-			snd_music->load();
 
 		// Init backgrounds
 		bk_green = new Background("bk_green", "green.png");
@@ -93,7 +90,6 @@ int BEE::close_resources() {
 
 	// Destroy sounds
 	delete snd_chirp;
-	delete snd_music;
 
 	// Destroy backgrounds
 	delete bk_green;

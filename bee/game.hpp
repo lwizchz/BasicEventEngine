@@ -60,7 +60,7 @@ class BEE { // The master engine class which effectively acts as a namespace
 	public:
 		class Sprite; class Sound; class Background; class Font; class Path; class Timeline; class Object; class Room; // The main resource types
 		class Particle; class ParticleData; class ParticleEmitter; class ParticleAttractor; class ParticleDestroyer; class ParticleDeflector; class ParticleChanger; class ParticleSystem; // The particle system components
-		class Light; // The OpenGL-only resources (poor SDL implementations may exist)
+		class Light; class Camera; // The OpenGL-only resources (poor SDL implementations may exist)
 		class ProgramFlags; class GameOptions; class CollisionTree; class CollisionPolygon; class RGBA; // The engine related data
 		class SpriteDrawData; class SoundGroup; class InstanceData; class LightData; class LightableData; // The additional resource data types
 		class ViewData; class BackgroundData; class NetworkData; // The configurational structs
@@ -131,6 +131,9 @@ class BEE { // The master engine class which effectively acts as a namespace
 			GLint vertex_amount;
 			GLint mask[BEE_MAX_MASK_VERTICES];
 		} lightable_location[BEE_MAX_LIGHTABLES];
+
+		bool render_is_3d = false;
+		Camera* render_camera = nullptr;
 
 		// This is the current drawing color
 		RGBA* color = nullptr;
@@ -252,7 +255,7 @@ class BEE { // The master engine class which effectively acts as a namespace
 		int get_room_height() const;
 		bool is_on_screen(const SDL_Rect&) const;
 
-		int set_viewport(ViewData*) const;
+		int set_viewport(ViewData*);
 
 		bool set_is_paused(bool);
 		bool get_is_paused() const;
@@ -344,6 +347,12 @@ class BEE { // The master engine class which effectively acts as a namespace
 
 		int set_is_lightable(bool);
 
+		int render_set_3d(bool);
+		int render_set_camera(Camera*);
+		bool render_get_3d() const;
+		glm::mat4 render_get_projection();
+		Camera render_get_camera() const;
+
 		// bee/game/messenger.cpp
 		int messenger_register(std::shared_ptr<MessageRecipient>);
 		int messenger_register(const std::vector<std::string>&, std::function<void (BEE*, std::shared_ptr<MessageContents>)>);
@@ -354,6 +363,7 @@ class BEE { // The master engine class which effectively acts as a namespace
 		int messenger_send(const std::vector<std::string>&, bee_message_t, const std::string&);
 
 		int handle_messages();
+		std::string messenger_get_type_string(bee_message_t);
 
 		// bee/game/network.cpp
 		int net_init();
@@ -370,6 +380,25 @@ class BEE { // The master engine class which effectively acts as a namespace
 
 typedef std::tuple<int, int, double> bee_path_coord;
 typedef std::multimap<Uint32, std::pair<std::string,std::function<void()>>> bee_timeline_list;
+
+class BEE::Camera {
+	public:
+		glm::vec3 position;
+		glm::vec3 direction;
+		glm::vec3 orientation;
+		double width = 0.0, height = 0.0;
+		double fov = 90.0;
+		double view_distance = 1000.0;
+
+		glm::mat4* projection_cache = nullptr;
+
+		Camera(double w, double h) {
+			width = w; height = h;
+		}
+		Camera(glm::vec3 p, glm::vec3 d, glm::vec3 o) {
+			position = p; direction = d; orientation = o;
+		}
+};
 
 class BEE::ProgramFlags {
 	public:

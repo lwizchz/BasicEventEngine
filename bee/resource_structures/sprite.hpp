@@ -9,47 +9,46 @@
 #ifndef _BEE_SPRITE_H
 #define _BEE_SPRITE_H 1
 
-#include <string>
+#include <string> // Include the required library headers
 #include <vector>
 #include <list>
 #include <SDL2/SDL.h>
 
-#include "../game.hpp"
+#include "../game.hpp" // Include the engine headers
 
-class BEE::SpriteDrawData {
+class BEE::SpriteDrawData { // The data storage struct which is used in instanced drawing
 	public:
-		int x = 0, y = 0;
-		Uint32 subimage_time = 0;
-		int w = 0, h = 0;
-		double angle = 0.0;
+		int x = 0, y = 0; // The coordinates of the desired draw location
+		Uint32 subimage_time = 0; // The timestamp of the subimage animation
+		int w = 0, h = 0; // The desired width and height of the sprite
+		double angle = 0.0; // The desired rotation angle of the sprite
 };
 
-class BEE::Sprite: public Resource {
-		// Add new variables to the print() debugging method
-		int id = -1;
-		std::string name;
-		std::string image_path;
-		int width, height;
-		int subimage_amount, subimage_width;
-		SDL_Rect crop;
-		double speed, alpha;
-		bool is_animated;
-		int origin_x, origin_y;
-		double rotate_x, rotate_y;
+class BEE::Sprite: public Resource { // The sprite resource class with which all onscreen objects are drawn
+		int id = -1; // The id of the resource
+		std::string name; // An arbitrary name for the resource
+		std::string image_path; // The path of the image file which is used as the sprite's texture
+		int width, height; // The width and height of the texture
+		int subimage_amount, subimage_width; // The variables which determine how the subimages are divided
+		SDL_Rect crop; // A rectangle which determines how the sprite is cropped before being drawn
+		double speed; // The speed at which the subimages animate
+		double alpha; // The opacity of the texture
+		bool is_animated; // Whether the sprite is currently animating or not
+		int origin_x, origin_y; // The origin from which the texture is drawn
+		double rotate_x, rotate_y; // The origin around which the texture is rotated from 0.0 to 1.0 in both width and height
 
-		SDL_Texture* texture;
-		bool is_loaded = false;
-		bool has_draw_failed = false;
-		std::vector<SDL_Rect> subimages;
-		SDL_Rect srect, drect;
+		SDL_Texture* texture; // The internal texture storage for SDL mode
+		bool is_loaded = false; // Whether the image file was successfully loaded into a texture
+		bool has_draw_failed = false; // Whether the draw function has previously failed, this prevents continuous writes to std::cerr
+		std::vector<SDL_Rect> subimages; // A list of subimage coordinates and dimensions
 
-		GLuint vbo_vertices;
-		GLuint ibo;
-		GLuint gl_texture;
-		std::vector<GLuint> vbo_texcoords;
-		bool is_lightable = true;
+		GLuint vbo_vertices; // The Vertex Buffer Object which contains the vertices of the quad
+		GLuint ibo; // The buffer object which contains the order of the vertices for each element
+		GLuint gl_texture; // The internal texture storage for OpenGL mode
+		std::vector<GLuint> vbo_texcoords; // The buffer object which contains the subimage texture coordinates
+		bool is_lightable = true; // Whether the sprite is affected by the lighting system
 
-		GLuint framebuffer;
+		GLuint framebuffer; // The framebuffer object used by set_as_target()
 	public:
 		Sprite();
 		Sprite(std::string, std::string);
@@ -91,6 +90,7 @@ class BEE::Sprite: public Resource {
 		int set_rotate_x(double);
 		int set_rotate_y(double);
 		int set_rotate_xy(double, double);
+		int set_rotate_center();
 		int set_is_lightable(bool);
 
 		int load_from_surface(SDL_Surface*);

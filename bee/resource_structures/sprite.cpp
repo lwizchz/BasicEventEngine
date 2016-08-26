@@ -289,7 +289,7 @@ int BEE::Sprite::set_origin_xy(int new_origin_x, int new_origin_y) {
 	return 0;
 }
 int BEE::Sprite::set_origin_center() {
-	set_origin_x(width/2);
+	set_origin_x(subimage_width/2);
 	set_origin_y(height/2);
 	return 0;
 }
@@ -304,6 +304,11 @@ int BEE::Sprite::set_rotate_y(double new_rotate_y) {
 int BEE::Sprite::set_rotate_xy(double new_rotate_x, double new_rotate_y) {
 	set_rotate_x(new_rotate_x);
 	set_rotate_y(new_rotate_y);
+	return 0;
+}
+int BEE::Sprite::set_rotate_center() {
+	set_rotate_x(0.5);
+	set_rotate_y(0.5);
 	return 0;
 }
 int BEE::Sprite::set_is_lightable(bool new_is_lightable) {
@@ -422,8 +427,7 @@ int BEE::Sprite::draw_subimage(int x, int y, int current_subimage, int w, int h,
 		return 1;
 	}
 
-	drect.x = x;
-	drect.y = y;
+	SDL_Rect drect = {x, y, 0, 0};
 
 	if ((w >= 0)&&(h >= 0)) {
 		drect.w = w;
@@ -535,12 +539,9 @@ int BEE::Sprite::draw_subimage(int x, int y, int current_subimage, int w, int h,
 			SDL_SetTextureBlendMode(texture, game->draw_get_blend());
 
 			if (!subimages.empty()) {
-				srect = subimages[current_subimage];
-				srect.h = height;
-				SDL_RenderCopyEx(game->renderer, texture, &srect, &drect, angle, &r, flip);
+				SDL_RenderCopyEx(game->renderer, texture, &subimages[current_subimage], &drect, angle, &r, flip);
 			} else {
-				srect = crop;
-				SDL_RenderCopyEx(game->renderer, texture, &srect, &drect, angle, &r, flip);
+				SDL_RenderCopyEx(game->renderer, texture, &crop, &drect, angle, &r, flip);
 			}
 		}
 	}
@@ -633,8 +634,7 @@ int BEE::Sprite::draw_array(const std::list<SpriteDrawData*>& draw_list, const s
 				is_animated = true;
 			}
 
-			drect.x = s->x;
-			drect.y = s->y;
+			SDL_Rect drect = {s->x, s->y, 0, 0};
 
 			if ((s->w >= 0)&&(s->h >= 0)) {
 				drect.w = s->w;
@@ -702,8 +702,7 @@ int BEE::Sprite::draw_array(const std::list<SpriteDrawData*>& draw_list, const s
 				is_animated = true;
 			}
 
-			drect.x = s->x;
-			drect.y = s->y;
+			SDL_Rect drect = {s->x, s->y, 0, 0};
 			if ((game->get_current_room()->get_is_views_enabled())&&(!is_hud)) {
 				if (game->get_current_room()->get_current_view() != nullptr) {
 					drect.x += game->get_current_room()->get_current_view()->view_x;
@@ -723,12 +722,7 @@ int BEE::Sprite::draw_array(const std::list<SpriteDrawData*>& draw_list, const s
 			}
 
 			if (!subimages.empty()) {
-				srect.x = subimages[current_subimage].x;
-				srect.y = 0;
-				srect.w = subimages[current_subimage].w;
-				srect.h = height;
-
-				SDL_RenderCopyEx(game->renderer, texture, &srect, &drect, s->angle, nullptr, flip);
+				SDL_RenderCopyEx(game->renderer, texture, &subimages[current_subimage], &drect, s->angle, nullptr, flip);
 			} else {
 				SDL_RenderCopyEx(game->renderer, texture, nullptr, &drect, s->angle, nullptr, flip);
 			}

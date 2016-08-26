@@ -8,20 +8,17 @@
 
 // Version is included before OpenGL initialization
 
-in vec2 LVertexPos2D;
-in vec2 LTexCoord;
+in vec3 v_position;
+in vec2 v_texcoord;
 
-out mat4 g_model;
 out vec2 g_texcoord;
+out vec4 g_position;
 
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
 uniform vec4 port;
 
 void main() {
-	g_model = projection * view * model;
-	gl_Position = vec4(LVertexPos2D.x+port.x, LVertexPos2D.y+port.y, 0.0, 1.0);
+	gl_Position = vec4(v_position.xy + port.xy, v_position.z, 1.0);
 
-	g_texcoord = LTexCoord;
+	g_position = vec4(v_position, 1.0);
+	g_texcoord = v_texcoord;
 }

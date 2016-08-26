@@ -180,7 +180,7 @@ bool BEE::is_on_screen(const SDL_Rect& rect) const {
 * ! See https://wiki.libsdl.org/SDL_RenderSetViewport for details
 * @viewport: the rectangle defining the desired viewport
 */
-int BEE::set_viewport(ViewData* viewport) const {
+int BEE::set_viewport(ViewData* viewport) {
 	if (options->renderer_type != BEE_RENDERER_SDL) {
 		glm::mat4 view, projection;
 		glm::vec4 port;
@@ -188,11 +188,12 @@ int BEE::set_viewport(ViewData* viewport) const {
 		if (viewport == nullptr) { // If the viewport is not defined then set the drawing area to the entire screen
 			view = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 			port = glm::vec4(0.0f, 0.0f, (float)get_room_width(), (float)get_room_height());
-			projection = glm::ortho(0.0f, (float)get_width(), (float)get_height(), 0.0f, 0.0f, 10.0f);
+			projection = render_get_projection();
 		} else { // If the viewport is defined then use it
 			view = glm::translate(glm::mat4(1.0f), glm::vec3((float)viewport->view_x, (float)viewport->view_y, 0.0f));
 			port = glm::vec4(viewport->port_x, viewport->port_y, viewport->port_width, viewport->port_height);
-			projection = glm::ortho(0.0f, (float)viewport->view_width, (float)viewport->view_height, 0.0f, 0.0f, 10.0f);
+			render_set_camera(new Camera((double)viewport->view_width, (double)viewport->view_height));
+			projection = render_get_projection();
 		}
 
 		glUniformMatrix4fv(view_location, 1, GL_FALSE, glm::value_ptr(view));

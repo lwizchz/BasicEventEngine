@@ -102,6 +102,93 @@ std::string bee_inet_ntop(const void* src) {
         return std::string(dest); // Return a the address as a string on success
 }
 
+/*
+* bee_console_color() - Change the color that console output will appear in
+* ! See http://www.tldp.org/HOWTO/Bash-Prompt-HOWTO/x329.html for information on the color codes
+* @color: the new color to use defined according to the Linux terminal color codes
+*/
+int bee_console_color(int color) {
+        std::string code = "";
+        switch (color) {
+                case 0: { // Black
+                        code = "\033[0;30m";
+                        break;
+                }
+                case 1: { // Red
+                        code = "\033[0;31m";
+                        break;
+                }
+                case 2: { // Green
+                        code = "\033[0;32m";
+                        break;
+                }
+                case 3: { // Yellow
+                        code = "\033[0;33m";
+                        break;
+                }
+                case 4: { // Blue
+                        code = "\033[0;34m";
+                        break;
+                }
+                case 5: { // Magenta
+                        code = "\033[0;35m";
+                        break;
+                }
+                case 6: { // Cyan
+                        code = "\033[0;36m";
+                        break;
+                }
+                case 7: { // White
+                        code = "\033[0;37m";
+                        break;
+                }
+                case 8: { // Bold Black
+                        code = "\033[1;30m";
+                        break;
+                }
+                case 9: { // Bold Red
+                        code = "\033[1;31m";
+                        break;
+                }
+                case 10: { // Bold Green
+                        code = "\033[1;32m";
+                        break;
+                }
+                case 11: { // Bold Yellow
+                        code = "\033[1;33m";
+                        break;
+                }
+                case 12: { // Bold Blue
+                        code = "\033[1;34m";
+                        break;
+                }
+                case 13: { // Bold Magenta
+                        code = "\033[1;35m";
+                        break;
+                }
+                case 14: { // Bold Cyan
+                        code = "\033[1;36m";
+                        break;
+                }
+                case 15: { // Bold White
+                        code = "\033[1;37m";
+                        break;
+                }
+                default: {
+                        bee_console_color_reset();
+                }
+        }
+        std::cout << code;
+        return 0;
+}
+/*
+* bee_console_color_reset() - Reset the console color to the default value
+*/
+int bee_console_color_reset() {
+        std::cout << "\033[0m";
+        return 0;
+}
+
 #elif _WIN32
 
 #include <ws2tcpip.h> // Include the required Windows headers
@@ -188,6 +275,91 @@ std::string bee_inet_ntop(const void* src) {
         char dest[INET_ADDRSTRLEN]; // Declare a char array to put the address into
         //InetNtop(AF_INET, src, dest, INET_ADDRSTRLEN); // FIXME: it won't let me include the Winsock2 library, ws2_32.lib
         return std::string(dest); // Return the address as a string
+}
+
+/*
+* bee_console_color() - Change the color that console output will appear in
+* ! See http://www.tldp.org/HOWTO/Bash-Prompt-HOWTO/x329.html for information on the color codes
+* @color: the new color to use defined according to the Linux terminal color codes
+*/
+int bee_console_color(int color) {
+        switch (color) {
+                case 0: { // Black
+                        system("color 00");
+                        break;
+                }
+                case 1: { // Red
+                        system("color 04");
+                        break;
+                }
+                case 2: { // Green
+                        system("color 02");
+                        break;
+                }
+                case 3: { // Yellow
+                        system("color 06");
+                        break;
+                }
+                case 4: { // Blue
+                        system("color 01");
+                        break;
+                }
+                case 5: { // Magenta
+                        system("color 05");
+                        break;
+                }
+                case 6: { // Cyan
+                        system("color 03");
+                        break;
+                }
+                case 7: { // White
+                        system("color 07");
+                        break;
+                }
+                case 8: { // Bold Black
+                        system("color 08");
+                        break;
+                }
+                case 9: { // Bold Red
+                        system("color 0C");
+                        break;
+                }
+                case 10: { // Bold Green
+                        system("color 0A");
+                        break;
+                }
+                case 11: { // Bold Yellow
+                        system("color 0E");
+                        break;
+                }
+                case 12: { // Bold Blue
+                        system("color 09");
+                        break;
+                }
+                case 13: { // Bold Magenta
+                        system("color 0D");
+                        break;
+                }
+                case 14: { // Bold Cyan
+                        system("color 0B");
+                        break;
+                }
+                case 15: { // Bold White
+                        system("color 0F");
+                        break;
+                }
+                default: {
+                        bee_console_color_reset();
+                }
+        }
+        return 0;
+}
+/*
+* bee_console_color_reset() - Reset the console color to the default value
+*/
+int bee_console_color_reset() {
+        system("color 07");
+        return 0;
 }
 
 #endif
