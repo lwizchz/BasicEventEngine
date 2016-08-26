@@ -57,8 +57,8 @@ int BEE::Light::reset() {
 	light_path = "";
 
 	lighting.type = BEE_LIGHT_AMBIENT;
-	lighting.position = glm::vec4(0.0, 0.0, 0.0, 1.0);
-	lighting.direction = glm::vec4(0.0, 0.0, 0.0, 1.0);
+	lighting.position = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	lighting.direction = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 	lighting.color = {255, 255, 255, 255};
 
 	has_drawn_sdl = false;

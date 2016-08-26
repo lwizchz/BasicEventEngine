@@ -386,13 +386,13 @@ class BEE::Camera {
 		glm::vec3 position;
 		glm::vec3 direction;
 		glm::vec3 orientation;
-		double width = 0.0, height = 0.0;
-		double fov = 90.0;
-		double view_distance = 1000.0;
+		float width = 0.0, height = 0.0;
+		float fov = 90.0;
+		float view_distance = 1000.0;
 
 		glm::mat4* projection_cache = nullptr;
 
-		Camera(double w, double h) {
+		Camera(float w, float h) {
 			width = w; height = h;
 		}
 		Camera(glm::vec3 p, glm::vec3 d, glm::vec3 o) {

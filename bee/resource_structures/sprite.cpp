@@ -453,12 +453,12 @@ int BEE::Sprite::draw_subimage(int x, int y, int current_subimage, int w, int h,
 			h = height;
 		}
 
-		glm::mat4 model = glm::translate(glm::mat4(1.0), glm::vec3(drect.x, drect.y, 0.0));
-		model = glm::scale(model, glm::vec3((double)w/rect_width, (double)h/height, 1.0));
+		glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3((float)drect.x, (float)drect.y, 0.0f));
+		model = glm::scale(model, glm::vec3((float)w/rect_width, (float)h/height, 1.0f));
 		if (angle != 0.0) {
-			glm::mat4 rotation = glm::translate(glm::mat4(1.0), glm::vec3((double)rect_width*rotate_x, (double)height*rotate_y, 0.0));
-			rotation = glm::rotate(rotation, (float)degtorad(angle), glm::vec3(0.0, 0.0, 1.0));
-			rotation = glm::translate(rotation, glm::vec3(-(double)rect_width*rotate_x, -(double)height*rotate_y, 0.0));
+			glm::mat4 rotation = glm::translate(glm::mat4(1.0f), glm::vec3((float)rect_width*rotate_x, (float)height*rotate_y, 0.0f));
+			rotation = glm::rotate(rotation, (float)degtorad(angle), glm::vec3(0.0f, 0.0f, 1.0f));
+			rotation = glm::translate(rotation, glm::vec3(-(float)rect_width*rotate_x, -(float)height*rotate_y, 0.0f));
 			glUniformMatrix4fv(game->rotation_location, 1, GL_FALSE, glm::value_ptr(rotation));
 		}
 		glUniformMatrix4fv(game->model_location, 1, GL_FALSE, glm::value_ptr(model));
@@ -466,7 +466,7 @@ int BEE::Sprite::draw_subimage(int x, int y, int current_subimage, int w, int h,
 		glUniform1i(game->texture_location, 0);
 		glBindTexture(GL_TEXTURE_2D, gl_texture);
 
-		glm::vec4 color = glm::vec4(new_color.r/255.0, new_color.g/255.0, new_color.b/255.0, new_color.a/255.0);
+		glm::vec4 color = glm::vec4((float)new_color.r/255.0f, (float)new_color.g/255.0f, (float)new_color.b/255.0f, (float)new_color.a/255.0f);
 		glUniform4fv(game->colorize_location, 1, glm::value_ptr(color));
 
 		int f = 0;
@@ -481,11 +481,11 @@ int BEE::Sprite::draw_subimage(int x, int y, int current_subimage, int w, int h,
 		// Shadows
 		if (is_lightable) {
 			LightableData* l = new LightableData();
-			l->position = glm::vec4(drect.x, drect.y, 0.0, 0.0);
-			l->mask.push_back(glm::vec4(0.0, 0.0, 0.0, 0.0));
-			l->mask.push_back(glm::vec4(rect_width, 0.0, 0.0, 0.0));
-			l->mask.push_back(glm::vec4(rect_width, height, 0.0, 0.0));
-			l->mask.push_back(glm::vec4(0.0, height, 0.0, 0.0));
+			l->position = glm::vec4((float)drect.x, (float)drect.y, 0.0f, 0.0f);
+			l->mask.push_back(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+			l->mask.push_back(glm::vec4((float)rect_width, 0.0f, 0.0f, 0.0f));
+			l->mask.push_back(glm::vec4((float)rect_width, (float)height, 0.0f, 0.0f));
+			l->mask.push_back(glm::vec4(0.0f, (float)height, 0.0f, 0.0f));
 			game->get_current_room()->add_lightable(l);
 		}
 
@@ -519,10 +519,10 @@ int BEE::Sprite::draw_subimage(int x, int y, int current_subimage, int w, int h,
 		glDisableVertexAttribArray(game->vertex_location);
 		glDisableVertexAttribArray(game->fragment_location);
 
-		glUniformMatrix4fv(game->model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0)));
+		glUniformMatrix4fv(game->model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glUniform1i(game->flip_location, 0);
-		glUniformMatrix4fv(game->rotation_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0)));
+		glUniformMatrix4fv(game->rotation_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
 	} else {
 		if ((game->get_current_room()->get_is_views_enabled())&&(!is_hud)) {
 			if (game->get_current_room()->get_current_view() != nullptr) {
@@ -600,7 +600,7 @@ int BEE::Sprite::draw_array(const std::list<SpriteDrawData*>& draw_list, const s
 		glUniform1i(game->texture_location, 0);
 		glBindTexture(GL_TEXTURE_2D, gl_texture);
 
-		glm::vec4 color = glm::vec4(new_color.r/255.0, new_color.g/255.0, new_color.b/255.0, new_color.a/255.0);
+		glm::vec4 color = glm::vec4((float)new_color.r/255.0f, (float)new_color.g/255.0f, (float)new_color.b/255.0f, (float)new_color.a/255.0f);
 		glUniform4fv(game->colorize_location, 1, glm::value_ptr(color));
 
 		int f = 0;
@@ -683,10 +683,10 @@ int BEE::Sprite::draw_array(const std::list<SpriteDrawData*>& draw_list, const s
 		glDisableVertexAttribArray(game->vertex_location);
 		glDisableVertexAttribArray(game->fragment_location);
 
-		glUniformMatrix4fv(game->model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0)));
+		glUniformMatrix4fv(game->model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glUniform1i(game->flip_location, 0);
-		glUniformMatrix4fv(game->rotation_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0)));
+		glUniformMatrix4fv(game->rotation_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
 	} else {
 		SDL_SetTextureColorMod(texture, new_color.r, new_color.g, new_color.b);
 		if (new_color.a == 0) {

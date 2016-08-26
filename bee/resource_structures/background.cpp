@@ -260,8 +260,8 @@ int BEE::Background::free() {
 }
 int BEE::Background::draw_internal(const SDL_Rect* src, const SDL_Rect* dest) const {
 	if (game->options->renderer_type != BEE_RENDERER_SDL) {
-		glm::mat4 model = glm::scale(glm::mat4(1.0), glm::vec3((double)dest->w/width, (double)dest->h/height, 1.0));
-		model = glm::translate(model, glm::vec3(dest->x, dest->y, 0.0));
+		glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3((float)dest->w/width, (float)dest->h/height, 1.0f));
+		model = glm::translate(model, glm::vec3((float)dest->x, (float)dest->y, 0.0f));
 		glUniformMatrix4fv(game->model_location, 1, GL_FALSE, glm::value_ptr(model));
 
 		glUniform1i(game->texture_location, 0);
@@ -297,10 +297,10 @@ int BEE::Background::draw_internal(const SDL_Rect* src, const SDL_Rect* dest) co
 		glDisableVertexAttribArray(game->vertex_location);
 		glDisableVertexAttribArray(game->fragment_location);
 
-		glUniformMatrix4fv(game->model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0)));
+		glUniformMatrix4fv(game->model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glUniform1i(game->flip_location, 0);
-		glUniformMatrix4fv(game->rotation_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0)));
+		glUniformMatrix4fv(game->rotation_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
 	} else {
 		SDL_RenderCopy(game->renderer, texture, src, dest);
 	}

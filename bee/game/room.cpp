@@ -191,8 +191,8 @@ int BEE::set_viewport(ViewData* viewport) {
 			projection = render_get_projection();
 		} else { // If the viewport is defined then use it
 			view = glm::translate(glm::mat4(1.0f), glm::vec3((float)viewport->view_x, (float)viewport->view_y, 0.0f));
-			port = glm::vec4(viewport->port_x, viewport->port_y, viewport->port_width, viewport->port_height);
-			render_set_camera(new Camera((double)viewport->view_width, (double)viewport->view_height));
+			port = glm::vec4((float)viewport->port_x, (float)viewport->port_y, (float)viewport->port_width, (float)viewport->port_height);
+			render_set_camera(new Camera((float)viewport->view_width, (float)viewport->view_height));
 			projection = render_get_projection();
 		}
 

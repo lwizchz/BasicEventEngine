@@ -118,7 +118,7 @@ int BEE::draw_line(int x1, int y1, int x2, int y2, const RGBA& c, bool is_hud) {
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 		// Offset the line model by the given coordinates
-		glm::mat4 model = glm::translate(glm::mat4(1.0), glm::vec3(x1, y1, 0.0));
+		glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3((float)x1, (float)y1, 0.0f));
 		glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(model));
 
 		// Bind the vertices to the vertex array buffer
@@ -137,7 +137,7 @@ int BEE::draw_line(int x1, int y1, int x2, int y2, const RGBA& c, bool is_hud) {
 
 		// Reset things to their default state
 		glDisableVertexAttribArray(vertex_location);
-		glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0)));
+		glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 		glUniform1i(primitive_location, 0);
@@ -224,7 +224,7 @@ int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled, const RGBA& 
 			glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 			// Offset the rectangle model by the given coordinates
-			glm::mat4 model = glm::translate(glm::mat4(1.0), glm::vec3(x, y, 0.0));
+			glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3((float)x, (float)y, 0.0f));
 			glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(model));
 
 			// Bind the vertices to the vertex array buffer
@@ -243,7 +243,7 @@ int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled, const RGBA& 
 
 			// Reset things to their default state
 			glDisableVertexAttribArray(vertex_location);
-			glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0)));
+			glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
 
 			glUniform1i(primitive_location, 0);
 		} else {
@@ -320,7 +320,7 @@ int BEE::draw_set_color(const RGBA& new_color) {
 
 	if (options->renderer_type != BEE_RENDERER_SDL) {
 		glClearColor(new_color.r/255.0f, new_color.g/255.0f, new_color.b/255.0f, new_color.a/255.0f); // Set the OpenGL clear and draw colors as floats from [0.0, 1.0]
-		glm::vec4 uc = glm::vec4(new_color.r/255.0f, new_color.g/255.0f, new_color.b/255.0f, new_color.a/255.0f); // Change the fragment to the given color
+		glm::vec4 uc = glm::vec4((float)new_color.r/255.0f, (float)new_color.g/255.0f, (float)new_color.b/255.0f, (float)new_color.a/255.0f); // Change the fragment to the given color
 		glUniform4fv(colorize_location, 1, glm::value_ptr(uc));
 		return 0;
 	} else {
@@ -343,7 +343,7 @@ BEE::RGBA BEE::draw_get_color() const {
 
 	if (options->renderer_type != BEE_RENDERER_SDL) {
 		glClearColor(color->r/255.0f, color->g/255.0f, color->b/255.0f, color->a/255.0f); // Set the OpenGL clear and draw colors as floats from [0.0, 1.0]
-		glm::vec4 uc = glm::vec4(color->r/255.0f, color->g/255.0f, color->b/255.0f, color->a/255.0f); // Change the fragment to the given color
+		glm::vec4 uc = glm::vec4((float)color->r/255.0f, (float)color->g/255.0f, (float)color->b/255.0f, (float)color->a/255.0f); // Change the fragment to the given color
 		glUniform4fv(colorize_location, 1, glm::value_ptr(uc));
 	} else {
 		SDL_GetRenderDrawColor(renderer, &c.r, &c.g, &c.b, &c.a); // Get the current SDL renderer color
@@ -505,7 +505,7 @@ int BEE::render_set_camera(Camera* new_camera) {
 
 	if (new_camera == nullptr) {
 		if (render_is_3d) {
-			render_camera = new Camera(glm::vec3(0.0, 0.0, -540.0), glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0));
+			render_camera = new Camera(glm::vec3(0.0f, 0.0f, -540.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 		} else {
 			render_camera = new Camera(get_width(), get_height());
 		}
@@ -537,11 +537,11 @@ glm::mat4 BEE::render_get_projection() {
 	}
 
 	if (render_is_3d) {
-		glm::mat4 projection = glm::perspective(degtorad(render_camera->fov), render_camera->width/render_camera->height, 0.0, render_camera->view_distance);
+		glm::mat4 projection = glm::perspective((float)degtorad(render_camera->fov), render_camera->width/render_camera->height, 0.0f, render_camera->view_distance);
 		projection *= glm::lookAt(render_camera->position, render_camera->position+render_camera->direction, render_camera->orientation);
 		return projection;
 	} else {
-		return glm::ortho(0.0, render_camera->width, render_camera->height, 0.0, 0.0, render_camera->view_distance);
+		return glm::ortho(0.0f, render_camera->width, render_camera->height, 0.0f, 0.0f, render_camera->view_distance);
 	}
 }
 /*
