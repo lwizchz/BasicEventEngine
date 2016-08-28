@@ -42,6 +42,7 @@ class BEE::Sprite: public Resource { // The sprite resource class with which all
 		bool has_draw_failed = false; // Whether the draw function has previously failed, this prevents continuous writes to std::cerr
 		std::vector<SDL_Rect> subimages; // A list of subimage coordinates and dimensions
 
+		GLuint vao; // The Vertex Array Object which contains most of the following data
 		GLuint vbo_vertices; // The Vertex Buffer Object which contains the vertices of the quad
 		GLuint ibo; // The buffer object which contains the order of the vertices for each element
 		GLuint gl_texture; // The internal texture storage for OpenGL mode

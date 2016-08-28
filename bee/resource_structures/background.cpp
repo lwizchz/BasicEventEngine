@@ -165,6 +165,9 @@ int BEE::Background::load_from_surface(SDL_Surface* tmp_surface) {
 			width = tmp_surface->w;
 			height = tmp_surface->h;
 
+			glGenVertexArrays(1, &vao);
+			glBindVertexArray(vao);
+
 			GLfloat texcoords[] = {
 				0.0, 0.0,
 				1.0, 0.0,
@@ -248,8 +251,11 @@ int BEE::Background::free() {
 		if (game->options->renderer_type != BEE_RENDERER_SDL) {
 			glDeleteBuffers(1, &vbo_vertices);
 			glDeleteBuffers(1, &vbo_texcoords);
+
 			glDeleteBuffers(1, &ibo);
 			glDeleteTextures(1, &gl_texture);
+
+			glDeleteVertexArrays(1, &vao);
 		} else {
 			SDL_DestroyTexture(texture);
 			texture = nullptr;
@@ -260,6 +266,8 @@ int BEE::Background::free() {
 }
 int BEE::Background::draw_internal(const SDL_Rect* src, const SDL_Rect* dest) const {
 	if (game->options->renderer_type != BEE_RENDERER_SDL) {
+		glBindVertexArray(vao);
+
 		glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3((float)dest->w/width, (float)dest->h/height, 1.0f));
 		model = glm::translate(model, glm::vec3((float)dest->x, (float)dest->y, 0.0f));
 		glUniformMatrix4fv(game->model_location, 1, GL_FALSE, glm::value_ptr(model));

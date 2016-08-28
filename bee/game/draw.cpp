@@ -106,6 +106,11 @@ int BEE::draw_line(int x1, int y1, int x2, int y2, const RGBA& c, bool is_hud) {
 			w *= -1; h *= -1;
 		}
 
+		// Generate the Vertex Array Object
+		GLuint vao;
+		glGenBuffers(1, &vao);
+		glBindVertexArray(vao);
+
 		// Generate the list of triangle vertices for the line
 		GLuint vbo;
 		glGenBuffers(1, &vbo);
@@ -141,6 +146,8 @@ int BEE::draw_line(int x1, int y1, int x2, int y2, const RGBA& c, bool is_hud) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 		glUniform1i(primitive_location, 0);
+
+		glDeleteVertexArrays(1, &vao);
 
 		return 0;
 	} else {
@@ -209,6 +216,11 @@ int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled, const RGBA& 
 
 			glUniform1i(primitive_location, 1); // Enable primitive mode so that the color is correctly applied
 
+			// Generate the Vertex Array Object
+			GLuint vao;
+			glGenBuffers(1, &vao);
+			glBindVertexArray(vao);
+
 			// Generate the list of triangle vertices for the rectangle
 			GLuint vbo;
 			glGenBuffers(1, &vbo);
@@ -246,6 +258,8 @@ int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled, const RGBA& 
 			glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
 
 			glUniform1i(primitive_location, 0);
+
+			glDeleteVertexArrays(1, &vao);
 		} else {
 			draw_line(x, y, x+w, y, c, is_hud);
 			draw_line(x+w, y, x+w, y+h, c, is_hud);

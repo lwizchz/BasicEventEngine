@@ -328,6 +328,9 @@ int BEE::Sprite::load_from_surface(SDL_Surface* tmp_surface) {
 		crop = {0, 0, width, height};
 
 		if (game->options->renderer_type != BEE_RENDERER_SDL) {
+			glGenVertexArrays(1, &vao);
+			glBindVertexArray(vao);
+
 			GLfloat vertices[] = {
 				0.0, 0.0,
 				(GLfloat)subimage_width, 0.0,
@@ -410,6 +413,8 @@ int BEE::Sprite::free() {
 			glDeleteBuffers(1, &ibo);
 			glDeleteTextures(1, &gl_texture);
 			glDeleteFramebuffers(1, &framebuffer);
+
+			glDeleteVertexArrays(1, &vao);
 		} else {
 			SDL_DestroyTexture(texture);
 			texture = nullptr;
@@ -452,6 +457,8 @@ int BEE::Sprite::draw_subimage(int x, int y, int current_subimage, int w, int h,
 		if (h <= 0) {
 			h = height;
 		}
+
+		glBindVertexArray(vao);
 
 		glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3((float)drect.x, (float)drect.y, 0.0f));
 		model = glm::scale(model, glm::vec3((float)w/rect_width, (float)h/height, 1.0f));

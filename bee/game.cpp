@@ -54,9 +54,8 @@ BEE::BEE(int new_argc, char** new_argv, const std::list<ProgramFlags*>& new_flag
 				options->renderer_type = BEE_RENDERER_OPENGL4;
 				SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
 				SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-				//SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-				//SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
-				SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY); // Currently the compatibility profile must be used because there are unknown uses of the deprecated functions in the code base
+				SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+				SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
 				break;
 			}
 		}
@@ -67,7 +66,6 @@ BEE::BEE(int new_argc, char** new_argv, const std::list<ProgramFlags*>& new_flag
 				SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 				SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 				SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
-				//SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY); // Currently the compatibility profile must be used because there are unknown uses of the deprecated functions in the code base
 				break;
 			}
 		}
@@ -689,7 +687,7 @@ int BEE::opengl_init() {
 	glewExperimental = GL_TRUE;
 	GLenum glew_error = glewInit();
 	if (glew_error != GLEW_OK) {
-		throw std::string("Couldn't initialize GLEW: ") + std::string((const char*)glewGetErrorString(glew_error)) + "\n";
+		throw "Couldn't initialize GLEW: " + std::string((const char*)glewGetErrorString(glew_error)) + "\n";
 	}
 
 	if (options->is_vsync_enabled) {
@@ -935,13 +933,13 @@ std::string BEE::opengl_prepend_version(const std::string& shader) {
 		case BEE_RENDERER_OPENGL4: {
 			if (GL_VERSION_4_1) {
 				options->renderer_type = BEE_RENDERER_OPENGL4;
-				return "#version 410\n" + shader;
+				return "#version 410 core\n" + shader;
 			}
 		}
 		case BEE_RENDERER_OPENGL3: {
 			if (GL_VERSION_3_3) {
 				options->renderer_type = BEE_RENDERER_OPENGL3;
-				return "#version 330\n" + shader;
+				return "#version 330 core\n" + shader;
 			}
 		}
 		case BEE_RENDERER_SDL:

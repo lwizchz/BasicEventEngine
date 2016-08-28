@@ -25,6 +25,7 @@ class BEE::Background: public Resource {
 		bool is_loaded = false;
 		bool has_draw_failed = false;
 
+		GLuint vao;
 		GLuint vbo_vertices;
 		GLuint ibo;
 		GLuint gl_texture;
