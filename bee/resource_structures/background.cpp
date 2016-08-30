@@ -91,12 +91,12 @@ int BEE::Background::print() {
 	std::stringstream s;
 	s <<
 	"Background { "
-	"\n	id		" << id <<
-	"\n	name		" << name <<
-	"\n	background_path	" << background_path <<
-	"\n	width		" << width <<
-	"\n	height		" << height <<
-	"\n	is_tiling	" << is_tiling <<
+	"\n	id              " << id <<
+	"\n	name            " << name <<
+	"\n	background_path " << background_path <<
+	"\n	width           " << width <<
+	"\n	height          " << height <<
+	"\n	is_tiling       " << is_tiling <<
 	"\n}\n";
 	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str());
 
@@ -179,10 +179,10 @@ int BEE::Background::load_from_surface(SDL_Surface* tmp_surface) {
 			glBufferData(GL_ARRAY_BUFFER, sizeof(texcoords), texcoords, GL_STATIC_DRAW);
 
 			GLfloat vertices[] = {
-				0.0, 0.0,
+				0.0,            0.0,
 				(GLfloat)width, 0.0,
 				(GLfloat)width, (GLfloat)height,
-				0.0, (GLfloat)height,
+				0.0,            (GLfloat)height,
 			};
 			glGenBuffers(1, &vbo_vertices);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);

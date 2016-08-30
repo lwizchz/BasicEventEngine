@@ -80,28 +80,28 @@ int BEE::Object::print() {
 	std::stringstream s;
 	s <<
 	"Object { "
-	"\n	id		" << id <<
-	"\n	name		" << name <<
-	"\n	object_path	" << object_path;
+	"\n	id            " << id <<
+	"\n	name          " << name <<
+	"\n	object_path   " << object_path;
 	if (sprite != nullptr) {
-		s << "\n	sprite		" << sprite->get_id() << ", " << sprite->get_name();
+		s << "\n	sprite        " << sprite->get_id() << ", " << sprite->get_name();
 	} else {
-		s << "\n	sprite		nullptr";
+		s << "\n	sprite        nullptr";
 	}
 	s <<
-	"\n	is_solid	" << is_solid <<
-	"\n	is_visible	" << is_visible <<
-	"\n	is_persistent	" << is_persistent <<
+	"\n	is_solid      " << is_solid <<
+	"\n	is_visible    " << is_visible <<
+	"\n	is_persistent " << is_persistent <<
 	"\n	depth		" << depth;
 	if (parent != nullptr) {
-		s << "\n	parent		" << parent->get_id() << ", " << parent->get_name();
+		s << "\n	parent        " << parent->get_id() << ", " << parent->get_name();
 	} else {
-		s << "\n	parent		nullptr";
+		s << "\n	parent        nullptr";
 	}
 	if (mask != nullptr) {
-		s << "\n	mask		" << mask->get_id() << ", " << mask->get_name();
+		s << "\n	mask          " << mask->get_id() << ", " << mask->get_name();
 	} else {
-		s << "\n	mask		nullptr";
+		s << "\n	mask          nullptr";
 	}
 	s << "\n	instances\n" << debug_indent(instance_string, 2) <<
 	"\n}\n";
@@ -242,17 +242,14 @@ BEE::InstanceData* BEE::Object::get_instance(int inst_id) {
 }
 std::string BEE::Object::get_instance_string() {
 	if (instances.size() > 0) {
-		std::ostringstream instance_string;
-		instance_string << "(id	object	x	y)\n";
+		std::vector<std::vector<std::string>> table;
+		table.push_back({"(id", "object", "x", "y)"});
+
 		for (auto& i : instances) {
-			instance_string <<
-			i.second->id << "\t" <<
-			i.second->object->get_name() << "\t" <<
-			i.second->x << "\t" <<
-			i.second->y << "\n";
+			table.push_back({bee_itos(i.second->id), i.second->object->get_name(), bee_itos(i.second->x), bee_itos(i.second->y)});
 		}
 
-		return instance_string.str();
+		return string_tabulate(table);
 	}
 	return "none\n";
 }

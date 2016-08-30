@@ -78,7 +78,7 @@ std::string file_get_contents(const std::string& fname) {
 * @fname: the file to write
 * @contents: the string to write to the file
 */
-unsigned long long file_put_contents(const std::string& fname, const std::string& contents) {
+size_t file_put_contents(const std::string& fname, const std::string& contents) {
         std::ofstream output (fname); // Open the given file for writing
         if (output.is_open()) { // If the file was successfully opened
                 output.write(contents.c_str(), contents.size()); // Write to the file

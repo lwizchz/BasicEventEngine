@@ -19,23 +19,23 @@
 BEE::RGBA BEE::get_enum_color(bee_rgba_t c, Uint8 a) const {
 	// Return a BEE::RGBA value with the given alpha value
 	switch (c) {
-		case c_cyan: return {0, 255, 255, a};
-		case c_blue: return {0, 0, 255, a};
-		case c_dkgray: return {64, 64, 64, a};
-		case c_magenta: return {255, 0, 255, a};
-		case c_gray: return {128, 128, 128, a};
-		case c_green: return {0, 128, 0, a}; // Even though green is technically g=255, that color is called lime because it is quite bright
-		case c_lime: return {0, 255, 0, a};
-		case c_ltgray: return {192, 192, 192, a};
-		case c_maroon: return {128, 0, 0, a};
-		case c_navy: return {0, 0, 128, a};
-		case c_olive: return {128, 128, 0, a};
-		case c_orange: return {255, 128, 0, a};
-		case c_purple: return {128, 0, 255, a};
-		case c_red: return {255, 0, 0, a};
-		case c_teal: return {0, 128, 128, a};
-		case c_white: return {255, 255, 255, a};
-		case c_yellow: return {255, 255, 0, a};
+		case c_cyan:           return {0, 255, 255, a};
+		case c_blue:           return {0, 0, 255, a};
+		case c_dkgray:         return {64, 64, 64, a};
+		case c_magenta:        return {255, 0, 255, a};
+		case c_gray:           return {128, 128, 128, a};
+		case c_green:          return {0, 128, 0, a}; // Even though green is technically g=255, that color is called lime because it is quite bright
+		case c_lime:           return {0, 255, 0, a};
+		case c_ltgray:         return {192, 192, 192, a};
+		case c_maroon:         return {128, 0, 0, a};
+		case c_navy:           return {0, 0, 128, a};
+		case c_olive:          return {128, 128, 0, a};
+		case c_orange:         return {255, 128, 0, a};
+		case c_purple:         return {128, 0, 255, a};
+		case c_red:            return {255, 0, 0, a};
+		case c_teal:           return {0, 128, 128, a};
+		case c_white:          return {255, 255, 255, a};
+		case c_yellow:         return {255, 255, 0, a};
 		case c_black: default: return {0, 0, 0, a}; // Return black if the enumeration is unknown
 	}
 }
@@ -115,9 +115,9 @@ int BEE::draw_line(int x1, int y1, int x2, int y2, const RGBA& c, bool is_hud) {
 		GLuint vbo;
 		glGenBuffers(1, &vbo);
 		GLfloat vertices[] = {
-			0.0, 0.0,
+			0.0,         0.0,
 			(GLfloat)w, (GLfloat)h,
-			0.0, 0.0,
+			0.0,        0.0,
 		};
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
@@ -225,12 +225,12 @@ int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled, const RGBA& 
 			GLuint vbo;
 			glGenBuffers(1, &vbo);
 			GLfloat vertices[] = {
-				0.0, 0.0,
+				0.0,        0.0,
 				(GLfloat)w, 0.0,
 				(GLfloat)w, (GLfloat)h,
 				(GLfloat)w, (GLfloat)h,
-				0.0, (GLfloat)h,
-				0.0, 0.0,
+				0.0,        (GLfloat)h,
+				0.0,        0.0,
 			};
 			glBindBuffer(GL_ARRAY_BUFFER, vbo);
 			glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
@@ -261,10 +261,10 @@ int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled, const RGBA& 
 
 			glDeleteVertexArrays(1, &vao);
 		} else {
-			draw_line(x, y, x+w, y, c, is_hud);
-			draw_line(x+w, y, x+w, y+h, c, is_hud);
-			draw_line(x+w, y+h, x, y+h, c, is_hud);
-			draw_line(x, y+h, x, y, c, is_hud);
+			draw_line(x,   y,   x+w, y,   c, is_hud);
+			draw_line(x+w, y,   x+w, y+h, c, is_hud);
+			draw_line(x+w, y+h, x,   y+h, c, is_hud);
+			draw_line(x,   y+h, x,   y,   c, is_hud);
 		}
 
 		return 0;

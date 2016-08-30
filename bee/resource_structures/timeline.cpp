@@ -71,13 +71,13 @@ int BEE::Timeline::print() {
 	std::stringstream s;
 	s <<
 	"Timeline { "
-	"\n	id		" << id <<
-	"\n	name		" << name <<
-	"\n	timeline_path	" << timeline_path <<
-	"\n	start_frame	" << start_frame <<
-	"\n	position_frame	" << position_frame <<
-	"\n	is_looping	" << is_looping <<
-	"\n	action_list \n" << debug_indent(action_string, 2) <<
+	"\n	id             " << id <<
+	"\n	name           " << name <<
+	"\n	timeline_path  " << timeline_path <<
+	"\n	start_frame    " << start_frame <<
+	"\n	position_frame " << position_frame <<
+	"\n	is_looping     " << is_looping <<
+	"\n	action_list\n" << debug_indent(action_string, 2) <<
 	"\n}\n";
 	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str());
 
@@ -98,13 +98,14 @@ bee_timeline_list BEE::Timeline::get_action_list() {
 }
 std::string BEE::Timeline::get_action_string() {
 	if (action_list.size() > 0) {
-		std::ostringstream action_string;
-		action_string << "(frame	func_name)\n";
+		std::vector<std::vector<std::string>> table;
+		table.push_back({"(frame", "func_name)"});
+
 		for (auto& a : action_list) {
-			action_string << a.first << "	" << a.second.first << "\n";
+			table.push_back({bee_itos(a.first), a.second.first});
 		}
 
-		return action_string.str();
+		return string_tabulate(table);
 	}
 	return "none\n";
 }

@@ -13,7 +13,7 @@
 
 std::string BEE::get_usage_text() {
 	return
-		bee_get_path() + "\n" +
+		bee_get_path() + "\n"
 		"A basic event-driven game engine which renders with either SDL or OpenGL\n"
 		"\n"
 		"Usage:\n"
@@ -38,8 +38,8 @@ std::string BEE::get_usage_text() {
 		"	--windowed, -w\n"
 		"		Disable fullscreen mode\n"
 		"Exit Status:\n"
-		"	0	Success\n"
-		"	1	Exception during engine initialization\n"
+		"	0       Success\n"
+		"	1       Exception during engine initialization\n"
 	;
 }
 

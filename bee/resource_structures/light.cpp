@@ -69,35 +69,35 @@ int BEE::Light::print() {
 	std::stringstream s;
 	s <<
 	"Light { "
-	"\n	id		" << id <<
-	"\n	name		" << name <<
-	"\n	light_path	" << light_path;
+	"\n	id          " << id <<
+	"\n	name        " << name <<
+	"\n	light_path  " << light_path;
 	switch (lighting.type) {
 		case BEE_LIGHT_AMBIENT: {
-			s << "\n	type		ambient";
+			s << "\n	type        ambient";
 			break;
 		}
 		case BEE_LIGHT_DIFFUSE: {
-			s << "\n	type		diffuse";
+			s << "\n	type        diffuse";
 			break;
 		}
 		case BEE_LIGHT_POINT: {
-			s << "\n	type		point";
+			s << "\n	type        point";
 			break;
 		}
 		case BEE_LIGHT_SPOT: {
-			s << "\n	type		spot";
+			s << "\n	type        spot";
 			break;
 		}
 		default: {
-			s << "\n	type		unknown";
+			s << "\n	type        unknown";
 		}
 	}
 	s <<
-	"\n	position	(" << lighting.position.x << ", " << lighting.position.y << ", " << lighting.position.z << ")" <<
-	"\n	direction	(" << lighting.direction.x << ", " << lighting.direction.y << ", " << lighting.direction.z << ")" <<
-	"\n	attenuation	(" << lighting.attenuation.x << ", " << lighting.attenuation.y << ", " << lighting.attenuation.z << ")" <<
-	"\n	color		" << (int)lighting.color.r << ", " << (int)lighting.color.g << ", " << (int)lighting.color.b <<
+	"\n	position    (" << lighting.position.x << ", " << lighting.position.y << ", " << lighting.position.z << ")" <<
+	"\n	direction   (" << lighting.direction.x << ", " << lighting.direction.y << ", " << lighting.direction.z << ")" <<
+	"\n	attenuation (" << lighting.attenuation.x << ", " << lighting.attenuation.y << ", " << lighting.attenuation.z << ")" <<
+	"\n	color       " << (int)lighting.color.r << ", " << (int)lighting.color.g << ", " << (int)lighting.color.b <<
 	"\n}\n";
 	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str());
 

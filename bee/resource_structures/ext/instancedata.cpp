@@ -69,10 +69,10 @@ int BEE::InstanceData::init(int new_id, Object* new_object, int new_x, int new_y
 		mask.w = (double)get_width();
 		mask.h = (double)get_height();
 
-		mask.add_vertex(0.0, 0.0);
+		mask.add_vertex(0.0,                 0.0);
 		mask.add_vertex((double)get_width(), 0.0);
 		mask.add_vertex((double)get_width(), (double)get_height());
-		mask.add_vertex(0.0, (double)get_height());
+		mask.add_vertex(0.0,                 (double)get_height());
 		mask.finalize();
 	}
 
@@ -82,13 +82,13 @@ int BEE::InstanceData::print() {
 	std::stringstream s;
 	s <<
 	"InstanceData { "
-	"\n	id		" << id <<
-	"\n	object		" << object <<
-	"\n	subimage_time	" << subimage_time <<
-	"\n	x, y		" << x << ", " << y <<
-	"\n	depth		" << depth <<
-	//"\n	velocity	" << velocity <<
-	"\n	gravity		" << gravity <<
+	"\n	id            " << id <<
+	"\n	object        " << object <<
+	"\n	subimage_time " << subimage_time <<
+	"\n	x, y          " << x << ", " << y <<
+	"\n	depth         " << depth <<
+	//"\n	velocity      " << velocity <<
+	"\n	gravity       " << gravity <<
 	"\n}\n";
 	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str());
 

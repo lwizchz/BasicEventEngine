@@ -82,17 +82,17 @@ int BEE::Sound::print() {
 	std::stringstream s;
 	s <<
 	"Sound { "
-	"\n	id		" << id <<
-	"\n	name		" << name <<
-	"\n	sound_path	" << sound_path <<
-	"\n	play_type	" << play_type <<
-	"\n	channel_amount	" << channel_amount <<
-	"\n	sample_rate	" << sample_rate <<
-	"\n	sample_format	" << sample_format <<
-	"\n	bit_rate	" << bit_rate <<
-	"\n	is_playing	" << is_playing <<
-	"\n	is_music	" << is_music <<
-	"\n	is_looping	" << is_looping <<
+	"\n	id             " << id <<
+	"\n	name           " << name <<
+	"\n	sound_path     " << sound_path <<
+	"\n	play_type      " << play_type <<
+	"\n	channel_amount " << channel_amount <<
+	"\n	sample_rate    " << sample_rate <<
+	"\n	sample_format  " << sample_format <<
+	"\n	bit_rate       " << bit_rate <<
+	"\n	is_playing     " << is_playing <<
+	"\n	is_music       " << is_music <<
+	"\n	is_looping     " << is_looping <<
 	"\n}\n";
 	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str());
 

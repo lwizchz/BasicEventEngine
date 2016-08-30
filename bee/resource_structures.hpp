@@ -19,13 +19,13 @@ class Resource { // The abstract class for all resource types
 		BEE* game = nullptr;
 
 		virtual ~Resource() {};
-		virtual int reset() =0;
-		virtual int print() =0;
-		virtual int get_id() =0;
-		virtual std::string get_name() =0;
-		virtual std::string get_path() =0;
-		virtual int set_name(std::string) =0;
-		virtual int set_path(std::string) =0;
+		virtual int reset() = 0;
+		virtual int print() = 0;
+		virtual int get_id() = 0;
+		virtual std::string get_name() = 0;
+		virtual std::string get_path() = 0;
+		virtual int set_name(std::string) = 0;
+		virtual int set_path(std::string) = 0;
 };
 class ResourceList { // The class which holds a list of each individual resource type
 	public:

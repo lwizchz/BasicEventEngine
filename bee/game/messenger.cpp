@@ -138,12 +138,12 @@ int BEE::handle_messages() {
 std::string BEE::messenger_get_type_string(bee_message_t type) {
 	switch (type) {
 		case BEE_MESSAGE_GENERAL: return "general";
-		case BEE_MESSAGE_START: return "start";
-		case BEE_MESSAGE_END: return "end";
-		case BEE_MESSAGE_INFO: return "info";
+		case BEE_MESSAGE_START:   return "start";
+		case BEE_MESSAGE_END:     return "end";
+		case BEE_MESSAGE_INFO:    return "info";
 		case BEE_MESSAGE_WARNING: return "warning";
-		case BEE_MESSAGE_ERROR: return "error";
-		default: return "unknown";
+		case BEE_MESSAGE_ERROR:   return "error";
+		default:                  return "unknown";
 	}
 }
 

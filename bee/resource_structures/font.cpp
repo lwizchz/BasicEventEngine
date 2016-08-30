@@ -88,13 +88,13 @@ int BEE::Font::print() {
 	std::stringstream s;
 	s <<
 	"Font { "
-	"\n	id		" << id <<
-	"\n	name		" << name <<
-	"\n	font_path	" << font_path <<
-	"\n	font_size	" << font_size <<
-	"\n	style		" << style <<
-	"\n	lineskip	" << lineskip <<
-	"\n	font		" << font <<
+	"\n	id        " << id <<
+	"\n	name      " << name <<
+	"\n	font_path " << font_path <<
+	"\n	font_size " << font_size <<
+	"\n	style     " << style <<
+	"\n	lineskip  " << lineskip <<
+	"\n	font      " << font <<
 	"\n}\n";
 	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str());
 
@@ -150,7 +150,7 @@ int BEE::Font::set_font_size(int new_font_size) {
 }
 int BEE::Font::set_style(int new_style) {
 	if (is_loaded)	{
-		style = new_style; // bitmask of TTF_STYLE_BOLD, ITALIC, UNDERLINE, STRIKETHROUGH, and NORMAL
+		style = new_style; // bitmask of TTF_STYLE_BOLD, _ITALIC, _UNDERLINE, _STRIKETHROUGH, and _NORMAL
 		TTF_SetFontStyle(font, style);
 		return 0;
 	}

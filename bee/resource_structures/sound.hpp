@@ -14,14 +14,14 @@
 #include "../game.hpp"
 
 enum se_type {
-	se_none		= (1u << 0),
-	se_chorus	= (1u << 1),
-	se_echo		= (1u << 2),
-	se_flanger	= (1u << 3),
-	se_gargle	= (1u << 4),
-	se_reverb	= (1u << 5),
-	se_compressor	= (1u << 6),
-	se_equalizer	= (1u << 7)
+	se_none       = (1u << 0),
+	se_chorus     = (1u << 1),
+	se_echo       = (1u << 2),
+	se_flanger    = (1u << 3),
+	se_gargle     = (1u << 4),
+	se_reverb     = (1u << 5),
+	se_compressor = (1u << 6),
+	se_equalizer  = (1u << 7)
 };
 
 class BEE::Sound: public Resource {

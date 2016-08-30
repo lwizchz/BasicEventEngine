@@ -98,19 +98,19 @@ int BEE::Sprite::print() {
 	std::stringstream s;
 	s <<
 	"Sprite { "
-	"\n	id		" << id <<
-	"\n	name		" << name <<
-	"\n	image_path	" << image_path <<
-	"\n	width		" << width <<
-	"\n	height		" << height <<
-	"\n	subimage_amount	" << subimage_amount <<
-	"\n	subimage_width	" << subimage_width <<
-	"\n	speed		" << speed <<
-	"\n	alpha		" << alpha <<
-	"\n	origin_x	" << origin_x <<
-	"\n	origin_y	" << origin_y <<
-	"\n	texture		" << texture <<
-	"\n	is_loaded	" << is_loaded <<
+	"\n	id              " << id <<
+	"\n	name            " << name <<
+	"\n	image_path      " << image_path <<
+	"\n	width           " << width <<
+	"\n	height          " << height <<
+	"\n	subimage_amount " << subimage_amount <<
+	"\n	subimage_width  " << subimage_width <<
+	"\n	speed           " << speed <<
+	"\n	alpha           " << alpha <<
+	"\n	origin_x        " << origin_x <<
+	"\n	origin_y        " << origin_y <<
+	"\n	texture         " << texture <<
+	"\n	is_loaded       " << is_loaded <<
 	"\n}\n";
 	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str());
 
@@ -201,10 +201,10 @@ int BEE::Sprite::set_subimage_amount(int new_subimage_amount, int new_subimage_w
 		for (int i=0; i<subimage_amount; i++) {
 			GLuint new_texcoord;
 			GLfloat texcoords[] = {
-				w*i, 0.0,
+				w*i,     0.0,
 				w*(i+1), 0.0,
 				w*(i+1), 1.0,
-				w*i, 1.0,
+				w*i,     1.0,
 			};
 			glGenBuffers(1, &new_texcoord);
 			glBindBuffer(GL_ARRAY_BUFFER, new_texcoord);
@@ -245,10 +245,10 @@ int BEE::Sprite::crop_image(SDL_Rect new_crop) {
 
 		GLuint new_texcoord;
 		GLfloat texcoords[] = {
-			x, y,
+			x,   y,
 			x+w, y,
 			x+w, y+h,
-			x, y+h
+			x,   y+h
 		};
 		glGenBuffers(1, &new_texcoord);
 		glBindBuffer(GL_ARRAY_BUFFER, new_texcoord);
@@ -332,10 +332,10 @@ int BEE::Sprite::load_from_surface(SDL_Surface* tmp_surface) {
 			glBindVertexArray(vao);
 
 			GLfloat vertices[] = {
-				0.0, 0.0,
+				0.0,                     0.0,
 				(GLfloat)subimage_width, 0.0,
 				(GLfloat)subimage_width, (GLfloat)height,
-				0.0, (GLfloat)height,
+				0.0,                     (GLfloat)height,
 			};
 			glGenBuffers(1, &vbo_vertices);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
@@ -750,10 +750,10 @@ int BEE::Sprite::set_as_target(int w, int h) {
 
 	if (game->options->renderer_type != BEE_RENDERER_SDL) {
 		GLfloat vertices[] = {
-			0.0, 0.0,
+			0.0,            0.0,
 			(GLfloat)width, 0.0,
 			(GLfloat)width, (GLfloat)height,
-			0.0, (GLfloat)height,
+			0.0,            (GLfloat)height,
 		};
 		glGenBuffers(1, &vbo_vertices);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);

@@ -11,6 +11,7 @@
 
 #include <string> // Include the required library headers
 #include <map>
+#include <vector>
 
 #include <SDL2/SDL.h> // Include the required SDL headers
 #include <SDL2/SDL_net.h>
@@ -85,6 +86,9 @@ std::string trim(const std::string&);
 bool stringtobool(const std::string&);
 std::string booltostring(bool);
 std::string string_replace(const std::string&, const std::string&, const std::string&);
+std::string string_replace_map(const std::string&, const std::map<std::string,std::string>);
+std::string string_repeat(size_t, const std::string&);
+std::string string_tabulate(const std::vector<std::vector<std::string>>);
 bool clipboard_has_text();
 std::string clipboard_get_text();
 int clipboard_set_text(const std::string&);
@@ -183,7 +187,7 @@ int file_delete(const std::string&);
 int file_rename(const std::string&, const std::string&);
 int file_copy(const std::string&, const std::string&);
 std::string file_get_contents(const std::string&);
-unsigned long long file_put_contents(const std::string&, const std::string&);
+size_t file_put_contents(const std::string&, const std::string&);
 bool directory_exists(const std::string&);
 int directory_create(const std::string&);
 std::string directory_get_temp();

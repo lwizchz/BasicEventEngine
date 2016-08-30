@@ -51,7 +51,7 @@ int BEE::init_resources() {
 
 		// Init paths
 		path_bee = new Path("path_bee", "");
-			path_bee->add_coordinate(0, 0, 1.0);
+			path_bee->add_coordinate(0,   0,   1.0);
 			path_bee->add_coordinate(200, 400, 1.0);
 			path_bee->add_coordinate(800, 400, 1.0);
 			path_bee->add_coordinate(500, 200, 1.0);

@@ -111,18 +111,18 @@ int BEE::Particle::print() {
 	std::stringstream s;
 	s <<
 	"Particle { "
-	"\n	sprite			" << sprite <<
-	"\n	scale			" << scale <<
-	"\n	velocity:\n" <<
-	"\n		magnitude	" << velocity.first <<
-	"\n		direction	" << velocity.second <<
-	"\n	angle			" << angle <<
-	"\n	angle_increase		" << angle_increase <<
-	"\n	color (rgba)		" << (int)color.r << ", " << (int)color.g << ", " << (int)color.b << ", " << (int)color.a <<
-	"\n	max_time		" << max_time <<
-	"\n	death_type		" << death_type <<
-	"\n	death_amount		" << death_amount <<
-	"\n	should_reanimate	" << should_reanimate <<
+	"\n	sprite            " << sprite <<
+	"\n	scale             " << scale <<
+	"\n	velocity:" <<
+	"\n		magnitude " << velocity.first <<
+	"\n		direction " << velocity.second <<
+	"\n	angle             " << angle <<
+	"\n	angle_increase    " << angle_increase <<
+	"\n	color (rgba)      " << (int)color.r << ", " << (int)color.g << ", " << (int)color.b << ", " << (int)color.a <<
+	"\n	max_time          " << max_time <<
+	"\n	death_type        " << death_type <<
+	"\n	death_amount      " << death_amount <<
+	"\n	should_reanimate  " << should_reanimate <<
 	"\n}\n";
 	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str());
 

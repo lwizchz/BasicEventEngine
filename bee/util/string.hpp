@@ -210,6 +210,64 @@ std::string string_replace(const std::string& str, const std::string& search, co
         }
         return s; // Return the modified string
 }
+/*
+* string_replace_map() - Replace all occurences of the given search strings with the given replacements
+* @str: the string to operate on
+* @search: the array of strings to search and replace
+* @replacment: the array of strings to replace the search
+*/
+std::string string_replace_map(const std::string& str, const std::map<std::string,std::string> searchreplace) {
+        std::string new_str = str;
+        for (auto& sr : searchreplace) { // Iterate over the arrays and replace the given strings
+                new_str = string_replace(new_str, sr.first, sr.second);
+        }
+        return new_str; // Return the modified string
+}
+/*
+* string_repeat() - Repeat a given string the given number of times
+* @amount: the number of times to repeat the string
+* @str: the string to repeat
+*/
+std::string string_repeat(size_t amount, const std::string& str) {
+        if (str.length() == 1) { // If the string is only a single character long
+                return std::string(amount, str[0]); // Return the string initializer which implements single-character repetition
+        }
+
+        std::string s;
+        for (size_t i=0; i<amount; i++) { // Continually append the string as needed
+                s += str;
+        }
+        return s; // Return the repeated string
+}
+
+/*
+* string_tabulate() - Tabulate a table of strings such that the columns have at least one space between them
+* ! Note that all sub-vectors should have the same number of elements
+* @table: the table to tabulate
+*/
+std::string string_tabulate(const std::vector<std::vector<std::string>> table) {
+        std::vector<size_t> column_width; // Create a vector which measures the width of each existing column
+        for (auto& c : table[0]) { // Iterate over the columns of the first row
+                column_width.push_back(0); // Push an initial width for every column
+        }
+
+        for (auto& r : table) { // Iterate over the table rows
+                for (size_t i=0; i<r.size(); i++) { // Iterate over the table columns
+                        if (r[i].length() > column_width[i]) { // If the length of this value is greater than the column width
+                                column_width[i] = r[i].length(); // Expand the column width to fit it
+                        }
+                }
+        }
+
+        std::string str;
+        for (auto& r : table) { // Iterate over the table rows
+                for (size_t i=0; i<r.size(); i++) { // Iterate over the table columns
+                        str += r[i] + string_repeat(column_width[i]-r[i].length()+1, " "); // Append the columns to the tabulation
+                }
+                str += "\n"; // Separate each row with a new line
+        }
+        return str; // Return the tabulation
+}
 
 /*
 * clipboard_has_text() - Return whether there is currently text in the clipboard

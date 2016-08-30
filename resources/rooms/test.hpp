@@ -18,7 +18,7 @@ class RmTest: public BEE::Room {
 		};
 
 		RmTest();
-		int init();
+		int init() override final;
 };
 RmTest::RmTest() : Room("RmTest", "test.hpp") {}
 

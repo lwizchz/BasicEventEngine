@@ -67,12 +67,12 @@ int BEE::Path::print() {
 	std::stringstream s;
 	s <<
 	"Path { "
-	"\n	id		" << id <<
-	"\n	name		" << name <<
-	"\n	path_path	" << path_path <<
-	"\n	coordinate_list \n" << debug_indent(coordinate_string, 2) <<
+	"\n	id              " << id <<
+	"\n	name            " << name <<
+	"\n	path_path       " << path_path <<
+	"\n	coordinate_list\n" << debug_indent(coordinate_string, 2) <<
 	"	connection_type	" << connection_type <<
-	"\n	is_closed	" << is_closed <<
+	"\n	is_closed       " << is_closed <<
 	"\n}\n";
 	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str());
 
@@ -92,16 +92,14 @@ std::vector<bee_path_coord> BEE::Path::get_coordinate_list() {
 }
 std::string BEE::Path::get_coordinate_string() {
 	if (coordinate_list.size() > 0) {
-		std::ostringstream coordinate_string;
-		coordinate_string << "(x	y	speed)\n";
-		for (std::vector<bee_path_coord>::iterator it = coordinate_list.begin(); it != coordinate_list.end(); ++it) {
-			coordinate_string <<
-			std::get<0>(*it) << "\t" <<
-			std::get<1>(*it) << "\t" <<
-			std::get<2>(*it) << "\n";
+		std::vector<std::vector<std::string>> table;
+		table.push_back({"(x", "y", "speed)"});
+
+		for (auto it = coordinate_list.begin(); it != coordinate_list.end(); ++it) {
+			table.push_back({bee_itos(std::get<0>(*it)), bee_itos(std::get<1>(*it)), bee_itos(std::get<2>(*it))});
 		}
 
-		return coordinate_string.str();
+		return string_tabulate(table);
 	}
 	return "none\n";
 }
@@ -159,7 +157,7 @@ int BEE::Path::set_is_closed(bool new_is_closed) {
 }
 
 int BEE::Path::draw(int xstart, int ystart) {
-	for (std::vector<bee_path_coord>::iterator it = coordinate_list.begin(); it != coordinate_list.end(); ++it) {
+	for (auto it = coordinate_list.begin(); it != coordinate_list.end(); ++it) {
 		if (it != --coordinate_list.end()) {
 			int xs = xstart;
 			int ys = ystart;

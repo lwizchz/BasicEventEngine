@@ -116,23 +116,23 @@ int BEE::Room::print() {
 	std::stringstream s;
 	s <<
 	"Room { "
-	"\n	id				" << id <<
-	"\n	name				" << name <<
-	"\n	room_path			" << room_path <<
-	"\n	width				" << width <<
-	"\n	height				" << height <<
-	"\n	is_isometric			" << is_isometric <<
-	"\n	is_persistent			" << is_persistent <<
-	"\n	is_background_color_enabled	" << is_background_color_enabled;
+	"\n	id                          " << id <<
+	"\n	name                        " << name <<
+	"\n	room_path                   " << room_path <<
+	"\n	width                       " << width <<
+	"\n	height                      " << height <<
+	"\n	is_isometric                " << is_isometric <<
+	"\n	is_persistent               " << is_persistent <<
+	"\n	is_background_color_enabled " << is_background_color_enabled;
 	if (is_background_color_enabled) {
-		s << "\n	background_color		" << (int)background_color.r << ", " << (int)background_color.g << ", " << (int)background_color.b;
+		s << "\n	background_color            " << (int)background_color.r << ", " << (int)background_color.g << ", " << (int)background_color.b;
 	}
 	s <<
-	"\n	backgrounds			\n" << debug_indent(background_string, 2) <<
-	"	is_views_enabled		" << is_views_enabled <<
-	"\n	views				\n" << debug_indent(view_string, 2) <<
-	"	instances			\n" << debug_indent(instance_string, 2) <<
-	"	collistion tree			\n" << debug_indent(collision_tree->print(), 2) <<
+	"\n	backgrounds\n" << debug_indent(background_string, 2) <<
+	"	is_views_enabled            " << is_views_enabled <<
+	"\n	views\n" << debug_indent(view_string, 2) <<
+	"	instances\n" << debug_indent(instance_string, 2) <<
+	"	collistion tree\n" << debug_indent(collision_tree->print(), 2) <<
 	"}\n";
 	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str());
 
@@ -170,23 +170,18 @@ std::map<int, BEE::BackgroundData*> BEE::Room::get_backgrounds() {
 }
 std::string BEE::Room::get_background_string() {
 	if (backgrounds.size() > 0) {
-		std::ostringstream background_string;
-		background_string << "(name	visible	fore	x	y	htile	vtile	hspeed	vspeed	stretch)\n";
+		std::vector<std::vector<std::string>> table;
+		table.push_back({"(name", "visible", "fore", "x", "y", "htile", "vtile", "hspeed", "vspeed", "stretch)"});
+
 		for (auto& b : backgrounds) {
-			background_string <<
-			b.second->background->get_name() << "\t" <<
-			b.second->is_visible << "\t" <<
-			b.second->is_foreground << "\t" <<
-			b.second->x << "\t" <<
-			b.second->y << "\t" <<
-			b.second->is_horizontal_tile << "\t" <<
-			b.second->is_vertical_tile << "\t" <<
-			b.second->horizontal_speed << "\t" <<
-			b.second->vertical_speed << "\t" <<
-			b.second->is_stretched << "\n";
+			table.push_back({
+				b.second->background->get_name(), booltostring(b.second->is_visible), booltostring(b.second->is_foreground),
+				bee_itos(b.second->x), bee_itos(b.second->y), booltostring(b.second->is_horizontal_tile), booltostring(b.second->is_vertical_tile),
+				bee_itos(b.second->horizontal_speed), bee_itos(b.second->vertical_speed), booltostring(b.second->is_stretched)
+			});
 		}
 
-		return background_string.str();
+		return string_tabulate(table);
 	}
 	return "none\n";
 }
@@ -198,25 +193,18 @@ std::map<int, BEE::ViewData*> BEE::Room::get_views() {
 }
 std::string BEE::Room::get_view_string() {
 	if (views.size() > 0) {
-		std::ostringstream view_string;
-		view_string << "(visible	vx, vy	vwidth	vheight	px, py	pwidth	pheight	object	hborder	vborder	hspeed	vspeed)\n";
+		std::vector<std::vector<std::string>> table;
+		table.push_back({"(visible", "vx,", "vy", "vwidth", "vheight", "px,", "py", "pwidth", "pheight", "object", "hborder", "vborder", "hspeed", "vspeed)"});
+
 		for (auto& v : views) {
-			view_string <<
-			v.second->is_visible << "\t" <<
-			v.second->view_x << ", " << v.second->view_y <<"\t" <<
-			v.second->view_width << "\t" <<
-			v.second->view_height << "\t" <<
-			v.second->port_x << ", " << v.second->port_y << "\t" <<
-			v.second->port_width << "\t" <<
-			v.second->port_height << "\t" <<
-			v.second->following->object->get_name() << "\t" <<
-			v.second->horizontal_border << "\t" <<
-			v.second->vertical_border << "\t" <<
-			v.second->horizontal_speed << "\t" <<
-			v.second->vertical_speed << "\n";
+			table.push_back({
+				booltostring(v.second->is_visible), bee_itos(v.second->view_x), bee_itos(v.second->view_y), bee_itos(v.second->view_width), bee_itos(v.second->view_height),
+				bee_itos(v.second->port_x), bee_itos(v.second->port_y), bee_itos(v.second->port_width), bee_itos(v.second->port_height), v.second->following->object->get_name(),
+				bee_itos(v.second->horizontal_border), bee_itos(v.second->vertical_border), bee_itos(v.second->horizontal_speed), bee_itos(v.second->vertical_speed)
+			});
 		}
 
-		return view_string.str();
+		return string_tabulate(table);
 	}
 	return "none\n";
 }
@@ -225,19 +213,14 @@ const std::map<int, BEE::InstanceData*>& BEE::Room::get_instances() {
 }
 std::string BEE::Room::get_instance_string() {
 	if (instances.size() > 0) {
-		std::ostringstream instance_string;
-		instance_string << "(id	object		depth	x	y)\n";
+		std::vector<std::vector<std::string>> table;
+		table.push_back({"(id", "object", "x", "y)"});
 
 		for (auto& i : instances_sorted) {
-			instance_string <<
-			i.first->id << "\t" <<
-			i.first->object->get_name() << "\t\t" <<
-			i.first->depth << "\t" <<
-			i.first->x << "\t" <<
-			i.first->y << "\n";
+			table.push_back({bee_itos(i.first->id), i.first->object->get_name(), bee_itos(i.first->x), bee_itos(i.first->y)});
 		}
 
-		return instance_string.str();
+		return string_tabulate(table);
 	}
 	return "none\n";
 }

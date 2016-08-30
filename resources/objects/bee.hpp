@@ -12,15 +12,15 @@ class ObjBee : public BEE::Object {
 
 		ObjBee();
 		~ObjBee();
-		void create(BEE::InstanceData*);
-		void alarm(BEE::InstanceData*, int);
-		void step_mid(BEE::InstanceData*);
-		void keyboard_press(BEE::InstanceData*, SDL_Event*);
-		void mouse_press(BEE::InstanceData*, SDL_Event*);
-		void mouse_input(BEE::InstanceData*, SDL_Event*);
-		void console_input(BEE::InstanceData*, const std::string&);
-		void collision(BEE::InstanceData*, BEE::InstanceData*);
-		void draw(BEE::InstanceData*);
+		void create(BEE::InstanceData*) override final;
+		void alarm(BEE::InstanceData*, int) override final;
+		void step_mid(BEE::InstanceData*) override final;
+		void keyboard_press(BEE::InstanceData*, SDL_Event*) override final;
+		void mouse_press(BEE::InstanceData*, SDL_Event*) override final;
+		void mouse_input(BEE::InstanceData*, SDL_Event*) override final;
+		void console_input(BEE::InstanceData*, const std::string&) override final;
+		void collision(BEE::InstanceData*, BEE::InstanceData*) override final;
+		void draw(BEE::InstanceData*) override final;
 };
 ObjBee::ObjBee() : Object("obj_bee", "bee.hpp") {
 	implemented_events[BEE_EVENT_CREATE] = true;
