@@ -37,7 +37,10 @@ int RmTest::init() {
 	add_background(-1, bk_green, true, false, 0, 0, true, true, 10, 10, false);
 
 	// set up instances
-	add_instance(-1, obj_bee, 0, 0);
+	add_instance(-1, obj_bee, 300, 300);
+	add_instance(-1, obj_bee, 800, 300);
+	add_instance(-1, obj_bee, 300, 600);
+	add_instance(-1, obj_bee, 800, 600);
 
 	return 0;
 }

@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
 		false, true,
 		// Renderer flags
 		BEE_RENDERER_OPENGL4,
-		false,
+		false, false,
 		// Miscellaneous flags
 		true,
 		false

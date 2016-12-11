@@ -230,9 +230,10 @@ int BEE::loop() {
 	messenger_send({"engine"}, BEE_MESSAGE_START, "gameloop");
 	handle_messages();
 
+	// Register the logging system
 	messenger_register({"engine", "console"}, [] (BEE* g, std::shared_ptr<MessageContents> msg) {
 		if (msg->tags == std::vector<std::string>({"engine", "console"})) {
-			std::cout << "[" << msg->data << "]\n";
+			std::cout << "[" << msg->descr << "]\n";
 		}
 	});
 
@@ -404,9 +405,13 @@ int BEE::loop() {
 			}
 			if (bee_has_console_input()) {
 				console_input.push_back("");
-				std::cin >> console_input[console_line];
-				messenger_send({"engine", "console"}, BEE_MESSAGE_INFO, console_input[console_line]);
-				current_room->console_input(console_input[console_line++]);
+				std::getline(std::cin, console_input[console_line]);
+				if (console_input[console_line] == "") {
+					console_input.pop_back();
+				} else {
+					messenger_send({"engine", "console"}, BEE_MESSAGE_INFO, console_input[console_line]);
+					current_room->console_input(console_input[console_line++]);
+				}
 			}
 
 			current_room->step_mid();
@@ -733,7 +738,12 @@ int BEE::opengl_init() {
 
 	// Compile fragment shader
 	GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-	std::string fs = file_get_contents("resources/fragment_shader.glsl");
+	std::string fs;
+	if (options->is_basic_shaders_enabled == true) {
+		fs = file_get_contents("resources/fragment_basic.glsl");
+	} else {
+		fs = file_get_contents("resources/fragment_shader.glsl");
+	}
 	fs = opengl_prepend_version(fs);
 	const GLchar* fragment_shader_source[] = {fs.c_str()};
 	glShaderSource(fragment_shader, 1, fragment_shader_source, nullptr);
@@ -763,15 +773,20 @@ int BEE::opengl_init() {
 
 	vertex_location = glGetAttribLocation(program, "v_position");
 	if (vertex_location == -1) {
-		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_program_error(program));
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
 		throw std::string("Couldn't get location of 'v_position' in the vertex shader\n");
 	}
+	/*normal_location = glGetAttribLocation(program, "v_normal");
+	if (normal_location == -1) {
+		glDeleteShader(vertex_shader);
+		glDeleteShader(geometry_shader);
+		glDeleteShader(fragment_shader);
+		throw std::string("Couldn't get location of 'v_normal' in the vertex shader\n");
+	}*/
 	fragment_location = glGetAttribLocation(program, "v_texcoord");
 	if (fragment_location == -1) {
-		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_program_error(program));
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
@@ -780,7 +795,6 @@ int BEE::opengl_init() {
 
 	projection_location = glGetUniformLocation(program, "projection");
 	if (projection_location == -1) {
-		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_program_error(program));
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
@@ -788,7 +802,6 @@ int BEE::opengl_init() {
 	}
 	view_location = glGetUniformLocation(program, "view");
 	if (view_location == -1) {
-		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_program_error(program));
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
@@ -796,7 +809,6 @@ int BEE::opengl_init() {
 	}
 	model_location = glGetUniformLocation(program, "model");
 	if (model_location == -1) {
-		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_program_error(program));
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
@@ -804,7 +816,6 @@ int BEE::opengl_init() {
 	}
 	port_location = glGetUniformLocation(program, "port");
 	if (port_location == -1) {
-		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_program_error(program));
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
@@ -813,7 +824,6 @@ int BEE::opengl_init() {
 
 	rotation_location = glGetUniformLocation(program, "rotation");
 	if (rotation_location == -1) {
-		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_program_error(program));
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
@@ -821,32 +831,28 @@ int BEE::opengl_init() {
 	}
 
 	texture_location = glGetUniformLocation(program, "f_texture");
-	if (texture_location == -1) {
-		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_program_error(program));
+	if ((texture_location == -1)&&(!options->is_basic_shaders_enabled)) {
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
 		throw std::string("Couldn't get location of 'f_texture' in the fragment shader\n");
 	}
 	colorize_location = glGetUniformLocation(program, "colorize");
-	if (colorize_location == -1) {
-		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_program_error(program));
+	if ((colorize_location == -1)&&(!options->is_basic_shaders_enabled)) {
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
 		throw std::string("Couldn't get location of 'colorize' in the fragment shader\n");
 	}
 	primitive_location = glGetUniformLocation(program, "is_primitive");
-	if (primitive_location == -1) {
-		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_program_error(program));
+	if ((primitive_location == -1)&&(!options->is_basic_shaders_enabled)) {
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
 		throw std::string("Couldn't get location of 'is_primitive' in the fragment shader\n");
 	}
 	flip_location = glGetUniformLocation(program, "flip");
-	if (flip_location == -1) {
-		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_program_error(program));
+	if ((flip_location == -1)&&(!options->is_basic_shaders_enabled)) {
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
@@ -854,22 +860,20 @@ int BEE::opengl_init() {
 	}
 
 	is_lightable_location = glGetUniformLocation(program, "is_lightable");
-	if (is_lightable_location == -1) {
-		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_program_error(program));
+	if ((is_lightable_location == -1)&&(!options->is_basic_shaders_enabled)) {
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
 		throw std::string("Couldn't get location of 'is_lightable' in the fragment shader\n");
 	}
 	light_amount_location = glGetUniformLocation(program, "light_amount");
-	if (light_amount_location == -1) {
-		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_program_error(program));
+	if ((light_amount_location == -1)&&(!options->is_basic_shaders_enabled)) {
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
 		throw std::string("Couldn't get location of 'light_amount' in the fragment shader\n");
 	}
-	for (int i=0; i<BEE_MAX_LIGHTS; i++) {
+	for (size_t i=0; i<BEE_MAX_LIGHTS; i++) {
 		lighting_location[i].type = glGetUniformLocation(program, std::string("lighting[" + bee_itos(i) + "].type").c_str());
 		lighting_location[i].position = glGetUniformLocation(program, std::string("lighting[" + bee_itos(i) + "].position").c_str());
 		lighting_location[i].direction = glGetUniformLocation(program, std::string("lighting[" + bee_itos(i) + "].direction").c_str());
@@ -878,23 +882,23 @@ int BEE::opengl_init() {
 	}
 
 	lightable_amount_location = glGetUniformLocation(program, "lightable_amount");
-	if (lightable_amount_location == -1) {
-		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, get_program_error(program));
+	if ((lightable_amount_location == -1)&&(!options->is_basic_shaders_enabled)) {
 		glDeleteShader(vertex_shader);
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
 		throw std::string("Couldn't get location of 'lightable_amount' in the fragment shader\n");
 	}
-	for (int i=0; i<BEE_MAX_LIGHTABLES; i++) {
+	for (size_t i=0; i<BEE_MAX_LIGHTABLES; i++) {
 		lightable_location[i].position = glGetUniformLocation(program, std::string("lightables[" + bee_itos(i) + "].position").c_str());
 		lightable_location[i].vertex_amount = glGetUniformLocation(program, std::string("lightables[" + bee_itos(i) + "].vertex_amount").c_str());
-		for (int e=0; e<BEE_MAX_MASK_VERTICES; e++) {
+		for (size_t e=0; e<BEE_MAX_MASK_VERTICES; e++) {
 			lightable_location[i].mask[e] = glGetUniformLocation(program, std::string("lightables[" + bee_itos(i) + "].mask[" + bee_itos(e) + "]").c_str());
 		}
 	}
 
 	draw_set_color({255, 255, 255, 255});
 	glEnable(GL_TEXTURE_2D);
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -913,9 +917,28 @@ int BEE::opengl_init() {
 	SDL_GL_GetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, &vi);
 	messenger_send({"engine", "init"}, BEE_MESSAGE_INFO, "GLversion: " + bee_itos(va) + "." + bee_itos(vi));
 
+	projection_cache = new glm::mat4(1.0f);
+
+	// Generate the triangle buffers for primitive drawing
+	glGenBuffers(1, &triangle_vao);
+	glGenBuffers(1, &triangle_vbo);
+
+	GLushort elements[] = {
+		0, 1, 2,
+	};
+	glGenBuffers(1, &triangle_ibo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, triangle_ibo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
+
 	return 0;
 }
 int BEE::opengl_close() {
+	glDeleteBuffers(1, &triangle_vao);
+	glDeleteBuffers(1, &triangle_vbo);
+	glDeleteBuffers(1, &triangle_ibo);
+
+	delete projection_cache;
+
 	if (program != 0) {
 		glDeleteProgram(program);
 		program = 0;
@@ -983,8 +1006,8 @@ int BEE::render_clear() {
 			glBindFramebuffer(GL_FRAMEBUFFER, target);
 		}
 
-		glClear(GL_COLOR_BUFFER_BIT);
 		glUseProgram(program);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	} else {
 		SDL_RenderClear(renderer);
 	}
@@ -992,7 +1015,6 @@ int BEE::render_clear() {
 }
 int BEE::render() const {
 	if (options->renderer_type != BEE_RENDERER_SDL) {
-		glUseProgram(0);
 		SDL_GL_SwapWindow(window);
 	} else {
 		SDL_RenderPresent(renderer);
@@ -1010,7 +1032,7 @@ int BEE::render_reset() {
 
 	// Reload sprite and background textures
 	Sprite* s;
-	for (int i=0; i<resource_list->sprites.get_amount(); i++) {
+	for (size_t i=0; i<resource_list->sprites.get_amount(); i++) {
 		if (get_sprite(i) != nullptr) {
 			s = get_sprite(i);
 			if (s->get_is_loaded()) {
@@ -1020,7 +1042,7 @@ int BEE::render_reset() {
 		}
 	}
 	Background* b;
-	for (int i=0; i<resource_list->backgrounds.get_amount(); i++) {
+	for (size_t i=0; i<resource_list->backgrounds.get_amount(); i++) {
 		if (get_background(i) != nullptr) {
 			b = get_background(i);
 			if (b->get_is_loaded()) {

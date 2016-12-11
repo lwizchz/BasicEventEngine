@@ -44,21 +44,21 @@
 #define BEE_MAX_MASK_VERTICES 8
 
 #ifndef BEE_GAME_ID // BEE_GAME_ID should always be defined but just in case
-#define BEE_GAME_ID 4294967295 // pow(2,32), the maximum value
+#define BEE_GAME_ID 4294967295 // pow(2,32)-1, the maximum value
 #endif // BEE_GAME_ID
 
 #include "debug.hpp" // Include the required debug and utility functions
 #include "util.hpp"
 
-#ifndef _BEE_RESOURCE_STRUCTURES_H
-#include "resource_structures.hpp" // Include the resource structure classes
+#ifndef _BEE_RESOURCEES_H
+#include "resources.hpp" // Include the resource classes
 #endif
 
 #include "enum.hpp" // Include the required engine enumerations
 
 class BEE { // The master engine class which effectively acts as a namespace
 	public:
-		class Sprite; class Sound; class Background; class Font; class Path; class Timeline; class Object; class Room; // The main resource types
+		class Sprite; class Sound; class Background; class Font; class Path; class Timeline; class Mesh; class Object; class Room; // The main resource types
 		class Particle; class ParticleData; class ParticleEmitter; class ParticleAttractor; class ParticleDestroyer; class ParticleDeflector; class ParticleChanger; class ParticleSystem; // The particle system components
 		class Light; class Camera; // The OpenGL-only resources (poor SDL implementations may exist)
 		class ProgramFlags; class GameOptions; class CollisionTree; class CollisionPolygon; class RGBA; // The engine related data
@@ -78,16 +78,16 @@ class BEE { // The master engine class which effectively acts as a namespace
 
 		// This defines the platform where 0=Linux, 1=Windows, 2=OSX, 3=other
 		#ifdef __linux__
-			const int platform = 0;
+			const unsigned int platform = 0;
 		#elif _WIN32
-			const int platform = 1;
+			const unsigned int platform = 1;
 		#elif __APPLE__
-			const int platform = 2;
+			const unsigned int platform = 2;
 		#else
-			const int platform = 3;
+			const unsigned int platform = 3;
 		#endif
 
-		int width, height;
+		unsigned int width, height;
 		SDL_Cursor* cursor = nullptr;
 
 		// These are used for the SDL renderer
@@ -100,6 +100,7 @@ class BEE { // The master engine class which effectively acts as a namespace
 		// The following GLint's are all uniforms in the OpenGL shaders
 		GLuint program = 0; // This is the location of the OpenGL program (where the shaders are compiled)
 		GLint vertex_location = -1;
+		GLint normal_location = -1;
 		GLint fragment_location = -1;
 		GLuint target = 0;
 
@@ -134,6 +135,12 @@ class BEE { // The master engine class which effectively acts as a namespace
 
 		bool render_is_3d = false;
 		Camera* render_camera = nullptr;
+		glm::mat4* projection_cache = nullptr;
+
+		// These should only be used internally by the functions in bee/game/draw.cpp
+		GLuint triangle_vao;
+		GLuint triangle_vbo;
+		GLuint triangle_ibo;
 
 		// This is the current drawing color
 		RGBA* color = nullptr;
@@ -161,7 +168,7 @@ class BEE { // The master engine class which effectively acts as a namespace
 		const Uint8* keystate;
 
 		std::vector<std::string> console_input;
-		int console_line = 0;
+		unsigned int console_line = 0;
 
 		std::unordered_map<std::string,std::unordered_set<std::shared_ptr<MessageRecipient>>> recipients;
 		std::unordered_map<std::string,std::vector<std::shared_ptr<MessageContents>>> tagged_messages;
@@ -324,17 +331,17 @@ class BEE { // The master engine class which effectively acts as a namespace
 		RGBA get_enum_color(bee_rgba_t, Uint8) const;
 		RGBA get_enum_color(bee_rgba_t) const;
 
-		int convert_view_coords(int&, int&) const;
-		int convert_window_coords(int&, int&) const;
-
-		int draw_line(int, int, int, int, const RGBA&, bool);
-		int draw_line(int, int, int, int, bool);
-		int draw_line(int, int, int, int, bee_rgba_t, bool);
-		int draw_line(const Line&, const RGBA&, bool);
-		int draw_rectangle(int, int, int, int, bool, const RGBA&, bool);
-		int draw_rectangle(int, int, int, int, bool, bool);
-		int draw_rectangle(int, int, int, int, bool, bee_rgba_t, bool);
-		int draw_rectangle(const SDL_Rect&, bool, const RGBA&, bool);
+		int draw_triangle(glm::vec3, glm::vec3, glm::vec3, const RGBA&, bool);
+		int draw_line(glm::vec3, glm::vec3, const RGBA&);
+		int draw_line(int, int, int, int, const RGBA&);
+		int draw_line(int, int, int, int);
+		int draw_line(int, int, int, int, bee_rgba_t);
+		int draw_line(const Line&, const RGBA&);
+		int draw_quad(glm::vec3, glm::vec3, bool, const RGBA&);
+		int draw_rectangle(int, int, int, int, bool, const RGBA&);
+		int draw_rectangle(int, int, int, int, bool);
+		int draw_rectangle(int, int, int, int, bool, bee_rgba_t);
+		int draw_rectangle(const SDL_Rect&, bool, const RGBA&);
 
 		int draw_set_color(const RGBA&);
 		int draw_set_color(bee_rgba_t);
@@ -351,6 +358,7 @@ class BEE { // The master engine class which effectively acts as a namespace
 		int render_set_camera(Camera*);
 		bool render_get_3d() const;
 		glm::mat4 render_get_projection();
+		glm::mat4 render_calc_projection();
 		Camera render_get_camera() const;
 
 		// bee/game/messenger.cpp
@@ -360,6 +368,7 @@ class BEE { // The master engine class which effectively acts as a namespace
 		int messenger_unregister_all();
 
 		int messenger_send(std::shared_ptr<MessageContents>);
+		int messenger_send(const std::vector<std::string>&, bee_message_t, const std::string&, void*);
 		int messenger_send(const std::vector<std::string>&, bee_message_t, const std::string&);
 
 		int handle_messages();
@@ -388,9 +397,8 @@ class BEE::Camera {
 		glm::vec3 orientation;
 		float width = 0.0, height = 0.0;
 		float fov = 90.0;
-		float view_distance = 1000.0;
-
-		glm::mat4* projection_cache = nullptr;
+		float z_near = 1.0;
+		float z_far = 10000.0;
 
 		Camera(float w, float h) {
 			width = w; height = h;
@@ -423,6 +431,7 @@ class BEE::GameOptions {
 		// Renderer options
 		bee_renderer_t renderer_type;
 		bool is_vsync_enabled;
+		bool is_basic_shaders_enabled = false;
 
 		// Miscellaneous options
 		bool is_network_enabled;
@@ -432,9 +441,9 @@ class BEE::GameOptions {
 		bool should_assert = true;
 		bool single_run = false;
 
-		GameOptions(bool f, bool b, bool r, bool m, bool h, bool v, bee_renderer_t rend, bool vsync, bool n, bool d) {
+		GameOptions(bool f, bool b, bool r, bool m, bool h, bool v, bee_renderer_t rend, bool vsync, bool bs, bool n, bool d) {
 			is_fullscreen = f; is_borderless = b; is_resizable = r; is_maximized = m; is_highdpi = h; is_visible = v;
-			renderer_type = rend; is_vsync_enabled = vsync; is_network_enabled = n; is_debug_enabled = d;
+			renderer_type = rend; is_vsync_enabled = vsync; is_basic_shaders_enabled = bs; is_network_enabled = n; is_debug_enabled = d;
 		}
 };
 
@@ -463,7 +472,7 @@ class BEE::ViewData {
 		int horizontal_speed, vertical_speed;
 };
 
-class BEE::BackgroundData { // Used to pass data to the Room class in bee/resource_structures/room.hpp
+class BEE::BackgroundData { // Used to pass data to the Room class in bee/resources/room.hpp
 	public:
 		BEE::Background* background = nullptr;
 		bool is_visible = false;
@@ -504,10 +513,11 @@ class BEE::MessageContents {
 		Uint32 tickstamp;
 		std::vector<std::string> tags;
 		bee_message_t type;
-		std::string data;
+		std::string descr;
+		void* data;
 
-		MessageContents(Uint32 tm, std::vector<std::string> tg, bee_message_t tp, std::string d) {
-			tickstamp = tm; tags = tg; type = tp; data = d;
+		MessageContents(Uint32 tm, std::vector<std::string> tg, bee_message_t tp, std::string de, void* da) {
+			tickstamp = tm; tags = tg; type = tp; descr = de; data = da;
 		}
 };
 class BEE::MessageRecipient {
@@ -520,18 +530,19 @@ class BEE::MessageRecipient {
 		}
 };
 
-#include "resource_structures/sprite.hpp"
-#include "resource_structures/sound.hpp"
-#include "resource_structures/background.hpp"
-#include "resource_structures/font.hpp"
-#include "resource_structures/path.hpp"
-#include "resource_structures/timeline.hpp"
-#include "resource_structures/object.hpp"
-#include "resource_structures/light.hpp"
-#include "resource_structures/ext/instancedata.hpp"
-#include "resource_structures/ext/collisiontree.hpp"
-#include "resource_structures/ext/particle.hpp"
-#include "resource_structures/ext/soundgroup.hpp"
-#include "resource_structures/room.hpp"
+#include "resources/sprite.hpp"
+#include "resources/sound.hpp"
+#include "resources/background.hpp"
+#include "resources/font.hpp"
+#include "resources/path.hpp"
+#include "resources/timeline.hpp"
+#include "resources/mesh.hpp"
+#include "resources/object.hpp"
+#include "resources/light.hpp"
+#include "resources/ext/instancedata.hpp"
+#include "resources/ext/collisiontree.hpp"
+#include "resources/ext/particle.hpp"
+#include "resources/ext/soundgroup.hpp"
+#include "resources/room.hpp"
 
 #endif // _BEE_GAME_H

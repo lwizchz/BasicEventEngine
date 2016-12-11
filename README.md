@@ -2,7 +2,7 @@ Copyright (c) 2015-16 Luke Montalvo <lukemontalvo@gmail.com>
 
 [![Build Status](https://travis-ci.org/piluke/BasicEventEngine.svg?branch=master)](https://travis-ci.org/piluke/BasicEventEngine)
 
-![In-Game Screenshot](https://github.com/piluke/BasicEventEngine/raw/master/screenshot.bmp)
+![In-Game Screenshot](https://github.com/piluke/BasicEventEngine/raw/master/screenshot.png)
 
 BasicEventEngine is an event-driven game engine which the user can interface
 with via the Sprite, Sound, Background, Font, Path, Object, and Room classes.
@@ -30,9 +30,9 @@ the moment support will only be offered for Linux.
 2. Install the required libraries:
 
         # Arch Linux
-        sudo pacman -S cmake sdl2 sdl2_image sdl2_ttf sdl2_mixer sdl2_net glew glm freeglut libxmu
+        sudo pacman -S cmake sdl2 sdl2_image sdl2_ttf sdl2_mixer sdl2_net glew glm freeglut libxmu assimp
         # Ubuntu
-        sudo apt-get install cmake libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev libsdl2-net-dev libglew-dev libglm-dev freeglut3-dev libxmu-dev
+        sudo apt-get install cmake libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev libsdl2-net-dev libglew-dev libglm-dev freeglut3-dev libxmu-dev libassimp-dev
 
 3. Download the additional library submodules:
 

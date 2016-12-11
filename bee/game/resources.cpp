@@ -38,7 +38,7 @@ int BEE::free_media() const {
 * @channel: the channel which has finished playback
 */
 void BEE::sound_finished(int channel) {
-	for (int i=0; i<resource_list->sounds.get_amount(); i++) { // Iterate over the sounds in order to remove finished channels from each sound's list
+	for (size_t i=0; i<resource_list->sounds.get_amount(); i++) { // Iterate over the sounds in order to remove finished channels from each sound's list
 		if (get_sound(i) != nullptr) {
 			if (!get_sound(i)->get_is_music()) { // Music cannot be played on multiple channels
 				get_sound(i)->finished(channel); // Remove the finished channel from the list
@@ -60,7 +60,7 @@ double BEE::get_volume() const {
 int BEE::set_volume(double new_volume) {
 	volume = new_volume; // Set the volume
 
-	for (int i=0; i<resource_list->sounds.get_amount(); i++) { // Iterate over the sounds and update them to the new volume
+	for (size_t i=0; i<resource_list->sounds.get_amount(); i++) { // Iterate over the sounds and update them to the new volume
 		if (get_sound(i) != nullptr) {
 			get_sound(i)->update_volume();
 		}
@@ -72,7 +72,7 @@ int BEE::set_volume(double new_volume) {
 * BEE::sound_stop_all() - Immediately stop all sound output
 */
 int BEE::sound_stop_all() const {
-	for (int i=0; i<resource_list->sounds.get_amount(); i++) { // Iterate over the sounds and stop them individually
+	for (size_t i=0; i<resource_list->sounds.get_amount(); i++) { // Iterate over the sounds and stop them individually
 		if (get_sound(i) != nullptr) {
 			get_sound(i)->stop();
 		}
@@ -228,7 +228,7 @@ BEE::Room* BEE::get_room(int id) {
 * @name: the name of the desired object
 */
 BEE::Object* BEE::get_object_by_name(const std::string& name) const {
-	for (int i=0; i<resource_list->objects.get_amount(); i++) { // Iterate over the objects in order to find the first one with the given name
+	for (size_t i=0; i<resource_list->objects.get_amount(); i++) { // Iterate over the objects in order to find the first one with the given name
 		if (get_object(i) != nullptr) {
 			if (get_object(i)->get_name() == name) {
 				return get_object(i); // Return the desired object on success

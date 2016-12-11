@@ -9,11 +9,12 @@ set(VERSION_RELEASE "1")
 ### TODO
 set(BEE_GAME_ID "11111111")
 
-set(warns "-Wall -Wextra -Wpedantic -Wshadow -Wno-unused-parameter -Wno-unused-variable")
+set(warns "-Wall -Wextra -Wpedantic -Wshadow -Wno-unused-parameter")
 set(defines "-DBEE_GAME_ID=${BEE_GAME_ID} -DBEE_VERSION_MAJOR=${VERSION_MAJOR} -DBEE_VERSION_MINOR=${VERSION_MINOR} -DBEE_VERSION_RELEASE=${VERSION_RELEASE}")
 set(CMAKE_CXX_FLAGS "-g -pg -pipe -std=c++11 ${warns} -D_REENTRANT ${defines}")
 
 include_directories("lib/doctest/doctest/")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/lib/")
 
 # Enable link time optimization if it is supported
 if(GXX_HAS_LTO_FLAG)
@@ -51,14 +52,15 @@ if (WIN32) # Include Windows libraries manually
 	find_package(GLEW REQUIRED)
 	find_package(GLUT REQUIRED)
 	find_package(OpenGL REQUIRED)
+	find_package(ASSIMP REQUIRED)
 
-	include_directories(${GLEW_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRECTORIES} ${OPENGL_INCLUDE_DIRECTORIES})
-	target_link_libraries(${PROJECT_NAME} ${GLEW_LIBRARIES} ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES})
+	include_directories(${GLEW_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRECTORIES} ${OPENGL_INCLUDE_DIRECTORIES} ${ASSIMP_INCLUDE_DIRECTORIES})
+	target_link_libraries(${PROJECT_NAME} ${GLEW_LIBRARIES} ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES} ${ASSIMP_LIBRARIES})
 else() # Include Unix libraries automatically
 	add_executable(${PROJECT_NAME} main.cpp resources/resources.hpp)
 	target_link_libraries(${PROJECT_NAME} BEE)
 
-	# Include SDL2 libraries
+	# Include SDL2 related libraries
 	include(FindPkgConfig)
 
 	pkg_search_module(SDL2IMAGE REQUIRED SDL2_image>=2.0.0)
@@ -70,11 +72,12 @@ else() # Include Unix libraries automatically
 	include_directories(${SDL2IMAGE_INCLUDE_DIR} ${SDL2TTF_INCLUDE_DIR} ${SDL2MIXER_INCLUDE_DIR} ${SDL2NET_INCLUDE_DIR} ${SDL2_INCLUDE_DIR} )
 	target_link_libraries(${PROJECT_NAME} ${SDL2IMAGE_LIBRARIES} ${SDL2TTF_LIBRARIES} ${SDL2MIXER_LIBRARIES} ${SDL2NET_LIBRARIES} ${SDL2_LIBRARIES})
 
-	# Include OpenGL libraries
+	# Include OpenGL related libraries
 	find_package(GLEW REQUIRED)
 	find_package(GLUT REQUIRED)
 	find_package(OpenGL REQUIRED)
+	find_package(ASSIMP REQUIRED)
 
-	include_directories(${GLEW_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRECTORIES} ${OPENGL_INCLUDE_DIRECTORIES})
-	target_link_libraries(${PROJECT_NAME} ${GLEW_LIBRARIES} ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES})
+	include_directories(${GLEW_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRECTORIES} ${OPENGL_INCLUDE_DIRECTORIES} ${ASSIMP_INCLUDE_DIRECTORIES})
+	target_link_libraries(${PROJECT_NAME} ${GLEW_LIBRARIES} ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES} ${ASSIMP_LIBRARIES})
 endif()

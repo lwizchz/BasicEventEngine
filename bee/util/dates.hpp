@@ -22,35 +22,35 @@
 * @date: the timestamp to operate on
 */
 time_t date_date_of(time_t date) {
-        struct tm *timeinfo = localtime(&date); // Convert the timestamp into an info struct
-        return date_create_date(timeinfo->tm_year+1900, timeinfo->tm_mon+1, timeinfo->tm_mday); // Return a new timestamp based on the given date
+	struct tm* timeinfo = localtime(&date); // Convert the timestamp into an info struct
+	return date_create_date(timeinfo->tm_year+1900, timeinfo->tm_mon+1, timeinfo->tm_mday); // Return a new timestamp based on the given date
 }
 /*
 * date_time_of() - Return a timestamp corresponding to the given timestamp's time
 * @date: the timestamp to operate on
 */
 time_t date_time_of(time_t date) {
-        struct tm *timeinfo = localtime(&date); // Convert the timestamp into an info struct
-        return date_create_time(timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec); // Return a new timestamp based on the given time
+	struct tm* timeinfo = localtime(&date); // Convert the timestamp into an info struct
+	return date_create_time(timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec); // Return a new timestamp based on the given time
 }
 
 /*
 * date_current_datetime() - Return a timestamp corresponding to now
 */
 time_t date_current_datetime() {
-        return time(nullptr);
+	return time(nullptr);
 }
 /*
 * date_current_date() - Return a timestamp corresponding to the date right now
 */
 time_t date_current_date() {
-        return date_date_of(date_current_datetime());
+	return date_date_of(date_current_datetime());
 }
 /*
 * date_current_time() - Return a timestamp corresponding to the time right now
 */
 time_t date_current_time() {
-        return date_time_of(date_current_datetime());
+	return date_time_of(date_current_datetime());
 }
 
 /*
@@ -64,18 +64,18 @@ time_t date_current_time() {
 * @second: the new timestamp's second
 */
 time_t date_create_datetime(int year, int month, int day, int hour, int minute, int second) {
-        struct tm timeinfo; // Declare a new info struct
+	struct tm timeinfo; // Declare a new info struct
 
-        // Fill in the fields of the info struct with the given values
-        timeinfo.tm_year = year-1900;
-        timeinfo.tm_mon = month-1;
-        timeinfo.tm_mday = day;
-        timeinfo.tm_hour = hour;
-        timeinfo.tm_min = minute;
-        timeinfo.tm_sec = second;
-        timeinfo.tm_isdst = 0;
+	// Fill in the fields of the info struct with the given values
+	timeinfo.tm_year = year-1900;
+	timeinfo.tm_mon = month-1;
+	timeinfo.tm_mday = day;
+	timeinfo.tm_hour = hour;
+	timeinfo.tm_min = minute;
+	timeinfo.tm_sec = second;
+	timeinfo.tm_isdst = 0;
 
-        return mktime(&timeinfo); // Return a timestamp from the given struct
+	return mktime(&timeinfo); // Return a timestamp from the given struct
 }
 /*
 * date_create_date() - Return a timestamp with the given date
@@ -84,7 +84,7 @@ time_t date_create_datetime(int year, int month, int day, int hour, int minute, 
 * @day: the new timestamp's day
 */
 time_t date_create_date(int year, int month, int day) {
-        return date_create_datetime(year, month, day, 0, 0, 0);
+	return date_create_datetime(year, month, day, 0, 0, 0);
 }
 /*
 * date_create_time() - Return a timestamp with the given time
@@ -93,7 +93,7 @@ time_t date_create_date(int year, int month, int day) {
 * @second: the new timestamp's second
 */
 time_t date_create_time(int hour, int minute, int second) {
-        return date_create_datetime(1900, 1, 0, hour, minute, second);
+	return date_create_datetime(1900, 1, 0, hour, minute, second);
 }
 
 /*
@@ -102,9 +102,9 @@ time_t date_create_time(int hour, int minute, int second) {
 * @amount: the amount by which to increment the timestamp
 */
 time_t date_inc_year(time_t old_date, int amount) {
-        struct tm *timeinfo = localtime(&old_date); // Convert the timestamp into an info struct, add the given amount, and return the data as a timestamp
-        timeinfo->tm_year += amount;
-        return mktime(timeinfo);
+	struct tm* timeinfo = localtime(&old_date); // Convert the timestamp into an info struct, add the given amount, and return the data as a timestamp
+	timeinfo->tm_year += amount;
+	return mktime(timeinfo);
 }
 /*
 * date_inc_month() - Return a timestamp with the given timestamp's month incremented by the given amount
@@ -112,9 +112,9 @@ time_t date_inc_year(time_t old_date, int amount) {
 * @amount: the amount by which to increment the timestamp
 */
 time_t date_inc_month(time_t old_date, int amount) {
-        struct tm *timeinfo = localtime(&old_date); // Convert the timestamp into an info struct, add the given amount, and return the data as a timestamp
-        timeinfo->tm_mon += amount;
-        return mktime(timeinfo);
+	struct tm* timeinfo = localtime(&old_date); // Convert the timestamp into an info struct, add the given amount, and return the data as a timestamp
+	timeinfo->tm_mon += amount;
+	return mktime(timeinfo);
 }
 /*
 * date_inc_week() - Return a timestamp with the given timestamp's week incremented by the given amount
@@ -122,9 +122,9 @@ time_t date_inc_month(time_t old_date, int amount) {
 * @amount: the amount by which to increment the timestamp
 */
 time_t date_inc_week(time_t old_date, int amount) {
-        struct tm *timeinfo = localtime(&old_date); // Convert the timestamp into an info struct, add the given amount, and return the data as a timestamp
-        timeinfo->tm_mday += amount*7;
-        return mktime(timeinfo);
+	struct tm* timeinfo = localtime(&old_date); // Convert the timestamp into an info struct, add the given amount, and return the data as a timestamp
+	timeinfo->tm_mday += amount*7;
+	return mktime(timeinfo);
 }
 /*
 * date_inc_day() - Return a timestamp with the given timestamp's day incremented by the given amount
@@ -132,9 +132,9 @@ time_t date_inc_week(time_t old_date, int amount) {
 * @amount: the amount by which to increment the timestamp
 */
 time_t date_inc_day(time_t old_date, int amount) {
-        struct tm *timeinfo = localtime(&old_date); // Convert the timestamp into an info struct, add the given amount, and return the data as a timestamp
-        timeinfo->tm_mday += amount;
-        return mktime(timeinfo);
+	struct tm* timeinfo = localtime(&old_date); // Convert the timestamp into an info struct, add the given amount, and return the data as a timestamp
+	timeinfo->tm_mday += amount;
+	return mktime(timeinfo);
 }
 /*
 * date_inc_hour() - Return a timestamp with the given timestamp's hour incremented by the given amount
@@ -142,9 +142,9 @@ time_t date_inc_day(time_t old_date, int amount) {
 * @amount: the amount by which to increment the timestamp
 */
 time_t date_inc_hour(time_t old_date, int amount) {
-        struct tm *timeinfo = localtime(&old_date); // Convert the timestamp into an info struct, add the given amount, and return the data as a timestamp
-        timeinfo->tm_hour += amount;
-        return mktime(timeinfo);
+	struct tm* timeinfo = localtime(&old_date); // Convert the timestamp into an info struct, add the given amount, and return the data as a timestamp
+	timeinfo->tm_hour += amount;
+	return mktime(timeinfo);
 }
 /*
 * date_inc_minute() - Return a timestamp with the given timestamp's minute incremented by the given amount
@@ -152,9 +152,9 @@ time_t date_inc_hour(time_t old_date, int amount) {
 * @amount: the amount by which to increment the timestamp
 */
 time_t date_inc_minute(time_t old_date, int amount) {
-        struct tm *timeinfo = localtime(&old_date); // Convert the timestamp into an info struct, add the given amount, and return the data as a timestamp
-        timeinfo->tm_min += amount;
-        return mktime(timeinfo);
+	struct tm* timeinfo = localtime(&old_date); // Convert the timestamp into an info struct, add the given amount, and return the data as a timestamp
+	timeinfo->tm_min += amount;
+	return mktime(timeinfo);
 }
 /*
 * date_inc_second() - Return a timestamp with the given timestamp's second incremented by the given amount
@@ -162,9 +162,9 @@ time_t date_inc_minute(time_t old_date, int amount) {
 * @amount: the amount by which to increment the timestamp
 */
 time_t date_inc_second(time_t old_date, int amount) {
-        struct tm *timeinfo = localtime(&old_date); // Convert the timestamp into an info struct, add the given amount, and return the data as a timestamp
-        timeinfo->tm_sec += amount;
-        return mktime(timeinfo);
+	struct tm* timeinfo = localtime(&old_date); // Convert the timestamp into an info struct, add the given amount, and return the data as a timestamp
+	timeinfo->tm_sec += amount;
+	return mktime(timeinfo);
 }
 
 /*
@@ -172,96 +172,96 @@ time_t date_inc_second(time_t old_date, int amount) {
 * @date: the timestamp to operate on
 */
 int date_get_year(time_t date) {
-        struct tm *timeinfo = localtime(&date); // Convert the timestamp into an info struct and return the requested value
-        return timeinfo->tm_year+1900;
+	struct tm* timeinfo = localtime(&date); // Convert the timestamp into an info struct and return the requested value
+	return timeinfo->tm_year+1900;
 }
 /*
 * date_get_month() - Return the month value of the given timestamp
 * @date: the timestamp to operate on
 */
 int date_get_month(time_t date) {
-        struct tm *timeinfo = localtime(&date); // Convert the timestamp into an info struct and return the requested value
-        return timeinfo->tm_mon+1;
+	struct tm* timeinfo = localtime(&date); // Convert the timestamp into an info struct and return the requested value
+	return timeinfo->tm_mon+1;
 }
 /*
 * date_get_week() - Return the week value of the given timestamp
 * @date: the timestamp to operate on
 */
 int date_get_week(time_t date) {
-        struct tm *timeinfo = localtime(&date); // Convert the timestamp into an info struct and return the requested value
-        return (int)(timeinfo->tm_yday / 7) + 1;
+	struct tm* timeinfo = localtime(&date); // Convert the timestamp into an info struct and return the requested value
+	return (int)(timeinfo->tm_yday / 7) + 1;
 }
 /*
 * date_get_day() - Return the day value of the given timestamp
 * @date: the timestamp to operate on
 */
 int date_get_day(time_t date) {
-        struct tm *timeinfo = localtime(&date); // Convert the timestamp into an info struct and return the requested value
-        return timeinfo->tm_mday;
+	struct tm* timeinfo = localtime(&date); // Convert the timestamp into an info struct and return the requested value
+	return timeinfo->tm_mday;
 }
 /*
 * date_get_hour() - Return the hour value of the given timestamp
 * @date: the timestamp to operate on
 */
 int date_get_hour(time_t date) {
-        struct tm *timeinfo = localtime(&date); // Convert the timestamp into an info struct and return the requested value
-        return timeinfo->tm_hour;
+	struct tm* timeinfo = localtime(&date); // Convert the timestamp into an info struct and return the requested value
+	return timeinfo->tm_hour;
 }
 /*
 * date_get_minute() - Return the minute value of the given timestamp
 * @date: the timestamp to operate on
 */
 int date_get_minute(time_t date) {
-        struct tm *timeinfo = localtime(&date); // Convert the timestamp into an info struct and return the requested value
-        return timeinfo->tm_min;
+	struct tm* timeinfo = localtime(&date); // Convert the timestamp into an info struct and return the requested value
+	return timeinfo->tm_min;
 }
 /*
 * date_get_second() - Return the second value of the given timestamp
 * @date: the timestamp to operate on
 */
 int date_get_second(time_t date) {
-        struct tm *timeinfo = localtime(&date); // Convert the timestamp into an info struct and return the requested value
-        return timeinfo->tm_sec;
+	struct tm* timeinfo = localtime(&date); // Convert the timestamp into an info struct and return the requested value
+	return timeinfo->tm_sec;
 }
 /*
 * date_get_weekday() - Return the weekday of the given timestamp
 * @date: the timestamp to operate on
 */
 int date_get_weekday(time_t date) {
-        struct tm *timeinfo = localtime(&date); // Convert the timestamp into an info struct and return the requested value
-        return timeinfo->tm_wday;
+	struct tm* timeinfo = localtime(&date); // Convert the timestamp into an info struct and return the requested value
+	return timeinfo->tm_wday;
 }
 /*
 * date_get_day_of_year() - Return the day of year of the given timestamp
 * @date: the timestamp to operate on
 */
 int date_get_day_of_year(time_t date) {
-        struct tm *timeinfo = localtime(&date); // Convert the timestamp into an info struct and return the requested value
-        return timeinfo->tm_yday;
+	struct tm* timeinfo = localtime(&date); // Convert the timestamp into an info struct and return the requested value
+	return timeinfo->tm_yday;
 }
 /*
 * date_get_hour_of_year() - Return the hour of year of the given timestamp
 * @date: the timestamp to operate on
 */
 int date_get_hour_of_year(time_t date) {
-        struct tm *timeinfo = localtime(&date); // Convert the timestamp into an info struct and return the requested value
-        return timeinfo->tm_yday*24 + timeinfo->tm_hour;
+	struct tm* timeinfo = localtime(&date); // Convert the timestamp into an info struct and return the requested value
+	return timeinfo->tm_yday*24 + timeinfo->tm_hour;
 }
 /*
 * date_get_minute_of_year() - Return the minute of year of the given timestamp
 * @date: the timestamp to operate on
 */
 int date_get_minute_of_year(time_t date) {
-        struct tm *timeinfo = localtime(&date); // Convert the timestamp into an info struct and return the requested value
-        return timeinfo->tm_yday*24*60 + timeinfo->tm_hour*60 + timeinfo->tm_min;
+	struct tm* timeinfo = localtime(&date); // Convert the timestamp into an info struct and return the requested value
+	return timeinfo->tm_yday*24*60 + timeinfo->tm_hour*60 + timeinfo->tm_min;
 }
 /*
 * date_get_second_of_year() - Return the second of year of the given timestamp
 * @date: the timestamp to operate on
 */
 int date_get_second_of_year(time_t date) {
-        struct tm *timeinfo = localtime(&date); // Convert the timestamp into an info struct and return the requested value
-        return timeinfo->tm_yday*24*60*60 + timeinfo->tm_hour*60*60 + timeinfo->tm_min*60 + timeinfo->tm_sec;
+	struct tm* timeinfo = localtime(&date); // Convert the timestamp into an info struct and return the requested value
+	return timeinfo->tm_yday*24*60*60 + timeinfo->tm_hour*60*60 + timeinfo->tm_min*60 + timeinfo->tm_sec;
 }
 
 /*
@@ -271,7 +271,7 @@ int date_get_second_of_year(time_t date) {
 * @date2: the other timestamp
 */
 double date_year_span(time_t date1, time_t date2) {
-        return (double)abs(difftime(date1, date2)) / (60*60*24*365);
+	return (double)abs(difftime(date1, date2)) / (60*60*24*365);
 }
 /*
 * date_month_span() - Return the difference in months between the two timestamps
@@ -279,7 +279,7 @@ double date_year_span(time_t date1, time_t date2) {
 * @date2: the other timestamp
 */
 double date_month_span(time_t date1, time_t date2) {
-        return (double)abs(difftime(date1, date2)) / (60*60*24*30);
+	return (double)abs(difftime(date1, date2)) / (60*60*24*30);
 }
 /*
 * date_week_span() - Return the difference in weeks between the two timestamps
@@ -287,7 +287,7 @@ double date_month_span(time_t date1, time_t date2) {
 * @date2: the other timestamp
 */
 double date_week_span(time_t date1, time_t date2) {
-        return (double)abs(difftime(date1, date2)) / (60*60*24*7);
+	return (double)abs(difftime(date1, date2)) / (60*60*24*7);
 }
 /*
 * date_day_span() - Return the difference in days between the two timestamps
@@ -295,7 +295,7 @@ double date_week_span(time_t date1, time_t date2) {
 * @date2: the other timestamp
 */
 double date_day_span(time_t date1, time_t date2) {
-        return (double)abs(difftime(date1, date2)) / (60*60*24);
+	return (double)abs(difftime(date1, date2)) / (60*60*24);
 }
 /*
 * date_hour_span() - Return the difference in hours between the two timestamps
@@ -303,7 +303,7 @@ double date_day_span(time_t date1, time_t date2) {
 * @date2: the other timestamp
 */
 double date_hour_span(time_t date1, time_t date2) {
-        return (double)abs(difftime(date1, date2)) / (60*60);
+	return (double)abs(difftime(date1, date2)) / (60*60);
 }
 /*
 * date_minute_span() - Return the difference in minutes between the two timestamps
@@ -311,7 +311,7 @@ double date_hour_span(time_t date1, time_t date2) {
 * @date2: the other timestamp
 */
 double date_minute_span(time_t date1, time_t date2) {
-        return (double)abs(difftime(date1, date2)) / (60);
+	return (double)abs(difftime(date1, date2)) / (60);
 }
 /*
 * date_seconds_span() - Return the difference in seconds between the two timestamps
@@ -319,7 +319,7 @@ double date_minute_span(time_t date1, time_t date2) {
 * @date2: the other timestamp
 */
 double date_second_span(time_t date1, time_t date2) {
-        return (double)abs(difftime(date1, date2));
+	return (double)abs(difftime(date1, date2));
 }
 
 /*
@@ -329,7 +329,7 @@ double date_second_span(time_t date1, time_t date2) {
 * @date2: the other timestamp
 */
 int date_compare_datetime(time_t date1, time_t date2) {
-        return sign(date1-date2);
+	return sign(date1-date2);
 }
 /*
 * date_compare_date() - Return an sign value (-1, 0, or 1) depending on the relationship between the two dates
@@ -338,9 +338,9 @@ int date_compare_datetime(time_t date1, time_t date2) {
 * @date2: the other timestamp
 */
 int date_compare_date(time_t date1, time_t date2) {
-        date1 = date_date_of(date1);
-        date2 = date_date_of(date2);
-        return date_compare_datetime(date1, date2);
+	date1 = date_date_of(date1);
+	date2 = date_date_of(date2);
+	return date_compare_datetime(date1, date2);
 }
 /*
 * date_compare_time() - Return an sign value (-1, 0, or 1) depending on the relationship between the two times
@@ -349,9 +349,9 @@ int date_compare_date(time_t date1, time_t date2) {
 * @date2: the other timestamp
 */
 int date_compare_time(time_t date1, time_t date2) {
-        date1 = date_time_of(date1);
-        date2 = date_time_of(date2);
-        return date_compare_datetime(date1, date2);
+	date1 = date_time_of(date1);
+	date2 = date_time_of(date2);
+	return date_compare_datetime(date1, date2);
 }
 
 /*
@@ -360,47 +360,47 @@ int date_compare_time(time_t date1, time_t date2) {
 * @date: the timestamp to operate on
 */
 std::string date_datetime_string(time_t date) {
-        char* str = new char[25](); // Allocate space for the formatted string
+	char* str = new char[25](); // Allocate space for the formatted string
 
-        struct tm *timeinfo = localtime(&date); // Convert the timestamp into an info struct
-        strftime(str, 25, "%a %b %d %T %G", timeinfo); // Store a formatted time string in str
+	struct tm* timeinfo = localtime(&date); // Convert the timestamp into an info struct
+	strftime(str, 25, "%a %b %d %T %G", timeinfo); // Store a formatted time string in str
 
-        std::string s (str); // Create a string from the character array
-        delete[] str; // Free the character array
+	std::string s (str); // Create a string from the character array
+	delete[] str; // Free the character array
 
-        return s; // Return the string on success
+	return s; // Return the string on success
 }
 /*
 * date_date_string() - Return a string with a human-readable version of the given date
 * @date: the timestamp to operate on
 */
 std::string date_date_string(time_t date) {
-        char* str = new char[25](); // Allocate space for the formatted string
-        date = date_date_of(date); // Get only the date portion of the timestamp
+	char* str = new char[25](); // Allocate space for the formatted string
+	date = date_date_of(date); // Get only the date portion of the timestamp
 
-        struct tm *timeinfo = localtime(&date); // Convert the timestamp into an info struct
-        strftime(str, 25, "%a %b %d %G", timeinfo); // Store the formatted time string in str
+	struct tm* timeinfo = localtime(&date); // Convert the timestamp into an info struct
+	strftime(str, 25, "%a %b %d %G", timeinfo); // Store the formatted time string in str
 
-        std::string s (str); // Create a string from the character array
-        delete[] str; // Free the character array
+	std::string s (str); // Create a string from the character array
+	delete[] str; // Free the character array
 
-        return s; // Return the string on success
+	return s; // Return the string on success
 }
 /*
 * date_time_string() - Return a string with a human-readable version of the given time
 * @date: the timestamp to operate on
 */
 std::string date_time_string(time_t date) {
-        char* str = new char[25](); // Allocate space for the formatted string
-        date = date_time_of(date); // Get only the time portion of the timestamp
+	char* str = new char[25](); // Allocate space for the formatted string
+	date = date_time_of(date); // Get only the time portion of the timestamp
 
-        struct tm *timeinfo = localtime(&date); // Convert the timestamp into an info struct
-        strftime(str, 25, "%T", timeinfo); // Store the formatted time string in str
+	struct tm* timeinfo = localtime(&date); // Convert the timestamp into an info struct
+	strftime(str, 25, "%T", timeinfo); // Store the formatted time string in str
 
-        std::string s (str); // Create a string from the character array
-        delete[] str; // Free the character array
+	std::string s (str); // Create a string from the character array
+	delete[] str; // Free the character array
 
-        return s; // Return the string on success
+	return s; // Return the string on success
 }
 
 /*
@@ -408,27 +408,27 @@ std::string date_time_string(time_t date) {
 * @date: the timestamp to operate on
 */
 bool date_is_leap_year(time_t date) {
-        int y = date_get_year(date); // Get the date portion of the given timestamp
-        if ((y % 4 == 0) && ((y % 100 != 0)||(y % 400 == 0))) { // If the year is divisible by 4 but is not divisble by 100 on non-400 divisble years, then it is a leap year
-                return true;
-        }
-        return false; // Otherwise it is not a leap year
+	int y = date_get_year(date); // Get the date portion of the given timestamp
+	if ((y % 4 == 0) && ((y % 100 != 0)||(y % 400 == 0))) { // If the year is divisible by 4 but is not divisble by 100 on non-400 divisble years, then it is a leap year
+		return true;
+	}
+	return false; // Otherwise it is not a leap year
 }
 /*
 * date_is_leap_year() - Return whether the current year is a leap year or not
 */
 bool date_is_leap_year() {
-        return date_is_leap_year(date_current_datetime());
+	return date_is_leap_year(date_current_datetime());
 }
 /*
 * date_is_today() - Return whether the date of the given timestamp is today's date
 * @date: the timestamp to operate on
 */
 bool date_is_today(time_t date) {
-        if (date_date_of(date) == date_current_date()) {
-                return true;
-        }
-        return false;
+	if (date_date_of(date) == date_current_date()) {
+		return true;
+	}
+	return false;
 }
 
 /*
@@ -436,39 +436,39 @@ bool date_is_today(time_t date) {
 * @date: the timestamp to operate on
 */
 int date_days_in_month(time_t date) {
-        switch (date_get_month(date)) {
-                case 1: // January
-                case 3: // March
-                case 5: // May
-                case 7: // July
-                case 8: // August
-                case 10: // October
-                case 12: { // December
-                        return 31;
-                }
+	switch (date_get_month(date)) {
+		case 1: // January
+		case 3: // March
+		case 5: // May
+		case 7: // July
+		case 8: // August
+		case 10: // October
+		case 12: { // December
+			return 31;
+		}
 
-                case 2: { // February
-                        if (date_is_leap_year(date)) {
-                                return 29;
-                        }
-                        return 28;
-                }
+		case 2: { // February
+			if (date_is_leap_year(date)) {
+				return 29;
+			}
+			return 28;
+		}
 
-                default: { // Regular months: April, June, September, November
-                        return 30;
-                }
-        }
-        return 30; // This should never happen
+		default: { // Regular months: April, June, September, November
+			return 30;
+		}
+	}
+	return 30; // This should never happen
 }
 /*
 * date_days_in_year() - Return how many days are in the year of the given timestamp
 * @date: the timestamp to operate on
 */
 int date_days_in_year(time_t date) {
-        if (date_is_leap_year(date)) { // If it is a leap year, then return the extra number of days
-                return 366;
-        }
-        return 365; // Otherwise return the normal number of days
+	if (date_is_leap_year(date)) { // If it is a leap year, then return the extra number of days
+		return 366;
+	}
+	return 365; // Otherwise return the normal number of days
 }
 
 #endif // _BEE_UTIL_DATES_H

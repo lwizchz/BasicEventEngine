@@ -125,7 +125,7 @@ int BEE::draw_transition() {
 				render_clear();
 				texture_before->draw(0, 0, 0, f);
 				texture_after->crop_image_width(i);
-				texture_after->draw(0, 0, 0, i, -1, 0.0, {255, 255, 255, 255}, f, false);
+				texture_after->draw(0, 0, 0, i, -1, 0.0, {255, 255, 255, 255}, f);
 				render();
 			}
 			break;
@@ -135,7 +135,7 @@ int BEE::draw_transition() {
 				render_clear();
 				texture_after->draw(0, 0, 0, f);
 				texture_before->crop_image_width(i);
-				texture_before->draw(0, 0, 0, i, -1, 0.0, {255, 255, 255, 255}, f, false);
+				texture_before->draw(0, 0, 0, i, -1, 0.0, {255, 255, 255, 255}, f);
 				render();
 			}
 			break;
@@ -145,7 +145,7 @@ int BEE::draw_transition() {
 				render_clear();
 				texture_before->draw(0, 0, 0, f);
 				texture_after->crop_image_height(i);
-				texture_after->draw(0, 0, 0, -1, i, 0.0, {255, 255, 255, 255}, f, false);
+				texture_after->draw(0, 0, 0, -1, i, 0.0, {255, 255, 255, 255}, f);
 				render();
 			}
 			break;
@@ -155,7 +155,7 @@ int BEE::draw_transition() {
 				render_clear();
 				texture_after->draw(0, 0, 0, f);
 				texture_before->crop_image_height(i);
-				texture_before->draw(0, 0, 0, -1, i, 0.0, {255, 255, 255, 255}, f, false);
+				texture_before->draw(0, 0, 0, -1, i, 0.0, {255, 255, 255, 255}, f);
 				render();
 			}
 			break;
@@ -170,7 +170,7 @@ int BEE::draw_transition() {
 				int x = (w - i)/2;
 				int y = (h - ih)/2;
 				texture_after->crop_image({x, y, (int)i, (int)ih});
-				texture_after->draw(x, y, 0, i, ih, 0.0, {255, 255, 255, 255}, f, false);
+				texture_after->draw(x, y, 0, i, ih, 0.0, {255, 255, 255, 255}, f);
 
 				render();
 			}
@@ -277,8 +277,8 @@ int BEE::draw_transition() {
 			texture_after->set_rotate_xy(0.0, 1.0);
 			for (double a=0.0; a<90.0; a+=transition_speed*get_delta()/20.0) {
 				render_clear();
-				texture_before->draw(0, 0, 0, -1, -1, -a, {255, 255, 255, 255}, f, false);
-				texture_after->draw(0, 0, 0, -1, -1, 90.0-a, {255, 255, 255, 255}, f, false);
+				texture_before->draw(0, 0, 0, -1, -1, -a, {255, 255, 255, 255}, f);
+				texture_after->draw(0, 0, 0, -1, -1, 90.0-a, {255, 255, 255, 255}, f);
 				render();
 			}
 			break;
@@ -288,8 +288,8 @@ int BEE::draw_transition() {
 			texture_after->set_rotate_xy(1.0, 1.0);
 			for (double a=0.0; a<90.0; a+=transition_speed*get_delta()/20.0) {
 				render_clear();
-				texture_before->draw(0, 0, 0, -1, -1, a, {255, 255, 255, 255}, f, false);
-				texture_after->draw(0, 0, 0, -1, -1, a-90.0, {255, 255, 255, 255}, f, false);
+				texture_before->draw(0, 0, 0, -1, -1, a, {255, 255, 255, 255}, f);
+				texture_after->draw(0, 0, 0, -1, -1, a-90.0, {255, 255, 255, 255}, f);
 				render();
 			}
 			break;
@@ -297,8 +297,8 @@ int BEE::draw_transition() {
 		case BEE_TRANSITION_BLEND: { // Blend (crossfade)
 			for (double a=0.0; a<255.0; a+=transition_speed*get_delta()/5.0) {
 				render_clear();
-				texture_before->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, (Uint8)(255.0-a)}, f, false);
-				texture_after->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, (Uint8)a}, f, false);
+				texture_before->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, (Uint8)(255.0-a)}, f);
+				texture_after->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, (Uint8)a}, f);
 				render();
 			}
 			break;
@@ -306,12 +306,12 @@ int BEE::draw_transition() {
 		case BEE_TRANSITION_FADE: { // Fade out and in
 			for (double a=0.0; a<255.0; a+=transition_speed*get_delta()/5.0) {
 				render_clear();
-				texture_before->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, (Uint8)(255.0-a)}, f, false);
+				texture_before->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, (Uint8)(255.0-a)}, f);
 				render();
 			}
 			for (double a=0.0; a<255.0; a+=transition_speed*get_delta()/5.0) {
 				render_clear();
-				texture_after->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, (Uint8)a}, f, false);
+				texture_after->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, (Uint8)a}, f);
 				render();
 			}
 			break;

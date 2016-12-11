@@ -27,28 +27,28 @@
 * @maximum: the maximum value to return
 */
 unsigned int random_internal(unsigned int new_seed, unsigned int minimum, unsigned int maximum) {
-        static unsigned int seed = DEFAULT_RANDOM_SEED; // Define the seed for the random number engine if it hasn't been defined yet
-        static std::mt19937 engine; // Declare the random number engine if it hasn't been declared yet
+	static unsigned int seed = DEFAULT_RANDOM_SEED; // Define the seed for the random number engine if it hasn't been defined yet
+	static std::mt19937 engine; // Declare the random number engine if it hasn't been declared yet
 
-        if (new_seed != DEFAULT_RANDOM_SEED) { // If the new given seed is not the default seed then use it to seed the engine
-                seed = new_seed;
-                engine.seed(seed);
-        } else if (seed == DEFAULT_RANDOM_SEED) { // If the current seed is the terrible default seed then seed the engine with the current time
-                seed = time(nullptr);
-                engine.seed(seed);
-        }
+	if (new_seed != DEFAULT_RANDOM_SEED) { // If the new given seed is not the default seed then use it to seed the engine
+		seed = new_seed;
+		engine.seed(seed);
+	} else if (seed == DEFAULT_RANDOM_SEED) { // If the current seed is the terrible default seed then seed the engine with the current time
+		seed = time(nullptr);
+		engine.seed(seed);
+	}
 
-        if (minimum == 0) { // If the minimum is the lowest possible
-                if (maximum == 0) { // If the maximum is equal to the minimum
-                        return engine(); // Return any number
-                }
-                return engine() % maximum; // Return a number below the maximum value
-        } else { // If the minimum exists
-                if (maximum < minimum) { // If the maximum is less then the minimum, that signals that we should return the seed
-                        return seed; // Return the static seed
-                }
-                return (engine() % (maximum - minimum)) + minimum; // Return a number bounded by the given minimum and maximum
-        }
+	if (minimum == 0) { // If the minimum is the lowest possible
+		if (maximum == 0) { // If the maximum is equal to the minimum
+			return engine(); // Return any number
+		}
+		return engine() % maximum; // Return a number below the maximum value
+	} else { // If the minimum exists
+		if (maximum < minimum) { // If the maximum is less then the minimum, that signals that we should return the seed
+			return seed; // Return the static seed
+		}
+		return (engine() % (maximum - minimum)) + minimum; // Return a number bounded by the given minimum and maximum
+	}
 }
 /*
 * random() - Return a random number between 0 and the given number
@@ -56,7 +56,7 @@ unsigned int random_internal(unsigned int new_seed, unsigned int minimum, unsign
 * @x: the maximum value to return
 */
 unsigned int random(int x) {
-        return random_internal(DEFAULT_RANDOM_SEED, 0, x);
+	return random_internal(DEFAULT_RANDOM_SEED, 0, x);
 }
 /*
 * random_range() - Return a random number between the two given values
@@ -64,33 +64,33 @@ unsigned int random(int x) {
 * @x2: the maximum value to return
 */
 unsigned int random_range(unsigned int x1, unsigned int x2) {
-        return random_internal(DEFAULT_RANDOM_SEED, x1, x2);
+	return random_internal(DEFAULT_RANDOM_SEED, x1, x2);
 }
 /*
 * random_get_seed() - Return the current seed used in the random number engine
 * ! Calling random_internal() with a larger minimum than the maximum signals it to return the seed
 */
 unsigned int random_get_seed() {
-        return random_internal(DEFAULT_RANDOM_SEED, 1, 0);
+	return random_internal(DEFAULT_RANDOM_SEED, 1, 0);
 }
 /*
 * random_set_seed() - Set and return the seed used in the random number engine
 * @new_seed: The new seed to generate random numbers with
 */
 unsigned int random_set_seed(unsigned int new_seed) {
-        return random_internal(new_seed, 1, 0);
+	return random_internal(new_seed, 1, 0);
 }
 /*
 * random_reset_seed() - Set the seed of the random number engine to the current time
 */
 unsigned int random_reset_seed() {
-        return random_set_seed(time(nullptr));
+	return random_set_seed(time(nullptr));
 }
 /*
 * randomize() - Set the seed of the random number engine to a random number
 */
 unsigned int randomize() {
-        return random_set_seed(random_internal(DEFAULT_RANDOM_SEED, 0, 0));
+	return random_set_seed(random_internal(DEFAULT_RANDOM_SEED, 0, 0));
 }
 
 /*
@@ -99,12 +99,12 @@ unsigned int randomize() {
 */
 template <typename T>
 int sign(T x) {
-        if (x > 0) {
-                return 1; // Return 1 if the given number is greater than 0
-        } else if (x < 0) {
-                return -1; // Return -1 if the given number is less than 0
-        }
-        return 0; // Return 0 if the given number is equal to 0
+	if (x > 0) {
+		return 1; // Return 1 if the given number is greater than 0
+	} else if (x < 0) {
+		return -1; // Return -1 if the given number is less than 0
+	}
+	return 0; // Return 0 if the given number is equal to 0
 }
 template int sign<int>(int);
 template int sign<double>(double);
@@ -114,7 +114,7 @@ template int sign<double>(double);
 */
 template <typename T>
 T sqr(T x) {
-        return x*x; // Supposedly x*x is faster than pow(x, 2) but I doubt that it actually matters
+	return x*x; // Supposedly x*x is faster than pow(x, 2) but I doubt that it actually matters
 }
 template int sqr<int>(int);
 template double sqr<double>(double);
@@ -124,7 +124,7 @@ template double sqr<double>(double);
 * @x: the number to log
 */
 double logn(double n, double x) {
-        return log(x)/log(n);
+	return log(x)/log(n);
 }
 /*
 * degtorad() - Convert the given number from degrees to radians
@@ -145,11 +145,11 @@ double radtodeg(double a) {
 * @a: the angle to find the opposite of
 */
 double opposite_angle(double a) {
-        a = absolute_angle(a); // Make sure that the angle is between 0.0 and 360.0
-        if (a < 180.0) { // If the angle is on the top side of the unit circle then return the angle 180 degrees in front of it
-                return a+180.0;
-        }
-        return a-180.0; // Otherwise, return the angle 180 degrees behind it
+	a = absolute_angle(a); // Make sure that the angle is between 0.0 and 360.0
+	if (a < 180.0) { // If the angle is on the top side of the unit circle then return the angle 180 degrees in front of it
+		return a+180.0;
+	}
+	return a-180.0; // Otherwise, return the angle 180 degrees behind it
 }
 /*
 * absolute_angle() - Return the angle absolute to the unit circle
@@ -157,11 +157,11 @@ double opposite_angle(double a) {
 * @a: the angle to find
 */
 double absolute_angle(double a) {
-        a = fmod(a, 360.0); // Make sure that the angle is between -360.0 and 360.0
-        if (a < 0) {
-                return a+360.0; // Return the equivalent angle if the given one is negative
-        }
-        return a; // Return the given angle
+	a = fmod(a, 360.0); // Make sure that the angle is between -360.0 and 360.0
+	if (a < 0) {
+		return a+360.0; // Return the equivalent angle if the given one is negative
+	}
+	return a; // Return the given angle
 }
 
 /*
@@ -182,7 +182,7 @@ double direction_of(double x1, double y1, double x2, double y2) {
 * @y2: the y-coordinate of the second point
 */
 double dist_sqr(double x1, double y1, double x2, double y2) {
-        return sqr(x1-x2) + sqr(y1-y2);
+	return sqr(x1-x2) + sqr(y1-y2);
 }
 /*
 * distance() - Return the distance from (x1, y1) to (x2, y2)
@@ -224,7 +224,7 @@ std::pair<double,double> coord_approach(double x1, double y1, double x2, double 
 */
 template <typename T>
 T dot_product(T x1, T y1, T x2, T y2) {
-        return x1*x2 + y1*y2;
+	return x1*x2 + y1*y2;
 }
 template int dot_product<int>(int, int, int, int);
 template double dot_product<double>(double, double, double, double);
@@ -235,7 +235,7 @@ template double dot_product<double>(double, double, double, double);
 */
 template <typename T>
 T dot_product(const std::pair<T,T>& p1, const std::pair<T,T>& p2) {
-        return dot_product(p1.first, p1.second, p2.first, p2.second);
+	return dot_product(p1.first, p1.second, p2.first, p2.second);
 }
 template int dot_product<int>(const std::pair<int,int>&, const std::pair<int,int>&);
 template double dot_product<double>(const std::pair<double,double>&, const std::pair<double,double>&);
@@ -248,14 +248,19 @@ template double dot_product<double>(const std::pair<double,double>&, const std::
 */
 template <typename T>
 bool is_between(T x, T a, T b) {
-        if (a < b) { // Handle the case where the minimum is less than the maximum
-                if ((x >= a)&&(x <= b)) {
-                        return true; // Return true if x is in between the given bounds
-                }
-                return false;
-        } else {
-                return is_between(x, b, a);
-        }
+	if (a < b) { // Handle the case where the minimum is less than the maximum
+		if ((x >= a)&&(x <= b)) {
+			return true; // Return true if x is in between the given bounds
+		}
+		return false;
+	} else if (a == b) {
+		if (x == a) {
+			return true;
+		}
+		return false;
+	} else {
+		return is_between<T>(x, b, a);
+	}
 }
 template bool is_between<int>(int, int, int);
 template bool is_between<double>(double, double, double);
@@ -267,12 +272,12 @@ template bool is_between<double>(double, double, double);
 */
 template <typename T>
 bool is_angle_between(T x, T a, T b) {
-        x = absolute_angle(x); // Make sure the angle is between 0.0 and 360.0 degrees
-        if (a < b) { // If the bounds are normal
-                return is_between(x, a, b);
-        } else { // If the bounds are at the top of the unit circle e.g. from 315 to 45
-                return is_between(x, a, (T)360) || is_between(x, (T)0, b);
-        }
+	x = absolute_angle(x); // Make sure the angle is between 0.0 and 360.0 degrees
+	if (a < b) { // If the bounds are normal
+		return is_between(x, a, b);
+	} else { // If the bounds are at the top of the unit circle e.g. from 315 to 45
+		return is_between(x, a, (T)360) || is_between(x, (T)0, b);
+	}
 }
 template bool is_angle_between<int>(int, int, int);
 template bool is_angle_between<double>(double, double, double);
@@ -284,17 +289,17 @@ template bool is_angle_between<double>(double, double, double);
 */
 template <typename T>
 T fit_bounds(T x, T a, T b) {
-        if (a <= b) { // Handle the case where the minimum is less than the maximum
-                if (x < a) { // If x is less than the minimum then return the minimum
-                        return a;
-                }
-                if (x > b) { // If x is greater than the maximum then return the maximum
-                        return b;
-                }
-                return x; // Otherwise, return x
-        } else {
-                return fit_bounds(x, b, a);
-        }
+	if (a <= b) { // Handle the case where the minimum is less than the maximum
+		if (x < a) { // If x is less than the minimum then return the minimum
+			return a;
+		}
+		if (x > b) { // If x is greater than the maximum then return the maximum
+			return b;
+		}
+		return x; // Otherwise, return x
+	} else {
+		return fit_bounds(x, b, a);
+	}
 }
 template int fit_bounds<int>(int, int, int);
 template double fit_bounds<double>(double, double, double);

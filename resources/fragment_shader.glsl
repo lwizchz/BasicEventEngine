@@ -213,7 +213,7 @@ void main() {
 				}
 				f_fragment *= vec4(f.xyz, f_fragment.w);
 
-				// Normalize(?) the fragment color
+				// Normalize the fragment color
 				if (f_fragment.x > 1.0) {
 					f_fragment /= vec4(f_fragment.xxx, 1.0);
 				}

@@ -14,6 +14,9 @@ BEE::Font* font_liberation;
 // Define paths
 BEE::Path* path_bee;
 
+// Define meshes
+BEE::Mesh* mesh_monkey;
+
 // Define lights
 BEE::Light* lt_ambient;
 BEE::Light* lt_bee;
@@ -55,6 +58,10 @@ int BEE::init_resources() {
 			path_bee->add_coordinate(200, 400, 1.0);
 			path_bee->add_coordinate(800, 400, 1.0);
 			path_bee->add_coordinate(500, 200, 1.0);
+
+		// Init meshes
+		mesh_monkey = new Mesh("mesh_monkey", "monkey2.obj");
+			mesh_monkey->load();
 
 		// Init lights
 		lt_ambient = new Light();
@@ -99,6 +106,13 @@ int BEE::close_resources() {
 
 	// Destroy paths
 	delete path_bee;
+
+	// Destroy meshes
+	delete mesh_monkey;
+
+	// Destroy lights
+	delete lt_ambient;
+	delete lt_bee;
 
 	// Destroy objects
 	delete obj_bee;

@@ -49,32 +49,81 @@ BEE::RGBA BEE::get_enum_color(bee_rgba_t c) const {
 }
 
 /*
-* BEE::convert_view_coords() - Convert the given coordinates into the viewport coordinates so that drawing can be done relative to the current view
-* @x: the x-coordinate to convert
-* @y: the y-coordinate to convert
+* BEE::draw_triangle() - Draw a triangle between the given vertices in the given color
+* @v1: the first vertex of the triangle
+* @v2: the second vertex of the triangle
+* @v3: the third vertex of the triangle
+* @c: the color with which to draw the triangle
+* @is_filled: whether the triangle should be drawn filled in or wireframe
 */
-int BEE::convert_view_coords(int& x, int& y) const {
-	if (get_current_room()->get_is_views_enabled()) { // Only actually convert the coordinates if views are currently enabled
-		// Add the current viewport's offset coordinates to the given coordinates
-		x += get_current_room()->get_current_view()->view_x;
-		y += get_current_room()->get_current_view()->view_y;
+int BEE::draw_triangle(glm::vec3 v1, glm::vec3 v2, glm::vec3 v3, const RGBA& c, bool is_filled) {
+	draw_set_color(c); // Set the desired color
+
+	if (options->renderer_type != BEE_RENDERER_SDL) {
+		// Bind the engine vao
+		glBindVertexArray(triangle_vao);
+
+		// Put the list of triangle vertices into the engine vbo
+		GLfloat vertices[] = {
+			v1.x, v1.y, v1.z,
+			v2.x, v2.y, v2.z,
+			v3.x, v3.y, v3.z
+		};
+		glBindBuffer(GL_ARRAY_BUFFER, triangle_vbo);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
+
+		glUniform1i(primitive_location, 1); // Enable primitive mode so that the color is correctly applied
+
+		if (!is_filled) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Enable line drawing (i.e. wireframe) mode so that the lines will be drawn correctly
+		}
+
+		// Bind the vertices to the vertex array buffer
+		glEnableVertexAttribArray(vertex_location);
+		glBindBuffer(GL_ARRAY_BUFFER, triangle_vbo);
+		glVertexAttribPointer(
+			vertex_location,
+			3,
+			GL_FLOAT,
+			GL_FALSE,
+			0,
+			0
+		);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, triangle_ibo);
+		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, 0); // Draw the triangle
+
+		// Reset the shader state
+		glDisableVertexAttribArray(vertex_location); // Unbind the vertices
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Reset the drawing type
+
+		glUniform1i(primitive_location, 0); // Reset the colorization mode
+
+		glBindVertexArray(0); // Unbind the VAO
+
+		return 0; // Return 0 on success
+	} else {
+		int r = SDL_RenderDrawLine(renderer, v1.x, v1.y, v2.x, v2.y); // Draw the given triangle in the given color
+		r |= SDL_RenderDrawLine(renderer, v2.x, v2.y, v3.x, v3.y);
+		r |= SDL_RenderDrawLine(renderer, v1.x, v1.y, v3.x, v3.y);
+		return r; // Return the status
 	}
-	return 0;
 }
 /*
-* BEE::convert_window_coords() - Convert the given coordinates into the window coordinates so that drawing can be done relative to the window
-* @x: the x-coordinate to convert
-* @y: the y-coordinate to convert
+* BEE::draw_line() - Draw a line from (x1, y1) to (x2, y2) in the given color c
+* @v1: the first vertex of the line
+* @v2: the second vertex of the line
+* @c: the color with which to draw the line
 */
-int BEE::convert_window_coords(int& x, int& y) const {
-	if (get_current_room()->get_is_views_enabled()) { // Only actually convert the coordinates if views are currently enabled
-		// Subtract the current viewport's offset coordinates from the given coordinates
-		x -= get_current_room()->get_current_view()->view_x;
-		y -= get_current_room()->get_current_view()->view_y;
-	}
-	return 0;
-}
+int BEE::draw_line(glm::vec3 v1, glm::vec3 v2, const RGBA& c) {
+	draw_set_color(c); // Set the desired color
 
+	if (options->renderer_type != BEE_RENDERER_SDL) {
+		return draw_triangle(v1, v2, v2, c, false); // Draw the line as a set of triangles
+	} else {
+		return SDL_RenderDrawLine(renderer, v1.x, v1.y, v2.x, v2.y); // Draw the given line in the given color
+	}
+}
 /*
 * BEE::draw_line() - Draw a line from (x1, y1) to (x2, y2) in the given color c
 * @x1: the first x-coordinate of the line
@@ -82,82 +131,9 @@ int BEE::convert_window_coords(int& x, int& y) const {
 * @x2: the second x-coordinate of the line
 * @y2: the second y-coordinate of the line
 * @c: the color with which to draw the line
-* @is_hud: whether the coordinates should be left unconverted or not
 */
-int BEE::draw_line(int x1, int y1, int x2, int y2, const RGBA& c, bool is_hud) {
-	draw_set_color(c);
-
-	if (options->renderer_type != BEE_RENDERER_SDL) {
-		if (is_hud) {// Only convert the coordinates if they should be drawn relative to the window
-			convert_window_coords(x1, y1);
-			convert_window_coords(x2, y2);
-		}
-
-		glUniform1i(primitive_location, 1); // Enable primitive mode so that the color is correctly applied
-
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Enable line drawing (i.e. wireframe) mode so that the line will be drawn correctly
-
-		// If the second pair of coordinates are less than the first, swap them
-		int w = x2-x1, h = y2-y1;
-		if ((w < 0)||(h < 0)) {
-			int xx = x1, yy = y1;
-			x1 = x2; y1 = y2;
-			x2 = xx; y2 = yy;
-			w *= -1; h *= -1;
-		}
-
-		// Generate the Vertex Array Object
-		GLuint vao;
-		glGenBuffers(1, &vao);
-		glBindVertexArray(vao);
-
-		// Generate the list of triangle vertices for the line
-		GLuint vbo;
-		glGenBuffers(1, &vbo);
-		GLfloat vertices[] = {
-			0.0,         0.0,
-			(GLfloat)w, (GLfloat)h,
-			0.0,        0.0,
-		};
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-		// Offset the line model by the given coordinates
-		glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3((float)x1, (float)y1, 0.0f));
-		glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(model));
-
-		// Bind the vertices to the vertex array buffer
-		glEnableVertexAttribArray(vertex_location);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glVertexAttribPointer(
-			vertex_location,
-			2,
-			GL_FLOAT,
-			GL_FALSE,
-			0,
-			0
-		);
-
-		glDrawArrays(GL_TRIANGLES, 0, 3); // Draw the triangle
-
-		// Reset things to their default state
-		glDisableVertexAttribArray(vertex_location);
-		glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-		glUniform1i(primitive_location, 0);
-
-		glDeleteVertexArrays(1, &vao);
-
-		return 0;
-	} else {
-		if (!is_hud) {// Only convert the coordinates if they should not be drawn relative to the window
-			convert_view_coords(x1, y1);
-			convert_view_coords(x2, y2);
-		}
-
-		return SDL_RenderDrawLine(renderer, x1, y1, x2, y2); // Draw the given point in the given color
-	}
+int BEE::draw_line(int x1, int y1, int x2, int y2, const RGBA& c) {
+	return draw_line(glm::vec3(x1, y1, 0.0f), glm::vec3(x2, y2, 0.0f), c);
 }
 /*
 * BEE::draw_line() - Draw a line from (x1, y1) to (x2, y2) in the current drawing color
@@ -166,11 +142,10 @@ int BEE::draw_line(int x1, int y1, int x2, int y2, const RGBA& c, bool is_hud) {
 * @y1: the first y-coordinate of the line
 * @x2: the second x-coordinate of the line
 * @y2: the second y-coordinate of the line
-* @is_hud: whether the coordinates should be left unconverted or not
 */
-int BEE::draw_line(int x1, int y1, int x2, int y2, bool is_hud) {
+int BEE::draw_line(int x1, int y1, int x2, int y2) {
 	RGBA c = draw_get_color();
-	return draw_line(x1, y1, x2, y2, c, is_hud);
+	return draw_line(x1, y1, x2, y2, c);
 }
 /*
 * BEE::draw_line() - Draw a line from (x1, y1) to (x2, y2) in the given color c
@@ -180,100 +155,79 @@ int BEE::draw_line(int x1, int y1, int x2, int y2, bool is_hud) {
 * @x2: the second x-coordinate of the line
 * @y2: the second y-coordinate of the line
 * @c: the color with which to draw the line
-* @is_hud: whether the coordinates should be left unconverted or not
 */
-int BEE::draw_line(int x1, int y1, int x2, int y2, bee_rgba_t c, bool is_hud) {
-	return draw_line(x1, y1, x2, y2, get_enum_color(c), is_hud);
+int BEE::draw_line(int x1, int y1, int x2, int y2, bee_rgba_t c) {
+	return draw_line(x1, y1, x2, y2, get_enum_color(c));
 }
 /*
 * BEE::draw_line() - Draw a line along the Line l in the given color c
 * ! When the function is called with a Line structure, simply call it with the Line's coordinates
 * @l: the Line data of the line
 * @c: the color with which to draw the line
-* @is_hud: whether the coordinates should be left unconverted or not
 */
-int BEE::draw_line(const Line& l, const RGBA& c, bool is_hud) {
-	return draw_line(l.x1, l.y1, l.x2, l.y2, c, is_hud);
+int BEE::draw_line(const Line& l, const RGBA& c) {
+	return draw_line(l.x1, l.y1, l.x2, l.y2, c);
 }
 /*
-* BEE::draw_rectangle() - Draw a rectangle at the given coordinates
-* @x: the x-coordinate of the top left of the rectangle
-* @y: the y-coordinate of the top left of the rectangle
-* @w: the width of the rectangle
-* @h: the height of the rectangle
-* @is_filled: whether the rectangle should be filled or simply an outline
-* @c: the color with which to draw the rectangle
-* @is_hud: whether the coordinates should be left unconverted or not
+* BEE::draw_quad() - Draw a quad at the given coordinates
+* @position: the position to draw the quad at
+* @dimensions: the width, height, and depth of the quad
+* @is_filled: whether the quad should be filled or simply an outline
+* @c: the color with which to draw the quad
 */
-int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled, const RGBA& c, bool is_hud) {
-	draw_set_color(c);
+int BEE::draw_quad(glm::vec3 position, glm::vec3 dimensions, bool is_filled, const RGBA& c) {
+	draw_set_color(c); // Set the desired color
 
 	if (options->renderer_type != BEE_RENDERER_SDL) {
-		if (is_filled) { // If filling is disabled, only draw a wireframe (note that this will draw a diagonal down the middle of the rectangle)
-			if (is_hud) {// Only convert the coordinates if they should be drawn relative to the window
-				convert_window_coords(x, y);
+		// Get the width, height, and depth into separate vectors for easy addition
+		glm::vec3 w = glm::vec3(dimensions.x, 0.0f, 0.0f);
+		glm::vec3 h = glm::vec3(0.0f, dimensions.y, 0.0f);
+		glm::vec3 d = glm::vec3(0.0f, 0.0f, -dimensions.z);
+
+		if (is_filled) { // If filling is disabled, only draw a wireframe
+			// Draw the front face of the quad
+			draw_triangle(position, position+w, position+w+h, c, true);
+			draw_triangle(position, position+w+h, position+h, c, true);
+
+			if (dimensions.z != 0) { // Only draw the other faces if the quad has depth
+				draw_triangle(position+d, position+w+d, position+w+h+d, c, true);
+				draw_triangle(position+d, position+w+h+d, position+h+d, c, true);
+
+				draw_triangle(position, position+d, position+h+d, c, true);
+				draw_triangle(position, position+h+d, position+h, c, true);
+
+				draw_triangle(position+w, position+w+d, position+w+h+d, c, true);
+				draw_triangle(position+w, position+w+h+d, position+w+h, c, true);
+
+				draw_triangle(position, position+w, position+w+d, c, true);
+				draw_triangle(position, position+w+d, position+d, c, true);
+
+				draw_triangle(position+h, position+w+h, position+w+h+d, c, true);
+				draw_triangle(position+h, position+w+h+d, position+h+d, c, true);
 			}
-
-			glUniform1i(primitive_location, 1); // Enable primitive mode so that the color is correctly applied
-
-			// Generate the Vertex Array Object
-			GLuint vao;
-			glGenBuffers(1, &vao);
-			glBindVertexArray(vao);
-
-			// Generate the list of triangle vertices for the rectangle
-			GLuint vbo;
-			glGenBuffers(1, &vbo);
-			GLfloat vertices[] = {
-				0.0,        0.0,
-				(GLfloat)w, 0.0,
-				(GLfloat)w, (GLfloat)h,
-				(GLfloat)w, (GLfloat)h,
-				0.0,        (GLfloat)h,
-				0.0,        0.0,
-			};
-			glBindBuffer(GL_ARRAY_BUFFER, vbo);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-			// Offset the rectangle model by the given coordinates
-			glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3((float)x, (float)y, 0.0f));
-			glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(model));
-
-			// Bind the vertices to the vertex array buffer
-			glEnableVertexAttribArray(vertex_location);
-			glBindBuffer(GL_ARRAY_BUFFER, vbo);
-			glVertexAttribPointer(
-				vertex_location,
-				2,
-				GL_FLOAT,
-				GL_FALSE,
-				0,
-				0
-			);
-
-			glDrawArrays(GL_TRIANGLES, 0, 6); // Draw the triangles
-
-			// Reset things to their default state
-			glDisableVertexAttribArray(vertex_location);
-			glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
-
-			glUniform1i(primitive_location, 0);
-
-			glDeleteVertexArrays(1, &vao);
 		} else {
-			draw_line(x,   y,   x+w, y,   c, is_hud);
-			draw_line(x+w, y,   x+w, y+h, c, is_hud);
-			draw_line(x+w, y+h, x,   y+h, c, is_hud);
-			draw_line(x,   y+h, x,   y,   c, is_hud);
+			// Draw the edges of the front face of the quad
+			draw_line(position, position+w, c);
+			draw_line(position+w, position+w+h, c);
+			draw_line(position+w+h, position+h, c);
+			draw_line(position+h, position, c);
+
+			if (dimensions.z != 0) { // Only draw the other edges if the quad has depth
+				draw_line(position+d, position+w+d, c);
+				draw_line(position+w+d, position+w+h+d, c);
+				draw_line(position+w+h+d, position+h+d, c);
+				draw_line(position+h+d, position+d, c);
+
+				draw_line(position, position+d, c);
+				draw_line(position+w, position+w+d, c);
+				draw_line(position+w+h, position+w+h+d, c);
+				draw_line(position+h, position+h+d, c);
+			}
 		}
 
 		return 0;
 	} else {
-		if (!is_hud) { // Only convert the coordinates if they should not be drawn relative to the window
-			convert_view_coords(x, y);
-		}
-
-		SDL_Rect r = {x, y, w, h};
+		SDL_Rect r = {(int)position.x, (int)position.y, (int)dimensions.x, (int)dimensions.y};
 		if (is_filled) {
 			return SDL_RenderFillRect(renderer, &r); // Fill the given rectangle with the given color
 		} else {
@@ -283,17 +237,28 @@ int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled, const RGBA& 
 }
 /*
 * BEE::draw_rectangle() - Draw a rectangle at the given coordinates
+* @x: the x-coordinate of the top left of the rectangle
+* @y: the y-coordinate of the top left of the rectangle
+* @w: the width of the rectangle
+* @h: the height of the rectangle
+* @is_filled: whether the rectangle should be filled or simply an outline
+* @c: the color with which to draw the rectangle
+*/
+int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled, const RGBA& c) {
+	return draw_quad(glm::vec3(x, y, 0.0f), glm::vec3(w, h, 0.0f), is_filled, c);
+}
+/*
+* BEE::draw_rectangle() - Draw a rectangle at the given coordinates
 * ! When the function is called without a color, simply call it with the current drawing color
 * @x: the x-coordinate of the top left of the rectangle
 * @y: the y-coordinate of the top left of the rectangle
 * @w: the width of the rectangle
 * @h: the height of the rectangle
 * @is_filled: whether the rectangle should be filled or simply an outline
-* @is_hud: whether the coordinates should be left unconverted or not
 */
-int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled, bool is_hud) {
+int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled) {
 	RGBA c = draw_get_color();
-	return draw_rectangle(x, y, w, h, is_filled, c, is_hud);
+	return draw_rectangle(x, y, w, h, is_filled, c);
 }
 /*
 * BEE::draw_rectangle() - Draw a rectangle at the given coordinates
@@ -304,10 +269,9 @@ int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled, bool is_hud)
 * @h: the height of the rectangle
 * @is_filled: whether the rectangle should be filled or simply an outline
 * @c: the color with which to draw the rectangle
-* @is_hud: whether the coordinates should be left unconverted or not
 */
-int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled, bee_rgba_t c, bool is_hud) {
-	return draw_rectangle(x, y, w, h, is_filled, get_enum_color(c), is_hud);
+int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled, bee_rgba_t c) {
+	return draw_rectangle(x, y, w, h, is_filled, get_enum_color(c));
 }
 /*
 * BEE::draw_rectangle() - Draw a rectangle at the given coordinates
@@ -315,10 +279,9 @@ int BEE::draw_rectangle(int x, int y, int w, int h, bool is_filled, bee_rgba_t c
 * @r: the SDL_Rect data of the rectangle
 * @is_filled: whether the rectangle should be filled or simply an outline
 * @c: the color with which to draw the rectangle
-* @is_hud: whether the coordinates should be left unconverted or not
 */
-int BEE::draw_rectangle(const SDL_Rect& r, bool is_filled, const RGBA& c, bool is_hud) {
-	return draw_rectangle(r.x, r.y, r.w, r.h, is_filled, c, is_hud);
+int BEE::draw_rectangle(const SDL_Rect& r, bool is_filled, const RGBA& c) {
+	return draw_rectangle(r.x, r.y, r.w, r.h, is_filled, c);
 }
 
 /*
@@ -408,7 +371,7 @@ BEE::RGBA BEE::get_pixel_color(int x, int y) const {
 
 		return c; // Return the pixel color
 	} else {
-		SDL_Surface *screenshot = SDL_CreateRGBSurface(0, width, height, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000); // Create a surface from the screen pixels
+		SDL_Surface* screenshot = SDL_CreateRGBSurface(0, width, height, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000); // Create a surface from the screen pixels
 		SDL_RenderReadPixels(renderer, nullptr, SDL_PIXELFORMAT_ARGB8888, screenshot->pixels, screenshot->pitch);
 
 		RGBA c;
@@ -439,9 +402,9 @@ int BEE::save_screenshot(const std::string& filename) {
 		glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, upsidedown_pixels); // Read the screen pixels into the array
 
 		unsigned char* pixels = new unsigned char[width*height*4];
-		for (int i=0; i<height; i++) { // Reverse the order of the rows from glReadPixels() because the OpenGL origin is bottom-left and the SDL origin is top-left
-			for (int e=0; e<width; e++) {
-				for (int o=0; o<4; o++) {
+		for (size_t i=0; i<height; i++) { // Reverse the order of the rows from glReadPixels() because the OpenGL origin is bottom-left and the SDL origin is top-left
+			for (size_t e=0; e<width; e++) {
+				for (size_t o=0; o<4; o++) {
 					pixels[i*width*4 + e*4 + o] = upsidedown_pixels[(height-i)*width*4 + e*4 + o];
 				}
 			}
@@ -454,7 +417,7 @@ int BEE::save_screenshot(const std::string& filename) {
 		delete[] pixels;
 		delete[] upsidedown_pixels;
 	} else {
-		SDL_Surface *screenshot = SDL_CreateRGBSurface(0, width, height, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000); // Create a surface from the screen pixels
+		SDL_Surface* screenshot = SDL_CreateRGBSurface(0, width, height, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000); // Create a surface from the screen pixels
 		SDL_RenderReadPixels(renderer, nullptr, SDL_PIXELFORMAT_ARGB8888, screenshot->pixels, screenshot->pitch);
 
 		SDL_SaveBMP(screenshot, fn.c_str()); // Save the surface to the given filename as a bitmap
@@ -473,6 +436,7 @@ int BEE::save_screenshot(const std::string& filename) {
 * BEE::set_is_lightable() - Set whether to enable lighting or not
 * ! This should be used to disable lighting only on specific elements, e.g. the HUD
 * ! After calling this function it is the user's job to reset the lighting to the previous state
+* ! See Sprite::set_is_lightable() in bee/resources/sprite.cpp for more specific usage
 * @new_is_lightable: whether to enable lighting
 */
 int BEE::set_is_lightable(bool new_is_lightable) {
@@ -500,6 +464,14 @@ int BEE::render_set_3d(bool new_is_3d) {
 	if (render_camera == nullptr) {
 		render_set_camera(nullptr);
 	}
+
+	if (render_is_3d) {
+		glEnable(GL_DEPTH_TEST);
+	} else {
+		glDisable(GL_DEPTH_TEST);
+	}
+
+	render_calc_projection();
 
 	return 0;
 }
@@ -534,6 +506,8 @@ int BEE::render_set_camera(Camera* new_camera) {
 		render_camera->height = get_height();
 	}
 
+	render_calc_projection();
+
 	return 0;
 }
 /*
@@ -550,13 +524,34 @@ glm::mat4 BEE::render_get_projection() {
 		render_set_camera(nullptr);
 	}
 
-	if (render_is_3d) {
-		glm::mat4 projection = glm::perspective((float)degtorad(render_camera->fov), render_camera->width/render_camera->height, 0.0f, render_camera->view_distance);
-		projection *= glm::lookAt(render_camera->position, render_camera->position+render_camera->direction, render_camera->orientation);
-		return projection;
-	} else {
-		return glm::ortho(0.0f, render_camera->width, render_camera->height, 0.0f, 0.0f, render_camera->view_distance);
+	if (projection_cache == nullptr) {
+		return render_calc_projection();
 	}
+
+	return *projection_cache;
+}
+/*
+* BEE::render_calc_projection() - Recalculate the projection matrix for the current camera
+*/
+glm::mat4 BEE::render_calc_projection() {
+	if (render_camera == nullptr) {
+		render_set_camera(nullptr);
+	}
+
+	glm::mat4 projection = glm::mat4(1.0f);
+	if (render_is_3d) {
+		projection = glm::perspective((float)degtorad(render_camera->fov), render_camera->width/render_camera->height, render_camera->z_near, render_camera->z_far);
+		projection *= glm::lookAt(render_camera->position, render_camera->position+render_camera->direction, render_camera->orientation);
+	} else {
+		projection = glm::ortho(0.0f, render_camera->width, render_camera->height, 0.0f, 0.0f, render_camera->z_far);
+	}
+
+	if (projection_cache == nullptr) {
+		projection_cache = new glm::mat4(1.0f);
+	}
+	*projection_cache = projection;
+
+	return projection;
 }
 /*
 * BEE::render_get_camera() - Get a copy of the camera values

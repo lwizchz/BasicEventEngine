@@ -64,7 +64,7 @@ int BEE::messenger_unregister_all() {
 * @m: the message to queue
 */
 int BEE::messenger_send(std::shared_ptr<MessageContents> msg) {
-	msg->data = trim(msg->data);
+	msg->descr = trim(msg->descr);
 	for (auto& tag : msg->tags) {
 		tagged_messages[tag].push_back(msg);
 	}
@@ -76,11 +76,23 @@ int BEE::messenger_send(std::shared_ptr<MessageContents> msg) {
 * ! When the function is called with separate message contents, create a pointer and call it again
 * @tickstamp: the tickstamp of the given message, normally should be the current tick
 * @tags: the list of tags that the message should be sent to
+* @descr: the message description
 * @data: the message data
 */
-int BEE::messenger_send(const std::vector<std::string>& tags, bee_message_t type, const std::string& data) {
-	std::shared_ptr<MessageContents> msg (new MessageContents(get_ticks(), tags, type, data));
+int BEE::messenger_send(const std::vector<std::string>& tags, bee_message_t type, const std::string& descr, void* data) {
+	std::shared_ptr<MessageContents> msg (new MessageContents(get_ticks(), tags, type, descr, data));
 	return messenger_send(msg);
+}
+
+/*
+* BEE::messenger_send() - Queue the given message in the messaging system
+* ! When no data has been provided, call the function again with it set to nullptr
+* @tickstamp: the tickstamp of the given message, normally should be the current tick
+* @tags: the list of tags that the message should be sent to
+* @descr: the message description
+*/
+int BEE::messenger_send(const std::vector<std::string>& tags, bee_message_t type, const std::string& descr) {
+	return messenger_send(tags, type, descr, nullptr);
 }
 
 /*
@@ -106,11 +118,11 @@ int BEE::handle_messages() {
 
 		std::cout << "MSG <" << tags << ">[" << messenger_get_type_string(msg->type) << "](" << msg->tickstamp << "ms): ";
 
-		if (msg->data.find("\n") != std::string::npos) {
+		if (msg->descr.find("\n") != std::string::npos) {
 			std::cout << "\n";
-			std::cout << debug_indent(msg->data, 1);
+			std::cout << debug_indent(msg->descr, 1);
 		} else {
-			std::cout << msg->data << "\n";
+			std::cout << msg->descr << "\n";
 		}
 
 		bee_console_color_reset();
