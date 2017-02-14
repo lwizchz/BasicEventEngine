@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-16 Luke Montalvo <lukemontalvo@gmail.com>
+* Copyright (c) 2015-17 Luke Montalvo <lukemontalvo@gmail.com>
 *
 * This file is part of BEE.
 * BEE is free software and comes with ABSOLUTELY NO WARANTY.
@@ -114,18 +114,47 @@ std::string string_lettersdigits(const std::string& str) {
 * split() - Split a string by a given delimiter and return the data as a map
 * @input: the string to operate on
 * @delimiter: the character to use to split the string
+* @should_respect_quotes: whether quotes should split the string
 */
-std::map<int,std::string> split(const std::string& input, char delimiter) {
+std::map<int,std::string> split(const std::string& input, char delimiter, bool should_respect_quotes) {
 	std::map<int,std::string> output; // Declare a map to store the split strings
-	if (!input.empty()) { // Only attempt to operate if the input is not empty
-		std::istringstream input_stream (input); // Convert the string to a string stream for iteration
-		while (!input_stream.eof()) { // While there is more data in the string stream
-			std::string tmp;
-			getline(input_stream, tmp, delimiter); // Fetch the next substring before the given delimiter and store it in the temporary string
-			output.insert(std::make_pair(output.size(), tmp)); // Insert the substring into the map
+
+	size_t token_start = 0; // Store the position of the beginning of each token
+	for (size_t i=0; i<input.length(); ++i) { // Iterate over each character in the string
+		char c = input[i]; // Get the current character
+
+		if (c == delimiter) { // If the character is a delimiter, store a substring in the map
+			output.insert(std::make_pair(output.size(), input.substr(token_start, i-token_start)));
+			token_start = i+1; // Begin the next token after the delimiter
+		} else if ((c == '"')&&(should_respect_quotes)) { // If the character is a quote, handle it separately
+			if ((i>0)&&(input[i-1] == '\\')) {
+				continue;
+			}
+
+			++i; // Increment past the first quote
+			while (i<input.length()) { // Iterate over the string until the next quote or string end is reached
+				if ((input[i] == '"')&&(input[i-1] != '\\')) {
+					break;
+				}
+
+				++i;
+			}
 		}
 	}
-	return output; // Return the map on success
+	if (token_start < input.length()) {  // Add the last token to the map if it exists
+		output.insert(std::make_pair(output.size(), input.substr(token_start, input.length()-token_start)));
+	}
+
+	return output; // Return the vector on success
+}
+/*
+* split() - Split a string by a given delimiter and return the data as a map
+* ! If the function is called without specifying how to act with quotes, simply call it without treating them specially
+* @input: the string to operate on
+* @delimiter: the character to use to split the string
+*/
+std::map<int,std::string> split(const std::string& input, char delimiter) {
+	return split(input, delimiter, false);
 }
 /*
 * handle_newlines() - Split a string by newlines and return the data as a map
@@ -134,6 +163,39 @@ std::map<int,std::string> split(const std::string& input, char delimiter) {
 std::map<int,std::string> handle_newlines(const std::string& input) {
 	return split(input, '\n');
 }
+/*
+* join() - Join a map of strings by the given delimiter and return a string
+* @input: the map to join together
+* @delimiter: the character to join the string with
+*/
+std::string join(const std::map<int,std::string>& input, char delimiter) {
+	std::string output = ""; // Declare a string to store each line from the map
+	for (auto& l : input) { // Iterate over the map
+		output += l.second; // Add each line to the output
+		output += delimiter; // Append the delimiter for each line
+	}
+	if (output.size() > 0) {
+		output.pop_back(); // Remove the last delimiter
+	}
+	return output; // Return the string on success
+}
+/*
+* join() - Join a vector of strings by the given delimiter and return a string
+* @input: the vector to join together
+* @delimiter: the character to join the string with
+*/
+std::string joinv(const std::vector<std::string>& input, char delimiter) {
+	std::string output = ""; // Declare a string to store each line from the vector
+	for (auto& l : input) { // Iterate over the vector
+		output += l; // Add each line to the output
+		output += delimiter; // Append the delimiter for each line
+	}
+	if (output.size() > 0) {
+		output.pop_back(); // Remove the last delimiter
+	}
+	return output; // Return the string on success
+}
+
 
 /*
 * ltrim() - Trim the string for whitespace on the left side
@@ -211,17 +273,26 @@ std::string string_replace(const std::string& str, const std::string& search, co
 	return s; // Return the modified string
 }
 /*
-* string_replace_map() - Replace all occurences of the given search strings with the given replacements
+* string_escape() - Replace all occurences of the quotes, forward slashes, and back slashes with escaped versions
 * @str: the string to operate on
-* @search: the array of strings to search and replace
-* @replacment: the array of strings to replace the search
 */
-std::string string_replace_map(const std::string& str, const std::map<std::string,std::string> searchreplace) {
-	std::string new_str = str;
-	for (auto& sr : searchreplace) { // Iterate over the arrays and replace the given strings
-		new_str = string_replace(new_str, sr.first, sr.second);
-	}
-	return new_str; // Return the modified string
+std::string string_escape(const std::string& str) {
+	std::string s (str);
+	s = string_replace(s, "\\", "\\\\"); // Escape back slashes
+	s = string_replace(s, "\"", "\\\""); // Escape quotes
+	//s = string_replace(s, "/", "\\/"); // Escape forward slashes
+	return s;
+}
+/*
+* string_unescape() - Replace all occurences of escaped quotes, forward slashes, and back slashes with unescaped versions
+* @str: the string to operate on
+*/
+std::string string_unescape(const std::string& str) {
+	std::string s (str);
+	s = string_replace(s, "\\\\", "\\"); // Replace escaped back slashes
+	s = string_replace(s, "\\\"", "\""); // Replace escaped quotes
+	//s = string_replace(s, "\\/", "/"); // Replace escaped forward slashes
+	return s;
 }
 /*
 * string_repeat() - Repeat a given string the given number of times

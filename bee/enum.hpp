@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-16 Luke Montalvo <lukemontalvo@gmail.com>
+* Copyright (c) 2015-17 Luke Montalvo <lukemontalvo@gmail.com>
 *
 * This file is part of BEE.
 * BEE is free software and comes with ABSOLUTELY NO WARANTY.
@@ -54,7 +54,7 @@ enum bee_event_t {
 	BEE_EVENT_CONTROLLER_PRESS,
 	BEE_EVENT_CONTROLLER_RELEASE,
 	BEE_EVENT_CONTROLLER_MODIFY,
-	BEE_EVENT_CONSOLE_INPUT,
+	BEE_EVENT_COMMANDLINE_INPUT,
 	BEE_EVENT_PATH_END,
 	BEE_EVENT_OUTSIDE_ROOM,
 	BEE_EVENT_INTERSECT_BOUNDARY,

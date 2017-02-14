@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-16 Luke Montalvo <lukemontalvo@gmail.com>
+* Copyright (c) 2015-17 Luke Montalvo <lukemontalvo@gmail.com>
 *
 * This file is part of BEE.
 * BEE is free software and comes with ABSOLUTELY NO WARANTY.
@@ -15,7 +15,7 @@
 
 #ifdef __linux__
 
-#include <sys/time.h> // Include the required functions for non-blocking console input
+#include <sys/time.h> // Include the required functions for non-blocking commandline input
 #include <sys/types.h>
 #include <unistd.h>
 #include <arpa/inet.h> // Include the required network functions
@@ -53,9 +53,9 @@ int bee_stoi(const std::string& s) {
 }
 
 /*
-* bee_has_console_input() - Return whether there is input in the console without blocking
+* bee_has_commandline_input() - Return whether there is input in the commandline without blocking
 */
-bool bee_has_console_input() {
+bool bee_has_commandline_input() {
 	struct timeval tv = {0, 0}; // Wait 0 seconds and 0 microseconds for input
 	fd_set rfds; // Declare a new set of input streams
 	FD_ZERO(&rfds); // Clear the set
@@ -103,11 +103,11 @@ std::string bee_inet_ntop(const void* src) {
 }
 
 /*
-* bee_console_color() - Change the color that console output will appear in
+* bee_commandline_color() - Change the color that commandline output will appear in
 * ! See http://www.tldp.org/HOWTO/Bash-Prompt-HOWTO/x329.html for information on the color codes
 * @color: the new color to use defined according to the Linux terminal color codes
 */
-int bee_console_color(int color) {
+int bee_commandline_color(int color) {
 	std::string code = "";
 	switch (color) {
 		case 0: { // Black
@@ -175,16 +175,16 @@ int bee_console_color(int color) {
 			break;
 		}
 		default: {
-			bee_console_color_reset();
+			bee_commandline_color_reset();
 		}
 	}
 	std::cout << code;
 	return 0;
 }
 /*
-* bee_console_color_reset() - Reset the console color to the default value
+* bee_commandline_color_reset() - Reset the commandline color to the default value
 */
-int bee_console_color_reset() {
+int bee_commandline_color_reset() {
 	std::cout << "\033[0m";
 	return 0;
 }
@@ -195,7 +195,7 @@ int bee_console_color_reset() {
 #include <winsock2.h>
 #include <windows.h>
 #include <direct.h>
-#include <conio.h> // Include the required functions for non-blocking console input
+#include <conio.h> // Include the required functions for non-blocking commandline input
 
 /*
 * bee_get_platform() - Return the platform id
@@ -235,9 +235,9 @@ int bee_stoi(const std::string& s) {
 }
 
 /*
-* bee_has_console_input() - Return whether there is input in the console without blocking
+* bee_has_commandline_input() - Return whether there is input in the commandline without blocking
 */
-bool bee_has_console_input() {
+bool bee_has_commandline_input() {
 	return _kbhit();
 }
 
@@ -278,11 +278,11 @@ std::string bee_inet_ntop(const void* src) {
 }
 
 /*
-* bee_console_color() - Change the color that console output will appear in
+* bee_commandline_color() - Change the color that commandline output will appear in
 * ! See http://www.tldp.org/HOWTO/Bash-Prompt-HOWTO/x329.html for information on the color codes
 * @color: the new color to use defined according to the Linux terminal color codes
 */
-int bee_console_color(int color) {
+int bee_commandline_color(int color) {
 	switch (color) {
 		case 0: { // Black
 			system("color 00");
@@ -349,15 +349,15 @@ int bee_console_color(int color) {
 			break;
 		}
 		default: {
-			bee_console_color_reset();
+			bee_commandline_color_reset();
 		}
 	}
 	return 0;
 }
 /*
-* bee_console_color_reset() - Reset the console color to the default value
+* bee_commandline_color_reset() - Reset the commandline color to the default value
 */
-int bee_console_color_reset() {
+int bee_commandline_color_reset() {
 	system("color 07");
 	return 0;
 }

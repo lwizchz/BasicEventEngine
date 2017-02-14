@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-16 Luke Montalvo <lukemontalvo@gmail.com>
+* Copyright (c) 2015-17 Luke Montalvo <lukemontalvo@gmail.com>
 *
 * This file is part of BEE.
 * BEE is free software and comes with ABSOLUTELY NO WARANTY.
@@ -90,7 +90,7 @@ class BEE::Object: public Resource {
 		virtual void controller_press(InstanceData*, SDL_Event*) {};
 		virtual void controller_release(InstanceData*, SDL_Event*) {};
 		virtual void controller_modify(InstanceData*, SDL_Event*) {};
-		virtual void console_input(InstanceData*, const std::string&) {};
+		virtual void commandline_input(InstanceData*, const std::string&) {};
 		virtual void path_end(InstanceData*) {};
 		virtual void outside_room(InstanceData*) {};
 		virtual void intersect_boundary(InstanceData*) {};

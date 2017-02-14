@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-16 Luke Montalvo <lukemontalvo@gmail.com>
+* Copyright (c) 2015-17 Luke Montalvo <lukemontalvo@gmail.com>
 *
 * This file is part of BEE.
 * BEE is free software and comes with ABSOLUTELY NO WARANTY.
@@ -20,14 +20,14 @@
 int main(int argc, char* argv[]) {
 	BEE* game = nullptr;
 
-	// Declare some game options, see bee/game.hpp for the type definition
+	// Declare some game options, see bee/game.hpp for the struct definition
 	BEE::GameOptions options = {
 		// Window flags
 		true,  true,
 		true,  true,
 		false, true,
 		// Renderer flags
-		BEE_RENDERER_OPENGL4,
+		BEE_RENDERER_OPENGL3,
 		false, false,
 		// Miscellaneous flags
 		true,
@@ -39,15 +39,18 @@ int main(int argc, char* argv[]) {
 		game = new BEE(argc, argv, BEE::get_standard_flags(), &rm_test, &options);
 	} catch (std::string e) {
 		std::cerr << e; // Output the caught exception string
-		return 1; // Return 1 on caught exception
+		return 1; // Return 1 on exception during initialization
 	}
 
 	// Run the game engine event loop
 	// This loop will run until the user closes the window, the game closes itself, or the game throws an exception
-	game->loop();
+	int r = game->loop();
 
 	// Clean up resources and quit SDL and other libraries
 	game->close();
 
+	if (r != 0) { // If an exception was caught by the loop
+		return 2; // Return 2 on exception during game loop
+	}
 	return 0; // Return 0 on successful run
 }

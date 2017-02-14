@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-16 Luke Montalvo <lukemontalvo@gmail.com>
+* Copyright (c) 2015-17 Luke Montalvo <lukemontalvo@gmail.com>
 *
 * This file is part of BEE.
 * BEE is free software and comes with ABSOLUTELY NO WARANTY.
@@ -12,6 +12,7 @@
 #include <string> // Include the required library headers
 #include <map>
 #include <vector>
+#include <functional>
 
 #include <SDL2/SDL.h> // Include the required SDL headers
 #include <SDL2/SDL_net.h>
@@ -27,12 +28,12 @@ int bee_get_platform();
 std::string bee_get_path();
 std::string bee_itos(int);
 int bee_stoi(const std::string&);
-bool bee_has_console_input();
+bool bee_has_commandline_input();
 int bee_mkdir(const char*, mode_t);
 std::string bee_mkdtemp(const std::string&);
 std::string bee_inet_ntop(const void* src);
-int bee_console_color(int);
-int bee_console_color_reset();
+int bee_commandline_color(int);
+int bee_commandline_color_reset();
 
 // Real number functions, bee/util/real.hpp
 #define PI 3.141592653589793238462643383279502884197 // 40 digits of pi, sufficient to calculate the circumference of the observable universe to the width of one atom
@@ -78,15 +79,19 @@ std::string string_upper(const std::string&);
 std::string string_letters(const std::string&);
 std::string string_digits(const std::string&);
 std::string string_lettersdigits(const std::string&);
+std::map<int,std::string> split(const std::string&, char, bool);
 std::map<int,std::string> split(const std::string&, char);
 std::map<int,std::string> handle_newlines(const std::string&);
+std::string join(const std::map<int,std::string>&, char);
+std::string joinv(const std::vector<std::string>&, char);
 std::string ltrim(const std::string&);
 std::string rtrim(const std::string&);
 std::string trim(const std::string&);
 bool stringtobool(const std::string&);
 std::string booltostring(bool);
 std::string string_replace(const std::string&, const std::string&, const std::string&);
-std::string string_replace_map(const std::string&, const std::map<std::string,std::string>);
+std::string string_escape(const std::string&);
+std::string string_unescape(const std::string&);
 std::string string_repeat(size_t, const std::string&);
 std::string string_tabulate(const std::vector<std::vector<std::string>>);
 bool clipboard_has_text();
@@ -139,6 +144,7 @@ bool date_is_leap_year();
 bool date_is_today(time_t);
 int date_days_in_month(time_t);
 int date_days_in_year(time_t);
+double stopwatch(std::string, std::function<void()>);
 
 // Collision checking functions, bee/util/collision.hpp
 class Line; // Defined below

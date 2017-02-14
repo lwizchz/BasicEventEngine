@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-16 Luke Montalvo <lukemontalvo@gmail.com>
+* Copyright (c) 2015-17 Luke Montalvo <lukemontalvo@gmail.com>
 *
 * This file is part of BEE.
 * BEE is free software and comes with ABSOLUTELY NO WARANTY.
@@ -13,7 +13,7 @@ class ObjBee : public BEE::Object {
 				BEE::InstanceData* self;
 				ObjBee* object;
 
-				TextData* fps_display;
+				BEE::TextData* fps_display;
 				float camx = 0.0;
 				float camy = 0.0;
 				float camz = 0.0;
@@ -32,7 +32,7 @@ class ObjBee : public BEE::Object {
 		void keyboard_press(BEE::InstanceData*, SDL_Event*) override final;
 		void mouse_press(BEE::InstanceData*, SDL_Event*) override final;
 		void mouse_input(BEE::InstanceData*, SDL_Event*) override final;
-		void console_input(BEE::InstanceData*, const std::string&) override final;
+		void commandline_input(BEE::InstanceData*, const std::string&) override final;
 		void collision(BEE::InstanceData*, BEE::InstanceData*) override final;
 		void draw(BEE::InstanceData*) override final;
 };
@@ -45,7 +45,7 @@ ObjBee::ObjBee() : Object("obj_bee", "bee.hpp") {
 	implemented_events[BEE_EVENT_KEYBOARD_PRESS] = true;
 	implemented_events[BEE_EVENT_MOUSE_PRESS] = true;
 	implemented_events[BEE_EVENT_MOUSE_INPUT] = true;
-	implemented_events[BEE_EVENT_CONSOLE_INPUT] = true;
+	implemented_events[BEE_EVENT_COMMANDLINE_INPUT] = true;
 	implemented_events[BEE_EVENT_COLLISION] = true;
 	implemented_events[BEE_EVENT_DRAW] = true;
 
@@ -103,7 +103,7 @@ void ObjBee::create(BEE::InstanceData* self) {
 		part_attr->max_distance = 500;
 		part_system->attractors.push_back(part_attr);
 
-		game->get_current_room()->add_particle_system(part_system);
+		//game->get_current_room()->add_particle_system(part_system);
 		//part_system->fast_forward(300);
 	}
 }
@@ -144,15 +144,14 @@ void ObjBee::keyboard_press(BEE::InstanceData* self, SDL_Event* e) {
 		return;
 	}
 
+	if (game->console_get_is_open()) {
+		return;
+	}
+
 	switch (e->key.keysym.sym) {
 		case SDLK_RETURN: {
 			game->set_transition_type((bee_transition_t)(game->get_transition_type()+1));
 			game->restart_room();
-			break;
-		}
-		case SDLK_ESCAPE: {
-			game->set_transition_type(BEE_TRANSITION_NONE);
-			game->end_game();
 			break;
 		}
 
@@ -265,14 +264,13 @@ void ObjBee::keyboard_press(BEE::InstanceData* self, SDL_Event* e) {
 			mesh_monkey->print();
 			break;
 		}
-
-		case SDLK_p: {
-			game->save_screenshot("screenshot.bmp");
-			break;
-		}
 	}
 }
 void ObjBee::mouse_press(BEE::InstanceData* self, SDL_Event* e) {
+	if (game->console_get_is_open()) {
+		return;
+	}
+
 	switch (e->button.button) {
 		case SDL_BUTTON_LEFT: {
 			SDL_Rect a = {(int)self->x, (int)self->y, get_mask()->get_subimage_width(), get_mask()->get_height()};
@@ -289,6 +287,10 @@ void ObjBee::mouse_press(BEE::InstanceData* self, SDL_Event* e) {
 	}
 }
 void ObjBee::mouse_input(BEE::InstanceData* self, SDL_Event* e) {
+	if (game->console_get_is_open()) {
+		return;
+	}
+	
 	if (e->type == SDL_MOUSEMOTION) {
 		//spr_bee->set_alpha(0.25);
 	}
@@ -305,7 +307,7 @@ void ObjBee::mouse_input(BEE::InstanceData* self, SDL_Event* e) {
 	}
 }
 
-void ObjBee::console_input(BEE::InstanceData* self, const std::string& str) {
+void ObjBee::commandline_input(BEE::InstanceData* self, const std::string& str) {
 	std::cout << "bee" << self->id << ":~~~" << str << "~~~\n";
 }
 void ObjBee::collision(BEE::InstanceData* self, BEE::InstanceData* other) {

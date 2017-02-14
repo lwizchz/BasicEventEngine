@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-16 Luke Montalvo <lukemontalvo@gmail.com>
+* Copyright (c) 2015-17 Luke Montalvo <lukemontalvo@gmail.com>
 *
 * This file is part of BEE.
 * BEE is free software and comes with ABSOLUTELY NO WARANTY.
@@ -11,6 +11,9 @@
 
 #include "../game.hpp" // Include the engine headers
 
+/*
+* BEE::get_usage_test() - Return an information string about how to run the program
+*/
 std::string BEE::get_usage_text() {
 	return
 		bee_get_path() + "\n"
@@ -43,6 +46,9 @@ std::string BEE::get_usage_text() {
 	;
 }
 
+/*
+* BEE::get_standard_flags() - Return a list of the default ProgramFlags which can be appended by the user
+*/
 std::list<BEE::ProgramFlags*> BEE::get_standard_flags() {
 	static std::list<BEE::ProgramFlags*> flag_list;
 	if (flag_list.empty()) {

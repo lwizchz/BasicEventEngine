@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-16 Luke Montalvo <lukemontalvo@gmail.com>
+* Copyright (c) 2015-17 Luke Montalvo <lukemontalvo@gmail.com>
 *
 * This file is part of BEE.
 * BEE is free software and comes with ABSOLUTELY NO WARANTY.
@@ -25,7 +25,7 @@ void BEE::restart_room() const {
 */
 int BEE::change_room(Room* new_room, bool should_jump) {
 	if (((quit)^(new_room != nullptr)) == false) { // Abort the room change if either the quit flag is set without a null room or if the quit flag is unset with a null room
-		throw 4; // Throw an exception to jump to the end of the event loop
+		throw 0; // Throw an exception to jump to the end of the event loop
 		return 1; // Return 1 to satisfy the compiler
 	}
 
@@ -100,7 +100,7 @@ int BEE::change_room(Room* new_room, bool should_jump) {
 	}
 
 	if (should_jump) { // If we should jump to the end of the event loop
-		throw 4; // Throw an exception
+		throw 0; // Throw an exception
 	}
 
 	return 0; // Return 0 on success

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-16 Luke Montalvo <lukemontalvo@gmail.com>
+* Copyright (c) 2015-17 Luke Montalvo <lukemontalvo@gmail.com>
 *
 * This file is part of BEE.
 * BEE is free software and comes with ABSOLUTELY NO WARANTY.
@@ -106,9 +106,24 @@ TEST_CASE("string/alteration") {
 	REQUIRE(string_digits("ABC123,./") == "123");
 	REQUIRE(string_lettersdigits("ABC123,./") == "ABC123");
 
-	std::map<int,std::string> m = {{0, "a"}, {1, "b"}, {2, "c"}};
-	REQUIRE(split("a,b,c", ',') == m);
-	REQUIRE(handle_newlines("a\nb\nc") == m);
+	std::map<int,std::string> m1 = {{0, "ab"}, {1, "1.0"}, {2, "\"c d\""}, {3, "test"}};
+	REQUIRE(split("ab 1.0 \"c d\" test", ' ', true) == m1);
+
+	std::map<int,std::string> m2 = {{0, "ab"}, {1, "1.0"}, {2, "test"}};
+	REQUIRE(split("ab 1.0 test", ' ', true) == m2);
+
+	std::map<int,std::string> m3 = {{0, "a"}, {1, "b"}, {2, "c"}};
+	REQUIRE(split("a,b,c", ',') == m3);
+	REQUIRE(handle_newlines("a\nb\nc") == m3);
+	REQUIRE(join(m3, ',') == "a,b,c");
+	REQUIRE(split(join(m3, ','), ',') == m3);
+
+	std::map<int,std::string> m4 = {{0, "\"a"}, {1, "b\""}, {2, "c"}};
+	std::map<int,std::string> mr4 = {{0, "\"a,b\""}, {1, "c"}};
+	REQUIRE(split(join(m4, ','), ',', true) == mr4);
+
+	std::map<int,std::string> m5 = {{0, "ab \"a;b\" \"b\""}, {1, " cd ef"}, {2, " \"g;\""}, {3, " h"}};
+	REQUIRE(split("ab \"a;b\" \"b\"; cd ef; \"g;\"; h", ';', true) == m5);
 
 	REQUIRE(ltrim("  ABC  ") == "ABC  ");
 	REQUIRE(rtrim("  ABC  ") == "  ABC");
@@ -121,7 +136,7 @@ TEST_CASE("string/misc") {
 	REQUIRE(stringtobool("1") == true);
 	REQUIRE(stringtobool("True") == true);
 	REQUIRE(stringtobool("False") == false);
-	REQUIRE(stringtobool("iowhjoidj") == true);
+	REQUIRE(stringtobool("random text") == true);
 	REQUIRE(stringtobool("20") == true);
 
 	REQUIRE(booltostring(true) == "true");
@@ -129,6 +144,10 @@ TEST_CASE("string/misc") {
 
 	REQUIRE(string_replace("a,b,c", ",", ":") == "a:b:c");
 	REQUIRE(string_replace("a:test:b:test:c", ":test:", ",") == "a,b,c");
+
+	REQUIRE(string_escape("\"Test\"/\\test") == "\\\"Test\\\"/\\\\test");
+	REQUIRE(string_unescape("\\\"Test\\\"/\\\\test") == "\"Test\"/\\test");
+	REQUIRE(string_unescape(string_escape("\"Test\"/\\test")) == "\"Test\"/\\test");
 
 	/*REQUIRE(clipboard_set_text("test") == 0); // These functions require SDL to be initialized
 	REQUIRE(clipboard_get_text() == "test");
@@ -179,7 +198,6 @@ TEST_CASE("date/getters") {
 	REQUIRE(date_date_string(t) == "Sun Nov 01 2015");
 	REQUIRE(date_time_string(t) == "11:45:24");
 	REQUIRE(date_is_leap_year(t) == false);
-	REQUIRE(date_is_leap_year() == true);
 	REQUIRE(date_is_today(t) == false);
 	REQUIRE(date_is_today(date_current_datetime()) == true);
 	REQUIRE(date_days_in_month(t) == 30);

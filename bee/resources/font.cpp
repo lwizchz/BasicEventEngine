@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-16 Luke Montalvo <lukemontalvo@gmail.com>
+* Copyright (c) 2015-17 Luke Montalvo <lukemontalvo@gmail.com>
 *
 * This file is part of BEE.
 * BEE is free software and comes with ABSOLUTELY NO WARANTY.
@@ -11,11 +11,11 @@
 
 #include "font.hpp"
 
-TextData::TextData(BEE::Sprite* new_sprite, std::string new_text) {
+BEE::TextData::TextData(BEE::Sprite* new_sprite, std::string new_text) {
 	sprite.insert(std::make_pair(0, new_sprite));
 	text = new_text;
 }
-TextData::~TextData() {
+BEE::TextData::~TextData() {
 	for (auto& s : sprite) {
 		s.second->free();
 	}
@@ -200,7 +200,7 @@ int BEE::Font::free() {
 	return 0;
 }
 
-TextData* BEE::Font::draw_internal(int x, int y, std::string text, RGBA color) {
+BEE::TextData* BEE::Font::draw_internal(int x, int y, std::string text, RGBA color) {
 	if (is_loaded) {
 		if (text.size() > 0) {
 			text = string_replace(text, "\t", "    ");
@@ -234,7 +234,7 @@ TextData* BEE::Font::draw_internal(int x, int y, std::string text, RGBA color) {
 	}
 	return nullptr;
 }
-TextData* BEE::Font::draw(int x, int y, std::string text, RGBA color) {
+BEE::TextData* BEE::Font::draw(int x, int y, std::string text, RGBA color) {
 	if (is_loaded) {
 		TextData *r = nullptr, *textdata = nullptr;
 		std::map<int,std::string> lines = handle_newlines(text);
@@ -263,10 +263,10 @@ TextData* BEE::Font::draw(int x, int y, std::string text, RGBA color) {
 	}
 	return nullptr;
 }
-TextData* BEE::Font::draw(int x, int y, std::string text) {
+BEE::TextData* BEE::Font::draw(int x, int y, std::string text) {
 	return draw(x, y, text, {0, 0, 0, 255});
 }
-TextData* BEE::Font::draw(TextData* textdata, int x, int y, std::string text, RGBA color) {
+BEE::TextData* BEE::Font::draw(TextData* textdata, int x, int y, std::string text, RGBA color) {
 	if (is_loaded) {
 		if ((textdata != nullptr)&&(textdata->text == text)) {
 			std::map<int,std::string> lines = handle_newlines(text);
@@ -288,7 +288,7 @@ TextData* BEE::Font::draw(TextData* textdata, int x, int y, std::string text, RG
 	}
 	return nullptr;
 }
-TextData* BEE::Font::draw(TextData* textdata, int x, int y, std::string text) {
+BEE::TextData* BEE::Font::draw(TextData* textdata, int x, int y, std::string text) {
 	return draw(textdata, x, y, text, {0, 0, 0, 255});
 }
 int BEE::Font::draw_fast_internal(int x, int y, std::string text, RGBA color) {
@@ -407,6 +407,9 @@ int BEE::Font::get_string_height(std::string text, int size) {
 }
 int BEE::Font::get_string_height(std::string text) {
 	return get_string_height(text, font_size);
+}
+int BEE::Font::get_string_height() {
+	return get_string_height("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890", font_size);
 }
 
 #endif // _BEE_FONT

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-16 Luke Montalvo <lukemontalvo@gmail.com>
+* Copyright (c) 2015-17 Luke Montalvo <lukemontalvo@gmail.com>
 *
 * This file is part of BEE.
 * BEE is free software and comes with ABSOLUTELY NO WARANTY.
@@ -14,7 +14,7 @@
 
 #include "../game.hpp"
 
-class TextData {
+class BEE::TextData {
 	public:
 		std::map<int,BEE::Sprite*> sprite;
 		std::string text;
@@ -78,6 +78,7 @@ class BEE::Font: public Resource {
 		int get_string_width(std::string);
 		int get_string_height(std::string, int);
 		int get_string_height(std::string);
+		int get_string_height();
 };
 
 #endif // _BEE_FONT_H

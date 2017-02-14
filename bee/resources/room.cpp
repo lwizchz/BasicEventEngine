@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-16 Luke Montalvo <lukemontalvo@gmail.com>
+* Copyright (c) 2015-17 Luke Montalvo <lukemontalvo@gmail.com>
 *
 * This file is part of BEE.
 * BEE is free software and comes with ABSOLUTELY NO WARANTY.
@@ -895,10 +895,10 @@ int BEE::Room::controller_modify(SDL_Event* e) {
 
 	return 0;
 }
-int BEE::Room::console_input(const std::string& input) {
+int BEE::Room::commandline_input(const std::string& input) {
 	for (auto& i : instances_sorted) {
 		i.first->object->update(i.first);
-		i.first->object->console_input(i.first, input);
+		i.first->object->commandline_input(i.first, input);
 	}
 
 	return 0;
@@ -1083,6 +1083,10 @@ int BEE::Room::draw_view() {
 		for (auto& p : particles) {
 			p.second->draw_debug();
 		}
+	}
+
+	if (game->console_get_is_open()) {
+		game->console_draw();
 	}
 
 	return 0;

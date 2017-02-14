@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-16 Luke Montalvo <lukemontalvo@gmail.com>
+* Copyright (c) 2015-17 Luke Montalvo <lukemontalvo@gmail.com>
 *
 * This file is part of BEE.
 * BEE is free software and comes with ABSOLUTELY NO WARANTY.
@@ -17,6 +17,7 @@
 #include <list>
 #include <unordered_map>
 #include <unordered_set>
+#include <regex>
 
 #include <SDL2/SDL.h> // Include the required SDL headers
 #include <SDL2/SDL_image.h>
@@ -62,9 +63,10 @@ class BEE { // The master engine class which effectively acts as a namespace
 		class Particle; class ParticleData; class ParticleEmitter; class ParticleAttractor; class ParticleDestroyer; class ParticleDeflector; class ParticleChanger; class ParticleSystem; // The particle system components
 		class Light; class Camera; // The OpenGL-only resources (poor SDL implementations may exist)
 		class ProgramFlags; class GameOptions; class CollisionTree; class CollisionPolygon; class RGBA; // The engine related data
-		class SpriteDrawData; class SoundGroup; class InstanceData; class LightData; class LightableData; // The additional resource data types
+		class SpriteDrawData; class SoundGroup; class TextData; class InstanceData; class LightData; class LightableData; // The additional resource data types
 		class ViewData; class BackgroundData; class NetworkData; // The configurational structs
 		class MessageContents; class MessageRecipient; // The messaging subsystem structs
+		class Console; class ConsoleVar; // The console subsystem structs
 	private:
 		// These contain data about the engine initialization
 		int argc;
@@ -144,11 +146,11 @@ class BEE { // The master engine class which effectively acts as a namespace
 
 		// This is the current drawing color
 		RGBA* color = nullptr;
+		Font* font_default; // A default font for engine drawing
 
 		// These contain data about the current window state
 		bool has_mouse, has_focus;
 
-		SDL_Event event;
 		Uint32 tickstamp, new_tickstamp, fps_ticks, tick_delta;
 
 		NetworkData* net = nullptr;
@@ -166,15 +168,34 @@ class BEE { // The master engine class which effectively acts as a namespace
 		std::function<void (BEE*, Sprite*, Sprite*)> transition_custom_func = nullptr;
 
 		const Uint8* keystate;
+		std::map<std::string,SDL_Keycode> keystrings_keys;
+		std::map<SDL_Keycode,std::string> keystrings_strings;
 
-		std::vector<std::string> console_input;
-		unsigned int console_line = 0;
+		std::vector<std::string> commandline_input;
+		unsigned int commandline_current = 0;
 
 		std::unordered_map<std::string,std::unordered_set<std::shared_ptr<MessageRecipient>>> recipients;
-		std::unordered_map<std::string,std::vector<std::shared_ptr<MessageContents>>> tagged_messages;
+		const std::unordered_set<std::string> protected_tags = {"engine", "console"};
 		std::vector<std::shared_ptr<MessageContents>> messages;
 
+		Console* console = nullptr;
+
 		int update_delta();
+	protected:
+		// bee/game/messenger.cpp
+		int messenger_register_protected(std::shared_ptr<MessageRecipient>);
+		int messenger_register_protected(std::string, const std::vector<std::string>&, bool, std::function<void (BEE*, std::shared_ptr<MessageContents>)>);
+		int messenger_unregister_protected(std::shared_ptr<MessageRecipient>);
+		int messenger_send_urgent(std::shared_ptr<MessageContents>);
+
+		// bee/game/console.cpp
+		int console_handle_input(SDL_Event*);
+		int console_init_commands();
+		int console_run_internal(const std::string&, bool, Uint32);
+		int console_run(const std::string&, bool, Uint32);
+		int console_complete(const std::string&);
+		std::vector<ConsoleVar> console_parse_parameters(const std::string&) const;
+		int console_draw();
 	public:
 		unsigned int fps_stable;
 
@@ -326,6 +347,9 @@ class BEE { // The master engine class which effectively acts as a namespace
 		bool get_mod_state(Uint8) const;
 		bool get_mouse_state(Uint8) const;
 		char append_input(std::string*, SDL_KeyboardEvent*);
+		int keystrings_populate();
+		SDL_Keycode keystrings_get_key(const std::string&);
+		std::string keystrings_get_string(SDL_Keycode);
 
 		// bee/game/draw.cpp
 		RGBA get_enum_color(bee_rgba_t, Uint8) const;
@@ -363,16 +387,17 @@ class BEE { // The master engine class which effectively acts as a namespace
 
 		// bee/game/messenger.cpp
 		int messenger_register(std::shared_ptr<MessageRecipient>);
+		int messenger_register(std::string, const std::vector<std::string>&, bool, std::function<void (BEE*, std::shared_ptr<MessageContents>)>);
 		int messenger_register(const std::vector<std::string>&, std::function<void (BEE*, std::shared_ptr<MessageContents>)>);
 		int messenger_unregister(std::shared_ptr<MessageRecipient>);
 		int messenger_unregister_all();
 
 		int messenger_send(std::shared_ptr<MessageContents>);
-		int messenger_send(const std::vector<std::string>&, bee_message_t, const std::string&, void*);
+		int messenger_send(const std::vector<std::string>&, bee_message_t, const std::string&, std::shared_ptr<void>);
 		int messenger_send(const std::vector<std::string>&, bee_message_t, const std::string&);
 
 		int handle_messages();
-		std::string messenger_get_type_string(bee_message_t);
+		std::string messenger_get_type_string(bee_message_t) const;
 
 		// bee/game/network.cpp
 		int net_init();
@@ -385,6 +410,21 @@ class BEE { // The master engine class which effectively acts as a namespace
 		int net_session_join(const std::string&, const std::string&);
 		bool net_get_is_connected();
 		int net_session_end();
+
+		// bee/game/console.cpp
+		int console_open();
+		int console_close();
+		int console_toggle();
+		bool console_get_is_open() const ;
+
+		int console_add_command(const std::string&, const std::string&, std::function<void (BEE*, std::shared_ptr<MessageContents>)>);
+		int console_add_command(const std::string&, std::function<void (BEE*, std::shared_ptr<MessageContents>)>);
+		std::string console_bind(SDL_Keycode, const std::string&);
+		std::string console_bind(SDL_Keycode);
+		int console_unbind(SDL_Keycode);
+
+		int console_run(const std::string&);
+		std::string console_get_help(const std::string&);
 };
 
 typedef std::tuple<int, int, double> bee_path_coord;
@@ -510,25 +550,61 @@ class BEE::NetworkData {
 
 class BEE::MessageContents {
 	public:
+		bool has_processed = false;
 		Uint32 tickstamp;
 		std::vector<std::string> tags;
 		bee_message_t type;
 		std::string descr;
-		void* data;
+		std::shared_ptr<void> data;
 
-		MessageContents(Uint32 tm, std::vector<std::string> tg, bee_message_t tp, std::string de, void* da) {
+		MessageContents(Uint32 tm, std::vector<std::string> tg, bee_message_t tp, std::string de, std::shared_ptr<void> da) {
 			tickstamp = tm; tags = tg; type = tp; descr = de; data = da;
 		}
 };
 class BEE::MessageRecipient {
 	public:
+		std::string name = "";
 		std::vector<std::string> tags;
+		bool is_strict = false;
 		std::function<void (BEE*, std::shared_ptr<MessageContents>)> func = nullptr;
 
-		MessageRecipient(std::vector<std::string> t, std::function<void (BEE*, std::shared_ptr<MessageContents>)> f) {
-			tags = t; func = f;
+		MessageRecipient(std::string n, std::vector<std::string> t, bool s, std::function<void (BEE*, std::shared_ptr<MessageContents>)> f) {
+			name = n; tags = t; is_strict = s; func = f;
 		}
 };
+
+class BEE::Console {
+	public:
+		bool is_open = false;
+
+		std::unordered_map<std::string,std::pair<std::string,std::function<void (BEE*, std::shared_ptr<MessageContents>)>>> commands;
+
+		std::string input = "";
+
+		std::vector<std::string> history;
+		int history_index = -1;
+
+		std::map<std::string,ConsoleVar> variables;
+
+		std::stringstream log;
+		size_t page_index = 0;
+
+		std::map<SDL_Keycode,std::string> bindings;
+
+		std::vector<std::string> completion_commands;
+		int completion_index = -1;
+		std::string input_tmp = "";
+
+		// Set the drawing sizes
+		unsigned int x = 0;
+		unsigned int y = 0;
+		unsigned int w = 800;
+		unsigned int h = 530;
+		unsigned int line_height = 20;
+
+		TextData* td_log;
+};
+// For the definition of ConsoleVar, see bee/game/console.cpp
 
 #include "resources/sprite.hpp"
 #include "resources/sound.hpp"

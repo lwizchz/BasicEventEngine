@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-16 Luke Montalvo <lukemontalvo@gmail.com>
+* Copyright (c) 2015-17 Luke Montalvo <lukemontalvo@gmail.com>
 *
 * This file is part of BEE.
 * BEE is free software and comes with ABSOLUTELY NO WARANTY.
@@ -111,7 +111,8 @@ BEE::BEE(int new_argc, char** new_argv, const std::list<ProgramFlags*>& new_flag
 	SDL_SetCursor(cursor);
 
 	keystate = SDL_GetKeyboardState(nullptr);
-	console_input.clear();
+	keystrings_populate();
+	commandline_input.clear();
 
 	color = new RGBA();
 	try {
@@ -156,6 +157,14 @@ BEE::BEE(int new_argc, char** new_argv, const std::list<ProgramFlags*>& new_flag
 
 	texture_before = new Sprite();
 	texture_after = new Sprite();
+
+	font_default = new Font("font_default", "liberation_mono.ttf", 16, false);
+		font_default->load();
+
+	handle_messages();
+	console = new Console(); // Initialize the default console commands
+	console_init_commands();
+	handle_messages();
 
 	quit = false;
 	if (*new_first_room != nullptr) {
@@ -231,10 +240,8 @@ int BEE::loop() {
 	handle_messages();
 
 	// Register the logging system
-	messenger_register({"engine", "console"}, [] (BEE* g, std::shared_ptr<MessageContents> msg) {
-		if (msg->tags == std::vector<std::string>({"engine", "console"})) {
-			std::cout << "[" << msg->descr << "]\n";
-		}
+	messenger_register_protected("cmdlog", {"engine", "commandline"}, true, [] (BEE* g, std::shared_ptr<MessageContents> msg) {
+		std::cout << "[" << msg->descr << "]\n";
 	});
 
 	while (!quit) {
@@ -247,6 +254,7 @@ int BEE::loop() {
 			current_room->step_begin();
 			current_room->check_alarms();
 
+			SDL_Event event;
 			while (SDL_PollEvent(&event)) {
 				switch (event.type) {
 					case SDL_QUIT: {
@@ -321,6 +329,13 @@ int BEE::loop() {
 								SDL_PushEvent(&qe);
 								break;
 							}
+							#if SDL_VERSION_ATLEAST(2, 0, 5)
+								case SDL_WINDOWEVENT_TAKE_FOCUS:
+									SDL_SetWindowInputFocus(window);
+									break;
+								case SDL_WINDOWEVENT_HIT_TEST:
+									break;
+							#endif
 							default: {
 								messenger_send({"engine"}, BEE_MESSAGE_WARNING, "Unknown window event: " + bee_itos(event.window.event));
 								break;
@@ -331,10 +346,13 @@ int BEE::loop() {
 					}
 
 					case SDL_KEYDOWN: {
+						console_handle_input(&event);
+
 						if (event.key.repeat == 0) {
 							current_room->keyboard_press(&event);
 						}
 						current_room->keyboard_input(&event);
+
 						break;
 					}
 					case SDL_KEYUP: {
@@ -403,14 +421,14 @@ int BEE::loop() {
 						break;
 				}
 			}
-			if (bee_has_console_input()) {
-				console_input.push_back("");
-				std::getline(std::cin, console_input[console_line]);
-				if (console_input[console_line] == "") {
-					console_input.pop_back();
+			if (bee_has_commandline_input()) {
+				commandline_input.push_back("");
+				std::getline(std::cin, commandline_input[commandline_current]);
+				if (commandline_input[commandline_current] == "") {
+					commandline_input.pop_back();
 				} else {
-					messenger_send({"engine", "console"}, BEE_MESSAGE_INFO, console_input[console_line]);
-					current_room->console_input(console_input[console_line++]);
+					messenger_send({"engine", "commandline"}, BEE_MESSAGE_INFO, commandline_input[commandline_current]);
+					current_room->commandline_input(commandline_input[commandline_current++]);
 				}
 			}
 
@@ -459,6 +477,9 @@ int BEE::loop() {
 					messenger_send({"engine"}, BEE_MESSAGE_ERROR, "Aborting due to resource error");
 					return 2;
 				}
+				case 0: { // Jump to loop end, e.g. change room
+					break;
+				}
 				case 1: { // Quit
 					quit = true;
 					break;
@@ -471,14 +492,20 @@ int BEE::loop() {
 					change_room(current_room, false);
 					break;
 				}
-				case 4: { // Jump to loop end, e.g. change room
-					break;
-				}
 				default: {
-					messenger_send({"engine"}, BEE_MESSAGE_ERROR, "Unknown error: " + bee_itos(e));
+					messenger_send({"engine"}, BEE_MESSAGE_ERROR, "Unknown error code: " + bee_itos(e));
 					return e;
 				}
 			}
+		} catch (...) {
+			close();
+
+			bee_commandline_color(9);
+			std::cout << "Unknown error\n";
+			bee_commandline_color_reset();
+			std::flush(std::cout);
+
+			std::rethrow_exception(std::current_exception());
 		}
 	}
 	messenger_send({"engine"}, BEE_MESSAGE_END, "gameloop");
@@ -526,6 +553,11 @@ int BEE::close() {
 		if (!network_close()) {
 			net->is_initialized = false;
 		}
+	}
+
+	if (console != nullptr) {
+		delete console;
+		console = nullptr;
 	}
 
 	Mix_Quit();
@@ -1073,5 +1105,6 @@ int BEE::end_game() const {
 #include "game/draw.cpp"
 #include "game/messenger.cpp"
 #include "game/network.cpp"
+#include "game/console.cpp"
 
 #endif // _BEE_GAME

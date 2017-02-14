@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-16 Luke Montalvo <lukemontalvo@gmail.com>
+* Copyright (c) 2015-17 Luke Montalvo <lukemontalvo@gmail.com>
 *
 * This file is part of BEE.
 * BEE is free software and comes with ABSOLUTELY NO WARANTY.
@@ -119,7 +119,7 @@ int BEE::Sprite::print() {
 	"\n	has_draw_failed " << has_draw_failed <<
 	"\n	is_lightable    " << is_lightable <<
 	"\n}\n";
-	game->messenger_send({"engine", "resource", "console"}, BEE_MESSAGE_INFO, s.str()); // Send the info to the messaging system to output
+	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str()); // Send the info to the messaging system to output
 
 	return 0; // Return 0 on success
 }

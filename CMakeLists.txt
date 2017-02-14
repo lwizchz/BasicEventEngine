@@ -3,7 +3,7 @@ project("BasicEventEngine" CXX C)
 
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "1")
-set(VERSION_RELEASE "1")
+set(VERSION_RELEASE "2")
 
 # Generate a unique BEE_GAME_ID
 ### TODO

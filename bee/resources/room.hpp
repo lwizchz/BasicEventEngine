@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-16 Luke Montalvo <lukemontalvo@gmail.com>
+* Copyright (c) 2015-17 Luke Montalvo <lukemontalvo@gmail.com>
 *
 * This file is part of BEE.
 * BEE is free software and comes with ABSOLUTELY NO WARANTY.
@@ -147,7 +147,7 @@ class BEE::Room: public Resource {
 		int controller_press(SDL_Event*);
 		int controller_release(SDL_Event*);
 		int controller_modify(SDL_Event*);
-		int console_input(const std::string&);
+		int commandline_input(const std::string&);
 		int check_paths();
 		int outside_room();
 		int intersect_boundary();

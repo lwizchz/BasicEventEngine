@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-16 Luke Montalvo <lukemontalvo@gmail.com>
+* Copyright (c) 2015-17 Luke Montalvo <lukemontalvo@gmail.com>
 *
 * This file is part of BEE.
 * BEE is free software and comes with ABSOLUTELY NO WARANTY.
@@ -94,7 +94,7 @@ int BEE::Mesh::load() {
 		if (game->options->renderer_type != BEE_RENDERER_SDL) {
 			scene = aiImportFile(path.c_str(), aiProcessPreset_TargetRealtime_MaxQuality);
 			if (scene == nullptr) {
-				game->messenger_send({"engine", "mesh"}, BEE_MESSAGE_WARNING, "Failed to load mesh \"" + name + "\": ");// + importer.GetErrorString());
+				game->messenger_send({"engine", "mesh"}, BEE_MESSAGE_WARNING, "Failed to load mesh \"" + name + "\": " + aiGetErrorString());
 				return 1;
 			}
 
@@ -166,7 +166,7 @@ int BEE::Mesh::load() {
 			if (mesh->HasTextureCoords(0)) {
 				const aiMaterial* mat = scene->mMaterials[mesh->mMaterialIndex];
 				aiString tex_path;
-				if (mat->GetTexture(aiTextureType_DIFFUSE, 0, &tex_path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS) {
+				if (mat->GetTexture(aiTextureType_DIFFUSE, 0, &tex_path, nullptr, nullptr, nullptr, nullptr, nullptr) == AI_SUCCESS) {
 					char* fullpath = new char[strlen("resources/meshes/") + tex_path.length + 1];
 					strcpy(fullpath, "resources/meshes/");
 					strcat(fullpath, tex_path.C_Str());

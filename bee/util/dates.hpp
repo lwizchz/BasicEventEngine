@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-16 Luke Montalvo <lukemontalvo@gmail.com>
+* Copyright (c) 2015-17 Luke Montalvo <lukemontalvo@gmail.com>
 *
 * This file is part of BEE.
 * BEE is free software and comes with ABSOLUTELY NO WARANTY.
@@ -14,6 +14,8 @@
 #include <string> // Include the required library headers
 #include <time.h>
 #include <cmath>
+#include <functional>
+#include <chrono>
 
 #include "real.hpp" // Include the required real number functions
 
@@ -469,6 +471,24 @@ int date_days_in_year(time_t date) {
 		return 366;
 	}
 	return 365; // Otherwise return the normal number of days
+}
+
+/*
+* stopwatch() - Print out how long it took a function to execute
+* @name: the name of the function to print out
+* @func: the function to call
+*/
+double stopwatch(std::string name, std::function<void()> func) {
+	auto start = std::chrono::high_resolution_clock::now(); // Store the current time
+
+	func(); // Call the function
+
+	auto end = std::chrono::high_resolution_clock::now(); // Store the new current time
+	double elapsed_ms = std::chrono::duration<double,std::milli>(end-start).count(); // Calculate the elapsed time
+
+	std::cout << "The function \"" << name << "\" finished in " << elapsed_ms << "ms.\n"; // Output the function name and elapsed time
+
+	return elapsed_ms; // Return the elapsed time
 }
 
 #endif // _BEE_UTIL_DATES_H
