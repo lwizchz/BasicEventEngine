@@ -9,7 +9,7 @@
 #ifndef _BEE_GAME
 #define _BEE_GAME 1
 
-#include "game.hpp"
+#include "game.hpp" // Include the engine headers
 
 MetaResourceList* BEE::resource_list;
 bool BEE::is_initialized = false;
@@ -587,7 +587,7 @@ Uint32 BEE::get_ticks() const {
 	return SDL_GetTicks();
 }
 Uint32 BEE::get_seconds() const {
-	return SDL_GetTicks()/1000;
+	return get_ticks()/1000;
 }
 Uint32 BEE::get_frame() const {
 	return frame_number;

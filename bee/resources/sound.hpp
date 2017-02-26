@@ -9,42 +9,28 @@
 #ifndef _BEE_SOUND_H
 #define _BEE_SOUND_H 1
 
-#include <list>
+#include <list> // Include the required library headers
 
-#include "../game.hpp"
-
-enum se_type {
-	se_none       = (1u << 0),
-	se_chorus     = (1u << 1),
-	se_echo       = (1u << 2),
-	se_flanger    = (1u << 3),
-	se_gargle     = (1u << 4),
-	se_reverb     = (1u << 5),
-	se_compressor = (1u << 6),
-	se_equalizer  = (1u << 7)
-};
+#include "../game.hpp" // Include the engine headers
 
 class BEE::Sound: public Resource {
-		// Add new variables to the print() debugging method
-		int id = -1;
-		std::string name;
-		std::string path;
-		double volume; // From 0.0 to 1.0
-		double pan; // From -1.0 to 1.0 as Left to Right
-		int play_type; // In memory vs continuous
-		int channel_amount; // Mono vs stereo
-		int sample_rate;
-		int sample_format;
-		int bit_rate;
+		int id = -1; // The id of the resource
+		std::string name; // An arbitrary name for the resource
+		std::string path; // The path of the sound file
+		double volume; // The volume to play the sound at, from 0.0 to 1.0
+		double pan; // The panning of the sound, from -1.0 to 1.0 as Left to Right
 
-		bool is_loaded = false, is_music;
-		Mix_Music* music;
-		Mix_Chunk* chunk;
-		bool is_playing, is_looping;
-		std::list<int> current_channels;
-		bool has_play_failed = false;
+		bool is_loaded = false; // Whether the sound file was successfully loaded as a mixer chunk/music
+		bool is_music = false; // Whether the sound should be treated as music or a sound effect
+		Mix_Music* music; // The internal sound storage struct for music
+		Mix_Chunk* chunk; // The internal sound storage struct for a sound effect
+		bool is_playing = false; // Whether the sound is currently playing
+		bool is_looping = false; // Whether the sound is currently looping while playing
+		std::list<int> current_channels; // A list of the current channels that the sound is playing on
+		bool has_play_failed = false; // Whether the play function has previously failed, this prevents continuous warning outputs
 
-		int sound_effects = (1u << 0);
+		int sound_effects = (1u << 0); // A bit mask describing the effects that will be applied to the sound
+		// Pointers to the structs which hold parameters for each effect
 		se_chorus_data* chorus_data = nullptr;
 		se_echo_data* echo_data = nullptr;
 		se_flanger_data* flanger_data = nullptr;
@@ -52,7 +38,16 @@ class BEE::Sound: public Resource {
 		se_reverb_data* reverb_data = nullptr;
 		se_compressor_data* compressor_data = nullptr;
 		se_equalizer_data* equalizer_data = nullptr;
+
+		// See bee/resources/sound.cpp for function comments
+		int set_pan_internal(int);
+
+		int effect_add(int, int);
+		int effect_add_post(int);
+		int effect_remove(int, int);
+		int effect_remove_post(int);
 	public:
+		// See bee/resources/sound.cpp for function comments
 		Sound();
 		Sound(std::string, std::string, bool);
 		~Sound();
@@ -66,11 +61,9 @@ class BEE::Sound: public Resource {
 		bool get_is_music();
 		double get_volume();
 		double get_pan();
-		int get_play_type();
-		int get_channel_amount();
-		int get_sample_rate();
-		int get_sample_format();
-		int get_bit_rate();
+		bool get_is_playing();
+		bool get_is_looping();
+		int get_effects();
 
 		int set_name(std::string);
 		int set_path(std::string);
@@ -78,17 +71,12 @@ class BEE::Sound: public Resource {
 		int set_volume(double);
 		int update_volume();
 		int set_pan(double);
-		int set_pan_internal(int);
-		int set_play_type(int);
-		int set_channel_ammount(int);
-		int set_sample_rate(int);
-		int set_sample_format(int);
-		int set_bit_rate(int);
 
 		int load();
 		int free();
 		int finished(int);
 
+		int play(int);
 		int play();
 		int stop();
 		int rewind();
@@ -98,14 +86,8 @@ class BEE::Sound: public Resource {
 		int loop();
 		int fade_in(int);
 		int fade_out(int);
-		bool get_is_playing();
-		bool get_is_looping();
 
-		int effect_add(int);
-		int effect_set(int, int);
-		int effect_set_post(int);
-		int effect_remove(int, int);
-		int effect_remove_post(int);
+		int effect_set(int);
 		int effect_reset_data();
 };
 

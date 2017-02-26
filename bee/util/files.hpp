@@ -28,7 +28,7 @@ bool file_exists(const std::string& fname) {
 * @fname: the name of the file to delete
 */
 int file_delete(const std::string& fname) {
-	return remove(fname.c_str());
+	return bee_remove(fname);
 }
 /*
 * file_rename() - Rename the given file and return the status
@@ -95,9 +95,7 @@ size_t file_put_contents(const std::string& fname, const std::string& contents) 
 * @fname: the name of the directory to check
 */
 bool directory_exists(const std::string& fname) {
-	struct stat st;
-	stat(fname.c_str(), &st); // Get the status of the given file
-	return S_ISDIR(st.st_mode); // Return whether it is a directory or not
+	return bee_dir_exists(fname); // Call the cross-platform dir_exists function
 }
 /*
 * directory_create() - Create a directory at the given path

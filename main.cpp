@@ -23,7 +23,7 @@ int main(int argc, char* argv[]) {
 	// Declare some game options, see bee/game.hpp for the struct definition
 	BEE::GameOptions options = {
 		// Window flags
-		true,  true,
+		false,  true,
 		true,  true,
 		false, true,
 		// Renderer flags

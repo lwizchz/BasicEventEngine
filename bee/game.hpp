@@ -10,6 +10,7 @@
 #define _BEE_GAME_H 1
 
 #include <iostream> // Include the required library headers
+#include <string>
 #include <time.h>
 #include <functional>
 #include <getopt.h>
@@ -510,21 +511,6 @@ class BEE::ViewData {
 		BEE::InstanceData* following;
 		int horizontal_border, vertical_border;
 		int horizontal_speed, vertical_speed;
-};
-
-class BEE::BackgroundData { // Used to pass data to the Room class in bee/resources/room.hpp
-	public:
-		BEE::Background* background = nullptr;
-		bool is_visible = false;
-		bool is_foreground = false;
-		int x=0, y=0;
-		bool is_horizontal_tile=false, is_vertical_tile=false;
-		int horizontal_speed=0, vertical_speed=0;
-		bool is_stretched=false;
-
-		BackgroundData();
-		BackgroundData(BEE::Background*, bool, bool, int, int, bool, bool, int, int, bool);
-		int init(BEE::Background*, bool, bool, int, int, bool, bool, int, int, bool);
 };
 
 class BEE::NetworkData {

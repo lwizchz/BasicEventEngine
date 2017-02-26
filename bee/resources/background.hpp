@@ -9,30 +9,49 @@
 #ifndef _BEE_BACKGROUND_H
 #define _BEE_BACKGROUND_H 1
 
-#include "../game.hpp"
+#include "../game.hpp" // Include the engine headers
 
-class BEE::Background: public Resource {
-		// Add new variables to the print() debugging method
-		int id = -1;
-		std::string name;
-		std::string path;
-		int width, height;
-		Uint32 animation_time;
+class BEE::BackgroundData { // The data struct which is used to pass data to the Room class in bee/resources/room.hpp
+	public:
+		BEE::Background* background = nullptr; // A pointer to the background to use this data with
+		bool is_visible = false; // Whether to draw the background
+		bool is_foreground = false; // Whether to draw the texture above or below the other sprites
+		int x=0, y=0; // The coordinates of the desired draw location
+		bool is_horizontal_tile=false, is_vertical_tile=false; // Whether the texture should be tiled horizontally and vertically
+		int horizontal_speed=0, vertical_speed=0; // The speed with which the texture should move horizontally and vertically in pixels per second
+		bool is_stretched=false; // Whether the texture should be stretched to the window size, note that stretched textures will not be animated or tiled
 
-		SDL_Texture* texture;
-		bool is_loaded = false;
-		bool has_draw_failed = false;
+		// See bee/resources/background.cpp for function comments
+		BackgroundData();
+		BackgroundData(BEE::Background*, bool, bool, int, int, bool, bool, int, int, bool);
+		int init(BEE::Background*, bool, bool, int, int, bool, bool, int, int, bool);
+};
 
-		GLuint vao;
-		GLuint vbo_vertices;
-		GLuint ibo;
-		GLuint gl_texture;
-		GLuint vbo_texcoords;
+class BEE::Background: public Resource { // The background class with which tiled textures can be drawn behind or in front of all other on-screen objects
+		int id = -1; // The id of the resource
+		std::string name; // An arbitrary name for the resource
+		std::string path; // The path of the image file which is used as the background's texture
+		unsigned int width, height; // The width and height of the texture
+		Uint32 animation_time; // The starting time of a movement animation for the texture
 
+		SDL_Texture* texture; // The internal texture storage for SDL mode
+		bool is_loaded = false; // Whether the image file was successfully loaded into a texture
+		bool has_draw_failed = false; // Whether the draw function has previously failed, this prevents continous warning outputs
+
+		GLuint vao; // The Vertex Array Object which contains most of the following data
+		GLuint vbo_vertices; // The Vertex Buffer Object which contains the vertices of the quad
+		GLuint ibo; // The buffer object which contains the order of the vertices for each element
+		GLuint gl_texture; // The internal texture storage for OpenGL mode
+		GLuint vbo_texcoords; // The buffer object which contains the subimage texture coordinates
+
+		GLuint framebuffer; // The framebuffer object used by set_as_target()
+
+		// See bee/resources/background.cpp for function comments
 		int draw_internal(const SDL_Rect*, const SDL_Rect*) const;
 		int tile_horizontal(const SDL_Rect*) const;
 		int tile_vertical(const SDL_Rect*) const;
 	public:
+		// See bee/resources/background.cpp for function comments
 		Background();
 		Background(std::string, std::string);
 		~Background();

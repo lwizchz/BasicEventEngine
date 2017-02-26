@@ -417,7 +417,9 @@ int BEE::console_init_commands() {
 				std::string cfg = file_get_contents(fn); // Fetch the file contents
 				std::map<int,std::string> commands = handle_newlines(cfg); // Separate the contents by line
 				for (auto& c : commands) { // Iterate over each line and run it
-					this->console_run(c.second, true, 0);
+                    if (!c.second.empty()) {
+                        this->console_run(c.second, true, 0);
+                    }
 				}
 			} else { // If the file cannot be opened, output a warning
 				g->messenger_send({"engine", "console"}, BEE_MESSAGE_WARNING, "The requested exec file \"" + fn + "\" does not exist");

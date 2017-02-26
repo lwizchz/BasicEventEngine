@@ -24,23 +24,16 @@ endif()
 add_subdirectory(bee)
 
 if (WIN32) # Include Windows libraries manually
-	include_directories(${CMAKE_CURRENT_SOURCE_DIR} "win/include")
-
-	foreach(l SDL_image SDL_ttf SDL_mixer SDL_net SDL)
-		set(LIBRARY_HEADERS ${LIBRARY_HEADERS} win/include/SDL2/${l}.h)
-	endforeach(l)
-	foreach(l glew glxew wglew)
-		set(LIBRARY_HEADERS ${LIBRARY_HEADERS} win/include/GL/${l}.h)
-	endforeach(l)
-
 	set(SRC ${${PROJECT_NAME}_SOURCE_DIR})
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-shadow \"-L${SRC}/win/lib\" \"-I${SRC}/win/include\" \"-I${SRC}/lib/doctest/doctest\"")
-	add_executable(${PROJECT_NAME} main.cpp ${LIBRARY_HEADERS} resources/resources.hpp)
-	target_link_libraries(${PROJECT_NAME} BEE)
+	include_directories(${CMAKE_CURRENT_SOURCE_DIR} "${SRC}/win/include")
 
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-shadow \"-L${SRC}/win/lib\" \"-I${SRC}/win/include\" \"-I${SRC}/lib/doctest/doctest\"")
+	add_executable(${PROJECT_NAME} main.cpp resources/resources.hpp)
+	target_link_libraries(${PROJECT_NAME} BEE)
+	
 	# Include SDL2 libraries
 	foreach(l SDL2_image SDL2_ttf SDL2_mixer SDL2_net SDL2)
-		target_link_libraries(${PROJECT_NAME} "lib${l}.dll.a")
+		target_link_libraries(${PROJECT_NAME} "${SRC}/win/lib/lib${l}.dll.a")
 	endforeach(l)
 
 	# Include OpenGL libraries
@@ -48,11 +41,12 @@ if (WIN32) # Include Windows libraries manually
 	set(GLEW_LIBRARY ${SRC}/win/lib/glew32s.lib)
 	set(GLUT_INCLUDE_DIR ${SRC}/win/include)
 	set(GLUT_glut_LIBRARY ${SRC}/win/lib/libfreeglut_static.a)
+	set(ASSIMP_INCLUDE_DIRECTORIES ${SRC}/win/include)
+	set(ASSIMP_LIBRARIES ${SRC}/win/lib/libassimp.dll.a)
 
 	find_package(GLEW REQUIRED)
 	find_package(GLUT REQUIRED)
 	find_package(OpenGL REQUIRED)
-	find_package(ASSIMP REQUIRED)
 
 	include_directories(${GLEW_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRECTORIES} ${OPENGL_INCLUDE_DIRECTORIES} ${ASSIMP_INCLUDE_DIRECTORIES})
 	target_link_libraries(${PROJECT_NAME} ${GLEW_LIBRARIES} ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES} ${ASSIMP_LIBRARIES})

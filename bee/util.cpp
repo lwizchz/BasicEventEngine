@@ -162,6 +162,7 @@ TEST_CASE("date/setters") {
 
 	REQUIRE(date_inc_year(t, 5) == date_create_datetime(2020, 11, 1, 11, 45, 24));
 	REQUIRE(date_inc_month(t, 5) == date_create_datetime(2015, 16, 1, 11, 45, 24));
+	//REQUIRE(date_inc_month(t, 5) == date_create_datetime(2016, 4, 1, 11, 45, 24));
 	REQUIRE(date_inc_week(t, 5) == date_create_datetime(2015, 11, 36, 11, 45, 24));
 	REQUIRE(date_inc_day(t, 5) == date_create_datetime(2015, 11, 6, 11, 45, 24));
 	REQUIRE(date_inc_hour(t, 5) == date_create_datetime(2015, 11, 1, 16, 45, 24));
@@ -191,9 +192,9 @@ TEST_CASE("date/getters") {
 	REQUIRE(date_hour_span(t, ot) == doctest::Approx(164527.34).epsilon(0.01));
 	REQUIRE(date_minute_span(t, ot) == doctest::Approx(9871640.40).epsilon(0.01));
 	REQUIRE(date_second_span(t, ot) == doctest::Approx(592298424.00).epsilon(0.01));
-	REQUIRE(date_compare_datetime(t, ot) == 1);
-	REQUIRE(date_compare_date(t, ot) == 1);
-	REQUIRE(date_compare_time(t, ot) == 1);
+	REQUIRE(date_compare_datetime(t, ot) == -1);
+	REQUIRE(date_compare_date(t, ot) == -1);
+	REQUIRE(date_compare_time(t, ot) == -1);
 	REQUIRE(date_datetime_string(t) == "Sun Nov 01 11:45:24 2015");
 	REQUIRE(date_date_string(t) == "Sun Nov 01 2015");
 	REQUIRE(date_time_string(t) == "11:45:24");

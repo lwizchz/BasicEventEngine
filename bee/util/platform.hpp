@@ -53,6 +53,15 @@ int bee_stoi(const std::string& s) {
 }
 
 /*
+* bee_inc_dst() - Increment the time by 1 hour, given in seconds, in order to handle daylight savings changes
+* ! On non-Windows systems this is a no-op
+* @t: the time to increment
+*/
+time_t bee_inc_dst(time_t t) {
+	return t;
+}
+
+/*
 * bee_has_commandline_input() - Return whether there is input in the commandline without blocking
 */
 bool bee_has_commandline_input() {
@@ -64,6 +73,22 @@ bool bee_has_commandline_input() {
 	return (select(1, &rfds, 0, 0, &tv) > 0); // Return true when the given input is waiting to be read
 }
 
+/*
+* bee_remove() - Delete the given file and return the status
+* @fname: the name of the file to delete
+*/
+int bee_remove(const std::string& fname) {
+	return remove(fname.c_str());
+}
+/*
+* bee_dir_exists() - Return whether the given directory exists
+* @fname: the name of the directory to check
+*/
+bool bee_dir_exists(const std::string& fname) {
+	struct stat st;
+	stat(fname.c_str(), &st); // Get the status of the given file
+	return S_ISDIR(st.st_mode); // Return whether it is a directory or not
+}
 /*
 * bee_mkdir() - Attempt to create a directory with the given path and permissions and return 0 on success
 * @path: the path of the new directory
@@ -235,12 +260,47 @@ int bee_stoi(const std::string& s) {
 }
 
 /*
+* bee_inc_dst() - Increment the time by 1 hour, given in seconds, in order to handle daylight savings changes
+* @t: the time to increment
+*/
+time_t bee_inc_dst(time_t t) {
+	return t + 3600;
+}
+
+
+/*
 * bee_has_commandline_input() - Return whether there is input in the commandline without blocking
 */
 bool bee_has_commandline_input() {
 	return _kbhit();
 }
 
+/*
+* bee_remove() - Delete the given file and return the status
+* @fname: the name of the file to delete
+*/
+int bee_remove(const std::string& fname) {
+	DWORD dwAttr = GetFileAttributes(fname.c_str()); // Get the file attributes
+	if (dwAttr == 0xffffffff) { // If the file does not exist, return false
+        return -1; // Return -1 when the file does not exist
+	}
+    if (dwAttr & FILE_ATTRIBUTE_DIRECTORY) { // If the file is a directory, delete it appropriately
+        return (RemoveDirectory(fname.c_str())) ? 0 : 1; // Return whether the directory could be deleted
+    } else { // Otherwise delete it normally
+        return remove(fname.c_str()); // Return whether the file could be deleted
+    }
+}
+/*
+* bee_dir_exists() - Return whether the given directory exists
+* @fname: the name of the directory to check
+*/
+bool bee_dir_exists(const std::string& fname) {
+	DWORD dwAttr = GetFileAttributes(fname.c_str()); // Get the file attributes
+	if (dwAttr == 0xffffffff) { // If the file does not exist, return false
+        return false;
+	}
+	return (dwAttr & FILE_ATTRIBUTE_DIRECTORY); // Return whether the file is a directory or not
+}
 /*
 * bee_mkdir() - Attempt to create a directory with the given path
 * ! This function accepts a second argument for file permissions but it is unused on Windows
@@ -258,22 +318,36 @@ int bee_mkdir(const char* path, mode_t mode) {
 * @t: the template of the temporary directory in the format "*XXXXXX" (unused on Windows)
 */
 std::string bee_mkdtemp(const std::string& t) {
-	static char path[MAX_PATH]; // Declare the path as static so that subsequent calls will return the same directory
+	/*static char path[MAX_PATH]; // Declare the path as static so that subsequent calls will return the same directory
 	if (path[0] == '\0') { // Check whether the path has been requested yet
 		GetTempPath(MAX_PATH, path); // Request a unique temporary directory path
+
 	}
+	bee_mkdir(path, 0755);
+	return path; // Return the path*/
+	static std::string path; // Declare the path as static so that subsequent calls will return the same directory
+	if (path[0] == '\0') { // Check whether the path has been requested yet
+        char p[MAX_PATH];
+		GetTempPath(MAX_PATH, p); // Request a unique temporary directory path
+        path = p;
+        path += "bee-" + std::to_string(GetCurrentProcessId());
+	}
+	bee_mkdir(path.c_str(), 0755);
 	return path; // Return the path
 }
 
 /*
 * bee_inet_ntop() - Return a IPv4 address string from the given data in Network Byte Order
-* ! This function is broken on Windows, see the below FIXME for details
-* ! See https://msdn.microsoft.com/en-us/library/windows/desktop/cc805843%28v=vs.85%29.aspx for details
 * @src: the address data in Network Byte Order
 */
 std::string bee_inet_ntop(const void* src) {
+    //InetNtop(AF_INET, src, dest, INET_ADDRSTRLEN); // FIXME: it won't let me include the Winsock2 library, ws2_32.lib, so I rewrote the below functionality
+
+    const unsigned char* addr = (unsigned char*) src; // Cast the address data into unsigned chars
 	char dest[INET_ADDRSTRLEN]; // Declare a char array to put the address into
-	//InetNtop(AF_INET, src, dest, INET_ADDRSTRLEN); // FIXME: it won't let me include the Winsock2 library, ws2_32.lib
+
+    sprintf(dest, "%u.%u.%u.%u", addr[0], addr[1], addr[2], addr[3]); // Convert each byte into an unsigned integer, separated by '.'
+
 	return std::string(dest); // Return the address as a string
 }
 

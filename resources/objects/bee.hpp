@@ -237,16 +237,21 @@ void ObjBee::keyboard_press(BEE::InstanceData* self, SDL_Event* e) {
 
 		case SDLK_1: {
 			if (self->id == 0) {
-				snd_chirp->stop();
-				snd_chirp->effect_add(se_none);
-				snd_chirp->play();
+				//snd_chirp->stop();
+				snd_chirp->effect_set(bee_se_none);
+
+				if (snd_chirp->get_is_playing()) {
+					snd_chirp->rewind();
+				} else {
+					snd_chirp->play();
+				}
 			}
 			break;
 		}
 		case SDLK_2: {
 			if (self->id == 0) {
 				snd_chirp->stop();
-				snd_chirp->effect_add(se_echo);
+				snd_chirp->effect_set(bee_se_echo);
 				snd_chirp->play();
 			}
 			break;
@@ -290,7 +295,7 @@ void ObjBee::mouse_input(BEE::InstanceData* self, SDL_Event* e) {
 	if (game->console_get_is_open()) {
 		return;
 	}
-	
+
 	if (e->type == SDL_MOUSEMOTION) {
 		//spr_bee->set_alpha(0.25);
 	}

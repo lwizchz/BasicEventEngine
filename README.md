@@ -11,7 +11,7 @@ and the Object class is used to act upon the events from the main loop. A small
 example is included with all non-engine code in the resources directory.
 
 The available events are the virtual functions of the Object class which are on
-lines 101 to 127 in the file ``bee/resource_structures/object.hpp``
+lines 101 to 127 in the file ``bee/resources/object.hpp``
 
 The software is in early alpha so do not expect any sort of stability. If you
 have any questions or comments, feel free to email me. Also feel free to

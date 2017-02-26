@@ -13,9 +13,9 @@
 
 /*
 * BEE::Sprite::Sprite() - Construct the sprite, set its engine pointer, and reset all variables
-* ! This constructor should only be used for temporary sprites (e.g. framebuffers), the other should be used for all other cases
+* ! This constructor should only be used for temporary sprites (e.g. framebuffers), the other constructor should be used for all other cases
 */
-BEE::Sprite::Sprite () {
+BEE::Sprite::Sprite() {
 	if (BEE::resource_list->sprites.game != nullptr) {
 		game = BEE::resource_list->sprites.game; // Set the engine pointer
 	}
@@ -27,11 +27,11 @@ BEE::Sprite::Sprite () {
 * @new_name: the name of the sprite to use
 * @new_path: the path of the sprite's image
 */
-BEE::Sprite::Sprite (std::string new_name, std::string new_path) {
+BEE::Sprite::Sprite(std::string new_name, std::string new_path) {
 	reset(); // Reset all resource variables
 
 	add_to_resources(); // Add the sprite to the appropriate resource list
-	if (id < 0) { // If the sprite could not be added to the resource list
+	if (id < 0) { // If the sprite could not be added to the resource list, output a warning
 		game->messenger_send({"engine", "resource"}, BEE_MESSAGE_WARNING, "Failed to add sprite resource: \"" + new_name + "\" from " + new_path);
 		throw(-1); // Throw an exception
 	}
@@ -119,7 +119,7 @@ int BEE::Sprite::print() {
 	"\n	has_draw_failed " << has_draw_failed <<
 	"\n	is_lightable    " << is_lightable <<
 	"\n}\n";
-	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str()); // Send the info to the messaging system to output
+	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str()); // Send the info to the messaging system for output
 
 	return 0; // Return 0 on success
 }
@@ -413,7 +413,7 @@ int BEE::Sprite::set_is_lightable(bool new_is_lightable) {
 * @tmp_surface: the temporary surface to load from
 */
 int BEE::Sprite::load_from_surface(SDL_Surface* tmp_surface) {
-	if (!is_loaded) { // Only attempt to load the sprite if nothing has been loaded yet
+	if (!is_loaded) { // Only attempt to load the sprite if it has not already been loaded
  		// Set the sprite dimensions
 		width = tmp_surface->w;
 		height = tmp_surface->h;
@@ -479,14 +479,10 @@ int BEE::Sprite::load_from_surface(SDL_Surface* tmp_surface) {
 			);
 
 			glBindVertexArray(0); // Unbind VAO when done loading
-
-			// Set loaded booleans
-			is_loaded = true;
-			has_draw_failed = false;
 		} else {
 			// Generate an SDL texture from the surface pixels
 			texture = SDL_CreateTextureFromSurface(game->renderer, tmp_surface);
-			if (texture == nullptr) { // If the texture could not be generated
+			if (texture == nullptr) { // If the texture could not be generated, output a warning
 				game->messenger_send({"engine", "sprite"}, BEE_MESSAGE_WARNING, "Failed to create texture from surface for \"" + name + "\": " + get_sdl_error());
 				return 2; // Return 2 on failure
 			}
@@ -494,12 +490,12 @@ int BEE::Sprite::load_from_surface(SDL_Surface* tmp_surface) {
 			// Reset the blend mode and alpha to normal defaults
 			SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
 			SDL_SetTextureAlphaMod(texture, alpha*255);
-
-			// Set loaded booleans
-			is_loaded = true;
-			has_draw_failed = false;
 		}
-	} else { // If the sprite has already been loaded
+
+		// Set loaded booleans
+		is_loaded = true;
+		has_draw_failed = false;
+	} else { // If the sprite has already been loaded, output a warning
 		game->messenger_send({"engine", "sprite"}, BEE_MESSAGE_WARNING, "Failed to load sprite \"" + name + "\" from surface because it has already been loaded");
 		return 1; // Return 1 on failure
 	}
@@ -510,18 +506,18 @@ int BEE::Sprite::load_from_surface(SDL_Surface* tmp_surface) {
 * BEE::Sprite::load() - Load the sprite from its given filename
 */
 int BEE::Sprite::load() {
-	if (!is_loaded) { // Only attempt to load the sprite if nothing has been loaded yet
+	if (!is_loaded) { // Only attempt to load the sprite if it has not already been loaded
 		// Load the sprite into a temporary surface
 		SDL_Surface* tmp_surface;
 		tmp_surface = IMG_Load(path.c_str());
-		if (tmp_surface == nullptr) { // If the surface could not be loaded
+		if (tmp_surface == nullptr) { // If the surface could not be loaded, output a warning
 			game->messenger_send({"engine", "sprite"}, BEE_MESSAGE_WARNING, "Failed to load sprite \"" + name + "\": " + IMG_GetError());
 			return 2; // Return 2 on failure
 		}
 
 		load_from_surface(tmp_surface); // Load the surface into a texture
 		SDL_FreeSurface(tmp_surface); // Free the temporary surface
-	} else { // If the sprite has already been loaded
+	} else { // If the sprite has already been loaded, output a warning
 		game->messenger_send({"engine", "sprite"}, BEE_MESSAGE_WARNING, "Failed to load sprite \"" + name + "\" because it has already been loaded");
 		return 1; // Return 1 on failure
 	}
@@ -532,9 +528,11 @@ int BEE::Sprite::load() {
 * BEE::Sprite::free() - Free the sprite texture and delete all of its buffers
 */
 int BEE::Sprite::free() {
-	if (is_loaded) { // Only attempt to free the textures if the sprite has been loaded
+	if (is_loaded) { // Do not attempt to free the textures if the sprite has not been loaded
 		if (game->options->renderer_type != BEE_RENDERER_SDL) {
-			glDeleteBuffers(1, &vbo_vertices); // Delete the vertex buffer
+			// Delete the vertex and index buffer
+			glDeleteBuffers(1, &vbo_vertices);
+			glDeleteBuffers(1, &ibo);
 
 			// Delete the texture coordinate buffers for each subimage
 			for (auto& t : vbo_texcoords) {
@@ -542,8 +540,7 @@ int BEE::Sprite::free() {
 			}
 			vbo_texcoords.clear();
 
-			// Delete the index buffer, the texture, and the optional framebuffer
-			glDeleteBuffers(1, &ibo);
+			// Delete the texture and the optional framebuffer
 			glDeleteTextures(1, &gl_texture);
 			glDeleteFramebuffers(1, &framebuffer);
 
@@ -571,8 +568,8 @@ int BEE::Sprite::free() {
 * @flip: the type of flip to draw the subimage with
 */
 int BEE::Sprite::draw_subimage(int x, int y, unsigned int current_subimage, int w, int h, double angle, RGBA new_color, SDL_RendererFlip flip) {
-	if (!is_loaded) { // Only attempt to draw the subimage if it has been loaded
-		if (!has_draw_failed) { // If the draw call hasn't failed before, issue a warning
+	if (!is_loaded) { // Do not attempt to draw the subimage if it has not been loaded
+		if (!has_draw_failed) { // If the draw call hasn't failed before, output a warning
 			game->messenger_send({"engine", "sprite"}, BEE_MESSAGE_WARNING, "Failed to draw sprite \"" + name + "\" because it is not loaded");
 			has_draw_failed = true; // Set the draw failure boolean
 		}
@@ -816,8 +813,8 @@ int BEE::Sprite::draw_simple(SDL_Rect* source, SDL_Rect* dest) {
 * @flip: the type of flip to draw the sprites with
 */
 int BEE::Sprite::draw_array(const std::list<SpriteDrawData*>& draw_list, const std::vector<glm::mat4>& rotation_cache, RGBA new_color, SDL_RendererFlip flip) {
-	if (!is_loaded) { // Only attempt to draw the instances if the sprite is loaded
-		if (!has_draw_failed) { // If the draw call hasn't failed yet, issue a warning
+	if (!is_loaded) { // Do not attempt to draw the instances if the sprite is not loaded
+		if (!has_draw_failed) { // If the draw call hasn't failed yet, output a warning
 			game->messenger_send({"engine", "sprite"}, BEE_MESSAGE_WARNING, "Failed to draw sprite instances for \"" + name + "\" because it is not loaded");
 			has_draw_failed = true; // Set the draw failure boolean
 		}
@@ -1043,10 +1040,6 @@ int BEE::Sprite::set_as_target(int w, int h) {
 
 		glBindVertexArray(0); // Unbind VAO when done loading
 
-		// Set the loaded booleans
-		is_loaded = true;
-		has_draw_failed = false;
-
 		return (int)framebuffer; // Return the framebuffer index on success
 	} else {
 		texture = SDL_CreateTexture(game->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w, h); // Create an empty texture
@@ -1056,11 +1049,11 @@ int BEE::Sprite::set_as_target(int w, int h) {
 		}
 
 		SDL_SetRenderTarget(game->renderer, texture); // Set the SDL render target
-
-		// Set the loaded booleans
-		is_loaded = true;
-		has_draw_failed = false;
 	}
+
+	// Set loaded booleans
+	is_loaded = true;
+	has_draw_failed = false;
 
 	return 1; // Return a positive integer on success
 }

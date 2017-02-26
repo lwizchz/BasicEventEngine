@@ -1,4 +1,6 @@
 /build/
+/build2/
+/win/
 gmon.out
 
 *.o

@@ -24,7 +24,7 @@ class BEE::SpriteDrawData { // The data storage struct which is used in instance
 		double angle = 0.0; // The desired rotation angle of the sprite
 };
 
-class BEE::Sprite: public Resource { // The sprite resource class with which all onscreen objects are drawn
+class BEE::Sprite: public Resource { // The sprite resource class with which all on-screen objects (except backgrounds) are drawn
 		int id = -1; // The id of the resource
 		std::string name; // An arbitrary name for the resource
 		std::string path; // The path of the image file which is used as the sprite's texture
@@ -39,7 +39,7 @@ class BEE::Sprite: public Resource { // The sprite resource class with which all
 
 		SDL_Texture* texture; // The internal texture storage for SDL mode
 		bool is_loaded = false; // Whether the image file was successfully loaded into a texture
-		bool has_draw_failed = false; // Whether the draw function has previously failed, this prevents continuous writes to std::cerr
+		bool has_draw_failed = false; // Whether the draw function has previously failed, this prevents continuous warning outputs
 		std::vector<SDL_Rect> subimages; // A list of subimage coordinates and dimensions
 
 		GLuint vao; // The Vertex Array Object which contains most of the following data

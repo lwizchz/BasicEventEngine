@@ -9,6 +9,17 @@
 #ifndef _BEE_ENUM_H
 #define _BEE_ENUM_H 1
 
+enum bee_se_t {
+	bee_se_none       = (1u << 0),
+	bee_se_chorus     = (1u << 1),
+	bee_se_echo       = (1u << 2),
+	bee_se_flanger    = (1u << 3),
+	bee_se_gargle     = (1u << 4),
+	bee_se_reverb     = (1u << 5),
+	bee_se_compressor = (1u << 6),
+	bee_se_equalizer  = (1u << 7)
+};
+
 enum bee_rgba_t {
 	c_cyan, c_aqua = c_cyan,
 	c_black,

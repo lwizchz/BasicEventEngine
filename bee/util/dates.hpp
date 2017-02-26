@@ -12,7 +12,7 @@
 // Date and time functions
 
 #include <string> // Include the required library headers
-#include <time.h>
+#include <ctime>
 #include <cmath>
 #include <functional>
 #include <chrono>
@@ -95,7 +95,7 @@ time_t date_create_date(int year, int month, int day) {
 * @second: the new timestamp's second
 */
 time_t date_create_time(int hour, int minute, int second) {
-	return date_create_datetime(1900, 1, 0, hour, minute, second);
+	return date_create_datetime(1970, 1, 1, hour, minute, second);
 }
 
 /*
@@ -116,7 +116,12 @@ time_t date_inc_year(time_t old_date, int amount) {
 time_t date_inc_month(time_t old_date, int amount) {
 	struct tm* timeinfo = localtime(&old_date); // Convert the timestamp into an info struct, add the given amount, and return the data as a timestamp
 	timeinfo->tm_mon += amount;
-	return mktime(timeinfo);
+
+	time_t r = mktime(timeinfo);
+	if (timeinfo->tm_isdst == 1) { // Handle daylight savings time for Windows
+        	return bee_inc_dst(r); // This function will only increment it for Windows
+	}
+	return r;
 }
 /*
 * date_inc_week() - Return a timestamp with the given timestamp's week incremented by the given amount
@@ -126,7 +131,12 @@ time_t date_inc_month(time_t old_date, int amount) {
 time_t date_inc_week(time_t old_date, int amount) {
 	struct tm* timeinfo = localtime(&old_date); // Convert the timestamp into an info struct, add the given amount, and return the data as a timestamp
 	timeinfo->tm_mday += amount*7;
-	return mktime(timeinfo);
+
+	time_t r = mktime(timeinfo);
+	if (timeinfo->tm_isdst == 1) { // Handle daylight savings time for Windows
+        	return bee_inc_dst(r); // This function will only increment it for Windows
+	}
+	return r;
 }
 /*
 * date_inc_day() - Return a timestamp with the given timestamp's day incremented by the given amount
@@ -136,7 +146,12 @@ time_t date_inc_week(time_t old_date, int amount) {
 time_t date_inc_day(time_t old_date, int amount) {
 	struct tm* timeinfo = localtime(&old_date); // Convert the timestamp into an info struct, add the given amount, and return the data as a timestamp
 	timeinfo->tm_mday += amount;
-	return mktime(timeinfo);
+
+	time_t r = mktime(timeinfo);
+	if (timeinfo->tm_isdst == 1) { // Handle daylight savings time for Windows
+        	return bee_inc_dst(r); // This function will only increment it for Windows
+	}
+	return r;
 }
 /*
 * date_inc_hour() - Return a timestamp with the given timestamp's hour incremented by the given amount
@@ -146,7 +161,12 @@ time_t date_inc_day(time_t old_date, int amount) {
 time_t date_inc_hour(time_t old_date, int amount) {
 	struct tm* timeinfo = localtime(&old_date); // Convert the timestamp into an info struct, add the given amount, and return the data as a timestamp
 	timeinfo->tm_hour += amount;
-	return mktime(timeinfo);
+
+	time_t r = mktime(timeinfo);
+	if (timeinfo->tm_isdst == 1) { // Handle daylight savings time for Windows
+        	return bee_inc_dst(r); // This function will only increment it for Windows
+	}
+	return r;
 }
 /*
 * date_inc_minute() - Return a timestamp with the given timestamp's minute incremented by the given amount
@@ -156,7 +176,12 @@ time_t date_inc_hour(time_t old_date, int amount) {
 time_t date_inc_minute(time_t old_date, int amount) {
 	struct tm* timeinfo = localtime(&old_date); // Convert the timestamp into an info struct, add the given amount, and return the data as a timestamp
 	timeinfo->tm_min += amount;
-	return mktime(timeinfo);
+
+	time_t r = mktime(timeinfo);
+	if (timeinfo->tm_isdst == 1) { // Handle daylight savings time for Windows
+        	return bee_inc_dst(r); // This function will only increment it for Windows
+	}
+	return r;
 }
 /*
 * date_inc_second() - Return a timestamp with the given timestamp's second incremented by the given amount
@@ -166,7 +191,12 @@ time_t date_inc_minute(time_t old_date, int amount) {
 time_t date_inc_second(time_t old_date, int amount) {
 	struct tm* timeinfo = localtime(&old_date); // Convert the timestamp into an info struct, add the given amount, and return the data as a timestamp
 	timeinfo->tm_sec += amount;
-	return mktime(timeinfo);
+
+	time_t r = mktime(timeinfo);
+	if (timeinfo->tm_isdst == 1) { // Handle daylight savings time for Windows
+        	return bee_inc_dst(r); // This function will only increment it for Windows
+	}
+	return r;
 }
 
 /*
@@ -331,7 +361,7 @@ double date_second_span(time_t date1, time_t date2) {
 * @date2: the other timestamp
 */
 int date_compare_datetime(time_t date1, time_t date2) {
-	return sign(date1-date2);
+	return sign(date2-date1);
 }
 /*
 * date_compare_date() - Return an sign value (-1, 0, or 1) depending on the relationship between the two dates
@@ -340,9 +370,7 @@ int date_compare_datetime(time_t date1, time_t date2) {
 * @date2: the other timestamp
 */
 int date_compare_date(time_t date1, time_t date2) {
-	date1 = date_date_of(date1);
-	date2 = date_date_of(date2);
-	return date_compare_datetime(date1, date2);
+	return date_compare_datetime(date_date_of(date1), date_date_of(date2));
 }
 /*
 * date_compare_time() - Return an sign value (-1, 0, or 1) depending on the relationship between the two times
@@ -351,9 +379,7 @@ int date_compare_date(time_t date1, time_t date2) {
 * @date2: the other timestamp
 */
 int date_compare_time(time_t date1, time_t date2) {
-	date1 = date_time_of(date1);
-	date2 = date_time_of(date2);
-	return date_compare_datetime(date1, date2);
+	return date_compare_datetime(date_time_of(date1), date_time_of(date2));
 }
 
 /*
@@ -362,10 +388,10 @@ int date_compare_time(time_t date1, time_t date2) {
 * @date: the timestamp to operate on
 */
 std::string date_datetime_string(time_t date) {
-	char* str = new char[25](); // Allocate space for the formatted string
+	char* str = new char[25]; // Allocate space for the formatted string
 
 	struct tm* timeinfo = localtime(&date); // Convert the timestamp into an info struct
-	strftime(str, 25, "%a %b %d %T %G", timeinfo); // Store a formatted time string in str
+	strftime(str, 25, "%a %b %d %H:%M:%S %Y", timeinfo); // Store a formatted time string in str
 
 	std::string s (str); // Create a string from the character array
 	delete[] str; // Free the character array
@@ -377,11 +403,11 @@ std::string date_datetime_string(time_t date) {
 * @date: the timestamp to operate on
 */
 std::string date_date_string(time_t date) {
-	char* str = new char[25](); // Allocate space for the formatted string
+	char* str = new char[16]; // Allocate space for the formatted string
 	date = date_date_of(date); // Get only the date portion of the timestamp
 
 	struct tm* timeinfo = localtime(&date); // Convert the timestamp into an info struct
-	strftime(str, 25, "%a %b %d %G", timeinfo); // Store the formatted time string in str
+	strftime(str, 16, "%a %b %d %Y", timeinfo); // Store the formatted time string in str
 
 	std::string s (str); // Create a string from the character array
 	delete[] str; // Free the character array
@@ -393,11 +419,11 @@ std::string date_date_string(time_t date) {
 * @date: the timestamp to operate on
 */
 std::string date_time_string(time_t date) {
-	char* str = new char[25](); // Allocate space for the formatted string
+	char* str = new char[9]; // Allocate space for the formatted string
 	date = date_time_of(date); // Get only the time portion of the timestamp
 
 	struct tm* timeinfo = localtime(&date); // Convert the timestamp into an info struct
-	strftime(str, 25, "%T", timeinfo); // Store the formatted time string in str
+	strftime(str, 9, "%H:%M:%S", timeinfo); // Store the formatted time string in str
 
 	std::string s (str); // Create a string from the character array
 	delete[] str; // Free the character array

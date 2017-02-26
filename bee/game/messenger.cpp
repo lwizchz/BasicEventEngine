@@ -289,12 +289,13 @@ int BEE::handle_messages() {
 	// Process messages with recipient functions
 	std::exception_ptr ep; // Store any thrown values
 	for (auto& msg : messages) { // Iterate over the messages
-		if (t < msg->tickstamp) { // If the message should be processed in the future, skip it
+		auto m = msg; // Create an extra reference to the smart pointer to prevent it from being deallocated during the loop
+		if (t < m->tickstamp) { // If the message should be processed in the future, skip it
 			continue;
 		}
 
-		for (auto& tag : msg->tags) { // Iterate over the message's tags
-			if (msg->has_processed) { // If the message has already been processed, skip it
+		for (auto& tag : m->tags) { // Iterate over the message's tags
+			if (m->has_processed) { // If the message has already been processed, skip it
 				continue;
 			}
 
@@ -302,17 +303,17 @@ int BEE::handle_messages() {
 			if (rt != recipients.end()) {
 				for (auto& recv : recipients[tag]) { // Iterate over the recipients who wish to process the tag
 					if (recv->is_strict) { // If the recipient is strict
-						if (recv->tags != msg->tags) { // If the tags don't match, skip it
+						if (recv->tags != m->tags) { // If the tags don't match, skip it
 							continue;
 						} else { // Otherwise set the processed flag so that the message isn't handled multiple times
-							msg->has_processed = true;
+							m->has_processed = true;
 						}
 					}
 
 					// Call the recipient function
 					if (recv->func != nullptr) {
 						try {
-							recv->func(this, msg);
+							recv->func(this, m);
 						} catch (int e) { // Catch several kinds of exceptions that the recipient might throw
 							ep = std::current_exception();
 							bee_commandline_color(9);
@@ -330,8 +331,8 @@ int BEE::handle_messages() {
 				}
 			}
 		}
-		if (msg != nullptr) { // Set the processed flag after iterating over all message tags
-			msg->has_processed = true;
+		if (m != nullptr) { // Set the processed flag after iterating over all message tags
+			m->has_processed = true;
 		}
 	}
 
