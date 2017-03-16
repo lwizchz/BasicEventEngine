@@ -15,6 +15,8 @@
 #include <algorithm>
 #include <fstream>
 
+#include <btBulletDynamicsCommon.h>
+
 #include "../game.hpp"
 
 template <typename A, typename B>
@@ -49,6 +51,8 @@ class BEE::Room: public Resource {
 		std::vector<InstanceData*> destroyed_instances;
 		bool should_sort = false;
 
+		std::map<bee_event_t,std::map<InstanceData*,int,InstanceDataSort>> instances_sorted_events;
+
 		std::map<int,ParticleSystem*> particles;
 		int particle_count = 0;
 		int next_instance_id = 0;
@@ -57,9 +61,8 @@ class BEE::Room: public Resource {
 		std::vector<LightableData*> lightables;
 		Sprite* light_map = nullptr;
 
-		CollisionTree* collision_tree = nullptr;
-		int tree_width;
-		int tree_x, tree_y;
+		PhysicsWorld* physics_world = nullptr;
+		std::map<const btRigidBody*,InstanceData*> physics_instances;
 
 		std::string instance_map = "";
 
@@ -90,6 +93,7 @@ class BEE::Room: public Resource {
 		const std::map<int,InstanceData*>& get_instances();
 		std::string get_instance_string();
 		ViewData* get_current_view();
+		PhysicsWorld* get_phys_world();
 
 		int set_name(std::string);
 		int set_path(std::string);
@@ -106,8 +110,8 @@ class BEE::Room: public Resource {
 		int set_is_views_enabled(bool);
 		int set_view(int, ViewData*);
 		int set_instance(int, InstanceData*);
-		int add_instance(int, Object*, int, int);
-		int add_instance_grid(int, Object*, double, double);
+		InstanceData* add_instance(int, Object*, double, double, double);
+		int add_instance_grid(int, Object*, double, double, double);
 		int remove_instance(int);
 		int sort_instances();
 		int request_instance_sort();
@@ -117,7 +121,6 @@ class BEE::Room: public Resource {
 		int add_lightable(LightableData*);
 		int add_light(LightData);
 		int handle_lights();
-		int expand_collision_tree(int, int);
 
 		int load_media();
 		int free_media();

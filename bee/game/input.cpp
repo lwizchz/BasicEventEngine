@@ -97,9 +97,14 @@ int BEE::set_mouse_global_y(int new_my) const {
 * @instance: the instance to check a collision for
 */
 bool BEE::is_mouse_inside(const InstanceData& instance) const {
-	SDL_Rect i = {(int)instance.x, (int)instance.y, (int)instance.mask.w, (int)instance.mask.h}; // Create a bounding box based on the instance's CollisionPolygon
-	SDL_Rect m = {get_mouse_x(), get_mouse_y(), 0, 0};
-	return check_collision(i, m); // Return whether the instance collides with the mouse
+	Sprite* m = instance.object->get_mask();
+	if (m == nullptr) {
+		return false;
+	}
+
+	SDL_Rect inst = {(int)instance.get_x(), (int)instance.get_y(), (int)m->get_width(), (int)m->get_height()}; // Create a bounding box based on the instance's mask
+	SDL_Rect mouse = {get_mouse_x(), get_mouse_y(), 0, 0};
+	return check_collision(inst, mouse); // Return whether the instance collides with the mouse
 }
 
 /*

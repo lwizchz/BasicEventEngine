@@ -243,8 +243,8 @@ int BEE::ParticleSystem::draw() {
 int BEE::ParticleSystem::draw(Uint32 now, bool should_draw) {
 	int sx = xoffset, sy = yoffset;
 	if (following != nullptr) {
-		sx += following->x;
-		sy += following->y;
+		sx += following->get_x();
+		sy += following->get_y();
 	}
 
 	for (auto& p : particles) {
@@ -255,8 +255,8 @@ int BEE::ParticleSystem::draw(Uint32 now, bool should_draw) {
 		for (auto& d : destroyers) {
 			int dx = sx, dy = sy;
 			if (d->following != nullptr) {
-				dx = d->following->x;
-				dy = d->following->y;
+				dx = d->following->get_x();
+				dy = d->following->get_y();
 			}
 
 			SDL_Rect a = {(int)p->x, (int)p->y, (int)p->w, (int)p->h};
@@ -274,8 +274,8 @@ int BEE::ParticleSystem::draw(Uint32 now, bool should_draw) {
 		for (auto& c : changers) {
 			int cx = sx, cy = sy;
 			if (c->following != nullptr) {
-				cx = c->following->x;
-				cy = c->following->y;
+				cx = c->following->get_x();
+				cy = c->following->get_y();
 			}
 
 			SDL_Rect a = {(int)p->x, (int)p->y, (int)p->w, (int)p->h};
@@ -296,8 +296,8 @@ int BEE::ParticleSystem::draw(Uint32 now, bool should_draw) {
 		for (auto& a : attractors) {
 			int ax = sx, ay = sy;
 			if (a->following != nullptr) {
-				ax = a->following->x;
-				ay = a->following->y;
+				ax = a->following->get_x();
+				ay = a->following->get_y();
 			}
 
 			double ds = dist_sqr(p->x, p->y, ax+a->x+a->w/2, ay+a->y+a->h/2);
@@ -325,8 +325,8 @@ int BEE::ParticleSystem::draw(Uint32 now, bool should_draw) {
 		for (auto& d : deflectors) {
 			int dx = sx, dy = sy;
 			if (d->following != nullptr) {
-				dx = d->following->x;
-				dy = d->following->y;
+				dx = d->following->get_x();
+				dy = d->following->get_y();
 			}
 
 			SDL_Rect a = {(int)p->x, (int)p->y, (int)p->w, (int)p->h};
@@ -341,8 +341,8 @@ int BEE::ParticleSystem::draw(Uint32 now, bool should_draw) {
 	for (auto& e : emitters) {
 		int ex = sx, ey = sy;
 		if (e->following != nullptr) {
-			ex = e->following->x;
-			ey = e->following->y;
+			ex = e->following->get_x();
+			ey = e->following->get_y();
 		}
 
 		if (e->number >= 0) {
@@ -373,8 +373,8 @@ int BEE::ParticleSystem::draw(Uint32 now, bool should_draw) {
 				p->sprite_data->x = xoffset + p->x - p->w/2;
 				p->sprite_data->y = yoffset + p->y - p->h/2;
 				if (following != nullptr) {
-					p->sprite_data->x += following->x;
-					p->sprite_data->y += following->y;
+					p->sprite_data->x += following->get_x();
+					p->sprite_data->y += following->get_y();
 				}
 				p->sprite_data->subimage_time = p->creation_time;
 				p->sprite_data->w = p->w;
@@ -409,8 +409,8 @@ int BEE::ParticleSystem::draw(Uint32 now, bool should_draw) {
 int BEE::ParticleSystem::draw_debug() {
 	int sx = xoffset, sy = yoffset;
 	if (following != nullptr) {
-		sx += following->x;
-		sy += following->y;
+		sx += following->get_x();
+		sy += following->get_y();
 	}
 
 	for (auto& p : particles) {
@@ -419,40 +419,40 @@ int BEE::ParticleSystem::draw_debug() {
 	for (auto& e : emitters) {
 		int ex = sx, ey = sy;
 		if (e->following != nullptr) {
-			ex = e->following->x;
-			ey = e->following->y;
+			ex = e->following->get_x();
+			ey = e->following->get_y();
 		}
 		game->draw_rectangle(ex+e->x, ey+e->y, e->w, e->h, false, c_green);
 	}
 	for (auto& a : attractors) {
 		int ax = sx, ay = sy;
 		if (a->following != nullptr) {
-			ax = a->following->x;
-			ay = a->following->y;
+			ax = a->following->get_x();
+			ay = a->following->get_y();
 		}
 		game->draw_rectangle(ax+a->x, ay+a->y, a->w, a->h, false, c_magenta);
 	}
 	for (auto& d : destroyers) {
 		int dx = sx, dy = sx;
 		if (d->following != nullptr) {
-			dx = d->following->x;
-			dy = d->following->y;
+			dx = d->following->get_x();
+			dy = d->following->get_y();
 		}
 		game->draw_rectangle(dx+d->x, dy+d->y, d->w, d->h, false, c_red);
 	}
 	for (auto& d : deflectors) {
 		int dx = sx, dy = sx;
 		if (d->following != nullptr) {
-			dx = d->following->x;
-			dy = d->following->y;
+			dx = d->following->get_x();
+			dy = d->following->get_y();
 		}
 		game->draw_rectangle(dx+d->x, dy+d->y, d->w, d->h, false, c_navy);
 	}
 	for (auto& c : changers) {
 		int cx = sx, cy = sx;
 		if (c->following != nullptr) {
-			cx = c->following->x;
-			cy = c->following->y;
+			cx = c->following->get_x();
+			cy = c->following->get_y();
 		}
 		game->draw_rectangle(cx+c->x, cy+c->y, c->w, c->h, false, c_yellow);
 	}

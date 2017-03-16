@@ -65,6 +65,10 @@ TEST_CASE("real/movement") {
 	REQUIRE(distance(0.0, 0.0, 1.0, 0.0) == 1.0);
 	REQUIRE(distance(0.0, 0.0, 3.0, 4.0) == 5.0);
 	REQUIRE(distance(0.0, 0.0, 0.0, 0.0) == 0.0);
+
+	REQUIRE(bt_to_glm3(btVector3(0.0, 1.0, 2.0)) == glm::vec3(0.0, 1.0, 2.0));
+	REQUIRE(glm_to_bt3(glm::vec3(0.0, 1.0, 2.0)) == btVector3(0.0, 1.0, 2.0));
+	REQUIRE(bt_to_glm3(glm_to_bt3(glm::vec3(0.0, 1.0, 2.0))) == glm::vec3(0.0, 1.0, 2.0));
 }
 TEST_CASE("real/dot_product") {
 	REQUIRE(dot_product(1, 2, 3, 4) == 11);

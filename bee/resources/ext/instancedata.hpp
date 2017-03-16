@@ -16,14 +16,14 @@
 #define _BEE_ROOM_OPERATOR 1
 #endif // _BEE_ROOM
 
+#include <btBulletDynamicsCommon.h>
+
 #include "../../game.hpp"
 
 class BEE::InstanceData {
-		double xstart = 0.0, ystart = 0.0;
+		double xstart = 0.0, ystart = 0.0, zstart = 0.0;
 
-		double friction = 0.0;
-		double gravity = 0.0, gravity_direction = 270.0;
-		double acceleration = 0.0, acceleration_amount = 0.0;
+		PhysicsBody* body = nullptr;
 
 		Path* path = nullptr;
 		double path_speed = 0.0;
@@ -40,16 +40,13 @@ class BEE::InstanceData {
 		Uint32 alarm_end[ALARM_COUNT];
 		int depth = 0;
 
-		double x = 0.0, y = 0.0;
-		double xprevious = 0.0, yprevious = 0.0;
-		std::list<std::pair<double,double>> velocity, old_velocity;
-		int path_xstart = 0, path_ystart = 0;
-
-		CollisionPolygon mask;
+		double xprevious = 0.0, yprevious = 0.0, zprevious = 0.0;
+		double path_xstart = 0.0, path_ystart = 0.0, path_zstart = 0.0;
 
 		InstanceData();
-		InstanceData(BEE*, int, Object*, int, int);
-		int init(int, Object*, int, int);
+		InstanceData(BEE*, int, Object*, double, double, double);
+		~InstanceData();
+		int init(int, Object*, double, double, double);
 		int print();
 
 		bool operator< (const InstanceData& other) const;
@@ -60,60 +57,58 @@ class BEE::InstanceData {
 
 		int set_object(Object*);
 
-		double get_xstart();
-		double get_ystart();
-		int get_width();
-		int get_height();
-		double get_center_x();
-		double get_center_y();
+		btVector3 get_position() const;
+		double get_x() const;
+		double get_y() const;
+		double get_z() const;
+		double get_corner_x() const;
+		double get_corner_y() const;
+		double get_xstart() const;
+		double get_ystart() const;
 
+		PhysicsBody* get_physbody() const;
+
+		int get_width() const;
+		int get_height() const;
+		SDL_Rect get_aabb() const;
+
+		int set_position(btVector3);
+		int set_position(double, double, double);
 		int move(double, double);
 		int move_to(double, double, double);
 		int move_away(double, double, double);
 		int set_friction(double);
-		int set_gravity(double);
-		int set_gravity_direction(double);
-		int set_gravity_acceleration(double);
-		int reset_gravity_acceleration();
-		bool check_collision_polygon(const CollisionPolygon&, const CollisionPolygon&);
-		bool check_collision_polygon(const CollisionPolygon&);
-		int move_outside(const Line&, const CollisionPolygon&);
-		int move_avoid(const CollisionPolygon&);
+		int set_gravity(btVector3);
+		int set_gravity(double, double, double);
+		int move_outside(btVector3);
 
-		std::pair<double,double> get_motion();
-		std::pair<double,double> get_applied_gravity();
-		std::pair<double,double> get_position();
-		double get_hspeed();
-		double get_vspeed();
-		double get_direction();
-		double get_speed();
-		double get_friction();
-		double get_gravity();
-		double get_gravity_direction();
-		double get_gravity_acceleration();
-		double get_gravity_acceleration_amount();
+		double get_speed() const;
+		btVector3 get_velocity() const;
+		btVector3 get_velocity_ang() const;
+		double get_friction() const;
+		btVector3 get_gravity() const;
 
-		bool is_place_free(int, int);
-		bool is_place_empty(int, int);
-		bool is_place_meeting(int, int, Object*);
-		bool is_place_meeting(int, int, int);
+		bool is_place_free(int, int) const;
+		bool is_place_empty(int, int) const;
+		bool is_place_meeting(int, int, Object*) const;
+		bool is_place_meeting(int, int, int) const;
 		bool is_move_free(double, double);
-		bool is_snapped(int, int);
+		bool is_snapped(int, int) const;
 
+		std::pair<int,int> get_snapped(int, int) const;
+		std::pair<int,int> get_snapped() const;
 		int move_random(int, int);
-		std::pair<int,int> get_snapped(int, int);
-		std::pair<int,int> get_snapped();
 		int move_snap(int, int);
 		int move_snap();
 		int move_wrap(bool, bool, int);
 
-		double get_distance(int, int);
-		double get_distance(InstanceData*);
-		double get_distance(Object*);
-		double get_direction_of(int, int);
-		double get_direction_of(InstanceData*);
-		double get_direction_of(Object*);
-		int get_relation(InstanceData*);
+		double get_distance(int, int) const;
+		double get_distance(InstanceData*) const;
+		double get_distance(Object*) const;
+		double get_direction_of(int, int) const;
+		double get_direction_of(InstanceData*) const;
+		double get_direction_of(Object*) const;
+		int get_relation(InstanceData*) const;
 
 		int path_start(Path*, double, int, bool);
 		int path_end();
@@ -139,8 +134,6 @@ class BEE::InstanceData {
 		int draw(SDL_RendererFlip);
 
 		int draw_path();
-
-		int draw_debug();
 };
 
 #ifdef _BEE_ROOM_OPERATOR

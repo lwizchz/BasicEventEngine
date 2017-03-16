@@ -316,9 +316,11 @@ int BEE::handle_messages() {
 							recv->func(this, m);
 						} catch (int e) { // Catch several kinds of exceptions that the recipient might throw
 							ep = std::current_exception();
-							bee_commandline_color(9);
-							std::cout << "MSG ERR (" << get_ticks() << "ms): exception " << e << " thrown by recipient \"" << recv->name << "\"\n";
-							bee_commandline_color_reset();
+							if (recv->name != "console_quit") {
+								bee_commandline_color(9);
+								std::cout << "MSG ERR (" << get_ticks() << "ms): exception " << e << " thrown by recipient \"" << recv->name << "\"\n";
+								bee_commandline_color_reset();
+							}
 						} catch (const char* e) {
 							ep = std::current_exception();
 							bee_commandline_color(9);

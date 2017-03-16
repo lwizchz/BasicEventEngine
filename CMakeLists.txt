@@ -9,11 +9,12 @@ set(VERSION_RELEASE "2")
 ### TODO
 set(BEE_GAME_ID "11111111")
 
-set(warns "-Wall -Wextra -Wpedantic -Wshadow -Wno-unused-parameter")
+#set(warns "-Wall -Wextra -Wpedantic -Wshadow -Wno-unused-parameter")
+set(warns "-Wall -Wextra -Wpedantic -Wno-unused-parameter")
 set(defines "-DBEE_GAME_ID=${BEE_GAME_ID} -DBEE_VERSION_MAJOR=${VERSION_MAJOR} -DBEE_VERSION_MINOR=${VERSION_MINOR} -DBEE_VERSION_RELEASE=${VERSION_RELEASE}")
 set(CMAKE_CXX_FLAGS "-g -pg -pipe -std=c++11 ${warns} -D_REENTRANT ${defines}")
 
-include_directories("lib/doctest/doctest/")
+include_directories("lib/doctest/doctest/" "/usr/include/bullet/")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/lib/")
 
 # Enable link time optimization if it is supported
@@ -30,7 +31,7 @@ if (WIN32) # Include Windows libraries manually
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-shadow \"-L${SRC}/win/lib\" \"-I${SRC}/win/include\" \"-I${SRC}/lib/doctest/doctest\"")
 	add_executable(${PROJECT_NAME} main.cpp resources/resources.hpp)
 	target_link_libraries(${PROJECT_NAME} BEE)
-	
+
 	# Include SDL2 libraries
 	foreach(l SDL2_image SDL2_ttf SDL2_mixer SDL2_net SDL2)
 		target_link_libraries(${PROJECT_NAME} "${SRC}/win/lib/lib${l}.dll.a")
@@ -71,7 +72,8 @@ else() # Include Unix libraries automatically
 	find_package(GLUT REQUIRED)
 	find_package(OpenGL REQUIRED)
 	find_package(ASSIMP REQUIRED)
+	find_package(Bullet REQUIRED)
 
-	include_directories(${GLEW_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRECTORIES} ${OPENGL_INCLUDE_DIRECTORIES} ${ASSIMP_INCLUDE_DIRECTORIES})
-	target_link_libraries(${PROJECT_NAME} ${GLEW_LIBRARIES} ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES} ${ASSIMP_LIBRARIES})
+	include_directories(${GLEW_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRECTORIES} ${OPENGL_INCLUDE_DIRECTORIES} ${ASSIMP_INCLUDE_DIRECTORIES} ${BULLET_INCLUDE_DIRS})
+	target_link_libraries(${PROJECT_NAME} ${GLEW_LIBRARIES} ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES} ${ASSIMP_LIBRARIES} ${BULLET_LIBRARIES})
 endif()

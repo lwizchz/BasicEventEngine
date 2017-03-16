@@ -6,25 +6,11 @@
 * See LICENSE for more details.
 */
 
-class ObjBee : public BEE::Object {
+class ObjBee : public BEE::Object/*<ObjBee>*/ {
 	public:
-		class ObjBeeData {
-			public:
-				BEE::InstanceData* self;
-				ObjBee* object;
-
-				BEE::TextData* fps_display;
-				float camx = 0.0;
-				float camy = 0.0;
-				float camz = 0.0;
-				float camspeed = 2.0;
-		};
-		std::map<int,ObjBeeData*> data;
-		ObjBeeData* s;
-
 		ObjBee();
 		~ObjBee();
-		void update(BEE::InstanceData*) override final;
+		/*void update(BEE::InstanceData*) override final;
 		void create(BEE::InstanceData*) override final;
 		void destroy(BEE::InstanceData*) override final;
 		void alarm(BEE::InstanceData*, int) override final;
@@ -34,9 +20,21 @@ class ObjBee : public BEE::Object {
 		void mouse_input(BEE::InstanceData*, SDL_Event*) override final;
 		void commandline_input(BEE::InstanceData*, const std::string&) override final;
 		void collision(BEE::InstanceData*, BEE::InstanceData*) override final;
-		void draw(BEE::InstanceData*) override final;
+		void draw(BEE::InstanceData*) override final;*/
+
+		void update(BEE::InstanceData*);
+		void create(BEE::InstanceData*);
+		void destroy(BEE::InstanceData*);
+		void alarm(BEE::InstanceData*, int);
+		void step_mid(BEE::InstanceData*);
+		void keyboard_press(BEE::InstanceData*, SDL_Event*);
+		void mouse_press(BEE::InstanceData*, SDL_Event*);
+		void mouse_input(BEE::InstanceData*, SDL_Event*);
+		void commandline_input(BEE::InstanceData*, const std::string&);
+		void collision(BEE::InstanceData*, BEE::InstanceData*);
+		void draw(BEE::InstanceData*);
 };
-ObjBee::ObjBee() : Object("obj_bee", "bee.hpp") {
+ObjBee::ObjBee() : Object/*<ObjBee>*/("obj_bee", "bee.hpp") {
 	implemented_events[BEE_EVENT_UPDATE] = true;
 	implemented_events[BEE_EVENT_CREATE] = true;
 	implemented_events[BEE_EVENT_DESTROY] = true;
@@ -53,25 +51,34 @@ ObjBee::ObjBee() : Object("obj_bee", "bee.hpp") {
 }
 ObjBee::~ObjBee() {}
 void ObjBee::update(BEE::InstanceData* self) {
-	if (!data.empty()) {
-		s = (*data.find(self->id)).second;
-		s->self = self;
-		s->object = this;
+	if (!instance_data.empty()) {
+		s = &instance_data[self->id];
 	}
 }
 void ObjBee::create(BEE::InstanceData* self) {
-	data.insert(std::make_pair(self->id, new ObjBeeData()));
+	instance_data[self->id].clear();
 	update(self);
+
+	//self->get_physbody()->set_mass(1.0);
+	double p[3] = {100.0, 100.0, 1.0};
+	self->get_physbody()->set_shape(BEE_PHYS_SHAPE_BOX, p);
+	self->get_physbody()->get_world()->add_constraint(BEE_PHYS_CONSTRAINT_2D, self->get_physbody(), nullptr);
 
 	// create event
 	std::cout << "u r a b " << self->id << "\n";
-	s->fps_display = nullptr;
+	(*s)["fps_display"] = (void*)nullptr;
+
 	//self->set_alarm(0, 2000);
 	//spr_bee->set_alpha(0.5);
 	//self->set_gravity(7.0);
 	//show_message(font_liberation->get_fontname());
 
 	if (self->id == 0) {
+		(*s)["camx"] = 0.0;
+		(*s)["camy"] = 0.0;
+		(*s)["camz"] = 0.0;
+		(*s)["camspeed"] = 2.0;
+
 		BEE::ParticleSystem* part_system = new BEE::ParticleSystem(game);
 		//part_system->following = nullptr;
 
@@ -109,9 +116,9 @@ void ObjBee::create(BEE::InstanceData* self) {
 }
 void ObjBee::destroy(BEE::InstanceData* self) {
 	if (self->id == 0) {
-		delete s->fps_display;
+		delete (BEE::TextData*)(*s)["fps_display"].p();
 	}
-	data.erase(self->id);
+	instance_data.erase(self->id);
 }
 void ObjBee::alarm(BEE::InstanceData* self, int a) {
 	switch (a) {
@@ -134,7 +141,7 @@ void ObjBee::step_mid(BEE::InstanceData* self) {
 		if (game->render_get_3d()) {
 			//game->render_set_camera(new BEE::Camera(glm::vec3(1920.0/2.0, 1080.0/2.0, -540.0), glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
 			//game->render_set_camera(new BEE::Camera(glm::vec3(1920.0/2.0 + s->camx, 1080.0/2.0 + s->camy, -540.0 + s->camz), glm::vec3((1920.0/2.0-game->get_mouse_global_x())/1920.0, (1080.0/2.0-game->get_mouse_global_y())/1080.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
-			game->render_set_camera(new BEE::Camera(glm::vec3(s->camx, s->camy, -540.0 + s->camz), glm::vec3((-1920.0/2.0+game->get_mouse_global_x())/1920.0*2.0, (-1080.0/2.0+game->get_mouse_global_y())/1080.0*2.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
+			game->render_set_camera(new BEE::Camera(glm::vec3((*s)["camx"].d(), (*s)["camy"].d(), -540.0 + (*s)["camz"].d()), glm::vec3((-1920.0/2.0+game->get_mouse_global_x())/1920.0*2.0, (-1080.0/2.0+game->get_mouse_global_y())/1080.0*2.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
 			//game->render_set_camera(new BEE::Camera(glm::vec3(1920.0-game->get_mouse_global_x(), 1080.0-game->get_mouse_global_y(), -540.0), glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
 		}
 	}
@@ -168,27 +175,27 @@ void ObjBee::keyboard_press(BEE::InstanceData* self, SDL_Event* e) {
 			break;
 		}*/
 		case SDLK_w: {
-			s->camz += s->camspeed;
+			(*s)["camz"] += (*s)["camspeed"];
 			break;
 		}
 		case SDLK_s: {
-			s->camz -= s->camspeed;
+			(*s)["camz"] -= (*s)["camspeed"];
 			break;
 		}
 		case SDLK_a: {
-			s->camx -= s->camspeed;
+			(*s)["camx"] -= (*s)["camspeed"];
 			break;
 		}
 		case SDLK_d: {
-			s->camx += s->camspeed;
+			(*s)["camx"] += (*s)["camspeed"];
 			break;
 		}
 		case SDLK_q: {
-			s->camy += s->camspeed;
+			(*s)["camy"] += (*s)["camspeed"];
 			break;
 		}
 		case SDLK_e: {
-			s->camy -= s->camspeed;
+			(*s)["camy"] -= (*s)["camspeed"];
 			break;
 		}
 
@@ -278,13 +285,16 @@ void ObjBee::mouse_press(BEE::InstanceData* self, SDL_Event* e) {
 
 	switch (e->button.button) {
 		case SDL_BUTTON_LEFT: {
-			SDL_Rect a = {(int)self->x, (int)self->y, get_mask()->get_subimage_width(), get_mask()->get_height()};
+			SDL_Rect a = {(int)self->get_x(), (int)self->get_y(), get_mask()->get_subimage_width(), get_mask()->get_height()};
 			SDL_Rect b = {e->button.x, e->button.y, 20, 20};
 			if (check_collision(a, b)) {
-				std::tie(self->x, self->y) = coord_approach(self->x, self->y, game->get_mouse_x(), game->get_mouse_y(), 10, game->get_delta());
+				double nx = 0.0, ny = 0.0;
+				std::tie(nx, ny) = coord_approach(self->get_x(), self->get_y(), game->get_mouse_x(), game->get_mouse_y(), 10, game->get_delta());
+				self->set_position(nx, ny, 0.0);
 			} else if (self->id == 0) {
 				if (self->is_place_empty(game->get_mouse_x(), game->get_mouse_y())) {
-					game->get_current_room()->add_instance(-1, this, game->get_mouse_x(), game->get_mouse_y());
+					BEE::InstanceData* bee = game->get_current_room()->add_instance(-1, this, game->get_mouse_x(), game->get_mouse_y(), 0.0);
+					bee->get_physbody()->set_mass(1.0);
 				}
 			}
 			break;
@@ -300,14 +310,16 @@ void ObjBee::mouse_input(BEE::InstanceData* self, SDL_Event* e) {
 		//spr_bee->set_alpha(0.25);
 	}
 	if (e->motion.state & SDL_BUTTON_LMASK) {
-		SDL_Rect a = {(int)self->x, (int)self->y, get_mask()->get_subimage_width(), get_mask()->get_height()};
+		SDL_Rect a = {(int)self->get_x(), (int)self->get_y(), get_mask()->get_subimage_width(), get_mask()->get_height()};
 		SDL_Rect b = {e->button.x, e->button.y, 20, 20};
 		if (check_collision(a, b)) {
-			std::tie(self->x, self->y) = coord_approach(self->x, self->y, game->get_mouse_x(), game->get_mouse_y(), 10, game->get_delta());
+			double nx = 0.0, ny = 0.0;
+			std::tie(nx, ny) = coord_approach(self->get_x(), self->get_y(), game->get_mouse_x(), game->get_mouse_y(), 10, game->get_delta());
+			self->set_position(nx, ny, 0.0);
 		} else if (self->id == 0) {
-			if (self->is_place_empty(game->get_mouse_x(), game->get_mouse_y())) {
+			/*if (self->is_place_empty(game->get_mouse_x(), game->get_mouse_y())) {
 				game->get_current_room()->add_instance(-1, this, game->get_mouse_x(), game->get_mouse_y());
-			}
+			}*/
 		}
 	}
 }
@@ -316,17 +328,23 @@ void ObjBee::commandline_input(BEE::InstanceData* self, const std::string& str) 
 	std::cout << "bee" << self->id << ":~~~" << str << "~~~\n";
 }
 void ObjBee::collision(BEE::InstanceData* self, BEE::InstanceData* other) {
-	self->move_away(2.0, other->x, other->y);
+	//self->move_away(2.0, other->get_x(), other->get_y());
 }
 void ObjBee::draw(BEE::InstanceData* self) {
 	int mx, my;
 	std::tie(mx, my) = game->get_mouse_position();
 	int size = 100;
-	self->draw(size, size, direction_of(self->x, self->y, mx, my), c_white, SDL_FLIP_NONE);
+	//self->draw(size, size, direction_of(self->get_x(), self->get_y(), mx, my), c_white, SDL_FLIP_NONE);
 
-	font_liberation->draw_fast(self->x, self->y, bee_itos(self->id));
+	double r = radtodeg(self->get_physbody()->get_rotation_z());
+	self->draw(size, size, r, c_white, SDL_FLIP_NONE);
+	if (r != 0.0) {
+		//std::cerr << "rotation: " << r << "\n";
+	}
 
-	lt_bee->set_position(glm::vec4(self->x, self->y, 0.0, 1.0));
+	font_liberation->draw_fast(self->get_corner_x(), self->get_corner_y(), bee_itos(self->id));
+
+	lt_bee->set_position(glm::vec4(self->get_x(), self->get_y(), 0.0, 1.0));
 	lt_bee->set_color({(Uint8)(self->id*50), (Uint8)(self->id*20), 255, 255});
 	lt_bee->queue();
 
@@ -339,6 +357,6 @@ void ObjBee::draw(BEE::InstanceData* self) {
 		float a = 180.0f + radtodeg(sin(t));
 		mesh_monkey->draw(glm::vec3(1000.0f+500.0f*cos(t), 500.0f+300.0f*sin(t), 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, a, 180.0f), {255, 255, 0, 255}, false);
 
-		s->fps_display = font_liberation->draw(s->fps_display, 0, 0, "FPS: " + bee_itos(game->fps_stable));
+		(*s)["fps_display"] = (void*)font_liberation->draw((BEE::TextData*)(*s)["fps_display"].p(), 0, 0, "FPS: " + bee_itos(game->fps_stable));
 	}
 }

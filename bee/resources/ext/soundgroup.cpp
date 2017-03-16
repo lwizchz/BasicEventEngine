@@ -74,7 +74,7 @@ int BEE::SoundGroup::set_name(std::string new_name) {
 int BEE::SoundGroup::add_sound(std::string sound_name, std::string sound_path) {
 	Sound* new_sound = new Sound(sound_name, sound_path, false);
 	new_sound->set_volume(0.0);
-	sounds.insert(std::make_pair(sound_name, new_sound));
+	sounds.emplace(sound_name, new_sound);
 	return 0;
 }
 int BEE::SoundGroup::set_volume(std::string sound_name, double new_volume) {

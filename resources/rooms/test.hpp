@@ -33,14 +33,18 @@ int RmTest::init() {
 	set_width(1920);
 	set_height(1080);
 
+	// Set up physics
+	get_phys_world()->set_gravity(btVector3(0.0, 10.0, 0.0));
+	get_phys_world()->set_scale(100.0);
+
 	// set backgrounds
 	add_background(-1, bk_green, true, false, 0, 0, true, true, 10, 10, false);
 
 	// set up instances
-	add_instance(-1, obj_bee, 300, 300);
-	add_instance(-1, obj_bee, 800, 300);
-	add_instance(-1, obj_bee, 300, 600);
-	add_instance(-1, obj_bee, 800, 600);
+	add_instance(-1, obj_bee, 300, 300, 0);
+	add_instance(-1, obj_bee, 800, 300, 0);
+	add_instance(-1, obj_bee, 300, 600, 0);
+	add_instance(-1, obj_bee, 800, 600, 0);
 
 	return 0;
 }

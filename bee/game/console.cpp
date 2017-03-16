@@ -11,121 +11,6 @@
 
 #include "../game.hpp" // Include the engine headers
 
-class BEE::ConsoleVar { // This class can hold a string, integer, or double and is meant to make it easier to parse user input from the console
-	public:
-		int type = -1;
-		std::string s = "";
-		int i = 0;
-		double d = 0.0;
-
-		class ConsoleVarProxy { // This class is used to return the correct type without explicitly knowing which type it is
-				ConsoleVar *owner;
-			public:
-				ConsoleVarProxy(ConsoleVar *o) : owner(o) {}
-				operator std::string() {
-					return owner->get_str();
-				}
-				operator int() {
-					return owner->get_int();
-				}
-				operator double() {
-					return owner->get_double();
-				}
-		};
-
-		// Initialize the variable, note that only a string will undergo type interpretation
-		ConsoleVar(std::string str) {
-			interpret(str);
-		}
-		ConsoleVar(int integer) {
-			set(integer);
-		}
-		ConsoleVar(double floating) {
-			set(floating);
-		}
-
-		// Return the requested type
-		std::string get_str() {
-			if (type != 0) {
-				std::cout << "WARN: ConsoleVar type not a string but get_str() was called, you might want to call str()\n";
-			}
-			return s;
-		}
-		int get_int() {
-			if (type == 0) {
-				std::cout << "WARN: ConsoleVar type not an integer but get_int() was called\n";
-			}
-			if (type == 2) {
-				return (int)d;
-			}
-			return i;
-		}
-		double get_double() {
-			if (type == 0) {
-				std::cout << "WARN: ConsoleVar type not a double but get_double() was called\n";
-			}
-			if (type == 1) {
-				return (double)i;
-			}
-			return d;
-		}
-		// Return the unspecified type
-		ConsoleVarProxy get() {
-			return ConsoleVarProxy(this);
-		}
-		// Cast the variable to a string
-		std::string str() {
-			switch (type) {
-				case 0:
-					return s;
-				case 1:
-					return std::to_string(i);
-				case 2:
-					return std::to_string(d);
-			}
-			return "";
-		}
-
-		// Set the variable type based on the format of the string
-		int interpret(std::string str) {
-			try {
-				if ((str[0] == '"')&&(str[str.length()-1] == '"')) { // String
-					set(str.substr(1, str.length()-2));
-				//} else if (!std::any_of(str.begin(), str.end(), ::isdigit)) { // Probably a string
-				} else if (!std::isdigit(str[0])) { // Probably a string
-					set(str);
-				} else if (std::regex_match(str, std::regex("^-?\\d*\\.?\\d+"))) { // Double
-					set(std::stod(str));
-				} else if (std::regex_match(str, std::regex("^-?\\d+"))) { // Integer
-					set(std::stoi(str));
-				}
-			} catch (const std::invalid_argument &e) {}
-
-			if (type == -1) { // No possible type
-				std::cout << "WARN: ConsoleVar type not determined, storing as string: \"" + str + "\"\n";
-				set(str);
-			}
-
-			return 0; // Return 0 on success
-		}
-		// Directly set the variable type
-		int set(std::string str) {
-			type = 0;
-			s = str;
-			return 0;
-		}
-		int set(int integer) {
-			type = 1;
-			i = integer;
-			return 0;
-		}
-		int set(double floating) {
-			type = 2;
-			d = floating;
-			return 0;
-		}
-};
-
 /*
 * BEE::console_handle_input() - Handle the input as a console keypress
 * @e: the keyboard input event
@@ -208,10 +93,10 @@ int BEE::console_handle_input(SDL_Event* e) {
 		case SDLK_TAB: { // The tab key attempts to complete commands from user input
 			console->input.pop_back(); // Remove the tab character from the command line
 
-			std::vector<ConsoleVar> params = console_parse_parameters(console->input); // Parse the current parameters from the input line
+			std::vector<SIDP> params = console_parse_parameters(console->input); // Parse the current parameters from the input line
 			if (params.size() == 1) { // Complete the command if it's the only parameter
 				console->completion_commands.clear(); // Clear the old completion commands
-				console_complete(params[0].get_str()); // Find new completion comands
+				console_complete(params[0].s()); // Find new completion comands
 			} else { // TODO: Complete command arguments
 
 			}
@@ -257,11 +142,11 @@ int BEE::console_handle_input(SDL_Event* e) {
 				console->completion_commands.clear();
 			}
 
-			std::vector<ConsoleVar> params = console_parse_parameters(console->input); // Parse the current parameters from the input line
+			std::vector<SIDP> params = console_parse_parameters(console->input); // Parse the current parameters from the input line
 			if (params.size() == 1) { // If the command is the only parameter
 				if (console->completion_commands.size() > 1) { // If a command is being completed, update the completion list for the new input
 					console->completion_commands.clear();
-					console_complete(params[0].get_str());
+					console_complete(params[0].s());
 				}
 			}
 		}
@@ -296,10 +181,10 @@ int BEE::console_init_commands() {
 	* @command: the command to show help for
 	*/
 	console_add_command("help", "Show help text for specified commands", [] (BEE* g, std::shared_ptr<MessageContents> msg) {
-		std::vector<ConsoleVar> params = g->console_parse_parameters(msg->descr); // Parse the parameters from the given command
+		std::vector<SIDP> params = g->console_parse_parameters(msg->descr); // Parse the parameters from the given command
 
 		if (params.size() > 1) { // If a specific command was specified, output its entire help text
-			g->messenger_send({"engine", "console"}, BEE_MESSAGE_INFO, "Command help for \"" + params[1].get_str() + "\":\n" + g->console_get_help(params[1].get_str()));
+			g->messenger_send({"engine", "console"}, BEE_MESSAGE_INFO, "Command help for \"" + params[1].s() + "\":\n" + g->console_get_help(params[1].s()));
 		} else { // If the command was called without any arguments, output the first line of help text for every registered command
 			std::string help = "Available commands are:\n"; // Initialize a help string to be used as output
 
@@ -317,8 +202,8 @@ int BEE::console_init_commands() {
 				"screenshot \"filename.bmp\""
 			};
 			for (auto& c : commands) { // Iterate over the commands
-				std::vector<ConsoleVar> p = g->console_parse_parameters(c); // Get the list of command parameters in order to remove the usage string parts
-				std::string h = g->console_get_help(p[0].get_str()); // Get the command help text
+				std::vector<SIDP> p = g->console_parse_parameters(c); // Get the list of command parameters in order to remove the usage string parts
+				std::string h = g->console_get_help(p[0].s()); // Get the command help text
 
 				if (!h.empty()) { // If the help text exists, output the command and its text
 					help += c + "\n\t" + handle_newlines(h)[0] + "\n";
@@ -342,11 +227,11 @@ int BEE::console_init_commands() {
 	* @"string": the string that will be printed
 	*/
 	console_add_command("echo", "Output a string to the console", [] (BEE* g, std::shared_ptr<MessageContents> msg) {
-		std::vector<ConsoleVar> params = g->console_parse_parameters(msg->descr); // Parse the parameters from the given command
+		std::vector<SIDP> params = g->console_parse_parameters(msg->descr); // Parse the parameters from the given command
 
 		std::string output = ""; // Initialize a string to be used as output
 		for (auto it=params.begin()+1; it!= params.end(); ++it) { // Iterate over the arguments
-			output.append(string_unescape((*it).str())); // Append each argument to the output with a space in between
+			output.append(string_unescape((*it).to_str())); // Append each argument to the output with a space in between
 			output += " ";
 		}
 		if (!output.empty()) { // If the output isn't empty, send it to the console log
@@ -380,12 +265,12 @@ int BEE::console_init_commands() {
 	* @"command": the command to run when the given key is pressed
 	*/
 	console_add_command("bind", "Bind a key to a command", [] (BEE* g, std::shared_ptr<MessageContents> msg) {
-		std::vector<ConsoleVar> params = g->console_parse_parameters(msg->descr); // Parse the parameters from the given command
+		std::vector<SIDP> params = g->console_parse_parameters(msg->descr); // Parse the parameters from the given command
 
 		if (params.size() > 2) { // If both a key and command are provided, bind the command to the key
-			g->console_bind(g->keystrings_get_key(params[1].get_str()), string_unescape(params[2].get_str()));
+			g->console_bind(g->keystrings_get_key(params[1].s()), string_unescape(params[2].s()));
 		} else if (params.size() > 1) { // If only a command is provided, output the command that is bound to it
-			g->messenger_send({"engine", "console"}, BEE_MESSAGE_INFO, g->console_bind(g->keystrings_get_key(params[1].get_str())));
+			g->messenger_send({"engine", "console"}, BEE_MESSAGE_INFO, g->console_bind(g->keystrings_get_key(params[1].s())));
 		} else { // If no key is provided, output a warning
 			g->messenger_send({"engine", "console"}, BEE_MESSAGE_WARNING, "No key specified for binding");
 		}
@@ -395,10 +280,10 @@ int BEE::console_init_commands() {
 	* @"key": the key to unbind
 	*/
 	console_add_command("unbind", "Unbind a key from a command", [] (BEE* g, std::shared_ptr<MessageContents> msg) {
-		std::vector<ConsoleVar> params = g->console_parse_parameters(msg->descr); // Parse the parameters from the given command
+		std::vector<SIDP> params = g->console_parse_parameters(msg->descr); // Parse the parameters from the given command
 
 		if (params.size() > 1) { // If a key is provided, unbind it from any commands
-			g->console_unbind(g->keystrings_get_key(params[1].get_str()));
+			g->console_unbind(g->keystrings_get_key(params[1].s()));
 		} else { // If no key is provided, output a warning
 			g->messenger_send({"engine", "console"}, BEE_MESSAGE_WARNING, "No key specified for unbinding");
 		}
@@ -409,10 +294,10 @@ int BEE::console_init_commands() {
 	* @"filename.cfg": the config file to execute
 	*/
 	console_add_command("exec", "Execute the specified config file", [this] (BEE* g, std::shared_ptr<MessageContents> msg) {
-		std::vector<ConsoleVar> params = g->console_parse_parameters(msg->descr); // Parse the parameters from the given command
+		std::vector<SIDP> params = g->console_parse_parameters(msg->descr); // Parse the parameters from the given command
 
 		if (params.size() > 1) { // If a filename is provided, execute it
-			std::string fn = "cfg/"+params[1].str(); // Construct the path
+			std::string fn = "cfg/"+params[1].to_str(); // Construct the path
 			if (file_exists(fn)) { // Ensure that the file exists before opening it
 				std::string cfg = file_get_contents(fn); // Fetch the file contents
 				std::map<int,std::string> commands = handle_newlines(cfg); // Separate the contents by line
@@ -435,10 +320,10 @@ int BEE::console_init_commands() {
 	* @"command": the command to run
 	*/
 	console_add_command("wait", "Execute the specified command after the given millisecond delay", [this] (BEE* g, std::shared_ptr<MessageContents> msg) {
-		std::vector<ConsoleVar> params = g->console_parse_parameters(msg->descr); // Parse the parameters from the given command
+		std::vector<SIDP> params = g->console_parse_parameters(msg->descr); // Parse the parameters from the given command
 
 		if (params.size() > 2) { // If both required arguments were provided, execute the command
-			this->console_run(string_unescape(params[2].get_str()), true, params[1].get_int());
+			this->console_run(string_unescape(params[2].s()), true, params[1].i());
 		} else if (params.size() > 1) { // If no command was provided, output a warning
 			g->messenger_send({"engine", "console"}, BEE_MESSAGE_WARNING, "No command specified for wait");
 		} else { // If no arguments were provided, output a warning
@@ -451,10 +336,10 @@ int BEE::console_init_commands() {
 	* @"filename.bmp": the filename to save to
 	*/
 	console_add_command("screenshot", "Save a screenshot to the given file", [] (BEE* g, std::shared_ptr<MessageContents> msg) {
-		std::vector<ConsoleVar> params = g->console_parse_parameters(msg->descr); // Parse the parameters from the given command
+		std::vector<SIDP> params = g->console_parse_parameters(msg->descr); // Parse the parameters from the given command
 
 		if (params.size() > 1) { // If a filename is provided, then save the screenshot to it
-			g->save_screenshot(params[1].str());
+			g->save_screenshot(params[1].to_str());
 		} else { // If no filename is provided, then save the screenshot to the default path
 			g->save_screenshot("screenshot.bmp");
 		}
@@ -472,7 +357,7 @@ int BEE::console_init_commands() {
 */
 int BEE::console_run_internal(const std::string& command, bool is_urgent, Uint32 delay) {
 	std::string c = trim(command);
-	std::vector<ConsoleVar> params = console_parse_parameters(c); // Parse the parameters from the given command in order to get the command name as params[0]
+	std::vector<SIDP> params = console_parse_parameters(c); // Parse the parameters from the given command in order to get the command name as params[0]
 
 	// Remove comments from the end of commands
 	size_t compos = c.find("//");
@@ -484,15 +369,15 @@ int BEE::console_run_internal(const std::string& command, bool is_urgent, Uint32
 		return 1; // Return 1 on an empty command
 	}
 
-	if (console->commands.find(params[0].get()) == console->commands.end()) { // If the command does not exist, then output a warning
-		messenger_send({"engine", "console"}, BEE_MESSAGE_WARNING, "Failed to run command \"" + params[0].get_str() + "\", the command does not exist.");
+	if (console->commands.find(params[0].s()) == console->commands.end()) { // If the command does not exist, then output a warning
+		messenger_send({"engine", "console"}, BEE_MESSAGE_WARNING, "Failed to run command \"" + params[0].s() + "\", the command does not exist.");
 		return 2; // Return 2 on non-existent command
 	}
 
 	if (is_urgent) { // If the command is urgent, send it immediately
 		messenger_send_urgent(std::shared_ptr<MessageContents>(new MessageContents(
 			get_ticks()+delay,
-			{"engine", "console", params[0].get()},
+			{"engine", "console", params[0].s()},
 			BEE_MESSAGE_GENERAL,
 			c,
 			nullptr
@@ -500,7 +385,7 @@ int BEE::console_run_internal(const std::string& command, bool is_urgent, Uint32
 	} else { // Otherwise, send it normally
 		messenger_send(std::shared_ptr<MessageContents>(new MessageContents(
 			get_ticks()+delay,
-			{"engine", "console", params[0].get()},
+			{"engine", "console", params[0].s()},
 			BEE_MESSAGE_GENERAL,
 			c,
 			nullptr
@@ -605,12 +490,12 @@ int BEE::console_complete(const std::string& command) {
 * BEE::console_parse_parameters() - Convert the command to a parameter list
 * @command: the full command string
 */
-std::vector<BEE::ConsoleVar> BEE::console_parse_parameters(const std::string& command) const {
+std::vector<BEE::SIDP> BEE::console_parse_parameters(const std::string& command) const {
 	std::map<int,std::string> params = split(command, ' ', true); // Split the command parameters by spaces, respecting quotes
 
-	std::vector<ConsoleVar> param_list; // Create a vector to store each parameter instead of the map from split()
-	for (auto& p : params) { // Iterate over each parameter and store it as a ConsoleVar interpreted type
-		param_list.push_back(ConsoleVar(p.second));
+	std::vector<SIDP> param_list; // Create a vector to store each parameter instead of the map from split()
+	for (auto& p : params) { // Iterate over each parameter and store it as a SIDP interpreted type
+		param_list.push_back(SIDP(p.second, true));
 	}
 
 	return param_list; // Return the vector of parameters on success
@@ -738,7 +623,7 @@ std::string BEE::console_bind(SDL_Keycode key, const std::string& command) {
 	}
 
 	if (console->bindings.find(key) == console->bindings.end()) { // If the key has not been bound, then bind it to the given command
-		console->bindings.insert(std::make_pair(key, trim(command)));
+		console->bindings.emplace(key, trim(command));
 	} else { // Otherwise, output a warning
 		messenger_send({"engine", "console"}, BEE_MESSAGE_WARNING, "Failed to bind key \"" + keystrings_get_string(key) + "\", the key is already in bound.");
 	}

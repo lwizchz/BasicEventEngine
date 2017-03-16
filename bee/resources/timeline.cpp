@@ -130,7 +130,7 @@ int BEE::Timeline::add_action(Uint32 frame_number, std::string func_name, std::f
 		return 1;
 	}
 
-	action_list.insert(std::make_pair(frame_number, std::make_pair(func_name, callback)));
+	action_list.emplace(frame_number, std::make_pair(func_name, callback));
 
 	return 0;
 }

@@ -9,12 +9,28 @@
 #ifndef _BEE_FONT
 #define _BEE_FONT 1
 
-#include "font.hpp"
+#include "font.hpp" // Include the class resource header
 
+/*
+* BEE::TextData::TextData() - Construct the data struct and initialize the default values
+*/
+BEE::TextData::TextData() {
+	sprite.clear();
+	text.clear();
+}
+/*
+* BEE::TextData::TextData() - Construct the data struct and initialize the provided values
+* @new_sprite: the sprite for the first line of text
+* @new_text: the text that has been rendered in the sprite
+*/
 BEE::TextData::TextData(BEE::Sprite* new_sprite, std::string new_text) {
-	sprite.insert(std::make_pair(0, new_sprite));
+	sprite.clear();
+	sprite.emplace(0, new_sprite); // Set the provided sprite as the data for the first line
 	text = new_text;
 }
+/*
+* BEE::TextData::~TextData() - Free the memory for each line's sprite
+*/
 BEE::TextData::~TextData() {
 	for (auto& s : sprite) {
 		s.second->free();
@@ -249,7 +265,7 @@ BEE::TextData* BEE::Font::draw(int x, int y, std::string text, RGBA color) {
 				if (textdata == nullptr) {
 					textdata = r;
 				} else {
-					textdata->sprite.insert(std::make_pair(textdata->sprite.size(), r->sprite[0]));
+					textdata->sprite.emplace(textdata->sprite.size(), r->sprite[0]);
 					delete r;
 				}
 			}

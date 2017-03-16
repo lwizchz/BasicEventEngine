@@ -14,6 +14,9 @@
 #include <vector>
 #include <functional>
 
+#include <glm/glm.hpp> // Include the required headers for vector handling
+#include <btBulletDynamicsCommon.h>
+
 #include <SDL2/SDL.h> // Include the required SDL headers
 #include <SDL2/SDL_net.h>
 
@@ -57,9 +60,15 @@ double radtodeg(double);
 double opposite_angle(double);
 double absolute_angle(double);
 double direction_of(double, double, double, double);
+double dist_sqr(double, double, double, double, double, double);
 double dist_sqr(double, double, double, double);
+double distance(double, double, double, double, double, double);
 double distance(double, double, double, double);
+double distance(double, double, double);
+double distance(double, double);
 std::pair<double,double> coord_approach(double, double, double, double, double, double);
+glm::vec3 bt_to_glm3(const btVector3&);
+btVector3 glm_to_bt3(const glm::vec3&);
 template <typename T>
 T dot_product(T, T, T, T);
 template <typename T>

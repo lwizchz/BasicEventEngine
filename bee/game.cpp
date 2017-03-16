@@ -595,6 +595,9 @@ Uint32 BEE::get_frame() const {
 double BEE::get_delta() const {
 	return get_fps_goal()/1000.0*tick_delta;
 }
+Uint32 BEE::get_tick_delta() const {
+	return tick_delta;
+}
 unsigned int BEE::get_fps_goal() const {
 	return fps_goal;
 }
@@ -1096,6 +1099,7 @@ int BEE::end_game() const {
 	return 0;
 }
 
+#include "game/sidp.cpp"
 #include "game/info.cpp"
 #include "game/room.cpp"
 #include "game/transition.cpp"

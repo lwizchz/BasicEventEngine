@@ -204,7 +204,7 @@ int BEE::net_handle_events() {
 						std::string ip = network_get_address(net->udp_data->address.host); // Get the server IP
 						std::string name = chra(net->udp_data->data+4); // Get the server name from the data
 
-						net->servers.insert(std::make_pair(ip, name)); // Add the server to the list of available servers
+						net->servers.emplace(ip, name); // Add the server to the list of available servers
 
 						break;
 					}
@@ -296,7 +296,7 @@ std::map<std::string,std::string> BEE::net_session_find() {
 	while (get_ticks() - t < net->timeout) { // Continue receiving until we timeout
 		if ((r == 1)&&(net->udp_data->data[2] == 3)) { // If data was received and it is a server name info response
 			std::string name = chra(net->udp_data->data+4); // Get the server name from the data
-			net->servers.insert(std::make_pair(network_get_address(net->udp_data->address.host), name)); // Add the server to the list of available servers
+			net->servers.emplace(network_get_address(net->udp_data->address.host), name); // Add the server to the list of available servers
 		}
 		r = network_udp_recv(net->udp_recv, net->udp_data); // Attempt to receive more data
 	}

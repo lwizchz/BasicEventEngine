@@ -63,11 +63,13 @@ class BEE { // The master engine class which effectively acts as a namespace
 		class Sprite; class Sound; class Background; class Font; class Path; class Timeline; class Mesh; class Object; class Room; // The main resource types
 		class Particle; class ParticleData; class ParticleEmitter; class ParticleAttractor; class ParticleDestroyer; class ParticleDeflector; class ParticleChanger; class ParticleSystem; // The particle system components
 		class Light; class Camera; // The OpenGL-only resources (poor SDL implementations may exist)
-		class ProgramFlags; class GameOptions; class CollisionTree; class CollisionPolygon; class RGBA; // The engine related data
+		class ProgramFlags; class GameOptions; class RGBA; // The engine related data
 		class SpriteDrawData; class SoundGroup; class TextData; class InstanceData; class LightData; class LightableData; // The additional resource data types
+		class PhysicsWorld; class PhysicsDraw; class PhysicsBody; // The classes which interface with the external Physics library
 		class ViewData; class BackgroundData; class NetworkData; // The configurational structs
 		class MessageContents; class MessageRecipient; // The messaging subsystem structs
-		class Console; class ConsoleVar; // The console subsystem structs
+		class Console; // The console subsystem structs
+		class SIDP; // The utility structs
 	private:
 		// These contain data about the engine initialization
 		int argc;
@@ -165,7 +167,7 @@ class BEE { // The master engine class which effectively acts as a namespace
 		Sprite* texture_before = nullptr;
 		Sprite* texture_after = nullptr;
 		bee_transition_t transition_type = BEE_TRANSITION_NONE;
-		double transition_speed = 80.0/DEFAULT_GAME_FPS;
+		double transition_speed = 1024.0/DEFAULT_GAME_FPS;
 		std::function<void (BEE*, Sprite*, Sprite*)> transition_custom_func = nullptr;
 
 		const Uint8* keystate;
@@ -195,7 +197,7 @@ class BEE { // The master engine class which effectively acts as a namespace
 		int console_run_internal(const std::string&, bool, Uint32);
 		int console_run(const std::string&, bool, Uint32);
 		int console_complete(const std::string&);
-		std::vector<ConsoleVar> console_parse_parameters(const std::string&) const;
+		std::vector<SIDP> console_parse_parameters(const std::string&) const;
 		int console_draw();
 	public:
 		unsigned int fps_stable;
@@ -248,6 +250,7 @@ class BEE { // The master engine class which effectively acts as a namespace
 		Uint32 get_seconds() const;
 		Uint32 get_frame() const;
 		double get_delta() const;
+		Uint32 get_tick_delta() const;
 		unsigned int get_fps_goal() const;
 
 		GameOptions get_options() const;
@@ -428,7 +431,7 @@ class BEE { // The master engine class which effectively acts as a namespace
 		std::string console_get_help(const std::string&);
 };
 
-typedef std::tuple<int, int, double> bee_path_coord;
+typedef std::tuple<double, double, double> bee_path_coord; // {x, y, speed}
 typedef std::multimap<Uint32, std::pair<std::string,std::function<void()>>> bee_timeline_list;
 
 class BEE::Camera {
@@ -488,19 +491,17 @@ class BEE::GameOptions {
 		}
 };
 
-class BEE::CollisionPolygon {
-	public:
-		unsigned int line_amount = 0;
-		double x=0.0, y=0.0, w=0.0, h=0.0;
-		std::vector<Line> lines;
-
-		int add_vertex(double, double);
-		int finalize();
-};
-
 class BEE::RGBA {
 	public:
 		Uint8 r, g, b, a;
+
+		RGBA() {
+			r = 0; g = 0; b = 0; a = 0;
+		}
+		RGBA(Uint8 nr, Uint8 ng, Uint8 nb, Uint8 na) {
+			r = nr; g = ng; b = nb; a = na;
+		}
+		~RGBA() {}
 };
 
 class BEE::ViewData {
@@ -570,7 +571,7 @@ class BEE::Console {
 		std::vector<std::string> history;
 		int history_index = -1;
 
-		std::map<std::string,ConsoleVar> variables;
+		std::map<std::string,SIDP> variables;
 
 		std::stringstream log;
 		size_t page_index = 0;
@@ -590,7 +591,45 @@ class BEE::Console {
 
 		TextData* td_log;
 };
-// For the definition of ConsoleVar, see bee/game/console.cpp
+
+class BEE::SIDP { // This class can hold a string, integer, double, or pointer and is meant to allow multiple types in the same container
+	public:
+		int type = -1; // Possible types: 0=string, 1=int, 2=double, 3=pointer
+		std::string str = "";
+		int integer = 0;
+		double floating = 0.0;
+		void* pointer = nullptr;
+
+		// Initialize the variable
+		SIDP();
+		SIDP(const std::string&);
+		SIDP(const std::string&, bool);
+		SIDP(int);
+		SIDP(double);
+		SIDP(void*);
+		int reset();
+
+		int interpret(const std::string&);
+		std::string to_str();
+
+		// Return the requested type
+		std::string s();
+		int i();
+		double d();
+		void* p();
+
+		SIDP& operator=(const SIDP&);
+		SIDP& operator=(const std::string&);
+		SIDP& operator=(int);
+		SIDP& operator=(double);
+		SIDP& operator=(void*);
+
+		SIDP& operator+=(const SIDP&);
+		SIDP& operator+=(int);
+
+		SIDP& operator-=(const SIDP&);
+		SIDP& operator-=(int);
+};
 
 #include "resources/sprite.hpp"
 #include "resources/sound.hpp"
@@ -602,7 +641,7 @@ class BEE::Console {
 #include "resources/object.hpp"
 #include "resources/light.hpp"
 #include "resources/ext/instancedata.hpp"
-#include "resources/ext/collisiontree.hpp"
+#include "resources/ext/physics.hpp"
 #include "resources/ext/particle.hpp"
 #include "resources/ext/soundgroup.hpp"
 #include "resources/room.hpp"

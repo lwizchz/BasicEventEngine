@@ -124,7 +124,7 @@ std::map<int,std::string> split(const std::string& input, char delimiter, bool s
 		char c = input[i]; // Get the current character
 
 		if (c == delimiter) { // If the character is a delimiter, store a substring in the map
-			output.insert(std::make_pair(output.size(), input.substr(token_start, i-token_start)));
+			output.emplace(output.size(), input.substr(token_start, i-token_start));
 			token_start = i+1; // Begin the next token after the delimiter
 		} else if ((c == '"')&&(should_respect_quotes)) { // If the character is a quote, handle it separately
 			if ((i>0)&&(input[i-1] == '\\')) {
@@ -142,7 +142,7 @@ std::map<int,std::string> split(const std::string& input, char delimiter, bool s
 		}
 	}
 	if (token_start < input.length()) {  // Add the last token to the map if it exists
-		output.insert(std::make_pair(output.size(), input.substr(token_start, input.length()-token_start)));
+		output.emplace(output.size(), input.substr(token_start, input.length()-token_start));
 	}
 
 	return output; // Return the vector on success

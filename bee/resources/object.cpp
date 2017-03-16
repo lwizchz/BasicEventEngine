@@ -235,15 +235,106 @@ BEE::InstanceData* BEE::Object::get_instance(int inst_id) {
 std::string BEE::Object::get_instance_string() {
 	if (instances.size() > 0) {
 		std::vector<std::vector<std::string>> table;
-		table.push_back({"(id", "object", "x", "y)"});
+		table.push_back({"(id", "object", "x", "y", "z)"});
 
 		for (auto& i : instances) {
-			table.push_back({bee_itos(i.second->id), i.second->object->get_name(), bee_itos(i.second->x), bee_itos(i.second->y)});
+			table.push_back({bee_itos(i.second->id), i.second->object->get_name(), bee_itos(i.second->get_position()[0]), bee_itos(i.second->get_position()[1]), bee_itos(i.second->get_position()[2])});
 		}
 
 		return string_tabulate(table);
 	}
 	return "none\n";
 }
+
+/*void BEE::Object::update(InstanceData* self) {
+	reinterpret_cast<const ObjType*>(this)->update(self);
+}
+void BEE::Object::create(InstanceData* self) {
+	reinterpret_cast<const ObjType*>(this)->create(self);
+}
+void BEE::Object::destroy(InstanceData* self) {
+	reinterpret_cast<const ObjType*>(this)->destroy(self);
+}
+void BEE::Object::alarm(InstanceData* self, int a) {
+	reinterpret_cast<const ObjType*>(this)->alarm(a);
+}
+void BEE::Object::step_begin(InstanceData* self) {
+	reinterpret_cast<const ObjType*>(this)->step_begin(self);
+}
+void BEE::Object::step_mid(InstanceData* self) {
+	reinterpret_cast<const ObjType*>(this)->step_mid(self);
+}
+void BEE::Object::step_end(InstanceData* self) {
+	reinterpret_cast<const ObjType*>(this)->step_end(self);
+}
+void BEE::Object::keyboard_press(InstanceData* self, SDL_Event* e) {
+	reinterpret_cast<const ObjType*>(this)->keyboard_press(self, e);
+}
+void BEE::Object::mouse_press(InstanceData* self, SDL_Event* e) {
+	reinterpret_cast<const ObjType*>(this)->mouse_press(self, e);
+}
+void BEE::Object::keyboard_input(InstanceData* self, SDL_Event* e) {
+	reinterpret_cast<const ObjType*>(this)->keyboard_input(self, e);
+}
+void BEE::Object::mouse_input(InstanceData* self, SDL_Event* e) {
+	reinterpret_cast<const ObjType*>(this)->mouse_input(self, e);
+}
+void BEE::Object::keyboard_release(InstanceData* self, SDL_Event* e) {
+	reinterpret_cast<const ObjType*>(this)->keyboard_release(self, e);
+}
+void BEE::Object::mouse_release(InstanceData* self, SDL_Event* e) {
+	reinterpret_cast<const ObjType*>(this)->mouse_release(self, e);
+}
+void BEE::Object::controller_axis(InstanceData* self, SDL_Event* e) {
+	reinterpret_cast<const ObjType*>(this)->controller_axis(self, e);
+}
+void BEE::Object::controller_press(InstanceData* self, SDL_Event* e) {
+	reinterpret_cast<const ObjType*>(this)->controller_press(self, e);
+}
+void BEE::Object::controller_release(InstanceData* self, SDL_Event* e) {
+	reinterpret_cast<const ObjType*>(this)->controller_release(self, e);
+}
+void BEE::Object::controller_modify(InstanceData* self, SDL_Event* e) {
+	reinterpret_cast<const ObjType*>(this)->controller_modify(self, e);
+}
+void BEE::Object::commandline_input(InstanceData* self, const std::string& str) {
+	reinterpret_cast<const ObjType*>(this)->commandline_input(self, str);
+}
+void BEE::Object::path_end(InstanceData* self) {
+	reinterpret_cast<const ObjType*>(this)->path_end(self);
+}
+void BEE::Object::outside_room(InstanceData* self) {
+	reinterpret_cast<const ObjType*>(this)->outside_room(self);
+}
+void BEE::Object::intersect_boundary(InstanceData* self) {
+	reinterpret_cast<const ObjType*>(this)->intersect_boundary(self);
+}
+void BEE::Object::collision(InstanceData* self, InstanceData* other) {
+	reinterpret_cast<const ObjType*>(this)->collision(self, other);
+}
+bool BEE::Object::check_collision_list(const InstanceData& self, const InstanceData& other) const {
+	reinterpret_cast<const ObjType*>(this)->check_collision_list(self, other);
+}
+void BEE::Object::draw(InstanceData* self) {
+	reinterpret_cast<const ObjType*>(this)->draw(self);
+}
+void BEE::Object::animation_end(InstanceData* self) {
+	reinterpret_cast<const ObjType*>(this)->animation_end(self);
+}
+void BEE::Object::room_start(InstanceData* self) {
+	reinterpret_cast<const ObjType*>(this)->room_start(self);
+}
+void BEE::Object::room_end(InstanceData* self) {
+	reinterpret_cast<const ObjType*>(this)->room_end(self);
+}
+void BEE::Object::game_start(InstanceData* self) {
+	reinterpret_cast<const ObjType*>(this)->game_start(self);
+}
+void BEE::Object::game_end(InstanceData* self) {
+	reinterpret_cast<const ObjType*>(this)->game_end(self);
+}
+void BEE::Object::window(InstanceData* self, SDL_Event* e) {
+	reinterpret_cast<const ObjType*>(this)->window(self, e);
+}*/
 
 #endif // _BEE_OBJECT

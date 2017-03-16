@@ -1040,6 +1040,10 @@ int BEE::Sprite::set_as_target(int w, int h) {
 
 		glBindVertexArray(0); // Unbind VAO when done loading
 
+		// Set loaded booleans
+		is_loaded = true;
+		has_draw_failed = false;
+
 		return (int)framebuffer; // Return the framebuffer index on success
 	} else {
 		texture = SDL_CreateTexture(game->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w, h); // Create an empty texture

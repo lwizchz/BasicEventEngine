@@ -156,7 +156,7 @@ int network_map_decode(Uint8* data, std::map<A,B>* mv) {
 			k >> key;
 			v >> value;
 
-			m.insert(std::make_pair(key, value)); // Add the pair to the map
+			m.emplace(key, value); // Add the pair to the map
 		}
 
 	}

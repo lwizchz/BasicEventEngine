@@ -175,24 +175,56 @@ double direction_of(double x1, double y1, double x2, double y2) {
 	return absolute_angle(radtodeg(atan2(y2-y1, x2-x1))); // Calculate and return the angle of the vector
 }
 /*
-* dist_sqr() - Return the square of the distance from (x1, y1) to (x2, y2) in order to avoid costly square roots
+* dist_sqr() - Return the square of the distance from (x1, y1, z1) to (x2, y2, z2) in order to avoid costly square roots
 * @x1: the x-coordinate of the first point
 * @y1: the y-coordinate of the first point
+* @z1: the z-coordinate of the first point
 * @x2: the x-coordinate of the second point
 * @y2: the y-coordinate of the second point
+* @z2: the z-coordinate of the second point
+*/
+double dist_sqr(double x1, double y1, double z1, double x2, double y2, double z2) {
+	return sqr(x1-x2) + sqr(y1-y2) + sqr(z1-z2);
+}
+/*
+* dist_sqr() - Return the square of the distance from (x1, y1, 0.0) to (x2, y2, 0.0) in order to avoid costly square roots
+* ! When the function is called without the z-coordinates, simply call it with them set to 0.0
 */
 double dist_sqr(double x1, double y1, double x2, double y2) {
-	return sqr(x1-x2) + sqr(y1-y2);
+	return dist_sqr(x1, y1, 0.0, x2, y2, 0.0);
+}
+/*
+* distance() - Return the distance from (x1, y1, z1) to (x2, y2, z2)
+* @x1: the x-coordinate of the first point
+* @y1: the y-coordinate of the first point
+* @z1: the z-coordinate of the first point
+* @x2: the x-coordinate of the second point
+* @y2: the y-coordinate of the second point
+* @z2: the z-coordinate of the second point
+*/
+double distance(double x1, double y1, double z1, double x2, double y2, double z2) {
+	return sqrt(sqr(x1-x2) + sqr(y1-y2) + sqr(z1-z2));
 }
 /*
 * distance() - Return the distance from (x1, y1) to (x2, y2)
-* @x1: the x-coordinate of the first point
-* @y1: the y-coordinate of the first point
-* @x2: the x-coordinate of the second point
-* @y2: the y-coordinate of the second point
+* ! When the function is called without the z-coordinates, simply call it with them set to 0.0
 */
 double distance(double x1, double y1, double x2, double y2) {
-	return sqrt(sqr(x1-x2) + sqr(y1-y2));
+	return distance(x1, y1, 0.0, x2, y2, 0.0);
+}
+/*
+* distance() - Return the distance from (0.0, 0.0, 0.0) to (x1, y1, z1)
+* ! When the function is called with only one coordinate, simply call it with the other set to (0.0, 0.0, 0.0)
+*/
+double distance(double x, double y, double z) {
+	return distance(x, y, z, 0.0, 0.0, 0.0);
+}
+/*
+* distance() - Return the distance from (0.0, 0.0, 0.0) to (x1, y1, 0.0)
+* ! When the function is called with only a coordinate pair, simply call it with everything else set to 0.0
+*/
+double distance(double x, double y) {
+	return distance(x, y, 0.0, 0.0, 0.0, 0.0);
 }
 /*
 * coord_approach() - Return a pair of coordinates which is closer to (x2, y2) from (x1, y1) by a certain amount
@@ -213,6 +245,20 @@ std::pair<double,double> coord_approach(double x1, double y1, double x2, double 
 	double y3 = y1 + (y2-y1)*ratio*dt;
 
 	return std::make_pair(x3, y3); // Return a point somewhere in between the given points based on the given speed
+}
+/*
+* bt_to_glm3() - Convert the given btVector3 to glm::vec3
+* @v: the vector to convert
+*/
+glm::vec3 bt_to_glm3(const btVector3& v) {
+	return glm::vec3(v.x(), v.y(), v.z());
+}
+/*
+* glm_to_bt3() - Convert the given glm::vec3 to btVector3
+* @v: the vector to convert
+*/
+btVector3 glm_to_bt3(const glm::vec3& v) {
+	return btVector3(v.x, v.y, v.z);
 }
 
 /*

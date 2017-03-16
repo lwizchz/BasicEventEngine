@@ -32,7 +32,7 @@ the moment support will only be offered for Linux.
         # Arch Linux
         sudo pacman -S cmake sdl2 sdl2_image sdl2_ttf sdl2_mixer sdl2_net glew glm freeglut libxmu assimp
         # Ubuntu
-        sudo apt-get install cmake libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev libsdl2-net-dev libglew-dev libglm-dev freeglut3-dev libxmu-dev libassimp-dev
+        sudo apt-get install cmake libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev libsdl2-net-dev libglew-dev libglm-dev freeglut3-dev libxmu-dev libassimp-dev libbullet-dev
 
 3. Download the additional library submodules:
 
@@ -61,7 +61,7 @@ follow the below instructions.
 
 1. *(Recommended)* Clone the project with [Github Desktop][2] for Windows to be able to easily download the resources for the example.
 
-2. Install the required libraries from their official websites: SDL2, SDL2_image, SDL2_ttf, SDL2_mixer, SDL2_net, GLEW, GLM.
+2. Install the required libraries from their official websites: SDL2, SDL2_image, SDL2_ttf, SDL2_mixer, SDL2_net, GLEW, GLM, ASSIMP, Bullet.
 The current project setup assumes that each of these libraries has its DLL in the same directory as the executable (e.g. ``win/bin``) and has its header file in a ``win/include`` subdirectory.
 Feel free to download the libraries from [here][3] and simply extract them to ``win/``.
 
