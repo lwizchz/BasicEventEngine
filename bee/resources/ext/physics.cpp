@@ -199,7 +199,8 @@ int BEE::PhysicsWorld::add_constraint(bee_phys_constraint_t type, PhysicsBody* b
 			break;
 		}
 		case BEE_PHYS_CONSTRAINT_FIXED: {
-			btFixedConstraint* c = new btFixedConstraint(*(body1->get_body()), *(body2->get_body()), btTransform::getIdentity(), btTransform::getIdentity());
+			//btFixedConstraint* c = new btFixedConstraint(*(body1->get_body()), *(body2->get_body()), btTransform::getIdentity(), btTransform::getIdentity());
+			btGeneric6DofConstraint* c = new btGeneric6DofConstraint(*(body1->get_body()), *(body2->get_body()), btTransform::getIdentity(), btTransform::getIdentity(), true);
 			world->addConstraint(c);
 			break;
 		}
