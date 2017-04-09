@@ -60,6 +60,9 @@ int BEE::net_close() {
 		return 1; // Return 1 if networking is disabled
 	}
 
+	network_packet_free(net->udp_data); // Free the space used to receive data
+	net->udp_data = nullptr;
+
 	if (network_close()) { // Attempt to close networking
 		return 2; // Return 2 on failure to close
 	}
@@ -77,7 +80,8 @@ int BEE::net_handle_events() {
 		return 1; // Return 1 if networking is disabled or if it has not been initialized
 	}
 
-	if (network_packet_realloc(net->udp_data, 8)) { // Attempt to allocate space to receive data
+	net->udp_data = network_packet_realloc(net->udp_data, 8); // Attempt to allocate space to receive data
+	if (net->udp_data == nullptr) {
 		return 2; // Return 2 on failed to allocate
 	}
 

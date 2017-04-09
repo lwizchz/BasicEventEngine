@@ -32,24 +32,25 @@ int BEE::InstanceData::init(int new_id, Object* new_object, double new_x, double
 	if (body == nullptr) {
 		PhysicsWorld* w = game->get_current_room()->get_phys_world();
 
-		double p[3] = {(double)get_width(), (double)get_height(), 1.0};
+		double p[3] = {(double)get_width(), (double)get_height(), w->get_scale()};
 		if ((p[0] != 0.0)&&(p[1] != 0.0)) {
-			body = new PhysicsBody(w, BEE_PHYS_SHAPE_BOX, 0.0, new_x, new_y, new_z, p);
+			body = new PhysicsBody(w, this, BEE_PHYS_SHAPE_BOX, 0.0, new_x, new_y, new_z, p);
 		} else {
-			body = new PhysicsBody(w, BEE_PHYS_SHAPE_NONE, 0.0, new_x, new_y, new_z, nullptr);
+			body = new PhysicsBody(w, this, BEE_PHYS_SHAPE_NONE, 0.0, new_x, new_y, new_z, nullptr);
 		}
 	} else {
-		btTransform t;
-		t.setIdentity();
-		t.setOrigin(btVector3(new_x, new_y, new_z));
-		body->get_body()->getMotionState()->setWorldTransform(t);
+		set_position(new_x, new_y, new_z);
 	}
-	xstart = new_x;
-	ystart = new_y;
-	zstart = new_z;
-	xprevious = new_x;
-	yprevious = new_y;
-	zprevious = new_z;
+	game->get_current_room()->add_physbody(this, body);
+
+	pos_start = btVector3(new_x, new_y, new_z);
+	pos_previous = pos_start;
+
+	is_solid = true;
+	if (!object->get_is_solid()) {
+		body->get_body()->setCollisionFlags(body->get_body()->getCollisionFlags() | btCollisionObject::CF_NO_CONTACT_RESPONSE);
+		is_solid = false;
+	}
 
 	for (size_t i=0; i<ALARM_COUNT; i++) {
 		alarm_end[i] = 0xffffffff;
@@ -96,18 +97,33 @@ int BEE::InstanceData::set_object(BEE::Object* new_object) {
 	object->add_instance(id, this);
 	return 0;
 }
+int BEE::InstanceData::set_sprite(BEE::Sprite* new_sprite) {
+	sprite = new_sprite;
+	return 0;
+}
+int BEE::InstanceData::add_physbody() {
+	game->get_current_room()->add_physbody(this, body);
+	return 0;
+}
+
+BEE::SIDP BEE::InstanceData::get_data(const std::string& field) const {
+	return object->get_data(id, field);
+}
+int BEE::InstanceData::set_data(const std::string& field, SIDP data) {
+	return object->set_data(id, field, data);
+}
 
 btVector3 BEE::InstanceData::get_position() const {
 	return body->get_position();
 }
 double BEE::InstanceData::get_x() const {
-	return get_position().getX();
+	return get_position().x();
 }
 double BEE::InstanceData::get_y() const {
-	return get_position().getY();
+	return get_position().y();
 }
 double BEE::InstanceData::get_z() const {
-	return get_position().getZ();
+	return get_position().z();
 }
 double BEE::InstanceData::get_corner_x() const {
 	return get_x() - get_width()/2.0;
@@ -115,14 +131,35 @@ double BEE::InstanceData::get_corner_x() const {
 double BEE::InstanceData::get_corner_y() const {
 	return get_y() - get_height()/2.0;
 }
+btVector3 BEE::InstanceData::get_start() const {
+	return pos_start;
+}
 double BEE::InstanceData::get_xstart() const {
-	return xstart;
+	return pos_start.x();
 }
 double BEE::InstanceData::get_ystart() const {
-	return ystart;
+	return pos_start.y();
+}
+double BEE::InstanceData::get_zstart() const {
+	return pos_start.z();
+}
+BEE::Object* BEE::InstanceData::get_object() const {
+	return object;
+}
+BEE::Sprite* BEE::InstanceData::get_sprite() const {
+	if (sprite == nullptr) {
+		if (object == nullptr) {
+			return nullptr;
+		}
+		return object->get_sprite();
+	}
+	return sprite;
 }
 BEE::PhysicsBody* BEE::InstanceData::get_physbody() const {
 	return body;
+}
+bool BEE::InstanceData::get_is_solid() const {
+	return is_solid;
 }
 
 int BEE::InstanceData::get_width() const {
@@ -143,15 +180,18 @@ SDL_Rect BEE::InstanceData::get_aabb() const {
 
 int BEE::InstanceData::set_position(btVector3 p) {
 	btTransform t;
-
 	t.setIdentity();
-	t.setOrigin(p);
-	body->get_body()->getMotionState()->setWorldTransform(t);
+	t.setOrigin(p/body->get_scale());
+
+	body->get_body()->setCenterOfMassTransform(t);
 
 	return 0;
 }
 int BEE::InstanceData::set_position(double new_x, double new_y, double new_z) {
 	return set_position(btVector3(new_x, new_y, new_z));
+}
+int BEE::InstanceData::set_to_start() {
+	return set_position(pos_start);
 }
 int BEE::InstanceData::move(double new_magnitude, double new_direction) {
 	if (new_magnitude < 0.0) {
@@ -159,8 +199,8 @@ int BEE::InstanceData::move(double new_magnitude, double new_direction) {
 		new_magnitude = fabs(new_magnitude);
 	}
 	new_direction = absolute_angle(new_direction);
-	body->get_body()->activate(true);
-	body->get_body()->applyCentralImpulse(btVector3(new_magnitude*cos(new_direction), new_magnitude*-sin(new_direction), 0.0) / body->get_scale());
+	body->get_body()->activate();
+	body->get_body()->applyCentralImpulse(btVector3(new_magnitude*cos(degtorad(new_direction)), new_magnitude*-sin(degtorad(new_direction)), 0.0) / body->get_scale());
 	return 0;
 }
 int BEE::InstanceData::move_to(double new_magnitude, double other_x, double other_y) {
@@ -212,10 +252,42 @@ int BEE::InstanceData::move_outside(btVector3 dir) {
 
 	return 0;
 }
+int BEE::InstanceData::set_is_solid(bool new_is_solid) {
+	is_solid = new_is_solid;
+
+	if (new_is_solid) {
+		body->get_body()->setCollisionFlags(body->get_body()->getCollisionFlags() & ~btCollisionObject::CF_NO_CONTACT_RESPONSE);
+	} else {
+		body->get_body()->setCollisionFlags(body->get_body()->getCollisionFlags() | btCollisionObject::CF_NO_CONTACT_RESPONSE);
+	}
+
+	return 0;
+}
+int BEE::InstanceData::set_velocity(btVector3 new_velocity) {
+	body->get_body()->setLinearVelocity(new_velocity);
+	return 0;
+}
+int BEE::InstanceData::set_velocity(double new_magnitude, double new_direction) {
+	if (new_magnitude < 0.0) {
+		new_direction -= 180.0;
+		new_magnitude = fabs(new_magnitude);
+	}
+	new_direction = absolute_angle(new_direction);
+	return set_velocity(btVector3(new_magnitude*cos(degtorad(new_direction)), new_magnitude*-sin(degtorad(new_direction)), 0.0) / body->get_scale());
+}
+int BEE::InstanceData::limit_velocity(double new_limit) {
+	btVector3 v = get_velocity();
+	double speed_sqr = dist_sqr(v.x(), v.y(), v.z(), 0.0, 0.0, 0.0);
+	if (speed_sqr > sqr(new_limit)) {
+		set_velocity(new_limit * v.normalize());
+		return 1;
+	}
+	return 0;
+}
 
 double BEE::InstanceData::get_speed() const {
 	btVector3 v = get_velocity();
-	return distance(v.getX(), v.getY(), v.getZ());
+	return distance(v.x(), v.y(), v.z());
 }
 btVector3 BEE::InstanceData::get_velocity() const {
 	return body->get_body()->getLinearVelocity();
@@ -284,7 +356,7 @@ bool BEE::InstanceData::is_place_meeting(int new_x, int new_y, Object* other) co
 			continue;
 		}
 
-		SDL_Rect other = get_aabb();
+		SDL_Rect other = i.second->get_aabb();
 
 		if (check_collision(mask, other)) {
 			return true;
@@ -295,6 +367,28 @@ bool BEE::InstanceData::is_place_meeting(int new_x, int new_y, Object* other) co
 }
 bool BEE::InstanceData::is_place_meeting(int new_x, int new_y, int other_id) const {
 	return is_place_meeting(new_x, new_y, game->get_object(other_id));
+}
+bool BEE::InstanceData::is_place_meeting(int new_x, int new_y, Object* other, std::function<void(InstanceData*,InstanceData*)> func) {
+	SDL_Rect mask = get_aabb();
+	mask.x = new_x;
+	mask.y = new_y;
+
+	bool r = false;
+
+	for (auto& i : other->get_instances()) {
+		if (i.second == this) {
+			continue;
+		}
+
+		SDL_Rect other = i.second->get_aabb();
+
+		if (check_collision(mask, other)) {
+			r = true;
+			func(this, i.second);
+		}
+	}
+
+	return r;
 }
 bool BEE::InstanceData::is_move_free(double magnitude, double direction) {
 	double dx = cos(degtorad(direction)) * magnitude;
@@ -334,10 +428,10 @@ std::pair<int,int> BEE::InstanceData::get_snapped(int hsnap, int vsnap) const {
 	return std::make_pair(xsnap, ysnap);
 }
 std::pair<int,int> BEE::InstanceData::get_snapped() const {
-	if (object->get_sprite() == nullptr) {
+	if (get_sprite() == nullptr) {
 		return std::make_pair((int)get_x(), (int)get_y());
 	}
-	return get_snapped(object->get_sprite()->get_width(), object->get_sprite()->get_height());
+	return get_snapped(get_sprite()->get_width(), get_sprite()->get_height());
 }
 int BEE::InstanceData::move_random(int hsnap, int vsnap) {
 	double rx = random(game->get_current_room()->get_width());
@@ -357,10 +451,10 @@ int BEE::InstanceData::move_snap(int hsnap, int vsnap) {
 	return 0;
 }
 int BEE::InstanceData::move_snap() {
-	if (object->get_sprite() == nullptr) {
+	if (get_sprite() == nullptr) {
 		return 0;
 	}
-	return move_snap(object->get_sprite()->get_width(), object->get_sprite()->get_height());
+	return move_snap(get_sprite()->get_width(), get_sprite()->get_height());
 }
 int BEE::InstanceData::move_wrap(bool is_horizontal, bool is_vertical, int margin) {
 	int w = game->get_current_room()->get_width();
@@ -388,11 +482,11 @@ int BEE::InstanceData::move_wrap(bool is_horizontal, bool is_vertical, int margi
 	return 0;
 }
 
-double BEE::InstanceData::get_distance(int dx, int dy) const {
-	return distance(get_x(), get_y(), dx, dy);
+double BEE::InstanceData::get_distance(int dx, int dy, int dz) const {
+	return distance(get_x(), get_y(), get_z(), dx, dy, dz);
 }
 double BEE::InstanceData::get_distance(InstanceData* other) const {
-	return distance(get_x(), get_y(), other->get_x(), other->get_y());
+	return distance(get_x(), get_y(), get_z(), other->get_x(), other->get_y(), other->get_z());
 }
 double BEE::InstanceData::get_distance(Object* other) const {
 	double shortest_distance = 0.0, current_distance = 0.0;
@@ -450,12 +544,18 @@ int BEE::InstanceData::path_start(Path* new_path, double new_path_speed, int new
 	path_current_node = 0;
 
 	if (absolute) {
-		path_xstart = std::get<0>(path->get_coordinate_list().front());
-		path_ystart = std::get<1>(path->get_coordinate_list().front());
+		path_pos_start = btVector3(
+			std::get<0>(path->get_coordinate_list().front()),
+			std::get<1>(path->get_coordinate_list().front()),
+			0.0
+		);
 		//path_ystart = std::get<2>(path->get_coordinate_list().front());
 	} else {
-		path_xstart = get_x();
-		path_ystart = get_y();
+		path_pos_start = btVector3(
+			get_x(),
+			get_y(),
+			0.0
+		);
 		//path_zstart = get_z();
 	}
 
@@ -465,15 +565,14 @@ int BEE::InstanceData::path_end() {
 	path = nullptr;
 	path_speed = 0.0;
 	path_end_action = 0;
-	path_xstart = 0;
-	path_ystart = 0;
+	path_pos_start = btVector3(0.0, 0.0, 0.0);
 	path_current_node = 0;
 	return 0;
 }
 int BEE::InstanceData::path_reset() {
 	bool a = false;
-	if (path_xstart == std::get<0>(path->get_coordinate_list().front())) {
-		if (path_ystart == std::get<1>(path->get_coordinate_list().front())) {
+	if (path_pos_start.x() == std::get<0>(path->get_coordinate_list().front())) {
+		if (path_pos_start.y() == std::get<1>(path->get_coordinate_list().front())) {
 			a = true;
 		}
 	}
@@ -485,13 +584,13 @@ int BEE::InstanceData::path_update_node() {
 		if (path_speed >= 0) {
 			if (path_current_node+1 < (int) path->get_coordinate_list().size()) {
 				bee_path_coord c = path->get_coordinate_list().at(path_current_node+1);
-				if (distance(get_x(), get_y(), path_xstart+std::get<0>(c), path_ystart+std::get<1>(c)) < get_speed()) {
+				if (distance(get_x(), get_y(), path_pos_start.x()+std::get<0>(c), path_pos_start.y()+std::get<1>(c)) < get_speed()) {
 					path_current_node++;
 				}
 			}
 		} else {
 			bee_path_coord c = path->get_coordinate_list().at(path_current_node);
-			if (distance(get_x(), get_y(), path_xstart+std::get<0>(c), path_ystart+std::get<1>(c)) < get_speed()) {
+			if (distance(get_x(), get_y(), path_pos_start.x()+std::get<0>(c), path_pos_start.y()+std::get<1>(c)) < get_speed()) {
 				path_current_node--;
 			}
 		}
@@ -517,15 +616,17 @@ int BEE::InstanceData::handle_path_end() {
 			}
 			case 1: { // Continue from start
 				path_current_node = 0;
-				set_position(path_xstart, path_ystart, 0.0);
-				xprevious = path_xstart;
-				yprevious = path_ystart;
+				set_position(path_pos_start);
+				pos_previous = path_pos_start;
 				break;
 			}
 			case 2: { // Continue from current position
 				path_current_node = 0;
-				path_xstart = get_x();
-				path_ystart = get_y();
+				path_pos_start = btVector3(
+					get_x(),
+					get_y(),
+					0.0
+				);
 				break;
 			}
 			case 3: { // Reverse direction
@@ -563,81 +664,81 @@ bool BEE::InstanceData::get_path_pausable() {
 }
 
 int BEE::InstanceData::draw(int w, int h, double angle, RGBA color, SDL_RendererFlip flip) {
-	if (object->get_sprite() == nullptr) {
+	if (get_sprite() == nullptr) {
 		return 1;
 	}
 	int xo=0, yo=0;
-	if (object->get_sprite() != nullptr) {
+	if (get_sprite() != nullptr) {
 		std::tie(xo, yo) = object->get_mask_offset();
 	}
-	return object->get_sprite()->draw(get_corner_x()-xo, get_corner_y()-yo, subimage_time, w, h, angle, color, flip);
+	return get_sprite()->draw(get_corner_x()-xo, get_corner_y()-yo, subimage_time, w, h, angle, color, flip);
 }
 int BEE::InstanceData::draw(int w, int h, double angle, bee_rgba_t color, SDL_RendererFlip flip) {
-	if (object->get_sprite() == nullptr) {
+	if (get_sprite() == nullptr) {
 		return 1;
 	}
 	return draw(w, h, angle, game->get_enum_color(color), flip);
 }
 int BEE::InstanceData::draw() {
-	if (object->get_sprite() == nullptr) {
+	if (get_sprite() == nullptr) {
 		return 1;
 	}
 	int xo=0, yo=0;
-	if (object->get_sprite() != nullptr) {
+	if (get_sprite() != nullptr) {
 		std::tie(xo, yo) = object->get_mask_offset();
 	}
-	return object->get_sprite()->draw(get_corner_x()-xo, get_corner_y()-yo, subimage_time);
+	return get_sprite()->draw(get_corner_x()-xo, get_corner_y()-yo, subimage_time);
 }
 int BEE::InstanceData::draw(int w, int h) {
-	if (object->get_sprite() == nullptr) {
+	if (get_sprite() == nullptr) {
 		return 1;
 	}
 	int xo=0, yo=0;
-	if (object->get_sprite() != nullptr) {
+	if (get_sprite() != nullptr) {
 		std::tie(xo, yo) = object->get_mask_offset();
 	}
-	return object->get_sprite()->draw(get_corner_x()-xo, get_corner_y()-yo, subimage_time, w, h);
+	return get_sprite()->draw(get_corner_x()-xo, get_corner_y()-yo, subimage_time, w, h);
 }
 int BEE::InstanceData::draw(double angle) {
-	if (object->get_sprite() == nullptr) {
+	if (get_sprite() == nullptr) {
 		return 1;
 	}
 	int xo=0, yo=0;
-	if (object->get_sprite() != nullptr) {
+	if (get_sprite() != nullptr) {
 		std::tie(xo, yo) = object->get_mask_offset();
 	}
-	return object->get_sprite()->draw(get_corner_x()-xo, get_corner_y()-yo, subimage_time, angle);
+	return get_sprite()->draw(get_corner_x()-xo, get_corner_y()-yo, subimage_time, angle);
 }
 int BEE::InstanceData::draw(RGBA color) {
-	if (object->get_sprite() == nullptr) {
+	if (get_sprite() == nullptr) {
 		return 1;
 	}
 	int xo=0, yo=0;
-	if (object->get_sprite() != nullptr) {
+	if (get_sprite() != nullptr) {
 		std::tie(xo, yo) = object->get_mask_offset();
 	}
-	return object->get_sprite()->draw(get_corner_x()-xo, get_corner_y()-yo, subimage_time, color);
+	return get_sprite()->draw(get_corner_x()-xo, get_corner_y()-yo, subimage_time, color);
 }
 int BEE::InstanceData::draw(bee_rgba_t color) {
-	if (object->get_sprite() == nullptr) {
+	if (get_sprite() == nullptr) {
 		return 1;
 	}
 	return draw(game->get_enum_color(color));
 }
 int BEE::InstanceData::draw(SDL_RendererFlip flip) {
-	if (object->get_sprite() == nullptr) {
+	if (get_sprite() == nullptr) {
 		return 1;
 	}
 	int xo=0, yo=0;
-	if (object->get_sprite() != nullptr) {
+	if (get_sprite() != nullptr) {
 		std::tie(xo, yo) = object->get_mask_offset();
 	}
-	return object->get_sprite()->draw(get_corner_x()-xo, get_corner_y()-yo, subimage_time, flip);
+	return get_sprite()->draw(get_corner_x()-xo, get_corner_y()-yo, subimage_time, flip);
 }
 
 int BEE::InstanceData::draw_path() {
 	if (path != nullptr) {
-		return path->draw(path_xstart, path_ystart);
+		return path->draw(path_pos_start.x(), path_pos_start.y());
 	}
 	return 0;
 }

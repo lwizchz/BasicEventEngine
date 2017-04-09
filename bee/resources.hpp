@@ -24,8 +24,8 @@ class Resource { // The abstract class for all resource types
 		virtual int get_id() =0;
 		virtual std::string get_name() =0;
 		virtual std::string get_path() =0;
-		virtual int set_name(std::string) =0;
-		virtual int set_path(std::string) =0;
+		virtual int set_name(const std::string&) =0;
+		virtual int set_path(const std::string&) =0;
 };
 class ResourceList { // The class which holds a list of each individual resource type
 	public:
@@ -43,7 +43,7 @@ class ResourceList { // The class which holds a list of each individual resource
 };
 class MetaResourceList { // The class which holds a list of all of the lists of resource types
 	public:
-		ResourceList sprites, sounds, backgrounds, fonts, paths, timelines, meshes, objects, lights, rooms;
+		ResourceList sprites, sounds, backgrounds, fonts, paths, timelines, meshes, lights, objects, rooms;
 
 		MetaResourceList(BEE*);
 		int reset(BEE*);

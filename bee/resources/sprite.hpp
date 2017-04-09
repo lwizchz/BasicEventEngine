@@ -49,11 +49,11 @@ class BEE::Sprite: public Resource { // The sprite resource class with which all
 		std::vector<GLuint> vbo_texcoords; // The buffer object which contains the subimage texture coordinates
 		bool is_lightable = true; // Whether the sprite is affected by the lighting system
 
-		GLuint framebuffer; // The framebuffer object used by set_as_target()
+		GLuint framebuffer = -1; // The framebuffer object used by set_as_target()
 	public:
 		// See bee/resources/sprite.cpp for function comments
 		Sprite();
-		Sprite(std::string, std::string);
+		Sprite(const std::string&, const std::string&);
 		~Sprite();
 		int add_to_resources();
 		int reset();
@@ -77,8 +77,8 @@ class BEE::Sprite: public Resource { // The sprite resource class with which all
 		bool get_is_loaded();
 		bool get_is_lightable();
 
-		int set_name(std::string);
-		int set_path(std::string);
+		int set_name(const std::string&);
+		int set_path(const std::string&);
 		int set_subimage_amount(int, int);
 		int crop_image(SDL_Rect);
 		int crop_image_width(int);

@@ -32,9 +32,13 @@ int bee_get_platform() {
 * bee_get_path() - Return the path of the executable
 */
 std::string bee_get_path() {
-	char buffer[1024];
-	readlink("/proc/self/exe", buffer, 1024);
-	return std::string(buffer);
+	char buffer[PATH_MAX];
+	int len = readlink("/proc/self/exe", buffer, sizeof(buffer)-1);
+	if (len != -1) {
+		buffer[len] = '\0';
+		return std::string(buffer);
+	}
+	return std::string();
 }
 
 /*
@@ -106,9 +110,9 @@ std::string bee_mkdtemp(const std::string& temp) {
 	char* t = new char[temp.length()+1](); // Get the modifiable c-string version of the template
 	strcpy(t, temp.c_str());
 
-	mkdtemp(t); // Fetch the directory path
+	char* tpath = mkdtemp(t); // Fetch the directory path
 	std::string path;
-	if (t != nullptr) { // If the directory was successfully created then set the path
+	if (tpath != nullptr) { // If the directory was successfully created then set the path
 		path.assign(t);
 	}
 	delete[] t;
@@ -234,9 +238,13 @@ int bee_get_platform() {
 * bee_get_path() - Return the path of the executable
 */
 std::string bee_get_path() {
-	char buffer[1024];
-	GetModuleFileName(nullptr, buffer, 1024);
-	return std::string(buffer);
+	char buffer[PATH_MAX];
+	int len = GetModuleFileName(nullptr, buffer, sizeof(buffer)-1);
+	if (len > 0) {
+		buffer[len] = '\0';
+		return std::string(buffer);
+	}
+	return std::string();
 }
 
 /*
@@ -359,67 +367,67 @@ std::string bee_inet_ntop(const void* src) {
 int bee_commandline_color(int color) {
 	switch (color) {
 		case 0: { // Black
-			system("color 00");
+			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 16*7);
 			break;
 		}
 		case 1: { // Red
-			system("color 04");
+			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 4);
 			break;
 		}
 		case 2: { // Green
-			system("color 02");
+			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 2);
 			break;
 		}
 		case 3: { // Yellow
-			system("color 06");
+			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 6);
 			break;
 		}
 		case 4: { // Blue
-			system("color 01");
+			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 1);
 			break;
 		}
 		case 5: { // Magenta
-			system("color 05");
+			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 5);
 			break;
 		}
 		case 6: { // Cyan
-			system("color 03");
+			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 3);
 			break;
 		}
 		case 7: { // White
-			system("color 07");
+			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
 			break;
 		}
 		case 8: { // Bold Black
-			system("color 08");
+			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 8);
 			break;
 		}
 		case 9: { // Bold Red
-			system("color 0C");
+			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 12);
 			break;
 		}
 		case 10: { // Bold Green
-			system("color 0A");
+			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 10);
 			break;
 		}
 		case 11: { // Bold Yellow
-			system("color 0E");
+			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 14);
 			break;
 		}
 		case 12: { // Bold Blue
-			system("color 09");
+			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 9);
 			break;
 		}
 		case 13: { // Bold Magenta
-			system("color 0D");
+			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 13);
 			break;
 		}
 		case 14: { // Bold Cyan
-			system("color 0B");
+			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 11);
 			break;
 		}
 		case 15: { // Bold White
-			system("color 0F");
+			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
 			break;
 		}
 		default: {
@@ -432,7 +440,7 @@ int bee_commandline_color(int color) {
 * bee_commandline_color_reset() - Reset the commandline color to the default value
 */
 int bee_commandline_color_reset() {
-	system("color 07");
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
 	return 0;
 }
 

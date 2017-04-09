@@ -36,7 +36,7 @@ class BEE::Light: public Resource {
 		bool has_drawn_sdl = false;
 	public:
 		Light();
-		Light(std::string, std::string);
+		Light(const std::string&, const std::string&);
 		~Light();
 		int add_to_resources();
 		int reset();
@@ -51,8 +51,8 @@ class BEE::Light: public Resource {
 		glm::vec4 get_attenuation();
 		RGBA get_color();
 
-		int set_name(std::string);
-		int set_path(std::string);
+		int set_name(const std::string&);
+		int set_path(const std::string&);
 		int set_type(bee_light_t);
 		int set_position(glm::vec4);
 		int set_direction(glm::vec4);

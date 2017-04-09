@@ -33,10 +33,18 @@ BEE::TextData::TextData(BEE::Sprite* new_sprite, std::string new_text) {
 */
 BEE::TextData::~TextData() {
 	for (auto& s : sprite) {
-		s.second->free();
+		delete s.second;
 	}
 	sprite.clear();
 	text = "";
+}
+/*
+* BEE::TextData::pop_front() -  Pop the front sprite so it won't be deleted twice
+*/
+BEE::Sprite* BEE::TextData::pop_front() {
+	Sprite* s = sprite.begin()->second;
+	sprite.erase(sprite.begin());
+	return s;
 }
 
 BEE::Font::Font () {
@@ -45,7 +53,12 @@ BEE::Font::Font () {
 	}
 	reset();
 }
-BEE::Font::Font (std::string new_name, std::string new_path, int new_font_size, bool new_is_sprite) {
+BEE::Font::Font (const std::string& new_name, const std::string& new_path, int new_font_size, bool new_is_sprite) {
+	// Get the list's engine pointer if it's not nullptr
+	if (BEE::resource_list->fonts.game != nullptr) {
+		game = BEE::resource_list->fonts.game;
+	}
+
 	reset();
 
 	add_to_resources();
@@ -66,11 +79,6 @@ BEE::Font::~Font() {
 int BEE::Font::add_to_resources() {
 	if (id < 0) { // If the resource needs to be added to the resource list
 		id = BEE::resource_list->fonts.add_resource(this); // Add the resource and get the new id
-	}
-
-	// Get the list's engine pointer if it's not nullptr
-	if (BEE::resource_list->fonts.game != nullptr) {
-		game = BEE::resource_list->fonts.game;
 	}
 
 	return 0;
@@ -144,11 +152,11 @@ std::string BEE::Font::get_fontname() {
 	return fontname;
 }
 
-int BEE::Font::set_name(std::string new_name) {
+int BEE::Font::set_name(const std::string& new_name) {
 	name = new_name;
 	return 0;
 }
-int BEE::Font::set_path(std::string new_path) {
+int BEE::Font::set_path(const std::string& new_path) {
 	path = "resources/fonts/"+new_path;
 	return 0;
 }
@@ -265,7 +273,8 @@ BEE::TextData* BEE::Font::draw(int x, int y, std::string text, RGBA color) {
 				if (textdata == nullptr) {
 					textdata = r;
 				} else {
-					textdata->sprite.emplace(textdata->sprite.size(), r->sprite[0]);
+					//textdata->sprite.emplace(textdata->sprite.size(), r->sprite[0]);
+					textdata->sprite.emplace(textdata->sprite.size(), r->pop_front());
 					delete r;
 				}
 			}

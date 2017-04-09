@@ -94,6 +94,7 @@ std::string string_lettersdigits(const std::string&);
 std::map<int,std::string> split(const std::string&, char, bool);
 std::map<int,std::string> split(const std::string&, char);
 std::map<int,std::string> handle_newlines(const std::string&);
+std::vector<std::string> splitv(const std::string&, char, bool);
 std::string join(const std::map<int,std::string>&, char);
 std::string joinv(const std::vector<std::string>&, char);
 std::string ltrim(const std::string&);
@@ -105,7 +106,7 @@ std::string string_replace(const std::string&, const std::string&, const std::st
 std::string string_escape(const std::string&);
 std::string string_unescape(const std::string&);
 std::string string_repeat(size_t, const std::string&);
-std::string string_tabulate(const std::vector<std::vector<std::string>>);
+std::string string_tabulate(const std::vector<std::vector<std::string>>&);
 bool clipboard_has_text();
 std::string clipboard_get_text();
 int clipboard_set_text(const std::string&);
@@ -245,7 +246,7 @@ int network_udp_send(UDPsocket, int, Uint8, Uint8, Uint8);
 UDPpacket* network_packet_alloc(int);
 UDPpacket* network_packet_resize(UDPpacket*, int);
 int network_packet_free(UDPpacket*);
-int network_packet_realloc(UDPpacket*, int);
+UDPpacket* network_packet_realloc(UDPpacket*, int);
 UDPpacket** network_packet_alloc_vector(int, int);
 int network_packet_free_vector(UDPpacket**);
 

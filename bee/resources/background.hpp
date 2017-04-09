@@ -53,7 +53,7 @@ class BEE::Background: public Resource { // The background class with which tile
 	public:
 		// See bee/resources/background.cpp for function comments
 		Background();
-		Background(std::string, std::string);
+		Background(const std::string&, const std::string&);
 		~Background();
 		int add_to_resources();
 		int reset();
@@ -70,8 +70,8 @@ class BEE::Background: public Resource { // The background class with which tile
 		bool get_is_loaded();
 		SDL_Texture* get_texture();
 
-		int set_name(std::string);
-		int set_path(std::string);
+		int set_name(const std::string&);
+		int set_path(const std::string&);
 		int set_is_tiling(bool);
 		int set_tile_width(int);
 		int set_tile_height(int);

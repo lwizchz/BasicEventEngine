@@ -18,7 +18,12 @@ BEE::Mesh::Mesh () {
 
 	reset();
 }
-BEE::Mesh::Mesh (std::string new_name, std::string new_path) {
+BEE::Mesh::Mesh (const std::string& new_name, const std::string& new_path) {
+	// Get the list's engine pointer if it's not nullptr
+	if (BEE::resource_list->meshes.game != nullptr) {
+		game = BEE::resource_list->meshes.game;
+	}
+
 	reset();
 
 	add_to_resources();
@@ -37,11 +42,6 @@ BEE::Mesh::~Mesh() {
 int BEE::Mesh::add_to_resources() {
 	if (id < 0) { // If the resource needs to be added to the resource list
 		id = BEE::resource_list->meshes.add_resource(this); // Add the resource and get the new id
-	}
-
-	// Get the list's engine pointer if it's not nullptr
-	if (BEE::resource_list->meshes.game != nullptr) {
-		game = BEE::resource_list->meshes.game;
 	}
 
 	return 0;
@@ -80,11 +80,11 @@ std::string BEE::Mesh::get_path() {
 	return path;
 }
 
-int BEE::Mesh::set_name(std::string new_name) {
+int BEE::Mesh::set_name(const std::string& new_name) {
 	name = new_name;
 	return 0;
 }
-int BEE::Mesh::set_path(std::string new_path) {
+int BEE::Mesh::set_path(const std::string& new_path) {
 	path = "resources/meshes/"+new_path;
 	return 0;
 }

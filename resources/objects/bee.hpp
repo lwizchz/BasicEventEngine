@@ -60,9 +60,10 @@ void ObjBee::create(BEE::InstanceData* self) {
 	update(self);
 
 	//self->get_physbody()->set_mass(1.0);
-	double p[3] = {100.0, 100.0, 1.0};
+	double p[3] = {100.0, 100.0, 100.0};
 	self->get_physbody()->set_shape(BEE_PHYS_SHAPE_BOX, p);
-	self->get_physbody()->get_world()->add_constraint(BEE_PHYS_CONSTRAINT_2D, self->get_physbody(), nullptr);
+
+	self->get_physbody()->add_constraint(BEE_PHYS_CONSTRAINT_2D, nullptr);
 
 	// create event
 	std::cout << "u r a b " << self->id << "\n";

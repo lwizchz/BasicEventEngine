@@ -18,7 +18,12 @@ BEE::Room::Room () {
 
 	reset();
 }
-BEE::Room::Room (std::string new_name, std::string new_path) {
+BEE::Room::Room (const std::string& new_name, const std::string& new_path) {
+	// Get the list's engine pointer if it's not nullptr
+	if (BEE::resource_list->rooms.game != nullptr) {
+		game = BEE::resource_list->rooms.game;
+	}
+
 	reset();
 
 	add_to_resources();
@@ -39,6 +44,11 @@ BEE::Room::~Room() {
 	destroyed_instances.clear();
 	instances_sorted_events.clear();
 
+	reset_lights();
+	if (light_map != nullptr) {
+		delete light_map;
+	}
+
 	if (physics_world != nullptr) {
 		delete physics_world;
 		physics_world = nullptr;
@@ -56,11 +66,6 @@ BEE::Room::~Room() {
 int BEE::Room::add_to_resources() {
 	if (id < 0) { // If the resource needs to be added to the resource list
 		id = BEE::resource_list->rooms.add_resource(this); // Add the resource and get the new id
-	}
-
-	// Get the list's engine pointer if it's not nullptr
-	if (BEE::resource_list->rooms.game != nullptr) {
-		game = BEE::resource_list->rooms.game;
 	}
 
 	return 0;
@@ -90,12 +95,16 @@ int BEE::Room::reset() {
 	should_sort = false;
 	instances_sorted_events.clear();
 
+	reset_lights();
+	if (light_map != nullptr) {
+		delete light_map;
+	}
+
 	if (physics_world != nullptr) {
 		delete physics_world;
 		physics_world = nullptr;
 	}
-	physics_world = new PhysicsWorld();
-	physics_world->attach(game);
+	//physics_world = new PhysicsWorld(game);
 
 	if (view_texture != nullptr) {
 		view_texture->free();
@@ -107,9 +116,17 @@ int BEE::Room::reset() {
 	return 0;
 }
 int BEE::Room::print() {
+	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, get_print());
+	return 0;
+}
+std::string BEE::Room::get_print() {
 	std::string background_string = get_background_string();
 	std::string view_string = get_view_string();
 	std::string instance_string = get_instance_string();
+
+	background_string.pop_back();
+	view_string.pop_back();
+	instance_string.pop_back();
 
 	std::stringstream s;
 	s <<
@@ -131,9 +148,8 @@ int BEE::Room::print() {
 	"\n	views\n" << debug_indent(view_string, 2) <<
 	"	instances\n" << debug_indent(instance_string, 2) <<
 	"}\n";
-	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str());
 
-	return 0;
+	return s.str();
 }
 int BEE::Room::get_id() {
 	return id;
@@ -194,10 +210,20 @@ std::string BEE::Room::get_view_string() {
 		table.push_back({"(visible", "vx,", "vy", "vwidth", "vheight", "px,", "py", "pwidth", "pheight", "object", "hborder", "vborder", "hspeed", "vspeed)"});
 
 		for (auto& v : views) {
+			std::string follow_name = "none";
+			if (v.second->following != nullptr) {
+				follow_name = v.second->following->get_object()->get_name();
+			}
+
 			table.push_back({
-				booltostring(v.second->is_visible), bee_itos(v.second->view_x), bee_itos(v.second->view_y), bee_itos(v.second->view_width), bee_itos(v.second->view_height),
-				bee_itos(v.second->port_x), bee_itos(v.second->port_y), bee_itos(v.second->port_width), bee_itos(v.second->port_height), v.second->following->object->get_name(),
-				bee_itos(v.second->horizontal_border), bee_itos(v.second->vertical_border), bee_itos(v.second->horizontal_speed), bee_itos(v.second->vertical_speed)
+				booltostring(v.second->is_visible),
+				bee_itos(v.second->view_x), bee_itos(v.second->view_y),
+				bee_itos(v.second->view_width), bee_itos(v.second->view_height),
+				bee_itos(v.second->port_x), bee_itos(v.second->port_y),
+				bee_itos(v.second->port_width), bee_itos(v.second->port_height),
+				follow_name,
+				bee_itos(v.second->horizontal_border), bee_itos(v.second->vertical_border),
+				bee_itos(v.second->horizontal_speed), bee_itos(v.second->vertical_speed)
 			});
 		}
 
@@ -214,7 +240,7 @@ std::string BEE::Room::get_instance_string() {
 		table.push_back({"(id", "object", "x", "y", "z)"});
 
 		for (auto& i : instances_sorted) {
-			table.push_back({bee_itos(i.first->id), i.first->object->get_name(), bee_itos(i.first->get_x()), bee_itos(i.first->get_y()), bee_itos(i.first->get_z())});
+			table.push_back({bee_itos(i.first->id), i.first->get_object()->get_name(), bee_itos(i.first->get_x()), bee_itos(i.first->get_y()), bee_itos(i.first->get_z())});
 		}
 
 		return string_tabulate(table);
@@ -227,12 +253,15 @@ BEE::ViewData* BEE::Room::get_current_view() {
 BEE::PhysicsWorld* BEE::Room::get_phys_world() {
 	return physics_world;
 }
+const std::map<const btRigidBody*,BEE::InstanceData*>& BEE::Room::get_phys_instances() {
+	return physics_instances;
+}
 
-int BEE::Room::set_name(std::string new_name) {
+int BEE::Room::set_name(const std::string& new_name) {
 	name = new_name;
 	return 0;
 }
-int BEE::Room::set_path(std::string new_path) {
+int BEE::Room::set_path(const std::string& new_path) {
 	path = "resources/rooms/"+new_path;
 	return 0;
 }
@@ -269,10 +298,9 @@ int BEE::Room::set_is_background_color_enabled(bool new_is_background_color_enab
 	return 0;
 }
 int BEE::Room::set_background(int index, BackgroundData* new_background) {
-	if (backgrounds.find(index) != backgrounds.end()) { // if the background exists, overwrite it
-		backgrounds.erase(index);
-	}
-	backgrounds.insert(std::pair<int,BackgroundData*>(index,new_background));
+	// Overwrite any previous background with the same index
+	backgrounds.erase(index);
+	backgrounds.emplace(index, new_background);
 	return 0;
 }
 int BEE::Room::add_background(int index, Background* new_background, bool new_is_visible, bool new_is_foreground, int new_x, int new_y, bool new_is_horizontal_tile, bool new_is_vertical_tile, int new_horizontal_speed, int new_vertical_speed, bool new_is_stretched) {
@@ -287,10 +315,9 @@ int BEE::Room::set_is_views_enabled(bool new_is_views_enabled) {
 	return 0;
 }
 int BEE::Room::set_view(int index, ViewData* new_view) {
-	if (views.find(index) != views.end()) { // if the view exists, overwrite it
-		views.erase(index);
-	}
-	views.insert(std::pair<int,ViewData*>(index, new_view));
+	// Overwrite any previous view with the same index
+	views.erase(index);
+	views.emplace(index, new_view);
 	return 0;
 }
 int BEE::Room::set_instance(int index, InstanceData* new_instance) {
@@ -336,8 +363,8 @@ BEE::InstanceData* BEE::Room::add_instance(int index, Object* object, double x, 
 		BEE_EVENT_WINDOW
 	};
 	for (bee_event_t e : l) {
-		if (new_instance->object->implemented_events.find(e) != new_instance->object->implemented_events.end()) {
-			if (new_instance->object->implemented_events[e]) {
+		if (new_instance->get_object()->implemented_events.find(e) != new_instance->get_object()->implemented_events.end()) {
+			if (new_instance->get_object()->implemented_events[e]) {
 				instances_sorted_events[e].emplace(new_instance, new_instance->id);
 			}
 		}
@@ -345,14 +372,13 @@ BEE::InstanceData* BEE::Room::add_instance(int index, Object* object, double x, 
 
 	if (new_instance->get_physbody() != nullptr) {
 		physics_world->add_body(new_instance->get_physbody());
-		physics_instances.emplace(new_instance->get_physbody()->get_body(), new_instance);
 	}
 
 	if (game->get_is_ready()) {
-		new_instance->object->create(new_instance);
+        new_instance->get_object()->update(new_instance);
+		new_instance->get_object()->create(new_instance);
 	}
 
-	//return index;
 	return new_instance;
 }
 int BEE::Room::add_instance_grid(int index, Object* object, double x, double y, double z) {
@@ -382,12 +408,37 @@ int BEE::Room::add_instance_grid(int index, Object* object, double x, double y, 
 int BEE::Room::remove_instance(int index) {
 	if (instances.find(index) != instances.end()) {
 		InstanceData* inst = instances[index];
-		if (inst->get_physbody() != nullptr) {
-			physics_instances.erase(inst->get_physbody()->get_body());
+
+		if (inst->get_physbody() == nullptr) {
+			std::cerr << "PHYS ERR null physbody for " << inst->get_object()->get_name() << ":" << index << "\n";
+		} else {
+			remove_physbody(inst->get_physbody());
 		}
-		inst->object->remove_instance(index);
+
+		inst->get_object()->remove_instance(index);
 		instances.erase(index);
 		instances_sorted.erase(inst);
+
+		std::list<bee_event_t> l = {
+			BEE_EVENT_CREATE, BEE_EVENT_DESTROY, BEE_EVENT_ALARM,
+			BEE_EVENT_STEP_BEGIN, BEE_EVENT_STEP_MID, BEE_EVENT_STEP_END,
+			BEE_EVENT_KEYBOARD_PRESS, BEE_EVENT_MOUSE_PRESS,
+			BEE_EVENT_KEYBOARD_INPUT, BEE_EVENT_MOUSE_INPUT,
+			BEE_EVENT_KEYBOARD_RELEASE, BEE_EVENT_MOUSE_RELEASE,
+			BEE_EVENT_CONTROLLER_AXIS, BEE_EVENT_CONTROLLER_PRESS,
+			BEE_EVENT_CONTROLLER_RELEASE, BEE_EVENT_CONTROLLER_MODIFY,
+			BEE_EVENT_COMMANDLINE_INPUT, BEE_EVENT_PATH_END,
+			BEE_EVENT_OUTSIDE_ROOM, BEE_EVENT_INTERSECT_BOUNDARY,
+			BEE_EVENT_COLLISION,
+			BEE_EVENT_DRAW, BEE_EVENT_ANIMATION_END,
+			BEE_EVENT_ROOM_START, BEE_EVENT_ROOM_END,
+			BEE_EVENT_GAME_START, BEE_EVENT_GAME_END,
+			BEE_EVENT_WINDOW
+		};
+		for (bee_event_t e : l) {
+			instances_sorted_events[e].erase(inst);
+		}
+
 		delete inst;
 
 		return 0;
@@ -400,6 +451,14 @@ int BEE::Room::sort_instances() {
 }
 int BEE::Room::request_instance_sort() {
 	should_sort = true;
+	return 0;
+}
+int BEE::Room::add_physbody(InstanceData* inst, PhysicsBody* body) {
+	physics_instances.emplace(body->get_body(), inst);
+	return 0;
+}
+int BEE::Room::remove_physbody(PhysicsBody* body) {
+	physics_instances.erase(body->get_body());
 	return 0;
 }
 int BEE::Room::add_particle_system(ParticleSystem* new_system) {
@@ -514,18 +573,25 @@ int BEE::Room::handle_lights() {
 			game->draw_set_blend(SDL_BLENDMODE_BLEND);
 		}
 	}
+	//reset_lights();
+
+	return 0;
+}
+int BEE::Room::reset_lights() {
+	for (auto& l : lightables) {
+		delete l;
+	}
 	lightables.clear();
 	lights.clear();
-
 	return 0;
 }
 
 int BEE::Room::load_media() {
 	// Load room sprites
 	for (auto& i : instances) {
-		if (i.second->object->get_sprite() != nullptr) {
-			if (!i.second->object->get_sprite()->get_is_loaded()) {
-				i.second->object->get_sprite()->load();
+		if (i.second->get_object()->get_sprite() != nullptr) {
+			if (!i.second->get_object()->get_sprite()->get_is_loaded()) {
+				i.second->get_object()->get_sprite()->load();
 			}
 		}
 	}
@@ -542,8 +608,8 @@ int BEE::Room::load_media() {
 int BEE::Room::free_media() {
 	// Free room sprites
 	for (auto& i : instances) {
-		if (i.second->object->get_sprite() != nullptr) {
-			i.second->object->get_sprite()->free();
+		if (i.second->get_object()->get_sprite() != nullptr) {
+			i.second->get_object()->get_sprite()->free();
 		}
 	}
 
@@ -556,9 +622,14 @@ int BEE::Room::free_media() {
 }
 int BEE::Room::reset_properties() {
 	for (auto& i : instances) {
-		i.second->object->update(i.second);
-		i.second->object->destroy(i.second);
-		remove_instance(i.second->id);
+		destroyed_instances.push_back(i.second);
+	}
+	for (auto& i : destroyed_instances) {
+		if (instances_sorted_events[BEE_EVENT_DESTROY].find(i) != instances_sorted_events[BEE_EVENT_DESTROY].end()) {
+			i->get_object()->update(i);
+			i->get_object()->destroy(i);
+		}
+		remove_instance(i->id);
 	}
 	instances.clear();
 	instances_sorted.clear();
@@ -577,8 +648,7 @@ int BEE::Room::reset_properties() {
 		delete physics_world;
 		physics_world = nullptr;
 	}
-	physics_world = new PhysicsWorld();
-	physics_world->attach(game);
+	physics_world = new PhysicsWorld(game);
 	physics_instances.clear();
 
 	// Reset background data
@@ -597,7 +667,7 @@ int BEE::Room::save_instance_map(std::string fname) {
 	std::ofstream savefile (fname, std::ios::trunc);
 	if (savefile.good()) {
 		for (auto& i : instances) {
-			savefile << i.second->object->get_name() << "," << (int)(i.second->get_xstart()) << "," << (int)(i.second->get_ystart()) << "\n";
+			savefile << i.second->get_object()->get_name() << "," << (int)(i.second->get_xstart()) << "," << (int)(i.second->get_ystart()) << "," << (int)(i.second->get_zstart()) << "\n";
 		}
 		savefile.close();
 		return 0;
@@ -611,7 +681,6 @@ int BEE::Room::load_instance_map(std::string fname) {
 		return 0;
 	}
 
-	std::vector<std::tuple<Object*,double,double,double>> data;
 	std::string datastr = file_get_contents(fname);
 	if (!datastr.empty()) {
 		std::istringstream data_stream (datastr);
@@ -624,21 +693,129 @@ int BEE::Room::load_instance_map(std::string fname) {
 				continue;
 			}
 
-			std::map<int,std::string> p = split(tmp, ',');
+			std::map<int,std::string> p = split(trim(tmp), '\t');
 			std::string v = p[0];
-			double x = std::stod(p[1]);
-			double y = std::stod(p[2]);
-			double z = std::stod(p[3]);
 
-			if (game->get_object_by_name(v) == nullptr) {
-				game->messenger_send({"engine", "room"}, BEE_MESSAGE_WARNING, "Error loading instance map: unknown object " + v);
+			if (p[0][0] == '#') {
+				continue;
+			} else if (p[0][0] == '!') {
+				if (v == "!tilex") {
+					unsigned int tile_amount = std::stoi(p[1]);
+					double grid_x = std::stod(p[2]);
+
+					std::string o = p[3];
+
+					if (game->get_object_by_name(o) == nullptr) {
+						game->messenger_send({"engine", "room"}, BEE_MESSAGE_WARNING, "Error while loading instance map: unknown object " + o);
+						continue;
+					}
+
+					double x = std::stod(p[4]);
+					double y = std::stod(p[5]);
+					double z = std::stod(p[6]);
+
+					for (size_t i=0; i<tile_amount; ++i) {
+						add_instance(-1, game->get_object_by_name(o), x + i*grid_x, y, z);
+					}
+
+					continue;
+				} else if (v == "!tiley") {
+					unsigned int tile_amount = std::stoi(p[1]);
+					double grid_y = std::stod(p[2]);
+
+					std::string o = p[3];
+
+					if (game->get_object_by_name(o) == nullptr) {
+						game->messenger_send({"engine", "room"}, BEE_MESSAGE_WARNING, "Error while loading instance map: unknown object " + o);
+						continue;
+					}
+
+					double x = std::stod(p[4]);
+					double y = std::stod(p[5]);
+					double z = std::stod(p[6]);
+
+					for (size_t i=0; i<tile_amount; ++i) {
+						add_instance(-1, game->get_object_by_name(o), x, y + i*grid_y, z);
+					}
+
+					continue;
+				} else if (v == "!tilez") {
+					unsigned int tile_amount = std::stoi(p[1]);
+					double grid_z = std::stod(p[2]);
+
+					std::string o = p[3];
+
+					if (game->get_object_by_name(o) == nullptr) {
+						game->messenger_send({"engine", "room"}, BEE_MESSAGE_WARNING, "Error while loading instance map: unknown object " + o);
+						continue;
+					}
+
+					double x = std::stod(p[4]);
+					double y = std::stod(p[5]);
+					double z = std::stod(p[6]);
+
+					for (size_t i=0; i<tile_amount; ++i) {
+						add_instance(-1, game->get_object_by_name(o), x, y, z + i*grid_z);
+					}
+
+					continue;
+				} else if (v == "!set") {
+					std::string o = p[1];
+
+					double x = std::stod(p[2]);
+					double y = std::stod(p[3]);
+					double z = std::stod(p[4]);
+
+					InstanceData* inst = add_instance(-1, game->get_object_by_name(o), x, y, z);
+
+					while (!data_stream.eof()) {
+						std::string tmp_set;
+						getline(data_stream, tmp_set);
+
+						if (tmp_set.empty()) {
+							continue;
+						}
+
+						std::map<int,std::string> pset = split(trim(tmp_set), '\t');
+
+						if (pset[0][0] == '@') {
+							if (pset[0] == "@sprite") {
+								inst->set_sprite(game->get_sprite_by_name(pset[1]));
+							} else if (pset[0] == "@solid") {
+								inst->set_is_solid(SIDP(pset[1], true).i());
+							} else if (pset[0] == "@depth") {
+								inst->depth = SIDP(pset[1], true).i();
+							} else {
+								game->messenger_send({"engine", "room"}, BEE_MESSAGE_WARNING, "Error while loading instance map: unknown setter \"" + v + "\"");
+								continue;
+							}
+						} else if (pset[0] == "!setend") {
+							break;
+						} else {
+							inst->set_data(pset[1], SIDP(pset[2], true));
+						}
+					}
+
+					continue;
+				} else if (v == "!setend") {
+					game->messenger_send({"engine", "room"}, BEE_MESSAGE_WARNING, "Error while loading instance map: stray !setend");
+					continue;
+				} else {
+					game->messenger_send({"engine", "room"}, BEE_MESSAGE_WARNING, "Error while loading instance map: unknown command \"" + v + "\"");
+					continue;
+				}
 			} else {
-				data.push_back(std::make_tuple(game->get_object_by_name(v), x, y, z));
-			}
-		}
+				double x = std::stod(p[1]);
+				double y = std::stod(p[2]);
+				double z = std::stod(p[3]);
 
-		for (auto& i : data) {
-			add_instance(-1, std::get<0>(i), std::get<1>(i), std::get<2>(i), std::get<3>(i));
+				if (game->get_object_by_name(v) == nullptr) {
+					game->messenger_send({"engine", "room"}, BEE_MESSAGE_WARNING, "Error while loading instance map: unknown object " + v);
+					continue;
+				} else {
+					add_instance(-1, game->get_object_by_name(v), x, y, z);
+				}
+			}
 		}
 	} else {
 		game->messenger_send({"engine", "room"}, BEE_MESSAGE_WARNING, "No instances loaded");
@@ -663,8 +840,8 @@ int BEE::Room::set_instance_map(std::string new_instance_map) {
 
 int BEE::Room::create() {
 	for (auto& i : instances_sorted_events[BEE_EVENT_CREATE]) {
-		i.first->object->update(i.first);
-		i.first->object->create(i.first);
+		i.first->get_object()->update(i.first);
+		i.first->get_object()->create(i.first);
 	}
 
 	return 0;
@@ -672,8 +849,8 @@ int BEE::Room::create() {
 int BEE::Room::destroy() {
 	for (auto& i : destroyed_instances) {
 		if (instances_sorted_events[BEE_EVENT_DESTROY].find(i) != instances_sorted_events[BEE_EVENT_DESTROY].end()) {
-			i->object->update(i);
-			i->object->destroy(i);
+			i->get_object()->update(i);
+			i->get_object()->destroy(i);
 		}
 		remove_instance(i->id);
 	}
@@ -703,8 +880,8 @@ int BEE::Room::check_alarms() {
 			if (i.first->alarm_end[e] != 0xffffffff) {
 				if (SDL_GetTicks() >= i.first->alarm_end[e]) {
 					i.first->alarm_end[e] = 0xffffffff; // Reset alarm
-					i.first->object->update(i.first);
-					i.first->object->alarm(i.first, e);
+					i.first->get_object()->update(i.first);
+					i.first->get_object()->alarm(i.first, e);
 				}
 			}
 		}
@@ -714,8 +891,8 @@ int BEE::Room::check_alarms() {
 }
 int BEE::Room::step_begin() {
 	for (auto& i : instances_sorted_events[BEE_EVENT_STEP_BEGIN]) {
-		i.first->object->update(i.first);
-		i.first->object->step_begin(i.first);
+		i.first->get_object()->update(i.first);
+		i.first->get_object()->step_begin(i.first);
 	}
 
 	if (game->options->is_debug_enabled) {
@@ -732,8 +909,8 @@ int BEE::Room::step_begin() {
 }
 int BEE::Room::step_mid() {
 	for (auto& i : instances_sorted_events[BEE_EVENT_STEP_MID]) {
-		i.first->object->update(i.first);
-		i.first->object->step_mid(i.first);
+		i.first->get_object()->update(i.first);
+		i.first->get_object()->step_mid(i.first);
 	}
 
 	// Move instances along their paths
@@ -755,7 +932,7 @@ int BEE::Room::step_mid() {
 			} else if (i.first->get_path_node() >= 0) {
 				c = i.first->get_path_coords().at(i.first->get_path_node());
 			}
-			i.first->move(std::get<2>(c)*abs(i.first->get_path_speed()), direction_of(i.first->get_x(), i.first->get_y(), i.first->path_xstart+std::get<0>(c), i.first->path_ystart+std::get<1>(c)));
+			i.first->move(std::get<2>(c)*abs(i.first->get_path_speed()), direction_of(i.first->get_x(), i.first->get_y(), i.first->path_pos_start.x()+std::get<0>(c), i.first->path_pos_start.y()+std::get<1>(c)));
 		}
 	}
 
@@ -777,95 +954,95 @@ int BEE::Room::step_mid() {
 }
 int BEE::Room::step_end() {
 	for (auto& i : instances_sorted_events[BEE_EVENT_STEP_END]) {
-		i.first->object->update(i.first);
-		i.first->object->step_end(i.first);
+		i.first->get_object()->update(i.first);
+		i.first->get_object()->step_end(i.first);
 	}
 
 	return 0;
 }
 int BEE::Room::keyboard_press(SDL_Event* e) {
 	for (auto& i : instances_sorted_events[BEE_EVENT_KEYBOARD_PRESS]) {
-		i.first->object->update(i.first);
-		i.first->object->keyboard_press(i.first, e);
+		i.first->get_object()->update(i.first);
+		i.first->get_object()->keyboard_press(i.first, e);
 	}
 
 	return 0;
 }
 int BEE::Room::mouse_press(SDL_Event* e) {
 	for (auto& i : instances_sorted_events[BEE_EVENT_MOUSE_PRESS]) {
-		i.first->object->update(i.first);
-		i.first->object->mouse_press(i.first, e);
+		i.first->get_object()->update(i.first);
+		i.first->get_object()->mouse_press(i.first, e);
 	}
 
 	return 0;
 }int BEE::Room::keyboard_input(SDL_Event* e) {
 	for (auto& i : instances_sorted_events[BEE_EVENT_KEYBOARD_INPUT]) {
-		i.first->object->update(i.first);
-		i.first->object->keyboard_input(i.first, e);
+		i.first->get_object()->update(i.first);
+		i.first->get_object()->keyboard_input(i.first, e);
 	}
 
 	return 0;
 }
 int BEE::Room::mouse_input(SDL_Event* e) {
 	for (auto& i : instances_sorted_events[BEE_EVENT_MOUSE_INPUT]) {
-		i.first->object->update(i.first);
-		i.first->object->mouse_input(i.first, e);
+		i.first->get_object()->update(i.first);
+		i.first->get_object()->mouse_input(i.first, e);
 	}
 
 	return 0;
 }
 int BEE::Room::keyboard_release(SDL_Event* e) {
 	for (auto& i : instances_sorted_events[BEE_EVENT_KEYBOARD_RELEASE]) {
-		i.first->object->update(i.first);
-		i.first->object->keyboard_release(i.first, e);
+		i.first->get_object()->update(i.first);
+		i.first->get_object()->keyboard_release(i.first, e);
 	}
 
 	return 0;
 }
 int BEE::Room::mouse_release(SDL_Event* e) {
 	for (auto& i : instances_sorted_events[BEE_EVENT_MOUSE_RELEASE]) {
-		i.first->object->update(i.first);
-		i.first->object->mouse_release(i.first, e);
+		i.first->get_object()->update(i.first);
+		i.first->get_object()->mouse_release(i.first, e);
 	}
 
 	return 0;
 }
 int BEE::Room::controller_axis(SDL_Event* e) {
 	for (auto& i : instances_sorted_events[BEE_EVENT_CONTROLLER_AXIS]) {
-		i.first->object->update(i.first);
-		i.first->object->controller_axis(i.first, e);
+		i.first->get_object()->update(i.first);
+		i.first->get_object()->controller_axis(i.first, e);
 	}
 
 	return 0;
 }
 int BEE::Room::controller_press(SDL_Event* e) {
 	for (auto& i : instances_sorted_events[BEE_EVENT_CONTROLLER_PRESS]) {
-		i.first->object->update(i.first);
-		i.first->object->controller_press(i.first, e);
+		i.first->get_object()->update(i.first);
+		i.first->get_object()->controller_press(i.first, e);
 	}
 
 	return 0;
 }
 int BEE::Room::controller_release(SDL_Event* e) {
 	for (auto& i : instances_sorted_events[BEE_EVENT_CONTROLLER_RELEASE]) {
-		i.first->object->update(i.first);
-		i.first->object->controller_release(i.first, e);
+		i.first->get_object()->update(i.first);
+		i.first->get_object()->controller_release(i.first, e);
 	}
 
 	return 0;
 }
 int BEE::Room::controller_modify(SDL_Event* e) {
 	for (auto& i : instances_sorted_events[BEE_EVENT_CONTROLLER_MODIFY]) {
-		i.first->object->update(i.first);
-		i.first->object->controller_modify(i.first, e);
+		i.first->get_object()->update(i.first);
+		i.first->get_object()->controller_modify(i.first, e);
 	}
 
 	return 0;
 }
 int BEE::Room::commandline_input(const std::string& input) {
 	for (auto& i : instances_sorted_events[BEE_EVENT_COMMANDLINE_INPUT]) {
-		i.first->object->update(i.first);
-		i.first->object->commandline_input(i.first, input);
+		i.first->get_object()->update(i.first);
+		i.first->get_object()->commandline_input(i.first, input);
 	}
 
 	return 0;
@@ -876,8 +1053,8 @@ int BEE::Room::check_paths() {
 			if (((i.first->get_path_speed() >= 0)&&(i.first->get_path_node() == (int) i.first->get_path_coords().size()-1))
 				|| ((i.first->get_path_speed() < 0)&&(i.first->get_path_node() == -1))) {
 				if (instances_sorted_events[BEE_EVENT_PATH_END].find(i.first) != instances_sorted_events[BEE_EVENT_PATH_END].end()) {
-					i.first->object->update(i.first);
-					i.first->object->path_end(i.first);
+					i.first->get_object()->update(i.first);
+					i.first->get_object()->path_end(i.first);
 				}
 				i.first->handle_path_end();
 			}
@@ -888,12 +1065,12 @@ int BEE::Room::check_paths() {
 }
 int BEE::Room::outside_room() {
 	for (auto& i : instances_sorted_events[BEE_EVENT_OUTSIDE_ROOM]) {
-		if (i.first->object->get_mask() != nullptr) {
-			SDL_Rect a = {(int)i.first->get_x(), (int)i.first->get_y(), i.first->object->get_mask()->get_subimage_width(), i.first->object->get_mask()->get_height()};
+		if (i.first->get_object()->get_mask() != nullptr) {
+			SDL_Rect a = {(int)i.first->get_corner_x(), (int)i.first->get_corner_y(), i.first->get_width(), i.first->get_height()};
 			SDL_Rect b = {0, 0, get_width(), get_height()};
 			if (!check_collision(a, b)) {
-				i.first->object->update(i.first);
-				i.first->object->outside_room(i.first);
+				i.first->get_object()->update(i.first);
+				i.first->get_object()->outside_room(i.first);
 			}
 		}
 	}
@@ -902,8 +1079,8 @@ int BEE::Room::outside_room() {
 }
 int BEE::Room::intersect_boundary() {
 	for (auto& i : instances_sorted_events[BEE_EVENT_INTERSECT_BOUNDARY]) {
-		i.first->object->update(i.first);
-		i.first->object->intersect_boundary(i.first);
+		i.first->get_object()->update(i.first);
+		i.first->get_object()->intersect_boundary(i.first);
 	}
 
 	return 0;
@@ -912,23 +1089,50 @@ int BEE::Room::collision() {
 	physics_world->step(1.0/60.0);
 	//physics_world->step(game->get_tick_delta()/1000.0);
 
-	size_t manifold_amount = physics_world->get_dispatcher()->getNumManifolds();
+	return 0;
+}
+void BEE::Room::collision_internal(btDynamicsWorld* w, btScalar timestep) {
+	PhysicsWorld* world = static_cast<PhysicsWorld*>(w->getWorldUserInfo());
+	std::map<const btRigidBody*,InstanceData*> physics_instances = world->get_game()->get_current_room()->get_phys_instances();
+
+	//w->clearForces();
+
+	size_t manifold_amount = world->get_dispatcher()->getNumManifolds();
 	for (size_t i=0; i<manifold_amount; ++i) {
-		btPersistentManifold* manifold = physics_world->get_dispatcher()->getManifoldByIndexInternal(i);
+		btPersistentManifold* manifold = world->get_dispatcher()->getManifoldByIndexInternal(i);
 		const btRigidBody* body1 = btRigidBody::upcast(manifold->getBody0());
 		const btRigidBody* body2 = btRigidBody::upcast(manifold->getBody1());
 
 		if ((physics_instances.find(body1) != physics_instances.end())&&(physics_instances.find(body2) != physics_instances.end())) {
 			InstanceData* i1 = physics_instances[body1];
 			InstanceData* i2 = physics_instances[body2];
-			i1->object->update(i1);
-			i1->object->collision(i1, i2);
-			i2->object->update(i2);
-			i2->object->collision(i2, i1);
+
+			if (
+				(i1 != nullptr)
+				&&(i2 != nullptr)
+				&&(i1->get_object() != nullptr)
+				&&(i2->get_object() != nullptr)
+			) {
+				i1->get_object()->update(i1);
+				i1->get_object()->collision(i1, i2);
+				i2->get_object()->update(i2);
+				i2->get_object()->collision(i2, i1);
+			} else {
+				if ((i1 == nullptr)||(i1->get_object() == nullptr)) {
+					physics_instances.erase(body1);
+				}
+				if ((i2 == nullptr)||(i2->get_object() == nullptr)) {
+					physics_instances.erase(body2);
+				}
+			}
 		}
 	}
+}
+void BEE::Room::check_collision_lists(btBroadphasePair& collision_pair, btCollisionDispatcher& dispatcher, const btDispatcherInfo& dispatch_info) {
+	//btRigidBody* body1 = static_cast<btRigidBody*>collision_pair.m_pProxy0->m_clientObject;
+	//btRigidBody* body2 = static_cast<btRigidBody*>collision_pair.m_pProxy1->m_clientObject;
 
-	return 0;
+	dispatcher.defaultNearCallback(collision_pair, dispatcher, dispatch_info);
 }
 int BEE::Room::draw() {
 	if (is_background_color_enabled) {
@@ -956,7 +1160,7 @@ int BEE::Room::draw() {
 				if (view_current->following != nullptr) {
 					InstanceData* f = view_current->following;
 					if (instances_sorted.find(f) != instances_sorted.end()) {
-						SDL_Rect a = {(int)f->get_x(), (int)f->get_y(), f->get_width(), f->get_height()};
+						SDL_Rect a = {(int)f->get_corner_x(), (int)f->get_corner_y(), f->get_width(), f->get_height()};
 						SDL_Rect b = {
 							view_current->view_x,
 							view_current->view_y,
@@ -1011,6 +1215,7 @@ int BEE::Room::draw() {
 	}
 
 	game->render();
+	reset_lights();
 
 	return 0;
 }
@@ -1024,9 +1229,9 @@ int BEE::Room::draw_view() {
 
 	// Draw instances
 	for (auto& i : instances_sorted_events[BEE_EVENT_DRAW]) {
-		if (i.first->object->get_is_visible()) {
-			i.first->object->update(i.first);
-			i.first->object->draw(i.first);
+		if (i.first->get_object()->get_is_visible()) {
+			i.first->get_object()->update(i.first);
+			i.first->get_object()->draw(i.first);
 		}
 	}
 
@@ -1043,6 +1248,9 @@ int BEE::Room::draw_view() {
 	}
 
 	if (game->options->is_debug_enabled) {
+		// Draw room outline
+		game->draw_rectangle(0, 0, get_width(), get_height(), false, c_red);
+
 		// Draw physics engine debug shapes
 		physics_world->draw_debug();
 
@@ -1067,10 +1275,10 @@ int BEE::Room::draw_view() {
 }
 int BEE::Room::animation_end() {
 	for (auto& i : instances_sorted_events[BEE_EVENT_ANIMATION_END]) {
-		if (i.first->object->get_sprite() != nullptr) {
-			if (!i.first->object->get_sprite()->get_is_animated()) {
-				i.first->object->update(i.first);
-				i.first->object->animation_end(i.first);
+		if (i.first->get_object()->get_sprite() != nullptr) {
+			if (!i.first->get_object()->get_sprite()->get_is_animated()) {
+				i.first->get_object()->update(i.first);
+				i.first->get_object()->animation_end(i.first);
 			}
 		}
 	}
@@ -1079,40 +1287,40 @@ int BEE::Room::animation_end() {
 }
 int BEE::Room::room_start() {
 	for (auto& i : instances_sorted_events[BEE_EVENT_ROOM_START]) {
-		i.first->object->update(i.first);
-		i.first->object->room_start(i.first);
+		i.first->get_object()->update(i.first);
+		i.first->get_object()->room_start(i.first);
 	}
 
 	return 0;
 }
 int BEE::Room::room_end() {
 	for (auto& i : instances_sorted_events[BEE_EVENT_ROOM_END]) {
-		i.first->object->update(i.first);
-		i.first->object->room_end(i.first);
+		i.first->get_object()->update(i.first);
+		i.first->get_object()->room_end(i.first);
 	}
 
 	return 0;
 }
 int BEE::Room::game_start() {
 	for (auto& i : instances_sorted_events[BEE_EVENT_GAME_START]) {
-		i.first->object->update(i.first);
-		i.first->object->game_start(i.first);
+		i.first->get_object()->update(i.first);
+		i.first->get_object()->game_start(i.first);
 	}
 
 	return 0;
 }
 int BEE::Room::game_end() {
 	for (auto& i : instances_sorted_events[BEE_EVENT_GAME_END]) {
-		i.first->object->update(i.first);
-		i.first->object->game_end(i.first);
+		i.first->get_object()->update(i.first);
+		i.first->get_object()->game_end(i.first);
 	}
 
 	return 0;
 }
 int BEE::Room::window(SDL_Event* e) {
 	for (auto& i : instances_sorted_events[BEE_EVENT_WINDOW]) {
-		i.first->object->update(i.first);
-		i.first->object->window(i.first, e);
+		i.first->get_object()->update(i.first);
+		i.first->get_object()->window(i.first, e);
 	}
 
 	return 0;

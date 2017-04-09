@@ -99,9 +99,11 @@ TEST_CASE("string/charcode") {
 	REQUIRE(chr(65) == "A");
 	REQUIRE(ord('A') == 65);
 	REQUIRE(ord("ABC") == 65);
-	Uint8 ca[] = {3, 65, 66, 67};
-	REQUIRE(chra(ca) == std::string("ABC"));
-	REQUIRE(chra(orda("ABC")) == chra(ca));
+	Uint8 ca1[] = {3, 65, 66, 67};
+	REQUIRE(chra(ca1) == std::string("ABC"));
+	Uint8* ca2 = orda("ABC");
+	REQUIRE(chra(ca2) == chra(ca1));
+	delete[] ca2;
 }
 TEST_CASE("string/alteration") {
 	REQUIRE(string_lower("ABC") == "abc");
@@ -277,8 +279,11 @@ TEST_CASE("files") {
 // Networking function assertions
 TEST_CASE("network") {
 	REQUIRE(network_init() == 0);
-	int port = BEE_GAME_ID / 1000;
-	REQUIRE(network_get_address(network_resolve_host("127.0.0.1", port)->host) == "127.0.0.1");
+	int port = 3054;
+	IPaddress* ipa = network_resolve_host("127.0.0.1", port);
+	REQUIRE(ipa != nullptr);
+	REQUIRE(network_get_address(ipa->host) == "127.0.0.1");
+	delete ipa;
 
 	TCPsocket tcp = network_tcp_open("", port);
 	REQUIRE(tcp != (TCPsocket)nullptr);
@@ -342,6 +347,7 @@ TEST_CASE("template") {
 	Uint8* a = network_map_encode(m);
 	REQUIRE(a[0] == 24);
 	REQUIRE((network_map_decode(a, &n) == 0));
+	delete[] a;
 	REQUIRE(std::equal(m.begin(), m.end(), n.begin()));
 }
 

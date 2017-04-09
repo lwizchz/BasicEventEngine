@@ -59,7 +59,6 @@ std::string chra(Uint8* carray) {
 * @s: the string to convert
 */
 Uint8* orda(const std::string& s) {
-	//Uint8* carray = (Uint8*)malloc(s.length()+1); // Allocate space for the string and the metadata
 	Uint8* carray = new Uint8[s.length()+1]; // Allocate space for the string and the metadata
 	carray[0] = s.length(); // Prepend the length of the string
 	for (unsigned int i=0; i<s.length(); i++) { // Iterate over the string and add each character to the array
@@ -162,6 +161,43 @@ std::map<int,std::string> split(const std::string& input, char delimiter) {
 */
 std::map<int,std::string> handle_newlines(const std::string& input) {
 	return split(input, '\n');
+}
+/*
+* splitv() - Split a string by a given delimiter and return the data as a vector
+* @input: the string to operate on
+* @delimiter: the character to use to split the string
+* @should_respect_quotes: whether quotes should split the string
+*/
+std::vector<std::string> splitv(const std::string& input, char delimiter, bool should_respect_quotes) {
+	std::vector<std::string> output; // Declare a map to store the split strings
+
+	size_t token_start = 0; // Store the position of the beginning of each token
+	for (size_t i=0; i<input.length(); ++i) { // Iterate over each character in the string
+		char c = input[i]; // Get the current character
+
+		if (c == delimiter) { // If the character is a delimiter, store a substring in the map
+			output.emplace_back(input.substr(token_start, i-token_start));
+			token_start = i+1; // Begin the next token after the delimiter
+		} else if ((c == '"')&&(should_respect_quotes)) { // If the character is a quote, handle it separately
+			if ((i>0)&&(input[i-1] == '\\')) {
+				continue;
+			}
+
+			++i; // Increment past the first quote
+			while (i<input.length()) { // Iterate over the string until the next quote or string end is reached
+				if ((input[i] == '"')&&(input[i-1] != '\\')) {
+					break;
+				}
+
+				++i;
+			}
+		}
+	}
+	if (token_start < input.length()) {  // Add the last token to the map if it exists
+		output.emplace_back(input.substr(token_start, input.length()-token_start));
+	}
+
+	return output; // Return the vector on success
 }
 /*
 * join() - Join a map of strings by the given delimiter and return a string
@@ -316,7 +352,7 @@ std::string string_repeat(size_t amount, const std::string& str) {
 * ! Note that all sub-vectors should have the same number of elements
 * @table: the table to tabulate
 */
-std::string string_tabulate(const std::vector<std::vector<std::string>> table) {
+std::string string_tabulate(const std::vector<std::vector<std::string>>& table) {
 	std::vector<size_t> column_width; // Create a vector which measures the width of each existing column
 	for (size_t i=0; i<table[0].size(); i++) { // Iterate over the columns of the first row
 		column_width.push_back(0); // Push an initial width for every column
@@ -337,6 +373,7 @@ std::string string_tabulate(const std::vector<std::vector<std::string>> table) {
 		}
 		str += "\n"; // Separate each row with a new line
 	}
+
 	return str; // Return the tabulation
 }
 

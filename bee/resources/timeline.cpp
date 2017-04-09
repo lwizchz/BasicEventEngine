@@ -18,7 +18,12 @@ BEE::Timeline::Timeline () {
 
 	reset();
 }
-BEE::Timeline::Timeline (std::string new_name, std::string new_path) {
+BEE::Timeline::Timeline (const std::string& new_name, const std::string& new_path) {
+	// Get the list's engine pointer if it's not nullptr
+	if (BEE::resource_list->timelines.game != nullptr) {
+		game = BEE::resource_list->timelines.game;
+	}
+
 	reset();
 
 	add_to_resources();
@@ -36,11 +41,6 @@ BEE::Timeline::~Timeline() {
 int BEE::Timeline::add_to_resources() {
 	if (id < 0) { // If the resource needs to be added to the resource list
 		id = BEE::resource_list->timelines.add_resource(this); // Add the resource and get the new id
-	}
-
-	// Get the list's engine pointer if it's not nullptr
-	if (BEE::resource_list->timelines.game != nullptr) {
-		game = BEE::resource_list->timelines.game;
 	}
 
 	return 0;
@@ -117,11 +117,11 @@ bool BEE::Timeline::get_is_looping() {
 	return is_looping;
 }
 
-int BEE::Timeline::set_name(std::string new_name) {
+int BEE::Timeline::set_name(const std::string& new_name) {
 	name = new_name;
 	return 0;
 }
-int BEE::Timeline::set_path(std::string new_path) {
+int BEE::Timeline::set_path(const std::string& new_path) {
 	path = new_path;
 	return 0;
 }

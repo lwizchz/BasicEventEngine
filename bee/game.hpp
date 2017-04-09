@@ -36,14 +36,19 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#define DEFAULT_WINDOW_WIDTH 1280 // Define the default window dimensions
-#define DEFAULT_WINDOW_HEIGHT 720
+//#define DEFAULT_WINDOW_WIDTH 1280 // Define the default window dimensions
+//#define DEFAULT_WINDOW_HEIGHT 720
+#define DEFAULT_WINDOW_WIDTH 1920 // Define the default window dimensions
+#define DEFAULT_WINDOW_HEIGHT 1080
 
 #define DEFAULT_GAME_FPS 60 // Define the default game fps goal
 
 #define BEE_MAX_LIGHTS 8 // Define the maximum amount of processed lights
 #define BEE_MAX_LIGHTABLES 96
 #define BEE_MAX_MASK_VERTICES 8
+
+#define MACRO_TO_STR_(x) #x
+#define MACRO_TO_STR(x) MACRO_TO_STR_(x)
 
 #ifndef BEE_GAME_ID // BEE_GAME_ID should always be defined but just in case
 #define BEE_GAME_ID 4294967295 // pow(2,32)-1, the maximum value
@@ -180,14 +185,18 @@ class BEE { // The master engine class which effectively acts as a namespace
 		std::unordered_map<std::string,std::unordered_set<std::shared_ptr<MessageRecipient>>> recipients;
 		const std::unordered_set<std::string> protected_tags = {"engine", "console"};
 		std::vector<std::shared_ptr<MessageContents>> messages;
+		bee_output_t messenger_output_level = BEE_OUTPUT_NORMAL;
 
 		Console* console = nullptr;
 
 		int update_delta();
 	protected:
+		// bee/game/info.cpp
+		static std::list<BEE::ProgramFlags*>& get_standard_flags_internal();
+
 		// bee/game/messenger.cpp
 		int messenger_register_protected(std::shared_ptr<MessageRecipient>);
-		int messenger_register_protected(std::string, const std::vector<std::string>&, bool, std::function<void (BEE*, std::shared_ptr<MessageContents>)>);
+		std::shared_ptr<MessageRecipient> messenger_register_protected(std::string, const std::vector<std::string>&, bool, std::function<void (BEE*, std::shared_ptr<MessageContents>)>);
 		int messenger_unregister_protected(std::shared_ptr<MessageRecipient>);
 		int messenger_send_urgent(std::shared_ptr<MessageContents>);
 
@@ -231,6 +240,8 @@ class BEE { // The master engine class which effectively acts as a namespace
 		Font* add_font(const std::string&, const std::string&, int, bool);
 		Path* add_path(const std::string&, const std::string&);
 		Timeline* add_timeline(const std::string&, const std::string&);
+		Mesh* add_mesh(const std::string&, const std::string&);
+		Light* add_light(const std::string&, const std::string&);
 		Object* add_object(const std::string&, const std::string&);
 		Room* add_room(const std::string&, const std::string&);
 
@@ -240,10 +251,21 @@ class BEE { // The master engine class which effectively acts as a namespace
 		static Font* get_font(int);
 		static Path* get_path(int);
 		static Timeline* get_timeline(int);
+		static Mesh* get_mesh(int);
+		static Light* get_light(int);
 		static Object* get_object(int);
 		static Room* get_room(int);
 
+		Sprite* get_sprite_by_name(const std::string&) const;
+		Sound* get_sound_by_name(const std::string&) const;
+		Background* get_background_by_name(const std::string&) const;
+		Font* get_font_by_name(const std::string&) const;
+		Path* get_path_by_name(const std::string&) const;
+		Timeline* get_timeline_by_name(const std::string&) const;
+		Mesh* get_mesh_by_name(const std::string&) const;
+		Light* get_light_by_name(const std::string&) const;
 		Object* get_object_by_name(const std::string&) const;
+		Room* get_room_by_name(const std::string&) const;
 
 		// bee/game.cpp
 		Uint32 get_ticks() const;
@@ -270,8 +292,9 @@ class BEE { // The master engine class which effectively acts as a namespace
 		int end_game() const;
 
 		// bee/game/info.cpp
-		static std::list<BEE::ProgramFlags*> get_standard_flags();
 		static std::string get_usage_text();
+		static std::list<BEE::ProgramFlags*> get_standard_flags();
+		static int free_standard_flags();
 
 		// bee/game/room.cpp
 		void restart_room() const;
@@ -391,14 +414,18 @@ class BEE { // The master engine class which effectively acts as a namespace
 
 		// bee/game/messenger.cpp
 		int messenger_register(std::shared_ptr<MessageRecipient>);
-		int messenger_register(std::string, const std::vector<std::string>&, bool, std::function<void (BEE*, std::shared_ptr<MessageContents>)>);
-		int messenger_register(const std::vector<std::string>&, std::function<void (BEE*, std::shared_ptr<MessageContents>)>);
+		std::shared_ptr<MessageRecipient> messenger_register(std::string, const std::vector<std::string>&, bool, std::function<void (BEE*, std::shared_ptr<MessageContents>)>);
+		std::shared_ptr<MessageRecipient> messenger_register(const std::vector<std::string>&, std::function<void (BEE*, std::shared_ptr<MessageContents>)>);
 		int messenger_unregister(std::shared_ptr<MessageRecipient>);
+		int messenger_unregister_name(const std::string&);
 		int messenger_unregister_all();
 
 		int messenger_send(std::shared_ptr<MessageContents>);
 		int messenger_send(const std::vector<std::string>&, bee_message_t, const std::string&, std::shared_ptr<void>);
 		int messenger_send(const std::vector<std::string>&, bee_message_t, const std::string&);
+
+		int messenger_set_level(bee_output_t);
+		bee_output_t messenger_get_level();
 
 		int handle_messages();
 		std::string messenger_get_type_string(bee_message_t) const;
@@ -426,9 +453,14 @@ class BEE { // The master engine class which effectively acts as a namespace
 		std::string console_bind(SDL_Keycode, const std::string&);
 		std::string console_bind(SDL_Keycode);
 		int console_unbind(SDL_Keycode);
+		int console_unbind_all();
+		int console_alias(const std::string&, const std::string&);
+		const std::unordered_map<std::string,std::string>& console_get_aliases() const;
+		int console_set_var(const std::string&, SIDP);
+		SIDP console_get_var(const std::string&) const;
 
 		int console_run(const std::string&);
-		std::string console_get_help(const std::string&);
+		std::string console_get_help(const std::string&) const;
 };
 
 typedef std::tuple<double, double, double> bee_path_coord; // {x, y, speed}
@@ -460,9 +492,13 @@ class BEE::ProgramFlags {
 		int has_arg = no_argument;
 		std::function<void (BEE*, char*)> func = nullptr;
 
-		ProgramFlags(std::string l, char s, bool p, int a, std::function<void (BEE*, char*)> f) {
-			longopt = l; shortopt = s; pre_init = p; has_arg = a; func = f;
-		}
+		ProgramFlags(std::string l, char s, bool p, int a, std::function<void (BEE*, char*)> f) :
+			longopt(l),
+			shortopt(s),
+			pre_init(p),
+			has_arg(a),
+			func(f)
+		{}
 };
 class BEE::GameOptions {
 	public:
@@ -514,6 +550,49 @@ class BEE::ViewData {
 		int horizontal_speed, vertical_speed;
 };
 
+class BEE::SIDP { // This class can hold a string, integer, double, or pointer and is meant to allow multiple types in the same container
+	public:
+		int type = -1; // Possible types: 0=string, 1=int, 2=double, 3=pointer
+		std::string str = "";
+		int integer = 0;
+		double floating = 0.0;
+		void* pointer = nullptr;
+
+		// Initialize the variable
+		SIDP();
+		SIDP(const std::string&);
+		SIDP(const std::string&, bool);
+		SIDP(int);
+		SIDP(double);
+		SIDP(void*);
+		int reset();
+
+		int interpret(const std::string&);
+		std::string to_str();
+
+		// Return the requested type
+		std::string s(std::string, int);
+		int i(std::string, int);
+		double d(std::string, int);
+		void* p(std::string, int);
+		std::string s();
+		int i();
+		double d();
+		void* p();
+
+		SIDP& operator=(const SIDP&);
+		SIDP& operator=(const std::string&);
+		SIDP& operator=(int);
+		SIDP& operator=(double);
+		SIDP& operator=(void*);
+
+		SIDP& operator+=(const SIDP&);
+		SIDP& operator+=(int);
+
+		SIDP& operator-=(const SIDP&);
+		SIDP& operator-=(int);
+};
+
 class BEE::NetworkData {
 	public:
 		bool is_initialized = false;
@@ -521,7 +600,7 @@ class BEE::NetworkData {
 		UDPsocket udp_recv = nullptr;
 		UDPpacket* udp_data = nullptr;
 
-		int id = BEE_GAME_ID / 1000;
+		int id = 3054;
 		bool is_connected = false;
 		bool is_host = false;
 		int channel = -1;
@@ -544,9 +623,13 @@ class BEE::MessageContents {
 		std::string descr;
 		std::shared_ptr<void> data;
 
-		MessageContents(Uint32 tm, std::vector<std::string> tg, bee_message_t tp, std::string de, std::shared_ptr<void> da) {
-			tickstamp = tm; tags = tg; type = tp; descr = de; data = da;
-		}
+		MessageContents(Uint32 tm, std::vector<std::string> tg, bee_message_t tp, std::string de, std::shared_ptr<void> da) :
+			tickstamp(tm),
+			tags(tg),
+			type(tp),
+			descr(de),
+			data(da)
+		{}
 };
 class BEE::MessageRecipient {
 	public:
@@ -555,9 +638,12 @@ class BEE::MessageRecipient {
 		bool is_strict = false;
 		std::function<void (BEE*, std::shared_ptr<MessageContents>)> func = nullptr;
 
-		MessageRecipient(std::string n, std::vector<std::string> t, bool s, std::function<void (BEE*, std::shared_ptr<MessageContents>)> f) {
-			name = n; tags = t; is_strict = s; func = f;
-		}
+		MessageRecipient(std::string n, std::vector<std::string> t, bool s, std::function<void (BEE*, std::shared_ptr<MessageContents>)> f) :
+			name(n),
+			tags(t),
+			is_strict(s),
+			func(f)
+		{}
 };
 
 class BEE::Console {
@@ -565,18 +651,18 @@ class BEE::Console {
 		bool is_open = false;
 
 		std::unordered_map<std::string,std::pair<std::string,std::function<void (BEE*, std::shared_ptr<MessageContents>)>>> commands;
+		std::unordered_map<std::string,std::string> aliases;
+		std::unordered_map<std::string,SIDP> variables;
+
+		std::map<SDL_Keycode,std::string> bindings;
 
 		std::string input = "";
 
 		std::vector<std::string> history;
 		int history_index = -1;
 
-		std::map<std::string,SIDP> variables;
-
 		std::stringstream log;
 		size_t page_index = 0;
-
-		std::map<SDL_Keycode,std::string> bindings;
 
 		std::vector<std::string> completion_commands;
 		int completion_index = -1;
@@ -589,47 +675,15 @@ class BEE::Console {
 		unsigned int h = 530;
 		unsigned int line_height = 20;
 
-		TextData* td_log;
+		TextData* td_log = nullptr;
+
+		~Console();
 };
 
-class BEE::SIDP { // This class can hold a string, integer, double, or pointer and is meant to allow multiple types in the same container
-	public:
-		int type = -1; // Possible types: 0=string, 1=int, 2=double, 3=pointer
-		std::string str = "";
-		int integer = 0;
-		double floating = 0.0;
-		void* pointer = nullptr;
-
-		// Initialize the variable
-		SIDP();
-		SIDP(const std::string&);
-		SIDP(const std::string&, bool);
-		SIDP(int);
-		SIDP(double);
-		SIDP(void*);
-		int reset();
-
-		int interpret(const std::string&);
-		std::string to_str();
-
-		// Return the requested type
-		std::string s();
-		int i();
-		double d();
-		void* p();
-
-		SIDP& operator=(const SIDP&);
-		SIDP& operator=(const std::string&);
-		SIDP& operator=(int);
-		SIDP& operator=(double);
-		SIDP& operator=(void*);
-
-		SIDP& operator+=(const SIDP&);
-		SIDP& operator+=(int);
-
-		SIDP& operator-=(const SIDP&);
-		SIDP& operator-=(int);
-};
+#define SIDP_s(x) x.s(__FILE__, __LINE__)
+#define SIDP_i(x) x.i(__FILE__, __LINE__)
+#define SIDP_d(x) x.d(__FILE__, __LINE__)
+#define SIDP_p(x) x.p(__FILE__, __LINE__)
 
 #include "resources/sprite.hpp"
 #include "resources/sound.hpp"

@@ -95,7 +95,10 @@ TCPsocket network_tcp_open(IPaddress* ipa) {
 * @port: the port to use
 */
 TCPsocket network_tcp_open(const std::string& ip, int port) {
-	return network_tcp_open(network_resolve_host(ip, port));
+	IPaddress* ipa = network_resolve_host(ip, port);
+	TCPsocket t = network_tcp_open(ipa);
+	delete ipa;
+	return t;
 }
 /*
 * network_tcp_close() - Close the given TCP socket
@@ -248,7 +251,13 @@ int network_udp_bind(UDPsocket* udp, int channel, IPaddress* ipa) {
 * @port: the port to use
 */
 int network_udp_bind(UDPsocket* udp, int channel, const std::string& ip, int port) {
-	return network_udp_bind(udp, channel, network_resolve_host(ip, port));
+	IPaddress* ipa = network_resolve_host(ip, port);
+	if (ipa == nullptr) {
+		return -1;
+	}
+	int c = network_udp_bind(udp, channel, ipa);
+	delete ipa;
+	return c;
 }
 /*
 * network_udp_bind() - Bind the given socket to the given IP address data using the given channel
@@ -423,19 +432,20 @@ UDPpacket* network_packet_resize(UDPpacket* packet, int size) {
 */
 int network_packet_free(UDPpacket* packet) {
 	SDLNet_FreePacket(packet); // Free the packet
-	packet = nullptr; // Clear the pointer
 	return 0; // Return 0 on success
 }
 /*
 * network_packet_realloc() - Reallocate space for the packet data
 * ! Perhaps use this function if network_packet_resize() fails
+* ! Note that after this is called, packet will be nullptr and the new packet will be returned
+* ! This allows it to be used as follows:
+*   	packet = network_packet_realloc(packet, size)
 * @packet: the packet to reallocate
 * @size: the new size of the packet
 */
-int network_packet_realloc(UDPpacket* packet, int size) {
+UDPpacket* network_packet_realloc(UDPpacket* packet, int size) {
 	network_packet_free(packet); // Free the packet
-	packet = network_packet_alloc(size); // Allocate the packet
-	return (packet == nullptr) ? 1 : 0; // Return 0 on success and 1 on failure
+	return network_packet_alloc(size); // Return the allocated packet
 }
 /*
 * network_packet_alloc_vector() - Allocate space for an array of packet data
@@ -459,7 +469,6 @@ UDPpacket** network_packet_alloc_vector(int amount, int size) {
 */
 int network_packet_free_vector(UDPpacket** packets) {
 	SDLNet_FreePacketV(packets); // Free the packets
-	packets = nullptr; // Clear the pointer
 	return 0; // Return 0 on success
 }
 

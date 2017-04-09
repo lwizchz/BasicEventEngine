@@ -28,7 +28,12 @@ BEE::Sound::Sound() {
 * @new_path: the path of the sound's file
 * @new_is_music: whether the sound should be treated as music or a sound effect
 */
-BEE::Sound::Sound(std::string new_name, std::string new_path, bool new_is_music) {
+BEE::Sound::Sound(const std::string& new_name, const std::string& new_path, bool new_is_music) {
+	// Get the list's engine pointer if it's not nullptr
+	if (BEE::resource_list->sounds.game != nullptr) {
+		game = BEE::resource_list->sounds.game;
+	}
+
 	reset(); // Reset all resource variables
 
 	add_to_resources(); // Add the sound to the appropriate resource list
@@ -54,11 +59,6 @@ BEE::Sound::~Sound() {
 int BEE::Sound::add_to_resources() {
 	if (id < 0) { // If the resource needs to be added to the resource list
 		id = BEE::resource_list->sounds.add_resource(this); // Add the resource and get the new id
-	}
-
-	// Get the list's engine pointer if it's not nullptr
-	if (BEE::resource_list->sounds.game != nullptr) {
-		game = BEE::resource_list->sounds.game;
 	}
 
 	return 0; // Return 0 on success
@@ -145,7 +145,7 @@ int BEE::Sound::get_effects() {
 * BEE::Sound::set_name() - Set the resource name
 * @new_name: the new name to use for the resource
 */
-int BEE::Sound::set_name(std::string new_name) {
+int BEE::Sound::set_name(const std::string& new_name) {
 	name = new_name; // Set the name
 	return 0; // Return 0 on success
 }
@@ -153,7 +153,7 @@ int BEE::Sound::set_name(std::string new_name) {
 * BEE::Sound::set_path() - Set the resource path
 * @new_path: the new path to use for the resource
 */
-int BEE::Sound::set_path(std::string new_path) {
+int BEE::Sound::set_path(const std::string& new_path) {
 	path = "resources/sounds/"+new_path; // Append the path to the sprite directory
 	return 0; // Return 0 on success
 }

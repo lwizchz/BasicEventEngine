@@ -38,7 +38,7 @@ int BEE::free_media() const {
 * @channel: the channel which has finished playback
 */
 void BEE::sound_finished(int channel) {
-	for (size_t i=0; i<resource_list->sounds.get_amount(); i++) { // Iterate over the sounds in order to remove finished channels from each sound's list
+	for (size_t i=0; i<resource_list->sounds.get_amount(); ++i) { // Iterate over the sounds in order to remove finished channels from each sound's list
 		if (get_sound(i) != nullptr) {
 			if (!get_sound(i)->get_is_music()) { // Music cannot be played on multiple channels
 				get_sound(i)->finished(channel); // Remove the finished channel from the list
@@ -60,7 +60,7 @@ double BEE::get_volume() const {
 int BEE::set_volume(double new_volume) {
 	volume = new_volume; // Set the volume
 
-	for (size_t i=0; i<resource_list->sounds.get_amount(); i++) { // Iterate over the sounds and update them to the new volume
+	for (size_t i=0; i<resource_list->sounds.get_amount(); ++i) { // Iterate over the sounds and update them to the new volume
 		if (get_sound(i) != nullptr) {
 			get_sound(i)->update_volume();
 		}
@@ -72,7 +72,7 @@ int BEE::set_volume(double new_volume) {
 * BEE::sound_stop_all() - Immediately stop all sound output
 */
 int BEE::sound_stop_all() const {
-	for (size_t i=0; i<resource_list->sounds.get_amount(); i++) { // Iterate over the sounds and stop them individually
+	for (size_t i=0; i<resource_list->sounds.get_amount(); ++i) { // Iterate over the sounds and stop them individually
 		if (get_sound(i) != nullptr) {
 			get_sound(i)->stop();
 		}
@@ -143,6 +143,24 @@ BEE::Timeline* BEE::add_timeline(const std::string& name, const std::string& pat
 	return new_timeline;
 }
 /*
+* BEE::add_mesh() - Initiliaze and return a newly created mesh resource
+* @name: the name to initialize the mesh with
+* @path: the path to initialize the mesh with
+*/
+BEE::Mesh* BEE::add_mesh(const std::string& name, const std::string& path) {
+	Mesh* new_mesh = new Mesh(name, path);
+	return new_mesh;
+}
+/*
+* BEE::add_light() - Initiliaze and return a newly created light resource
+* @name: the name to initialize the light with
+* @path: the path to initialize the light with
+*/
+BEE::Light* BEE::add_light(const std::string& name, const std::string& path) {
+	Light* new_light = new Light(name, path);
+	return new_light;
+}
+/*
 * BEE::add_object() - Initiliaze and return a newly created object resource
 * @name: the name to initialize the object with
 * @path: the path to initialize the object with
@@ -209,6 +227,20 @@ BEE::Timeline* BEE::get_timeline(int id) {
 	return dynamic_cast<Timeline*>(resource_list->timelines.get_resource(id));
 }
 /*
+* BEE::get_mesh() - Return the mesh resource with the given id
+* @id: the id of the desired mesh
+*/
+BEE::Mesh* BEE::get_mesh(int id) {
+	return dynamic_cast<Mesh*>(resource_list->meshes.get_resource(id));
+}
+/*
+* BEE::get_light() - Return the light resource with the given id
+* @id: the id of the desired light
+*/
+BEE::Light* BEE::get_light(int id) {
+	return dynamic_cast<Light*>(resource_list->lights.get_resource(id));
+}
+/*
 * BEE::get_object() - Return the object resource with the given id
 * @id: the id of the desired object
 */
@@ -224,14 +256,150 @@ BEE::Room* BEE::get_room(int id) {
 }
 
 /*
+* BEE::get_sprite_by_name() - Return the sprite resource with the given name
+* @name: the name of the desired sprite
+*/
+BEE::Sprite* BEE::get_sprite_by_name(const std::string& name) const {
+	for (size_t i=0; i<resource_list->sprites.get_amount(); ++i) { // Iterate over the sprites in order to find the first one with the given name
+		Sprite* s = get_sprite(i);
+		if (s != nullptr) {
+			if (s->get_name() == name) {
+				return s; // Return the desired sprite on success
+			}
+		}
+	}
+	return nullptr; // Return nullptr on failure
+}
+/*
+* BEE::get_sound_by_name() - Return the sound resource with the given name
+* @name: the name of the desired sound
+*/
+BEE::Sound* BEE::get_sound_by_name(const std::string& name) const {
+	for (size_t i=0; i<resource_list->sounds.get_amount(); ++i) { // Iterate over the sounds in order to find the first one with the given name
+		Sound* s = get_sound(i);
+		if (s != nullptr) {
+			if (s->get_name() == name) {
+				return s; // Return the desired sound on success
+			}
+		}
+	}
+	return nullptr; // Return nullptr on failure
+}
+/*
+* BEE::get_background_by_name() - Return the background resource with the given name
+* @name: the name of the desired background
+*/
+BEE::Background* BEE::get_background_by_name(const std::string& name) const {
+	for (size_t i=0; i<resource_list->backgrounds.get_amount(); ++i) { // Iterate over the backgrounds in order to find the first one with the given name
+		Background* b = get_background(i);
+		if (b != nullptr) {
+			if (b->get_name() == name) {
+				return b; // Return the desired background on success
+			}
+		}
+	}
+	return nullptr; // Return nullptr on failure
+}
+/*
+* BEE::get_font_by_name() - Return the font resource with the given name
+* @name: the name of the desired font
+*/
+BEE::Font* BEE::get_font_by_name(const std::string& name) const {
+	for (size_t i=0; i<resource_list->fonts.get_amount(); ++i) { // Iterate over the fonts in order to find the first one with the given name
+		Font* f = get_font(i);
+		if (f != nullptr) {
+			if (f->get_name() == name) {
+				return f; // Return the desired font on success
+			}
+		}
+	}
+	return nullptr; // Return nullptr on failure
+}
+/*
+* BEE::get_path_by_name() - Return the path resource with the given name
+* @name: the name of the desired path
+*/
+BEE::Path* BEE::get_path_by_name(const std::string& name) const {
+	for (size_t i=0; i<resource_list->paths.get_amount(); ++i) { // Iterate over the paths in order to find the first one with the given name
+		Path* f = get_path(i);
+		if (f != nullptr) {
+			if (f->get_name() == name) {
+				return f; // Return the desired path on success
+			}
+		}
+	}
+	return nullptr; // Return nullptr on failure
+}
+/*
+* BEE::get_timeline_by_name() - Return the timeline resource with the given name
+* @name: the name of the desired timeline
+*/
+BEE::Timeline* BEE::get_timeline_by_name(const std::string& name) const {
+	for (size_t i=0; i<resource_list->timelines.get_amount(); ++i) { // Iterate over the timelines in order to find the first one with the given name
+		Timeline* f = get_timeline(i);
+		if (f != nullptr) {
+			if (f->get_name() == name) {
+				return f; // Return the desired timeline on success
+			}
+		}
+	}
+	return nullptr; // Return nullptr on failure
+}
+/*
+* BEE::get_mesh_by_name() - Return the mesh resource with the given name
+* @name: the name of the desired mesh
+*/
+BEE::Mesh* BEE::get_mesh_by_name(const std::string& name) const {
+	for (size_t i=0; i<resource_list->meshes.get_amount(); ++i) { // Iterate over the meshes in order to find the first one with the given name
+		Mesh* f = get_mesh(i);
+		if (f != nullptr) {
+			if (f->get_name() == name) {
+				return f; // Return the desired mesh on success
+			}
+		}
+	}
+	return nullptr; // Return nullptr on failure
+}
+/*
+* BEE::get_light_by_name() - Return the light resource with the given name
+* @name: the name of the desired light
+*/
+BEE::Light* BEE::get_light_by_name(const std::string& name) const {
+	for (size_t i=0; i<resource_list->lights.get_amount(); ++i) { // Iterate over the lights in order to find the first one with the given name
+		Light* f = get_light(i);
+		if (f != nullptr) {
+			if (f->get_name() == name) {
+				return f; // Return the desired light on success
+			}
+		}
+	}
+	return nullptr; // Return nullptr on failure
+}
+/*
 * BEE::get_object_by_name() - Return the object resource with the given name
 * @name: the name of the desired object
 */
 BEE::Object* BEE::get_object_by_name(const std::string& name) const {
-	for (size_t i=0; i<resource_list->objects.get_amount(); i++) { // Iterate over the objects in order to find the first one with the given name
-		if (get_object(i) != nullptr) {
-			if (get_object(i)->get_name() == name) {
-				return get_object(i); // Return the desired object on success
+	for (size_t i=0; i<resource_list->objects.get_amount(); ++i) { // Iterate over the objects in order to find the first one with the given name
+		Object* o = get_object(i);
+		if (o != nullptr) {
+			if (o->get_name() == name) {
+				return o; // Return the desired object on success
+			}
+		}
+	}
+	return nullptr; // Return nullptr on failure
+}
+/*
+* BEE::get_room_by_name() - Return the room resource with the given name
+* @name: the name of the desired room
+*/
+BEE::Room* BEE::get_room_by_name(const std::string& name) const {
+	for (size_t i=0; i<resource_list->rooms.get_amount(); ++i) { // Iterate over the rooms in order to find the first one with the given name
+		Room* f = get_room(i);
+		if (f != nullptr) {
+			if (f->get_name() == name) {
+				return f; // Return the desired room on success
 			}
 		}
 	}

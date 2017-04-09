@@ -18,7 +18,12 @@ BEE::Light::Light () {
 
 	reset();
 }
-BEE::Light::Light (std::string new_name, std::string new_path) {
+BEE::Light::Light (const std::string& new_name, const std::string& new_path) {
+	// Get the list's engine pointer if it's not nullptr
+	if (BEE::resource_list->lights.game != nullptr) {
+		game = BEE::resource_list->lights.game;
+	}
+
 	reset();
 
 	add_to_resources();
@@ -36,11 +41,6 @@ BEE::Light::~Light() {
 int BEE::Light::add_to_resources() {
 	if (id < 0) { // If the resource needs to be added to the resource list
 		id = BEE::resource_list->lights.add_resource(this); // Add the resource and get the new id
-	}
-
-	// Get the list's engine pointer if it's not nullptr
-	if (BEE::resource_list->lights.game != nullptr) {
-		game = BEE::resource_list->lights.game;
 	}
 
 	return 0;
@@ -122,11 +122,11 @@ BEE::RGBA BEE::Light::get_color() {
 	return lighting.color;
 }
 
-int BEE::Light::set_name(std::string new_name) {
+int BEE::Light::set_name(const std::string& new_name) {
 	name = new_name;
 	return 0;
 }
-int BEE::Light::set_path(std::string new_path) {
+int BEE::Light::set_path(const std::string& new_path) {
 	path = new_path;
 	return 0;
 }

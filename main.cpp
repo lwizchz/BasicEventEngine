@@ -42,12 +42,21 @@ int main(int argc, char* argv[]) {
 		return 1; // Return 1 on exception during initialization
 	}
 
+	// Output initialization message
+	game->messenger_send({"engine", "init"}, BEE_MESSAGE_INFO,
+		std::string("Initialized ") + MACRO_TO_STR(GAME_NAME) + " v" +
+		std::to_string(GAME_VERSION_MAJOR) + "." + std::to_string(GAME_VERSION_MINOR) + "." + std::to_string(GAME_VERSION_RELEASE)
+	);
+
 	// Run the game engine event loop
 	// This loop will run until the user closes the window, the game closes itself, or the game throws an exception
 	int r = game->loop();
 
 	// Clean up resources and quit SDL and other libraries
 	game->close();
+
+	delete game;
+	game = nullptr;
 
 	if (r != 0) { // If an exception was caught by the loop
 		return 2; // Return 2 on exception during game loop

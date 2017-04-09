@@ -42,7 +42,7 @@ class BEE::Mesh: public Resource {
 		GLuint gl_texture; // The internal texture storage for OpenGL mode
 	public:
 		Mesh();
-		Mesh(std::string, std::string);
+		Mesh(const std::string&, const std::string&);
 		~Mesh();
 		int add_to_resources();
 		int reset();
@@ -52,8 +52,8 @@ class BEE::Mesh: public Resource {
 		std::string get_name();
 		std::string get_path();
 
-		int set_name(std::string);
-		int set_path(std::string);
+		int set_name(const std::string&);
+		int set_path(const std::string&);
 
 		int load();
 		int free();

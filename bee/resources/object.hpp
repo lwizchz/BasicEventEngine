@@ -33,7 +33,7 @@ class BEE::Object: public Resource {
 		std::map<std::string,SIDP>* s;
 
 		Object();
-		Object(std::string, std::string);
+		Object(const std::string&, const std::string&);
 	public:
 		virtual ~Object();
 		int add_to_resources();
@@ -55,8 +55,8 @@ class BEE::Object: public Resource {
 		int get_mask_id();
 		std::pair<int,int> get_mask_offset();
 
-		int set_name(std::string);
-		int set_path(std::string);
+		int set_name(const std::string&);
+		int set_path(const std::string&);
 		int set_sprite(Sprite*);
 		int set_sprite_id(int);
 		int set_is_solid(bool);
@@ -74,8 +74,12 @@ class BEE::Object: public Resource {
 		int remove_instance(int);
 		int clear_instances();
 		std::map<int, InstanceData*> get_instances();
+		size_t get_instance_amount();
 		InstanceData* get_instance(int);
 		std::string get_instance_string();
+
+		SIDP get_data(int, const std::string&) const;
+		int set_data(int, const std::string&, SIDP);
 
 		std::map<bee_event_t,bool> implemented_events;
 		virtual void update(InstanceData*) =0;

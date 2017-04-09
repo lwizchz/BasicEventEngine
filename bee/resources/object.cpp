@@ -18,7 +18,12 @@ BEE::Object::Object () {
 
 	reset();
 }
-BEE::Object::Object (std::string new_name, std::string new_path) {
+BEE::Object::Object (const std::string& new_name, const std::string& new_path) {
+	// Get the list's engine pointer if it's not nullptr
+	if (BEE::resource_list->objects.game != nullptr) {
+		game = BEE::resource_list->objects.game;
+	}
+
 	reset();
 
 	std::vector<bee_event_t> events = {BEE_EVENT_UPDATE, BEE_EVENT_CREATE, BEE_EVENT_DESTROY, BEE_EVENT_ALARM, BEE_EVENT_STEP_BEGIN, BEE_EVENT_STEP_MID, BEE_EVENT_STEP_END, BEE_EVENT_KEYBOARD_PRESS, BEE_EVENT_MOUSE_PRESS, BEE_EVENT_KEYBOARD_INPUT, BEE_EVENT_MOUSE_INPUT, BEE_EVENT_KEYBOARD_RELEASE, BEE_EVENT_MOUSE_RELEASE, BEE_EVENT_CONTROLLER_AXIS, BEE_EVENT_CONTROLLER_PRESS, BEE_EVENT_CONTROLLER_RELEASE, BEE_EVENT_CONTROLLER_MODIFY, BEE_EVENT_PATH_END, BEE_EVENT_OUTSIDE_ROOM, BEE_EVENT_INTERSECT_BOUNDARY, BEE_EVENT_COLLISION, BEE_EVENT_CHECK_COLLISION_LIST, BEE_EVENT_DRAW, BEE_EVENT_ANIMATION_END, BEE_EVENT_ROOM_START, BEE_EVENT_ROOM_END, BEE_EVENT_GAME_START, BEE_EVENT_GAME_END, BEE_EVENT_WINDOW};
@@ -41,11 +46,6 @@ BEE::Object::~Object() {
 int BEE::Object::add_to_resources() {
 	if (id < 0) { // If the resource needs to be added to the resource list
 		id = BEE::resource_list->objects.add_resource(this); // Add the resource and get the new id
-	}
-
-	// Get the list's engine pointer if it's not nullptr
-	if (BEE::resource_list->objects.game != nullptr) {
-		game = BEE::resource_list->objects.game;
 	}
 
 	return 0;
@@ -146,11 +146,11 @@ std::pair<int,int> BEE::Object::get_mask_offset() {
 	return std::make_pair(xoffset, yoffset);
 }
 
-int BEE::Object::set_name(std::string new_name) {
+int BEE::Object::set_name(const std::string& new_name) {
 	name = new_name;
 	return 0;
 }
-int BEE::Object::set_path(std::string new_path) {
+int BEE::Object::set_path(const std::string& new_path) {
 	path = "resources/objects/"+new_path;
 	return 0;
 }
@@ -201,14 +201,14 @@ int BEE::Object::set_mask_offset(int new_xoffset, int new_yoffset) {
 }
 
 int BEE::Object::add_instance(int index, InstanceData* new_instance) {
-	if (new_instance->object != this) {
+	if (new_instance->get_object() != this) {
 		return 1;
 	}
 
-	if (instances.find(index) != instances.end()) { //  if the instance exists, overwrite it
-		instances.erase(index);
-	}
-	instances.insert(std::pair<int,InstanceData*>(index, new_instance));
+	// Overwrite any previous instance with the same id
+	instances.erase(index);
+	instances.emplace(index, new_instance);
+
 	return 0;
 }
 int BEE::Object::remove_instance(int index) {
@@ -221,6 +221,9 @@ int BEE::Object::clear_instances() {
 }
 std::map<int, BEE::InstanceData*> BEE::Object::get_instances() {
 	return instances;
+}
+size_t BEE::Object::get_instance_amount() {
+	return instances.size();
 }
 BEE::InstanceData* BEE::Object::get_instance(int inst_id) {
 	int i = 0;
@@ -238,12 +241,28 @@ std::string BEE::Object::get_instance_string() {
 		table.push_back({"(id", "object", "x", "y", "z)"});
 
 		for (auto& i : instances) {
-			table.push_back({bee_itos(i.second->id), i.second->object->get_name(), bee_itos(i.second->get_position()[0]), bee_itos(i.second->get_position()[1]), bee_itos(i.second->get_position()[2])});
+			table.push_back({bee_itos(i.second->id), i.second->get_object()->get_name(), bee_itos(i.second->get_position()[0]), bee_itos(i.second->get_position()[1]), bee_itos(i.second->get_position()[2])});
 		}
 
 		return string_tabulate(table);
 	}
 	return "none\n";
+}
+
+BEE::SIDP BEE::Object::get_data(int inst_id, const std::string& field) const {
+	if (instance_data.find(inst_id) != instance_data.end()) {
+		if (instance_data.at(inst_id).find(field) != instance_data.at(inst_id).end()) {
+			return instance_data.at(inst_id).at(field);
+		}
+	}
+	return 1;
+}
+int BEE::Object::set_data(int inst_id, const std::string& field, SIDP data) {
+	if (instance_data.find(inst_id) == instance_data.end()) {
+		return 1;
+	}
+	instance_data.at(inst_id)[field] = data;
+	return 0;
 }
 
 /*void BEE::Object::update(InstanceData* self) {

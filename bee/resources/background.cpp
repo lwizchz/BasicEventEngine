@@ -52,7 +52,12 @@ BEE::Background::Background() {
 * @new_name: the name of the background to use
 * @new_path: the path of the background's image
 */
-BEE::Background::Background(std::string new_name, std::string new_path) {
+BEE::Background::Background(const std::string& new_name, const std::string& new_path) {
+	// Get the list's engine pointer if it's not nullptr
+	if (BEE::resource_list->backgrounds.game != nullptr) {
+		game = BEE::resource_list->backgrounds.game;
+	}
+
 	reset(); // Reset all resource variables
 
 	add_to_resources(); // Add the background to the appropriate resource list
@@ -77,11 +82,6 @@ BEE::Background::~Background() {
 int BEE::Background::add_to_resources() {
 	if (id < 0) { // If the resource needs to be added to the resource list
 		id = BEE::resource_list->backgrounds.add_resource(this); // Add the resource and get the new id
-	}
-
-	// Get the list's engine pointer if it's not nullptr
-	if (BEE::resource_list->backgrounds.game != nullptr) {
-		game = BEE::resource_list->backgrounds.game;
 	}
 
 	return 0; // Return 0 on success
@@ -151,7 +151,7 @@ SDL_Texture* BEE::Background::get_texture() {
 * BEE::Background::set_name() - Set the resource name
 * @new_name: the new name to use for the resource
 */
-int BEE::Background::set_name(std::string new_name) {
+int BEE::Background::set_name(const std::string& new_name) {
 	name = new_name; // Set the name
 	return 0; // Return 0 on success
 }
@@ -159,7 +159,7 @@ int BEE::Background::set_name(std::string new_name) {
 * BEE::Background::set_path() - Set the resource path
 * @new_path: the new path to use for the resource
 */
-int BEE::Background::set_path(std::string new_path) {
+int BEE::Background::set_path(const std::string& new_path) {
 	path = "resources/backgrounds/"+new_path; // Append the path to the background directory
 	return 0; // Return 0 on success
 }

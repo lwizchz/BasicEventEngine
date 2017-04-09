@@ -70,11 +70,12 @@ class BEE::Room: public Resource {
 		ViewData* view_current = nullptr;
 	public:
 		Room();
-		Room(std::string, std::string);
+		Room(const std::string&, const std::string&);
 		~Room();
 		int add_to_resources();
 		int reset();
 		int print();
+		std::string get_print();
 
 		int get_id();
 		std::string get_name();
@@ -94,9 +95,10 @@ class BEE::Room: public Resource {
 		std::string get_instance_string();
 		ViewData* get_current_view();
 		PhysicsWorld* get_phys_world();
+		const std::map<const btRigidBody*,InstanceData*>& get_phys_instances();
 
-		int set_name(std::string);
-		int set_path(std::string);
+		int set_name(const std::string&);
+		int set_path(const std::string&);
 		int set_width(int);
 		int set_height(int);
 		int set_is_isometric(bool);
@@ -115,12 +117,15 @@ class BEE::Room: public Resource {
 		int remove_instance(int);
 		int sort_instances();
 		int request_instance_sort();
+		int add_physbody(InstanceData*, PhysicsBody*);
+		int remove_physbody(PhysicsBody*);
 		int add_particle_system(ParticleSystem*);
 		int add_particle(ParticleSystem*, Particle*, int, int);
 		int clear_particles();
 		int add_lightable(LightableData*);
 		int add_light(LightData);
 		int handle_lights();
+		int reset_lights();
 
 		int load_media();
 		int free_media();
@@ -155,6 +160,8 @@ class BEE::Room: public Resource {
 		int outside_room();
 		int intersect_boundary();
 		int collision();
+		static void collision_internal(btDynamicsWorld*, btScalar);
+		static void check_collision_lists(btBroadphasePair&, btCollisionDispatcher&, const btDispatcherInfo&);
 		int draw();
 		int draw_view();
 		int animation_end();

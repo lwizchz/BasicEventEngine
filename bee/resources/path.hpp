@@ -26,7 +26,7 @@ class BEE::Path: public Resource {
 		bool is_closed;
 	public:
 		Path();
-		Path(std::string, std::string);
+		Path(const std::string&, const std::string&);
 		~Path();
 		int add_to_resources();
 		int reset();
@@ -40,8 +40,8 @@ class BEE::Path: public Resource {
 		int get_connection_type();
 		bool get_is_closed();
 
-		int set_name(std::string);
-		int set_path(std::string);
+		int set_name(const std::string&);
+		int set_path(const std::string&);
 		int add_coordinate(bee_path_coord);
 		int add_coordinate(int, int, double);
 		int remove_last_coordinate();

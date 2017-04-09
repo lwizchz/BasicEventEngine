@@ -49,8 +49,15 @@ std::string BEE::get_usage_text() {
 /*
 * BEE::get_standard_flags() - Return a list of the default ProgramFlags which can be appended by the user
 */
-std::list<BEE::ProgramFlags*> BEE::get_standard_flags() {
+std::list<BEE::ProgramFlags*>& BEE::get_standard_flags_internal() {
 	static std::list<BEE::ProgramFlags*> flag_list;
+	return flag_list;
+}
+/*
+* BEE::get_standard_flags() - Return a list of the default ProgramFlags which can be appended by the user
+*/
+std::list<BEE::ProgramFlags*> BEE::get_standard_flags() {
+	std::list<BEE::ProgramFlags*>& flag_list = BEE::get_standard_flags_internal();
 	if (flag_list.empty()) {
 		ProgramFlags* f_help = new ProgramFlags(
 			"help", 'h', true, no_argument, [] (BEE* g, char* arg) -> void {
@@ -105,6 +112,20 @@ std::list<BEE::ProgramFlags*> BEE::get_standard_flags() {
 		flag_list = {f_help, f_debug, f_dimensions, f_fullscreen, f_opengl, f_noassert, f_sdl, f_singlerun, f_windowed};
 	}
 	return flag_list;
+}
+/*
+* BEE::free_standard_flags() - Return a list of the default ProgramFlags which can be appended by the user
+*/
+int BEE::free_standard_flags() {
+	std::list<BEE::ProgramFlags*>& flag_list = BEE::get_standard_flags_internal();
+	if (!flag_list.empty()) {
+		for (auto& flag : flag_list) {
+			delete flag;
+		}
+		flag_list.clear();
+		return 0;
+	}
+	return 1;
 }
 
 #endif // _BEE_GAME_INFO

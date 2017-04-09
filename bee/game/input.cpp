@@ -97,7 +97,7 @@ int BEE::set_mouse_global_y(int new_my) const {
 * @instance: the instance to check a collision for
 */
 bool BEE::is_mouse_inside(const InstanceData& instance) const {
-	Sprite* m = instance.object->get_mask();
+	Sprite* m = instance.get_object()->get_mask();
 	if (m == nullptr) {
 		return false;
 	}

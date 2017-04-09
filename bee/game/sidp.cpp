@@ -12,10 +12,10 @@
 #include "../game.hpp" // Include the engine headers
 
 BEE::SIDP::SIDP() {}
-BEE::SIDP::SIDP(const std::string& ns) {
-	type = 0;
-	str = ns;
-}
+BEE::SIDP::SIDP(const std::string& ns) :
+	type(0),
+	str(ns)
+{}
 BEE::SIDP::SIDP(const std::string& ns, bool should_interpret) {
 	if (should_interpret) {
 		interpret(ns);
@@ -24,18 +24,18 @@ BEE::SIDP::SIDP(const std::string& ns, bool should_interpret) {
 		str = ns;
 	}
 }
-BEE::SIDP::SIDP(int ni) {
-	type = 1;
-	integer = ni;
-}
-BEE::SIDP::SIDP(double nf) {
-	type = 2;
-	floating = nf;
-}
-BEE::SIDP::SIDP(void* np) {
-	type = 3;
-	pointer = np;
-}
+BEE::SIDP::SIDP(int ni) :
+	type(1),
+	integer(ni)
+{}
+BEE::SIDP::SIDP(double nf) :
+	type(2),
+	floating(nf)
+{}
+BEE::SIDP::SIDP(void* np) :
+	type(3),
+	pointer(np)
+{}
 
 int BEE::SIDP::reset() {
 	str.clear();
@@ -64,7 +64,7 @@ int BEE::SIDP::interpret(const std::string& ns) {
 	} catch (const std::invalid_argument &e) {}
 
 	if (type == -1) { // No possible type
-		std::cout << "WARN: ConsoleVar type not determined, storing as string: \"" + ns + "\"\n";
+		std::cerr << "WARN: SIDP type not determined, storing as string: \"" + ns + "\"\n";
 		type = 0;
 		str = ns;
 	}
@@ -88,6 +88,36 @@ std::string BEE::SIDP::to_str() {
 }
 
 // Return the requested type
+std::string BEE::SIDP::s(std::string file, int line) {
+	if (type != 0) {
+		std::cerr << "WARN: SIDP type is " << type << ", not a string but the string was requested, called from " << file << ":" << line << "\n";
+	}
+	return str;
+}
+int BEE::SIDP::i(std::string file, int line) {
+	if ((type != 1)&&(type != 2)) {
+		std::cerr << "WARN: SIDP type is " << type << ", not an integer but the integer was requested, called from " << file << ":" << line << "\n";
+	}
+	if (type == 2) {
+		return (int)floating;
+	}
+	return integer;
+}
+double BEE::SIDP::d(std::string file, int line) {
+	if ((type != 1)&&(type != 2)) {
+		std::cerr << "WARN: SIDP type is " << type << ", not a double but the double was requested, called from " << file << ":" << line << "\n";
+	}
+	if (type == 1) {
+		return (double)integer;
+	}
+	return floating;
+}
+void* BEE::SIDP::p(std::string file, int line) {
+	if (type != 3) {
+		std::cerr << "WARN: SIDP type is " << type << ", not a pointer but the pointer was requested, called from " << file << ":" << line << "\n";
+	}
+	return pointer;
+}
 std::string BEE::SIDP::s() {
 	if (type != 0) {
 		std::cerr << "WARN: SIDP type not a string but the string was requested\n";
@@ -114,7 +144,7 @@ double BEE::SIDP::d() {
 }
 void* BEE::SIDP::p() {
 	if (type != 3) {
-		std::cerr << "WARN: SIDP type not a pointer but the pointer was reqested\n";
+		std::cerr << "WARN: SIDP type not a pointer but the pointer was requested\n";
 	}
 	return pointer;
 }

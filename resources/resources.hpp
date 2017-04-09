@@ -76,6 +76,7 @@ int BEE::init_resources() {
 
 		// Init objects
 		obj_bee = new ObjBee();
+			obj_bee->set_is_solid(true);
 
 		// Init rooms
 		rm_test = new RmTest();

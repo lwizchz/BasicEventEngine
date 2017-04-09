@@ -16,6 +16,8 @@
 
 class BEE::PhysicsWorld {
 	private:
+		BEE* attached_game = nullptr;
+
 		btDefaultCollisionConfiguration* collision_configuration = nullptr;
 		btCollisionDispatcher* dispatcher = nullptr;
 		btBroadphaseInterface* broadphase = nullptr;
@@ -27,13 +29,10 @@ class BEE::PhysicsWorld {
 		btVector3 gravity = {0.0, -10.0, 0.0};
 		double scale = 1.0;
 	public:
-		PhysicsWorld();
-		PhysicsWorld(btVector3, double);
+		PhysicsWorld(BEE*);
 		~PhysicsWorld();
 
-		int init(btVector3, double);
-		int attach(BEE*);
-
+		BEE* get_game() const;
 		btVector3 get_gravity() const;
 		double get_scale() const;
 		btDispatcher* get_dispatcher() const;
@@ -44,8 +43,10 @@ class BEE::PhysicsWorld {
 		int add_body(PhysicsBody*);
 		int add_constraint(bee_phys_constraint_t, PhysicsBody*, double*);
 		int add_constraint(bee_phys_constraint_t, PhysicsBody*, PhysicsBody*, double*);
+		int add_constraint_external(btTypedConstraint*);
 
 		int remove_body(PhysicsBody*);
+		int remove_constraint(btTypedConstraint*);
 
 		int step(double);
 
@@ -85,20 +86,25 @@ class BEE::PhysicsBody {
 		btRigidBody* body = nullptr;
 
 		PhysicsWorld* attached_world = nullptr;
+		InstanceData* attached_instance = nullptr;
+		std::vector<std::tuple<bee_phys_constraint_t,double*,btTypedConstraint*>> constraints;
 
-		double mass = 0.0;
 		double scale = 1.0;
+		double mass = 0.0;
+		double friction  = 0.5;
 	public:
-		PhysicsBody(PhysicsWorld*, bee_phys_shape_t, double, double, double, double, double*);
+		PhysicsBody(PhysicsWorld*, InstanceData*, bee_phys_shape_t, double, double, double, double, double*);
 		~PhysicsBody();
 
 		int attach(PhysicsWorld*);
+		int remove();
 
 		double get_mass() const;
 		double get_scale() const;
 		btVector3 get_inertia() const;
 		btRigidBody* get_body() const;
 		PhysicsWorld* get_world() const;
+		const std::vector<std::tuple<bee_phys_constraint_t,double*,btTypedConstraint*>>& get_constraints() const;
 
 		btDefaultMotionState* get_motion() const;
 		btVector3 get_position() const;
@@ -109,6 +115,13 @@ class BEE::PhysicsBody {
 
 		int set_shape(bee_phys_shape_t, double*);
 		int set_mass(double);
+		int set_friction(double);
+
+		int add_constraint(bee_phys_constraint_t, double*);
+		int add_constraint_external(bee_phys_constraint_t, double*, btTypedConstraint*);
+		int remove_constraints();
+
+		int update_state();
 };
 
 #endif // _BEE_PHYSICS_H

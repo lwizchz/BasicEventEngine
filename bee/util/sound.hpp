@@ -29,7 +29,7 @@
 */
 void sound_effect_chorus(int channel, void* stream, int len, void* udata) {
 	Sint16* newstream = (Sint16*) stream; // Cast the stream into the correct data format
-	se_chorus_data* data = (se_chorus_data*) udata; // Cast the effect struct into the correct format
+	se_chorus_data* data = static_cast<se_chorus_data*>(udata); // Cast the effect struct into the correct format
 
 	unsigned int length = len;
 	Sint16* oldstream = (Sint16*)malloc(length); // Make a copy of the data stream in order to operate on the dry signal
@@ -57,7 +57,7 @@ void sound_effect_chorus(int channel, void* stream, int len, void* udata) {
 * @udata: the effect data struct
 */
 void sound_effect_chorus_cleanup(int channel, void* udata) {
-	se_chorus_data* data = (se_chorus_data*) udata; // Cast the effect struct into the correct format
+	se_chorus_data* data = static_cast<se_chorus_data*>(udata); // Cast the effect struct into the correct format
 	data->stream.clear(); // Clear the copy of the stream data
 	data->ticks = 0; // Reset the stream position to the beginning
 }
@@ -70,7 +70,7 @@ void sound_effect_chorus_cleanup(int channel, void* udata) {
 */
 void sound_effect_echo(int channel, void* stream, int len, void* udata) {
 	Sint16* newstream = (Sint16*) stream; // Cast the stream into the correct data format
-	se_echo_data* data = (se_echo_data*) udata; // Cast the effect struct into the correct format
+	se_echo_data* data = static_cast<se_echo_data*>(udata); // Cast the effect struct into the correct format
 
 	unsigned int length = len;
 	Sint16* oldstream = (Sint16*)malloc(length); // Make a copy of the data stream in order to operate on the dry signal
@@ -98,7 +98,7 @@ void sound_effect_echo(int channel, void* stream, int len, void* udata) {
 * @udata: the effect data struct
 */
 void sound_effect_echo_cleanup(int channel, void* udata) {
-	se_echo_data* data = (se_echo_data*) udata; // Cast the effect struct into the correct format
+	se_echo_data* data = static_cast<se_echo_data*>(udata); // Cast the effect struct into the correct format
 	data->stream.clear(); // Clear the copy of the stream data
 	data->ticks = 0; // Reset the stream position to the beginning
 }
@@ -111,7 +111,7 @@ void sound_effect_echo_cleanup(int channel, void* udata) {
 */
 void sound_effect_flanger(int channel, void* stream, int len, void* udata) {
 	Sint16* newstream = (Sint16*) stream; // Cast the stream into the correct data format
-	se_flanger_data* data = (se_flanger_data*) udata; // Cast the effect struct into the correct format
+	se_flanger_data* data = static_cast<se_flanger_data*>(udata); // Cast the effect struct into the correct format
 
 	unsigned int length = len;
 	Sint16* oldstream = (Sint16*)malloc(length); // Make a copy of the data stream in order to operate on the dry signal
@@ -140,7 +140,7 @@ void sound_effect_flanger(int channel, void* stream, int len, void* udata) {
 * @udata: the effect data struct
 */
 void sound_effect_flanger_cleanup(int channel, void* udata) {
-	se_flanger_data* data = (se_flanger_data*) udata; // Cast the effect struct into the correct format
+	se_flanger_data* data = static_cast<se_flanger_data*>(udata); // Cast the effect struct into the correct format
 	data->stream.clear(); // Clear the copy of the stream data
 	data->ticks = 0; // Reset the stream position to the beginning
 }

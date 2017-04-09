@@ -21,9 +21,13 @@
 #include "../../game.hpp"
 
 class BEE::InstanceData {
-		double xstart = 0.0, ystart = 0.0, zstart = 0.0;
+		btVector3 pos_start;
+
+		Object* object = nullptr;
+		Sprite* sprite = nullptr;
 
 		PhysicsBody* body = nullptr;
+		bool is_solid = false;
 
 		Path* path = nullptr;
 		double path_speed = 0.0;
@@ -35,13 +39,12 @@ class BEE::InstanceData {
 		BEE* game = nullptr;
 
 		int id = -1;
-		Object* object = nullptr;
 		Uint32 subimage_time = 0;
 		Uint32 alarm_end[ALARM_COUNT];
 		int depth = 0;
 
-		double xprevious = 0.0, yprevious = 0.0, zprevious = 0.0;
-		double path_xstart = 0.0, path_ystart = 0.0, path_zstart = 0.0;
+		btVector3 pos_previous;
+		btVector3 path_pos_start;
 
 		InstanceData();
 		InstanceData(BEE*, int, Object*, double, double, double);
@@ -56,6 +59,11 @@ class BEE::InstanceData {
 		int set_alarm(int, Uint32);
 
 		int set_object(Object*);
+		int set_sprite(Sprite*);
+		int add_physbody();
+
+		SIDP get_data(const std::string&) const;
+		int set_data(const std::string&, SIDP);
 
 		btVector3 get_position() const;
 		double get_x() const;
@@ -63,10 +71,15 @@ class BEE::InstanceData {
 		double get_z() const;
 		double get_corner_x() const;
 		double get_corner_y() const;
+		btVector3 get_start() const;
 		double get_xstart() const;
 		double get_ystart() const;
+		double get_zstart() const;
 
+		Object* get_object() const;
+		Sprite* get_sprite() const;
 		PhysicsBody* get_physbody() const;
+		bool get_is_solid() const;
 
 		int get_width() const;
 		int get_height() const;
@@ -74,6 +87,7 @@ class BEE::InstanceData {
 
 		int set_position(btVector3);
 		int set_position(double, double, double);
+		int set_to_start();
 		int move(double, double);
 		int move_to(double, double, double);
 		int move_away(double, double, double);
@@ -81,6 +95,10 @@ class BEE::InstanceData {
 		int set_gravity(btVector3);
 		int set_gravity(double, double, double);
 		int move_outside(btVector3);
+		int set_is_solid(bool);
+		int set_velocity(btVector3);
+		int set_velocity(double, double);
+		int limit_velocity(double);
 
 		double get_speed() const;
 		btVector3 get_velocity() const;
@@ -92,6 +110,7 @@ class BEE::InstanceData {
 		bool is_place_empty(int, int) const;
 		bool is_place_meeting(int, int, Object*) const;
 		bool is_place_meeting(int, int, int) const;
+		bool is_place_meeting(int, int, Object*, std::function<void(InstanceData*,InstanceData*)>);
 		bool is_move_free(double, double);
 		bool is_snapped(int, int) const;
 
@@ -102,7 +121,7 @@ class BEE::InstanceData {
 		int move_snap();
 		int move_wrap(bool, bool, int);
 
-		double get_distance(int, int) const;
+		double get_distance(int, int, int) const;
 		double get_distance(InstanceData*) const;
 		double get_distance(Object*) const;
 		double get_direction_of(int, int) const;

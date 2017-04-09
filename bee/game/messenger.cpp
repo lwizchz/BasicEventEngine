@@ -31,9 +31,10 @@ int BEE::messenger_register_protected(std::shared_ptr<MessageRecipient> recv) {
 * @is_strict: whether the recipient should only take exact tags
 * @func: the function to use to handle the messages
 */
-int BEE::messenger_register_protected(std::string name, const std::vector<std::string>& tags, bool is_strict, std::function<void (BEE*, std::shared_ptr<MessageContents>)> func) {
+std::shared_ptr<BEE::MessageRecipient> BEE::messenger_register_protected(std::string name, const std::vector<std::string>& tags, bool is_strict, std::function<void (BEE*, std::shared_ptr<MessageContents>)> func) {
 	std::shared_ptr<MessageRecipient> recv (new MessageRecipient(name, tags, is_strict, func)); // Create a pointer for the given message data
-	return messenger_register_protected(recv); // Return the attempt at message registration
+	messenger_register_protected(recv); // Attempt to register the recipient
+	return recv; // Return the newly constructed recipient
 }
 /*
 * BEE::messenger_unregister_protected() - Unregister the given recipient from protected tags within the messaging system
@@ -136,9 +137,10 @@ int BEE::messenger_register(std::shared_ptr<MessageRecipient> recv) {
 * @is_strict: whether the recipient should only take exact tags
 * @func: the function to use to handle the messages
 */
-int BEE::messenger_register(std::string name, const std::vector<std::string>& tags, bool is_strict, std::function<void (BEE*, std::shared_ptr<MessageContents>)> func) {
+std::shared_ptr<BEE::MessageRecipient> BEE::messenger_register(std::string name, const std::vector<std::string>& tags, bool is_strict, std::function<void (BEE*, std::shared_ptr<MessageContents>)> func) {
 	std::shared_ptr<MessageRecipient> recv (new MessageRecipient(name, tags, is_strict, func)); // Create a pointer for the given message data
-	return messenger_register(recv); // Return the attempt at message registration
+	messenger_register(recv); // Attempt to register the recipient
+	return recv; // Return the newly constructed recipient
 }
 /*
 * BEE::messenger_register() - Register the given recipient within the messaging system
@@ -146,7 +148,7 @@ int BEE::messenger_register(std::string name, const std::vector<std::string>& ta
 * @tags: the tags to register the recipient with
 * @func: the function to use to handle the messages
 */
-int BEE::messenger_register(const std::vector<std::string>& tags, std::function<void (BEE*, std::shared_ptr<MessageContents>)> func) {
+std::shared_ptr<BEE::MessageRecipient> BEE::messenger_register(const std::vector<std::string>& tags, std::function<void (BEE*, std::shared_ptr<MessageContents>)> func) {
 	return messenger_register("", tags, false, func);
 }
 /*
@@ -166,7 +168,7 @@ int BEE::messenger_unregister(std::shared_ptr<MessageRecipient> recv) {
 
 		auto rt = recipients.find(tag);
 		if (rt != recipients.end()) { // If the tag exists within the recipient list
-			if (rt->second.find(recv) != rt->second.end()) { // If te recipient exists within the list
+			if (rt->second.find(recv) != rt->second.end()) { // If the recipient exists within the list
 				rt->second.erase(recv); // Remove the recipient
 				if (rt->second.empty()) { // If the tag has no other recipients, remove it
 					recipients.erase(tag);
@@ -177,8 +179,30 @@ int BEE::messenger_unregister(std::shared_ptr<MessageRecipient> recv) {
 	return 0; // Return 0 on success
 }
 /*
+* BEE::messenger_unregister_name() - Unregister the recipient with the given name within the messaging system
+* @name: the name of the recipient to unregister
+*/
+int BEE::messenger_unregister_name(const std::string& name) {
+	std::shared_ptr<MessageRecipient> recv (nullptr);
+
+	for (auto& tag : recipients) { // Iterate over all tags
+		for (auto& r : tag.second) { // Iterate over the recipients for a specific tag
+			if (r->name == name) { // If the specific recipient matches the desired recipient's name
+				recv = r; // Assign the recipient and break out
+				break;
+			}
+		}
+
+		if (recv != nullptr) { // If the recipient has been found, break out
+			break;
+		}
+	}
+
+	return messenger_unregister(recv); // Return the attempt to remove the recipient
+}
+/*
 * BEE::messenger_unregister_all() - Unregister all messaging system recipients
-* ! Note that this function is not able to protect function which register to additional tags such as console commands
+* ! Note that this function is not able to protect functions which register to additional tags such as console commands
 *   e.g. {"engine", "console", "help"} will be reduced to {"engine", "console"}
 *   This function may be protected in the future
 */
@@ -233,7 +257,6 @@ int BEE::messenger_send(const std::vector<std::string>& tags, bee_message_t type
 	std::shared_ptr<MessageContents> msg (new MessageContents(get_ticks(), tags, type, descr, data)); // Create a pointer for the given message data
 	return messenger_send(msg); // Return the attempt at message sending
 }
-
 /*
 * BEE::messenger_send() - Queue the given message in the messaging system
 * ! When no data has been provided, call the function again with it set to nullptr
@@ -243,6 +266,21 @@ int BEE::messenger_send(const std::vector<std::string>& tags, bee_message_t type
 */
 int BEE::messenger_send(const std::vector<std::string>& tags, bee_message_t type, const std::string& descr) {
 	return messenger_send(tags, type, descr, nullptr);
+}
+
+/*
+* BEE::messenger_set_level() - Set the output level when printing message descriptions
+* @new_level: the output level to use
+*/
+int BEE::messenger_set_level(bee_output_t new_level) {
+	messenger_output_level = new_level;
+	return 0;
+}
+/*
+* BEE::messenger_get_level() - Return the output level when printing message descriptions
+*/
+bee_output_t BEE::messenger_get_level() {
+	return messenger_output_level;
 }
 
 /*
@@ -260,6 +298,27 @@ int BEE::handle_messages() {
 			continue;
 		}
 
+		switch (messenger_get_level()) { // Skip certain messages depending on the verbosity level
+			case BEE_OUTPUT_NONE: // When the verbosity is NONE, skip all message types
+				continue;
+			case BEE_OUTPUT_QUIET: // When the verbosity is QUIET, skip all types except warnings and errors
+				if (
+					(msg->type != BEE_MESSAGE_WARNING)
+					|| (msg->type != BEE_MESSAGE_ERROR)
+				) {
+					continue;
+				}
+				break;
+			case BEE_OUTPUT_NORMAL: // When the verbosity is NORMAL, skip internal messages
+			default:
+				if (msg->type == BEE_MESSAGE_INTERNAL) {
+					continue;
+				}
+				break;
+			case BEE_OUTPUT_VERBOSE: // When the verbosity is VERBOSE, skip no message types
+				break;
+		}
+
 		// Create a string of the message's tags
 		std::string tags = joinv(msg->tags, ',');
 
@@ -272,7 +331,7 @@ int BEE::handle_messages() {
 		}
 
 		// Output the message metadata
-		std::cout << "MSG <" << tags << ">[" << messenger_get_type_string(msg->type) << "](" << msg->tickstamp << "ms): ";
+		std::cout << "MSG (" << msg->tickstamp << "ms)[" << messenger_get_type_string(msg->type) << "]<" << tags << ">: ";
 
 		// Output the message description
 		if (msg->descr.find("\n") != std::string::npos) { // If the description is multiple liness, indent it as necessary
@@ -316,11 +375,9 @@ int BEE::handle_messages() {
 							recv->func(this, m);
 						} catch (int e) { // Catch several kinds of exceptions that the recipient might throw
 							ep = std::current_exception();
-							if (recv->name != "console_quit") {
-								bee_commandline_color(9);
-								std::cout << "MSG ERR (" << get_ticks() << "ms): exception " << e << " thrown by recipient \"" << recv->name << "\"\n";
-								bee_commandline_color_reset();
-							}
+							bee_commandline_color(9);
+							std::cout << "MSG ERR (" << get_ticks() << "ms): exception " << e << " thrown by recipient \"" << recv->name << "\"\n";
+							bee_commandline_color_reset();
 						} catch (const char* e) {
 							ep = std::current_exception();
 							bee_commandline_color(9);
@@ -356,13 +413,14 @@ int BEE::handle_messages() {
 */
 std::string BEE::messenger_get_type_string(bee_message_t type) const {
 	switch (type) { // Return the string for the requested type
-		case BEE_MESSAGE_GENERAL: return "general";
-		case BEE_MESSAGE_START:   return "start";
-		case BEE_MESSAGE_END:     return "end";
-		case BEE_MESSAGE_INFO:    return "info";
-		case BEE_MESSAGE_WARNING: return "warning";
-		case BEE_MESSAGE_ERROR:   return "error";
-		default:                  return "unknown"; // Return "unknown" when an undefined type of provided
+		case BEE_MESSAGE_GENERAL:  return "general";
+		case BEE_MESSAGE_START:    return "start";
+		case BEE_MESSAGE_END:      return "end";
+		case BEE_MESSAGE_INFO:     return "info";
+		case BEE_MESSAGE_WARNING:  return "warning";
+		case BEE_MESSAGE_ERROR:    return "error";
+		case BEE_MESSAGE_INTERNAL: return "internal";
+		default:                   return "unknown"; // Return "unknown" when an undefined type of provided
 	}
 }
 

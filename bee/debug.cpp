@@ -35,6 +35,7 @@ std::string debug_indent(const std::string& input, int amount, const std::string
 			output.append(amount, '\t');
 			output.append(tmp);
 		}
+
 		return output; // Return the indented string
 	}
 	return "\n"; // Return a newline when the given string is empty

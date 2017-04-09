@@ -18,7 +18,12 @@ BEE::Path::Path () {
 
 	reset();
 }
-BEE::Path::Path (std::string new_name, std::string new_path) {
+BEE::Path::Path (const std::string& new_name, const std::string& new_path) {
+	// Get the list's engine pointer if it's not nullptr
+	if (BEE::resource_list->paths.game != nullptr) {
+		game = BEE::resource_list->paths.game;
+	}
+
 	reset();
 
 	add_to_resources();
@@ -36,11 +41,6 @@ BEE::Path::~Path() {
 int BEE::Path::add_to_resources() {
 	if (id < 0) { // If the resource needs to be added to the resource list
 		id = BEE::resource_list->paths.add_resource(this); // Add the resource and get the new id
-	}
-
-	// Get the list's engine pointer if it's not nullptr
-	if (BEE::resource_list->paths.game != nullptr) {
-		game = BEE::resource_list->paths.game;
 	}
 
 	return 0;
@@ -102,11 +102,11 @@ int BEE::Path::get_connection_type() {
 bool BEE::Path::get_is_closed() {
 	return is_closed;
 }
-int BEE::Path::set_name(std::string new_name) {
+int BEE::Path::set_name(const std::string& new_name) {
 	name = new_name;
 	return 0;
 }
-int BEE::Path::set_path(std::string new_path) {
+int BEE::Path::set_path(const std::string& new_path) {
 	path = "resources/paths/"+new_path;
 	return 0;
 }

@@ -31,7 +31,7 @@ class BEE::Timeline: public Resource {
 		bool is_paused = false;
 	public:
 		Timeline();
-		Timeline(std::string, std::string);
+		Timeline(const std::string&, const std::string&);
 		~Timeline();
 		int add_to_resources();
 		int reset();
@@ -45,8 +45,8 @@ class BEE::Timeline: public Resource {
 		bool get_is_running();
 		bool get_is_looping();
 
-		int set_name(std::string);
-		int set_path(std::string);
+		int set_name(const std::string&);
+		int set_path(const std::string&);
 		int add_action(Uint32, std::string, std::function<void()>);
 		int add_action(Uint32, std::function<void()>);
 		int remove_action(Uint32);

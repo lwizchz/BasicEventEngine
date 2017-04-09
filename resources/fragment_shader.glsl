@@ -194,7 +194,7 @@ void main() {
 
 					if (ff != vec4(0.0, 0.0, 0.0, 0.0)) {
 						if (l.type != BEE_LIGHT_AMBIENT) {
-							/*float shadow_amount = 0.0;
+							float shadow_amount = 0.0;
 							for (int e=0; e<lightable_amount; e++) {
 								float s = calc_shadow_intersect(l, lightables[e]);
 								if (s > 0) {
@@ -206,7 +206,7 @@ void main() {
 							if (d < 1.0) {
 								d = 1.0;
 							}
-							ff /= pow(d, shadow_amount);*/
+							ff /= pow(d, shadow_amount);
 						}
 						f += ff;
 					}

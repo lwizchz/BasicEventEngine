@@ -1,25 +1,56 @@
 cmake_minimum_required(VERSION 3.0)
-project("BasicEventEngine" CXX C)
 
-set(VERSION_MAJOR "0")
-set(VERSION_MINOR "1")
-set(VERSION_RELEASE "2")
+set(ENGINE_VERSION_MAJOR "0")
+set(ENGINE_VERSION_MINOR "1")
+set(ENGINE_VERSION_RELEASE "2")
 
-# Generate a unique BEE_GAME_ID
-### TODO
-set(BEE_GAME_ID "11111111")
+if (GAME_NAME)
+	project("${GAME_NAME}" CXX C)
+
+	set(GAME_VERSION_MAJOR "0")
+	set(GAME_VERSION_MINOR "1")
+	set(GAME_VERSION_RELEASE "1")
+else()
+	project("BasicEventEngine" CXX C)
+
+	set(GAME_VERSION_MAJOR "${ENGINE_VERSION_MAJOR}")
+	set(GAME_VERSION_MINOR "${ENGINE_VERSION_MINOR}")
+	set(GAME_VERSION_RELEASE "${ENGINE_VERSION_RELEASE}")
+endif()
+
+# Generate a unique BEE_GAME_ID in ./build.sh
+if (NOT BEE_BUILD_ID)
+	set(BEE_BUILD_ID "0")
+endif()
+if (NOT BEE_GAME_ID)
+	set(BEE_GAME_ID "11111111")
+endif()
 
 #set(warns "-Wall -Wextra -Wpedantic -Wshadow -Wno-unused-parameter")
 set(warns "-Wall -Wextra -Wpedantic -Wno-unused-parameter")
-set(defines "-DBEE_GAME_ID=${BEE_GAME_ID} -DBEE_VERSION_MAJOR=${VERSION_MAJOR} -DBEE_VERSION_MINOR=${VERSION_MINOR} -DBEE_VERSION_RELEASE=${VERSION_RELEASE}")
-set(CMAKE_CXX_FLAGS "-g -pg -pipe -std=c++11 ${warns} -D_REENTRANT ${defines}")
+set(engine_defines "-DBEE_VERSION_MAJOR=${ENGINE_VERSION_MAJOR} -DBEE_VERSION_MINOR=${ENGINE_VERSION_MINOR} -DBEE_VERSION_RELEASE=${ENGINE_VERSION_RELEASE}")
+set(game_defines "-DBEE_BUILD_ID=${BEE_BUILD_ID} -DBEE_GAME_ID=${BEE_GAME_ID}")
+set(game_defines "${game_defines} -DGAME_NAME=${PROJECT_NAME} -DGAME_VERSION_MAJOR=${GAME_VERSION_MAJOR} -DGAME_VERSION_MINOR=${GAME_VERSION_MINOR} -DGAME_VERSION_RELEASE=${GAME_VERSION_RELEASE}")
 
-include_directories("lib/doctest/doctest/" "/usr/include/bullet/")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -pg -pipe -std=c++11 ${warns} -D_REENTRANT ${engine_defines}")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2 -pipe -std=c++11 ${warns} -D_REENTRANT -DNDEBUG ${engine_defines}")
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_DEBUG}")
+else()
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_RELEASE}")
+endif()
+
+include_directories("lib/doctest/doctest/" "lib/bullet3/src")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/lib/")
 
 # Enable link time optimization if it is supported
 if(GXX_HAS_LTO_FLAG)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto")
+endif()
+
+set(SHOULD_BUILD_BULLET OFF)
+if (SHOULD_BUILD_BULLET)
+	add_subdirectory(lib/bullet3/)
 endif()
 
 add_subdirectory(bee)
@@ -28,6 +59,7 @@ if (WIN32) # Include Windows libraries manually
 	set(SRC ${${PROJECT_NAME}_SOURCE_DIR})
 	include_directories(${CMAKE_CURRENT_SOURCE_DIR} "${SRC}/win/include")
 
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${game_defines}")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-shadow \"-L${SRC}/win/lib\" \"-I${SRC}/win/include\" \"-I${SRC}/lib/doctest/doctest\"")
 	add_executable(${PROJECT_NAME} main.cpp resources/resources.hpp)
 	target_link_libraries(${PROJECT_NAME} BEE)
@@ -42,16 +74,28 @@ if (WIN32) # Include Windows libraries manually
 	set(GLEW_LIBRARY ${SRC}/win/lib/glew32s.lib)
 	set(GLUT_INCLUDE_DIR ${SRC}/win/include)
 	set(GLUT_glut_LIBRARY ${SRC}/win/lib/libfreeglut_static.a)
+
 	set(ASSIMP_INCLUDE_DIRECTORIES ${SRC}/win/include)
 	set(ASSIMP_LIBRARIES ${SRC}/win/lib/libassimp.dll.a)
+
+	set(BULLET_INCLUDE_DIRECTORIES ${SRC}/win/include)
+	set(
+		BULLET_LIBRARIES
+
+		${SRC}/win/lib/libBulletDynamics.a
+		${SRC}/win/lib/libBulletCollision.a
+		${SRC}/win/lib/libLinearMath.a
+	)
 
 	find_package(GLEW REQUIRED)
 	find_package(GLUT REQUIRED)
 	find_package(OpenGL REQUIRED)
 
-	include_directories(${GLEW_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRECTORIES} ${OPENGL_INCLUDE_DIRECTORIES} ${ASSIMP_INCLUDE_DIRECTORIES})
-	target_link_libraries(${PROJECT_NAME} ${GLEW_LIBRARIES} ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES} ${ASSIMP_LIBRARIES})
+	include_directories(${GLEW_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRECTORIES} ${OPENGL_INCLUDE_DIRECTORIES} ${ASSIMP_INCLUDE_DIRECTORIES} ${BULLET_INCLUDE_DIRECTORIES})
+	target_link_libraries(${PROJECT_NAME} ${GLEW_LIBRARIES} ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES} ${ASSIMP_LIBRARIES} ${BULLET_LIBRARIES})
 else() # Include Unix libraries automatically
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${game_defines}")
+
 	add_executable(${PROJECT_NAME} main.cpp resources/resources.hpp)
 	target_link_libraries(${PROJECT_NAME} BEE)
 
@@ -72,7 +116,21 @@ else() # Include Unix libraries automatically
 	find_package(GLUT REQUIRED)
 	find_package(OpenGL REQUIRED)
 	find_package(ASSIMP REQUIRED)
-	find_package(Bullet REQUIRED)
+
+	if (SHOULD_BUILD_BULLET)
+		set(BULLET_SRC ${${PROJECT_NAME}_SOURCE_DIR}/build/lib/bullet3/src)
+
+		set(BULLET_INCLUDE_DIRS ${SRC}/lib/bullet3/src)
+		set(
+			BULLET_LIBRARIES
+
+			${BULLET_SRC}/BulletDynamics/libBulletDynamics.a
+			${BULLET_SRC}/BulletCollision/libBulletCollision.a
+			${BULLET_SRC}/LinearMath/libLinearMath.a
+		)
+	else()
+		find_package(Bullet REQUIRED)
+	endif()
 
 	include_directories(${GLEW_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRECTORIES} ${OPENGL_INCLUDE_DIRECTORIES} ${ASSIMP_INCLUDE_DIRECTORIES} ${BULLET_INCLUDE_DIRS})
 	target_link_libraries(${PROJECT_NAME} ${GLEW_LIBRARIES} ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES} ${ASSIMP_LIBRARIES} ${BULLET_LIBRARIES})

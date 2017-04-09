@@ -74,8 +74,9 @@ int BEE::change_room(Room* new_room, bool should_jump) {
 		return 2; // Return 2 on resource loading error
 	}
 
-	SDL_SetWindowTitle(window, current_room->get_name().c_str()); // Set the window title to the room's name
-	messenger_send({"engine", "room"}, BEE_MESSAGE_INFO, current_room->get_instance_string());
+	set_window_title(current_room->get_name()); // Set the window title to the room's name
+	//messenger_send({"engine", "room"}, BEE_MESSAGE_INFO, current_room->get_instance_string());
+	messenger_send({"engine", "room"}, BEE_MESSAGE_INFO, "Changed to room \"" + current_room->get_name() + "\"");
 
 	if (transition_type != BEE_TRANSITION_NONE) { // If a transition has been defined then prepare for drawing the new room into the after buffer
 		set_render_target(texture_after);

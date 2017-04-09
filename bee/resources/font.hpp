@@ -23,6 +23,8 @@ class BEE::TextData { // The data struct which is used to pass reusable texture 
 		TextData();
 		TextData(BEE::Sprite*, std::string);
 		~TextData();
+
+		BEE::Sprite* pop_front();
 };
 
 class BEE::Font: public Resource { // The font class which is used to render all text as sprites
@@ -42,7 +44,7 @@ class BEE::Font: public Resource { // The font class which is used to render all
 	public:
 		// See bee/resources/font.cpp for function comments
 		Font();
-		Font(std::string, std::string, int, bool);
+		Font(const std::string&, const std::string&, int, bool);
 		~Font();
 		int add_to_resources();
 		int reset();
@@ -57,8 +59,8 @@ class BEE::Font: public Resource { // The font class which is used to render all
 		int get_lineskip_default();
 		std::string get_fontname();
 
-		int set_name(std::string);
-		int set_path(std::string);
+		int set_name(const std::string&);
+		int set_path(const std::string&);
 		int set_font_size(int);
 		int set_style(int);
 		int set_lineskip(int);

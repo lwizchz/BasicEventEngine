@@ -27,7 +27,12 @@ BEE::Sprite::Sprite() {
 * @new_name: the name of the sprite to use
 * @new_path: the path of the sprite's image
 */
-BEE::Sprite::Sprite(std::string new_name, std::string new_path) {
+BEE::Sprite::Sprite(const std::string& new_name, const std::string& new_path) {
+	// Get the list's engine pointer if it's not nullptr
+	if (BEE::resource_list->sprites.game != nullptr) {
+		game = BEE::resource_list->sprites.game;
+	}
+
 	reset(); // Reset all resource variables
 
 	add_to_resources(); // Add the sprite to the appropriate resource list
@@ -52,11 +57,6 @@ BEE::Sprite::~Sprite() {
 int BEE::Sprite::add_to_resources() {
 	if (id < 0) { // If the resource needs to be added to the resource list
 		id = BEE::resource_list->sprites.add_resource(this); // Add the resource and get the new id
-	}
-
-	// Get the list's engine pointer if it's not nullptr
-	if (BEE::resource_list->sprites.game != nullptr) {
-		game = BEE::resource_list->sprites.game;
 	}
 
 	return 0; // Return 0 on success
@@ -183,7 +183,7 @@ bool BEE::Sprite::get_is_lightable() {
 * BEE::Sprite::set_name() - Set the resource name
 * @new_name: the new name to use for the resource
 */
-int BEE::Sprite::set_name(std::string new_name) {
+int BEE::Sprite::set_name(const std::string& new_name) {
 	name = new_name; // Set the name
 	return 0; // Return 0 on success
 }
@@ -191,7 +191,7 @@ int BEE::Sprite::set_name(std::string new_name) {
 * BEE::Sprite::set_path() - Set the resource path
 * @new_path: the new path to use for the resource
 */
-int BEE::Sprite::set_path(std::string new_path) {
+int BEE::Sprite::set_path(const std::string& new_path) {
 	path = "resources/sprites/"+new_path; // Append the path to the sprite directory
 	return 0; // Return 0 on success
 }
@@ -626,11 +626,13 @@ int BEE::Sprite::draw_subimage(int x, int y, unsigned int current_subimage, int 
 		glBindTexture(GL_TEXTURE_2D, gl_texture);
 
 		// Colorize the sprite with the given color
-		float a = alpha; // Set the default alpha to be the sprite's general alpha value
+		/*float a = alpha; // Set the default alpha to be the sprite's general alpha value
 		if (new_color.a != 0) { // If the provided color has an alpha value, use that instead
 			a = (float)new_color.a/255.0f; // Normalize the alpha
 		}
 		glm::vec4 color = glm::vec4((float)new_color.r/255.0f, (float)new_color.g/255.0f, (float)new_color.b/255.0f, a); // Normalize the color values from 0.0 to 1.0
+		*/
+		glm::vec4 color = glm::vec4((float)new_color.r/255.0f, (float)new_color.g/255.0f, (float)new_color.b/255.0f, (float)new_color.a/255.0f); // Normalize the color values from 0.0 to 1.0
 		glUniform4fv(game->colorize_location, 1, glm::value_ptr(color)); // Send the color to the shader
 
 		// Determine the desired flip type
@@ -741,7 +743,7 @@ int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h, double a
 * @subimage_time: the frame of animation to choose the subimage from
 */
 int BEE::Sprite::draw(int x, int y, Uint32 subimage_time) {
-	return draw(x, y, subimage_time, -1, -1, 0.0, {255, 255, 255, 0}, SDL_FLIP_NONE); // Return the result of drawing the sprite
+	return draw(x, y, subimage_time, -1, -1, 0.0, {255, 255, 255, (Uint8)(alpha*255)}, SDL_FLIP_NONE); // Return the result of drawing the sprite
 }
 /*
 * BEE::Sprite::draw() - Draw the sprite with a given subimage timing using the given attributes
@@ -753,7 +755,7 @@ int BEE::Sprite::draw(int x, int y, Uint32 subimage_time) {
 * @h: the height to scale the sprite to
 */
 int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h) {
-	return draw(x, y, subimage_time, w, h, 0.0, {255, 255, 255, 0}, SDL_FLIP_NONE); // Return the resul of drawing the scaled sprite
+	return draw(x, y, subimage_time, w, h, 0.0, {255, 255, 255, (Uint8)(alpha*255)}, SDL_FLIP_NONE); // Return the resul of drawing the scaled sprite
 }
 /*
 * BEE::Sprite::draw() - Draw the sprite with a given subimage timing using the given attributes
@@ -764,7 +766,7 @@ int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h) {
 * @angle: the number of degrees to rotate the sprite clockwise
 */
 int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, double angle) {
-	return draw(x, y, subimage_time, -1, -1, angle, {255, 255, 255, 0}, SDL_FLIP_NONE); // Return the result of drawing the rotated sprite
+	return draw(x, y, subimage_time, -1, -1, angle, {255, 255, 255, (Uint8)(alpha*255)}, SDL_FLIP_NONE); // Return the result of drawing the rotated sprite
 }
 /*
 * BEE::Sprite::draw() - Draw the sprite with a given subimage timing using the given attributes
@@ -786,7 +788,7 @@ int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, RGBA color) {
 * @flip: the type of flip to draw the sprite with
 */
 int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, SDL_RendererFlip flip) {
-	return draw(x, y, subimage_time, -1, -1, 0.0, {255, 255, 255, 0}, flip); // Return the result of drawing the flipped sprite
+	return draw(x, y, subimage_time, -1, -1, 0.0, {255, 255, 255, (Uint8)(alpha*255)}, flip); // Return the result of drawing the flipped sprite
 }
 /*
 * BEE::Sprite::draw_simple() - Draw the sprite with a simple SDL blit

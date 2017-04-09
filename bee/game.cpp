@@ -15,6 +15,11 @@ MetaResourceList* BEE::resource_list;
 bool BEE::is_initialized = false;
 
 BEE::BEE(int new_argc, char** new_argv, const std::list<ProgramFlags*>& new_flags, Room** new_first_room, GameOptions* new_options) {
+	messenger_send({"engine", "init"}, BEE_MESSAGE_INFO,
+		"Initializing BasicEventEngine v" +
+		std::to_string(BEE_VERSION_MAJOR) + "." + std::to_string(BEE_VERSION_MINOR) + "." + std::to_string(BEE_VERSION_RELEASE)
+	);
+
 	argc = new_argc;
 	argv = new_argv;
 	is_ready = false;
@@ -42,8 +47,9 @@ BEE::BEE(int new_argc, char** new_argv, const std::list<ProgramFlags*>& new_flag
 	}
 
 	net = new NetworkData();
+	net_init();
 
-	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) > 0) {
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
 		throw "Couldn't init SDL: " + get_sdl_error() + "\n";
 	}
 
@@ -99,7 +105,7 @@ BEE::BEE(int new_argc, char** new_argv, const std::list<ProgramFlags*>& new_flag
 	if (options->is_visible) {
 		window_flags |= SDL_WINDOW_SHOWN;
 	}
-	window = SDL_CreateWindow("Basic Event Engine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, window_flags);
+	window = SDL_CreateWindow("BasicEventEngine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, window_flags);
 	if (window == nullptr) {
 		throw "Couldn't create SDL window: " + get_sdl_error() + "\n";
 	}
@@ -121,10 +127,10 @@ BEE::BEE(int new_argc, char** new_argv, const std::list<ProgramFlags*>& new_flag
 		} else { // if not OpenGL, init an SDL renderer
 			sdl_renderer_init();
 		}
-	} catch (std::string e) {
+	} catch (const std::string& e) {
 		messenger_send({"engine", "init"}, BEE_MESSAGE_ERROR, e);
 		handle_messages();
-		throw e;
+		std::rethrow_exception(std::current_exception());
 	}
 
 	int img_flags = IMG_INIT_PNG | IMG_INIT_JPG;
@@ -141,12 +147,6 @@ BEE::BEE(int new_argc, char** new_argv, const std::list<ProgramFlags*>& new_flag
 	}
 	Mix_ChannelFinished(sound_finished);
 	Mix_AllocateChannels(128); // Probably overkill
-
-	if (options->is_network_enabled) {
-		if (!network_init()) {
-			net->is_initialized = true;
-		}
-	}
 
 	if (!is_initialized) {
 		resource_list = new MetaResourceList(this);
@@ -165,6 +165,8 @@ BEE::BEE(int new_argc, char** new_argv, const std::list<ProgramFlags*>& new_flag
 	console = new Console(); // Initialize the default console commands
 	console_init_commands();
 	handle_messages();
+
+	// Set option console vars
 
 	quit = false;
 	if (*new_first_room != nullptr) {
@@ -520,9 +522,16 @@ int BEE::loop() {
 int BEE::close() {
 	handle_messages();
 
+	Mix_AllocateChannels(0);
+
 	if (is_initialized) {
 		free_media();
 		close_resources();
+	}
+
+	if (font_default != nullptr) {
+		delete font_default;
+		font_default = nullptr;
 	}
 
 	if (texture_before != nullptr) {
@@ -536,7 +545,19 @@ int BEE::close() {
 		texture_after = nullptr;
 	}
 
-	delete color;
+	if (color != nullptr) {
+		delete color;
+		color = nullptr;
+	}
+
+	if (render_camera != nullptr) {
+		delete render_camera;
+		render_camera = nullptr;
+	}
+	if (projection_cache != nullptr) {
+		delete projection_cache;
+		projection_cache = nullptr;
+	}
 
 	if (context != nullptr) {
 		opengl_close();
@@ -544,15 +565,13 @@ int BEE::close() {
 	if (renderer != nullptr) {
 		sdl_renderer_close();
 	}
+	if (cursor != nullptr) {
+		SDL_FreeCursor(cursor);
+		cursor = nullptr;
+	}
 	if (window != nullptr) {
 		SDL_DestroyWindow(window);
 		window = nullptr;
-	}
-
-	if (options->is_network_enabled) {
-		if (!network_close()) {
-			net->is_initialized = false;
-		}
 	}
 
 	if (console != nullptr) {
@@ -560,16 +579,24 @@ int BEE::close() {
 		console = nullptr;
 	}
 
-	Mix_Quit();
+	Mix_CloseAudio();
 	TTF_Quit();
 	IMG_Quit();
 	SDL_Quit();
+
+	if (net != nullptr) {
+		net_close();
+		delete net;
+		net = nullptr;
+	}
 
 	if (resource_list != nullptr) {
 		resource_list->reset(nullptr);
 		delete resource_list;
 		resource_list = nullptr;
 	}
+
+	BEE::free_standard_flags();
 
 	return 0;
 }
@@ -701,12 +728,9 @@ int BEE::set_options(const GameOptions& new_options) {
 		options->is_network_enabled = new_options.is_network_enabled;
 
 		if (options->is_network_enabled) {
-			if (!network_init()) {
-				net->is_initialized = true;
-			}
+			net_init();
 		} else {
-			network_close();
-			net->is_initialized = false;
+			net_close();
 		}
 	}
 	if (options->is_debug_enabled != new_options.is_debug_enabled) {

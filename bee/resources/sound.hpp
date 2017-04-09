@@ -49,7 +49,7 @@ class BEE::Sound: public Resource {
 	public:
 		// See bee/resources/sound.cpp for function comments
 		Sound();
-		Sound(std::string, std::string, bool);
+		Sound(const std::string&, const std::string&, bool);
 		~Sound();
 		int add_to_resources();
 		int reset();
@@ -65,8 +65,8 @@ class BEE::Sound: public Resource {
 		bool get_is_looping();
 		int get_effects();
 
-		int set_name(std::string);
-		int set_path(std::string);
+		int set_name(const std::string&);
+		int set_path(const std::string&);
 		int set_is_music(bool);
 		int set_volume(double);
 		int update_volume();
