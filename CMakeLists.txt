@@ -48,7 +48,7 @@ if(GXX_HAS_LTO_FLAG)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto")
 endif()
 
-set(SHOULD_BUILD_BULLET OFF)
+option(SHOULD_BUILD_BULLET "Whether Bullet should be built instead of the packaged version" ON)
 if (SHOULD_BUILD_BULLET)
 	add_subdirectory(lib/bullet3/)
 endif()
@@ -118,9 +118,9 @@ else() # Include Unix libraries automatically
 	find_package(ASSIMP REQUIRED)
 
 	if (SHOULD_BUILD_BULLET)
-		set(BULLET_SRC ${${PROJECT_NAME}_SOURCE_DIR}/build/lib/bullet3/src)
+		set(BULLET_SRC ${${PROJECT_NAME}_SOURCE_DIR}/lib/bullet3/src)
 
-		set(BULLET_INCLUDE_DIRS ${SRC}/lib/bullet3/src)
+		set(BULLET_INCLUDE_DIRS ${BULLET_SRC})
 		set(
 			BULLET_LIBRARIES
 

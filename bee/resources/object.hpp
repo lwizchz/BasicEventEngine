@@ -38,22 +38,22 @@ class BEE::Object: public Resource {
 		virtual ~Object();
 		int add_to_resources();
 		int reset();
-		int print();
+		int print() const;
 
-		int get_id();
-		std::string get_name();
-		std::string get_path();
-		Sprite* get_sprite();
-		int get_sprite_id();
-		bool get_is_solid();
-		bool get_is_visible();
-		bool get_is_persistent();
-		int get_depth();
-		Object* get_parent();
-		int get_parent_id();
-		Sprite* get_mask();
-		int get_mask_id();
-		std::pair<int,int> get_mask_offset();
+		int get_id() const;
+		std::string get_name() const;
+		std::string get_path() const;
+		Sprite* get_sprite() const;
+		int get_sprite_id() const;
+		bool get_is_solid() const;
+		bool get_is_visible() const;
+		bool get_is_persistent() const;
+		int get_depth() const;
+		Object* get_parent() const;
+		int get_parent_id() const;
+		Sprite* get_mask() const;
+		int get_mask_id() const;
+		std::pair<int,int> get_mask_offset() const;
 
 		int set_name(const std::string&);
 		int set_path(const std::string&);
@@ -73,10 +73,10 @@ class BEE::Object: public Resource {
 		int add_instance(int, InstanceData*);
 		int remove_instance(int);
 		int clear_instances();
-		std::map<int, InstanceData*> get_instances();
-		size_t get_instance_amount();
-		InstanceData* get_instance(int);
-		std::string get_instance_string();
+		std::map<int, InstanceData*> get_instances() const;
+		size_t get_instance_amount() const;
+		InstanceData* get_instance(int) const;
+		std::string get_instance_string() const;
 
 		SIDP get_data(int, const std::string&) const;
 		int set_data(int, const std::string&, SIDP);

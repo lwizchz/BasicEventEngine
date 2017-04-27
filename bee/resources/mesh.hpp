@@ -46,11 +46,11 @@ class BEE::Mesh: public Resource {
 		~Mesh();
 		int add_to_resources();
 		int reset();
-		int print();
+		int print() const;
 
-		int get_id();
-		std::string get_name();
-		std::string get_path();
+		int get_id() const;
+		std::string get_name() const;
+		std::string get_path() const;
 
 		int set_name(const std::string&);
 		int set_path(const std::string&);

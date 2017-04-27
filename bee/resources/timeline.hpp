@@ -35,15 +35,15 @@ class BEE::Timeline: public Resource {
 		~Timeline();
 		int add_to_resources();
 		int reset();
-		int print();
+		int print() const;
 
-		int get_id();
-		std::string get_name();
-		std::string get_path();
-		bee_timeline_list get_action_list();
-		std::string get_action_string();
-		bool get_is_running();
-		bool get_is_looping();
+		int get_id() const;
+		std::string get_name() const;
+		std::string get_path() const;
+		bee_timeline_list get_action_list() const;
+		std::string get_action_string() const;
+		bool get_is_running() const;
+		bool get_is_looping() const;
 
 		int set_name(const std::string&);
 		int set_path(const std::string&);
@@ -57,7 +57,7 @@ class BEE::Timeline: public Resource {
 		int set_pause(bool);
 
 		int start();
-		int step(Uint32);
+		int step_to(Uint32);
 		int end();
 };
 

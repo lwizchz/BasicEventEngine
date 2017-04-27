@@ -11,10 +11,19 @@
 
 #include "../game.hpp" // Include the engine headers
 
-BEE::SIDP::SIDP() {}
+BEE::SIDP::SIDP() :
+	type(-1), // Possible types: 0=string, 1=int, 2=double, 3=pointer
+	str(),
+	integer(0),
+	floating(0.0),
+	pointer(nullptr)
+{}
 BEE::SIDP::SIDP(const std::string& ns) :
 	type(0),
-	str(ns)
+	str(ns),
+	integer(0),
+	floating(0.0),
+	pointer(nullptr)
 {}
 BEE::SIDP::SIDP(const std::string& ns, bool should_interpret) {
 	if (should_interpret) {
@@ -26,18 +35,28 @@ BEE::SIDP::SIDP(const std::string& ns, bool should_interpret) {
 }
 BEE::SIDP::SIDP(int ni) :
 	type(1),
-	integer(ni)
+	str(),
+	integer(ni),
+	floating(0.0),
+	pointer(nullptr)
 {}
 BEE::SIDP::SIDP(double nf) :
 	type(2),
-	floating(nf)
+	str(),
+	integer(0),
+	floating(nf),
+	pointer(nullptr)
 {}
 BEE::SIDP::SIDP(void* np) :
 	type(3),
+	str(),
+	integer(0),
+	floating(0.0),
 	pointer(np)
 {}
 
 int BEE::SIDP::reset() {
+	type = -1;
 	str.clear();
 	integer = 0;
 	floating = 0.0;
@@ -51,19 +70,19 @@ int BEE::SIDP::interpret(const std::string& ns) {
 		if ((ns[0] == '"')&&(ns[ns.length()-1] == '"')) { // String
 			str = ns.substr(1, ns.length()-2);
 			type = 0;
-		} else if (!std::isdigit(ns[0])) { // Probably a string
-			str = ns;
-			type = 0;
 		} else if (std::regex_match(ns, std::regex("^-?\\d*\\.\\d+"))) { // Double
 			floating = std::stod(ns);
 			type = 2;
 		} else if (std::regex_match(ns, std::regex("^-?\\d+"))) { // Integer
 			integer = std::stoi(ns);
 			type = 1;
+		} else { // Probably a string
+			str = ns;
+			type = 0;
 		}
 	} catch (const std::invalid_argument &e) {}
 
-	if (type == -1) { // No possible type
+	if (type == -1) { // No possible type, this will only occur when std::stod or std::stoi fails
 		std::cerr << "WARN: SIDP type not determined, storing as string: \"" + ns + "\"\n";
 		type = 0;
 		str = ns;

@@ -40,16 +40,16 @@ class BEE::Light: public Resource {
 		~Light();
 		int add_to_resources();
 		int reset();
-		int print();
+		int print() const;
 
-		int get_id();
-		std::string get_name();
-		std::string get_path();
-		bee_light_t get_type();
-		glm::vec4 get_position();
-		glm::vec4 get_direction();
-		glm::vec4 get_attenuation();
-		RGBA get_color();
+		int get_id() const;
+		std::string get_name() const;
+		std::string get_path() const;
+		bee_light_t get_type() const;
+		glm::vec4 get_position() const;
+		glm::vec4 get_direction() const;
+		glm::vec4 get_attenuation() const;
+		RGBA get_color() const;
 
 		int set_name(const std::string&);
 		int set_path(const std::string&);

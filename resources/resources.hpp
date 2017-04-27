@@ -14,6 +14,8 @@ BEE::Font* font_liberation;
 // Define paths
 BEE::Path* path_bee;
 
+// Define timelines
+
 // Define meshes
 BEE::Mesh* mesh_monkey;
 
@@ -22,6 +24,8 @@ BEE::Light* lt_ambient;
 BEE::Light* lt_bee;
 
 // Include and define objects
+#include "sidp.hpp"
+
 #include "objects/bee.hpp"
 BEE::Object* obj_bee;
 
@@ -54,10 +58,12 @@ int BEE::init_resources() {
 
 		// Init paths
 		path_bee = new Path("path_bee", "");
-			path_bee->add_coordinate(0,   0,   1.0);
-			path_bee->add_coordinate(200, 400, 1.0);
-			path_bee->add_coordinate(800, 400, 1.0);
-			path_bee->add_coordinate(500, 200, 1.0);
+			path_bee->add_coordinate(0.0, 0.0, 0.0, 1.0);
+			path_bee->add_coordinate(200.0, 400.0, 0.0, 1.0);
+			path_bee->add_coordinate(800.0, 400.0, 0.0, 1.0);
+			path_bee->add_coordinate(500.0, 200.0, 0.0, 1.0);
+
+		// Init timelines
 
 		// Init meshes
 		mesh_monkey = new Mesh("mesh_monkey", "monkey2.obj");
@@ -88,38 +94,42 @@ int BEE::init_resources() {
 
 	return 0; // Return 0 on success
 }
+
+#define DEL(x) delete x; x=nullptr
 /*
 * BEE::close_resources() - Destroy all game resources
 */
 int BEE::close_resources() {
 	// Destroy sprites
-	delete spr_bee;
-	delete spr_dot;
+	DEL(spr_bee);
+	DEL(spr_dot);
 
 	// Destroy sounds
-	delete snd_chirp;
+	DEL(snd_chirp);
 
 	// Destroy backgrounds
-	delete bk_green;
+	DEL(bk_green);
 
 	// Destroy fonts
-	delete font_liberation;
+	DEL(font_liberation);
 
 	// Destroy paths
-	delete path_bee;
+	DEL(path_bee);
+
+	// Destroy timelines
 
 	// Destroy meshes
-	delete mesh_monkey;
+	DEL(mesh_monkey);
 
 	// Destroy lights
-	delete lt_ambient;
-	delete lt_bee;
+	DEL(lt_ambient);
+	DEL(lt_bee);
 
 	// Destroy objects
-	delete obj_bee;
+	DEL(obj_bee);
 
 	// Destroy rooms
-	delete rm_test;
+	DEL(rm_test);
 
 	is_initialized = false; // Unset the engine initialization flag
 

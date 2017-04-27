@@ -80,12 +80,12 @@ int BEE::messenger_send_urgent(std::shared_ptr<MessageContents> msg) {
 					} catch (int e) { // Catch several kinds of exceptions that the recipient might throw
 						ep = std::current_exception();
 						bee_commandline_color(9);
-						std::cout << "MSG ERR (" << get_ticks() << "ms): exception " << e << " thrown by recipient \"" << recv->name << "\"\n";
+						std::cerr << "MSG ERR (" << get_ticks() << "ms): exception " << e << " thrown by recipient \"" << recv->name << "\"\n";
 						bee_commandline_color_reset();
 					} catch (const char* e) {
 						ep = std::current_exception();
 						bee_commandline_color(9);
-						std::cout << "MSG ERR (" << get_ticks() << "ms): exception \"" << e << "\" thrown by recipient \"" << recv->name << "\"\n";
+						std::cerr << "MSG ERR (" << get_ticks() << "ms): exception \"" << e << "\" thrown by recipient \"" << recv->name << "\"\n";
 						bee_commandline_color_reset();
 					} catch (...) {
 						ep = std::current_exception(); // Store any miscellaneous exceptions to be rethrown
@@ -114,7 +114,7 @@ int BEE::messenger_register(std::shared_ptr<MessageRecipient> recv) {
 		if (protected_tags.find(tag) != protected_tags.end()) { // If the requested tag is protected, deny registration
 			// Output an error message
 			bee_commandline_color(11);
-			std::cout << "MSG failed to register recipient \"" << recv->name << "\" with protected tag \"" << tag << "\".\n";
+			std::cerr << "MSG failed to register recipient \"" << recv->name << "\" with protected tag \"" << tag << "\".\n";
 			bee_commandline_color_reset();
 
 			r++; // Increment the protection counter
@@ -160,7 +160,7 @@ int BEE::messenger_unregister(std::shared_ptr<MessageRecipient> recv) {
 		if (protected_tags.find(tag) != protected_tags.end()) { // If the specific tag is protected, deny removal for any tags
 			// Output an error message
 			bee_commandline_color(11);
-			std::cout << "MSG failed to unregister recipient \"" << recv->name << "\" because of protected tag \"" << tag << "\".\n";
+			std::cerr << "MSG failed to unregister recipient \"" << recv->name << "\" because of protected tag \"" << tag << "\".\n";
 			bee_commandline_color_reset();
 
 			return 1; // Return 1 on denial by protected tag
@@ -330,20 +330,26 @@ int BEE::handle_messages() {
 			bee_commandline_color(9); // Red
 		}
 
+		// Output to the appropriate stream
+		std::ostream* o = &std::cout;
+		if ((msg->type == BEE_MESSAGE_WARNING)||(msg->type == BEE_MESSAGE_ERROR)) {
+			o = &std::cerr;
+		}
+
 		// Output the message metadata
-		std::cout << "MSG (" << msg->tickstamp << "ms)[" << messenger_get_type_string(msg->type) << "]<" << tags << ">: ";
+		*o << "MSG (" << msg->tickstamp << "ms)[" << messenger_get_type_string(msg->type) << "]<" << tags << ">: ";
 
 		// Output the message description
 		if (msg->descr.find("\n") != std::string::npos) { // If the description is multiple liness, indent it as necessary
-			std::cout << "\n";
-			std::cout << debug_indent(msg->descr, 1);
+			*o << "\n";
+			*o << debug_indent(msg->descr, 1);
 		} else { // Otherwise, output it as normal
-			std::cout << msg->descr << "\n";
+			*o << msg->descr << "\n";
 		}
 
 		bee_commandline_color_reset(); // Reset the output color
 	}
-	std::cout << std::flush; // Flush the output buffer before processing the recipients
+	std::flush(std::cout); // Flush the output buffer before processing the recipients
 
 	// Process messages with recipient functions
 	std::exception_ptr ep; // Store any thrown values
@@ -376,12 +382,12 @@ int BEE::handle_messages() {
 						} catch (int e) { // Catch several kinds of exceptions that the recipient might throw
 							ep = std::current_exception();
 							bee_commandline_color(9);
-							std::cout << "MSG ERR (" << get_ticks() << "ms): exception " << e << " thrown by recipient \"" << recv->name << "\"\n";
+							std::cerr << "MSG ERR (" << get_ticks() << "ms): exception " << e << " thrown by recipient \"" << recv->name << "\"\n";
 							bee_commandline_color_reset();
 						} catch (const char* e) {
 							ep = std::current_exception();
 							bee_commandline_color(9);
-							std::cout << "MSG ERR (" << get_ticks() << "ms): exception \"" << e << "\" thrown by recipient \"" << recv->name << "\"\n";
+							std::cerr << "MSG ERR (" << get_ticks() << "ms): exception \"" << e << "\" thrown by recipient \"" << recv->name << "\"\n";
 							bee_commandline_color_reset();
 						} catch (...) {
 							ep = std::current_exception(); // Store any miscellaneous exceptions to be rethrown

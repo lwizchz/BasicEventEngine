@@ -441,7 +441,7 @@ int BEE::PhysicsBody::attach(PhysicsWorld* new_world) {
 	if (attached_instance != nullptr) {
 		attached_instance->add_physbody();
 	}
-	if (attached_world != new_world) {
+	/*if (attached_world != new_world)*/ {
 		attached_world = new_world;
 
 		if (constraints.size() > 0) {

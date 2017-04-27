@@ -41,10 +41,10 @@ int RmTest::init() {
 	add_background(-1, bk_green, true, false, 0, 0, true, true, 10, 10, false);
 
 	// set up instances
-	add_instance(-1, obj_bee, 300, 300, 0);
-	add_instance(-1, obj_bee, 800, 300, 0);
-	add_instance(-1, obj_bee, 300, 600, 0);
-	add_instance(-1, obj_bee, 800, 600, 0);
+	if (get_instance_map().empty()) {
+		set_instance_map("resources/rooms/test.csv");
+	}
+	load_instance_map();
 
 	return 0;
 }

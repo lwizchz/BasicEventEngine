@@ -58,7 +58,7 @@ int BEE::Light::reset() {
 
 	return 0;
 }
-int BEE::Light::print() {
+int BEE::Light::print() const {
 	std::stringstream s;
 	s <<
 	"Light { "
@@ -97,28 +97,28 @@ int BEE::Light::print() {
 	return 0;
 }
 
-int BEE::Light::get_id() {
+int BEE::Light::get_id() const {
 	return id;
 }
-std::string BEE::Light::get_name() {
+std::string BEE::Light::get_name() const {
 	return name;
 }
-std::string BEE::Light::get_path() {
+std::string BEE::Light::get_path() const {
 	return path;
 }
-bee_light_t BEE::Light::get_type() {
+bee_light_t BEE::Light::get_type() const {
 	return lighting.type;
 }
-glm::vec4 BEE::Light::get_position() {
+glm::vec4 BEE::Light::get_position() const {
 	return lighting.position;
 }
-glm::vec4 BEE::Light::get_direction() {
+glm::vec4 BEE::Light::get_direction() const {
 	return lighting.direction;
 }
-glm::vec4 BEE::Light::get_attenuation() {
+glm::vec4 BEE::Light::get_attenuation() const {
 	return lighting.attenuation;
 }
-BEE::RGBA BEE::Light::get_color() {
+BEE::RGBA BEE::Light::get_color() const {
 	return lighting.color;
 }
 

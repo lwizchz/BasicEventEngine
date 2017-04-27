@@ -152,4 +152,11 @@ enum bee_phys_constraint_t {
 	BEE_PHYS_CONSTRAINT_TILE
 };
 
+enum bee_path_end_t {
+	BEE_PATH_END_STOP,
+	BEE_PATH_END_RESTART,
+	BEE_PATH_END_CONTINUE,
+	BEE_PATH_END_REVERSE
+};
+
 #endif // _BEE_ENUM_H

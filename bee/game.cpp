@@ -14,30 +14,79 @@
 MetaResourceList* BEE::resource_list;
 bool BEE::is_initialized = false;
 
-BEE::BEE(int new_argc, char** new_argv, const std::list<ProgramFlags*>& new_flags, Room** new_first_room, GameOptions* new_options) {
+BEE::BEE(int new_argc, char** new_argv, const std::list<ProgramFlags*>& new_flags, Room** new_first_room, GameOptions* new_options) :
+	argc(new_argc),
+	argv(new_argv),
+	flags(),
+	options(new_options),
+
+	quit(false),
+	is_ready(false),
+	is_paused(false),
+
+	first_room(nullptr),
+	current_room(nullptr),
+
+	width(DEFAULT_WINDOW_WIDTH),
+	height(DEFAULT_WINDOW_HEIGHT),
+	cursor(nullptr),
+
+	window(nullptr),
+	renderer(nullptr),
+	context(nullptr),
+
+	render_is_3d(false),
+	render_camera(nullptr),
+	projection_cache(nullptr),
+
+	color(new RGBA()),
+	font_default(nullptr),
+
+	has_mouse(false),
+	has_focus(false),
+
+	tickstamp(0),
+	new_tickstamp(0),
+	fps_ticks(0),
+	tick_delta(0),
+
+	net(new NetworkData()),
+
+	volume(1.0),
+
+	fps_goal(DEFAULT_GAME_FPS),
+	fps_max(300),
+	//fps_max(fps_goal),
+	fps_unfocused(fps_max/20),
+	fps_count(0),
+	frame_number(0),
+
+	texture_before(nullptr),
+	texture_after(nullptr),
+	transition_type(BEE_TRANSITION_NONE),
+	transition_speed(1024.0/DEFAULT_GAME_FPS),
+	transition_custom_func(nullptr),
+
+	keystrings_keys(),
+	keystrings_strings(),
+
+	commandline_input(),
+	commandline_current(0),
+
+	recipients(),
+	protected_tags({"engine", "console"}),
+	messages(),
+	messenger_output_level(BEE_OUTPUT_NORMAL),
+
+	console(nullptr),
+
+	fps_stable(0)
+{
 	messenger_send({"engine", "init"}, BEE_MESSAGE_INFO,
 		"Initializing BasicEventEngine v" +
 		std::to_string(BEE_VERSION_MAJOR) + "." + std::to_string(BEE_VERSION_MINOR) + "." + std::to_string(BEE_VERSION_RELEASE)
 	);
 
-	argc = new_argc;
-	argv = new_argv;
-	is_ready = false;
-
-	has_mouse = false;
-	has_focus = false;
-
-	fps_goal = DEFAULT_GAME_FPS;
-	fps_max = 300;
-	//fps_max = fps_goal;
-	fps_unfocused = fps_max/20;
-	fps_count = 0;
-	fps_stable = 0;
-
-	width = DEFAULT_WINDOW_WIDTH;
-	height = DEFAULT_WINDOW_HEIGHT;
-
-	options = new_options;
 	handle_flags(new_flags, true);
 
 	if (options->should_assert) {
@@ -46,7 +95,6 @@ BEE::BEE(int new_argc, char** new_argv, const std::list<ProgramFlags*>& new_flag
 		}
 	}
 
-	net = new NetworkData();
 	net_init();
 
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
@@ -118,9 +166,7 @@ BEE::BEE(int new_argc, char** new_argv, const std::list<ProgramFlags*>& new_flag
 
 	keystate = SDL_GetKeyboardState(nullptr);
 	keystrings_populate();
-	commandline_input.clear();
 
-	color = new RGBA();
 	try {
 		if (options->renderer_type != BEE_RENDERER_SDL) {
 			opengl_init();
@@ -166,9 +212,6 @@ BEE::BEE(int new_argc, char** new_argv, const std::list<ProgramFlags*>& new_flag
 	console_init_commands();
 	handle_messages();
 
-	// Set option console vars
-
-	quit = false;
 	if (*new_first_room != nullptr) {
 		if (change_room(*new_first_room, false)) {
 			throw std::string("Couldn't load first room\n");
@@ -620,7 +663,7 @@ Uint32 BEE::get_frame() const {
 	return frame_number;
 }
 double BEE::get_delta() const {
-	return get_fps_goal()/1000.0*tick_delta;
+	return max<double>((double)get_tick_delta(), 1.0) / 1000.0;
 }
 Uint32 BEE::get_tick_delta() const {
 	return tick_delta;

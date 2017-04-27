@@ -60,6 +60,7 @@ double radtodeg(double);
 double opposite_angle(double);
 double absolute_angle(double);
 double direction_of(double, double, double, double);
+btVector3 direction_of(double, double, double, double, double, double);
 double dist_sqr(double, double, double, double, double, double);
 double dist_sqr(double, double, double, double);
 double distance(double, double, double, double, double, double);

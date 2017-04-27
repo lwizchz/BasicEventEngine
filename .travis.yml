@@ -8,18 +8,19 @@ os: linux
 before_install:
   - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
   - sudo apt-get update -qq
-  - sudo apt-get install -qq cmake libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev libsdl2-net-dev libglew-dev libglm-dev freeglut3-dev libxmu-dev libassimp-dev libbullet-dev
+  - sudo apt-get install -qq cmake libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev libsdl2-net-dev libglew-dev libglm-dev freeglut3-dev libxmu-dev libassimp-dev
   - if [ "$CXX" = "g++" ]; then sudo apt-get install -qq g++-4.9; fi
   - if [ "$CXX" = "g++" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
   - wget https://lukemontalvo.us/BasicEventEngine/resources.tar.gz
   - tar xzf resources.tar.gz
 before_script:
-  - mkdir build
-  - cd build
-  - cmake ..
-script: make
+  - cp ./lib/bullet.CMakeLists.txt ./lib/bullet3/CMakeLists.txt
+  - cd ./lib/bullet3/
+  - cmake .
+  - make
+  - cd ../../
+script: ./build.sh release
 after_success:
-  - cd ..
   - export DISPLAY=:99
   - export AUDIODEV=null
   - sudo apt-get install -qq mesa-utils libgl1-mesa-swx11 libgl1-mesa-swx11-dev xvfb

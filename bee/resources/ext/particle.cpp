@@ -111,18 +111,20 @@ int BEE::Particle::print() {
 	std::stringstream s;
 	s <<
 	"Particle { "
-	"\n	sprite            " << sprite <<
-	"\n	scale             " << scale <<
+	"\n	sprite                  " << sprite <<
+	"\n	scale                   " << scale <<
 	"\n	velocity:" <<
-	"\n		magnitude " << velocity.first <<
-	"\n		direction " << velocity.second <<
-	"\n	angle             " << angle <<
-	"\n	angle_increase    " << angle_increase <<
-	"\n	color (rgba)      " << (int)color.r << ", " << (int)color.g << ", " << (int)color.b << ", " << (int)color.a <<
-	"\n	max_time          " << max_time <<
-	"\n	death_type        " << death_type <<
-	"\n	death_amount      " << death_amount <<
-	"\n	should_reanimate  " << should_reanimate <<
+	"\n		magnitude       " << velocity.first <<
+	"\n		direction       " << velocity.second <<
+	"\n	angle                   " << angle <<
+	"\n	angle_increase          " << angle_increase <<
+	"\n	color (rgba)            " << (int)color.r << ", " << (int)color.g << ", " << (int)color.b << ", " << (int)color.a <<
+	"\n	max_time                " << max_time <<
+	"\n	death_type              " << death_type <<
+	"\n	death_amount            " << death_amount <<
+	"\n	should_reanimate        " << should_reanimate <<
+	"\n	is_lightable            " << is_lightable <<
+	"\n	is_sprite_lightable	" << is_sprite_lightable <<
 	"\n}\n";
 	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str());
 
@@ -204,7 +206,7 @@ int BEE::ParticleSystem::fast_forward(int frames) { // Fast-forwading more than 
 	int step = 1000.0/game->get_fps_goal();
 	for (int i=0; i<frames; i++) {
 		time_offset += step;
-		draw(t+time_offset, false);
+		draw(t+time_offset, 1.0/step, false);
 	}
 
 	particles.erase(
@@ -238,9 +240,9 @@ int BEE::ParticleSystem::fast_forward(int frames) { // Fast-forwading more than 
 	return 0;
 }
 int BEE::ParticleSystem::draw() {
-	return draw(game->get_ticks()+time_offset, true);
+	return draw(game->get_ticks()+time_offset, game->get_delta(), true);
 }
-int BEE::ParticleSystem::draw(Uint32 now, bool should_draw) {
+int BEE::ParticleSystem::draw(Uint32 now, double delta, bool should_draw) {
 	int sx = xoffset, sy = yoffset;
 	if (following != nullptr) {
 		sx += following->get_x();
@@ -290,8 +292,8 @@ int BEE::ParticleSystem::draw(Uint32 now, bool should_draw) {
 		int px = p->x, py = p->y;
 		double m = p->velocity.first * (p->randomness+1.0);
 		double dir = p->velocity.second;
-		p->x += cos(degtorad(dir)) * m * game->get_delta();
-		p->y += -sin(degtorad(dir)) * m * game->get_delta();
+		p->x += cos(degtorad(dir)) * m * delta;
+		p->y += -sin(degtorad(dir)) * m * delta;
 
 		for (auto& a : attractors) {
 			int ax = sx, ay = sy;
@@ -318,7 +320,7 @@ int BEE::ParticleSystem::draw(Uint32 now, bool should_draw) {
 						break;
 					}
 				}
-				std::tie(p->x, p->y) = coord_approach(p->x, p->y, ax+a->x+a->w/2, ay+a->y+a->h/2, f, game->get_delta());
+				std::tie(p->x, p->y) = coord_approach(p->x, p->y, ax+a->x+a->w/2, ay+a->y+a->h/2, f, delta);
 			}
 		}
 
@@ -399,8 +401,16 @@ int BEE::ParticleSystem::draw(Uint32 now, bool should_draw) {
 			if (!s.first->is_lightable) {
 				game->set_is_lightable(false);
 			}
+
+			bool is_sprite_lightable = s.first->sprite->get_is_lightable();
+			if (!s.first->is_sprite_lightable) {
+				s.first->sprite->set_is_lightable(false);
+			}
+
 			s.first->sprite->draw_array(s.second, s.first->rotation_cache, s.first->color, SDL_FLIP_NONE);
+
 			game->set_is_lightable(true);
+			s.first->sprite->set_is_lightable(is_sprite_lightable);
 		}
 	}
 

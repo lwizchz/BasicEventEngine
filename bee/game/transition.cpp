@@ -122,6 +122,10 @@ int BEE::draw_transition() {
 		}
 		case BEE_TRANSITION_CREATE_LEFT: { // Create from left
 			for (double i=0; i<get_width(); i+=transition_speed*get_delta()) {
+				if (((int)i%10 == 0)&&(compute_check_quit())) {
+					break;
+				}
+
 				render_clear();
 				texture_before->draw(0, 0, 0, f);
 				texture_after->crop_image_width(i);
@@ -132,6 +136,10 @@ int BEE::draw_transition() {
 		}
 		case BEE_TRANSITION_CREATE_RIGHT: { // Create from right
 			for (double i=get_width(); i>=0; i-=transition_speed*get_delta()) {
+				if (((int)i%10 == 0)&&(compute_check_quit())) {
+					break;
+				}
+
 				render_clear();
 				texture_after->draw(0, 0, 0, f);
 				texture_before->crop_image_width(i);
@@ -142,6 +150,10 @@ int BEE::draw_transition() {
 		}
 		case BEE_TRANSITION_CREATE_TOP: { // Create from top
 			for (double i=0; i<get_height(); i+=transition_speed*get_delta()) {
+				if (((int)i%10 == 0)&&(compute_check_quit())) {
+					break;
+				}
+
 				render_clear();
 				texture_before->draw(0, 0, 0, f);
 				texture_after->crop_image_height(i);
@@ -152,6 +164,10 @@ int BEE::draw_transition() {
 		}
 		case BEE_TRANSITION_CREATE_BOTTOM: { // Create from bottom
 			for (double i=get_height(); i>=0; i-=transition_speed*get_delta()) {
+				if (((int)i%10 == 0)&&(compute_check_quit())) {
+					break;
+				}
+
 				render_clear();
 				texture_after->draw(0, 0, 0, f);
 				texture_before->crop_image_height(i);
@@ -163,6 +179,10 @@ int BEE::draw_transition() {
 		case BEE_TRANSITION_CREATE_CENTER: { // Create from center
 			const int w = get_width(), h = get_height();
 			for (double i=0; i<w; i+=transition_speed*get_delta()) {
+				if (((int)i%10 == 0)&&(compute_check_quit())) {
+					break;
+				}
+
 				render_clear();
 				texture_before->draw(0, 0, 0, f);
 
@@ -178,6 +198,10 @@ int BEE::draw_transition() {
 		}
 		case BEE_TRANSITION_SHIFT_LEFT: { // Shift from left
 			for (double i=-get_width(); i<0; i+=transition_speed*get_delta()) {
+				if (((int)i%10 == 0)&&(compute_check_quit())) {
+					break;
+				}
+
 				render_clear();
 				texture_before->draw(0, 0, 0, f);
 				texture_after->draw(i, 0, 0,  f);
@@ -187,6 +211,10 @@ int BEE::draw_transition() {
 		}
 		case BEE_TRANSITION_SHIFT_RIGHT: { // Shift from right
 			for (double i=get_width(); i>=0; i-=transition_speed*get_delta()) {
+				if (((int)i%10 == 0)&&(compute_check_quit())) {
+					break;
+				}
+
 				render_clear();
 				texture_before->draw(0, 0, 0, f);
 				texture_after->draw(i, 0, 0, f);
@@ -196,6 +224,10 @@ int BEE::draw_transition() {
 		}
 		case BEE_TRANSITION_SHIFT_TOP: { // Shift from top
 			for (double i=-get_height(); i<0; i+=transition_speed*get_delta()) {
+				if (((int)i%10 == 0)&&(compute_check_quit())) {
+					break;
+				}
+
 				render_clear();
 				texture_before->draw(0, 0, 0, f);
 				texture_after->draw(0, i, 0, f);
@@ -205,6 +237,10 @@ int BEE::draw_transition() {
 		}
 		case BEE_TRANSITION_SHIFT_BOTTOM: { // Shift from bottom
 			for (double i=get_height(); i>=0; i-=transition_speed*get_delta()) {
+				if (((int)i%10 == 0)&&(compute_check_quit())) {
+					break;
+				}
+
 				render_clear();
 				texture_before->draw(0, 0, 0, f);
 				texture_after->draw(0, i, 0, f);
@@ -235,6 +271,10 @@ int BEE::draw_transition() {
 		case BEE_TRANSITION_PUSH_LEFT: { // Push from left
 			const int w = get_width();
 			for (double i=-w; i<0; i+=transition_speed*get_delta()) {
+				if (((int)i%10 == 0)&&(compute_check_quit())) {
+					break;
+				}
+
 				render_clear();
 				texture_before->draw(i+w, 0, 0, f);
 				texture_after->draw(i, 0, 0, f);
@@ -245,6 +285,10 @@ int BEE::draw_transition() {
 		case BEE_TRANSITION_PUSH_RIGHT: { // Push from right
 			const int w = get_width();
 			for (double i=w; i>=0; i-=transition_speed*get_delta()) {
+				if (((int)i%10 == 0)&&(compute_check_quit())) {
+					break;
+				}
+
 				render_clear();
 				texture_before->draw(i-w, 0, 0, f);
 				texture_after->draw(i, 0, 0, f);
@@ -255,6 +299,10 @@ int BEE::draw_transition() {
 		case BEE_TRANSITION_PUSH_TOP: { // Push from top
 			const int h = get_height();
 			for (double i=-h; i<0; i+=transition_speed*get_delta()) {
+				if (((int)i%10 == 0)&&(compute_check_quit())) {
+					break;
+				}
+
 				render_clear();
 				texture_before->draw(0, i+h, 0, f);
 				texture_after->draw(0, i, 0, f);
@@ -265,6 +313,10 @@ int BEE::draw_transition() {
 		case BEE_TRANSITION_PUSH_BOTTOM: { // Push from bottom
 			const int h = get_height();
 			for (double i=h; i>=0; i-=transition_speed*get_delta()) {
+				if (((int)i%10 == 0)&&(compute_check_quit())) {
+					break;
+				}
+
 				render_clear();
 				texture_before->draw(0, i-h, 0, f);
 				texture_after->draw(0, i, 0, f);
@@ -276,6 +328,10 @@ int BEE::draw_transition() {
 			texture_before->set_rotate_xy(0.0, 1.0);
 			texture_after->set_rotate_xy(0.0, 1.0);
 			for (double a=0.0; a<90.0; a+=transition_speed*get_delta()/20.0) {
+				if (((int)a%10 == 0)&&(compute_check_quit())) {
+					break;
+				}
+
 				render_clear();
 				texture_before->draw(0, 0, 0, -1, -1, -a, {255, 255, 255, 255}, f);
 				texture_after->draw(0, 0, 0, -1, -1, 90.0-a, {255, 255, 255, 255}, f);
@@ -287,6 +343,10 @@ int BEE::draw_transition() {
 			texture_before->set_rotate_xy(1.0, 1.0);
 			texture_after->set_rotate_xy(1.0, 1.0);
 			for (double a=0.0; a<90.0; a+=transition_speed*get_delta()/20.0) {
+				if (((int)a%10 == 0)&&(compute_check_quit())) {
+					break;
+				}
+
 				render_clear();
 				texture_before->draw(0, 0, 0, -1, -1, a, {255, 255, 255, 255}, f);
 				texture_after->draw(0, 0, 0, -1, -1, a-90.0, {255, 255, 255, 255}, f);
@@ -296,6 +356,10 @@ int BEE::draw_transition() {
 		}
 		case BEE_TRANSITION_BLEND: { // Blend (crossfade)
 			for (double a=0.0; a<255.0; a+=transition_speed*get_delta()/5.0) {
+				if (((int)a%10 == 0)&&(compute_check_quit())) {
+					break;
+				}
+
 				render_clear();
 				texture_before->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, (Uint8)(255.0-a)}, f);
 				texture_after->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, (Uint8)a}, f);
@@ -305,11 +369,19 @@ int BEE::draw_transition() {
 		}
 		case BEE_TRANSITION_FADE: { // Fade out and in
 			for (double a=0.0; a<255.0; a+=transition_speed*get_delta()/5.0) {
+				if (((int)a%10 == 0)&&(compute_check_quit())) {
+					break;
+				}
+
 				render_clear();
 				texture_before->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, (Uint8)(255.0-a)}, f);
 				render();
 			}
 			for (double a=0.0; a<255.0; a+=transition_speed*get_delta()/5.0) {
+				if (((int)a%10 == 0)&&(compute_check_quit())) {
+					break;
+				}
+
 				render_clear();
 				texture_after->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, (Uint8)a}, f);
 				render();
@@ -333,6 +405,19 @@ int BEE::draw_transition() {
 	}
 
 	return 0;
+}
+/*
+* compute_check_quit() - Check whether we received an SDL_QUIT event in the middle of heavy data-processing
+* ! This function should be periodically called by any loop that retains control for more than 500ms
+* ! Note that this will not handle custom close events such as the Escape key
+*/
+bool BEE::compute_check_quit() {
+	SDL_PumpEvents();
+	if (SDL_PeepEvents(nullptr, 1, SDL_PEEKEVENT, SDL_QUIT, SDL_QUIT) > 0) {
+		quit = true;
+	}
+
+	return quit;
 }
 
 #endif // _BEE_GAME_TRANSITION

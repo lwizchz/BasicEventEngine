@@ -67,7 +67,7 @@ int BEE::Object::reset() {
 
 	return 0;
 }
-int BEE::Object::print() {
+int BEE::Object::print() const {
 	std::string instance_string = get_instance_string();
 
 	std::stringstream s;
@@ -103,46 +103,46 @@ int BEE::Object::print() {
 	return 0;
 }
 
-int BEE::Object::get_id() {
+int BEE::Object::get_id() const {
 	return id;
 }
-std::string BEE::Object::get_name() {
+std::string BEE::Object::get_name() const {
 	return name;
 }
-std::string BEE::Object::get_path() {
+std::string BEE::Object::get_path() const {
 	return path;
 }
-BEE::Sprite* BEE::Object::get_sprite() {
+BEE::Sprite* BEE::Object::get_sprite() const {
 	return sprite;
 }
-int BEE::Object::get_sprite_id() {
+int BEE::Object::get_sprite_id() const {
 	return sprite->get_id();
 }
-bool BEE::Object::get_is_solid() {
+bool BEE::Object::get_is_solid() const {
 	return is_solid;
 }
-bool BEE::Object::get_is_visible() {
+bool BEE::Object::get_is_visible() const {
 	return is_visible;
 }
-bool BEE::Object::get_is_persistent() {
+bool BEE::Object::get_is_persistent() const {
 	return is_persistent;
 }
-int BEE::Object::get_depth() {
+int BEE::Object::get_depth() const {
 	return depth;
 }
-BEE::Object* BEE::Object::get_parent() {
+BEE::Object* BEE::Object::get_parent() const {
 	return parent;
 }
-int BEE::Object::get_parent_id() {
+int BEE::Object::get_parent_id() const {
 	return parent->get_id();
 }
-BEE::Sprite* BEE::Object::get_mask() {
+BEE::Sprite* BEE::Object::get_mask() const {
 	return mask;
 }
-int BEE::Object::get_mask_id() {
+int BEE::Object::get_mask_id() const {
 	return mask->get_id();
 }
-std::pair<int,int> BEE::Object::get_mask_offset() {
+std::pair<int,int> BEE::Object::get_mask_offset() const {
 	return std::make_pair(xoffset, yoffset);
 }
 
@@ -219,13 +219,13 @@ int BEE::Object::clear_instances() {
 	instances.clear();
 	return 0;
 }
-std::map<int, BEE::InstanceData*> BEE::Object::get_instances() {
+std::map<int, BEE::InstanceData*> BEE::Object::get_instances() const {
 	return instances;
 }
-size_t BEE::Object::get_instance_amount() {
+size_t BEE::Object::get_instance_amount() const {
 	return instances.size();
 }
-BEE::InstanceData* BEE::Object::get_instance(int inst_id) {
+BEE::InstanceData* BEE::Object::get_instance(int inst_id) const {
 	int i = 0;
 	for (auto& inst : instances) {
 		if (i == inst_id) {
@@ -235,7 +235,7 @@ BEE::InstanceData* BEE::Object::get_instance(int inst_id) {
 	}
 	return nullptr;
 }
-std::string BEE::Object::get_instance_string() {
+std::string BEE::Object::get_instance_string() const {
 	if (instances.size() > 0) {
 		std::vector<std::vector<std::string>> table;
 		table.push_back({"(id", "object", "x", "y", "z)"});

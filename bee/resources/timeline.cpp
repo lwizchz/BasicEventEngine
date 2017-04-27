@@ -58,7 +58,7 @@ int BEE::Timeline::reset() {
 
 	return 0;
 }
-int BEE::Timeline::print() {
+int BEE::Timeline::print() const {
 	std::string action_string = get_action_string();
 
 	std::stringstream s;
@@ -77,19 +77,19 @@ int BEE::Timeline::print() {
 	return 0;
 }
 
-int BEE::Timeline::get_id() {
+int BEE::Timeline::get_id() const {
 	return id;
 }
-std::string BEE::Timeline::get_name() {
+std::string BEE::Timeline::get_name() const {
 	return name;
 }
-std::string BEE::Timeline::get_path() {
+std::string BEE::Timeline::get_path() const {
 	return path;
 }
-bee_timeline_list BEE::Timeline::get_action_list() {
+bee_timeline_list BEE::Timeline::get_action_list() const {
 	return action_list;
 }
-std::string BEE::Timeline::get_action_string() {
+std::string BEE::Timeline::get_action_string() const {
 	if (action_list.size() > 0) {
 		std::vector<std::vector<std::string>> table;
 		table.push_back({"(frame", "func_name)"});
@@ -102,7 +102,7 @@ std::string BEE::Timeline::get_action_string() {
 	}
 	return "none\n";
 }
-bool BEE::Timeline::get_is_running() {
+bool BEE::Timeline::get_is_running() const {
 	if (is_paused) {
 		return false;
 	}
@@ -113,7 +113,7 @@ bool BEE::Timeline::get_is_running() {
 		return true;
 	}
 }
-bool BEE::Timeline::get_is_looping() {
+bool BEE::Timeline::get_is_looping() const {
 	return is_looping;
 }
 
@@ -179,7 +179,7 @@ int BEE::Timeline::start() {
 	next_action = action_list.begin();
 	return 0;
 }
-int BEE::Timeline::step(Uint32 new_frame) {
+int BEE::Timeline::step_to(Uint32 new_frame) {
 	if (!get_is_running()) {
 		return 1;
 	}
@@ -190,7 +190,7 @@ int BEE::Timeline::step(Uint32 new_frame) {
 	}
 
 	while (next_action->first < position_frame) {
-		if (step(next_action->first + start_frame)) {
+		if (step_to(next_action->first + start_frame)) {
 			break;
 		}
 	}

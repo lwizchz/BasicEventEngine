@@ -11,23 +11,21 @@
 
 #include "../game.hpp" // Include the engine headers
 
-class BEE::BackgroundData { // The data struct which is used to pass data to the Room class in bee/resources/room.hpp
-	public:
-		BEE::Background* background = nullptr; // A pointer to the background to use this data with
-		bool is_visible = false; // Whether to draw the background
-		bool is_foreground = false; // Whether to draw the texture above or below the other sprites
-		int x=0, y=0; // The coordinates of the desired draw location
-		bool is_horizontal_tile=false, is_vertical_tile=false; // Whether the texture should be tiled horizontally and vertically
-		int horizontal_speed=0, vertical_speed=0; // The speed with which the texture should move horizontally and vertically in pixels per second
-		bool is_stretched=false; // Whether the texture should be stretched to the window size, note that stretched textures will not be animated or tiled
+struct BEE::BackgroundData { // The data struct which is used to pass data to the Room class in bee/resources/room.hpp
+	BEE::Background* background = nullptr; // A pointer to the background to use this data with
+	bool is_visible = false; // Whether to draw the background
+	bool is_foreground = false; // Whether to draw the texture above or below the other sprites
+	int x=0, y=0; // The coordinates of the desired draw location
+	bool is_horizontal_tile=false, is_vertical_tile=false; // Whether the texture should be tiled horizontally and vertically
+	int horizontal_speed=0, vertical_speed=0; // The speed with which the texture should move horizontally and vertically in pixels per second
+	bool is_stretched=false; // Whether the texture should be stretched to the window size, note that stretched textures will not be animated or tiled
 
-		// See bee/resources/background.cpp for function comments
-		BackgroundData();
-		BackgroundData(BEE::Background*, bool, bool, int, int, bool, bool, int, int, bool);
-		int init(BEE::Background*, bool, bool, int, int, bool, bool, int, int, bool);
+	// See bee/resources/background.cpp for function comments
+	BackgroundData();
+	BackgroundData(BEE::Background*, bool, bool, int, int, bool, bool, int, int, bool);
 };
 
-class BEE::Background: public Resource { // The background class with which tiled textures can be drawn behind or in front of all other on-screen objects
+class BEE::Background: public Resource { // The background class is used to draw tiled textures behind or in front of all other on-screen objects
 		int id = -1; // The id of the resource
 		std::string name; // An arbitrary name for the resource
 		std::string path; // The path of the image file which is used as the background's texture
@@ -57,18 +55,18 @@ class BEE::Background: public Resource { // The background class with which tile
 		~Background();
 		int add_to_resources();
 		int reset();
-		int print();
+		int print() const;
 
-		int get_id();
-		std::string get_name();
-		std::string get_path();
-		int get_width();
-		int get_height();
-		bool get_is_tiling();
-		int get_tile_width();
-		int get_tile_height();
-		bool get_is_loaded();
-		SDL_Texture* get_texture();
+		int get_id() const;
+		std::string get_name() const;
+		std::string get_path() const;
+		int get_width() const;
+		int get_height() const;
+		bool get_is_tiling() const;
+		int get_tile_width() const;
+		int get_tile_height() const;
+		bool get_is_loaded() const;
+		SDL_Texture* get_texture() const;
 
 		int set_name(const std::string&);
 		int set_path(const std::string&);

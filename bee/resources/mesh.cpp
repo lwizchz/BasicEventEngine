@@ -58,7 +58,7 @@ int BEE::Mesh::reset() {
 
 	return 0;
 }
-int BEE::Mesh::print() {
+int BEE::Mesh::print() const {
 	std::stringstream s;
 	s <<
 	"Mesh { "
@@ -70,13 +70,13 @@ int BEE::Mesh::print() {
 
 	return 0;
 }
-int BEE::Mesh::get_id() {
+int BEE::Mesh::get_id() const {
 	return id;
 }
-std::string BEE::Mesh::get_name() {
+std::string BEE::Mesh::get_name() const {
 	return name;
 }
-std::string BEE::Mesh::get_path() {
+std::string BEE::Mesh::get_path() const {
 	return path;
 }
 

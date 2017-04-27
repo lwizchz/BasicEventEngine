@@ -54,6 +54,7 @@ class BEE::Particle {
 
 		bool should_reanimate = true;
 		bool is_lightable = true;
+		bool is_sprite_lightable = false;
 
 		Particle(BEE*, Sprite*, double, Uint32, bool);
 		Particle(BEE*, pt_shape_t, double, Uint32, bool);
@@ -195,7 +196,7 @@ class BEE::ParticleSystem {
 		int load();
 		int fast_forward(int);
 		int draw();
-		int draw(Uint32, bool);
+		int draw(Uint32, double, bool);
 		int draw_debug();
 		int clear();
 

@@ -16,16 +16,15 @@
 
 #include "../game.hpp" // Include the engine headers
 
-class BEE::SpriteDrawData { // The data storage struct which is used in instanced drawing
-	public:
-		int x = 0, y = 0; // The coordinates of the desired draw location
-		Uint32 subimage_time = 0; // The timestamp of the subimage animation
-		int w = 0, h = 0; // The desired width and height of the sprite
-		double angle = 0.0; // The desired rotation angle of the sprite
+struct BEE::SpriteDrawData { // The data storage struct which is used in instanced drawing
+	int x = 0, y = 0; // The coordinates of the desired draw location
+	Uint32 subimage_time = 0; // The timestamp of the subimage animation
+	int w = 0, h = 0; // The desired width and height of the sprite
+	double angle = 0.0; // The desired rotation angle of the sprite
 };
 
-class BEE::Sprite: public Resource { // The sprite resource class with which all on-screen objects (except backgrounds) are drawn
-		int id = -1; // The id of the resource
+class BEE::Sprite: public Resource { // The sprite resource class is used to draw all on-screen objects except backgrounds
+		int id; // The id of the resource
 		std::string name; // An arbitrary name for the resource
 		std::string path; // The path of the image file which is used as the sprite's texture
 		unsigned int width, height; // The width and height of the texture
@@ -38,8 +37,8 @@ class BEE::Sprite: public Resource { // The sprite resource class with which all
 		double rotate_x, rotate_y; // The origin around which the texture is rotated, scaled from 0.0 to 1.0 in both width and height
 
 		SDL_Texture* texture; // The internal texture storage for SDL mode
-		bool is_loaded = false; // Whether the image file was successfully loaded into a texture
-		bool has_draw_failed = false; // Whether the draw function has previously failed, this prevents continuous warning outputs
+		bool is_loaded; // Whether the image file was successfully loaded into a texture
+		bool has_draw_failed; // Whether the draw function has previously failed, this prevents continuous warning outputs
 		std::vector<SDL_Rect> subimages; // A list of subimage coordinates and dimensions
 
 		GLuint vao; // The Vertex Array Object which contains most of the following data
@@ -47,9 +46,9 @@ class BEE::Sprite: public Resource { // The sprite resource class with which all
 		GLuint ibo; // The buffer object which contains the order of the vertices for each element
 		GLuint gl_texture; // The internal texture storage for OpenGL mode
 		std::vector<GLuint> vbo_texcoords; // The buffer object which contains the subimage texture coordinates
-		bool is_lightable = true; // Whether the sprite is affected by the lighting system
+		bool is_lightable; // Whether the sprite is affected by the lighting system
 
-		GLuint framebuffer = -1; // The framebuffer object used by set_as_target()
+		GLuint framebuffer; // The framebuffer object used by set_as_target()
 	public:
 		// See bee/resources/sprite.cpp for function comments
 		Sprite();
@@ -57,25 +56,25 @@ class BEE::Sprite: public Resource { // The sprite resource class with which all
 		~Sprite();
 		int add_to_resources();
 		int reset();
-		int print();
+		int print() const;
 
-		int get_id();
-		std::string get_name();
-		std::string get_path();
-		int get_width();
-		int get_height();
-		int get_subimage_amount();
-		int get_subimage_width();
-		double get_speed();
-		double get_alpha();
-		bool get_is_animated();
-		int get_origin_x();
-		int get_origin_y();
-		double get_rotate_x();
-		double get_rotate_y();
-		SDL_Texture* get_texture();
-		bool get_is_loaded();
-		bool get_is_lightable();
+		int get_id() const;
+		std::string get_name() const;
+		std::string get_path() const;
+		int get_width() const;
+		int get_height() const;
+		int get_subimage_amount() const;
+		int get_subimage_width() const;
+		double get_speed() const;
+		double get_alpha() const;
+		bool get_is_animated() const;
+		int get_origin_x() const;
+		int get_origin_y() const;
+		double get_rotate_x() const;
+		double get_rotate_y() const;
+		SDL_Texture* get_texture() const;
+		bool get_is_loaded() const;
+		bool get_is_lightable() const;
 
 		int set_name(const std::string&);
 		int set_path(const std::string&);
@@ -85,13 +84,13 @@ class BEE::Sprite: public Resource { // The sprite resource class with which all
 		int crop_image_height(int);
 		int set_speed(double);
 		int set_alpha(double);
+		int set_origin_xy(int, int);
 		int set_origin_x(int);
 		int set_origin_y(int);
-		int set_origin_xy(int, int);
 		int set_origin_center();
+		int set_rotate_xy(double, double);
 		int set_rotate_x(double);
 		int set_rotate_y(double);
-		int set_rotate_xy(double, double);
 		int set_rotate_center();
 		int set_is_lightable(bool);
 

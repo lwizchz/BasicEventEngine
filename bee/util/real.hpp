@@ -175,6 +175,18 @@ double direction_of(double x1, double y1, double x2, double y2) {
 	return absolute_angle(radtodeg(atan2(y2-y1, x2-x1))); // Calculate and return the angle of the vector
 }
 /*
+* direction_of() - Return the direction as a unit vector from (x1, y1, z1) to (x2, y2, z2)
+* @x1: the x-coordinate of the first point
+* @y1: the y-coordinate of the first point
+* @z1: the z-coordinate of the first point
+* @x2: the x-coordinate of the second point
+* @y2: the y-coordinate of the second point
+* @z2: the z-coordinate of the second point
+*/
+btVector3 direction_of(double x1, double y1, double z1, double x2, double y2, double z2) {
+	return (btVector3(x2, y2, z2) - btVector3(x1, y1, z1)).normalized();
+}
+/*
 * dist_sqr() - Return the square of the distance from (x1, y1, z1) to (x2, y2, z2) in order to avoid costly square roots
 * @x1: the x-coordinate of the first point
 * @y1: the y-coordinate of the first point

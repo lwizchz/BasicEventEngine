@@ -12,54 +12,75 @@
 #include "background.hpp" // Include the class resource header
 
 /*
-* BEE::BackgroundData::BackgroundData() - Construct the data struct and initiliaze all provided values
+* BEE::BackgroundData::BackgroundData() - Construct the data struct and initiliaze all values
 * ! See a description for these arguments in the struct definition in bee/resources/background.hpp
 */
-BEE::BackgroundData::BackgroundData(BEE::Background* new_background, bool new_is_visible, bool new_is_foreground, int new_x, int new_y, bool new_is_horizontal_tile, bool new_is_vertical_tile, int new_horizontal_speed, int new_vertical_speed, bool new_is_stretched) {
-	init(new_background, new_is_visible, new_is_foreground, new_x, new_y, new_is_horizontal_tile, new_is_vertical_tile, new_horizontal_speed, new_vertical_speed, new_is_stretched);
-}
+BEE::BackgroundData::BackgroundData() :
+	background(nullptr),
+	is_visible(false),
+	is_foreground(false),
+	x(0),
+	y(0),
+	is_horizontal_tile(false),
+	is_vertical_tile(false),
+	horizontal_speed(0),
+	vertical_speed(0),
+	is_stretched(false)
+{}
 /*
-* BEE::BackgroundData::init() - Initliaze all members of the data struct
+* BEE::BackgroundData::BackgroundData() - Construct the data struct and initiliaze all values
 * ! See a description for these arguments in the struct definition in bee/resources/background.hpp
 */
-int BEE::BackgroundData::init(BEE::Background* new_background, bool new_is_visible, bool new_is_foreground, int new_x, int new_y, bool new_is_horizontal_tile, bool new_is_vertical_tile, int new_horizontal_speed, int new_vertical_speed, bool new_is_stretched) {
-	background = new_background;
-	is_visible = new_is_visible;
-	is_foreground = new_is_foreground;
-	x = new_x;
-	y = new_y;
-	is_horizontal_tile = new_is_horizontal_tile;
-	is_vertical_tile = new_is_vertical_tile;
-	horizontal_speed = new_horizontal_speed;
-	vertical_speed = new_vertical_speed;
-	is_stretched = new_is_stretched;
-	return 0;
-}
+BEE::BackgroundData::BackgroundData(BEE::Background* new_background, bool new_is_visible, bool new_is_foreground, int new_x, int new_y, bool new_is_horizontal_tile, bool new_is_vertical_tile, int new_horizontal_speed, int new_vertical_speed, bool new_is_stretched) :
+	background(new_background),
+	is_visible(new_is_visible),
+	is_foreground(new_is_foreground),
+	x(new_x),
+	y(new_y),
+	is_horizontal_tile(new_is_horizontal_tile),
+	is_vertical_tile(new_is_vertical_tile),
+	horizontal_speed(new_horizontal_speed),
+	vertical_speed(new_vertical_speed),
+	is_stretched(new_is_stretched)
+{}
 
 /*
-* BEE::Background::Background() - Construct the background, set its engine pointer, and reset all variables
-* ! This constructor should only be used for temporary backgrounds (e.g. framebuffers), the other constructor should be used for all other cases
+* BEE::Background::Background() - Construct the background and set its engine pointer
+* ! This constructor should only be directly used for temporary backgrounds (e.g. framebuffers), the other constructor should be used for all other cases
 */
-BEE::Background::Background() {
+BEE::Background::Background() :
+	id(-1),
+	name(),
+	path(),
+	width(0),
+	height(0),
+	animation_time(0),
+
+	texture(nullptr),
+	is_loaded(false),
+	has_draw_failed(false),
+
+	vao(-1),
+	vbo_vertices(-1),
+	ibo(-1),
+	gl_texture(-1),
+	vbo_texcoords(-1),
+
+	framebuffer(-1)
+{
+	// Get the list's engine pointer if it's not nullptr
 	if (BEE::resource_list->backgrounds.game != nullptr) {
 		game = BEE::resource_list->backgrounds.game; // Set the engine pointer
 	}
-
-	reset(); // Reset all resource variables
 }
 /*
 * BEE::Background::Background() - Construct the background, reset all variables, add it to the background resource list, and set the new name and path
 * @new_name: the name of the background to use
 * @new_path: the path of the background's image
 */
-BEE::Background::Background(const std::string& new_name, const std::string& new_path) {
-	// Get the list's engine pointer if it's not nullptr
-	if (BEE::resource_list->backgrounds.game != nullptr) {
-		game = BEE::resource_list->backgrounds.game;
-	}
-
-	reset(); // Reset all resource variables
-
+BEE::Background::Background(const std::string& new_name, const std::string& new_path) :
+	Background() // Default initialize all variables
+{
 	add_to_resources(); // Add the background to the appropriate resource list
 	if (id < 0) { // If the background could not be addedto the resource list, output a warning
 		game->messenger_send({"engine", "resource"}, BEE_MESSAGE_WARNING, "Failed to add background resource: \"" + new_name + "\" from " + new_path);
@@ -87,7 +108,7 @@ int BEE::Background::add_to_resources() {
 	return 0; // Return 0 on success
 }
 /*
-* BEE::Background::reset() - Reset all resource variables for initialization
+* BEE::Background::reset() - Reset all resource variables for reinitialization
 */
 int BEE::Background::reset() {
 	this->free(); // Free all memory used by the resource
@@ -102,13 +123,14 @@ int BEE::Background::reset() {
 	// Reset texture data
 	texture = nullptr;
 	is_loaded = false;
+	has_draw_failed = false;
 
 	return 0; // Return 0 on success
 }
 /*
 * BEE::Background::print() - Print all relevant information about the resource
 */
-int BEE::Background::print() {
+int BEE::Background::print() const {
 	std::stringstream s; // Declare the output stream
 	s << // Append all info to the output
 	"Background { "
@@ -117,6 +139,10 @@ int BEE::Background::print() {
 	"\n	path            " << path <<
 	"\n	width           " << width <<
 	"\n	height          " << height <<
+	"\n	animation_time  " << animation_time <<
+	"\n	texture         " << texture <<
+	"\n	is_loaded       " << is_loaded <<
+	"\n	has_draw_failed " << has_draw_failed <<
 	"\n}\n";
 	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str()); // Send the info to the messaging system for output
 
@@ -125,25 +151,25 @@ int BEE::Background::print() {
 /*
 * BEE::Background::get_*() - Return the requested resource information
 */
-int BEE::Background::get_id() {
+int BEE::Background::get_id() const {
 	return id;
 }
-std::string BEE::Background::get_name() {
+std::string BEE::Background::get_name() const {
 	return name;
 }
-std::string BEE::Background::get_path() {
+std::string BEE::Background::get_path() const {
 	return path;
 }
-int BEE::Background::get_width() {
+int BEE::Background::get_width() const {
 	return width;
 }
-int BEE::Background::get_height() {
+int BEE::Background::get_height() const {
 	return height;
 }
-bool BEE::Background::get_is_loaded() {
+bool BEE::Background::get_is_loaded() const {
 	return is_loaded;
 }
-SDL_Texture* BEE::Background::get_texture() {
+SDL_Texture* BEE::Background::get_texture() const {
 	return texture;
 }
 

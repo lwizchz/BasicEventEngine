@@ -12,6 +12,36 @@
 #include "../game.hpp" // Include the engine headers
 
 /*
+* BEE::Console::Console() - Initialize the console
+*/
+BEE::Console::Console() :
+	is_open(false),
+
+	commands(),
+	aliases(),
+	variables(),
+	bindings(),
+
+	input(),
+	history(),
+	history_index(-1),
+
+	log(),
+	page_index(0),
+
+	completion_commands(),
+	completion_index(-1),
+	input_tmp(),
+
+	x(0),
+	y(0),
+	w(800),
+	h(530),
+	line_height(20),
+
+	td_log(nullptr)
+{}
+/*
 * BEE::Console::~Console() - Free the console log TextData
 */
 BEE::Console::~Console() {
@@ -828,25 +858,29 @@ int BEE::console_draw() {
 	}
 	console->td_log = font_default->draw(console->td_log, cx, cy, short_log, {0, 0, 0, 255}); // Draw the console log
 
-	 // Draw the console page number
+	// Define several drawing colors
+	RGBA c_text = get_enum_color(c_black);
+	RGBA c_back = {127, 127, 127, 127};
+
+	// Draw the console page number
 	std::string p = std::to_string(console->page_index+1) + "/" + std::to_string(total_lines/line_amount+1);
-	font_default->draw_fast(cx + console->w - 10 * p.length(), cy + console->h - console->line_height*2, p, c_black);
+	font_default->draw_fast(cx + console->w - 10 * p.length(), cy + console->h - console->line_height*2, p, c_text);
 
 	// Draw the console input and a blinking cursor
-	font_default->draw_fast(cx, cy + console->h - console->line_height, console->input, c_black); // Draw the console input
+	font_default->draw_fast(cx, cy + console->h - console->line_height, console->input, c_text); // Draw the console input
 	if (get_ticks()/500 % 2) { // Draw a blinking cursor that changes every 500 ticks
-		font_default->draw_fast(cx + font_default->get_string_width(console->input), cy + console->h - console->line_height, "_", c_black);
+		font_default->draw_fast(cx + font_default->get_string_width(console->input), cy + console->h - console->line_height, "_", c_text);
 	}
 
 	// Draw any completion commands in a box below the input line
 	if (console->completion_commands.size() > 1) { // If completion commands exist, draw them
-		draw_rectangle(cx, cy + console->h, console->w, console->completion_commands.size()*console->line_height, true, {127, 127, 127, 127}); // Draw a box to contain the commands
+		draw_rectangle(cx, cy + console->h, console->w, console->completion_commands.size()*console->line_height, true, c_back); // Draw a box to contain the commands
 		for (size_t i=0; i<console->completion_commands.size(); ++i) { // Iterate over the completion commands
 			std::string cmd = " " + console->completion_commands[i]; // Prepend each command with a space
 			if (i == (size_t)console->completion_index) { // If the command is selected, replace the space with a cursor
 				cmd[0] = '>';
 			}
-			font_default->draw_fast(cx, cy + console->h + console->line_height*i, cmd, c_black); // Draw the console completion command
+			font_default->draw_fast(cx, cy + console->h + console->line_height*i, cmd, c_text); // Draw the console completion command
 		}
 	}
 

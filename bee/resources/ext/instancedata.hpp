@@ -31,10 +31,11 @@ class BEE::InstanceData {
 
 		Path* path = nullptr;
 		double path_speed = 0.0;
-		int path_end_action = 0;
+		bee_path_end_t path_end_action = BEE_PATH_END_STOP;
 		int path_current_node = 0;
 		bool path_is_drawn = false;
 		bool path_is_pausable = false;
+		double path_previous_mass = 0.0;
 	public:
 		BEE* game = nullptr;
 
@@ -80,6 +81,7 @@ class BEE::InstanceData {
 		Sprite* get_sprite() const;
 		PhysicsBody* get_physbody() const;
 		bool get_is_solid() const;
+		double get_mass() const;
 
 		int get_width() const;
 		int get_height() const;
@@ -88,8 +90,13 @@ class BEE::InstanceData {
 		int set_position(btVector3);
 		int set_position(double, double, double);
 		int set_to_start();
+		int set_mass(double);
+		int move(btVector3);
+		int move(double, btVector3);
 		int move(double, double);
+		int move_to(double, double, double, double);
 		int move_to(double, double, double);
+		int move_away(double, double, double, double);
 		int move_away(double, double, double);
 		int set_friction(double);
 		int set_gravity(btVector3);
@@ -129,7 +136,7 @@ class BEE::InstanceData {
 		double get_direction_of(Object*) const;
 		int get_relation(InstanceData*) const;
 
-		int path_start(Path*, double, int, bool);
+		int path_start(Path*, double, bee_path_end_t, bool);
 		int path_end();
 		int path_reset();
 		int path_update_node();

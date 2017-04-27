@@ -14,21 +14,20 @@
 
 #include "../game.hpp" // Include the engine headers
 
-class BEE::TextData { // The data struct which is used to pass reusable texture data to Font::draw()
-	public:
-		std::map<int,BEE::Sprite*> sprite; // A map of temporary pre-rendered sprites for each line of the text
-		std::string text; // The string of text that has been rendered
+struct BEE::TextData { // The data struct which is used to pass reusable texture data to Font::draw()
+	std::map<int,BEE::Sprite*> sprite; // A map of temporary pre-rendered sprites for each line of the text
+	std::string text; // The string of text that has been rendered
 
-		// See bee/resources/font.cpp for function comments
-		TextData();
-		TextData(BEE::Sprite*, std::string);
-		~TextData();
+	// See bee/resources/font.cpp for function comments
+	TextData();
+	TextData(BEE::Sprite*, const std::string&);
+	~TextData();
 
-		BEE::Sprite* pop_front();
+	BEE::Sprite* pop_front();
 };
 
-class BEE::Font: public Resource { // The font class which is used to render all text as sprites
-		int id = -1; // The id of the resource
+class BEE::Font: public Resource { // The font class is used to render all text as sprites
+		int id; // The id of the resource
 		std::string name; // An arbitrary name for the resource
 		std::string path; // The path of the TrueType font file or the sprite font image to be used for rendering
 		int font_size; // The size of the font to render
@@ -36,11 +35,11 @@ class BEE::Font: public Resource { // The font class which is used to render all
 		int lineskip; // The spacing between lines of the font
 
 		TTF_Font* font; // The internal TTF font used for rendering
-		bool is_loaded = false; // Whether the font file was successfully loaded
-		bool has_draw_failed = false; // Whether the draw function has previously failed, this prevents continuous writes to
+		bool is_loaded; // Whether the font file was successfully loaded
+		bool has_draw_failed; // Whether the draw function has previously failed, this prevents continuous writes to
 
 		Sprite* sprite_font; // The optional internal sprite font used for rendering
-		bool is_sprite = false; // Whether the font is a sprite font
+		bool is_sprite; // Whether the font is a sprite font
 	public:
 		// See bee/resources/font.cpp for function comments
 		Font();
@@ -48,14 +47,14 @@ class BEE::Font: public Resource { // The font class which is used to render all
 		~Font();
 		int add_to_resources();
 		int reset();
-		int print();
+		int print() const;
 
-		int get_id();
-		std::string get_name();
-		std::string get_path();
-		int get_font_size();
-		int get_style();
-		int get_lineskip();
+		int get_id() const;
+		std::string get_name() const;
+		std::string get_path() const;
+		int get_font_size() const;
+		int get_style() const;
+		int get_lineskip() const;
 		int get_lineskip_default();
 		std::string get_fontname();
 
@@ -68,21 +67,21 @@ class BEE::Font: public Resource { // The font class which is used to render all
 		int load();
 		int free();
 
-		TextData* draw_internal(int, int, std::string, RGBA);
-		TextData* draw(int, int, std::string, RGBA);
-		TextData* draw(int, int, std::string);
-		TextData* draw(TextData*, int, int, std::string, RGBA);
-		TextData* draw(TextData*, int, int, std::string);
-		int draw_fast_internal(int, int, std::string, RGBA);
-		int draw_fast(int, int, std::string, RGBA);
-		int draw_fast(int, int, std::string);
-		int draw_fast(int, int, std::string, bee_rgba_t);
+		TextData* draw_internal(int, int, const std::string&, RGBA);
+		TextData* draw(int, int, const std::string&, RGBA);
+		TextData* draw(int, int, const std::string&);
+		TextData* draw(TextData*, int, int, const std::string&, RGBA);
+		TextData* draw(TextData*, int, int, const std::string&);
 
-		int get_string_width(std::string, int);
-		int get_string_width(std::string);
-		int get_string_height(std::string, int);
-		int get_string_height(std::string);
-		int get_string_height();
+		int draw_fast_internal(int, int, const std::string&, RGBA);
+		int draw_fast(int, int, const std::string&, RGBA);
+		int draw_fast(int, int, const std::string&);
+
+		int get_string_width(const std::string&, int) const;
+		int get_string_width(const std::string&) const;
+		int get_string_height(const std::string&, int) const;
+		int get_string_height(const std::string&) const;
+		int get_string_height() const;
 };
 
 #endif // _BEE_FONT_H

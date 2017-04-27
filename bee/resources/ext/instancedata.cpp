@@ -26,7 +26,7 @@ BEE::InstanceData::~InstanceData() {
 int BEE::InstanceData::init(int new_id, Object* new_object, double new_x, double new_y, double new_z) {
 	id = new_id;
 	object = new_object;
-	subimage_time = SDL_GetTicks();
+	subimage_time = game->get_ticks();
 	depth = object->get_depth();
 
 	if (body == nullptr) {
@@ -41,10 +41,11 @@ int BEE::InstanceData::init(int new_id, Object* new_object, double new_x, double
 	} else {
 		set_position(new_x, new_y, new_z);
 	}
-	game->get_current_room()->add_physbody(this, body);
 
 	pos_start = btVector3(new_x, new_y, new_z);
 	pos_previous = pos_start;
+	path_pos_start = btVector3(0.0, 0.0, 0.0);
+	path_previous_mass = 0.0;
 
 	is_solid = true;
 	if (!object->get_is_solid()) {
@@ -87,7 +88,7 @@ int BEE::InstanceData::remove() {
 }
 
 int BEE::InstanceData::set_alarm(int alarm, Uint32 elapsed_ticks) {
-	alarm_end[alarm] = elapsed_ticks + SDL_GetTicks();
+	alarm_end[alarm] = elapsed_ticks + game->get_ticks();
 	return 0;
 }
 
@@ -161,6 +162,9 @@ BEE::PhysicsBody* BEE::InstanceData::get_physbody() const {
 bool BEE::InstanceData::get_is_solid() const {
 	return is_solid;
 }
+double BEE::InstanceData::get_mass() const {
+	return get_physbody()->get_mass();
+}
 
 int BEE::InstanceData::get_width() const {
 	if (object->get_mask() == nullptr) {
@@ -193,26 +197,44 @@ int BEE::InstanceData::set_position(double new_x, double new_y, double new_z) {
 int BEE::InstanceData::set_to_start() {
 	return set_position(pos_start);
 }
-int BEE::InstanceData::move(double new_magnitude, double new_direction) {
+int BEE::InstanceData::set_mass(double new_mass) {
+	btVector3 pos = get_position(); // Store the position since setting the mass to 0.0 resets it
+	get_physbody()->set_mass(new_mass);
+	set_position(pos);
+	return 0;
+}
+int BEE::InstanceData::move(btVector3 new_impulse) {
+	body->get_body()->activate();
+	body->get_body()->applyCentralImpulse(new_impulse / body->get_scale());
+	return 0;
+}
+int BEE::InstanceData::move(double new_magnitude, btVector3 new_direction) {
 	if (new_magnitude < 0.0) {
-		new_direction -= 180.0;
+		new_direction *= -1.0;
 		new_magnitude = fabs(new_magnitude);
 	}
+	return move(new_magnitude*new_direction);
+}
+int BEE::InstanceData::move(double new_magnitude, double new_direction) {
 	new_direction = absolute_angle(new_direction);
-	body->get_body()->activate();
-	body->get_body()->applyCentralImpulse(btVector3(new_magnitude*cos(degtorad(new_direction)), new_magnitude*-sin(degtorad(new_direction)), 0.0) / body->get_scale());
+	return move(new_magnitude, btVector3(cos(degtorad(new_direction)), -sin(degtorad(new_direction)), 0.0));
+}
+int BEE::InstanceData::move_to(double new_magnitude, double other_x, double other_y, double other_z) {
+	if (distance(get_x(), get_y(), get_z(), other_x, other_y, other_z) < new_magnitude) {
+		return 1;
+	}
+	move(new_magnitude, direction_of(get_x(), get_y(), get_z(), other_x, other_y, other_z));
 	return 0;
 }
 int BEE::InstanceData::move_to(double new_magnitude, double other_x, double other_y) {
-	if (distance(get_x(), get_y(), other_x, other_y) < new_magnitude) {
-		return 1;
-	}
-	move(new_magnitude, direction_of(get_x(), get_y(), other_x, other_y));
+	return move_to(new_magnitude, other_x, other_y, 0.0);
+}
+int BEE::InstanceData::move_away(double new_magnitude, double other_x, double other_y, double other_z) {
+	move(new_magnitude, direction_of(other_x, other_y, other_z, get_x(), get_y(), get_z()));
 	return 0;
 }
 int BEE::InstanceData::move_away(double new_magnitude, double other_x, double other_y) {
-	move(new_magnitude, direction_of(get_x(), get_y(), other_x, other_y)+180.0);
-	return 0;
+	return move_away(new_magnitude, other_x, other_y, 0.0);
 }
 int BEE::InstanceData::set_friction(double new_friction) {
 	body->get_body()->setFriction(new_friction);
@@ -537,26 +559,27 @@ int BEE::InstanceData::get_relation(InstanceData* other) const {
 	return 0;
 }
 
-int BEE::InstanceData::path_start(Path* new_path, double new_path_speed, int new_end_action, bool absolute) {
+int BEE::InstanceData::path_start(Path* new_path, double new_path_speed, bee_path_end_t new_end_action, bool absolute) {
 	path = new_path;
 	path_speed = new_path_speed;
 	path_end_action = new_end_action;
-	path_current_node = 0;
+	path_current_node = -1;
+
+	path_previous_mass = get_physbody()->get_mass();
+	set_mass(0.0);
 
 	if (absolute) {
 		path_pos_start = btVector3(
 			std::get<0>(path->get_coordinate_list().front()),
 			std::get<1>(path->get_coordinate_list().front()),
-			0.0
+			std::get<2>(path->get_coordinate_list().front())
 		);
-		//path_ystart = std::get<2>(path->get_coordinate_list().front());
 	} else {
 		path_pos_start = btVector3(
 			get_x(),
 			get_y(),
-			0.0
+			get_z()
 		);
-		//path_zstart = get_z();
 	}
 
 	return 0;
@@ -564,17 +587,23 @@ int BEE::InstanceData::path_start(Path* new_path, double new_path_speed, int new
 int BEE::InstanceData::path_end() {
 	path = nullptr;
 	path_speed = 0.0;
-	path_end_action = 0;
+	path_end_action = BEE_PATH_END_STOP;
 	path_pos_start = btVector3(0.0, 0.0, 0.0);
 	path_current_node = 0;
+
+	set_mass(path_previous_mass);
+	path_previous_mass = 0.0;
+
 	return 0;
 }
 int BEE::InstanceData::path_reset() {
 	bool a = false;
-	if (path_pos_start.x() == std::get<0>(path->get_coordinate_list().front())) {
-		if (path_pos_start.y() == std::get<1>(path->get_coordinate_list().front())) {
+	if (
+		(path_pos_start.x() == std::get<0>(path->get_coordinate_list().front()))
+		&&(path_pos_start.y() == std::get<1>(path->get_coordinate_list().front()))
+		&&(path_pos_start.z() == std::get<2>(path->get_coordinate_list().front()))
+	) {
 			a = true;
-		}
 	}
 
 	return path_start(path, path_speed, path_end_action, a);
@@ -584,13 +613,23 @@ int BEE::InstanceData::path_update_node() {
 		if (path_speed >= 0) {
 			if (path_current_node+1 < (int) path->get_coordinate_list().size()) {
 				bee_path_coord c = path->get_coordinate_list().at(path_current_node+1);
-				if (distance(get_x(), get_y(), path_pos_start.x()+std::get<0>(c), path_pos_start.y()+std::get<1>(c)) < get_speed()) {
+				if (
+					distance(
+						get_x(), get_y(), get_z(),
+						path_pos_start.x()+std::get<0>(c), path_pos_start.y()+std::get<1>(c), path_pos_start.z()+std::get<2>(c)
+					) < std::get<3>(c)*path_speed
+				) {
 					path_current_node++;
 				}
 			}
 		} else {
 			bee_path_coord c = path->get_coordinate_list().at(path_current_node);
-			if (distance(get_x(), get_y(), path_pos_start.x()+std::get<0>(c), path_pos_start.y()+std::get<1>(c)) < get_speed()) {
+			if (
+				distance(
+					get_x(), get_y(), get_z(),
+					path_pos_start.x()+std::get<0>(c), path_pos_start.y()+std::get<1>(c), path_pos_start.z()+std::get<2>(c)
+				) < std::get<3>(c)*-path_speed
+			) {
 				path_current_node--;
 			}
 		}
@@ -610,26 +649,26 @@ int BEE::InstanceData::set_path_pausable(bool new_path_is_pausable) {
 int BEE::InstanceData::handle_path_end() {
 	if (has_path()) {
 		switch (path_end_action) {
-			case 0: { // Stop path
+			case BEE_PATH_END_STOP: { // Stop path
 				path_end();
 				break;
 			}
-			case 1: { // Continue from start
-				path_current_node = 0;
+			case BEE_PATH_END_RESTART: { // Continue from start
+				path_current_node = -1;
 				set_position(path_pos_start);
 				pos_previous = path_pos_start;
 				break;
 			}
-			case 2: { // Continue from current position
-				path_current_node = 0;
+			case BEE_PATH_END_CONTINUE: { // Continue from current position
+				path_current_node = -1;
 				path_pos_start = btVector3(
 					get_x(),
 					get_y(),
-					0.0
+					get_z()
 				);
 				break;
 			}
-			case 3: { // Reverse direction
+			case BEE_PATH_END_REVERSE: { // Reverse direction
 				path_speed *= -1;
 				if (path_speed >= 0) {
 					path_current_node = 0;
@@ -644,7 +683,10 @@ int BEE::InstanceData::handle_path_end() {
 	return 1;
 }
 bool BEE::InstanceData::has_path() {
-	return (path != nullptr) ? true : false;
+	if (path == nullptr) {
+		return false;
+	}
+	return true;
 }
 bool BEE::InstanceData::get_path_drawn() {
 	return path_is_drawn;
@@ -656,8 +698,10 @@ int BEE::InstanceData::get_path_node() {
 	return path_current_node;
 }
 std::vector<bee_path_coord> BEE::InstanceData::get_path_coords() {
-	std::vector<bee_path_coord> no_path;
-	return (has_path()) ? path->get_coordinate_list() : no_path;
+	if (has_path()) {
+		return path->get_coordinate_list();
+	}
+	return std::vector<bee_path_coord>();
 }
 bool BEE::InstanceData::get_path_pausable() {
 	return path_is_pausable;
@@ -738,7 +782,7 @@ int BEE::InstanceData::draw(SDL_RendererFlip flip) {
 
 int BEE::InstanceData::draw_path() {
 	if (path != nullptr) {
-		return path->draw(path_pos_start.x(), path_pos_start.y());
+		return path->draw(path_pos_start.x(), path_pos_start.y(), path_pos_start.z());
 	}
 	return 0;
 }

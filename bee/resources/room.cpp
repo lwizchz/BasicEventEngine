@@ -90,6 +90,7 @@ int BEE::Room::reset() {
 	instances.clear();
 	instances_sorted.clear();
 	particles.clear();
+	created_instances.clear();
 	destroyed_instances.clear();
 	next_instance_id = 0;
 	should_sort = false;
@@ -115,11 +116,11 @@ int BEE::Room::reset() {
 
 	return 0;
 }
-int BEE::Room::print() {
+int BEE::Room::print() const {
 	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, get_print());
 	return 0;
 }
-std::string BEE::Room::get_print() {
+std::string BEE::Room::get_print() const {
 	std::string background_string = get_background_string();
 	std::string view_string = get_view_string();
 	std::string instance_string = get_instance_string();
@@ -151,37 +152,38 @@ std::string BEE::Room::get_print() {
 
 	return s.str();
 }
-int BEE::Room::get_id() {
+
+int BEE::Room::get_id() const {
 	return id;
 }
-std::string BEE::Room::get_name() {
+std::string BEE::Room::get_name() const {
 	return name;
 }
-std::string BEE::Room::get_path() {
+std::string BEE::Room::get_path() const {
 	return path;
 }
-int BEE::Room::get_width() {
+int BEE::Room::get_width() const {
 	return width;
 }
-int BEE::Room::get_height() {
+int BEE::Room::get_height() const {
 	return height;
 }
-bool BEE::Room::get_is_isometric() {
+bool BEE::Room::get_is_isometric() const {
 	return is_isometric;
 }
-bool BEE::Room::get_is_persistent() {
+bool BEE::Room::get_is_persistent() const {
 	return is_persistent;
 }
-BEE::RGBA BEE::Room::get_background_color() {
+BEE::RGBA BEE::Room::get_background_color() const {
 	return background_color;
 }
-bool BEE::Room::get_is_background_color_enabled() {
+bool BEE::Room::get_is_background_color_enabled() const {
 	return is_background_color_enabled;
 }
-std::map<int, BEE::BackgroundData*> BEE::Room::get_backgrounds() {
+std::map<int, BEE::BackgroundData*> BEE::Room::get_backgrounds() const {
 	return backgrounds;
 }
-std::string BEE::Room::get_background_string() {
+std::string BEE::Room::get_background_string() const {
 	if (backgrounds.size() > 0) {
 		std::vector<std::vector<std::string>> table;
 		table.push_back({"(name", "visible", "fore", "x", "y", "htile", "vtile", "hspeed", "vspeed", "stretch)"});
@@ -198,13 +200,13 @@ std::string BEE::Room::get_background_string() {
 	}
 	return "none\n";
 }
-bool BEE::Room::get_is_views_enabled() {
+bool BEE::Room::get_is_views_enabled() const {
 	return is_views_enabled;
 }
-std::map<int, BEE::ViewData*> BEE::Room::get_views() {
+std::map<int, BEE::ViewData*> BEE::Room::get_views() const {
 	return views;
 }
-std::string BEE::Room::get_view_string() {
+std::string BEE::Room::get_view_string() const {
 	if (views.size() > 0) {
 		std::vector<std::vector<std::string>> table;
 		table.push_back({"(visible", "vx,", "vy", "vwidth", "vheight", "px,", "py", "pwidth", "pheight", "object", "hborder", "vborder", "hspeed", "vspeed)"});
@@ -231,10 +233,10 @@ std::string BEE::Room::get_view_string() {
 	}
 	return "none\n";
 }
-const std::map<int, BEE::InstanceData*>& BEE::Room::get_instances() {
+const std::map<int, BEE::InstanceData*>& BEE::Room::get_instances() const {
 	return instances;
 }
-std::string BEE::Room::get_instance_string() {
+std::string BEE::Room::get_instance_string() const {
 	if (instances.size() > 0) {
 		std::vector<std::vector<std::string>> table;
 		table.push_back({"(id", "object", "x", "y", "z)"});
@@ -247,13 +249,13 @@ std::string BEE::Room::get_instance_string() {
 	}
 	return "none\n";
 }
-BEE::ViewData* BEE::Room::get_current_view() {
+BEE::ViewData* BEE::Room::get_current_view() const {
 	return view_current;
 }
-BEE::PhysicsWorld* BEE::Room::get_phys_world() {
+BEE::PhysicsWorld* BEE::Room::get_phys_world() const {
 	return physics_world;
 }
-const std::map<const btRigidBody*,BEE::InstanceData*>& BEE::Room::get_phys_instances() {
+const std::map<const btRigidBody*,BEE::InstanceData*>& BEE::Room::get_phys_instances() const {
 	return physics_instances;
 }
 
@@ -337,11 +339,11 @@ BEE::InstanceData* BEE::Room::add_instance(int index, Object* object, double x, 
 		}
 	}
 
-	InstanceData* new_instance = new InstanceData(game, index, object, x, y, z);
 	if (index < 0) {
 		index = next_instance_id++;
-		new_instance->id = index;
 	}
+
+	InstanceData* new_instance = new InstanceData(game, index, object, x, y, z);
 	set_instance(index, new_instance);
 	sort_instances();
 	object->add_instance(index, new_instance);
@@ -371,12 +373,15 @@ BEE::InstanceData* BEE::Room::add_instance(int index, Object* object, double x, 
 	}
 
 	if (new_instance->get_physbody() != nullptr) {
+		add_physbody(new_instance, new_instance->get_physbody());
 		physics_world->add_body(new_instance->get_physbody());
 	}
 
 	if (game->get_is_ready()) {
-        new_instance->get_object()->update(new_instance);
+        	new_instance->get_object()->update(new_instance);
 		new_instance->get_object()->create(new_instance);
+	} else {
+		created_instances.push_back(new_instance);
 	}
 
 	return new_instance;
@@ -454,7 +459,9 @@ int BEE::Room::request_instance_sort() {
 	return 0;
 }
 int BEE::Room::add_physbody(InstanceData* inst, PhysicsBody* body) {
-	physics_instances.emplace(body->get_body(), inst);
+	if (physics_instances.find(body->get_body()) == physics_instances.end()) {
+		physics_instances.emplace(body->get_body(), inst);
+	}
 	return 0;
 }
 int BEE::Room::remove_physbody(PhysicsBody* body) {
@@ -573,7 +580,6 @@ int BEE::Room::handle_lights() {
 			game->draw_set_blend(SDL_BLENDMODE_BLEND);
 		}
 	}
-	//reset_lights();
 
 	return 0;
 }
@@ -633,6 +639,7 @@ int BEE::Room::reset_properties() {
 	}
 	instances.clear();
 	instances_sorted.clear();
+	created_instances.clear();
 	destroyed_instances.clear();
 	next_instance_id = 0;
 	should_sort = false;
@@ -665,14 +672,15 @@ int BEE::Room::reset_properties() {
 
 int BEE::Room::save_instance_map(std::string fname) {
 	std::ofstream savefile (fname, std::ios::trunc);
-	if (savefile.good()) {
-		for (auto& i : instances) {
-			savefile << i.second->get_object()->get_name() << "," << (int)(i.second->get_xstart()) << "," << (int)(i.second->get_ystart()) << "," << (int)(i.second->get_zstart()) << "\n";
-		}
-		savefile.close();
-		return 0;
+	if (!savefile.good()) {
+		return 1;
 	}
-	return 1;
+
+	for (auto& i : instances) {
+		savefile << i.second->get_object()->get_name() << "\t" << i.second->get_xstart() << "\t" << i.second->get_ystart() << "\t" << i.second->get_zstart() << "\n";
+	}
+	savefile.close();
+	return 0;
 }
 int BEE::Room::load_instance_map(std::string fname) {
 	if (game->get_is_ready()) {
@@ -682,144 +690,144 @@ int BEE::Room::load_instance_map(std::string fname) {
 	}
 
 	std::string datastr = file_get_contents(fname);
-	if (!datastr.empty()) {
-		std::istringstream data_stream (datastr);
-
-		while (!data_stream.eof()) {
-			std::string tmp;
-			getline(data_stream, tmp);
-
-			if (tmp.empty()) {
-				continue;
-			}
-
-			std::map<int,std::string> p = split(trim(tmp), '\t');
-			std::string v = p[0];
-
-			if (p[0][0] == '#') {
-				continue;
-			} else if (p[0][0] == '!') {
-				if (v == "!tilex") {
-					unsigned int tile_amount = std::stoi(p[1]);
-					double grid_x = std::stod(p[2]);
-
-					std::string o = p[3];
-
-					if (game->get_object_by_name(o) == nullptr) {
-						game->messenger_send({"engine", "room"}, BEE_MESSAGE_WARNING, "Error while loading instance map: unknown object " + o);
-						continue;
-					}
-
-					double x = std::stod(p[4]);
-					double y = std::stod(p[5]);
-					double z = std::stod(p[6]);
-
-					for (size_t i=0; i<tile_amount; ++i) {
-						add_instance(-1, game->get_object_by_name(o), x + i*grid_x, y, z);
-					}
-
-					continue;
-				} else if (v == "!tiley") {
-					unsigned int tile_amount = std::stoi(p[1]);
-					double grid_y = std::stod(p[2]);
-
-					std::string o = p[3];
-
-					if (game->get_object_by_name(o) == nullptr) {
-						game->messenger_send({"engine", "room"}, BEE_MESSAGE_WARNING, "Error while loading instance map: unknown object " + o);
-						continue;
-					}
-
-					double x = std::stod(p[4]);
-					double y = std::stod(p[5]);
-					double z = std::stod(p[6]);
-
-					for (size_t i=0; i<tile_amount; ++i) {
-						add_instance(-1, game->get_object_by_name(o), x, y + i*grid_y, z);
-					}
-
-					continue;
-				} else if (v == "!tilez") {
-					unsigned int tile_amount = std::stoi(p[1]);
-					double grid_z = std::stod(p[2]);
-
-					std::string o = p[3];
-
-					if (game->get_object_by_name(o) == nullptr) {
-						game->messenger_send({"engine", "room"}, BEE_MESSAGE_WARNING, "Error while loading instance map: unknown object " + o);
-						continue;
-					}
-
-					double x = std::stod(p[4]);
-					double y = std::stod(p[5]);
-					double z = std::stod(p[6]);
-
-					for (size_t i=0; i<tile_amount; ++i) {
-						add_instance(-1, game->get_object_by_name(o), x, y, z + i*grid_z);
-					}
-
-					continue;
-				} else if (v == "!set") {
-					std::string o = p[1];
-
-					double x = std::stod(p[2]);
-					double y = std::stod(p[3]);
-					double z = std::stod(p[4]);
-
-					InstanceData* inst = add_instance(-1, game->get_object_by_name(o), x, y, z);
-
-					while (!data_stream.eof()) {
-						std::string tmp_set;
-						getline(data_stream, tmp_set);
-
-						if (tmp_set.empty()) {
-							continue;
-						}
-
-						std::map<int,std::string> pset = split(trim(tmp_set), '\t');
-
-						if (pset[0][0] == '@') {
-							if (pset[0] == "@sprite") {
-								inst->set_sprite(game->get_sprite_by_name(pset[1]));
-							} else if (pset[0] == "@solid") {
-								inst->set_is_solid(SIDP(pset[1], true).i());
-							} else if (pset[0] == "@depth") {
-								inst->depth = SIDP(pset[1], true).i();
-							} else {
-								game->messenger_send({"engine", "room"}, BEE_MESSAGE_WARNING, "Error while loading instance map: unknown setter \"" + v + "\"");
-								continue;
-							}
-						} else if (pset[0] == "!setend") {
-							break;
-						} else {
-							inst->set_data(pset[1], SIDP(pset[2], true));
-						}
-					}
-
-					continue;
-				} else if (v == "!setend") {
-					game->messenger_send({"engine", "room"}, BEE_MESSAGE_WARNING, "Error while loading instance map: stray !setend");
-					continue;
-				} else {
-					game->messenger_send({"engine", "room"}, BEE_MESSAGE_WARNING, "Error while loading instance map: unknown command \"" + v + "\"");
-					continue;
-				}
-			} else {
-				double x = std::stod(p[1]);
-				double y = std::stod(p[2]);
-				double z = std::stod(p[3]);
-
-				if (game->get_object_by_name(v) == nullptr) {
-					game->messenger_send({"engine", "room"}, BEE_MESSAGE_WARNING, "Error while loading instance map: unknown object " + v);
-					continue;
-				} else {
-					add_instance(-1, game->get_object_by_name(v), x, y, z);
-				}
-			}
-		}
-	} else {
+	if (datastr.empty()) {
 		game->messenger_send({"engine", "room"}, BEE_MESSAGE_WARNING, "No instances loaded");
 		return 1;
+	}
+
+	std::istringstream data_stream (datastr);
+
+	while (!data_stream.eof()) {
+		std::string tmp;
+		getline(data_stream, tmp);
+
+		if (tmp.empty()) {
+			continue;
+		}
+
+		std::map<int,std::string> p = split(trim(tmp), '\t');
+		std::string v = p[0];
+
+		if (p[0][0] == '#') {
+			continue;
+		} else if (p[0][0] == '!') {
+			if (v == "!tilex") {
+				unsigned int tile_amount = std::stoi(p[1]);
+				double grid_x = std::stod(p[2]);
+
+				std::string o = p[3];
+
+				if (game->get_object_by_name(o) == nullptr) {
+					game->messenger_send({"engine", "room"}, BEE_MESSAGE_WARNING, "Error while loading instance map: unknown object " + o);
+					continue;
+				}
+
+				double x = std::stod(p[4]);
+				double y = std::stod(p[5]);
+				double z = std::stod(p[6]);
+
+				for (size_t i=0; i<tile_amount; ++i) {
+					add_instance(-1, game->get_object_by_name(o), x + i*grid_x, y, z);
+				}
+
+				continue;
+			} else if (v == "!tiley") {
+				unsigned int tile_amount = std::stoi(p[1]);
+				double grid_y = std::stod(p[2]);
+
+				std::string o = p[3];
+
+				if (game->get_object_by_name(o) == nullptr) {
+					game->messenger_send({"engine", "room"}, BEE_MESSAGE_WARNING, "Error while loading instance map: unknown object " + o);
+					continue;
+				}
+
+				double x = std::stod(p[4]);
+				double y = std::stod(p[5]);
+				double z = std::stod(p[6]);
+
+				for (size_t i=0; i<tile_amount; ++i) {
+					add_instance(-1, game->get_object_by_name(o), x, y + i*grid_y, z);
+				}
+
+				continue;
+			} else if (v == "!tilez") {
+				unsigned int tile_amount = std::stoi(p[1]);
+				double grid_z = std::stod(p[2]);
+
+				std::string o = p[3];
+
+				if (game->get_object_by_name(o) == nullptr) {
+					game->messenger_send({"engine", "room"}, BEE_MESSAGE_WARNING, "Error while loading instance map: unknown object " + o);
+					continue;
+				}
+
+				double x = std::stod(p[4]);
+				double y = std::stod(p[5]);
+				double z = std::stod(p[6]);
+
+				for (size_t i=0; i<tile_amount; ++i) {
+					add_instance(-1, game->get_object_by_name(o), x, y, z + i*grid_z);
+				}
+
+				continue;
+			} else if (v == "!set") {
+				std::string o = p[1];
+
+				double x = std::stod(p[2]);
+				double y = std::stod(p[3]);
+				double z = std::stod(p[4]);
+
+				InstanceData* inst = add_instance(-1, game->get_object_by_name(o), x, y, z);
+
+				while (!data_stream.eof()) {
+					std::string tmp_set;
+					getline(data_stream, tmp_set);
+
+					if (tmp_set.empty()) {
+						continue;
+					}
+
+					std::map<int,std::string> pset = split(trim(tmp_set), '\t');
+
+					if (pset[0][0] == '@') {
+						if (pset[0] == "@sprite") {
+							inst->set_sprite(game->get_sprite_by_name(pset[1]));
+						} else if (pset[0] == "@solid") {
+							inst->set_is_solid(SIDP(pset[1], true).i());
+						} else if (pset[0] == "@depth") {
+							inst->depth = SIDP(pset[1], true).i();
+						} else {
+							game->messenger_send({"engine", "room"}, BEE_MESSAGE_WARNING, "Error while loading instance map: unknown setter \"" + v + "\"");
+							continue;
+						}
+					} else if (pset[0] == "!setend") {
+						break;
+					} else {
+						inst->set_data(pset[1], SIDP(pset[2], true));
+					}
+				}
+
+				continue;
+			} else if (v == "!setend") {
+				game->messenger_send({"engine", "room"}, BEE_MESSAGE_WARNING, "Error while loading instance map: stray !setend");
+				continue;
+			} else {
+				game->messenger_send({"engine", "room"}, BEE_MESSAGE_WARNING, "Error while loading instance map: unknown command \"" + v + "\"");
+				continue;
+			}
+		} else {
+			double x = std::stod(p[1]);
+			double y = std::stod(p[2]);
+			double z = std::stod(p[3]);
+
+			if (game->get_object_by_name(v) == nullptr) {
+				game->messenger_send({"engine", "room"}, BEE_MESSAGE_WARNING, "Error while loading instance map: unknown object " + v);
+				continue;
+			} else {
+				add_instance(-1, game->get_object_by_name(v), x, y, z);
+			}
+		}
 	}
 
 	return 0;
@@ -830,7 +838,7 @@ int BEE::Room::load_instance_map() {
 	}
 	return 1;
 }
-std::string BEE::Room::get_instance_map() {
+std::string BEE::Room::get_instance_map() const {
 	return instance_map;
 }
 int BEE::Room::set_instance_map(std::string new_instance_map) {
@@ -839,10 +847,13 @@ int BEE::Room::set_instance_map(std::string new_instance_map) {
 }
 
 int BEE::Room::create() {
-	for (auto& i : instances_sorted_events[BEE_EVENT_CREATE]) {
-		i.first->get_object()->update(i.first);
-		i.first->get_object()->create(i.first);
+	for (auto& i : created_instances) {
+		if (instances_sorted_events[BEE_EVENT_CREATE].find(i) != instances_sorted_events[BEE_EVENT_CREATE].end()) {
+			i->get_object()->update(i);
+			i->get_object()->create(i);
+		}
 	}
+	created_instances.clear();
 
 	return 0;
 }
@@ -878,7 +889,7 @@ int BEE::Room::check_alarms() {
 	for (auto& i : instances_sorted_events[BEE_EVENT_ALARM]) {
 		for (size_t e=0; e<ALARM_COUNT; e++) {
 			if (i.first->alarm_end[e] != 0xffffffff) {
-				if (SDL_GetTicks() >= i.first->alarm_end[e]) {
+				if (game->get_ticks() >= i.first->alarm_end[e]) {
 					i.first->alarm_end[e] = 0xffffffff; // Reset alarm
 					i.first->get_object()->update(i.first);
 					i.first->get_object()->alarm(i.first, e);
@@ -922,9 +933,9 @@ int BEE::Room::step_mid() {
 
 			i.first->path_update_node();
 
-			bee_path_coord c = std::make_tuple(0, 0, 0);
+			bee_path_coord c (0.0, 0.0, 0.0, 0.0);
 			if (i.first->get_path_speed() >= 0) {
-				if (i.first->get_path_node()+1 < (int) i.first->get_path_coords().size()) {
+				if (i.first->get_path_node()+1 < (int)i.first->get_path_coords().size()) {
 					c = i.first->get_path_coords().at(i.first->get_path_node()+1);
 				} else {
 					break;
@@ -932,15 +943,23 @@ int BEE::Room::step_mid() {
 			} else if (i.first->get_path_node() >= 0) {
 				c = i.first->get_path_coords().at(i.first->get_path_node());
 			}
-			i.first->move(std::get<2>(c)*abs(i.first->get_path_speed()), direction_of(i.first->get_x(), i.first->get_y(), i.first->path_pos_start.x()+std::get<0>(c), i.first->path_pos_start.y()+std::get<1>(c)));
+
+			i.first->set_position(
+				i.first->get_position()
+				+ std::get<3>(c)*abs(i.first->get_path_speed())
+				* direction_of(
+					i.first->get_x(), i.first->get_y(), i.first->get_z(),
+					i.first->path_pos_start.x()+std::get<0>(c), i.first->path_pos_start.y()+std::get<1>(c), i.first->path_pos_start.z()+std::get<2>(c)
+				) * game->get_delta()
+			);
 		}
 	}
 
 	// Run timelines
 	for (auto& t : BEE::resource_list->timelines.resources) {
-		Timeline* tt = dynamic_cast<BEE::Timeline*>(t.second);
+		Timeline* tt = static_cast<BEE::Timeline*>(t.second);
 		if (tt->get_is_running()) {
-			int r = tt->step(game->get_frame());
+			int r = tt->step_to(game->get_frame());
 			if (r == 2) {
 				tt->end();
 				if (tt->get_is_looping()) {
@@ -1050,8 +1069,10 @@ int BEE::Room::commandline_input(const std::string& input) {
 int BEE::Room::check_paths() {
 	for (auto& i : instances_sorted) {
 		if (i.first->has_path()) {
-			if (((i.first->get_path_speed() >= 0)&&(i.first->get_path_node() == (int) i.first->get_path_coords().size()-1))
-				|| ((i.first->get_path_speed() < 0)&&(i.first->get_path_node() == -1))) {
+			if (
+				((i.first->get_path_speed() >= 0)&&(i.first->get_path_node() == (int) i.first->get_path_coords().size()-1))
+				||((i.first->get_path_speed() < 0)&&(i.first->get_path_node() == -1))
+			) {
 				if (instances_sorted_events[BEE_EVENT_PATH_END].find(i.first) != instances_sorted_events[BEE_EVENT_PATH_END].end()) {
 					i.first->get_object()->update(i.first);
 					i.first->get_object()->path_end(i.first);
@@ -1086,9 +1107,7 @@ int BEE::Room::intersect_boundary() {
 	return 0;
 }
 int BEE::Room::collision() {
-	physics_world->step(1.0/60.0);
-	//physics_world->step(game->get_tick_delta()/1000.0);
-
+	physics_world->step(game->get_delta());
 	return 0;
 }
 void BEE::Room::collision_internal(btDynamicsWorld* w, btScalar timestep) {
@@ -1149,10 +1168,6 @@ int BEE::Room::draw() {
 			game->render_clear();
 		}
 
-		if (game->options->renderer_type != BEE_RENDERER_SDL) {
-			handle_lights();
-		}
-
 		for (auto& v : views) {
 			if (v.second->is_visible) {
 				view_current = v.second;
@@ -1191,9 +1206,7 @@ int BEE::Room::draw() {
 				game->set_viewport(view_current);
 				draw_view();
 
-				if (game->options->renderer_type == BEE_RENDERER_SDL) {
-					handle_lights();
-				}
+				handle_lights();
 			}
 		}
 		view_current = nullptr;
@@ -1202,16 +1215,11 @@ int BEE::Room::draw() {
 		if (!game->options->is_debug_enabled) {
 			game->render_clear();
 		}
-		if (game->options->renderer_type != BEE_RENDERER_SDL) {
-			handle_lights();
-		}
 
 		game->set_viewport(nullptr);
 		draw_view();
 
-		if (game->options->renderer_type == BEE_RENDERER_SDL) {
-			handle_lights();
-		}
+		handle_lights();
 	}
 
 	game->render();
@@ -1247,19 +1255,21 @@ int BEE::Room::draw_view() {
 		}
 	}
 
+	// Draw instance paths
+	for (auto& i : instances_sorted) {
+		if (i.first->has_path()) {
+			if ((game->options->is_debug_enabled)||(i.first->get_path_drawn())) {
+				i.first->draw_path();
+			}
+		}
+	}
+
 	if (game->options->is_debug_enabled) {
 		// Draw room outline
 		game->draw_rectangle(0, 0, get_width(), get_height(), false, c_red);
 
 		// Draw physics engine debug shapes
 		physics_world->draw_debug();
-
-		// Draw instance paths and bounding boxes
-		for (auto& i : instances_sorted) {
-			if ((i.first->has_path())&&(i.first->get_path_drawn())) {
-				i.first->draw_path();
-			}
-		}
 
 		// Draw particle system bounding boxes
 		for (auto& p : particles) {

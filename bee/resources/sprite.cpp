@@ -12,29 +12,53 @@
 #include "sprite.hpp" // Include the class resource header
 
 /*
-* BEE::Sprite::Sprite() - Construct the sprite, set its engine pointer, and reset all variables
-* ! This constructor should only be used for temporary sprites (e.g. framebuffers), the other constructor should be used for all other cases
+* BEE::Sprite::Sprite() - Construct the sprite and set its engine pointer
+* ! This constructor should only be directly used for temporary sprites (e.g. framebuffers), the other constructor should be used for all other cases
 */
-BEE::Sprite::Sprite() {
+BEE::Sprite::Sprite() :
+	id(-1),
+	name(),
+	path(),
+	width(0),
+	height(0),
+	subimage_amount(1),
+	subimage_width(0),
+	crop({0,0,0,0}),
+	speed(0.0),
+	alpha(1.0),
+	is_animated(false),
+	origin_x(0),
+	origin_y(0),
+	rotate_x(0.5),
+	rotate_y(0.5),
+
+	texture(nullptr),
+	is_loaded(false),
+	has_draw_failed(false),
+	subimages(),
+
+	vao(-1),
+	vbo_vertices(-1),
+	ibo(-1),
+	gl_texture(-1),
+	vbo_texcoords(),
+	is_lightable(true),
+
+	framebuffer(-1)
+{
+	// Get the list's engine pointer if it's not nullptr
 	if (BEE::resource_list->sprites.game != nullptr) {
 		game = BEE::resource_list->sprites.game; // Set the engine pointer
 	}
-
-	reset(); // Reset all resource variables
 }
 /*
 * BEE::Sprite::Sprite() - Construct the sprite, reset all variables, add it to the sprite resource list, and set the new name and path
 * @new_name: the name of the sprite to use
 * @new_path: the path of the sprite's image
 */
-BEE::Sprite::Sprite(const std::string& new_name, const std::string& new_path) {
-	// Get the list's engine pointer if it's not nullptr
-	if (BEE::resource_list->sprites.game != nullptr) {
-		game = BEE::resource_list->sprites.game;
-	}
-
-	reset(); // Reset all resource variables
-
+BEE::Sprite::Sprite(const std::string& new_name, const std::string& new_path) :
+	Sprite() // Default initialize all variables
+{
 	add_to_resources(); // Add the sprite to the appropriate resource list
 	if (id < 0) { // If the sprite could not be added to the resource list, output a warning
 		game->messenger_send({"engine", "resource"}, BEE_MESSAGE_WARNING, "Failed to add sprite resource: \"" + new_name + "\" from " + new_path);
@@ -62,7 +86,7 @@ int BEE::Sprite::add_to_resources() {
 	return 0; // Return 0 on success
 }
 /*
-* BEE::Sprite::reset() - Reset all resource variables for initialization
+* BEE::Sprite::reset() - Reset all resource variables for reinitialization
 */
 int BEE::Sprite::reset() {
 	this->free(); // Free all memory used by this resource
@@ -95,7 +119,7 @@ int BEE::Sprite::reset() {
 /*
 * BEE::Sprite::print() - Print all relevant information about the resource
 */
-int BEE::Sprite::print() {
+int BEE::Sprite::print() const {
 	std::stringstream s; // Declare the output stream
 	s << // Append all info to the output
 	"Sprite { "
@@ -115,8 +139,8 @@ int BEE::Sprite::print() {
 	"\n	rotate_y        " << rotate_y <<
 	"\n	texture         " << texture <<
 	"\n	is_loaded       " << is_loaded <<
-	"\n	subimage amount " << subimages.size() <<
 	"\n	has_draw_failed " << has_draw_failed <<
+	"\n	subimage amount " << subimages.size() <<
 	"\n	is_lightable    " << is_lightable <<
 	"\n}\n";
 	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str()); // Send the info to the messaging system for output
@@ -127,55 +151,55 @@ int BEE::Sprite::print() {
 /*
 * BEE::Sprite::get_*() - Return the requested resource information
 */
-int BEE::Sprite::get_id() {
+int BEE::Sprite::get_id() const {
 	return id;
 }
-std::string BEE::Sprite::get_name() {
+std::string BEE::Sprite::get_name() const {
 	return name;
 }
-std::string BEE::Sprite::get_path() {
+std::string BEE::Sprite::get_path() const {
 	return path;
 }
-int BEE::Sprite::get_width() {
+int BEE::Sprite::get_width() const {
 	return width;
 }
-int BEE::Sprite::get_height() {
+int BEE::Sprite::get_height() const {
 	return height;
 }
-int BEE::Sprite::get_subimage_amount() {
+int BEE::Sprite::get_subimage_amount() const {
 	return subimage_amount;
 }
-int BEE::Sprite::get_subimage_width() {
+int BEE::Sprite::get_subimage_width() const {
 	return subimage_width;
 }
-double BEE::Sprite::get_speed() {
+double BEE::Sprite::get_speed() const {
 	return speed;
 }
-double BEE::Sprite::get_alpha() {
+double BEE::Sprite::get_alpha() const {
 	return alpha;
 }
-bool BEE::Sprite::get_is_animated() {
+bool BEE::Sprite::get_is_animated() const {
 	return is_animated;
 }
-int BEE::Sprite::get_origin_x() {
+int BEE::Sprite::get_origin_x() const {
 	return origin_x;
 }
-int BEE::Sprite::get_origin_y() {
+int BEE::Sprite::get_origin_y() const {
 	return origin_y;
 }
-double BEE::Sprite::get_rotate_x() {
+double BEE::Sprite::get_rotate_x() const {
 	return rotate_x;
 }
-double BEE::Sprite::get_rotate_y() {
+double BEE::Sprite::get_rotate_y() const {
 	return rotate_y;
 }
-SDL_Texture* BEE::Sprite::get_texture() {
+SDL_Texture* BEE::Sprite::get_texture() const {
 	return texture;
 }
-bool BEE::Sprite::get_is_loaded() {
+bool BEE::Sprite::get_is_loaded() const {
 	return is_loaded;
 }
-bool BEE::Sprite::get_is_lightable() {
+bool BEE::Sprite::get_is_lightable() const {
 	return is_lightable;
 }
 
@@ -211,35 +235,39 @@ int BEE::Sprite::set_subimage_amount(int new_subimage_amount, int new_subimage_w
 		subimages.push_back({(int)(i*subimage_width), 0, (int)subimage_width, (int)height});
 	}
 
-	if (game->options->renderer_type != BEE_RENDERER_SDL) {
-		// Destroy all old texcoords
-		if (!vbo_texcoords.empty()) {
-			for (auto& t : vbo_texcoords) {
-				glDeleteBuffers(1, &t);
-			}
-			vbo_texcoords.clear();
-		}
+	if (game->options->renderer_type == BEE_RENDERER_SDL) { // If SDL rendering is being used, exit early
+		return 0; // Return 0 on success
+	}
 
-		// Convert the subimage width to a percentage of the full texture width
-		GLfloat w = subimage_width;
-		if (width > 0) {
-			w /= width;
-		}
-		// Generate the texcoords for each individual subimage
-		for (size_t i=0; i<subimage_amount; i++) {
-			GLuint new_texcoord;
-			GLfloat texcoords[] = {
-				w*i,     0.0,
-				w*(i+1), 0.0,
-				w*(i+1), 1.0,
-				w*i,     1.0,
-			};
-			glGenBuffers(1, &new_texcoord);
-			glBindBuffer(GL_ARRAY_BUFFER, new_texcoord);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(texcoords), texcoords, GL_STATIC_DRAW);
+	// Only generate texcoords for OpenGL rendering mode
 
-			vbo_texcoords.push_back(new_texcoord); // Add the texcoord to the list of subimages
+	// Destroy all old texcoords
+	if (!vbo_texcoords.empty()) {
+		for (auto& t : vbo_texcoords) {
+			glDeleteBuffers(1, &t);
 		}
+		vbo_texcoords.clear();
+	}
+
+	// Convert the subimage width to a percentage of the full texture width
+	GLfloat w = subimage_width;
+	if (width > 0) {
+		w /= width;
+	}
+	// Generate the texcoords for each individual subimage
+	for (size_t i=0; i<subimage_amount; i++) {
+		GLuint new_texcoord;
+		GLfloat texcoords[] = {
+			w*i,     0.0,
+			w*(i+1), 0.0,
+			w*(i+1), 1.0,
+			w*i,     1.0,
+		};
+		glGenBuffers(1, &new_texcoord);
+		glBindBuffer(GL_ARRAY_BUFFER, new_texcoord);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(texcoords), texcoords, GL_STATIC_DRAW);
+
+		vbo_texcoords.push_back(new_texcoord); // Add the texcoord to the list of subimages
 	}
 
 	return 0; // Return 0 on success
@@ -263,36 +291,40 @@ int BEE::Sprite::crop_image(SDL_Rect new_crop) {
 	set_subimage_amount(1, crop.w);
 	subimages[0] = crop;
 
-	if (game->options->renderer_type != BEE_RENDERER_SDL) {
-		// Destroy all old texcoords
-		if (!vbo_texcoords.empty()) {
-			for (auto& t : vbo_texcoords) {
-				glDeleteBuffers(1, &t);
-			}
-			vbo_texcoords.clear();
-		}
-
-		// Convert the width and height of the crop rectangle to a percentage of the full texture dimensions
-		GLfloat x, y, w, h;
-		x = crop.x; y = crop.y;
-		w = crop.w; h = crop.h;
-		x /= width; w /= width;
-		y /= height; h /= height;
-
-		// Generate the texcoords
-		GLuint new_texcoord;
-		GLfloat texcoords[] = {
-			x,   y,
-			x+w, y,
-			x+w, y+h,
-			x,   y+h
-		};
-		glGenBuffers(1, &new_texcoord);
-		glBindBuffer(GL_ARRAY_BUFFER, new_texcoord);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(texcoords), texcoords, GL_STATIC_DRAW);
-
-		vbo_texcoords.push_back(new_texcoord); // Add the texcoord to the list of subimages
+	if (game->options->renderer_type == BEE_RENDERER_SDL) { // If SDL rendering is being used, exit early
+		return 0; // Return 0 on success
 	}
+
+	// Only generate texcoords for OpenGL rendering mode
+
+	// Destroy all old texcoords
+	if (!vbo_texcoords.empty()) {
+		for (auto& t : vbo_texcoords) {
+			glDeleteBuffers(1, &t);
+		}
+		vbo_texcoords.clear();
+	}
+
+	// Convert the width and height of the crop rectangle to a percentage of the full texture dimensions
+	GLfloat x, y, w, h;
+	x = crop.x; y = crop.y;
+	w = crop.w; h = crop.h;
+	x /= width; w /= width;
+	y /= height; h /= height;
+
+	// Generate the texcoords
+	GLuint new_texcoord;
+	GLfloat texcoords[] = {
+		x,   y,
+		x+w, y,
+		x+w, y+h,
+		x,   y+h
+	};
+	glGenBuffers(1, &new_texcoord);
+	glBindBuffer(GL_ARRAY_BUFFER, new_texcoord);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(texcoords), texcoords, GL_STATIC_DRAW);
+
+	vbo_texcoords.push_back(new_texcoord); // Add the texcoord to the list of subimages
 
 	return 0; // Return 0 on success
 }
@@ -330,37 +362,43 @@ int BEE::Sprite::set_alpha(double new_alpha) {
 	return 0; // Return 0 on success
 }
 /*
+* BEE::Sprite::set_origin_xy() - Set both coordinates of the sprite origin
+* @new_origin_x: the new x-coordinate to draw the sprite from
+* @new_origin_y: the new y-coordinate to draw the sprite from
+*/
+int BEE::Sprite::set_origin_xy(int new_origin_x, int new_origin_y) {
+	origin_x = new_origin_x; // Set the x-coordinate of the origin
+	origin_y = new_origin_y; // Set the y-coordinate of the origin
+	return 0; // Return 0 on success
+}
+/*
 * BEE::Sprite::set_origin_x() - Set the x-coordinate of the sprite origin
 * @new_origin_x: the new x-coordinate to draw the sprite from
 */
 int BEE::Sprite::set_origin_x(int new_origin_x) {
-	origin_x = new_origin_x; // Set the x-coordinate of the origin
-	return 0; // Return 0 on success
+	return set_origin_xy(new_origin_x, get_origin_y()); // Set the x-coordinate of the origin
 }
 /*
 * BEE::Sprite::set_origin_y() - Set the y-coordinate of the sprite origin
 * @new_origin_y: the new y-coordinate to draw the sprite from
 */
 int BEE::Sprite::set_origin_y(int new_origin_y) {
-	origin_y = new_origin_y; // Set the y-coordinate of the origin
-	return 0; // Return 0 on success
-}
-/*
-* BEE::Sprite::set_origin_xy() - Set both coordinates of the sprite origin
-* @new_origin_x: the new x-coordinate to draw the sprite from
-* @new_origin_y: the new y-coordinate to draw the sprite from
-*/
-int BEE::Sprite::set_origin_xy(int new_origin_x, int new_origin_y) {
-	set_origin_x(new_origin_x); // Set the x-coordinate of the origin
-	set_origin_y(new_origin_y); // Set the y-coordinate of the origin
-	return 0; // Return 0 on success
+	return set_origin_xy(get_origin_x(), new_origin_y); // Set the y-coordinate of the origin
 }
 /*
 * BEE::Sprite::set_origin_center() - Set the sprite origin to the center of the image
 */
 int BEE::Sprite::set_origin_center() {
-	set_origin_x(subimage_width/2); // Set the x-coordinate to half of the subimage width
-	set_origin_y(height/2); // Set the y-coordinate to half of the height
+	return set_origin_xy(subimage_width/2, height/2); // Set the coordinates to half of the dimensions
+}
+/*
+* BEE::Sprite::set_rotate_xy() - Set both coordinates of the rotation origin
+* @new_rotate_x: the new x-coordinate to rotate the sprite around
+* @new_rotate_y: the new y-coordinate to rotate the sprite around
+*/
+int BEE::Sprite::set_rotate_xy(double new_rotate_x, double new_rotate_y) {
+	rotate_x = new_rotate_x; // Set the x-coordinate
+	rotate_y = new_rotate_y; // Set the y-coordinate
 	return 0; // Return 0 on success
 }
 /*
@@ -369,34 +407,20 @@ int BEE::Sprite::set_origin_center() {
 * @new_rotate_x: the new x-coordinate to rotate the sprite around
 */
 int BEE::Sprite::set_rotate_x(double new_rotate_x) {
-	rotate_x = new_rotate_x; // Set the x-coordinate
-	return 0; // Return 0 on success
+	return set_rotate_xy(new_rotate_x, get_rotate_y()); // Set the x-coordinate
 }
 /*
 * BEE::Sprite::set_rotate_y() - Set the y-coordinate of the rotation origin
 * @new_rotate_y: the new y-coordinate to rotate the sprite around
 */
 int BEE::Sprite::set_rotate_y(double new_rotate_y) {
-	rotate_y = new_rotate_y; // Set the y-coordinate
-	return 0; // Return 0 on success
-}
-/*
-* BEE::Sprite::set_rotate_xy() - Set both coordinates of the rotation origin
-* @new_rotate_x: the new x-coordinate to rotate the sprite around
-* @new_rotate_y: the new y-coordinate to rotate the sprite around
-*/
-int BEE::Sprite::set_rotate_xy(double new_rotate_x, double new_rotate_y) {
-	set_rotate_x(new_rotate_x); // Set the x-coordinate
-	set_rotate_y(new_rotate_y); // Set the y-coordinate
-	return 0; // Return 0 on success
+	return set_rotate_xy(get_rotate_x(), new_rotate_y); // Set the y-coordinate
 }
 /*
 * BEE::Sprite::set_rotate_center() - Set the rotation origin to the center of the image
 */
 int BEE::Sprite::set_rotate_center() {
-	set_rotate_x(0.5); // Set the x-coordinate to 50% of the image width
-	set_rotate_y(0.5); // Set the y-coordinate to 50% of the image height
-	return 0; // Return 0 on success
+	return set_rotate_xy(0.5, 0.5); // Set the coordinates to be 50% of the image dimensions
 }
 /*
 * BEE::Sprite::set_is_lightable() - Set whether the rendered fragments should be affected by lighting and shadows
@@ -413,92 +437,92 @@ int BEE::Sprite::set_is_lightable(bool new_is_lightable) {
 * @tmp_surface: the temporary surface to load from
 */
 int BEE::Sprite::load_from_surface(SDL_Surface* tmp_surface) {
-	if (!is_loaded) { // Only attempt to load the sprite if it has not already been loaded
- 		// Set the sprite dimensions
-		width = tmp_surface->w;
-		height = tmp_surface->h;
-		// Generate the subimage buffers and dimensions
-		if (subimage_amount <= 1) {
-			set_subimage_amount(1, width); // If there are no subimages, treat the entire image as a single subimage
-		} else {
-			set_subimage_amount(subimage_amount, width/subimage_amount);
-		}
-		crop = {0, 0, (int)width, (int)height}; // Set the default crop to be the entire image
-
-		if (game->options->renderer_type != BEE_RENDERER_SDL) {
-			// Generate the vertex array object for the sprite
-			glGenVertexArrays(1, &vao);
-			glBindVertexArray(vao);
-
-			// Generate the four corner vertices of the rectangular sprite
-			GLfloat vertices[] = {
-				0.0,                     0.0,
-				(GLfloat)subimage_width, 0.0,
-				(GLfloat)subimage_width, (GLfloat)height,
-				0.0,                     (GLfloat)height,
-			};
-			glGenBuffers(1, &vbo_vertices);
-			glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-			// Generate the indices of the two triangles which form the rectangular sprite
-			GLushort elements[] = {
-				0, 1, 2,
-				2, 3, 0,
-			};
-			glGenBuffers(1, &ibo);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
-
-			// Bind the vertices to the VAO's vertex buffer
-			glEnableVertexAttribArray(game->vertex_location);
-			glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
-			glVertexAttribPointer(
-				game->vertex_location,
-				2,
-				GL_FLOAT,
-				GL_FALSE,
-				0,
-				0
-			);
-
-			// Generate the texture from the surface pixels
-			glGenTextures(1, &gl_texture);
-			glBindTexture(GL_TEXTURE_2D, gl_texture);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexImage2D(
-				GL_TEXTURE_2D,
-				0,
-				GL_RGBA,
-				width,
-				height,
-				0,
-				GL_RGBA,
-				GL_UNSIGNED_BYTE,
-				tmp_surface->pixels
-			);
-
-			glBindVertexArray(0); // Unbind VAO when done loading
-		} else {
-			// Generate an SDL texture from the surface pixels
-			texture = SDL_CreateTextureFromSurface(game->renderer, tmp_surface);
-			if (texture == nullptr) { // If the texture could not be generated, output a warning
-				game->messenger_send({"engine", "sprite"}, BEE_MESSAGE_WARNING, "Failed to create texture from surface for \"" + name + "\": " + get_sdl_error());
-				return 2; // Return 2 on failure
-			}
-
-			// Reset the blend mode and alpha to normal defaults
-			SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
-			SDL_SetTextureAlphaMod(texture, alpha*255);
-		}
-
-		// Set loaded booleans
-		is_loaded = true;
-		has_draw_failed = false;
-	} else { // If the sprite has already been loaded, output a warning
+	if (is_loaded) { // If the sprite has already been loaded, output a warning
 		game->messenger_send({"engine", "sprite"}, BEE_MESSAGE_WARNING, "Failed to load sprite \"" + name + "\" from surface because it has already been loaded");
-		return 1; // Return 1 on failure
+		return 1; // Return 1 when not loaded
 	}
+
+	// Set the sprite dimensions
+	width = tmp_surface->w;
+	height = tmp_surface->h;
+	// Generate the subimage buffers and dimensions
+	if (subimage_amount <= 1) {
+		set_subimage_amount(1, width); // If there are no subimages, treat the entire image as a single subimage
+	} else {
+		set_subimage_amount(subimage_amount, width/subimage_amount);
+	}
+	crop = {0, 0, (int)width, (int)height}; // Set the default crop to be the entire image
+
+	if (game->options->renderer_type != BEE_RENDERER_SDL) {
+		// Generate the vertex array object for the sprite
+		glGenVertexArrays(1, &vao);
+		glBindVertexArray(vao);
+
+		// Generate the four corner vertices of the rectangular sprite
+		GLfloat vertices[] = {
+			0.0,                     0.0,
+			(GLfloat)subimage_width, 0.0,
+			(GLfloat)subimage_width, (GLfloat)height,
+			0.0,                     (GLfloat)height,
+		};
+		glGenBuffers(1, &vbo_vertices);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+		// Generate the indices of the two triangles which form the rectangular sprite
+		GLushort elements[] = {
+			0, 1, 2,
+			2, 3, 0,
+		};
+		glGenBuffers(1, &ibo);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
+
+		// Bind the vertices to the VAO's vertex buffer
+		glEnableVertexAttribArray(game->vertex_location);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
+		glVertexAttribPointer(
+			game->vertex_location,
+			2,
+			GL_FLOAT,
+			GL_FALSE,
+			0,
+			0
+		);
+
+		// Generate the texture from the surface pixels
+		glGenTextures(1, &gl_texture);
+		glBindTexture(GL_TEXTURE_2D, gl_texture);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexImage2D(
+			GL_TEXTURE_2D,
+			0,
+			GL_RGBA,
+			width,
+			height,
+			0,
+			GL_RGBA,
+			GL_UNSIGNED_BYTE,
+			tmp_surface->pixels
+		);
+
+		glBindVertexArray(0); // Unbind VAO when done loading
+	} else {
+		// Generate an SDL texture from the surface pixels
+		texture = SDL_CreateTextureFromSurface(game->renderer, tmp_surface);
+		if (texture == nullptr) { // If the texture could not be generated, output a warning
+			game->messenger_send({"engine", "sprite"}, BEE_MESSAGE_WARNING, "Failed to create texture from surface for \"" + name + "\": " + get_sdl_error());
+			return 2; // Return 2 on failure to create the texture
+		}
+
+		// Reset the blend mode and alpha to normal defaults
+		SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+		SDL_SetTextureAlphaMod(texture, alpha*255);
+	}
+
+	// Set loaded booleans
+	is_loaded = true;
+	has_draw_failed = false;
 
 	return 0; // Return 0 on success
 }
@@ -506,21 +530,21 @@ int BEE::Sprite::load_from_surface(SDL_Surface* tmp_surface) {
 * BEE::Sprite::load() - Load the sprite from its given filename
 */
 int BEE::Sprite::load() {
-	if (!is_loaded) { // Only attempt to load the sprite if it has not already been loaded
-		// Load the sprite into a temporary surface
-		SDL_Surface* tmp_surface;
-		tmp_surface = IMG_Load(path.c_str());
-		if (tmp_surface == nullptr) { // If the surface could not be loaded, output a warning
-			game->messenger_send({"engine", "sprite"}, BEE_MESSAGE_WARNING, "Failed to load sprite \"" + name + "\": " + IMG_GetError());
-			return 2; // Return 2 on failure
-		}
-
-		load_from_surface(tmp_surface); // Load the surface into a texture
-		SDL_FreeSurface(tmp_surface); // Free the temporary surface
-	} else { // If the sprite has already been loaded, output a warning
-		game->messenger_send({"engine", "sprite"}, BEE_MESSAGE_WARNING, "Failed to load sprite \"" + name + "\" because it has already been loaded");
-		return 1; // Return 1 on failure
+	if (is_loaded) { // If the sprite has already been loaded, output a warning
+	       game->messenger_send({"engine", "sprite"}, BEE_MESSAGE_WARNING, "Failed to load sprite \"" + name + "\" because it has already been loaded");
+	       return 1; // Return 1 when already loaded
 	}
+
+	// Load the sprite into a temporary surface
+	SDL_Surface* tmp_surface;
+	tmp_surface = IMG_Load(path.c_str());
+	if (tmp_surface == nullptr) { // If the surface could not be loaded, output a warning
+		game->messenger_send({"engine", "sprite"}, BEE_MESSAGE_WARNING, "Failed to load sprite \"" + name + "\": " + IMG_GetError());
+		return 2; // Return 2 on loding failure
+	}
+
+	load_from_surface(tmp_surface); // Load the surface into a texture
+	SDL_FreeSurface(tmp_surface); // Free the temporary surface
 
 	return 0; // Return 0 on success
 }
@@ -528,31 +552,34 @@ int BEE::Sprite::load() {
 * BEE::Sprite::free() - Free the sprite texture and delete all of its buffers
 */
 int BEE::Sprite::free() {
-	if (is_loaded) { // Do not attempt to free the textures if the sprite has not been loaded
-		if (game->options->renderer_type != BEE_RENDERER_SDL) {
-			// Delete the vertex and index buffer
-			glDeleteBuffers(1, &vbo_vertices);
-			glDeleteBuffers(1, &ibo);
-
-			// Delete the texture coordinate buffers for each subimage
-			for (auto& t : vbo_texcoords) {
-				glDeleteBuffers(1, &t);
-			}
-			vbo_texcoords.clear();
-
-			// Delete the texture and the optional framebuffer
-			glDeleteTextures(1, &gl_texture);
-			glDeleteFramebuffers(1, &framebuffer);
-
-			// Finally, delete the VAO
-			glDeleteVertexArrays(1, &vao);
-		} else {
-			// Delete the SDL texture
-			SDL_DestroyTexture(texture);
-			texture = nullptr;
-		}
-		is_loaded = false; // Set the loaded boolean
+	if (!is_loaded) { // Do not attempt to free the textures if the sprite has not been loaded
+		return 0; // Return 0 on success
 	}
+
+	if (game->options->renderer_type != BEE_RENDERER_SDL) {
+		// Delete the vertex and index buffer
+		glDeleteBuffers(1, &vbo_vertices);
+		glDeleteBuffers(1, &ibo);
+
+		// Delete the texture coordinate buffers for each subimage
+		for (auto& t : vbo_texcoords) {
+			glDeleteBuffers(1, &t);
+		}
+		vbo_texcoords.clear();
+
+		// Delete the texture and the optional framebuffer
+		glDeleteTextures(1, &gl_texture);
+		glDeleteFramebuffers(1, &framebuffer);
+
+		// Finally, delete the VAO
+		glDeleteVertexArrays(1, &vao);
+	} else {
+		// Delete the SDL texture
+		SDL_DestroyTexture(texture);
+		texture = nullptr;
+	}
+
+	is_loaded = false; // Set the loaded boolean
 
 	return 0; // Return 0 on success
 }
@@ -573,7 +600,7 @@ int BEE::Sprite::draw_subimage(int x, int y, unsigned int current_subimage, int 
 			game->messenger_send({"engine", "sprite"}, BEE_MESSAGE_WARNING, "Failed to draw sprite \"" + name + "\" because it is not loaded");
 			has_draw_failed = true; // Set the draw failure boolean
 		}
-		return 1; // Return 1 on failure
+		return 1; // Return 1 when not loaded
 	}
 
 	SDL_Rect drect = {x, y, 0, 0}; // Create a rectangle to define the position and dimensions of the destination render
@@ -685,7 +712,7 @@ int BEE::Sprite::draw_subimage(int x, int y, unsigned int current_subimage, int 
 		glUniform1i(game->flip_location, 0); // Reset the flip type
 
 		glBindVertexArray(0); // Unbind the VAO
-	} else {
+	} else { // Otherwise, render with SDL
 		if (game->is_on_screen(drect)) { // If the render will actually appear on screen
 			// Colorize the sprite with the given color
 			SDL_SetTextureColorMod(texture, new_color.r, new_color.g, new_color.b);
@@ -798,10 +825,10 @@ int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, SDL_RendererFlip flip)
 */
 int BEE::Sprite::draw_simple(SDL_Rect* source, SDL_Rect* dest) {
 	if (!is_loaded) { // If the sprite is not loaded, exit
-		return 1; // Return 1 on failure
+		return 1; // Return 1 when not loaded
 	}
 	if (game->options->renderer_type != BEE_RENDERER_SDL) { // If the rendering mode is not SDL, exit
-		return 2; // Return 2 on failure
+		return 2; // Return 2 when not in SDL rendering more
 	}
 
 	return SDL_RenderCopy(game->renderer, texture, source, dest); // Return the result of rendering the sprite
@@ -820,7 +847,7 @@ int BEE::Sprite::draw_array(const std::list<SpriteDrawData*>& draw_list, const s
 			game->messenger_send({"engine", "sprite"}, BEE_MESSAGE_WARNING, "Failed to draw sprite instances for \"" + name + "\" because it is not loaded");
 			has_draw_failed = true; // Set the draw failure boolean
 		}
-		return 1; // Return 1 on failure
+		return 1; // Return 1 when not loaded
 	}
 
 	if (game->options->renderer_type != BEE_RENDERER_SDL) {
@@ -848,6 +875,12 @@ int BEE::Sprite::draw_array(const std::list<SpriteDrawData*>& draw_list, const s
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 		int size;
 		glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+
+		LightableData* lightable_data = new LightableData();
+		lightable_data->mask.push_back(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+		lightable_data->mask.push_back(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+		lightable_data->mask.push_back(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+		lightable_data->mask.push_back(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
 
 		Uint32 t = game->get_ticks(); // Calculate the current time to be used when finding the subimage to draw
 		for (auto& s : draw_list) { // Loop over the list and draw each instance
@@ -890,6 +923,19 @@ int BEE::Sprite::draw_array(const std::list<SpriteDrawData*>& draw_list, const s
 			// This is not included in the above transformation matrix because it is faster to rotate everything in the geometry shader
 			if (s->angle != 0.0) {
 				glUniformMatrix4fv(game->rotation_location, 1, GL_FALSE, glm::value_ptr(rotation_cache[s->angle]));
+			}
+
+			// Add the subimage to the list of lightables so that it can cast shadows
+			if (is_lightable) { // If the sprite is set as lightable
+				// Fill a lightable data struct with the position and vertices of the subimage
+				LightableData* l = new LightableData(*lightable_data);
+				l->position = glm::vec4((float)drect.x, (float)drect.y, 0.0f, 0.0f);
+				l->mask[1].x = (float)rect_width;
+				l->mask[2].x = (float)rect_width;
+				l->mask[2].y = (float)height;
+				l->mask[3].y = (float)height;
+
+				game->get_current_room()->add_lightable(l); // Add the struct to the room's list of lightables
 			}
 
 			// Bind the texture coordinates of the current subimage
@@ -1037,7 +1083,7 @@ int BEE::Sprite::set_as_target(int w, int h) {
 			game->messenger_send({"engine", "sprite"}, BEE_MESSAGE_WARNING, "Failed to create a new framebuffer.");
 			glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind the frame buffer to switch back to the default
 			this->free(); // Free the old data
-			return 0; // Return 0 on failure
+			return 0; // Return 0 on failure to initialize the framebuffer
 		}
 
 		glBindVertexArray(0); // Unbind VAO when done loading
@@ -1051,7 +1097,7 @@ int BEE::Sprite::set_as_target(int w, int h) {
 		texture = SDL_CreateTexture(game->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w, h); // Create an empty texture
 		if (texture == nullptr) { // If the texture could not be created, output a warning
 			game->messenger_send({"engine", "sprite"}, BEE_MESSAGE_WARNING, "Failed to create a blank texture: " + get_sdl_error());
-			return 0; // Return 0 on failure
+			return 0; // Return 0 on failure to create a blank texture
 		}
 
 		SDL_SetRenderTarget(game->renderer, texture); // Set the SDL render target

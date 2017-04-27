@@ -20,10 +20,10 @@ class Resource { // The abstract class for all resource types
 
 		virtual ~Resource() {};
 		virtual int reset() =0;
-		virtual int print() =0;
-		virtual int get_id() =0;
-		virtual std::string get_name() =0;
-		virtual std::string get_path() =0;
+		virtual int print() const =0;
+		virtual int get_id() const =0;
+		virtual std::string get_name() const =0;
+		virtual std::string get_path() const =0;
 		virtual int set_name(const std::string&) =0;
 		virtual int set_path(const std::string&) =0;
 };

@@ -21,18 +21,8 @@ int main(int argc, char* argv[]) {
 	BEE* game = nullptr;
 
 	// Declare some game options, see bee/game.hpp for the struct definition
-	BEE::GameOptions options (
-		// Window flags
-		true,  true,
-		true,  true,
-		false, true,
-		// Renderer flags
-		BEE_RENDERER_OPENGL3,
-		false, false,
-		// Miscellaneous flags
-		true,
-		false
-	);
+	BEE::GameOptions options;
+	//options.is_debug_enabled = true;
 
 	try { // Catch all errors so that all resources will be freed properly
 		// Initialize the game engine

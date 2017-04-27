@@ -103,7 +103,7 @@ bool check_is_inside(vec4 p, vec4 vertices[BEE_MAX_MASK_VERTICES]) {
 
 	return is_intersecting;
 }
-float calc_shadow_intersect(Light l, Lightable s) {
+float calc_shadow_point(Light l, Lightable s) {
 	Line line = Line(l.position, f_position);
 
 	int c = -1;
@@ -139,8 +139,8 @@ float calc_shadow_intersect(Light l, Lightable s) {
 		return abs(distance_to_line(Line(line.start, p), line.end));
 	}
 	return 0.0;*/
-	//return abs(d)*c;
-	return 20.0*c;
+	return abs(d)*c;
+	//return 20.0*c;
 }
 
 void main() {
@@ -168,6 +168,7 @@ void main() {
 				for (int i=0; i<light_amount; i++) {
 					l = lighting[i];
 					l.position = vec4(l.position.xy + port.xy, l.position.zw);
+					float max_range_sqr = pow(4.0*50.0/l.attenuation.z, 2);
 
 					vec4 ff = vec4(0.0, 0.0, 0.0, 0.0);
 					switch (l.type) {
@@ -180,9 +181,9 @@ void main() {
 							break;
 						}
 						case BEE_LIGHT_POINT: {
-							if (length(l.position - f_position) > 50.0/l.attenuation.z) {
-								continue; // If the fragment is outside of the range of the light, abort early
-							}
+							/*if (fast_length(l.position - f_position) > max_range_sqr) {
+								continue; // If the fragment is far outside of the range of the light, abort early
+							}*/
 							ff = calc_light_point(l);
 							break;
 						}
@@ -193,20 +194,38 @@ void main() {
 					}
 
 					if (ff != vec4(0.0, 0.0, 0.0, 0.0)) {
-						if (l.type != BEE_LIGHT_AMBIENT) {
-							float shadow_amount = 0.0;
-							for (int e=0; e<lightable_amount; e++) {
-								float s = calc_shadow_intersect(l, lightables[e]);
-								if (s > 0) {
-									shadow_amount += s/50.0;
-								}
+						switch (l.type) {
+							case BEE_LIGHT_AMBIENT: {
+								break;
 							}
+							case BEE_LIGHT_DIFFUSE: {
+								break;
+							}
+							case BEE_LIGHT_POINT:
+							case 99: { // Temporarily disable shadows
+								float shadow_amount = 0.0;
+								for (int e=0; e<lightable_amount; e++) {
+									/*if (fast_length(l.position - lightables[e].position) > max_range_sqr) {
+										continue; // If the lightable is far outside the range of the light, abort early
+									}*/
 
-							float d = length(l.position - f_position) / 100.0;
-							if (d < 1.0) {
-								d = 1.0;
+									float s = calc_shadow_point(l, lightables[e]);
+									if (s > 0) {
+										shadow_amount += s/50.0;
+									}
+								}
+
+								float d = length(l.position - f_position) / 100.0;
+								if (d < 1.0) {
+									d = 1.0;
+								}
+								ff /= pow(d, shadow_amount);
+
+								break;
 							}
-							ff /= pow(d, shadow_amount);
+							case BEE_LIGHT_SPOT: {
+								break;
+							}
 						}
 						f += ff;
 					}

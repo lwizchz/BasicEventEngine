@@ -48,6 +48,7 @@ class BEE::Room: public Resource {
 
 		std::map<int,InstanceData*> instances;
 		std::map<InstanceData*,int,InstanceDataSort> instances_sorted;
+		std::vector<InstanceData*> created_instances;
 		std::vector<InstanceData*> destroyed_instances;
 		bool should_sort = false;
 
@@ -74,28 +75,28 @@ class BEE::Room: public Resource {
 		~Room();
 		int add_to_resources();
 		int reset();
-		int print();
-		std::string get_print();
+		int print() const;
+		std::string get_print() const;
 
-		int get_id();
-		std::string get_name();
-		std::string get_path();
-		int get_width();
-		int get_height();
-		bool get_is_isometric();
-		bool get_is_persistent();
-		RGBA get_background_color();
-		bool get_is_background_color_enabled();
-		std::map<int,BackgroundData*> get_backgrounds();
-		std::string get_background_string();
-		bool get_is_views_enabled();
-		std::map<int,ViewData*> get_views();
-		std::string get_view_string();
-		const std::map<int,InstanceData*>& get_instances();
-		std::string get_instance_string();
-		ViewData* get_current_view();
-		PhysicsWorld* get_phys_world();
-		const std::map<const btRigidBody*,InstanceData*>& get_phys_instances();
+		int get_id() const;
+		std::string get_name() const;
+		std::string get_path() const;
+		int get_width() const;
+		int get_height() const;
+		bool get_is_isometric() const;
+		bool get_is_persistent() const;
+		RGBA get_background_color() const;
+		bool get_is_background_color_enabled() const;
+		std::map<int,BackgroundData*> get_backgrounds() const;
+		std::string get_background_string() const;
+		bool get_is_views_enabled() const;
+		std::map<int,ViewData*> get_views() const;
+		std::string get_view_string() const;
+		const std::map<int,InstanceData*>& get_instances() const;
+		std::string get_instance_string() const;
+		ViewData* get_current_view() const;
+		PhysicsWorld* get_phys_world() const;
+		const std::map<const btRigidBody*,InstanceData*>& get_phys_instances() const;
 
 		int set_name(const std::string&);
 		int set_path(const std::string&);
@@ -134,7 +135,7 @@ class BEE::Room: public Resource {
 		int save_instance_map(std::string);
 		int load_instance_map(std::string);
 		int load_instance_map();
-		std::string get_instance_map();
+		std::string get_instance_map() const;
 		int set_instance_map(std::string);
 
 		int create();
