@@ -188,6 +188,7 @@ BEE::BEE(int new_argc, char** new_argv, const std::list<ProgramFlags*>& new_flag
 		throw std::string("Couldn't init SDL_ttf: ") + TTF_GetError() + "\n";
 	}
 
+	Mix_SetSoundFonts(""); // This will disable MIDI but fixes a small error when not including a soundfont
 	if (Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 1024) < 0) {
 		throw std::string("Couldn't init SDL_mixer: ") + Mix_GetError() + "\n";
 	}

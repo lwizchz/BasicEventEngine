@@ -19,7 +19,7 @@ before_script:
   - cmake .
   - make
   - cd ../../
-script: ./build.sh release
+script: ./build.sh norun
 after_success:
   - export DISPLAY=:99
   - export AUDIODEV=null

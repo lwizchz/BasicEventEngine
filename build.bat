@@ -1,13 +1,15 @@
+@mkdir winbuild
 @cd winbuild
 
-rem "C:\Program Files (x86)\CMake\bin\cmake-gui.exe"
+"C:\Program Files (x86)\CMake\bin\cmake-gui.exe"
+rem "C:\Program Files (x86)\CMake\bin\cmake.exe" .
 
 C:\MinGW\bin\mingw32-make.exe || (cd .. && exit /b)
 
-@copy /Y ActionGavin.exe ..\win\bin\
+@copy /Y BasicEventEngine.exe ..\win\bin\
 
 @cd ..\win\bin\
 
-ActionGavin.exe
+BasicEventEngine.exe
 
 @cd ..\..\

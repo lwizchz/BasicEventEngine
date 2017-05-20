@@ -32,11 +32,12 @@ int BEE::InstanceData::init(int new_id, Object* new_object, double new_x, double
 	if (body == nullptr) {
 		PhysicsWorld* w = game->get_current_room()->get_phys_world();
 
-		double p[3] = {(double)get_width(), (double)get_height(), w->get_scale()};
+		double* p = new double[3] {(double)get_width(), (double)get_height(), w->get_scale()};
 		if ((p[0] != 0.0)&&(p[1] != 0.0)) {
-			body = new PhysicsBody(w, this, BEE_PHYS_SHAPE_BOX, 0.0, new_x, new_y, new_z, p);
+			body = new PhysicsBody(w, this, BEE_PHYS_SHAPE_BOX, 0.0, new_x, new_y, new_z, p); // PhysicsBody assumes ownership of any shape parameters passed to it
 		} else {
 			body = new PhysicsBody(w, this, BEE_PHYS_SHAPE_NONE, 0.0, new_x, new_y, new_z, nullptr);
+			delete[] p;
 		}
 	} else {
 		set_position(new_x, new_y, new_z);
@@ -62,14 +63,97 @@ int BEE::InstanceData::init(int new_id, Object* new_object, double new_x, double
 int BEE::InstanceData::print() {
 	std::stringstream s;
 	s <<
-	"InstanceData { "
-	"\n	id            " << id <<
-	"\n	object        " << object <<
-	"\n	subimage_time " << subimage_time <<
-	"\n	x, y, z       " << get_x() << ", " << get_y() << ", " << get_z() <<
-	"\n	depth         " << depth <<
+	"InstanceData {"
+	"\n	id                 " << id <<
+	"\n	object             " << object <<
+	"\n	sprite             " << sprite <<
+	"\n	subimage_time      " << subimage_time <<
+	"\n"
+	"\n	body               " << body <<
+	"\n	is_solid           " << is_solid <<
+	"\n	depth              " << depth <<
+	"\n	position           (" << get_x() << ", " << get_y() << ", " << get_z() << ")" <<
+	"\n	pos_start          (" << pos_start.x() << ", " << pos_start.y() << ", " << pos_start.z() << ")" <<
+	"\n	pos_previous       (" << pos_previous.x() << ", " << pos_previous.y() << ", " << pos_previous.z() << ")" <<
+	"\n"
+	"\n	path               " << path <<
+	"\n	path_speed         " << path_speed <<
+	"\n	path_end_action    " << path_end_action <<
+	"\n	path_current_node  " << path_current_node <<
+	"\n	path_is_drawn      " << path_is_drawn <<
+	"\n	path_is_pausable   " << path_is_pausable <<
+	"\n	path_previous_mass " << path_previous_mass <<
+	"\n	path_pos_start     (" << path_pos_start.x() << ", " << path_pos_start.y() << ", " << path_pos_start.z() << ")" <<
 	"\n}\n";
 	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str());
+
+	return 0;
+}
+
+std::string BEE::InstanceData::serialize(bool should_pretty_print) const {
+	std::map<std::string,SIDP> data;
+	data["id"] = id;
+	data["object"] = object->get_name();
+	data["sprite"] = "";
+	if (get_sprite() != nullptr) {
+		data["sprite"] = get_sprite()->get_name();
+	}
+	data["subimage_time"] = (int)subimage_time;
+
+	std::string b = body->serialize(should_pretty_print);
+	if (should_pretty_print) {
+		b = debug_indent(b, 1);
+		b = b.substr(1, b.length()-2);
+	}
+	data["body"] = "\"" + string_escape(b) + "\"";
+
+	data["is_solid"] = is_solid;
+	data["depth"] = depth;
+	data["pos_start"].vector(new std::vector<SIDP>({pos_start.x(), pos_start.y(), pos_start.z()}));
+	data["pos_previous"].vector(new std::vector<SIDP>({pos_previous.x(), pos_previous.y(), pos_previous.z()}));
+
+	data["path"] = "";
+	if (path != nullptr) {
+		data["path"] = path->get_name();
+	}
+	data["path_speed"] = path_speed;
+	data["path_end_action"] = path_end_action;
+	data["path_current_node"] = path_current_node;
+	data["path_is_drawn"] = path_is_drawn;
+	data["path_is_pausable"] = path_is_pausable;
+	data["path_previous_mass"] = path_previous_mass;
+	data["path_pos_start"].vector(new std::vector<SIDP>({path_pos_start.x(), path_pos_start.y(), path_pos_start.z()}));
+
+	return map_serialize(data, should_pretty_print);
+}
+std::string BEE::InstanceData::serialize() const {
+	return serialize(false);
+}
+int BEE::InstanceData::deserialize(const std::string& data) {
+	std::map<std::string,SIDP> m;
+	map_deserialize(data, &m);
+
+	id = SIDP_i(m["id"]);
+	object = game->get_object_by_name(SIDP_s(m["object"]));
+	sprite = game->get_sprite_by_name(SIDP_s(m["sprite"]));
+
+	subimage_time = SIDP_i(m["subimage_time"]);
+	std::string b = SIDP_s(m["body"]);
+	b.substr(1, b.length()-2);
+	body->deserialize(string_unescape(b));
+	is_solid = SIDP_i(m["is_solid"]);
+	depth = SIDP_i(m["depth"]);
+	pos_start = btVector3(SIDP_cd(m["pos_start"], 0), SIDP_cd(m["pos_start"], 1), SIDP_cd(m["pos_start"], 2));
+	pos_previous = btVector3(SIDP_cd(m["pos_previous"], 0), SIDP_cd(m["pos_previous"], 1), SIDP_cd(m["pos_previous"], 2));
+
+	path = game->get_path_by_name(SIDP_s(m["path"]));
+	path_speed = SIDP_d(m["path_speed"]);
+	path_end_action = (bee_path_end_t)SIDP_i(m["path_end_action"]);
+	path_current_node = SIDP_i(m["path_current_node"]);
+	path_is_drawn = SIDP_i(m["path_is_drawn"]);
+	path_is_pausable = SIDP_i(m["path_is_pausable"]);
+	path_previous_mass = SIDP_d(m["path_previous_mass"]);
+	path_pos_start = btVector3(SIDP_cd(m["path_pos_start"], 0), SIDP_cd(m["path_pos_start"], 1), SIDP_cd(m["path_pos_start"], 2));
 
 	return 0;
 }

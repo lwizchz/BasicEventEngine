@@ -72,6 +72,10 @@ debug()
         fi
 
         cd ..
+        if [ "$2" == "norun" ]; then
+                return
+        fi
+
         if [ "$2" ]; then
                 exec $2 "$1/$game"
         else
@@ -104,6 +108,10 @@ release()
         fi
 
         cd ..
+        if [ "$2" == "norun" ]; then
+                return
+        fi
+
         exec "$1/$game"
 }
 
@@ -115,6 +123,12 @@ build_dir="$(readlink -f ${build_dir})"
 
 if [ -z "$1" ] || [ "$1" == "release" ]; then
         release "$build_dir"
+elif [ "$1" == "norun" ]; then
+        if [ -f "${build_dir}/last_build_type.txt" ]; then
+                $(cat "${build_dir}/last_build_type.txt") "$build_dir" "norun"
+        else
+                release "$build_dir" "norun"
+        fi
 elif [ "$1" == "debug" ]; then
         if [ -n "$3" ]; then
                 debug "$build_dir" "$3"

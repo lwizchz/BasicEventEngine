@@ -19,11 +19,7 @@
 * network_init() - Initialize SDL's networking functionality
 */
 int network_init() {
-	int r = SDLNet_Init(); // Attempt to initiliaze networking
-	if (r != 0) { // If an error was returned, print it out
-		std::cerr << "Error initializing network functionality: " << SDLNet_GetError() << "\n";
-	}
-	return r; // Return the error code
+	return SDLNet_Init(); // Return the attempt to initiliaze networking
 }
 /*
 * network_close() - Close and clean up the networking system
@@ -35,23 +31,22 @@ int network_close() {
 
 /*
 * network_resolve_host() - Return an IP address data struct based on the given IP and port
-* ! Note that it is the user's
 * @ip: the IP address to resolve
 * @port: the port the use for the host
 */
 IPaddress* network_resolve_host(const std::string& ip, int port) {
 	IPaddress* ipa = new IPaddress(); // Allocate a new IPaddress struct
 
+	int r = -1;
 	if (ip.empty()) { // Resolve the data for a user acting as a host
-		if (SDLNet_ResolveHost(ipa, nullptr, port)) { // Attempt to fill the struct
-			std::cerr << "Failed to resolve host: " << SDLNet_GetError() << "\n"; // Output the error message
-			return nullptr; // Return nullptr on failure
-		}
+		r = SDLNet_ResolveHost(ipa, nullptr, port); // Attempt to fill the struct
 	} else { // Resolve the data for a user connecting to a host
-		if (SDLNet_ResolveHost(ipa, ip.c_str(), port)) { // Attempt to fill the struct
-			std::cerr << "Failed to resolve host: " << SDLNet_GetError() << "\n"; // Output the error message
-			return nullptr; // Return nullptr on failure
-		}
+		r = SDLNet_ResolveHost(ipa, ip.c_str(), port); // Attempt to fill the struct
+	}
+
+	if (r != 0) { // If the attempt to fill the struct failed
+		std::cerr << "NET ERR Failed to resolve host: " << SDLNet_GetError() << "\n"; // Output the error message
+		return nullptr; // Return nullptr on failure
 	}
 
 	return ipa; // Return the struct on success
@@ -78,15 +73,7 @@ int network_get_port(Uint16 p) {
 * @ipa: the IP address data
 */
 TCPsocket network_tcp_open(IPaddress* ipa) {
-	TCPsocket tcp; // Declare a socket data struct
-
-	tcp = SDLNet_TCP_Open(ipa); // Attempt to open the socket
-	if (tcp == nullptr) { // If the socket failed to open
-		std::cerr << "Failed to open TCP on port " << network_get_port(ipa->port) << ": " << SDLNet_GetError() << "\n"; // Output the error message
-		return nullptr; // Return nullptr on failure
-	}
-
-	return tcp; // Return the socket on success
+	return SDLNet_TCP_Open(ipa); // Return the attempt to open the socket
 }
 /*
 * network_tcp_open() - Open a TCP connection with the given IP address data
@@ -121,14 +108,7 @@ TCPsocket network_tcp_accept(TCPsocket* listen) {
 * @tcp: the remote connection to return data for
 */
 IPaddress* network_get_peer_address(TCPsocket* tcp) {
-	IPaddress* ipa = nullptr; // Declare an IP data struct
-
-	ipa = SDLNet_TCP_GetPeerAddress(*tcp); // Attempt to get the peer address info
-	if (ipa == nullptr) { // If the information could not be retrieved
-		std::cerr << "Failed to get TCP peer address: " << SDLNet_GetError() << "\n"; // Output the error message
-	}
-
-	return ipa; // Return the IP data on success
+	return SDLNet_TCP_GetPeerAddress(*tcp); // Return the attempt to get the peer address info
 }
 /*
 * network_tcp_send() - Send data of a given length via TCP over the given socket
@@ -137,13 +117,7 @@ IPaddress* network_get_peer_address(TCPsocket* tcp) {
 * @len: the length of the data
 */
 int network_tcp_send(TCPsocket* tcp, const void* data, int len) {
-	int r = SDLNet_TCP_Send(*tcp, data, len); // Attempt to send the data
-
-	if (r < len) { // If less data was sent than requested
-		std::cerr << "Failed to send full data over TCP: " << SDLNet_GetError() << "\n"; // Output the error message
-	}
-
-	return r; // Return the length of data sent
+	return SDLNet_TCP_Send(*tcp, data, len); // Return the attempt to send the data
 }
 /*
 * network_tcp_send() - Send the given string via TCP over the given socket
@@ -161,13 +135,7 @@ int network_tcp_send(TCPsocket* tcp, const std::string& str) {
 * @maxlen: the maximum length of data to receive
 */
 int network_tcp_recv(TCPsocket* tcp, void* data, int maxlen) {
-	int r = SDLNet_TCP_Recv(*tcp, data, maxlen); // Attempt to receive the data
-
-	if (r <= 0) { // If no data was received or another error occured
-		std::cerr << "Failed to receive data over TCP: " << SDLNet_GetError() << "\n"; // Output the error message
-	}
-
-	return r; // Return the amount of data received on success, or the error code on failure
+	return SDLNet_TCP_Recv(*tcp, data, maxlen); // Return the attempt to receive the data
 }
 /*
 * network_tcp_recv() - Receive a string via TCP from the given socket
@@ -195,15 +163,20 @@ std::string network_tcp_recv(TCPsocket* tcp, int maxlen) {
 * @port: the port to use
 */
 UDPsocket network_udp_open(int port) {
-	UDPsocket udp = nullptr; // Declare a socket data struct
-
-	udp = SDLNet_UDP_Open(port); // Attempt to open the socket
-	if (udp == nullptr) { // If the socket failed to open
-		std::cerr << "Failed to open UDP on port " << port << ": " << SDLNet_GetError() << "\n"; // Output the error message
-		return nullptr; // Return nullptr on failure
+	return SDLNet_UDP_Open(port); // Return the attempt to open the socket
+}
+/*
+* network_udp_open_range() - Attempt to open the given UDP socket on the given port range
+* ! The range that will be tried is [port, range)
+* @port: the port to start with
+* @range: the range to try
+*/
+UDPsocket network_udp_open_range(int port, size_t range) {
+	UDPsocket udp = nullptr;
+	for (size_t i=0; (udp == nullptr) && i<range; ++i) {
+		udp = network_udp_open(port+i);
 	}
-
-	return udp; // Return the socket on success
+	return udp;
 }
 /*
 * network_udp_close() - Close the given UDP socket
@@ -233,14 +206,7 @@ int network_udp_reopen(UDPsocket* udp, int port) {
 * @ipa: the IP address data
 */
 int network_udp_bind(UDPsocket* udp, int channel, IPaddress* ipa) {
-	network_udp_reopen(udp, network_get_port(ipa->port)); // Reset the socket in case it was previously bound
-
-	int c = SDLNet_UDP_Bind(*udp, channel, ipa); // Attempt to bind the socket to the given IP address
-	if (c == -1) { // If the socket failed to bind
-		std::cerr << "Failed to bind UDP on channel " << channel << ": " << SDLNet_GetError() << "\n"; // Output the error message
-	}
-
-	return c; // Return the channel on success, or -1 on failure
+	return SDLNet_UDP_Bind(*udp, channel, ipa); // Return the attempt to bind the socket to the given IP address
 }
 /*
 * network_udp_bind() - Bind the given socket to the given IP address data using the given channel
@@ -279,7 +245,6 @@ int network_udp_bind(UDPsocket* udp, int channel, const std::string& ipp) {
 */
 int network_udp_unbind(UDPsocket* udp, int channel) {
 	SDLNet_UDP_Unbind(*udp, channel); // Unbind the socket
-	network_udp_close(udp); // Close the socket
 	return 0; // Return 0 on success
 }
 /*
@@ -288,14 +253,7 @@ int network_udp_unbind(UDPsocket* udp, int channel) {
 * @channel: the channel of the remote connection
 */
 IPaddress* network_get_peer_address(UDPsocket udp, int channel) {
-	IPaddress* ipa = nullptr; // Declare an IP data struct
-
-	ipa = SDLNet_UDP_GetPeerAddress(udp, channel); // Attempt to get the peer address info
-	if (ipa == nullptr) { // If the information could not be retrieved
-		std::cerr << "Failed to get UDP peer address: " << SDLNet_GetError() << "\n"; // Output the error message
-	}
-
-	return ipa; // Return the IP data on success
+	return SDLNet_UDP_GetPeerAddress(udp, channel); // Return the attempt to get the peer address info
 }
 /*
 * network_udp_send() - Send packet data via UDP over the given channel
@@ -304,15 +262,7 @@ IPaddress* network_get_peer_address(UDPsocket udp, int channel) {
 * @packet: the data to send
 */
 int network_udp_send(UDPsocket udp, int channel, UDPpacket* packet) {
-	int sent = 0; // Define the amount of destinations the data was sent to
-
-	sent = SDLNet_UDP_Send(udp, channel, packet); // Attempt to send the data
-	if (sent == 0) { // If the data could not be sent to anyone
-		std::cerr << "Failed to send packet over UDP: " << SDLNet_GetError() << "\n"; // Output the error message
-		return -1; // Return -1 on failure
-	}
-
-	return sent; // Return the amount of destinations that data was sent to on success
+	return SDLNet_UDP_Send(udp, channel, packet); // Return the attempt to send the data
 }
 /*
 * network_udp_send() - Send data via UDP over the given channel
@@ -323,7 +273,8 @@ int network_udp_send(UDPsocket udp, int channel, UDPpacket* packet) {
 */
 int network_udp_send(UDPsocket udp, int channel, Uint8* data) {
 	UDPpacket* d = network_packet_alloc(data[0]); // Allocate space for the data packet
-	d->data = data; // Set the packet data
+	memcpy(d->data, data, data[0]); // Set the packet data
+	d->len = data[0];
 
 	int r = network_udp_send(udp, channel, d); // Send the packet
 
@@ -342,8 +293,15 @@ int network_udp_send(UDPsocket udp, int channel, Uint8* data) {
 * @data: the extra data to send
 */
 int network_udp_send(UDPsocket udp, int channel, Uint8 id, Uint8 signal, Uint8 data) {
-	Uint8 d[] = {3, id, signal, data}; // Format the data according to bee/game/network.cpp
-	return network_udp_send(udp, channel, d); // Send the data and return the sent destinations on success, or -1 on failure
+	Uint8* d = new Uint8[4]; // Construct a temporary data array
+	d[0] = 4; // Format the data according to bee/game/network.cpp
+	d[1] = id;
+	d[2] = signal;
+	d[3] = data;
+
+	int r = network_udp_send(udp, channel, d); // Send the data and store the sent return value
+	delete[] d; // Delete the temporary data
+	return r; // Return the number of destinations on success or -1 on failure
 }
 /*
 * network_udp_recv() - Receive packet data via UDP from the given socket
@@ -351,15 +309,7 @@ int network_udp_send(UDPsocket udp, int channel, Uint8 id, Uint8 signal, Uint8 d
 * @packet: the pointer to store that data at
 */
 int network_udp_recv(UDPsocket udp, UDPpacket* packet) {
-	int recv = 0; // Define whether data was received or not
-
-	recv = SDLNet_UDP_Recv(udp, packet); // Attempt to receive the data
-	if (recv == -1) { // If an error occured while receiving the data
-		std::cerr << "Failed to receive data over UDP: " << SDLNet_GetError() << "\n"; // Output the error message
-		return -1; // Return -1 on failure
-	}
-
-	return recv; // Return whether a packet was received: 1 on success, 0 for no packet
+	return SDLNet_UDP_Recv(udp, packet); // Return the attempt to receive the data
 }
 /*
 * network_udp_sendv() - Send multiple data packets via UDP
@@ -368,15 +318,7 @@ int network_udp_recv(UDPsocket udp, UDPpacket* packet) {
 * @amount: the amount of packets in the array
 */
 int network_udp_send_vector(UDPsocket udp, UDPpacket** packets, int amount) {
-	int sent = 0; // Define how many total packets were sent to each destination
-
-	sent = SDLNet_UDP_SendV(udp, packets, amount); // Attempt to send the data
-	if (sent == 0) { // If none of the data could be sent to anyone
-		std::cerr << "Failed to send vector data over UDP: " << SDLNet_GetError() << "\n"; // Output the error message
-		return 0; // Return 0 on failure
-	}
-
-	return sent; // Return how many packets were sent in total on success
+	return SDLNet_UDP_SendV(udp, packets, amount); // Return the attempt to send the data, the total number of packets
 }
 /*
 * network_udp_recvv() - Receive multiple data packets via UDP
@@ -384,15 +326,7 @@ int network_udp_send_vector(UDPsocket udp, UDPpacket** packets, int amount) {
 * @packets: the pointer to store the data at
 */
 int network_udp_recv_vector(UDPsocket udp, UDPpacket** packets) {
-	int recv = 0; // Define how many packets were received
-
-	recv = SDLNet_UDP_RecvV(udp, packets); // Attempt to receive the data
-	if (recv == -1) { // If an error occured while receiving the data
-		std::cerr << "Failed to receive vector data over UDP: " << SDLNet_GetError() << "\n"; // Output the error message
-		return -1; // Return -1 on failure
-	}
-
-	return recv; // Return the amount of packets that were received on success, or 0 for no packets
+	return SDLNet_UDP_RecvV(udp, packets); // Return the attempt to receive the data
 }
 
 /*
@@ -404,8 +338,7 @@ UDPpacket* network_packet_alloc(int size) {
 
 	packet = SDLNet_AllocPacket(size); // Attempt to allocate the requested space
 	if (packet == nullptr) { // If the packet could not be allocated
-		std::cerr << "Failed to allocate UDP packet: " << SDLNet_GetError() << "\n"; // Output the error message
-		return nullptr; // Return nullptr on failure
+		std::cerr << "NET ERR Failed to allocate UDP packet: " << SDLNet_GetError() << "\n"; // Output the error message
 	}
 
 	return packet; // Return the packet pointer on success
@@ -420,7 +353,7 @@ UDPpacket* network_packet_resize(UDPpacket* packet, int size) {
 
 	newsize = SDLNet_ResizePacket(packet, size); // Attempt to resize the packet
 	if (newsize < size) { // If the packet could not be resized
-		std::cerr << "Failed to resize UDP packet: " << SDLNet_GetError() << "\n"; // Output the error message
+		std::cerr << "NET ERR Failed to resize UDP packet: " << SDLNet_GetError() << "\n"; // Output the error message
 		return nullptr; // Return nullptr on failure
 	}
 
@@ -457,8 +390,7 @@ UDPpacket** network_packet_alloc_vector(int amount, int size) {
 
 	packets = SDLNet_AllocPacketV(amount, size); // Attempt to allocate space for the packets
 	if (packets == nullptr) { // If the packets could not be allocated
-		std::cerr << "Failed to allocate UDP vector packets: " << SDLNet_GetError() << "\n"; // Output the error message
-		return nullptr; // Return nullptr on failure
+		std::cerr << "NET ERR Failed to allocate UDP vector packets: " << SDLNet_GetError() << "\n"; // Output the error message
 	}
 
 	return packets; // Return the packet array pointer on success

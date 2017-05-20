@@ -78,13 +78,14 @@ if (WIN32) # Include Windows libraries manually
 	set(ASSIMP_INCLUDE_DIRECTORIES ${SRC}/win/include)
 	set(ASSIMP_LIBRARIES ${SRC}/win/lib/libassimp.dll.a)
 
-	set(BULLET_INCLUDE_DIRECTORIES ${SRC}/win/include)
+	set(BULLET_SRC ${${PROJECT_NAME}_SOURCE_DIR}/lib/bullet3/src)
+	set(BULLET_INCLUDE_DIRS ${BULLET_SRC})
 	set(
 		BULLET_LIBRARIES
 
-		${SRC}/win/lib/libBulletDynamics.a
-		${SRC}/win/lib/libBulletCollision.a
-		${SRC}/win/lib/libLinearMath.a
+		${BULLET_SRC}/BulletDynamics/libBulletDynamics.a
+		${BULLET_SRC}/BulletCollision/libBulletCollision.a
+		${BULLET_SRC}/LinearMath/libLinearMath.a
 	)
 
 	find_package(GLEW REQUIRED)

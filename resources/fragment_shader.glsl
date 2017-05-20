@@ -201,7 +201,7 @@ void main() {
 							case BEE_LIGHT_DIFFUSE: {
 								break;
 							}
-							case BEE_LIGHT_POINT:
+							//case BEE_LIGHT_POINT:
 							case 99: { // Temporarily disable shadows
 								float shadow_amount = 0.0;
 								for (int e=0; e<lightable_amount; e++) {

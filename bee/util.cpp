@@ -292,10 +292,10 @@ TEST_CASE("network") {
 
 	UDPsocket udp = network_udp_open(port);
 	REQUIRE(udp != (UDPsocket)nullptr);
-	REQUIRE(network_udp_close(&udp) == 0);
-	REQUIRE(udp == (UDPsocket)nullptr);
 	REQUIRE(network_udp_bind(&udp, -1, "127.0.0.1", port) != -1);
 	REQUIRE(network_udp_unbind(&udp, -1) == 0);
+	REQUIRE(network_udp_close(&udp) == 0);
+	REQUIRE(udp == (UDPsocket)nullptr);
 
 	REQUIRE(network_close() == 0);
 }
@@ -337,18 +337,27 @@ TEST_CASE("template") {
 	double median4 = median<double>(1.0, 2.0, 3.0, 4.0, 5.0);
 	REQUIRE(median4 == 3.0);
 
-	std::map<std::string, int> m = {
+	std::map<std::string,int> m = {
 		{ "a", 1 },
 		{ "b", 2 },
 		{ "c", 3 },
 		{ "d", 4 }
 	};
-	std::map<std::string, int> n;
+	std::map<std::string,int> n1;
+	std::map<std::string,int> n2;
+	std::map<std::string,int> n3;
+
+	REQUIRE(map_serialize(m, false) == "{a:1,b:2,c:3,d:4}");
+	REQUIRE(map_deserialize("{a:1,b:2,c:3,d:4}", &n1) == 0);
+	REQUIRE(std::equal(m.begin(), m.end(), n1.begin()));
+	REQUIRE(map_deserialize(map_serialize(m, true), &n2) == 0);
+	REQUIRE(std::equal(m.begin(), m.end(), n2.begin()));
+
 	Uint8* a = network_map_encode(m);
 	REQUIRE(a[0] == 24);
-	REQUIRE((network_map_decode(a, &n) == 0));
+	REQUIRE((network_map_decode(a, &n3) == 0));
 	delete[] a;
-	REQUIRE(std::equal(m.begin(), m.end(), n.begin()));
+	REQUIRE(std::equal(m.begin(), m.end(), n3.begin()));
 }
 
 /*

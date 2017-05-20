@@ -324,6 +324,22 @@ int BEE::PhysicsWorld::draw_debug() {
 	return 0;
 }
 
+size_t BEE::PhysicsWorld::get_constraint_param_amount(bee_phys_constraint_t constraint) const {
+	switch (constraint) {
+		case BEE_PHYS_CONSTRAINT_POINT:  return 6;
+		case BEE_PHYS_CONSTRAINT_HINGE:  return 12;
+		case BEE_PHYS_CONSTRAINT_SLIDER: return 4;
+		case BEE_PHYS_CONSTRAINT_CONE:   return 4;
+		case BEE_PHYS_CONSTRAINT_6DOF:   return 12;
+
+		default:
+		case BEE_PHYS_CONSTRAINT_FIXED:
+		case BEE_PHYS_CONSTRAINT_2D:
+		case BEE_PHYS_CONSTRAINT_TILE:
+		case BEE_PHYS_CONSTRAINT_NONE:   return 0;
+	}
+}
+
 BEE::PhysicsDraw::PhysicsDraw() {
 	debug_mode = 0;
 }
@@ -434,7 +450,104 @@ BEE::PhysicsBody::~PhysicsBody() {
 	remove_constraints();
 	delete body;
 
+	if (shape_params != nullptr) {
+		delete[] shape_params;
+		shape_params = nullptr;
+	}
+
 	delete shape;
+}
+
+std::string BEE::PhysicsBody::serialize(bool should_pretty_print) const {
+	std::vector<SIDP>* sp = new std::vector<SIDP>();
+	for (size_t i=0; i<shape_param_amount; ++i) {
+		(*sp).push_back(shape_params[i]);
+	}
+
+	std::vector<SIDP>* cons = new std::vector<SIDP>();
+	for (auto& c : constraints) {
+		size_t constraint_param_amount = attached_world->get_constraint_param_amount(std::get<0>(c));
+		std::vector<SIDP>* con = new std::vector<SIDP>();
+
+		for (size_t i=0; i<constraint_param_amount; ++i) {
+			(*con).push_back(std::get<1>(c)[i]);
+		}
+
+		(*cons).push_back(SIDP().vector(con));
+	}
+
+	std::map<std::string,SIDP> data;
+	data["type"] = type;
+	data["mass"] = mass;
+	data["scale"] = scale;
+	data["friction"] = friction;
+	data["shape_params"].vector(sp);
+
+	data["attached_instance"] = attached_instance->id;
+	data["position"].vector(new std::vector<SIDP>({get_position().x(), get_position().y(), get_position().z()}));
+	data["rotation"].vector(new std::vector<SIDP>({get_rotation_x(), get_rotation_y(), get_rotation_z()}));
+
+	data["gravity"].vector(new std::vector<SIDP>({body->getGravity().x(), body->getGravity().y(), body->getGravity().z()}));
+	data["velocity"].vector(new std::vector<SIDP>({body->getLinearVelocity().x(), body->getLinearVelocity().y(), body->getLinearVelocity().z()}));
+	data["velocity_ang"].vector(new std::vector<SIDP>({body->getAngularVelocity().x(), body->getAngularVelocity().y(), body->getAngularVelocity().z()}));
+
+	data["collision_flags"] = body->getCollisionFlags();
+	data["constraints"].vector(cons);
+
+	return map_serialize(data, should_pretty_print);
+}
+std::string BEE::PhysicsBody::serialize() const {
+	return serialize(false);
+}
+int BEE::PhysicsBody::deserialize(const std::string& data) {
+	std::map<std::string,SIDP> m;
+	map_deserialize(data, &m);
+
+	type = (bee_phys_shape_t)SIDP_i(m["type"]);
+	mass = SIDP_d(m["mass"]);
+	scale = SIDP_d(m["scale"]);
+	friction = SIDP_d(m["friction"]);
+	shape_param_amount = get_shape_param_amount(type);
+	if ((type == BEE_PHYS_SHAPE_MULTISPHERE)||(type == BEE_PHYS_SHAPE_CONVEX_HULL)) {
+		shape_param_amount = get_shape_param_amount(type, SIDP_cd(m["shape_params"], 0));
+	}
+
+	if (shape_params != nullptr) {
+		delete[] shape_params;
+		shape_params = nullptr;
+	}
+	if (shape_param_amount > 0) {
+		shape_params = new double[shape_param_amount];
+		for (size_t i=0; i<shape_param_amount; ++i) {
+			shape_params[i] = SIDP_cd(m["shape_params"], i);
+		}
+	}
+
+	attached_instance = attached_world->get_game()->get_current_room()->get_instances().at(SIDP_i(m["attached_instance"]));
+	body->setCollisionFlags(SIDP_i(m["collision_flags"]));
+
+	set_shape(type, shape_params);
+
+	btVector3 position = btVector3(SIDP_cd(m["position"], 0), SIDP_cd(m["position"], 1), SIDP_cd(m["position"], 2));
+	btVector3 rotation = btVector3(SIDP_cd(m["rotation"], 0), SIDP_cd(m["rotation"], 1), SIDP_cd(m["rotation"], 2));
+
+	btTransform transform;
+	transform.setIdentity();
+	transform.setOrigin(position/scale);
+	btQuaternion qt;
+	qt.setEuler(rotation.y(), rotation.x(), rotation.z());
+	transform.setRotation(qt);
+	body->setCenterOfMassTransform(transform);
+
+	btVector3 gravity = btVector3(SIDP_cd(m["gravity"], 0), SIDP_cd(m["gravity"], 1), SIDP_cd(m["gravity"], 2));
+	body->setGravity(gravity);
+
+	btVector3 velocity = btVector3(SIDP_cd(m["velocity"], 0), SIDP_cd(m["velocity"], 1), SIDP_cd(m["velocity"], 2));
+	btVector3 velocity_ang = btVector3(SIDP_cd(m["velocity_ang"], 0), SIDP_cd(m["velocity_ang"], 1), SIDP_cd(m["velocity_ang"], 2));
+	body->setLinearVelocity(velocity);
+	body->setAngularVelocity(velocity_ang);
+
+	return 0;
 }
 
 int BEE::PhysicsBody::attach(PhysicsWorld* new_world) {
@@ -460,6 +573,7 @@ int BEE::PhysicsBody::remove() {
 		for (auto& c : constraints) {
 			if (std::get<2>(c) != nullptr) {
 				attached_world->remove_constraint(std::get<2>(c));
+
 				delete std::get<2>(c);
 				std::get<2>(c) = nullptr;
 			}
@@ -519,7 +633,13 @@ int BEE::PhysicsBody::set_shape(bee_phys_shape_t new_type, double* p) {
 		delete shape;
 		shape = nullptr;
 	}
+	if ((shape_params != nullptr)&&(shape_params != p)) {
+		delete[] shape_params;
+		shape_params = nullptr;
+	}
 	type = new_type;
+	shape_params = p;
+	shape_param_amount = get_shape_param_amount(type);
 
 	if (attached_world != nullptr) {
 		scale = attached_world->get_scale();
@@ -578,6 +698,7 @@ int BEE::PhysicsBody::set_shape(bee_phys_shape_t new_type, double* p) {
 				radii[i] = btScalar(p[i+amount+1]);
 			}
 
+			shape_param_amount = get_shape_param_amount(type, p[0]);
 			shape = new btMultiSphereShape(pos, radii, amount);
 
 			delete[] pos;
@@ -598,6 +719,7 @@ int BEE::PhysicsBody::set_shape(bee_phys_shape_t new_type, double* p) {
 				tmp_shape->addPoint(btVector3(p[i+2], p[i+3], p[i+4]));
 			}
 
+			shape_param_amount = get_shape_param_amount(type, p[0]);
 			shape = tmp_shape;
 
 			break;
@@ -606,6 +728,7 @@ int BEE::PhysicsBody::set_shape(bee_phys_shape_t new_type, double* p) {
 		default:
 			std::cerr << "PHYS ERR invalid shape type\n";
 		case BEE_PHYS_SHAPE_NONE:
+			shape_param_amount = 0;
 			shape = new btEmptyShape();
 	}
 
@@ -651,6 +774,11 @@ int BEE::PhysicsBody::remove_constraints() {
 		delete c;
 	}
 
+	for (auto& c : constraints) {
+		if (std::get<1>(c) != nullptr) {
+			delete std::get<1>(c);
+		}
+	}
 	constraints.clear();
 
 	return 0;
@@ -681,6 +809,26 @@ int BEE::PhysicsBody::update_state() {
 	attached_world->add_body(this);
 
 	return 0;
+}
+
+size_t BEE::PhysicsBody::get_shape_param_amount(bee_phys_shape_t s, int p0) const {
+	switch (s) {
+		case BEE_PHYS_SHAPE_SPHERE:      return 1;
+		case BEE_PHYS_SHAPE_BOX:         return 3;
+
+		case BEE_PHYS_SHAPE_CYLINDER:
+		case BEE_PHYS_SHAPE_CAPSULE:
+		case BEE_PHYS_SHAPE_CONE:        return 2;
+
+		case BEE_PHYS_SHAPE_MULTISPHERE: return p0 * 4 + 1;
+		case BEE_PHYS_SHAPE_CONVEX_HULL: return p0 * 3 + 1;
+
+		default:
+		case BEE_PHYS_SHAPE_NONE:        return 0;
+	}
+}
+size_t BEE::PhysicsBody::get_shape_param_amount(bee_phys_shape_t s) const {
+	return get_shape_param_amount(s, 0);
 }
 
 #endif // _BEE_PHYSICS

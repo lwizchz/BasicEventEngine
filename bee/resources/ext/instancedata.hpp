@@ -53,6 +53,10 @@ class BEE::InstanceData {
 		int init(int, Object*, double, double, double);
 		int print();
 
+		std::string serialize(bool) const;
+		std::string serialize() const;
+		int deserialize(const std::string&);
+
 		bool operator< (const InstanceData& other) const;
 
 		int remove();

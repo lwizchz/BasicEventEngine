@@ -13,28 +13,46 @@
 
 BEE::SIDP::SIDP() :
 	type(-1), // Possible types: 0=string, 1=int, 2=double, 3=pointer
+	container_type(0), // Possible containers: 0=plain, 1=vector, 2=map
 	str(),
 	integer(0),
 	floating(0.0),
 	pointer(nullptr)
 {}
+BEE::SIDP::SIDP(const SIDP& sidp) :
+	type(sidp.type),
+	container_type(sidp.container_type),
+	str(sidp.str),
+	integer(sidp.integer),
+	floating(sidp.floating),
+	pointer(nullptr)
+{
+	if (container_type == 1) {
+		pointer = new std::vector<SIDP>(*static_cast<std::vector<SIDP>*>(sidp.pointer));
+	} else if (container_type == 2) {
+		pointer = new std::map<SIDP,SIDP>(*static_cast<std::map<SIDP,SIDP>*>(sidp.pointer));
+	} else {
+		pointer = sidp.pointer;
+	}
+}
 BEE::SIDP::SIDP(const std::string& ns) :
 	type(0),
+	container_type(0),
 	str(ns),
 	integer(0),
 	floating(0.0),
 	pointer(nullptr)
 {}
-BEE::SIDP::SIDP(const std::string& ns, bool should_interpret) {
+BEE::SIDP::SIDP(const std::string& ns, bool should_interpret) :
+	SIDP(ns)
+{
 	if (should_interpret) {
 		interpret(ns);
-	} else {
-		type = 0;
-		str = ns;
 	}
 }
 BEE::SIDP::SIDP(int ni) :
 	type(1),
+	container_type(0),
 	str(),
 	integer(ni),
 	floating(0.0),
@@ -42,6 +60,7 @@ BEE::SIDP::SIDP(int ni) :
 {}
 BEE::SIDP::SIDP(double nf) :
 	type(2),
+	container_type(0),
 	str(),
 	integer(0),
 	floating(nf),
@@ -49,18 +68,33 @@ BEE::SIDP::SIDP(double nf) :
 {}
 BEE::SIDP::SIDP(void* np) :
 	type(3),
+	container_type(0),
 	str(),
 	integer(0),
 	floating(0.0),
 	pointer(np)
 {}
+BEE::SIDP::~SIDP() {
+	reset();
+}
 
 int BEE::SIDP::reset() {
+	if (pointer != nullptr) {
+		if (container_type == 1) {
+			delete static_cast<std::vector<SIDP>*>(pointer);
+		} else if (container_type == 2) {
+			delete static_cast<std::map<SIDP,SIDP>*>(pointer);
+		}
+	}
+
 	type = -1;
+	container_type = 0;
+
 	str.clear();
 	integer = 0;
 	floating = 0.0;
 	pointer = nullptr;
+
 	return 0;
 }
 
@@ -70,6 +104,13 @@ int BEE::SIDP::interpret(const std::string& ns) {
 		if ((ns[0] == '"')&&(ns[ns.length()-1] == '"')) { // String
 			str = ns.substr(1, ns.length()-2);
 			type = 0;
+		} else if ((ns[0] == '[')&&(ns[ns.length()-1] == ']')) { // Array
+			std::vector<std::string> v = splitv(ns.substr(1, ns.length()-2), ',', true);
+			std::vector<SIDP>* nv = new std::vector<SIDP>();
+			for (auto& s : v) {
+				nv->push_back(SIDP(s, true));
+			}
+			vector(nv);
 		} else if (std::regex_match(ns, std::regex("^-?\\d*\\.\\d+"))) { // Double
 			floating = std::stod(ns);
 			type = 2;
@@ -89,6 +130,20 @@ int BEE::SIDP::interpret(const std::string& ns) {
 	}
 
 	return 0; // Return 0 on success
+}
+int BEE::SIDP::vector(std::vector<SIDP>* v) {
+	reset();
+	type = 3;
+	container_type = 1;
+	pointer = v;
+	return 0;
+}
+int BEE::SIDP::map(std::map<SIDP,SIDP>* m) {
+	reset();
+	type = 3;
+	container_type = 2;
+	pointer = m;
+	return 0;
 }
 std::string BEE::SIDP::to_str() {
 	switch (type) {
@@ -137,6 +192,18 @@ void* BEE::SIDP::p(std::string file, int line) {
 	}
 	return pointer;
 }
+BEE::SIDP BEE::SIDP::p(size_t index, std::string file, int line) {
+	if (type != 3) {
+		std::cerr << "WARN: SIDP type is " << type << ", not a pointer but the pointer array was requested, called from " << file << ":" << line << "\n";
+	}
+	return (*static_cast<std::vector<SIDP>*>(pointer))[index];
+}
+BEE::SIDP BEE::SIDP::p(SIDP key, std::string file, int line) {
+	if (type != 3) {
+		std::cerr << "WARN: SIDP type is " << type << ", not a pointer but the pointer array was requested, called from " << file << ":" << line << "\n";
+	}
+	return (*static_cast<std::map<SIDP,SIDP>*>(pointer))[key];
+}
 std::string BEE::SIDP::s() {
 	if (type != 0) {
 		std::cerr << "WARN: SIDP type not a string but the string was requested\n";
@@ -166,6 +233,18 @@ void* BEE::SIDP::p() {
 		std::cerr << "WARN: SIDP type not a pointer but the pointer was requested\n";
 	}
 	return pointer;
+}
+BEE::SIDP BEE::SIDP::p(size_t index) {
+	if (type != 3) {
+		std::cerr << "WARN: SIDP type not a pointer but the pointer array was requested\n";
+	}
+	return (*static_cast<std::vector<SIDP>*>(pointer))[index];
+}
+BEE::SIDP BEE::SIDP::p(SIDP key) {
+	if (type != 3) {
+		std::cerr << "WARN: SIDP type not a pointer but the pointer array was requested\n";
+	}
+	return (*static_cast<std::map<SIDP,SIDP>*>(pointer))[key];
 }
 
 BEE::SIDP& BEE::SIDP::operator=(const SIDP& rhs) {
@@ -317,6 +396,92 @@ BEE::SIDP& BEE::SIDP::operator-=(int rhs) {
 	}
 
 	return *this;
+}
+
+bool operator<(const BEE::SIDP& a, const BEE::SIDP& b) {
+	if (a.type != b.type) {
+		return (a.type < b.type);
+	} else if ((a.container_type != b.container_type)) {
+		return (a.container_type < b.container_type);
+	} else {
+		switch (a.type) {
+			case 0: {
+				return (a.str < b.str);
+			}
+			case 1: {
+				return (a.integer < b.integer);
+			}
+			case 2: {
+				return (a.floating < b.floating);
+			}
+			case 3: {
+				return (a.pointer < b.pointer);
+			}
+			default: {
+				return true;
+			}
+		}
+	}
+}
+std::ostream& operator<<(std::ostream& os, const BEE::SIDP& sidp) {
+	switch (sidp.type) {
+		case 0: {
+			os << sidp.str;
+			break;
+		}
+		case 1: {
+			os << sidp.integer;
+			break;
+		}
+		case 2: {
+			os << sidp.floating;
+			break;
+		}
+		case 3: {
+			if (sidp.container_type == 1) {
+				std::vector<BEE::SIDP>* v = static_cast<std::vector<BEE::SIDP>*>(sidp.pointer);
+				os << "[";
+
+				size_t i = 0;
+				for (auto& e : *v) {
+					os << e;
+					if (i < v->size()-1) {
+						os << ",";
+					}
+					++i;
+				}
+
+				os << "]";
+			} else if (sidp.container_type == 2) {
+				std::map<BEE::SIDP,BEE::SIDP>* m = static_cast<std::map<BEE::SIDP,BEE::SIDP>*>(sidp.pointer);
+				os << "{";
+
+				size_t i = 0;
+				for (auto& p : *m) {
+					os << p.first << ":" << p.second;
+					if (i < m->size()-1) {
+						os << ",";
+					}
+					++i;
+				}
+
+				os << "}";
+			} else {
+				os << sidp.pointer;
+			}
+			break;
+		}
+		default: {
+			throw std::runtime_error("Error: SIDP operator invalid type");
+		}
+	}
+	return os;
+}
+std::istream& operator>>(std::istream& is, BEE::SIDP& sidp) {
+	std::string s;
+	is >> s;
+	sidp.interpret(s);
+	return is;
 }
 
 #endif // _BEE_GAME_SIDP

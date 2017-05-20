@@ -170,6 +170,9 @@ std::map<int,std::string> handle_newlines(const std::string& input) {
 */
 std::vector<std::string> splitv(const std::string& input, char delimiter, bool should_respect_quotes) {
 	std::vector<std::string> output; // Declare a map to store the split strings
+	std::string cont_start = "\"[{";
+	std::string cont_end = "\"]}";
+	size_t current_container = std::string::npos;
 
 	size_t token_start = 0; // Store the position of the beginning of each token
 	for (size_t i=0; i<input.length(); ++i) { // Iterate over each character in the string
@@ -178,19 +181,23 @@ std::vector<std::string> splitv(const std::string& input, char delimiter, bool s
 		if (c == delimiter) { // If the character is a delimiter, store a substring in the map
 			output.emplace_back(input.substr(token_start, i-token_start));
 			token_start = i+1; // Begin the next token after the delimiter
-		} else if ((c == '"')&&(should_respect_quotes)) { // If the character is a quote, handle it separately
+		} else if ((cont_start.find(c) != std::string::npos)&&(should_respect_quotes)) { // If the character is a containr, handle it separately
 			if ((i>0)&&(input[i-1] == '\\')) {
 				continue;
 			}
 
-			++i; // Increment past the first quote
-			while (i<input.length()) { // Iterate over the string until the next quote or string end is reached
-				if ((input[i] == '"')&&(input[i-1] != '\\')) {
+			current_container = cont_start.find(c);
+
+			++i; // Increment past the first container
+			while (i<input.length()) { // Iterate over the string until the container or string end is reached
+				if ((cont_end.find(input[i]) == current_container)&&(input[i-1] != '\\')) {
 					break;
 				}
 
 				++i;
 			}
+
+			current_container = std::string::npos;
 		}
 	}
 	if (token_start < input.length()) {  // Add the last token to the map if it exists

@@ -233,7 +233,7 @@ std::string BEE::Room::get_view_string() const {
 	}
 	return "none\n";
 }
-const std::map<int, BEE::InstanceData*>& BEE::Room::get_instances() const {
+const std::map<int,BEE::InstanceData*>& BEE::Room::get_instances() const {
 	return instances;
 }
 std::string BEE::Room::get_instance_string() const {
@@ -348,23 +348,7 @@ BEE::InstanceData* BEE::Room::add_instance(int index, Object* object, double x, 
 	sort_instances();
 	object->add_instance(index, new_instance);
 
-	std::list<bee_event_t> l = {
-		BEE_EVENT_CREATE, BEE_EVENT_DESTROY, BEE_EVENT_ALARM,
-		BEE_EVENT_STEP_BEGIN, BEE_EVENT_STEP_MID, BEE_EVENT_STEP_END,
-		BEE_EVENT_KEYBOARD_PRESS, BEE_EVENT_MOUSE_PRESS,
-		BEE_EVENT_KEYBOARD_INPUT, BEE_EVENT_MOUSE_INPUT,
-		BEE_EVENT_KEYBOARD_RELEASE, BEE_EVENT_MOUSE_RELEASE,
-		BEE_EVENT_CONTROLLER_AXIS, BEE_EVENT_CONTROLLER_PRESS,
-		BEE_EVENT_CONTROLLER_RELEASE, BEE_EVENT_CONTROLLER_MODIFY,
-		BEE_EVENT_COMMANDLINE_INPUT, BEE_EVENT_PATH_END,
-		BEE_EVENT_OUTSIDE_ROOM, BEE_EVENT_INTERSECT_BOUNDARY,
-		BEE_EVENT_COLLISION,
-		BEE_EVENT_DRAW, BEE_EVENT_ANIMATION_END,
-		BEE_EVENT_ROOM_START, BEE_EVENT_ROOM_END,
-		BEE_EVENT_GAME_START, BEE_EVENT_GAME_END,
-		BEE_EVENT_WINDOW
-	};
-	for (bee_event_t e : l) {
+	for (bee_event_t e : event_list) {
 		if (new_instance->get_object()->implemented_events.find(e) != new_instance->get_object()->implemented_events.end()) {
 			if (new_instance->get_object()->implemented_events[e]) {
 				instances_sorted_events[e].emplace(new_instance, new_instance->id);
@@ -424,23 +408,7 @@ int BEE::Room::remove_instance(int index) {
 		instances.erase(index);
 		instances_sorted.erase(inst);
 
-		std::list<bee_event_t> l = {
-			BEE_EVENT_CREATE, BEE_EVENT_DESTROY, BEE_EVENT_ALARM,
-			BEE_EVENT_STEP_BEGIN, BEE_EVENT_STEP_MID, BEE_EVENT_STEP_END,
-			BEE_EVENT_KEYBOARD_PRESS, BEE_EVENT_MOUSE_PRESS,
-			BEE_EVENT_KEYBOARD_INPUT, BEE_EVENT_MOUSE_INPUT,
-			BEE_EVENT_KEYBOARD_RELEASE, BEE_EVENT_MOUSE_RELEASE,
-			BEE_EVENT_CONTROLLER_AXIS, BEE_EVENT_CONTROLLER_PRESS,
-			BEE_EVENT_CONTROLLER_RELEASE, BEE_EVENT_CONTROLLER_MODIFY,
-			BEE_EVENT_COMMANDLINE_INPUT, BEE_EVENT_PATH_END,
-			BEE_EVENT_OUTSIDE_ROOM, BEE_EVENT_INTERSECT_BOUNDARY,
-			BEE_EVENT_COLLISION,
-			BEE_EVENT_DRAW, BEE_EVENT_ANIMATION_END,
-			BEE_EVENT_ROOM_START, BEE_EVENT_ROOM_END,
-			BEE_EVENT_GAME_START, BEE_EVENT_GAME_END,
-			BEE_EVENT_WINDOW
-		};
-		for (bee_event_t e : l) {
+		for (bee_event_t e : event_list) {
 			instances_sorted_events[e].erase(inst);
 		}
 

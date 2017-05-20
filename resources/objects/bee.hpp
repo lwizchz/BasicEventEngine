@@ -51,8 +51,7 @@ void ObjBee::create(BEE::InstanceData* self) {
 	update(self);
 
 	self->get_physbody()->set_mass(0.0);
-	double p[3] = {100.0, 100.0, 100.0};
-	self->get_physbody()->set_shape(BEE_PHYS_SHAPE_BOX, p);
+	self->get_physbody()->set_shape(BEE_PHYS_SHAPE_BOX, new double[3] {100.0, 100.0, 100.0});
 	self->get_physbody()->add_constraint(BEE_PHYS_CONSTRAINT_2D, nullptr);
 
 	// create event
@@ -70,44 +69,53 @@ void ObjBee::create(BEE::InstanceData* self) {
 		(*s)["camz"] = 0.0;
 		(*s)["camspeed"] = 2.0;
 
-		BEE::ParticleSystem* part_system = new BEE::ParticleSystem(game);
-		//part_system->following = nullptr;
+		(*s)["serialdata"] = self->serialize();
 
-		//BEE::Particle* part_done = new BEE::Particle(game, pt_shape_explosion, 0.5, 100);
+		bool enable_partsys = false;
+		if (enable_partsys) {
+			BEE::ParticleSystem* part_system = new BEE::ParticleSystem(game);
+			//part_system->following = nullptr;
 
-		BEE::Particle* part_firework = new BEE::Particle(game, pt_shape_snow, 0.5, 10000, true);
-		//BEE::Particle* part_firework = new BEE::Particle(game, spr_bee, 0.5, 10000, true);
-		part_firework->velocity = {20.0, 270.0};
-		part_firework->angle_increase = 0.3;
-		//part_firework->color = game->get_enum_color(c_orange, 100);
-		//part_firework->death_type = part_done;
-		//part_firework->is_sprite_lightable = true;
+			//BEE::Particle* part_done = new BEE::Particle(game, pt_shape_explosion, 0.5, 100);
 
-		BEE::ParticleEmitter* part_emitter = new BEE::ParticleEmitter();
-		part_emitter->w = 1920;
-		part_emitter->particle_type = part_firework;
-		part_emitter->number = 3;
-		part_system->emitters.push_back(part_emitter);
+			BEE::Particle* part_firework = new BEE::Particle(game, pt_shape_snow, 0.5, 10000, true);
+			//BEE::Particle* part_firework = new BEE::Particle(game, spr_bee, 0.5, 10000, true);
+			part_firework->velocity = {20.0, 270.0};
+			part_firework->angle_increase = 0.3;
+			//part_firework->color = game->get_enum_color(c_orange, 100);
+			//part_firework->death_type = part_done;
+			//part_firework->is_sprite_lightable = true;
 
-		BEE::ParticleDestroyer* part_destroyer = new BEE::ParticleDestroyer();
-		part_destroyer->y = 1000;
-		part_destroyer->w = 1920;
-		part_system->destroyers.push_back(part_destroyer);
+			BEE::ParticleEmitter* part_emitter = new BEE::ParticleEmitter();
+			part_emitter->w = 1920;
+			part_emitter->particle_type = part_firework;
+			part_emitter->number = 3;
+			part_system->emitters.push_back(part_emitter);
 
-		BEE::ParticleAttractor* part_attr = new BEE::ParticleAttractor();
-		part_attr->x = 300;
-		part_attr->y = 1000;
-		part_attr->w = 200;
-		part_attr->h = 50;
-		part_attr->max_distance = 500;
-		part_system->attractors.push_back(part_attr);
+			BEE::ParticleDestroyer* part_destroyer = new BEE::ParticleDestroyer();
+			part_destroyer->y = 1000;
+			part_destroyer->w = 1920;
+			part_system->destroyers.push_back(part_destroyer);
 
-		//game->get_current_room()->add_particle_system(part_system);
-		//part_system->fast_forward(300);
+			BEE::ParticleAttractor* part_attr = new BEE::ParticleAttractor();
+			part_attr->x = 300;
+			part_attr->y = 1000;
+			part_attr->w = 200;
+			part_attr->h = 50;
+			part_attr->max_distance = 500;
+			part_system->attractors.push_back(part_attr);
+
+			game->get_current_room()->add_particle_system(part_system);
+			//part_system->fast_forward(300);
+		}
 	}
 }
 void ObjBee::destroy(BEE::InstanceData* self) {
 	if (self->id == 0) {
+		if (game->net_get_is_connected()) {
+			game->net_session_end();
+		}
+
 		delete (BEE::TextData*) _p("fps_display");
 	}
 	instance_data.erase(self->id);
@@ -199,61 +207,42 @@ void ObjBee::keyboard_press(BEE::InstanceData* self, SDL_Event* e) {
 		}
 
 		case SDLK_z: {
-			if (self->id == 0) {
-				game->net_session_start("test_session", 0, "hostplayer");
-				if (game->net_get_is_connected()) {
-					std::cout << "Session started\n";
-				} else {
-					std::cout << "Failed to host\n";
-				}
-			}
+			game->net_session_start("test_session", 4, "hostplayer");
 			break;
 		}
 		case SDLK_x: {
-			if (self->id == 0) {
-				game->net_session_join("127.0.0.1", "clientplayer");
-				if (game->net_get_is_connected()) {
-					std::cout << "Connected to session\n";
-				} else {
-					std::cout << "Failed to connect\n";
-				}
-			}
+			//game->net_session_join("127.0.0.1", "clientplayer");
+			game->net_session_join("192.168.1.155", "clientplayer");
 			break;
 		}
 		case SDLK_c: {
-			if (self->id == 0) {
-				std::map<std::string,std::string> servers = game->net_session_find();
-				if (!servers.empty()) {
-					std::cerr << "Available servers:\n";
-					for (auto& srv : servers) {
-						std::cerr << "\t" << srv.second << "\t" << srv.first << "\n";
-					}
-				} else {
-					std::cerr << "No servers available\n";
+			std::map<std::string,std::string> servers = game->net_session_find();
+			if (!servers.empty()) {
+				std::cerr << "Available servers:\n";
+				for (auto& srv : servers) {
+					std::cerr << "\t" << srv.second << "\t" << srv.first << "\n";
 				}
+			} else {
+				std::cerr << "No servers available\n";
 			}
 			break;
 		}
 
 		case SDLK_1: {
-			if (self->id == 0) {
-				//snd_chirp->stop();
-				snd_chirp->effect_set(bee_se_none);
+			//snd_chirp->stop();
+			snd_chirp->effect_set(bee_se_none);
 
-				if (snd_chirp->get_is_playing()) {
-					snd_chirp->rewind();
-				} else {
-					snd_chirp->play();
-				}
+			if (snd_chirp->get_is_playing()) {
+				snd_chirp->rewind();
+			} else {
+				snd_chirp->play();
 			}
 			break;
 		}
 		case SDLK_2: {
-			if (self->id == 0) {
-				snd_chirp->stop();
-				snd_chirp->effect_set(bee_se_echo);
-				snd_chirp->play();
-			}
+			snd_chirp->stop();
+			snd_chirp->effect_set(bee_se_echo);
+			snd_chirp->play();
 			break;
 		}
 
@@ -266,7 +255,12 @@ void ObjBee::keyboard_press(BEE::InstanceData* self, SDL_Event* e) {
 			break;
 		}
 		case SDLK_b: {
-			mesh_monkey->print();
+			game->messenger_send({"bee"}, BEE_MESSAGE_INFO, self->serialize(true));
+			(*s)["serialdata"] = self->serialize();
+			break;
+		}
+		case SDLK_v: {
+			self->deserialize(_s("serialdata"));
 			break;
 		}
 	}

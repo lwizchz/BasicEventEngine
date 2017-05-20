@@ -73,7 +73,8 @@ class BEE { // The master engine class which effectively acts as a namespace
 		class PhysicsWorld; class PhysicsDraw; class PhysicsBody; // The classes which interface with the external Physics library
 		struct SpriteDrawData; class TextData; class LightData; class LightableData; // Additional resource-related data structs
 
-		struct ViewData; struct BackgroundData; struct NetworkData; // The configurational structs
+		struct ViewData; struct BackgroundData; // The configurational structs
+		struct NetworkData; struct NetworkClient; // The networking subsystem structs
 		struct MessageContents; struct MessageRecipient; // The messaging subsystem structs
 		struct SIDP; // The utility structs
 		struct Console; // The console subsystem structs
@@ -438,12 +439,16 @@ class BEE { // The master engine class which effectively acts as a namespace
 		bool net_get_is_initialized() const;
 		int net_close();
 		int net_handle_events();
+		const NetworkData& net_get_data() const;
 
 		int net_session_start(const std::string&, int, const std::string&);
 		std::map<std::string,std::string> net_session_find();
 		int net_session_join(const std::string&, const std::string&);
 		bool net_get_is_connected();
 		int net_session_end();
+
+		int net_session_sync_data(const std::string&, const std::string&);
+		int net_session_sync_instance(InstanceData*);
 
 		// bee/game/console.cpp
 		int console_open();
@@ -627,6 +632,8 @@ struct BEE::ViewData {
 
 struct BEE::SIDP { // This class can hold a string, integer, double, or pointer and is meant to allow multiple types in the same container
 	int type; // Possible types: 0=string, 1=int, 2=double, 3=pointer
+	int container_type;
+
 	std::string str;
 	int integer;
 	double floating;
@@ -634,14 +641,18 @@ struct BEE::SIDP { // This class can hold a string, integer, double, or pointer 
 
 	// Initialize the variable
 	SIDP();
+	SIDP(const SIDP&);
 	SIDP(const std::string&);
 	SIDP(const std::string&, bool);
 	SIDP(int);
 	SIDP(double);
 	SIDP(void*);
+	~SIDP();
 	int reset();
 
 	int interpret(const std::string&);
+	int vector(std::vector<SIDP>*);
+	int map(std::map<SIDP,SIDP>*);
 	std::string to_str();
 
 	// Return the requested type
@@ -649,10 +660,14 @@ struct BEE::SIDP { // This class can hold a string, integer, double, or pointer 
 	int i(std::string, int);
 	double d(std::string, int);
 	void* p(std::string, int);
+	SIDP p(size_t, std::string, int);
+	SIDP p(SIDP, std::string, int);
 	std::string s();
 	int i();
 	double d();
 	void* p();
+	SIDP p(size_t);
+	SIDP p(SIDP);
 
 	SIDP& operator=(const SIDP&);
 	SIDP& operator=(const std::string&);
@@ -665,45 +680,69 @@ struct BEE::SIDP { // This class can hold a string, integer, double, or pointer 
 
 	SIDP& operator-=(const SIDP&);
 	SIDP& operator-=(int);
+
+	friend bool operator<(const SIDP&, const SIDP&);
+
+	friend std::ostream& operator<<(std::ostream&, const SIDP&);
+	friend std::istream& operator>>(std::istream&, SIDP&);
 };
 
 struct BEE::NetworkData {
 	bool is_initialized;
-	UDPsocket udp_send;
-	UDPsocket udp_recv;
+	UDPsocket udp_sock;
 	UDPpacket* udp_data;
 
 	int id;
 	bool is_connected;
 	bool is_host;
 	int channel;
+
 	Uint32 timeout;
+	Uint32 last_recv;
+
 	std::map<std::string,std::string> servers;
 
 	std::string name;
 	unsigned int max_players;
 	int self_id;
-	std::map<int,UDPsocket> players;
+	std::map<int,NetworkClient> players;
+
+	Uint8* tmp_data_buffer;
 	std::map<std::string,std::string> data;
 
 	NetworkData() :
 		is_initialized(false),
-		udp_send(nullptr),
-		udp_recv(nullptr),
+		udp_sock(nullptr),
 		udp_data(nullptr),
 
 		id(3054),
 		is_connected(false),
 		is_host(false),
 		channel(-1),
+
 		timeout(1000),
+		last_recv(0),
+
 		servers(),
 
 		name(),
 		max_players(0),
 		self_id(-1),
 		players(),
+
+		tmp_data_buffer(nullptr),
 		data()
+	{}
+};
+struct BEE::NetworkClient {
+	UDPsocket sock;
+	int channel;
+	Uint32 last_recv;
+
+	NetworkClient() :
+		sock(nullptr),
+		channel(-1),
+		last_recv(0)
 	{}
 };
 
@@ -790,6 +829,11 @@ struct BEE::Console {
 #define SIDP_i(x) x.i(__FILE__, __LINE__)
 #define SIDP_d(x) x.d(__FILE__, __LINE__)
 #define SIDP_p(x) x.p(__FILE__, __LINE__)
+#define SIDP_c(x,i) x.p(i, __FILE__, __LINE__)
+#define SIDP_cs(x,i) x.p(i, __FILE__, __LINE__).s(__FILE__, __LINE__)
+#define SIDP_ci(x,i) x.p(i, __FILE__, __LINE__).i(__FILE__, __LINE__)
+#define SIDP_cd(x,i) x.p(i, __FILE__, __LINE__).d(__FILE__, __LINE__)
+#define SIDP_cp(x,i) x.p(i, __FILE__, __LINE__).p(__FILE__, __LINE__)
 
 #include "resources/sprite.hpp"
 #include "resources/sound.hpp"

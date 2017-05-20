@@ -51,6 +51,8 @@ class BEE::PhysicsWorld {
 		int step(double);
 
 		int draw_debug();
+
+		size_t get_constraint_param_amount(bee_phys_constraint_t) const;
 };
 
 class BEE::PhysicsDraw : public btIDebugDraw {
@@ -82,6 +84,9 @@ class BEE::PhysicsBody {
 	private:
 		bee_phys_shape_t type;
 		btCollisionShape* shape = nullptr;
+		size_t shape_param_amount = 0;
+		double* shape_params = nullptr;
+
 		btDefaultMotionState* motion_state = nullptr;
 		btRigidBody* body = nullptr;
 
@@ -95,6 +100,10 @@ class BEE::PhysicsBody {
 	public:
 		PhysicsBody(PhysicsWorld*, InstanceData*, bee_phys_shape_t, double, double, double, double, double*);
 		~PhysicsBody();
+
+		std::string serialize(bool) const;
+		std::string serialize() const;
+		int deserialize(const std::string&);
 
 		int attach(PhysicsWorld*);
 		int remove();
@@ -122,6 +131,9 @@ class BEE::PhysicsBody {
 		int remove_constraints();
 
 		int update_state();
+
+		size_t get_shape_param_amount(bee_phys_shape_t, int) const;
+		size_t get_shape_param_amount(bee_phys_shape_t) const;
 };
 
 #endif // _BEE_PHYSICS_H
