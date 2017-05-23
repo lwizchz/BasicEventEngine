@@ -10,14 +10,14 @@
 #define _BEE_ENUM_H 1
 
 enum bee_se_t {
-	bee_se_none       = (1u << 0),
-	bee_se_chorus     = (1u << 1),
-	bee_se_echo       = (1u << 2),
-	bee_se_flanger    = (1u << 3),
-	bee_se_gargle     = (1u << 4),
-	bee_se_reverb     = (1u << 5),
-	bee_se_compressor = (1u << 6),
-	bee_se_equalizer  = (1u << 7)
+	BEE_SE_NONE       = (1u << 0),
+	BEE_SE_CHORUS     = (1u << 1),
+	BEE_SE_ECHO       = (1u << 2),
+	BEE_SE_FLANGER    = (1u << 3),
+	BEE_SE_GARGLE     = (1u << 4),
+	BEE_SE_REVERB     = (1u << 5),
+	BEE_SE_COMPRESSOR = (1u << 6),
+	BEE_SE_EQUALIZER  = (1u << 7)
 };
 
 enum bee_rgba_t {
@@ -157,6 +157,44 @@ enum bee_path_end_t {
 	BEE_PATH_END_RESTART,
 	BEE_PATH_END_CONTINUE,
 	BEE_PATH_END_REVERSE
+};
+
+// Particles
+enum bee_pt_shape_t {
+	BEE_PT_SHAPE_PIXEL,
+	BEE_PT_SHAPE_DISK,
+	BEE_PT_SHAPE_SQUARE,
+	BEE_PT_SHAPE_LINE,
+	BEE_PT_SHAPE_STAR,
+	BEE_PT_SHAPE_CIRCLE,
+	BEE_PT_SHAPE_RING,
+	BEE_PT_SHAPE_SPHERE,
+	BEE_PT_SHAPE_FLARE,
+	BEE_PT_SHAPE_SPARK,
+	BEE_PT_SHAPE_EXPLOSION,
+	BEE_PT_SHAPE_CLOUD,
+	BEE_PT_SHAPE_SMOKE,
+	BEE_PT_SHAPE_SNOW
+};
+enum bee_ps_shape_t {
+	BEE_PS_SHAPE_RECTANGLE,
+	BEE_PS_SHAPE_LINE,
+	BEE_PS_SHAPE_CIRCLE
+};
+enum bee_ps_distr_t {
+	BEE_PS_DISTR_LINEAR,
+	BEE_PS_DISTR_GAUSSIAN,
+	BEE_PS_DISTR_INVGAUSSIAN
+};
+enum bee_ps_force_t {
+	BEE_PS_FORCE_CONSTANT,
+	BEE_PS_FORCE_LINEAR,
+	BEE_PS_FORCE_QUADRATIC
+};
+enum bee_ps_change_t {
+	BEE_PS_CHANGE_MOTION,
+	BEE_PS_CHANGE_LOOK,
+	BEE_PS_CHANGE_ALL
 };
 
 #endif // _BEE_ENUM_H

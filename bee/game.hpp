@@ -69,7 +69,7 @@ class BEE { // The master engine class which effectively acts as a namespace
 		class Particle; class ParticleData; class ParticleEmitter; class ParticleAttractor; class ParticleDestroyer; class ParticleDeflector; class ParticleChanger; class ParticleSystem; // The particle system components
 		class Light; class Camera; // The OpenGL-only resources (poor SDL implementations may exist)
 		class ProgramFlags; class GameOptions; class RGBA; // The engine related data
-		class InstanceData; class SoundGroup; // The additional resource data types
+		class Instance; // The additional resource data types
 		class PhysicsWorld; class PhysicsDraw; class PhysicsBody; // The classes which interface with the external Physics library
 		struct SpriteDrawData; class TextData; class LightData; class LightableData; // Additional resource-related data structs
 
@@ -372,7 +372,7 @@ class BEE { // The master engine class which effectively acts as a namespace
 		int set_mouse_global_position(int, int) const;
 		int set_mouse_global_x(int) const;
 		int set_mouse_global_y(int) const;
-		bool is_mouse_inside(const InstanceData&) const;
+		bool is_mouse_inside(const Instance&) const;
 		bool get_key_state(SDL_Scancode) const;
 		bool get_key_state(SDL_Keycode) const;
 		bool get_mod_state(Uint8) const;
@@ -448,7 +448,7 @@ class BEE { // The master engine class which effectively acts as a namespace
 		int net_session_end();
 
 		int net_session_sync_data(const std::string&, const std::string&);
-		int net_session_sync_instance(InstanceData*);
+		int net_session_sync_instance(Instance*);
 
 		// bee/game/console.cpp
 		int console_open();
@@ -474,366 +474,33 @@ class BEE { // The master engine class which effectively acts as a namespace
 typedef std::tuple<double, double, double, double> bee_path_coord; // {x, y, z, speed}
 typedef std::multimap<Uint32, std::pair<std::string,std::function<void()>>> bee_timeline_list;
 
-struct BEE::Camera {
-	glm::vec3 position;
-	glm::vec3 direction;
-	glm::vec3 orientation;
+#include "init/gameoptions.hpp"
+#include "init/programflags.hpp"
 
-	float width, height;
+#include "core/sidp.hpp" // Include the structs which are used in other classes
+#include "render/rgba.hpp"
 
-	float fov;
-	float z_near, z_far;
+#include "core/console.hpp"
+#include "core/instance.hpp"
+#include "core/messenger/messagecontents.hpp"
+#include "core/messenger/messagerecipient.hpp"
+#include "core/network/networkdata.hpp"
+#include "core/network/networkclient.hpp"
 
-	Camera() :
-		position(),
-		direction(),
-		orientation(),
+#include "render/camera.hpp"
+#include "render/viewdata.hpp"
+#include "render/particle/particle.hpp"
+#include "render/particle/particledata.hpp"
+#include "render/particle/emitter.hpp"
+#include "render/particle/attractor.hpp"
+#include "render/particle/destroyer.hpp"
+#include "render/particle/deflector.hpp"
+#include "render/particle/changer.hpp"
+#include "render/particle/system.hpp"
 
-		width(0.0),
-		height(0.0),
-
-		fov(90.0),
-		z_near(1.0),
-		z_far(10000.0)
-	{}
-	Camera(float w, float h) :
-		position(),
-		direction(),
-		orientation(),
-
-		width(w),
-		height(h),
-
-		fov(90.0),
-		z_near(1.0),
-		z_far(10000.0)
-	{}
-	Camera(glm::vec3 p, glm::vec3 d, glm::vec3 o) :
-		position(p),
-		direction(d),
-		orientation(o),
-
-		width(0.0),
-		height(0.0),
-
-		fov(90.0),
-		z_near(1.0),
-		z_far(10000.0)
-	{}
-};
-
-struct BEE::ProgramFlags {
-	std::string longopt;
-	char shortopt;
-	bool pre_init;
-	int has_arg;
-	std::function<void (BEE*, char*)> func;
-
-	ProgramFlags() :
-		longopt(),
-		shortopt('\0'),
-		pre_init(true),
-		has_arg(no_argument),
-		func(nullptr)
-	{}
-	ProgramFlags(std::string l, char s, bool p, int a, std::function<void (BEE*, char*)> f) :
-		longopt(l),
-		shortopt(s),
-		pre_init(p),
-		has_arg(a),
-		func(f)
-	{}
-};
-struct BEE::GameOptions {
-	// Window options
-	bool is_fullscreen, is_borderless;
-	bool is_resizable, is_maximized;
-	bool is_highdpi, is_visible;
-	bool is_minimized;
-
-	// Renderer options
-	bee_renderer_t renderer_type;
-	bool is_vsync_enabled;
-	bool is_basic_shaders_enabled;
-
-	// Miscellaneous options
-	bool is_network_enabled;
-	bool is_debug_enabled;
-
-	// Commandline flags
-	bool should_assert;
-	bool single_run;
-
-	GameOptions() :
-		is_fullscreen(true),
-		is_borderless(true),
-		is_resizable(true),
-		is_maximized(true),
-		is_highdpi(false),
-		is_visible(true),
-		is_minimized(false),
-
-		renderer_type(BEE_RENDERER_OPENGL3),
-		is_vsync_enabled(false),
-		is_basic_shaders_enabled(false),
-
-		is_network_enabled(true),
-		is_debug_enabled(false),
-
-		should_assert(true),
-		single_run(false)
-	{}
-	GameOptions(bool f, bool b, bool r, bool m, bool h, bool v, bee_renderer_t rend, bool vsync, bool bs, bool n, bool d) :
-		is_fullscreen(f),
-		is_borderless(b),
-		is_resizable(r),
-		is_maximized(m),
-		is_highdpi(h),
-		is_visible(v),
-		is_minimized(false),
-
-		renderer_type(rend),
-		is_vsync_enabled(vsync),
-		is_basic_shaders_enabled(bs),
-
-		is_network_enabled(n),
-		is_debug_enabled(d),
-
-		should_assert(true),
-		single_run(false)
-	{}
-};
-
-struct BEE::RGBA {
-	Uint8 r, g, b, a;
-
-	RGBA() :
-		r(0),
-		g(0),
-		b(0),
-		a(0)
-	{}
-	RGBA(Uint8 nr, Uint8 ng, Uint8 nb, Uint8 na) :
-		r(nr),
-		g(ng),
-		b(nb),
-		a(na)
-	{}
-};
-
-struct BEE::ViewData {
-	bool is_visible;
-	int view_x, view_y, view_width, view_height;
-	int port_x, port_y, port_width, port_height;
-	BEE::InstanceData* following;
-	int horizontal_border, vertical_border;
-	int horizontal_speed, vertical_speed;
-};
-
-struct BEE::SIDP { // This class can hold a string, integer, double, or pointer and is meant to allow multiple types in the same container
-	int type; // Possible types: 0=string, 1=int, 2=double, 3=pointer
-	int container_type;
-
-	std::string str;
-	int integer;
-	double floating;
-	void* pointer;
-
-	// Initialize the variable
-	SIDP();
-	SIDP(const SIDP&);
-	SIDP(const std::string&);
-	SIDP(const std::string&, bool);
-	SIDP(int);
-	SIDP(double);
-	SIDP(void*);
-	~SIDP();
-	int reset();
-
-	int interpret(const std::string&);
-	int vector(std::vector<SIDP>*);
-	int map(std::map<SIDP,SIDP>*);
-	std::string to_str();
-
-	// Return the requested type
-	std::string s(std::string, int);
-	int i(std::string, int);
-	double d(std::string, int);
-	void* p(std::string, int);
-	SIDP p(size_t, std::string, int);
-	SIDP p(SIDP, std::string, int);
-	std::string s();
-	int i();
-	double d();
-	void* p();
-	SIDP p(size_t);
-	SIDP p(SIDP);
-
-	SIDP& operator=(const SIDP&);
-	SIDP& operator=(const std::string&);
-	SIDP& operator=(int);
-	SIDP& operator=(double);
-	SIDP& operator=(void*);
-
-	SIDP& operator+=(const SIDP&);
-	SIDP& operator+=(int);
-
-	SIDP& operator-=(const SIDP&);
-	SIDP& operator-=(int);
-
-	friend bool operator<(const SIDP&, const SIDP&);
-
-	friend std::ostream& operator<<(std::ostream&, const SIDP&);
-	friend std::istream& operator>>(std::istream&, SIDP&);
-};
-
-struct BEE::NetworkData {
-	bool is_initialized;
-	UDPsocket udp_sock;
-	UDPpacket* udp_data;
-
-	int id;
-	bool is_connected;
-	bool is_host;
-	int channel;
-
-	Uint32 timeout;
-	Uint32 last_recv;
-
-	std::map<std::string,std::string> servers;
-
-	std::string name;
-	unsigned int max_players;
-	int self_id;
-	std::map<int,NetworkClient> players;
-
-	Uint8* tmp_data_buffer;
-	std::map<std::string,std::string> data;
-
-	NetworkData() :
-		is_initialized(false),
-		udp_sock(nullptr),
-		udp_data(nullptr),
-
-		id(3054),
-		is_connected(false),
-		is_host(false),
-		channel(-1),
-
-		timeout(1000),
-		last_recv(0),
-
-		servers(),
-
-		name(),
-		max_players(0),
-		self_id(-1),
-		players(),
-
-		tmp_data_buffer(nullptr),
-		data()
-	{}
-};
-struct BEE::NetworkClient {
-	UDPsocket sock;
-	int channel;
-	Uint32 last_recv;
-
-	NetworkClient() :
-		sock(nullptr),
-		channel(-1),
-		last_recv(0)
-	{}
-};
-
-struct BEE::MessageContents {
-	bool has_processed;
-	Uint32 tickstamp;
-	std::vector<std::string> tags;
-	bee_message_t type;
-	std::string descr;
-	std::shared_ptr<void> data;
-
-	MessageContents() :
-		has_processed(false),
-		tickstamp(0),
-		tags(),
-		type(BEE_MESSAGE_GENERAL),
-		descr(),
-		data(nullptr)
-	{}
-	MessageContents(Uint32 tm, std::vector<std::string> tg, bee_message_t tp, std::string de, std::shared_ptr<void> da) :
-		has_processed(false),
-		tickstamp(tm),
-		tags(tg),
-		type(tp),
-		descr(de),
-		data(da)
-	{}
-};
-struct BEE::MessageRecipient {
-	std::string name;
-	std::vector<std::string> tags;
-	bool is_strict;
-	std::function<void (BEE*, std::shared_ptr<MessageContents>)> func = nullptr;
-
-	MessageRecipient() :
-		name(),
-		tags(),
-		is_strict(false),
-		func(nullptr)
-	{}
-	MessageRecipient(std::string n, std::vector<std::string> t, bool s, std::function<void (BEE*, std::shared_ptr<MessageContents>)> f) :
-		name(n),
-		tags(t),
-		is_strict(s),
-		func(f)
-	{}
-};
-
-struct BEE::Console {
-	bool is_open;
-
-	std::unordered_map<std::string,std::pair<std::string,std::function<void (BEE*, std::shared_ptr<MessageContents>)>>> commands;
-	std::unordered_map<std::string,std::string> aliases;
-	std::unordered_map<std::string,SIDP> variables;
-
-	std::map<SDL_Keycode,std::string> bindings;
-
-	std::string input;
-
-	std::vector<std::string> history;
-	int history_index;
-
-	std::stringstream log;
-	size_t page_index;
-
-	std::vector<std::string> completion_commands;
-	int completion_index;
-	std::string input_tmp;
-
-	// Set the drawing sizes
-	unsigned int x;
-	unsigned int y;
-	unsigned int w;
-	unsigned int h;
-	unsigned int line_height;
-
-	TextData* td_log;
-
-	Console();
-	~Console();
-};
-
-#define SIDP_s(x) x.s(__FILE__, __LINE__)
-#define SIDP_i(x) x.i(__FILE__, __LINE__)
-#define SIDP_d(x) x.d(__FILE__, __LINE__)
-#define SIDP_p(x) x.p(__FILE__, __LINE__)
-#define SIDP_c(x,i) x.p(i, __FILE__, __LINE__)
-#define SIDP_cs(x,i) x.p(i, __FILE__, __LINE__).s(__FILE__, __LINE__)
-#define SIDP_ci(x,i) x.p(i, __FILE__, __LINE__).i(__FILE__, __LINE__)
-#define SIDP_cd(x,i) x.p(i, __FILE__, __LINE__).d(__FILE__, __LINE__)
-#define SIDP_cp(x,i) x.p(i, __FILE__, __LINE__).p(__FILE__, __LINE__)
+#include "physics/world.hpp"
+#include "physics/draw.hpp"
+#include "physics/body.hpp"
 
 #include "resources/sprite.hpp"
 #include "resources/sound.hpp"
@@ -842,12 +509,8 @@ struct BEE::Console {
 #include "resources/path.hpp"
 #include "resources/timeline.hpp"
 #include "resources/mesh.hpp"
-#include "resources/object.hpp"
 #include "resources/light.hpp"
-#include "resources/ext/instancedata.hpp"
-#include "resources/ext/physics.hpp"
-#include "resources/ext/particle.hpp"
-#include "resources/ext/soundgroup.hpp"
+#include "resources/object.hpp"
 #include "resources/room.hpp"
 
 #endif // _BEE_GAME_H

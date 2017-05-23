@@ -11,16 +11,6 @@
 
 #include "util.hpp" // Include the function declarations
 
-#include "util/platform.hpp" // Include the platform compatibility functions
-#include "util/real.hpp" // Include the real number functions
-#include "util/string.hpp" // Include the string handling functions
-#include "util/dates.hpp" // Include the date and time funcitons
-#include "util/collision.hpp" // Include the collision checking functions
-#include "util/sound.hpp" // Include the sound effect functions
-#include "util/messagebox.hpp" // Include the message box functions
-#include "util/files.hpp" // Include the file handling functions
-#include "util/network.hpp" // Include the networking functions
-
 #ifndef NDEBUG // Allow the NDEBUG to disable debug support at compile time
 
 #define DOCTEST_CONFIG_IMPLEMENT

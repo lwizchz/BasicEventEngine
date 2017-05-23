@@ -30,7 +30,7 @@ BEE::Sound::Sound() :
 	is_looping(false),
 	has_play_failed(false),
 
-	sound_effects(bee_se_none),
+	sound_effects(BEE_SE_NONE),
 	chorus_data(new se_chorus_data()),
 	echo_data(new se_echo_data()),
 	flanger_data(new se_flanger_data()),
@@ -644,33 +644,33 @@ int BEE::Sound::effect_set(int new_sound_effects) {
 * @se_mask: the desired sound effects to register
 */
 int BEE::Sound::effect_add(int channel, int se_mask) {
-	if (se_mask & bee_se_none) { // If no effects are desired, remove all previous effects
+	if (se_mask & BEE_SE_NONE) { // If no effects are desired, remove all previous effects
 		Mix_UnregisterAllEffects(channel); // Remove the effects
 		effect_reset_data(); // Reset the effect data
 	} else { // Otherwise set the desired effects
-		if (se_mask & bee_se_chorus) { // If the chorus effect is requeted, apply it
+		if (se_mask & BEE_SE_CHORUS) { // If the chorus effect is requeted, apply it
 			Mix_RegisterEffect(channel, sound_effect_chorus, sound_effect_chorus_cleanup, chorus_data);
 		}
-		if (se_mask & bee_se_echo) { // If the echo effect is requeted, apply it
+		if (se_mask & BEE_SE_ECHO) { // If the echo effect is requeted, apply it
 			Mix_RegisterEffect(channel, sound_effect_echo, sound_effect_echo_cleanup, echo_data);
 		}
-		if (se_mask & bee_se_flanger) { // If the flanger effect is requeted, apply it
+		if (se_mask & BEE_SE_FLANGER) { // If the flanger effect is requeted, apply it
 			Mix_RegisterEffect(channel, sound_effect_flanger, sound_effect_flanger_cleanup, flanger_data);
 		}
 		// Output warnings for the gargle, reverb, compressor, and equalizer effects which are currently unimplemented
-		if (se_mask & bee_se_gargle) { // If the gargle effect is requeted, apply it
+		if (se_mask & BEE_SE_GARGLE) { // If the gargle effect is requeted, apply it
 			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "The gargle sound effect is currently unimplemented and will have no effect");
 			Mix_RegisterEffect(channel, sound_effect_gargle, sound_effect_gargle_cleanup, gargle_data);
 		}
-		if (se_mask & bee_se_reverb) { // If the reverb effect is requeted, apply it
+		if (se_mask & BEE_SE_REVERB) { // If the reverb effect is requeted, apply it
 			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "The reverb sound effect is currently unimplemented and will have no effect");
 			Mix_RegisterEffect(channel, sound_effect_reverb, sound_effect_reverb_cleanup, reverb_data);
 		}
-		if (se_mask & bee_se_compressor) { // If the compressor effect is requeted, apply it
+		if (se_mask & BEE_SE_COMPRESSOR) { // If the compressor effect is requeted, apply it
 			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "The compressor sound effect is currently unimplemented and will have no effect");
 			Mix_RegisterEffect(channel, sound_effect_compressor, sound_effect_compressor_cleanup, compressor_data);
 		}
-		if (se_mask & bee_se_equalizer) { // If the equalizer effect is requeted, apply it
+		if (se_mask & BEE_SE_EQUALIZER) { // If the equalizer effect is requeted, apply it
 			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "The equalizer sound effect is currently unimplemented and will have no effect");
 			Mix_RegisterEffect(channel, sound_effect_equalizer, sound_effect_equalizer_cleanup, equalizer_data);
 		}
@@ -684,33 +684,33 @@ int BEE::Sound::effect_add(int channel, int se_mask) {
 * @se_mask: the desired sound effects to register
 */
 int BEE::Sound::effect_add_post(int se_mask) {
-	if (se_mask & bee_se_none) { // If no effects are desired, remove all previous effects
+	if (se_mask & BEE_SE_NONE) { // If no effects are desired, remove all previous effects
 		Mix_UnregisterAllEffects(MIX_CHANNEL_POST); // Remove the effects
 		effect_reset_data(); // Reset the effect data
 	} else { // Otherwise set the desired effect
-		if (se_mask & bee_se_chorus) { // If the chorus effect is requested, apply it
+		if (se_mask & BEE_SE_CHORUS) { // If the chorus effect is requested, apply it
 			Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_chorus, sound_effect_chorus_cleanup, chorus_data);
 		}
-		if (se_mask & bee_se_echo) { // If the echo effect is requested, apply it
+		if (se_mask & BEE_SE_ECHO) { // If the echo effect is requested, apply it
 			Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_echo, sound_effect_echo_cleanup, echo_data);
 		}
-		if (se_mask & bee_se_flanger) { // If the flanger effect is requested, apply it
+		if (se_mask & BEE_SE_FLANGER) { // If the flanger effect is requested, apply it
 			Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_flanger, sound_effect_flanger_cleanup, flanger_data);
 		}
 		// Output warnings for the gargle, reverb, compressor, and equalizer effects which are currently unimplemented
-		if (se_mask & bee_se_gargle) { // If the gargle effect is requested, apply it
+		if (se_mask & BEE_SE_GARGLE) { // If the gargle effect is requested, apply it
 			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "The gargle sound effect is currently unimplemented and will have no effect");
 			Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_gargle, sound_effect_gargle_cleanup, gargle_data);
 		}
-		if (se_mask & bee_se_reverb) { // If the reverb effect is requested, apply it
+		if (se_mask & BEE_SE_REVERB) { // If the reverb effect is requested, apply it
 			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "The reverb sound effect is currently unimplemented and will have no effect");
 			Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_reverb, sound_effect_reverb_cleanup, reverb_data);
 		}
-		if (se_mask & bee_se_compressor) { // If the compressor effect is requested, apply it
+		if (se_mask & BEE_SE_COMPRESSOR) { // If the compressor effect is requested, apply it
 			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "The compressor sound effect is currently unimplemented and will have no effect");
 			Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_compressor, sound_effect_compressor_cleanup, compressor_data);
 		}
-		if (se_mask & bee_se_equalizer) { // If the equalizer effect is requested, apply it
+		if (se_mask & BEE_SE_EQUALIZER) { // If the equalizer effect is requested, apply it
 			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "The equalizer sound effect is currently unimplemented and will have no effect");
 			Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_equalizer, sound_effect_equalizer_cleanup, equalizer_data);
 		}
@@ -725,47 +725,47 @@ int BEE::Sound::effect_add_post(int se_mask) {
 * @se_mask: the desired sound effects to unregister
 */
 int BEE::Sound::effect_remove(int channel, int se_mask) {
-	if (se_mask & bee_se_none) { // If there are no undesired sound effects, do not attempt to remove any
+	if (se_mask & BEE_SE_NONE) { // If there are no undesired sound effects, do not attempt to remove any
 		return 0; // Return 0 on success
 	}
 
-	if (se_mask & bee_se_chorus) { // If the chorus effect is no longer desired, remove it and clean up the old data
+	if (se_mask & BEE_SE_CHORUS) { // If the chorus effect is no longer desired, remove it and clean up the old data
 		Mix_UnregisterEffect(channel, sound_effect_chorus); // Unregister the effect
 		if (chorus_data != nullptr) { // Clean up the old data
 			sound_effect_chorus_cleanup(-1, (void*)chorus_data);
 		}
 	}
-	if (se_mask & bee_se_echo) { // If the echo effect is no longer desired, remove it and clean up the old data
+	if (se_mask & BEE_SE_ECHO) { // If the echo effect is no longer desired, remove it and clean up the old data
 		Mix_UnregisterEffect(channel, sound_effect_echo); // Unregister the effect
 		if (echo_data != nullptr) { // Clean up the old data
 			sound_effect_echo_cleanup(-1, (void*)echo_data);
 		}
 	}
-	if (se_mask & bee_se_flanger) { // If the flanger effect is no longer desired, remove it and clean up the old data
+	if (se_mask & BEE_SE_FLANGER) { // If the flanger effect is no longer desired, remove it and clean up the old data
 		Mix_UnregisterEffect(channel, sound_effect_flanger); // Unregister the effect
 		if (flanger_data != nullptr) { // Clean up the old data
 			sound_effect_flanger_cleanup(-1, (void*)flanger_data);
 		}
 	}
-	if (se_mask & bee_se_gargle) { // If the gargle effect is no longer desired, remove it and clean up the old data
+	if (se_mask & BEE_SE_GARGLE) { // If the gargle effect is no longer desired, remove it and clean up the old data
 		Mix_UnregisterEffect(channel, sound_effect_gargle); // Unregister the effect
 		if (gargle_data != nullptr) { // Clean up the old data
 			sound_effect_gargle_cleanup(-1, (void*)gargle_data);
 		}
 	}
-	if (se_mask & bee_se_reverb) { // If the reverb effect is no longer desired, remove it and clean up the old data
+	if (se_mask & BEE_SE_REVERB) { // If the reverb effect is no longer desired, remove it and clean up the old data
 		Mix_UnregisterEffect(channel, sound_effect_reverb); // Unregister the effect
 		if (reverb_data != nullptr) { // Clean up the old data
 			sound_effect_reverb_cleanup(-1, (void*)reverb_data);
 		}
 	}
-	if (se_mask & bee_se_compressor) { // If the compressor effect is no longer desired, remove it and clean up the old data
+	if (se_mask & BEE_SE_COMPRESSOR) { // If the compressor effect is no longer desired, remove it and clean up the old data
 		Mix_UnregisterEffect(channel, sound_effect_compressor); // Unregister the effect
 		if (compressor_data != nullptr) { // Clean up the old data
 			sound_effect_compressor_cleanup(-1, (void*)compressor_data);
 		}
 	}
-	if (se_mask & bee_se_equalizer) { // If the equalizer effect is no longer desired, remove it and clean up the old data
+	if (se_mask & BEE_SE_EQUALIZER) { // If the equalizer effect is no longer desired, remove it and clean up the old data
 		Mix_UnregisterEffect(channel, sound_effect_equalizer); // Unregister the effect
 		if (equalizer_data != nullptr) { // Clean up the old data
 			sound_effect_equalizer_cleanup(-1, (void*)equalizer_data);
@@ -780,47 +780,47 @@ int BEE::Sound::effect_remove(int channel, int se_mask) {
 * @se_mask: the desired sound effects to unregister
 */
 int BEE::Sound::effect_remove_post(int se_mask) {
-	if (se_mask & bee_se_none) { // If there are no undesired sound effects, do not attempt to remove any
+	if (se_mask & BEE_SE_NONE) { // If there are no undesired sound effects, do not attempt to remove any
 		return 0; // Return 0 on success
 	}
 
-	if (se_mask & bee_se_chorus) { // If the chorus effect is no longer desired, remove it and clean up the old data
+	if (se_mask & BEE_SE_CHORUS) { // If the chorus effect is no longer desired, remove it and clean up the old data
 		Mix_UnregisterEffect(MIX_CHANNEL_POST, sound_effect_chorus); // Unregister the effect
 		if (chorus_data != nullptr) { // Clean up the old data
 			sound_effect_chorus_cleanup(-1, (void*)chorus_data);
 		}
 	}
-	if (se_mask & bee_se_echo) { // If the echo effect is no longer desired, remove it and clean up the old data
+	if (se_mask & BEE_SE_ECHO) { // If the echo effect is no longer desired, remove it and clean up the old data
 		Mix_UnregisterEffect(MIX_CHANNEL_POST, sound_effect_echo); // Unregister the effect
 		if (echo_data != nullptr) { // Clean up the old data
 			sound_effect_echo_cleanup(-1, (void*)echo_data);
 		}
 	}
-	if (se_mask & bee_se_flanger) { // If the flanger effect is no longer desired, remove it and clean up the old data
+	if (se_mask & BEE_SE_FLANGER) { // If the flanger effect is no longer desired, remove it and clean up the old data
 		Mix_UnregisterEffect(MIX_CHANNEL_POST, sound_effect_flanger); // Unregister the effect
 		if (flanger_data != nullptr) { // Clean up the old data
 			sound_effect_flanger_cleanup(-1, (void*)flanger_data);
 		}
 	}
-	if (se_mask & bee_se_gargle) { // If the gargle effect is no longer desired, remove it and clean up the old data
+	if (se_mask & BEE_SE_GARGLE) { // If the gargle effect is no longer desired, remove it and clean up the old data
 		Mix_UnregisterEffect(MIX_CHANNEL_POST, sound_effect_gargle); // Unregister the effect
 		if (gargle_data != nullptr) { // Clean up the old data
 			sound_effect_gargle_cleanup(-1, (void*)gargle_data);
 		}
 	}
-	if (se_mask & bee_se_reverb) { // If the reverb effect is no longer desired, remove it and clean up the old data
+	if (se_mask & BEE_SE_REVERB) { // If the reverb effect is no longer desired, remove it and clean up the old data
 		Mix_UnregisterEffect(MIX_CHANNEL_POST, sound_effect_reverb); // Unregister the effect
 		if (reverb_data != nullptr) { // Clean up the old data
 			sound_effect_reverb_cleanup(-1, (void*)reverb_data);
 		}
 	}
-	if (se_mask & bee_se_compressor) { // If the compressor effect is no longer desired, remove it and clean up the old data
+	if (se_mask & BEE_SE_COMPRESSOR) { // If the compressor effect is no longer desired, remove it and clean up the old data
 		Mix_UnregisterEffect(MIX_CHANNEL_POST, sound_effect_compressor); // Unregister the effect
 		if (compressor_data != nullptr) { // Clean up the old data
 			sound_effect_compressor_cleanup(-1, (void*)compressor_data);
 		}
 	}
-	if (se_mask & bee_se_equalizer) { // If the equalizer effect is no longer desired, remove it and clean up the old data
+	if (se_mask & BEE_SE_EQUALIZER) { // If the equalizer effect is no longer desired, remove it and clean up the old data
 		Mix_UnregisterEffect(MIX_CHANNEL_POST, sound_effect_equalizer); // Unregister the effect
 		if (equalizer_data != nullptr) { // Clean up the old data
 			sound_effect_equalizer_cleanup(-1, (void*)equalizer_data);

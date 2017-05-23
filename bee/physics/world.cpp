@@ -1,0 +1,343 @@
+/*
+* Copyright (c) 2015-17 Luke Montalvo <lukemontalvo@gmail.com>
+*
+* This file is part of BEE.
+* BEE is free software and comes with ABSOLUTELY NO WARANTY.
+* See LICENSE for more details.
+*/
+
+#ifndef _BEE_PHYSICS_WORLD
+#define _BEE_PHYSICS_WORLD 1
+
+#include "world.hpp"
+
+BEE::PhysicsWorld::PhysicsWorld(BEE* new_game) :
+	attached_game(new_game)
+{
+	collision_configuration = new btDefaultCollisionConfiguration();
+	dispatcher = new btCollisionDispatcher(collision_configuration);
+	broadphase = new btDbvtBroadphase();
+	solver = new btSequentialImpulseConstraintSolver();
+	world = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collision_configuration);
+
+	debug_draw = new PhysicsDraw();
+	debug_draw->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
+	world->setDebugDrawer(debug_draw);
+	debug_draw->attach(attached_game, this);
+
+	set_gravity(gravity);
+	set_scale(scale);
+
+	//world->setInternalTickCallback(Room::collision_internal, static_cast<void*>(this), true);
+	world->setInternalTickCallback(Room::collision_internal, static_cast<void*>(this));
+
+	//dispatcher->setNearCallback(Room::check_collision_lists);
+}
+BEE::PhysicsWorld::~PhysicsWorld() {
+	delete debug_draw;
+
+	delete world;
+	delete solver;
+	delete broadphase;
+	delete dispatcher;
+	delete collision_configuration;
+}
+
+BEE* BEE::PhysicsWorld::get_game() const {
+	return attached_game;
+}
+btVector3 BEE::PhysicsWorld::get_gravity() const {
+	return gravity;
+}
+double BEE::PhysicsWorld::get_scale() const {
+	return scale;
+}
+btDispatcher* BEE::PhysicsWorld::get_dispatcher() const {
+	return world->getDispatcher();
+}
+
+int BEE::PhysicsWorld::set_gravity(btVector3 new_gravity) {
+	gravity = new_gravity;
+	//world->setGravity(gravity);
+	world->setGravity(10.0*gravity/scale);
+	return 0;
+}
+int BEE::PhysicsWorld::set_scale(double new_scale) {
+	if (new_scale != scale) {
+		int a = 0;
+
+		for (int i=world->getNumConstraints()-1; i>=0; --i, ++a) {
+			btTypedConstraint* c = world->getConstraint(i);
+			remove_constraint(c);
+			delete c;
+		}
+
+		for (int i=world->getNumCollisionObjects()-1; i>=0; --i, ++a) {
+			btCollisionObject* obj = world->getCollisionObjectArray()[i];
+			btRigidBody* body = btRigidBody::upcast(obj);
+
+			if ((body)&&(body->getMotionState())) {
+				delete body->getMotionState();
+			}
+
+			world->removeRigidBody(body);
+			delete obj;
+		}
+
+		if (a > 0) {
+			std::cerr << "PHYS WARN scale change occurred with " << a << " non-removed objects and constraints, they have been deleted\n";
+		}
+	}
+
+	scale = new_scale;
+	world->setGravity(10.0*gravity/scale);
+
+	return 0;
+}
+
+int BEE::PhysicsWorld::add_body(PhysicsBody* new_body) {
+	if (scale != new_body->get_scale()) {
+		std::cerr << "PHYS WARN failed to add body to world: scale mismatch: world(" << scale << "), body(" << new_body->get_scale() << ")\n";
+		return 1;
+	}
+
+	world->addRigidBody(new_body->get_body());
+	new_body->attach(this);
+
+	return 0;
+}
+int BEE::PhysicsWorld::add_constraint(bee_phys_constraint_t type, PhysicsBody* body, double* p) {
+	btTypedConstraint* constraint = nullptr;
+
+	bool should_disable_collisions = false;
+	switch (type) {
+		case BEE_PHYS_CONSTRAINT_POINT: {
+			btPoint2PointConstraint* c = new btPoint2PointConstraint(*(body->get_body()), btVector3(p[0], p[1], p[2]));
+			world->addConstraint(c, should_disable_collisions);
+
+			constraint = c;
+			break;
+		}
+		case BEE_PHYS_CONSTRAINT_HINGE: {
+			btHingeConstraint* c = new btHingeConstraint(*(body->get_body()), btVector3(p[0], p[1], p[2]), btVector3(p[3], p[4], p[5]));
+			world->addConstraint(c, should_disable_collisions);
+
+			constraint = c;
+			break;
+		}
+		case BEE_PHYS_CONSTRAINT_SLIDER: {
+			btSliderConstraint* c = new btSliderConstraint(*(body->get_body()), btTransform::getIdentity(), true);
+			world->addConstraint(c, should_disable_collisions);
+
+			c->setLowerLinLimit(p[0]);
+			c->setUpperLinLimit(p[1]);
+			c->setLowerAngLimit(p[2]);
+			c->setUpperAngLimit(p[3]);
+
+			constraint = c;
+			break;
+		}
+		case BEE_PHYS_CONSTRAINT_CONE: {
+			btConeTwistConstraint* c = new btConeTwistConstraint(*(body->get_body()), btTransform::getIdentity());
+			world->addConstraint(c, should_disable_collisions);
+
+			c->setLimit(btScalar(p[0]), btScalar(p[1]), btScalar(p[2]), btScalar(p[3]));
+
+			constraint = c;
+			break;
+		}
+		case BEE_PHYS_CONSTRAINT_6DOF: {
+			btGeneric6DofConstraint* c = new btGeneric6DofConstraint(*(body->get_body()), btTransform::getIdentity(), true);
+			world->addConstraint(c, should_disable_collisions);
+
+			c->setLinearLowerLimit(btVector3(p[0], p[1], p[2]));
+			c->setLinearUpperLimit(btVector3(p[3], p[4], p[5]));
+			c->setAngularLowerLimit(btVector3(p[6], p[7], p[8]));
+			c->setAngularUpperLimit(btVector3(p[9], p[10], p[11]));
+
+			constraint = c;
+			break;
+		}
+		case BEE_PHYS_CONSTRAINT_FIXED: {
+			btGeneric6DofConstraint* c = new btGeneric6DofConstraint(*(body->get_body()), btTransform::getIdentity(), true);
+			world->addConstraint(c, should_disable_collisions);
+
+			c->setLinearLowerLimit(btVector3(0, 0, 0));
+			c->setLinearUpperLimit(btVector3(0, 0, 0));
+			c->setAngularLowerLimit(btVector3(0, 0, 0));
+			c->setAngularUpperLimit(btVector3(0, 0, 0));
+
+			constraint = c;
+			break;
+		}
+		case BEE_PHYS_CONSTRAINT_2D: {
+			btGeneric6DofConstraint* c = new btGeneric6DofConstraint(*(body->get_body()), btTransform::getIdentity(), true);
+			world->addConstraint(c, should_disable_collisions);
+
+			c->setLinearLowerLimit(btVector3(1, 1, 0));
+			c->setLinearUpperLimit(btVector3(0, 0, 0));
+			c->setAngularLowerLimit(btVector3(0, 0, 1));
+			c->setAngularUpperLimit(btVector3(0, 0, 0));
+
+			constraint = c;
+			break;
+		}
+		case BEE_PHYS_CONSTRAINT_TILE: {
+			btGeneric6DofConstraint* c = new btGeneric6DofConstraint(*(body->get_body()), btTransform::getIdentity(), true);
+			world->addConstraint(c, should_disable_collisions);
+
+			c->setLinearLowerLimit(btVector3(1, 1, 0));
+			c->setLinearUpperLimit(btVector3(0, 0, 0));
+			c->setAngularLowerLimit(btVector3(0, 0, 0));
+			c->setAngularUpperLimit(btVector3(0, 0, 0));
+
+			constraint = c;
+			break;
+		}
+		default:
+			std::cerr << "PHYS ERR invalid constraint type\n";
+		case BEE_PHYS_CONSTRAINT_NONE:
+			break;
+	}
+
+	body->add_constraint_external(type, p, constraint);
+
+	return 0;
+}
+int BEE::PhysicsWorld::add_constraint(bee_phys_constraint_t type, PhysicsBody* body1, PhysicsBody* body2, double* p) {
+	btTypedConstraint* constraint = nullptr;
+
+	bool should_disable_collisions = false;
+	switch (type) {
+		case BEE_PHYS_CONSTRAINT_POINT: {
+			btPoint2PointConstraint* c = new btPoint2PointConstraint(*(body1->get_body()), *(body2->get_body()), btVector3(p[0], p[1], p[2]), btVector3(p[3], p[4], p[5]));
+			world->addConstraint(c, should_disable_collisions);
+
+			constraint = c;
+			break;
+		}
+		case BEE_PHYS_CONSTRAINT_HINGE: {
+			btHingeConstraint* c = new btHingeConstraint(*(body1->get_body()), *(body2->get_body()), btVector3(p[0], p[1], p[2]), btVector3(p[3], p[4], p[5]), btVector3(p[6], p[7], p[8]), btVector3(p[9], p[10], p[11]));
+			world->addConstraint(c, should_disable_collisions);
+
+			constraint = c;
+			break;
+		}
+		case BEE_PHYS_CONSTRAINT_SLIDER: {
+			btSliderConstraint* c = new btSliderConstraint(*(body1->get_body()), *(body2->get_body()), btTransform::getIdentity(), btTransform::getIdentity(), true);
+			world->addConstraint(c, should_disable_collisions);
+
+			c->setLowerLinLimit(p[0]);
+			c->setUpperLinLimit(p[1]);
+			c->setLowerAngLimit(p[2]);
+			c->setUpperAngLimit(p[3]);
+
+			constraint = c;
+			break;
+		}
+		case BEE_PHYS_CONSTRAINT_CONE: {
+			btConeTwistConstraint* c = new btConeTwistConstraint(*(body1->get_body()), *(body2->get_body()), btTransform::getIdentity(), btTransform::getIdentity());
+			world->addConstraint(c, should_disable_collisions);
+
+			c->setLimit(btScalar(p[0]), btScalar(p[1]), btScalar(p[2]), btScalar(p[3]));
+
+			constraint = c;
+			break;
+		}
+		case BEE_PHYS_CONSTRAINT_6DOF: {
+			btGeneric6DofConstraint* c = new btGeneric6DofConstraint(*(body1->get_body()), *(body2->get_body()), btTransform::getIdentity(), btTransform::getIdentity(), true);
+			world->addConstraint(c, should_disable_collisions);
+
+			c->setLinearLowerLimit(btVector3(p[0], p[1], p[2]));
+			c->setLinearUpperLimit(btVector3(p[3], p[4], p[5]));
+			c->setAngularLowerLimit(btVector3(p[6], p[7], p[8]));
+			c->setAngularUpperLimit(btVector3(p[9], p[10], p[11]));
+
+			constraint = c;
+			break;
+		}
+		case BEE_PHYS_CONSTRAINT_FIXED: {
+			btGeneric6DofConstraint* c = new btGeneric6DofConstraint(*(body1->get_body()), *(body2->get_body()), btTransform::getIdentity(), btTransform::getIdentity(), true);
+			world->addConstraint(c, should_disable_collisions);
+
+			constraint = c;
+			break;
+		}
+		case BEE_PHYS_CONSTRAINT_2D: {
+			btGeneric6DofConstraint* c = new btGeneric6DofConstraint(*(body1->get_body()), *(body2->get_body()), btTransform::getIdentity(), btTransform::getIdentity(), true);
+			world->addConstraint(c, should_disable_collisions);
+
+			c->setLinearLowerLimit(btVector3(1, 1, 0));
+			c->setLinearUpperLimit(btVector3(0, 0, 0));
+			c->setAngularLowerLimit(btVector3(0, 0, 1));
+			c->setAngularUpperLimit(btVector3(0, 0, 0));
+
+			constraint = c;
+			break;
+		}
+		case BEE_PHYS_CONSTRAINT_TILE: {
+			btGeneric6DofConstraint* c = new btGeneric6DofConstraint(*(body1->get_body()), *(body2->get_body()), btTransform::getIdentity(), btTransform::getIdentity(), true);
+			world->addConstraint(c, should_disable_collisions);
+
+			c->setLinearLowerLimit(btVector3(1, 1, 0));
+			c->setLinearUpperLimit(btVector3(0, 0, 0));
+			c->setAngularLowerLimit(btVector3(0, 0, 0));
+			c->setAngularUpperLimit(btVector3(0, 0, 0));
+
+			constraint = c;
+			break;
+		}
+		default:
+			std::cerr << "PHYS ERR invalid constraint type\n";
+		case BEE_PHYS_CONSTRAINT_NONE:
+			break;
+	}
+
+	body1->add_constraint_external(type, p, constraint);
+	body2->add_constraint_external(type, p, constraint);
+
+	return 0;
+}
+int BEE::PhysicsWorld::add_constraint_external(btTypedConstraint* c) {
+	bool should_disable_collisions = false;
+	world->addConstraint(c, should_disable_collisions);
+	return 0;
+}
+
+int BEE::PhysicsWorld::remove_body(PhysicsBody* body) {
+	world->removeRigidBody(body->get_body());
+	attached_game->get_current_room()->remove_physbody(body);
+	return 0;
+}
+int BEE::PhysicsWorld::remove_constraint(btTypedConstraint* constraint) {
+	world->removeConstraint(constraint);
+	return 0;
+}
+
+int BEE::PhysicsWorld::step(double step_size) {
+	world->stepSimulation(step_size, 10);
+	return 0;
+}
+
+int BEE::PhysicsWorld::draw_debug() {
+	world->debugDrawWorld();
+	return 0;
+}
+
+size_t BEE::PhysicsWorld::get_constraint_param_amount(bee_phys_constraint_t constraint) const {
+	switch (constraint) {
+		case BEE_PHYS_CONSTRAINT_POINT:  return 6;
+		case BEE_PHYS_CONSTRAINT_HINGE:  return 12;
+		case BEE_PHYS_CONSTRAINT_SLIDER: return 4;
+		case BEE_PHYS_CONSTRAINT_CONE:   return 4;
+		case BEE_PHYS_CONSTRAINT_6DOF:   return 12;
+
+		default:
+		case BEE_PHYS_CONSTRAINT_FIXED:
+		case BEE_PHYS_CONSTRAINT_2D:
+		case BEE_PHYS_CONSTRAINT_TILE:
+		case BEE_PHYS_CONSTRAINT_NONE:   return 0;
+	}
+}
+
+#endif // _BEE_PHYSICS_WORLD

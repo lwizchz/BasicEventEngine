@@ -233,7 +233,7 @@ std::string BEE::Room::get_view_string() const {
 	}
 	return "none\n";
 }
-const std::map<int,BEE::InstanceData*>& BEE::Room::get_instances() const {
+const std::map<int,BEE::Instance*>& BEE::Room::get_instances() const {
 	return instances;
 }
 std::string BEE::Room::get_instance_string() const {
@@ -255,7 +255,7 @@ BEE::ViewData* BEE::Room::get_current_view() const {
 BEE::PhysicsWorld* BEE::Room::get_phys_world() const {
 	return physics_world;
 }
-const std::map<const btRigidBody*,BEE::InstanceData*>& BEE::Room::get_phys_instances() const {
+const std::map<const btRigidBody*,BEE::Instance*>& BEE::Room::get_phys_instances() const {
 	return physics_instances;
 }
 
@@ -322,14 +322,14 @@ int BEE::Room::set_view(int index, ViewData* new_view) {
 	views.emplace(index, new_view);
 	return 0;
 }
-int BEE::Room::set_instance(int index, InstanceData* new_instance) {
+int BEE::Room::set_instance(int index, Instance* new_instance) {
 	if (instances.find(index) != instances.end()) { //  if the instance exists, overwrite it
 		remove_instance(index);
 	}
-	instances.insert(std::pair<int,InstanceData*>(index, new_instance));
+	instances.insert(std::pair<int,Instance*>(index, new_instance));
 	return 0;
 }
-BEE::InstanceData* BEE::Room::add_instance(int index, Object* object, double x, double y, double z) {
+BEE::Instance* BEE::Room::add_instance(int index, Object* object, double x, double y, double z) {
 	object->game = game;
 	if (object->get_sprite() != nullptr) {
 		if ((!object->get_sprite()->get_is_loaded())&&(game->get_is_ready())) {
@@ -343,7 +343,7 @@ BEE::InstanceData* BEE::Room::add_instance(int index, Object* object, double x, 
 		index = next_instance_id++;
 	}
 
-	InstanceData* new_instance = new InstanceData(game, index, object, x, y, z);
+	Instance* new_instance = new Instance(game, index, object, x, y, z);
 	set_instance(index, new_instance);
 	sort_instances();
 	object->add_instance(index, new_instance);
@@ -396,7 +396,7 @@ int BEE::Room::add_instance_grid(int index, Object* object, double x, double y, 
 }
 int BEE::Room::remove_instance(int index) {
 	if (instances.find(index) != instances.end()) {
-		InstanceData* inst = instances[index];
+		Instance* inst = instances[index];
 
 		if (inst->get_physbody() == nullptr) {
 			std::cerr << "PHYS ERR null physbody for " << inst->get_object()->get_name() << ":" << index << "\n";
@@ -419,14 +419,14 @@ int BEE::Room::remove_instance(int index) {
 	return 1;
 }
 int BEE::Room::sort_instances() {
-	std::transform(instances.begin(), instances.end(), std::inserter(instances_sorted, instances_sorted.begin()), flip_pair<int,InstanceData*>);
+	std::transform(instances.begin(), instances.end(), std::inserter(instances_sorted, instances_sorted.begin()), flip_pair<int,Instance*>);
 	return 0;
 }
 int BEE::Room::request_instance_sort() {
 	should_sort = true;
 	return 0;
 }
-int BEE::Room::add_physbody(InstanceData* inst, PhysicsBody* body) {
+int BEE::Room::add_physbody(Instance* inst, PhysicsBody* body) {
 	if (physics_instances.find(body->get_body()) == physics_instances.end()) {
 		physics_instances.emplace(body->get_body(), inst);
 	}
@@ -746,7 +746,7 @@ int BEE::Room::load_instance_map(std::string fname) {
 				double y = std::stod(p[3]);
 				double z = std::stod(p[4]);
 
-				InstanceData* inst = add_instance(-1, game->get_object_by_name(o), x, y, z);
+				Instance* inst = add_instance(-1, game->get_object_by_name(o), x, y, z);
 
 				while (!data_stream.eof()) {
 					std::string tmp_set;
@@ -842,7 +842,7 @@ int BEE::Room::destroy() {
 
 	return 0;
 }
-int BEE::Room::destroy(InstanceData* inst) {
+int BEE::Room::destroy(Instance* inst) {
 	destroyed_instances.push_back(inst);
 	return 0;
 }
@@ -1080,7 +1080,7 @@ int BEE::Room::collision() {
 }
 void BEE::Room::collision_internal(btDynamicsWorld* w, btScalar timestep) {
 	PhysicsWorld* world = static_cast<PhysicsWorld*>(w->getWorldUserInfo());
-	std::map<const btRigidBody*,InstanceData*> physics_instances = world->get_game()->get_current_room()->get_phys_instances();
+	std::map<const btRigidBody*,Instance*> physics_instances = world->get_game()->get_current_room()->get_phys_instances();
 
 	//w->clearForces();
 
@@ -1091,8 +1091,8 @@ void BEE::Room::collision_internal(btDynamicsWorld* w, btScalar timestep) {
 		const btRigidBody* body2 = btRigidBody::upcast(manifold->getBody1());
 
 		if ((physics_instances.find(body1) != physics_instances.end())&&(physics_instances.find(body2) != physics_instances.end())) {
-			InstanceData* i1 = physics_instances[body1];
-			InstanceData* i2 = physics_instances[body2];
+			Instance* i1 = physics_instances[body1];
+			Instance* i2 = physics_instances[body2];
 
 			if (
 				(i1 != nullptr)
@@ -1141,7 +1141,7 @@ int BEE::Room::draw() {
 				view_current = v.second;
 
 				if (view_current->following != nullptr) {
-					InstanceData* f = view_current->following;
+					Instance* f = view_current->following;
 					if (instances_sorted.find(f) != instances_sorted.end()) {
 						SDL_Rect a = {(int)f->get_corner_x(), (int)f->get_corner_y(), f->get_width(), f->get_height()};
 						SDL_Rect b = {

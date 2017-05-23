@@ -23,10 +23,10 @@ template <typename A, typename B>
 std::pair<B,A> flip_pair(const std::pair<A,B>& p) {
 	return std::pair<B,A>(p.second, p.first);
 }
-template std::pair<BEE::InstanceData*,int> flip_pair<int,BEE::InstanceData*>(const std::pair<int,BEE::InstanceData*>&);
+template std::pair<BEE::Instance*,int> flip_pair<int,BEE::Instance*>(const std::pair<int,BEE::Instance*>&);
 
-struct InstanceDataSort {
-	bool operator() (BEE::InstanceData* lhs, BEE::InstanceData* rhs) {
+struct InstanceSort {
+	bool operator() (BEE::Instance* lhs, BEE::Instance* rhs) {
 		return (*lhs) < (*rhs);
 	}
 };
@@ -46,13 +46,13 @@ class BEE::Room: public Resource {
 		bool is_views_enabled;
 		std::map<int,ViewData*> views;
 
-		std::map<int,InstanceData*> instances;
-		std::map<InstanceData*,int,InstanceDataSort> instances_sorted;
-		std::vector<InstanceData*> created_instances;
-		std::vector<InstanceData*> destroyed_instances;
+		std::map<int,Instance*> instances;
+		std::map<Instance*,int,InstanceSort> instances_sorted;
+		std::vector<Instance*> created_instances;
+		std::vector<Instance*> destroyed_instances;
 		bool should_sort = false;
 
-		std::map<bee_event_t,std::map<InstanceData*,int,InstanceDataSort>> instances_sorted_events;
+		std::map<bee_event_t,std::map<Instance*,int,InstanceSort>> instances_sorted_events;
 		std::list<bee_event_t> event_list = {
 			BEE_EVENT_CREATE, BEE_EVENT_DESTROY, BEE_EVENT_ALARM,
 			BEE_EVENT_STEP_BEGIN, BEE_EVENT_STEP_MID, BEE_EVENT_STEP_END,
@@ -79,7 +79,7 @@ class BEE::Room: public Resource {
 		Sprite* light_map = nullptr;
 
 		PhysicsWorld* physics_world = nullptr;
-		std::map<const btRigidBody*,InstanceData*> physics_instances;
+		std::map<const btRigidBody*,Instance*> physics_instances;
 
 		std::string instance_map = "";
 
@@ -108,11 +108,11 @@ class BEE::Room: public Resource {
 		bool get_is_views_enabled() const;
 		std::map<int,ViewData*> get_views() const;
 		std::string get_view_string() const;
-		const std::map<int,InstanceData*>& get_instances() const;
+		const std::map<int,Instance*>& get_instances() const;
 		std::string get_instance_string() const;
 		ViewData* get_current_view() const;
 		PhysicsWorld* get_phys_world() const;
-		const std::map<const btRigidBody*,InstanceData*>& get_phys_instances() const;
+		const std::map<const btRigidBody*,Instance*>& get_phys_instances() const;
 
 		int set_name(const std::string&);
 		int set_path(const std::string&);
@@ -128,13 +128,13 @@ class BEE::Room: public Resource {
 		int add_background(int, Background*, bool, bool, int, int, bool, bool, int, int, bool);
 		int set_is_views_enabled(bool);
 		int set_view(int, ViewData*);
-		int set_instance(int, InstanceData*);
-		InstanceData* add_instance(int, Object*, double, double, double);
+		int set_instance(int, Instance*);
+		Instance* add_instance(int, Object*, double, double, double);
 		int add_instance_grid(int, Object*, double, double, double);
 		int remove_instance(int);
 		int sort_instances();
 		int request_instance_sort();
-		int add_physbody(InstanceData*, PhysicsBody*);
+		int add_physbody(Instance*, PhysicsBody*);
 		int remove_physbody(PhysicsBody*);
 		int add_particle_system(ParticleSystem*);
 		int add_particle(ParticleSystem*, Particle*, int, int);
@@ -156,7 +156,7 @@ class BEE::Room: public Resource {
 
 		int create();
 		int destroy();
-		int destroy(InstanceData*);
+		int destroy(Instance*);
 		int destroy_all(Object*);
 		int check_alarms();
 		int step_begin();
