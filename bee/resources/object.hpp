@@ -81,11 +81,11 @@ class BEE::Object: public Resource {
 		SIDP get_data(int, const std::string&) const;
 		int set_data(int, const std::string&, SIDP);
 
-		std::map<bee_event_t,bool> implemented_events;
+		std::map<bee::E_EVENT,bool> implemented_events;
 		virtual void update(Instance*) =0;
 		virtual void create(Instance*) {};
 		virtual void destroy(Instance*) {};
-		virtual void alarm(Instance*, int) {};
+		virtual void alarm(Instance*, size_t) {};
 		virtual void step_begin(Instance*) {};
 		virtual void step_mid(Instance*) {};
 		virtual void step_end(Instance*) {};
@@ -116,7 +116,7 @@ class BEE::Object: public Resource {
 		/*void update(Instance*);
 		void create(Instance*);
 		void destroy(Instance*);
-		void alarm(Instance*, int);
+		void alarm(Instance*, size_t);
 		void step_begin(Instance*);
 		void step_mid(Instance*);
 		void step_end(Instance*);
@@ -153,7 +153,7 @@ class BEE::Object: public Resource {
 		void destroy(Instance* self) {
 			reinterpret_cast<const ObjType*>(this)->destroy(self);
 		}
-		void alarm(Instance* self, int a) {
+		void alarm(Instance* self, size_t a) {
 			reinterpret_cast<const ObjType*>(this)->alarm(a);
 		}
 		void step_begin(Instance* self) {
@@ -246,7 +246,7 @@ void BEE::Object::create(Instance* self) {
 void BEE::Object::destroy(Instance* self) {
 	reinterpret_cast<const ObjType*>(this)->destroy(self);
 }
-void BEE::Object::alarm(Instance* self, int a) {
+void BEE::Object::alarm(Instance* self, size_t a) {
 	reinterpret_cast<const ObjType*>(this)->alarm(a);
 }
 void BEE::Object::step_begin(Instance* self) {

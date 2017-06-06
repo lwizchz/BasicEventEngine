@@ -38,7 +38,7 @@ BEE::Path::Path (const std::string& new_name, const std::string& new_path) :
 {
 	add_to_resources(); // Add the path to the appropriate resource list
 	if (id < 0) { // If the path could not be added to the resource list, output a warning
-		game->messenger_send({"engine", "resource"}, BEE_MESSAGE_WARNING, "Failed to add path resource: \"" + new_name + "\" from " + new_path);
+		game->messenger_send({"engine", "resource"}, bee::E_MESSAGE::WARNING, "Failed to add path resource: \"" + new_name + "\" from " + new_path);
 		throw(-1); // Throw an exception
 	}
 
@@ -90,7 +90,7 @@ int BEE::Path::print() const {
 	"	is_curved	" << is_curved <<
 	"\n	is_closed       " << is_closed <<
 	"\n}\n";
-	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str()); // Send the info to the messaging system for output
+	game->messenger_send({"engine", "resource"}, bee::E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for output
 
 	return 0; // Return 0 on success
 }
@@ -224,7 +224,7 @@ int BEE::Path::remove_coordinate(unsigned int index) {
 * @zstart: the z-coordinate to offset the path by
 */
 int BEE::Path::draw(double xstart, double ystart, double zstart) {
-	RGBA c_line = game->get_enum_color(c_aqua); // Define the drawing color
+	RGBA c_line = game->get_enum_color(bee::E_RGB::AQUA); // Define the drawing color
 	glm::vec3 vs (xstart, ystart, zstart); // Define the start point
 	glm::vec3 v1, v2; // Declare two vectors to use for the start and end points of each line
 

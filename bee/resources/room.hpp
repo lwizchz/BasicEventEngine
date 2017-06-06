@@ -52,22 +52,36 @@ class BEE::Room: public Resource {
 		std::vector<Instance*> destroyed_instances;
 		bool should_sort = false;
 
-		std::map<bee_event_t,std::map<Instance*,int,InstanceSort>> instances_sorted_events;
-		std::list<bee_event_t> event_list = {
-			BEE_EVENT_CREATE, BEE_EVENT_DESTROY, BEE_EVENT_ALARM,
-			BEE_EVENT_STEP_BEGIN, BEE_EVENT_STEP_MID, BEE_EVENT_STEP_END,
-			BEE_EVENT_KEYBOARD_PRESS, BEE_EVENT_MOUSE_PRESS,
-			BEE_EVENT_KEYBOARD_INPUT, BEE_EVENT_MOUSE_INPUT,
-			BEE_EVENT_KEYBOARD_RELEASE, BEE_EVENT_MOUSE_RELEASE,
-			BEE_EVENT_CONTROLLER_AXIS, BEE_EVENT_CONTROLLER_PRESS,
-			BEE_EVENT_CONTROLLER_RELEASE, BEE_EVENT_CONTROLLER_MODIFY,
-			BEE_EVENT_COMMANDLINE_INPUT, BEE_EVENT_PATH_END,
-			BEE_EVENT_OUTSIDE_ROOM, BEE_EVENT_INTERSECT_BOUNDARY,
-			BEE_EVENT_COLLISION,
-			BEE_EVENT_DRAW, BEE_EVENT_ANIMATION_END,
-			BEE_EVENT_ROOM_START, BEE_EVENT_ROOM_END,
-			BEE_EVENT_GAME_START, BEE_EVENT_GAME_END,
-			BEE_EVENT_WINDOW
+		std::map<bee::E_EVENT,std::map<Instance*,int,InstanceSort>> instances_sorted_events;
+		std::list<bee::E_EVENT> event_list = {
+			bee::E_EVENT::CREATE,
+			bee::E_EVENT::DESTROY,
+			bee::E_EVENT::ALARM,
+			bee::E_EVENT::STEP_BEGIN,
+			bee::E_EVENT::STEP_MID,
+			bee::E_EVENT::STEP_END,
+			bee::E_EVENT::KEYBOARD_PRESS,
+			bee::E_EVENT::MOUSE_PRESS,
+			bee::E_EVENT::KEYBOARD_INPUT,
+			bee::E_EVENT::MOUSE_INPUT,
+			bee::E_EVENT::KEYBOARD_RELEASE,
+			bee::E_EVENT::MOUSE_RELEASE,
+			bee::E_EVENT::CONTROLLER_AXIS,
+			bee::E_EVENT::CONTROLLER_PRESS,
+			bee::E_EVENT::CONTROLLER_RELEASE,
+			bee::E_EVENT::CONTROLLER_MODIFY,
+			bee::E_EVENT::COMMANDLINE_INPUT,
+			bee::E_EVENT::PATH_END,
+			bee::E_EVENT::OUTSIDE_ROOM,
+			bee::E_EVENT::INTERSECT_BOUNDARY,
+			bee::E_EVENT::COLLISION,
+			bee::E_EVENT::DRAW,
+			bee::E_EVENT::ANIMATION_END,
+			bee::E_EVENT::ROOM_START,
+			bee::E_EVENT::ROOM_END,
+			bee::E_EVENT::GAME_START,
+			bee::E_EVENT::GAME_END,
+			bee::E_EVENT::WINDOW
 		};
 
 		std::map<int,ParticleSystem*> particles;
@@ -122,7 +136,7 @@ class BEE::Room: public Resource {
 		int set_is_persistent(bool);
 		int set_background_color(RGBA);
 		int set_background_color(Uint8, Uint8, Uint8);
-		int set_background_color(bee_rgba_t);
+		int set_background_color(bee::E_RGB);
 		int set_is_background_color_enabled(bool);
 		int set_background(int, BackgroundData*);
 		int add_background(int, Background*, bool, bool, int, int, bool, bool, int, int, bool);

@@ -83,7 +83,7 @@ BEE::Background::Background(const std::string& new_name, const std::string& new_
 {
 	add_to_resources(); // Add the background to the appropriate resource list
 	if (id < 0) { // If the background could not be addedto the resource list, output a warning
-		game->messenger_send({"engine", "resource"}, BEE_MESSAGE_WARNING, "Failed to add background resource: \"" + new_name + "\" from " + new_path);
+		game->messenger_send({"engine", "resource"}, bee::E_MESSAGE::WARNING, "Failed to add background resource: \"" + new_name + "\" from " + new_path);
 		throw(-1); // Throw an exception
 	}
 
@@ -144,7 +144,7 @@ int BEE::Background::print() const {
 	"\n	is_loaded       " << is_loaded <<
 	"\n	has_draw_failed " << has_draw_failed <<
 	"\n}\n";
-	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str()); // Send the info to the messaging system for output
+	game->messenger_send({"engine", "resource"}, bee::E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for output
 
 	return 0; // Return 0 on success
 }
@@ -207,7 +207,7 @@ int BEE::Background::load_from_surface(SDL_Surface* tmp_surface) {
 		width = tmp_surface->w;
 		height = tmp_surface->h;
 
-		if (game->options->renderer_type != BEE_RENDERER_SDL) {
+		if (game->options->renderer_type != bee::E_RENDERER::SDL) {
 			// Generate the vertex array object for the background
 			glGenVertexArrays(1, &vao);
 			glBindVertexArray(vao);
@@ -244,10 +244,10 @@ int BEE::Background::load_from_surface(SDL_Surface* tmp_surface) {
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
 
 			// Bind the vertices to the VAO's vertex buffer
-			glEnableVertexAttribArray(game->vertex_location);
+			glEnableVertexAttribArray(game->renderer->vertex_location);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
 			glVertexAttribPointer(
-				game->vertex_location,
+				game->renderer->vertex_location,
 				2,
 				GL_FLOAT,
 				GL_FALSE,
@@ -278,9 +278,9 @@ int BEE::Background::load_from_surface(SDL_Surface* tmp_surface) {
 			has_draw_failed = false;
 		} else {
 			// Generate an SDL texture from the surface pixels
-			texture = SDL_CreateTextureFromSurface(game->renderer, tmp_surface);
+			texture = SDL_CreateTextureFromSurface(game->renderer->sdl_renderer, tmp_surface);
 			if (texture == nullptr) { // If the texture could not be generated, output a warning
-				game->messenger_send({"engine", "background"}, BEE_MESSAGE_WARNING, "Failed to create texture from surface for \"" + name + "\": " + get_sdl_error());
+				game->messenger_send({"engine", "background"}, bee::E_MESSAGE::WARNING, "Failed to create texture from surface for \"" + name + "\": " + get_sdl_error());
 				return 2; // Return 2 on failure to load
 			}
 
@@ -289,7 +289,7 @@ int BEE::Background::load_from_surface(SDL_Surface* tmp_surface) {
 			has_draw_failed = false;
 		}
 	} else { // If the sprite has already been loaded, output a warning
-		game->messenger_send({"engine", "background"}, BEE_MESSAGE_WARNING, "Failed to load background \"" + name + "\" from surface because it has already been loaded");
+		game->messenger_send({"engine", "background"}, bee::E_MESSAGE::WARNING, "Failed to load background \"" + name + "\" from surface because it has already been loaded");
 		return 1; // Return 1 on failure
 	}
 
@@ -304,14 +304,14 @@ int BEE::Background::load() {
 		SDL_Surface* tmp_surface;
 		tmp_surface = IMG_Load(path.c_str());
 		if (tmp_surface == nullptr) { // If the surface could not be loaded, output a warning
-			game->messenger_send({"engine", "background"}, BEE_MESSAGE_WARNING, "Failed to load background " + name + ": " + IMG_GetError());
+			game->messenger_send({"engine", "background"}, bee::E_MESSAGE::WARNING, "Failed to load background " + name + ": " + IMG_GetError());
 			return 1; // Return 1 on load failure
 		}
 
 		load_from_surface(tmp_surface); // Load the surface into a texture
 		SDL_FreeSurface(tmp_surface); // Free the temporary surface
 	} else { // If the background has already been loaded, output a warning
-		game->messenger_send({"engine", "background"}, BEE_MESSAGE_WARNING, "Failed to load background \"" + name + "\" because it has already been loaded");
+		game->messenger_send({"engine", "background"}, bee::E_MESSAGE::WARNING, "Failed to load background \"" + name + "\" because it has already been loaded");
 		return 1; // Return 1 on failure
 	}
 
@@ -322,7 +322,7 @@ int BEE::Background::load() {
 */
 int BEE::Background::free() {
 	if (is_loaded) { // Do not attempt to free the texture if it has not been loaded
-		if (game->options->renderer_type != BEE_RENDERER_SDL) {
+		if (game->options->renderer_type != bee::E_RENDERER::SDL) {
 			// Delete the vertex and index buffer
 			glDeleteBuffers(1, &vbo_vertices);
 			glDeleteBuffers(1, &ibo);
@@ -348,52 +348,33 @@ int BEE::Background::free() {
 * BEE::Background::draw_internal() - Draw the given crop of the background onto the given area of the window
 * @src: the rectangle of the background to draw
 * @dest: the rectangle of the window to draw to
+* @model: the precalculated scale matrix
 */
-int BEE::Background::draw_internal(const SDL_Rect* src, const SDL_Rect* dest) const {
-	if (game->options->renderer_type != BEE_RENDERER_SDL) {
-		glBindVertexArray(vao); // Bind the VAO for the background
-
-		// Generate the partial transformation matrix (translation and scaling) for the subimage
-		glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3((float)dest->w/width, (float)dest->h/height, 1.0f)); // Scale the texture in the x- and y-planes
-		model = glm::translate(model, glm::vec3((float)dest->x, (float)dest->y, 0.0f)); // Translate the texture the desired amount in the x- and y-planes
-		glUniformMatrix4fv(game->model_location, 1, GL_FALSE, glm::value_ptr(model)); // Send the transformation matrix to the shader
-
-		// Bind the background texture
-		glUniform1i(game->texture_location, 0);
-		glBindTexture(GL_TEXTURE_2D, gl_texture);
-
-		// Bind the texture coordinates
-		glEnableVertexAttribArray(game->fragment_location);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords);
-		glVertexAttribPointer(
-			game->fragment_location,
-			2,
-			GL_FLOAT,
-			GL_FALSE,
-			0,
-			0
-		);
+int BEE::Background::draw_internal(const SDL_Rect* src, const SDL_Rect* dest, const glm::mat4& model) const {
+	if (game->options->renderer_type != bee::E_RENDERER::SDL) {
+		// Generate the partial transformation matrix (translation) for the subimage
+		// Note that the scaling matrix has been precalculated by the caller function
+		glm::mat4 m = glm::translate(model, glm::vec3((float)dest->x, (float)dest->y, 0.0f)); // Translate the texture the desired amount in the x- and y-planes
+		glUniformMatrix4fv(game->renderer->model_location, 1, GL_FALSE, glm::value_ptr(m)); // Send the transformation matrix to the shader
 
 		// Draw the triangles which form the rectangular background
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 		int size;
 		glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
 		glDrawElements(GL_TRIANGLES, size/sizeof(GLushort), GL_UNSIGNED_SHORT, 0);
-
-		// Reset the shader state
-		glDisableVertexAttribArray(game->fragment_location); // Unbind the texture coordinates
-
-		glUniformMatrix4fv(game->model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the partial transformation matrix
-		glUniformMatrix4fv(game->rotation_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the rotation matrix
-		glBindTexture(GL_TEXTURE_2D, 0); // Unbind the sprite texture
-		glUniform1i(game->flip_location, 0); // Reset the flip type
-
-		glBindVertexArray(0); // Unbind the VAO
 	} else {
-		SDL_RenderCopy(game->renderer, texture, src, dest); // Render the background
+		SDL_RenderCopy(game->renderer->sdl_renderer, texture, src, dest); // Render the background
 	}
 
 	return 0; // Return 0 on success
+}
+/*
+* BEE::Background::draw_internal() - Draw the given crop of the background onto the given area of the window
+* @src: the rectangle of the background to draw
+* @dest: the rectangle of the window to draw to
+*/
+int BEE::Background::draw_internal(const SDL_Rect* src, const SDL_Rect* dest) const {
+	const glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3((float)dest->w/width, (float)dest->h/height, 1.0f));
+	return draw_internal(src, dest, model); // Return the result of drawing the background
 }
 /*
 * BEE::Background::tile_horizontal() - Draw the background multiple times across the window's width
@@ -407,10 +388,12 @@ int BEE::Background::tile_horizontal(const SDL_Rect* r) const {
 	// Declare the initial drawing rectangles
 	SDL_Rect src = {0, 0, r->w, r->h};
 	SDL_Rect dest = {r->x, r->y, r->w, r->h};
+	const glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3((float)dest.w/width, (float)dest.h/height, 1.0f));
 
+	const int rw = game->get_room_width();
 	int i=0; // Store the amount of times that the background is drawn
-	while (dest.x < game->get_room_width()) { // Continue drawing to the right until the rectangle is past the right side of the window
-		draw_internal(&src, &dest); // Draw the desired rectangle
+	while (dest.x < rw) { // Continue drawing to the right until the rectangle is past the right side of the window
+		draw_internal(&src, &dest, model); // Draw the desired rectangle
 		i++; // Increment the draw amount
 
 		dest.x += dest.w; // Move the rectangle on right to the next tile
@@ -418,7 +401,7 @@ int BEE::Background::tile_horizontal(const SDL_Rect* r) const {
 
 	dest.x = r->x - dest.w; // Reset the rectangle start
 	while (dest.x + dest.w > 0) { // Continue drawing to the left until the rectangle is past the left side of the window
-		draw_internal(&src, &dest); // Draw the desired rectangle
+		draw_internal(&src, &dest, model); // Draw the desired rectangle
 		i++; // Increment the draw amount
 
 		dest.x -= dest.w; // Move the rectangle on left to the next tile
@@ -438,10 +421,12 @@ int BEE::Background::tile_vertical(const SDL_Rect* r) const {
 	// Declare the initial drawing rectangles
 	SDL_Rect src = {0, 0, r->w, r->h};
 	SDL_Rect dest = {r->x, r->y, r->w, r->h};
+	const glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3((float)dest.w/width, (float)dest.h/height, 1.0f));
 
+	const int rh = game->get_room_height();
 	int i=0; // Store the amount of times that the background is drawn
-	while (dest.y < game->get_room_height()) { // Continue drawing to the bottom until the rectnagle is past the bottom of the window
-		draw_internal(&src, &dest); // Draw the deired rectangle
+	while (dest.y < rh) { // Continue drawing to the bottom until the rectnagle is past the bottom of the window
+		draw_internal(&src, &dest, model); // Draw the deired rectangle
 		i++; // Increment the draw amount
 
 		dest.y += r->h; // Move the rectangle on down to the next tile
@@ -449,7 +434,7 @@ int BEE::Background::tile_vertical(const SDL_Rect* r) const {
 
 	dest.y = r->y - dest.h; // Reset the rectangle start
 	while (dest.y + dest.h > 0) { // Continue drawing to the top until the rectangle is past the top of the window
-		draw_internal(&src, &dest); // Draw the desired rectangle
+		draw_internal(&src, &dest, model); // Draw the desired rectangle
 		i++; // Increment the draw amount
 
 		dest.y -= r->h; // Move the rectangle on up to the next tile
@@ -457,6 +442,52 @@ int BEE::Background::tile_vertical(const SDL_Rect* r) const {
 
 	return i; // Return the amount of drawn tiles on success
 }
+
+/*
+* BEE::Background::drawing_begin() - Enable all required buffers
+*/
+int BEE::Background::drawing_begin() {
+	if (game->options->renderer_type == bee::E_RENDERER::SDL) {
+		return 0; // Return 0 since nothing needs to be done for SDL mode
+	}
+
+	glBindVertexArray(vao); // Bind the VAO for the background
+
+	// Bind the background texture
+	glUniform1i(game->renderer->texture_location, 0);
+	glBindTexture(GL_TEXTURE_2D, gl_texture);
+
+	// Bind the texture coordinates
+	glEnableVertexAttribArray(game->renderer->fragment_location);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords);
+	glVertexAttribPointer(
+		game->renderer->fragment_location,
+		2,
+		GL_FLOAT,
+		GL_FALSE,
+		0,
+		0
+	);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+
+	return 0; // Return 0 on success
+}
+/*
+* BEE::Background::drawing_end() - Disable all required buffers
+*/
+int BEE::Background::drawing_end() {
+	if (game->options->renderer_type == bee::E_RENDERER::SDL) {
+		return 0; // Return 0 since nothing needs to be done for SDL mode
+	}
+
+	glUniformMatrix4fv(game->renderer->model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the partial transformation matrix
+
+	glBindVertexArray(0); // Unbind the VAO
+
+	return 0; // Return 0 on success
+}
+
 /*
 * BEE::Background::draw() - Draw the background at the given coordinates with the given properties
 * @x: the x-coordinate to draw the background at
@@ -466,7 +497,7 @@ int BEE::Background::tile_vertical(const SDL_Rect* r) const {
 int BEE::Background::draw(int x, int y, BackgroundData* b) {
 	if (!is_loaded) { // Do not attempt to draw the background if it has not been loaded
 		if (!has_draw_failed) { // If the draw call hasn't failed before, output a warning
-		game->messenger_send({"engine", "background"}, BEE_MESSAGE_WARNING, "Failed to draw background \"" + name + "\" because it is not loaded");
+		game->messenger_send({"engine", "background"}, bee::E_MESSAGE::WARNING, "Failed to draw background \"" + name + "\" because it is not loaded");
 		has_draw_failed = true; // Set the draw failure boolean
 		}
 		return 1; // Return 1 on failure
@@ -474,15 +505,19 @@ int BEE::Background::draw(int x, int y, BackgroundData* b) {
 
 	if (b->is_stretched) { // If the background should be stretched, then draw it without animation
 		SDL_Rect rect = {0, 0, game->get_room_width(), game->get_room_height()}; // Declare the drawing rectangle with the full width and height of the window
+		drawing_begin();
 		draw_internal(nullptr, &rect); // Draw the background
+		drawing_end();
 	} else { // Otherwise, draw the background with optional animation and tiling
 		// Calculate the delta x and y for the current animation time
-		int dx = b->horizontal_speed*(game->get_ticks()-animation_time)/game->fps_goal;
-		int dy = b->vertical_speed*(game->get_ticks()-animation_time)/game->fps_goal;
+		const float dt_fps = (game->get_ticks()-animation_time)/game->fps_goal;
+		int dx = b->horizontal_speed*dt_fps;
+		int dy = b->vertical_speed*dt_fps;
 
 		SDL_Rect rect = {x+dx, y+dy, (int)width, (int)height}; // Declare the drawing rectangle with the moved coordinates
 
 		if ((rect.w > 0)&&(rect.h > 0)) { // Only attempt to draw the background if it's dimensions are positive
+			drawing_begin();
 			if (b->is_horizontal_tile && b->is_vertical_tile) { // If the background should be tiled in both directions, tile it
 				while (rect.y-rect.h < game->get_room_height()) { // Tile as many horizontal lines as necessary to fill the window to the bottom
 					tile_horizontal(&rect); // Tile the background across the row
@@ -500,6 +535,7 @@ int BEE::Background::draw(int x, int y, BackgroundData* b) {
 			} else { // If the background should not be tiled, draw it normally
 				draw_internal(nullptr, &rect);
 			}
+			drawing_end();
 		}
 	}
 
@@ -519,7 +555,7 @@ int BEE::Background::set_as_target(int w, int h) {
 	width = w;
 	height = h;
 
-	if (game->options->renderer_type != BEE_RENDERER_SDL) {
+	if (game->options->renderer_type != bee::E_RENDERER::SDL) {
 		// Generate the vertex array object for the background
 		glGenVertexArrays(1, &vao);
 		glBindVertexArray(vao);
@@ -545,10 +581,10 @@ int BEE::Background::set_as_target(int w, int h) {
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
 
 		// Bind the vertices to the VAO's vertex buffer
-		glEnableVertexAttribArray(game->vertex_location);
+		glEnableVertexAttribArray(game->renderer->vertex_location);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
 		glVertexAttribPointer(
-			game->vertex_location,
+			game->renderer->vertex_location,
 			2,
 			GL_FLOAT,
 			GL_FALSE,
@@ -583,7 +619,7 @@ int BEE::Background::set_as_target(int w, int h) {
 
 		// Check whether the framebuffer has been successfully initialized
 		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) { // If not, reset the state
-			game->messenger_send({"engine", "background"}, BEE_MESSAGE_WARNING, "Failed to create a new framebuffer.");
+			game->messenger_send({"engine", "background"}, bee::E_MESSAGE::WARNING, "Failed to create a new framebuffer.");
 			glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind the frame buffer to switch back to the default
 			this->free(); // Free the old data
 			return 0; // Return 0 on failure
@@ -593,13 +629,13 @@ int BEE::Background::set_as_target(int w, int h) {
 
 		return (int)framebuffer; // Return the framebuffer index on success
 	} else {
-		texture = SDL_CreateTexture(game->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w, h); // Create an empty texture
+		texture = SDL_CreateTexture(game->renderer->sdl_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w, h); // Create an empty texture
 		if (texture == nullptr) { // If the texture could not be created, output a warning
-			game->messenger_send({"engine", "background"}, BEE_MESSAGE_WARNING, "Failed to create a blank texture: " + get_sdl_error());
+			game->messenger_send({"engine", "background"}, bee::E_MESSAGE::WARNING, "Failed to create a blank texture: " + get_sdl_error());
 			return 0; // Return 0 on failure
 		}
 
-		SDL_SetRenderTarget(game->renderer, texture); // Set the SDL render target
+		SDL_SetRenderTarget(game->renderer->sdl_renderer, texture); // Set the SDL render target
 	}
 
 	// Set loaded booleans

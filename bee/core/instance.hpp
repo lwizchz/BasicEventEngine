@@ -9,8 +9,6 @@
 #ifndef _BEE_CORE_INSTANCE_H
 #define _BEE_CORE_INSTANCE_H 1
 
-#define ALARM_COUNT 8
-
 #ifndef _BEE_ROOM_H
 #define _BEE_ROOM_H
 #define _BEE_ROOM_OPERATOR 1
@@ -31,7 +29,7 @@ class BEE::Instance {
 
 		Path* path = nullptr;
 		double path_speed = 0.0;
-		bee_path_end_t path_end_action = BEE_PATH_END_STOP;
+		bee::E_PATH_END path_end_action = bee::E_PATH_END::STOP;
 		int path_current_node = 0;
 		bool path_is_drawn = false;
 		bool path_is_pausable = false;
@@ -41,7 +39,7 @@ class BEE::Instance {
 
 		int id = -1;
 		Uint32 subimage_time = 0;
-		Uint32 alarm_end[ALARM_COUNT];
+		Uint32 alarm_end[BEE_ALARM_COUNT];
 		int depth = 0;
 
 		btVector3 pos_previous;
@@ -61,7 +59,7 @@ class BEE::Instance {
 
 		int remove();
 
-		int set_alarm(int, Uint32);
+		int set_alarm(size_t, Uint32);
 
 		int set_object(Object*);
 		int set_sprite(Sprite*);
@@ -140,7 +138,7 @@ class BEE::Instance {
 		double get_direction_of(Object*) const;
 		int get_relation(Instance*) const;
 
-		int path_start(Path*, double, bee_path_end_t, bool);
+		int path_start(Path*, double, bee::E_PATH_END, bool);
 		int path_end();
 		int path_reset();
 		int path_update_node();
@@ -155,12 +153,12 @@ class BEE::Instance {
 		bool get_path_pausable();
 
 		int draw(int, int, double, RGBA, SDL_RendererFlip);
-		int draw(int, int, double, bee_rgba_t, SDL_RendererFlip);
+		int draw(int, int, double, bee::E_RGB, SDL_RendererFlip);
 		int draw();
 		int draw(int, int);
 		int draw(double);
 		int draw(RGBA);
-		int draw(bee_rgba_t);
+		int draw(bee::E_RGB);
 		int draw(SDL_RendererFlip);
 
 		int draw_path();

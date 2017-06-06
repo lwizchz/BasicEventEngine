@@ -16,7 +16,7 @@
 
 class BEE::PhysicsBody {
 	private:
-		bee_phys_shape_t type;
+		bee::E_PHYS_SHAPE type;
 		btCollisionShape* shape = nullptr;
 		size_t shape_param_amount = 0;
 		double* shape_params = nullptr;
@@ -26,13 +26,13 @@ class BEE::PhysicsBody {
 
 		PhysicsWorld* attached_world = nullptr;
 		Instance* attached_instance = nullptr;
-		std::vector<std::tuple<bee_phys_constraint_t,double*,btTypedConstraint*>> constraints;
+		std::vector<std::tuple<bee::E_PHYS_CONSTRAINT,double*,btTypedConstraint*>> constraints;
 
 		double scale = 1.0;
 		double mass = 0.0;
 		double friction  = 0.5;
 	public:
-		PhysicsBody(PhysicsWorld*, Instance*, bee_phys_shape_t, double, double, double, double, double*);
+		PhysicsBody(PhysicsWorld*, Instance*, bee::E_PHYS_SHAPE, double, double, double, double, double*);
 		~PhysicsBody();
 
 		std::string serialize(bool) const;
@@ -47,7 +47,7 @@ class BEE::PhysicsBody {
 		btVector3 get_inertia() const;
 		btRigidBody* get_body() const;
 		PhysicsWorld* get_world() const;
-		const std::vector<std::tuple<bee_phys_constraint_t,double*,btTypedConstraint*>>& get_constraints() const;
+		const std::vector<std::tuple<bee::E_PHYS_CONSTRAINT,double*,btTypedConstraint*>>& get_constraints() const;
 
 		btDefaultMotionState* get_motion() const;
 		btVector3 get_position() const;
@@ -56,18 +56,18 @@ class BEE::PhysicsBody {
 		double get_rotation_y() const;
 		double get_rotation_z() const;
 
-		int set_shape(bee_phys_shape_t, double*);
+		int set_shape(bee::E_PHYS_SHAPE, double*);
 		int set_mass(double);
 		int set_friction(double);
 
-		int add_constraint(bee_phys_constraint_t, double*);
-		int add_constraint_external(bee_phys_constraint_t, double*, btTypedConstraint*);
+		int add_constraint(bee::E_PHYS_CONSTRAINT, double*);
+		int add_constraint_external(bee::E_PHYS_CONSTRAINT, double*, btTypedConstraint*);
 		int remove_constraints();
 
 		int update_state();
 
-		size_t get_shape_param_amount(bee_phys_shape_t, int) const;
-		size_t get_shape_param_amount(bee_phys_shape_t) const;
+		size_t get_shape_param_amount(bee::E_PHYS_SHAPE, int) const;
+		size_t get_shape_param_amount(bee::E_PHYS_SHAPE) const;
 };
 
 #endif // _BEE_PHYSICS_BODY_H

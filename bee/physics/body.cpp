@@ -11,7 +11,7 @@
 
 #include "body.hpp"
 
-BEE::PhysicsBody::PhysicsBody(PhysicsWorld* new_world, Instance* new_inst, bee_phys_shape_t new_type, double new_mass, double x, double y, double z, double* p) {
+BEE::PhysicsBody::PhysicsBody(PhysicsWorld* new_world, Instance* new_inst, bee::E_PHYS_SHAPE new_type, double new_mass, double x, double y, double z, double* p) {
 	attached_world = new_world;
 	attached_instance = new_inst;
 
@@ -75,7 +75,7 @@ std::string BEE::PhysicsBody::serialize(bool should_pretty_print) const {
 	}
 
 	std::map<std::string,SIDP> data;
-	data["type"] = type;
+	data["type"] = static_cast<int>(type);
 	data["mass"] = mass;
 	data["scale"] = scale;
 	data["friction"] = friction;
@@ -101,12 +101,12 @@ int BEE::PhysicsBody::deserialize(const std::string& data) {
 	std::map<std::string,SIDP> m;
 	map_deserialize(data, &m);
 
-	type = (bee_phys_shape_t)SIDP_i(m["type"]);
+	type = static_cast<bee::E_PHYS_SHAPE>(SIDP_i(m["type"]));
 	mass = SIDP_d(m["mass"]);
 	scale = SIDP_d(m["scale"]);
 	friction = SIDP_d(m["friction"]);
 	shape_param_amount = get_shape_param_amount(type);
-	if ((type == BEE_PHYS_SHAPE_MULTISPHERE)||(type == BEE_PHYS_SHAPE_CONVEX_HULL)) {
+	if ((type == bee::E_PHYS_SHAPE::MULTISPHERE)||(type == bee::E_PHYS_SHAPE::CONVEX_HULL)) {
 		shape_param_amount = get_shape_param_amount(type, SIDP_cd(m["shape_params"], 0));
 	}
 
@@ -203,7 +203,7 @@ btRigidBody* BEE::PhysicsBody::get_body() const {
 BEE::PhysicsWorld* BEE::PhysicsBody::get_world() const {
 	return attached_world;
 }
-const std::vector<std::tuple<bee_phys_constraint_t,double*,btTypedConstraint*>>& BEE::PhysicsBody::get_constraints() const {
+const std::vector<std::tuple<bee::E_PHYS_CONSTRAINT,double*,btTypedConstraint*>>& BEE::PhysicsBody::get_constraints() const {
 	return constraints;
 }
 
@@ -226,7 +226,7 @@ double BEE::PhysicsBody::get_rotation_z() const {
 	return 2.0*asin(get_rotation().z());
 }
 
-int BEE::PhysicsBody::set_shape(bee_phys_shape_t new_type, double* p) {
+int BEE::PhysicsBody::set_shape(bee::E_PHYS_SHAPE new_type, double* p) {
 	if (shape != nullptr) {
 		delete shape;
 		shape = nullptr;
@@ -244,42 +244,42 @@ int BEE::PhysicsBody::set_shape(bee_phys_shape_t new_type, double* p) {
 	}
 
 	switch (type) {
-		case BEE_PHYS_SHAPE_SPHERE: {
+		case bee::E_PHYS_SHAPE::SPHERE: {
 			/*
 			* p[0]: the radius
 			*/
 			shape = new btSphereShape(btScalar(p[0]));
 			break;
 		}
-		case BEE_PHYS_SHAPE_BOX: {
+		case bee::E_PHYS_SHAPE::BOX: {
 			/*
 			* p[0], p[1], p[2]: the width, height, and depth
 			*/
 			shape = new btBoxShape(btVector3(btScalar(p[0]), btScalar(p[1]), btScalar(p[2])) / (2.0*scale));
 			break;
 		}
-		case BEE_PHYS_SHAPE_CYLINDER: {
+		case bee::E_PHYS_SHAPE::CYLINDER: {
 			/*
 			* p[0], p[1]: the radius and height
 			*/
 			shape = new btCylinderShape(btVector3(btScalar(p[0]), btScalar(p[1]), btScalar(p[0])));
 			break;
 		}
-		case BEE_PHYS_SHAPE_CAPSULE: {
+		case bee::E_PHYS_SHAPE::CAPSULE: {
 			/*
 			* p[0], p[1]: the radius and height
 			*/
 			shape = new btCapsuleShape(btScalar(p[0]), btScalar(p[1]));
 			break;
 		}
-		case BEE_PHYS_SHAPE_CONE: {
+		case bee::E_PHYS_SHAPE::CONE: {
 			/*
 			* p[0], p[1]: the radius and height
 			*/
 			shape = new btConeShape(btScalar(p[0]), btScalar(p[1]));
 			break;
 		}
-		case BEE_PHYS_SHAPE_MULTISPHERE: {
+		case bee::E_PHYS_SHAPE::MULTISPHERE: {
 			/*
 			* p[0]: the amount of spheres
 			* p[1], p[2], p[3], ..., p[p[0]]: the x-, y-, and z-coordinates of each sphere's center
@@ -304,7 +304,7 @@ int BEE::PhysicsBody::set_shape(bee_phys_shape_t new_type, double* p) {
 
 			break;
 		}
-		case BEE_PHYS_SHAPE_CONVEX_HULL: {
+		case bee::E_PHYS_SHAPE::CONVEX_HULL: {
 			/*
 			* p[0]: the amount of points
 			* p[1], p[2], p[3], ..., p[p[0]]: the x-, y-, and z-coordinates of each point
@@ -325,7 +325,8 @@ int BEE::PhysicsBody::set_shape(bee_phys_shape_t new_type, double* p) {
 
 		default:
 			std::cerr << "PHYS ERR invalid shape type\n";
-		case BEE_PHYS_SHAPE_NONE:
+			/* FALL THROUGH */
+		case bee::E_PHYS_SHAPE::NONE:
 			shape_param_amount = 0;
 			shape = new btEmptyShape();
 	}
@@ -349,7 +350,7 @@ int BEE::PhysicsBody::set_friction(double new_friction) {
 	return 0;
 }
 
-int BEE::PhysicsBody::add_constraint(bee_phys_constraint_t type, double* p) {
+int BEE::PhysicsBody::add_constraint(bee::E_PHYS_CONSTRAINT type, double* p) {
 	if (attached_world != nullptr) {
 		attached_world->add_constraint(type, this, p);
 	} else {
@@ -358,7 +359,7 @@ int BEE::PhysicsBody::add_constraint(bee_phys_constraint_t type, double* p) {
 
 	return 0;
 }
-int BEE::PhysicsBody::add_constraint_external(bee_phys_constraint_t type, double* p, btTypedConstraint* constraint) {
+int BEE::PhysicsBody::add_constraint_external(bee::E_PHYS_CONSTRAINT type, double* p, btTypedConstraint* constraint) {
 	constraints.emplace_back(type, p, constraint);
 	return 0;
 }
@@ -409,23 +410,23 @@ int BEE::PhysicsBody::update_state() {
 	return 0;
 }
 
-size_t BEE::PhysicsBody::get_shape_param_amount(bee_phys_shape_t s, int p0) const {
+size_t BEE::PhysicsBody::get_shape_param_amount(bee::E_PHYS_SHAPE s, int p0) const {
 	switch (s) {
-		case BEE_PHYS_SHAPE_SPHERE:      return 1;
-		case BEE_PHYS_SHAPE_BOX:         return 3;
+		case bee::E_PHYS_SHAPE::SPHERE:      return 1;
+		case bee::E_PHYS_SHAPE::BOX:         return 3;
 
-		case BEE_PHYS_SHAPE_CYLINDER:
-		case BEE_PHYS_SHAPE_CAPSULE:
-		case BEE_PHYS_SHAPE_CONE:        return 2;
+		case bee::E_PHYS_SHAPE::CYLINDER:
+		case bee::E_PHYS_SHAPE::CAPSULE:
+		case bee::E_PHYS_SHAPE::CONE:        return 2;
 
-		case BEE_PHYS_SHAPE_MULTISPHERE: return p0 * 4 + 1;
-		case BEE_PHYS_SHAPE_CONVEX_HULL: return p0 * 3 + 1;
+		case bee::E_PHYS_SHAPE::MULTISPHERE: return p0 * 4 + 1;
+		case bee::E_PHYS_SHAPE::CONVEX_HULL: return p0 * 3 + 1;
 
 		default:
-		case BEE_PHYS_SHAPE_NONE:        return 0;
+		case bee::E_PHYS_SHAPE::NONE:        return 0;
 	}
 }
-size_t BEE::PhysicsBody::get_shape_param_amount(bee_phys_shape_t s) const {
+size_t BEE::PhysicsBody::get_shape_param_amount(bee::E_PHYS_SHAPE s) const {
 	return get_shape_param_amount(s, 0);
 }
 

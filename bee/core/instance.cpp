@@ -12,7 +12,7 @@
 #include "instance.hpp"
 
 BEE::Instance::Instance() {
-	for (size_t i=0; i<ALARM_COUNT; i++) {
+	for (size_t i=0; i<BEE_ALARM_COUNT; i++) {
 		alarm_end[i] = 0xffffffff;
 	}
 }
@@ -34,9 +34,9 @@ int BEE::Instance::init(int new_id, Object* new_object, double new_x, double new
 
 		double* p = new double[3] {(double)get_width(), (double)get_height(), w->get_scale()};
 		if ((p[0] != 0.0)&&(p[1] != 0.0)) {
-			body = new PhysicsBody(w, this, BEE_PHYS_SHAPE_BOX, 0.0, new_x, new_y, new_z, p); // PhysicsBody assumes ownership of any shape parameters passed to it
+			body = new PhysicsBody(w, this, bee::E_PHYS_SHAPE::BOX, 0.0, new_x, new_y, new_z, p); // PhysicsBody assumes ownership of any shape parameters passed to it
 		} else {
-			body = new PhysicsBody(w, this, BEE_PHYS_SHAPE_NONE, 0.0, new_x, new_y, new_z, nullptr);
+			body = new PhysicsBody(w, this, bee::E_PHYS_SHAPE::NONE, 0.0, new_x, new_y, new_z, nullptr);
 			delete[] p;
 		}
 	} else {
@@ -54,7 +54,7 @@ int BEE::Instance::init(int new_id, Object* new_object, double new_x, double new
 		is_solid = false;
 	}
 
-	for (size_t i=0; i<ALARM_COUNT; i++) {
+	for (size_t i=0; i<BEE_ALARM_COUNT; i++) {
 		alarm_end[i] = 0xffffffff;
 	}
 
@@ -78,14 +78,14 @@ int BEE::Instance::print() {
 	"\n"
 	"\n	path               " << path <<
 	"\n	path_speed         " << path_speed <<
-	"\n	path_end_action    " << path_end_action <<
+	"\n	path_end_action    " << static_cast<int>(path_end_action) <<
 	"\n	path_current_node  " << path_current_node <<
 	"\n	path_is_drawn      " << path_is_drawn <<
 	"\n	path_is_pausable   " << path_is_pausable <<
 	"\n	path_previous_mass " << path_previous_mass <<
 	"\n	path_pos_start     (" << path_pos_start.x() << ", " << path_pos_start.y() << ", " << path_pos_start.z() << ")" <<
 	"\n}\n";
-	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str());
+	game->messenger_send({"engine", "resource"}, bee::E_MESSAGE::INFO, s.str());
 
 	return 0;
 }
@@ -98,7 +98,7 @@ std::string BEE::Instance::serialize(bool should_pretty_print) const {
 	if (get_sprite() != nullptr) {
 		data["sprite"] = get_sprite()->get_name();
 	}
-	data["subimage_time"] = (int)subimage_time;
+	data["subimage_time"] = static_cast<int>(subimage_time);
 
 	std::string b = body->serialize(should_pretty_print);
 	if (should_pretty_print) {
@@ -117,7 +117,7 @@ std::string BEE::Instance::serialize(bool should_pretty_print) const {
 		data["path"] = path->get_name();
 	}
 	data["path_speed"] = path_speed;
-	data["path_end_action"] = path_end_action;
+	data["path_end_action"] = static_cast<int>(path_end_action);
 	data["path_current_node"] = path_current_node;
 	data["path_is_drawn"] = path_is_drawn;
 	data["path_is_pausable"] = path_is_pausable;
@@ -148,7 +148,7 @@ int BEE::Instance::deserialize(const std::string& data) {
 
 	path = game->get_path_by_name(SIDP_s(m["path"]));
 	path_speed = SIDP_d(m["path_speed"]);
-	path_end_action = (bee_path_end_t)SIDP_i(m["path_end_action"]);
+	path_end_action = (bee::E_PATH_END)SIDP_i(m["path_end_action"]);
 	path_current_node = SIDP_i(m["path_current_node"]);
 	path_is_drawn = SIDP_i(m["path_is_drawn"]);
 	path_is_pausable = SIDP_i(m["path_is_pausable"]);
@@ -171,7 +171,7 @@ int BEE::Instance::remove() {
 	return 0;
 }
 
-int BEE::Instance::set_alarm(int alarm, Uint32 elapsed_ticks) {
+int BEE::Instance::set_alarm(size_t alarm, Uint32 elapsed_ticks) {
 	alarm_end[alarm] = elapsed_ticks + game->get_ticks();
 	return 0;
 }
@@ -643,7 +643,7 @@ int BEE::Instance::get_relation(Instance* other) const {
 	return 0;
 }
 
-int BEE::Instance::path_start(Path* new_path, double new_path_speed, bee_path_end_t new_end_action, bool absolute) {
+int BEE::Instance::path_start(Path* new_path, double new_path_speed, bee::E_PATH_END new_end_action, bool absolute) {
 	path = new_path;
 	path_speed = new_path_speed;
 	path_end_action = new_end_action;
@@ -671,7 +671,7 @@ int BEE::Instance::path_start(Path* new_path, double new_path_speed, bee_path_en
 int BEE::Instance::path_end() {
 	path = nullptr;
 	path_speed = 0.0;
-	path_end_action = BEE_PATH_END_STOP;
+	path_end_action = bee::E_PATH_END::STOP;
 	path_pos_start = btVector3(0.0, 0.0, 0.0);
 	path_current_node = 0;
 
@@ -733,17 +733,17 @@ int BEE::Instance::set_path_pausable(bool new_path_is_pausable) {
 int BEE::Instance::handle_path_end() {
 	if (has_path()) {
 		switch (path_end_action) {
-			case BEE_PATH_END_STOP: { // Stop path
+			case bee::E_PATH_END::STOP: { // Stop path
 				path_end();
 				break;
 			}
-			case BEE_PATH_END_RESTART: { // Continue from start
+			case bee::E_PATH_END::RESTART: { // Continue from start
 				path_current_node = -1;
 				set_position(path_pos_start);
 				pos_previous = path_pos_start;
 				break;
 			}
-			case BEE_PATH_END_CONTINUE: { // Continue from current position
+			case bee::E_PATH_END::CONTINUE: { // Continue from current position
 				path_current_node = -1;
 				path_pos_start = btVector3(
 					get_x(),
@@ -752,7 +752,7 @@ int BEE::Instance::handle_path_end() {
 				);
 				break;
 			}
-			case BEE_PATH_END_REVERSE: { // Reverse direction
+			case bee::E_PATH_END::REVERSE: { // Reverse direction
 				path_speed *= -1;
 				if (path_speed >= 0) {
 					path_current_node = 0;
@@ -801,7 +801,7 @@ int BEE::Instance::draw(int w, int h, double angle, RGBA color, SDL_RendererFlip
 	}
 	return get_sprite()->draw(get_corner_x()-xo, get_corner_y()-yo, subimage_time, w, h, angle, color, flip);
 }
-int BEE::Instance::draw(int w, int h, double angle, bee_rgba_t color, SDL_RendererFlip flip) {
+int BEE::Instance::draw(int w, int h, double angle, bee::E_RGB color, SDL_RendererFlip flip) {
 	if (get_sprite() == nullptr) {
 		return 1;
 	}
@@ -847,7 +847,7 @@ int BEE::Instance::draw(RGBA color) {
 	}
 	return get_sprite()->draw(get_corner_x()-xo, get_corner_y()-yo, subimage_time, color);
 }
-int BEE::Instance::draw(bee_rgba_t color) {
+int BEE::Instance::draw(bee::E_RGB color) {
 	if (get_sprite() == nullptr) {
 		return 1;
 	}

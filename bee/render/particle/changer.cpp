@@ -16,13 +16,13 @@ BEE::ParticleChanger::ParticleChanger() :
 	y(0.0),
 	w(1), h(1),
 	following(nullptr),
-	
-	shape(BEE_PS_SHAPE_RECTANGLE),
-	
+
+	shape(bee::E_PS_SHAPE::RECTANGLE),
+
 	particle_before(nullptr),
 	particle_after(nullptr),
-	
-	change_type(BEE_PS_CHANGE_ALL)
+
+	change_type(bee::E_PS_CHANGE::ALL)
 {}
 
 #endif // _BEE_RENDER_PARTICLE_CHANGER

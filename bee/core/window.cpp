@@ -16,7 +16,7 @@
 * ! See https://wiki.libsdl.org/SDL_GetWindowTitle for details
 */
 std::string BEE::get_window_title() const {
-	return SDL_GetWindowTitle(window);
+	return SDL_GetWindowTitle(renderer->window);
 }
 /*
 * BEE::get_cursor() - Return the current window cursor
@@ -29,7 +29,7 @@ SDL_Cursor* BEE::get_cursor()  const {
 */
 int BEE::get_window_x() const {
 	int wx;
-	SDL_GetWindowPosition(window, &wx, nullptr);
+	SDL_GetWindowPosition(renderer->window, &wx, nullptr);
 	return wx;
 }
 /*
@@ -37,7 +37,7 @@ int BEE::get_window_x() const {
 */
 int BEE::get_window_y() const {
 	int wy;
-	SDL_GetWindowPosition(window, nullptr, &wy);
+	SDL_GetWindowPosition(renderer->window, nullptr, &wy);
 	return wy;
 }
 /*
@@ -58,7 +58,7 @@ int BEE::get_height() const {
 * @new_title: the string to set the title to
 */
 int BEE::set_window_title(const std::string& new_title) const {
-	SDL_SetWindowTitle(window, new_title.c_str());
+	SDL_SetWindowTitle(renderer->window, new_title.c_str());
 	return 0;
 }
 /*
@@ -86,7 +86,7 @@ int BEE::set_show_cursor(bool new_show_cursor) const {
 * @new_y: the new y-coordinate to move the window to
 */
 int BEE::set_window_position(int new_x, int new_y) const {
-	SDL_SetWindowPosition(window, new_x, new_y);
+	SDL_SetWindowPosition(renderer->window, new_x, new_y);
 	return 0;
 }
 /*
@@ -116,7 +116,7 @@ int BEE::set_window_center() const {
 int BEE::set_window_size(int new_width, int new_height) {
 	width = new_width;
 	height = new_height;
-	SDL_SetWindowSize(window, width, height);
+	SDL_SetWindowSize(renderer->window, width, height);
 	return 0;
 }
 /*

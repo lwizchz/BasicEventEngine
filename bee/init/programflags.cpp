@@ -65,7 +65,7 @@ std::list<BEE::ProgramFlags*> BEE::get_standard_flags() {
 		);
 		ProgramFlags* f_opengl = new ProgramFlags(
 			"opengl", '\0', true, no_argument, [] (BEE* g, char* arg) -> void {
-				g->options->renderer_type = BEE_RENDERER_OPENGL4;
+				g->options->renderer_type = bee::E_RENDERER::OPENGL4;
 			}
 		);
 		ProgramFlags* f_noassert = new ProgramFlags(
@@ -75,7 +75,7 @@ std::list<BEE::ProgramFlags*> BEE::get_standard_flags() {
 		);
 		ProgramFlags* f_sdl = new ProgramFlags(
 			"sdl", '\0', true, no_argument, [] (BEE* g, char* arg) -> void {
-				g->options->renderer_type = BEE_RENDERER_SDL;
+				g->options->renderer_type = bee::E_RENDERER::SDL;
 			}
 		);
 		ProgramFlags* f_singlerun = new ProgramFlags(

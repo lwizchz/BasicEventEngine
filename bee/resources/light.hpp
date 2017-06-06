@@ -13,7 +13,7 @@
 
 class BEE::LightData {
 	public:
-		bee_light_t type = BEE_LIGHT_AMBIENT;
+		bee::E_LIGHT type = bee::E_LIGHT::AMBIENT;
 		glm::vec4 position;
 		glm::vec4 direction;
 		glm::vec4 attenuation; // The components of attenuation: x=the brightness, y=the cone width, z=the range, all roughly in pixels
@@ -45,7 +45,7 @@ class BEE::Light: public Resource {
 		int get_id() const;
 		std::string get_name() const;
 		std::string get_path() const;
-		bee_light_t get_type() const;
+		bee::E_LIGHT get_type() const;
 		glm::vec4 get_position() const;
 		glm::vec4 get_direction() const;
 		glm::vec4 get_attenuation() const;
@@ -53,7 +53,7 @@ class BEE::Light: public Resource {
 
 		int set_name(const std::string&);
 		int set_path(const std::string&);
-		int set_type(bee_light_t);
+		int set_type(bee::E_LIGHT);
 		int set_position(glm::vec4);
 		int set_direction(glm::vec4);
 		int set_attenuation(glm::vec4);

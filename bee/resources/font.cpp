@@ -15,7 +15,7 @@
 * BEE::TextData::TextData() - Construct the data struct and initialize the default values
 */
 BEE::TextData::TextData() :
-	sprite(),
+	sprites(),
 	text()
 {}
 /*
@@ -24,27 +24,27 @@ BEE::TextData::TextData() :
 * @new_text: the text that has been rendered in the sprite
 */
 BEE::TextData::TextData(BEE::Sprite* new_sprite, const std::string& new_text) :
-	sprite(),
+	sprites(),
 	text(new_text)
 {
-	sprite.emplace(0, new_sprite); // Set the provided sprite as the data for the first line
+	sprites.emplace(0, new_sprite); // Set the provided sprite as the data for the first line
 }
 /*
 * BEE::TextData::~TextData() - Free the memory for each line's sprite
 */
 BEE::TextData::~TextData() {
-	for (auto& s : sprite) { // Iterate over the sprite and delete each one
+	for (auto& s : sprites) { // Iterate over the sprites and delete each one
 		delete s.second;
 	}
-	sprite.clear(); // Clear the list
+	sprites.clear(); // Clear the list
 	text.clear();
 }
 /*
 * BEE::TextData::pop_front() -  Pop the front sprite so it won't be deleted twice
 */
 BEE::Sprite* BEE::TextData::pop_front() {
-	Sprite* s = sprite.begin()->second; // Store a copy of the sprite pointer
-	sprite.erase(sprite.begin()); // Erase the sprite from the list
+	Sprite* s = sprites.begin()->second; // Store a copy of the sprite pointer
+	sprites.erase(sprites.begin()); // Erase the sprite from the list
 	return s; // Return the sprite
 }
 
@@ -84,7 +84,7 @@ BEE::Font::Font(const std::string& new_name, const std::string& new_path, int ne
 {
 	add_to_resources(); // Add the font to the appropriate resource list
 	if (id < 0) { // If the font could not be added to the resource list, output a warning
-		game->messenger_send({"engine", "resource"}, BEE_MESSAGE_WARNING, "Failed to add font resource: \"" + new_name + "\" from " + new_path);
+		game->messenger_send({"engine", "resource"}, bee::E_MESSAGE::WARNING, "Failed to add font resource: \"" + new_name + "\" from " + new_path);
 		throw(-1); // Throw an exception
 	}
 
@@ -153,7 +153,7 @@ int BEE::Font::print() const {
 	"\n	is_sprite       " << is_sprite <<
 	"\n	sprite_font     " << sprite_font <<
 	"\n}\n";
-	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str()); // Send the info to the messaging system for output
+	game->messenger_send({"engine", "resource"}, bee::E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for output
 
 	return 0; // Return 0 on success
 }
@@ -181,7 +181,7 @@ int BEE::Font::get_lineskip() const {
 }
 int BEE::Font::get_lineskip_default() {
 	if (!is_loaded) { // If the font is not loaded, output a warning
-		game->messenger_send({"engine", "font"}, BEE_MESSAGE_WARNING, "Failed to get the default lineskip for \"" + name + "\" becuase it is not loaded");
+		game->messenger_send({"engine", "font"}, bee::E_MESSAGE::WARNING, "Failed to get the default lineskip for \"" + name + "\" becuase it is not loaded");
 		return -1; // Return -1 on failure
 	}
 
@@ -225,7 +225,7 @@ int BEE::Font::set_font_size(int new_font_size) {
 */
 int BEE::Font::set_style(int new_style) {
 	if (!is_loaded) { // Do not attempt to set the style if the font has not been loaded
-		game->messenger_send({"engine", "font"}, BEE_MESSAGE_WARNING, "Failed to set the font style for \"" + name + "\" because it is not loaded");
+		game->messenger_send({"engine", "font"}, bee::E_MESSAGE::WARNING, "Failed to set the font style for \"" + name + "\" because it is not loaded");
 		return 1; // Return 1 on error
 	}
 
@@ -247,14 +247,14 @@ int BEE::Font::set_lineskip(int new_lineskip) {
 */
 int BEE::Font::load() {
 	if (is_loaded) { // If the font has already been loaded, output a warning
-		game->messenger_send({"engine", "font"}, BEE_MESSAGE_WARNING, "Failed to load font \"" + name + "\" from because it has already been loaded");
+		game->messenger_send({"engine", "font"}, bee::E_MESSAGE::WARNING, "Failed to load font \"" + name + "\" from because it has already been loaded");
 		return 1; // Return 1 when already loaded
 	}
 
 	if (is_sprite) { // If the font is a sprite font, load it appropriately
 		sprite_font = new Sprite("spr_"+get_name(), path); // Create and load a sprite for the font
 		if (!sprite_font->load()) { // If the sprite fails to load, output a warning
-			game->messenger_send({"engine", "font"}, BEE_MESSAGE_WARNING, "Failed to load the font \"" + path + "\": " + get_sdl_error());
+			game->messenger_send({"engine", "font"}, bee::E_MESSAGE::WARNING, "Failed to load the font \"" + path + "\": " + get_sdl_error());
 			has_draw_failed = true;
 			return 2; // Return 2 on loading failure
 		}
@@ -263,13 +263,13 @@ int BEE::Font::load() {
 		is_loaded = true;
 		has_draw_failed = false;
 	} else { // Otherwise load the sprite's TTF file
-		if (game->options->renderer_type != BEE_RENDERER_SDL) { // If the engine is rendering in OpenGL mode, output a warning about fast font drawing
-			game->messenger_send({"engine", "font"}, BEE_MESSAGE_WARNING, "Please note that TTF fast font rendering is currently broken in OpenGL mode\nThe current behavior is to draw slowly and discard the texture data");
+		if (game->options->renderer_type != bee::E_RENDERER::SDL) { // If the engine is rendering in OpenGL mode, output a warning about fast font drawing
+			game->messenger_send({"engine", "font"}, bee::E_MESSAGE::WARNING, "Please note that TTF fast font rendering is currently broken in OpenGL mode\nThe current behavior is to draw slowly and discard the texture data");
 		}
 
 		font = TTF_OpenFont(path.c_str(), font_size); // Open the TTF file with the desired font size
 		if (font == nullptr) { // If the font failed to load, output a warning
-			game->messenger_send({"engine", "font"}, BEE_MESSAGE_WARNING, "Failed to load font \"" + path + "\": " + TTF_GetError());
+			game->messenger_send({"engine", "font"}, bee::E_MESSAGE::WARNING, "Failed to load font \"" + path + "\": " + TTF_GetError());
 			has_draw_failed = true;
 			return 2; // Return 2 on loading failure
 		}
@@ -314,7 +314,7 @@ int BEE::Font::free() {
 BEE::TextData* BEE::Font::draw_internal(int x, int y, const std::string& text, RGBA color) {
 	if (!is_loaded) { // Do not attempt to draw the text if the font has not been loaded
 		if (!has_draw_failed) { // If the draw call hasn't failed before, output a warning
-			game->messenger_send({"engine", "font"}, BEE_MESSAGE_WARNING, "Failed to draw text with \"" + name + "\" because it is not loaded");
+			game->messenger_send({"engine", "font"}, bee::E_MESSAGE::WARNING, "Failed to draw text with \"" + name + "\" because it is not loaded");
 			has_draw_failed = true; // Set the draw failure boolean
 		}
 		return nullptr; // Return nullptr when not loaded
@@ -329,7 +329,7 @@ BEE::TextData* BEE::Font::draw_internal(int x, int y, const std::string& text, R
 	// Render the text to a temporary surface
 	SDL_Surface* tmp_surface = TTF_RenderUTF8_Blended(font, t.c_str(), {color.r, color.g, color.b, color.a}); // Use the slow but pretty TTF rendering mode
 	if (tmp_surface == nullptr) { // If the text failed to render, output a warning
-		game->messenger_send({"engine", "font"}, BEE_MESSAGE_WARNING, "Failed to draw with font \"" + name + "\": " + TTF_GetError());
+		game->messenger_send({"engine", "font"}, bee::E_MESSAGE::WARNING, "Failed to draw with font \"" + name + "\": " + TTF_GetError());
 		return nullptr; // Return nullptr when rendering failed
 	}
 
@@ -355,7 +355,7 @@ BEE::TextData* BEE::Font::draw_internal(int x, int y, const std::string& text, R
 BEE::TextData* BEE::Font::draw(int x, int y, const std::string& text, RGBA color) {
 	if (!is_loaded) { // Do not attempt to draw the text if the font has not been loaded
 		if (!has_draw_failed) { // If the draw call hasn't failed before, output a warning
-			game->messenger_send({"engine", "font"}, BEE_MESSAGE_WARNING, "Failed to draw text with \"" + name + "\" because it is not loaded");
+			game->messenger_send({"engine", "font"}, bee::E_MESSAGE::WARNING, "Failed to draw text with \"" + name + "\" because it is not loaded");
 			has_draw_failed = true; // Set the draw failure boolean
 		}
 		return nullptr; // Return nullptr when not loaded
@@ -374,7 +374,7 @@ BEE::TextData* BEE::Font::draw(int x, int y, const std::string& text, RGBA color
 			if (textdata == nullptr) { // If it's the first line, set it as the entire textdata
 				textdata = r;
 			} else { // Otherwise append its data to the existing textdata
-				textdata->sprite.emplace(textdata->sprite.size(), r->pop_front());
+				textdata->sprites.emplace(textdata->sprites.size(), r->pop_front());
 				delete r; // Free the temporary data
 			}
 		}
@@ -405,16 +405,20 @@ BEE::TextData* BEE::Font::draw(int x, int y, const std::string& text) {
 BEE::TextData* BEE::Font::draw(TextData* textdata, int x, int y, const std::string& text, RGBA color) {
 	if (!is_loaded) { // Do not attempt to draw the text if the font has not been loaded
 		if (!has_draw_failed) { // If the draw call hasn't failed before, output a warning
-			game->messenger_send({"engine", "font"}, BEE_MESSAGE_WARNING, "Failed to draw text with \"" + name + "\" because it is not loaded");
+			game->messenger_send({"engine", "font"}, bee::E_MESSAGE::WARNING, "Failed to draw text with \"" + name + "\" because it is not loaded");
 			has_draw_failed = true; // Set the draw failure boolean
 		}
 		return nullptr; // Return nullptr when not loaded
 	}
 
 	if ((textdata != nullptr)&&(textdata->text == text)) { // If the prerendered text matches the given text, draw it as-is
-		std::map<int,std::string> lines = handle_newlines(text); // Separate the text by newline
+		std::vector<std::string> lines = splitv(text, '\n', false); // Separate the text by newline
+		size_t i = 0;
 		for (auto& l : lines) { // Iterate over the lines and draw each one
-			textdata->sprite[l.first]->draw(x, y, 0, false);
+			if (!l.empty()) {
+				textdata->sprites[i]->draw(x, y, 0, false);
+			}
+			++i;
 		}
 		return textdata; // Return the textdata on success
 	} else { // Otherwise, free the given textdata and redraw the text
@@ -446,7 +450,7 @@ BEE::TextData* BEE::Font::draw(TextData* textdata, int x, int y, const std::stri
 int BEE::Font::draw_fast_internal(int x, int y, const std::string& text, RGBA color) {
 	if (!is_loaded) { // Do not attempt to draw the text if the font has not been loaded
 		if (!has_draw_failed) { // If the draw call hasn't failed before, output a warning
-			game->messenger_send({"engine", "font"}, BEE_MESSAGE_WARNING, "Failed to draw text with \"" + name + "\" because it is not loaded");
+			game->messenger_send({"engine", "font"}, bee::E_MESSAGE::WARNING, "Failed to draw text with \"" + name + "\" because it is not loaded");
 			has_draw_failed = true; // Set the draw failure boolean
 		}
 		return 1; // Return 1 when not loaded
@@ -468,13 +472,13 @@ int BEE::Font::draw_fast_internal(int x, int y, const std::string& text, RGBA co
 	} else { // Otherwise, draw the font normally
 		// Render the text to a temporary surface
 		SDL_Surface* tmp_surface;
-		if (game->options->renderer_type != BEE_RENDERER_SDL) { // Since fast font rendering is currently broken in OpenGL, fallback to the slower rendering
+		if (game->options->renderer_type != bee::E_RENDERER::SDL) { // Since fast font rendering is currently broken in OpenGL, fallback to the slower rendering
 			tmp_surface = TTF_RenderUTF8_Blended(font, t.c_str(), {color.r, color.g, color.b, color.a}); // Use the slow but pretty TTF rendering mode
 		} else {
 			tmp_surface = TTF_RenderUTF8_Solid(font, t.c_str(), {color.r, color.g, color.b, color.a}); // Use the fast but ugly TTF rendering mode
 		}
 		if (tmp_surface == nullptr) { // If the text failed to render, output a warning
-			game->messenger_send({"engine", "font"}, BEE_MESSAGE_WARNING, "Failed to draw with font \"" + name + "\": " + TTF_GetError());
+			game->messenger_send({"engine", "font"}, bee::E_MESSAGE::WARNING, "Failed to draw with font \"" + name + "\": " + TTF_GetError());
 			return 2; // Return 2 on rendering error
 		}
 
@@ -501,7 +505,7 @@ int BEE::Font::draw_fast_internal(int x, int y, const std::string& text, RGBA co
 int BEE::Font::draw_fast(int x, int y, const std::string& text, RGBA color) {
 	if (!is_loaded) { // Do not attempt to draw the text if the font has not been loaded
 		if (!has_draw_failed) { // If the draw call hasn't failed before, output a warning
-			game->messenger_send({"engine", "font"}, BEE_MESSAGE_WARNING, "Failed to draw text with \"" + name + "\" because it is not loaded");
+			game->messenger_send({"engine", "font"}, bee::E_MESSAGE::WARNING, "Failed to draw text with \"" + name + "\" because it is not loaded");
 			has_draw_failed = true; // Set the draw failure boolean
 		}
 		return 1; // Return 1 when not loaded

@@ -28,7 +28,7 @@ BEE::Mesh::Mesh (const std::string& new_name, const std::string& new_path) {
 
 	add_to_resources();
 	if (id < 0) {
-		game->messenger_send({"engine", "resource"}, BEE_MESSAGE_WARNING, "Failed to add mesh resource: \"" + new_name + "\" from " + new_path);
+		game->messenger_send({"engine", "resource"}, bee::E_MESSAGE::WARNING, "Failed to add mesh resource: \"" + new_name + "\" from " + new_path);
 		throw(-1);
 	}
 
@@ -66,7 +66,7 @@ int BEE::Mesh::print() const {
 	"\n	name            " << name <<
 	"\n	path            " << path <<
 	"\n}\n";
-	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str());
+	game->messenger_send({"engine", "resource"}, bee::E_MESSAGE::INFO, s.str());
 
 	return 0;
 }
@@ -91,10 +91,10 @@ int BEE::Mesh::set_path(const std::string& new_path) {
 
 int BEE::Mesh::load() {
 	if (!is_loaded) {
-		if (game->options->renderer_type != BEE_RENDERER_SDL) {
+		if (game->options->renderer_type != bee::E_RENDERER::SDL) {
 			scene = aiImportFile(path.c_str(), aiProcessPreset_TargetRealtime_MaxQuality);
 			if (scene == nullptr) {
-				game->messenger_send({"engine", "mesh"}, BEE_MESSAGE_WARNING, "Failed to load mesh \"" + name + "\": " + aiGetErrorString());
+				game->messenger_send({"engine", "mesh"}, bee::E_MESSAGE::WARNING, "Failed to load mesh \"" + name + "\": " + aiGetErrorString());
 				return 1;
 			}
 
@@ -140,20 +140,20 @@ int BEE::Mesh::load() {
 			glGenBuffers(1, &vbo_vertices);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
 			glBufferData(GL_ARRAY_BUFFER, 3 * vertex_amount * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
-			glVertexAttribPointer(game->vertex_location, 3, GL_FLOAT, GL_FALSE, 0, 0);
-			glEnableVertexAttribArray(game->vertex_location);
+			glVertexAttribPointer(game->renderer->vertex_location, 3, GL_FLOAT, GL_FALSE, 0, 0);
+			glEnableVertexAttribArray(game->renderer->vertex_location);
 
 			glGenBuffers(1, &vbo_normals);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
 			glBufferData(GL_ARRAY_BUFFER, 3 * vertex_amount * sizeof(GLfloat), normals, GL_STATIC_DRAW);
-			glVertexAttribPointer(game->normal_location, 3, GL_FLOAT, GL_FALSE, 0, 0);
-			glEnableVertexAttribArray(game->normal_location);
+			glVertexAttribPointer(game->renderer->normal_location, 3, GL_FLOAT, GL_FALSE, 0, 0);
+			glEnableVertexAttribArray(game->renderer->normal_location);
 
 			glGenBuffers(1, &vbo_texcoords);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords);
 			glBufferData(GL_ARRAY_BUFFER, 2 * vertex_amount * sizeof(GLfloat), uv_array, GL_STATIC_DRAW);
-			glVertexAttribPointer(game->fragment_location, 2, GL_FLOAT, GL_FALSE, 0, 0);
-			glEnableVertexAttribArray(game->fragment_location);
+			glVertexAttribPointer(game->renderer->fragment_location, 2, GL_FLOAT, GL_FALSE, 0, 0);
+			glEnableVertexAttribArray(game->renderer->fragment_location);
 
 			glGenBuffers(1, &ibo);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
@@ -175,7 +175,7 @@ int BEE::Mesh::load() {
 					tmp_surface = IMG_Load(fullpath);
 					delete[] fullpath;
 					if (tmp_surface == nullptr) { // If the surface could not be loaded
-						game->messenger_send({"engine", "sprite"}, BEE_MESSAGE_WARNING, "Failed to load the texture for mesh \"" + name + "\": " + IMG_GetError());
+						game->messenger_send({"engine", "sprite"}, bee::E_MESSAGE::WARNING, "Failed to load the texture for mesh \"" + name + "\": " + IMG_GetError());
 						return 2; // Return 2 on failure
 					}
 
@@ -199,13 +199,13 @@ int BEE::Mesh::load() {
 
 					has_texture = true;
 				} else {
-					game->messenger_send({"engine", "mesh"}, BEE_MESSAGE_WARNING, "Failed to load the texture for mesh \"" + name + "\", the material did not report any textures");
+					game->messenger_send({"engine", "mesh"}, bee::E_MESSAGE::WARNING, "Failed to load the texture for mesh \"" + name + "\", the material did not report any textures");
 				}
 			}
 
 			is_loaded = true;
 		} else {
-			game->messenger_send({"engine", "mesh"}, BEE_MESSAGE_WARNING, "Failed to load mesh because SDL rendering is currently enabled");
+			game->messenger_send({"engine", "mesh"}, bee::E_MESSAGE::WARNING, "Failed to load mesh because SDL rendering is currently enabled");
 			return 1;
 		}
 	}
@@ -235,7 +235,7 @@ int BEE::Mesh::free() {
 int BEE::Mesh::draw(glm::vec3 pos, glm::vec3 scale, glm::vec3 rotate, RGBA color, bool is_wireframe) {
 	if (!is_loaded) {
 		if (!has_draw_failed) {
-			game->messenger_send({"engine", "mesh"}, BEE_MESSAGE_WARNING, "Failed to draw mesh \"" + name + "\" because it is not loaded");
+			game->messenger_send({"engine", "mesh"}, bee::E_MESSAGE::WARNING, "Failed to draw mesh \"" + name + "\" because it is not loaded");
 			has_draw_failed = true;
 		}
 		return 1;
@@ -244,15 +244,15 @@ int BEE::Mesh::draw(glm::vec3 pos, glm::vec3 scale, glm::vec3 rotate, RGBA color
 	glBindVertexArray(vao);
 
 	if (has_texture) {
-		glUniform1i(game->texture_location, 0);
+		glUniform1i(game->renderer->texture_location, 0);
 		glBindTexture(GL_TEXTURE_2D, gl_texture);
 	} else {
-		glUniform1i(game->primitive_location, 1);
+		glUniform1i(game->renderer->primitive_location, 1);
 	}
 
 	glm::mat4 model = glm::translate(glm::mat4(1.0f), pos);
 	model = glm::scale(model, scale);
-	glUniformMatrix4fv(game->model_location, 1, GL_FALSE, glm::value_ptr(model));
+	glUniformMatrix4fv(game->renderer->model_location, 1, GL_FALSE, glm::value_ptr(model));
 	glm::mat4 rotation = glm::mat4(1.0f);
 	if (rotate.x != 0.0) {
 		rotation = glm::rotate(rotation, (float)degtorad(rotate.x), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -263,19 +263,19 @@ int BEE::Mesh::draw(glm::vec3 pos, glm::vec3 scale, glm::vec3 rotate, RGBA color
 	if (rotate.z != 0.0) {
 		rotation = glm::rotate(rotation, (float)degtorad(rotate.z), glm::vec3(0.0f, 0.0f, 1.0f));
 	}
-	glUniformMatrix4fv(game->rotation_location, 1, GL_FALSE, glm::value_ptr(rotation));
+	glUniformMatrix4fv(game->renderer->rotation_location, 1, GL_FALSE, glm::value_ptr(rotation));
 
 	glm::vec4 c = glm::vec4((float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f, (float)color.a/255.0f);
-	glUniform4fv(game->colorize_location, 1, glm::value_ptr(c));
+	glUniform4fv(game->renderer->colorize_location, 1, glm::value_ptr(c));
 
 	if (is_wireframe) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}
 
 	// Bind the vertices to fix disruption from primitive drawing
-	glEnableVertexAttribArray(game->vertex_location);
+	glEnableVertexAttribArray(game->renderer->vertex_location);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
-	glVertexAttribPointer(game->vertex_location, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glVertexAttribPointer(game->renderer->vertex_location, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 	int size;
@@ -294,12 +294,12 @@ int BEE::Mesh::draw(glm::vec3 pos, glm::vec3 scale, glm::vec3 rotate, RGBA color
 		game->draw_triangle(glm::vec3(vert1[0], vert1[1], vert1[2]), glm::vec3(vert2[0], vert2[1], vert2[2]), glm::vec3(vert3[0], vert3[1], vert3[2]), {255, 0, 0, 255}, !is_wireframe);
 	}*/
 
-	glUniformMatrix4fv(game->model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
-	glUniformMatrix4fv(game->rotation_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
+	glUniformMatrix4fv(game->renderer->model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
+	glUniformMatrix4fv(game->renderer->rotation_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
-	glUniform1i(game->primitive_location, 0);
+	glUniform1i(game->renderer->primitive_location, 0);
 
 	glBindVertexArray(0);
 

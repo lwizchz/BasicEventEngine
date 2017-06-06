@@ -30,7 +30,7 @@ BEE::Sound::Sound() :
 	is_looping(false),
 	has_play_failed(false),
 
-	sound_effects(BEE_SE_NONE),
+	sound_effects((int)bee::E_SOUNDEFFECT::NONE),
 	chorus_data(new se_chorus_data()),
 	echo_data(new se_echo_data()),
 	flanger_data(new se_flanger_data()),
@@ -55,7 +55,7 @@ BEE::Sound::Sound(const std::string& new_name, const std::string& new_path, bool
 {
 	add_to_resources(); // Add the sound to the appropriate resource list
 	if (id < 0) { // If the sound could not be added to the resource list, output a warning
-		game->messenger_send({"engine", "resource"}, BEE_MESSAGE_WARNING, "Failed to add sound resource: \"" + new_name + "\" from " + new_path);
+		game->messenger_send({"engine", "resource"}, bee::E_MESSAGE::WARNING, "Failed to add sound resource: \"" + new_name + "\" from " + new_path);
 		throw(-1); // Throw an exception
 	}
 
@@ -142,7 +142,7 @@ int BEE::Sound::print() const {
 	"\n	has_play_failed " << has_play_failed <<
 	"\n	sound_effects   " << sound_effects <<
 	"\n}\n";
-	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str()); // Send the info to the messaging system for ouptut
+	game->messenger_send({"engine", "resource"}, bee::E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for ouptut
 
 	return 0; // Return 0 on success
 }
@@ -274,7 +274,7 @@ int BEE::Sound::set_pan_internal(int channel) {
 */
 int BEE::Sound::load() {
 	if (is_loaded) { // If the sound has already been loaded, output a warning
-		game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "Failed to load sound \"" + name + "\" because it has already been loaded");
+		game->messenger_send({"engine", "sound"}, bee::E_MESSAGE::WARNING, "Failed to load sound \"" + name + "\" because it has already been loaded");
 		return 1; // Return 1 when already loaded
 	}
 
@@ -283,13 +283,13 @@ int BEE::Sound::load() {
 	if (is_music) { // If the sound should be treated as music, load it appropriately
 		music = Mix_LoadMUS(path.c_str()); // Load the sound file as mixer music
 		if (music == nullptr) { // If the music could not be loaded, output a warning
-			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "Failed to load sound \"" + name + "\" as music: " + Mix_GetError());
+			game->messenger_send({"engine", "sound"}, bee::E_MESSAGE::WARNING, "Failed to load sound \"" + name + "\" as music: " + Mix_GetError());
 			return 2; // Return 2 on music loading failure
 		}
 	} else { // Otherwise load the sound normally
 		chunk = Mix_LoadWAV(path.c_str()); // Load the sound file as a chunk sound
 		if (chunk == nullptr) { // If the chunk could not be loaded, output a warning
-			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "Failed to load sound \"" + name + "\" as chunk: " + Mix_GetError());
+			game->messenger_send({"engine", "sound"}, bee::E_MESSAGE::WARNING, "Failed to load sound \"" + name + "\" as chunk: " + Mix_GetError());
 			return 3; // Return 3 on chunk loading failure
 		}
 
@@ -365,7 +365,7 @@ int BEE::Sound::finished(int channel) {
 int BEE::Sound::play(int loop_amount) {
 	if (!is_loaded) { // Do not attempt to play the sound if it has not been loaded
 		if (!has_play_failed) { // If the play call hasn't failed before, output a warning
-			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "Failed to play sound \"" + name + "\" because it is not loaded");
+			game->messenger_send({"engine", "sound"}, bee::E_MESSAGE::WARNING, "Failed to play sound \"" + name + "\" because it is not loaded");
 			has_play_failed = true; // Set the play failure boolean
 		}
 		return 1; // Return 1 when not loaded
@@ -380,7 +380,7 @@ int BEE::Sound::play(int loop_amount) {
 			current_channels.remove(c); // Remove any duplicate channels
 			current_channels.push_back(c); // Add the channel to the end of the currently playing list
 		} else { // If the chunk could not be played, output a warning
-			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "Failed to play sound \"" + name + "\": " + Mix_GetError());
+			game->messenger_send({"engine", "sound"}, bee::E_MESSAGE::WARNING, "Failed to play sound \"" + name + "\": " + Mix_GetError());
 			return 2; // Return 2 on play failure
 		}
 
@@ -407,7 +407,7 @@ int BEE::Sound::play() {
 int BEE::Sound::stop() {
 	if (!is_loaded) { // Do not attempt to stop the sound if it hasn't been loaded
 		if (!has_play_failed) { // If the play call hasn't failed before, output a warning
-			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "Failed to fade out sound \"" + name + "\" because it is not loaded");
+			game->messenger_send({"engine", "sound"}, bee::E_MESSAGE::WARNING, "Failed to fade out sound \"" + name + "\" because it is not loaded");
 			has_play_failed = true; // Set the play failure boolean
 		}
 		return 1; // Return 1 when not loaded
@@ -436,7 +436,7 @@ int BEE::Sound::stop() {
 int BEE::Sound::rewind() {
 	if (!is_loaded) { // Do not attempt to rewind the sound if it has not been loaded
 		if (!has_play_failed) { // If the play call hasn't failed before, output a warning
-			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "Failed to rewind sound \"" + name + "\" because it is not loaded");
+			game->messenger_send({"engine", "sound"}, bee::E_MESSAGE::WARNING, "Failed to rewind sound \"" + name + "\" because it is not loaded");
 			has_play_failed = true; // Set the play failure boolean
 		}
 		return 1; // Return 1 when not loaded
@@ -482,7 +482,7 @@ int BEE::Sound::rewind() {
 int BEE::Sound::pause() {
 	if (!is_loaded) { // Do not attempt to pause the sound if it has not been loaded
 		if (!has_play_failed) { // If the play call hasn't failed before, output a warning
-			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "Failed to pause sound \"" + name + "\" because it is not loaded");
+			game->messenger_send({"engine", "sound"}, bee::E_MESSAGE::WARNING, "Failed to pause sound \"" + name + "\" because it is not loaded");
 			has_play_failed = true; // Set the play failure boolean
 		}
 		return 1; // Return 1 when not loaded
@@ -506,7 +506,7 @@ int BEE::Sound::pause() {
 int BEE::Sound::resume() {
 	if (!is_loaded) { // Do not attempt to resume the sound if it has not been loaded
 		if (!has_play_failed) { // If the play call hasn't failed before, output a warning
-			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "Failed to resume sound \"" + name + "\" because it is not loaded");
+			game->messenger_send({"engine", "sound"}, bee::E_MESSAGE::WARNING, "Failed to resume sound \"" + name + "\" because it is not loaded");
 			has_play_failed = true; // Set the play failure boolean
 		}
 		return 1; // Return 1 when not loaded
@@ -548,7 +548,7 @@ int BEE::Sound::loop() {
 int BEE::Sound::fade_in(int ticks) {
 	if (!is_loaded) { // Do not attempt to fade in the sound if it has not been loaded
 		if (!has_play_failed) { // If the play call hasn't failed yet, output a warning
-			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "Failed to fade in sound \"" + name + "\" because it is not loaded");
+			game->messenger_send({"engine", "sound"}, bee::E_MESSAGE::WARNING, "Failed to fade in sound \"" + name + "\" because it is not loaded");
 			has_play_failed = true; // Set the play failure boolean
 		}
 		return 1; // Return 1 when not loaded
@@ -563,7 +563,7 @@ int BEE::Sound::fade_in(int ticks) {
 			current_channels.remove(c); // Remove any duplicate channels
 			current_channels.push_back(c); // Add the channel to the end of the currently playing list
 		} else { // If the chunk could not be played, output a warning
-			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "Failed to play sound \"" + name + "\": " + Mix_GetError());
+			game->messenger_send({"engine", "sound"}, bee::E_MESSAGE::WARNING, "Failed to play sound \"" + name + "\": " + Mix_GetError());
 			return 2; // Return 2 on play failure
 		}
 
@@ -584,7 +584,7 @@ int BEE::Sound::fade_in(int ticks) {
 int BEE::Sound::fade_out(int ticks) {
 	if (!is_loaded) { // Do not attempt to fade out the sound if it hasn't been loaded
 		if (!has_play_failed) { // If the play call hasn't failed before, output a warning
-			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "Failed to fade out sound \"" + name + "\" because it is not loaded");
+			game->messenger_send({"engine", "sound"}, bee::E_MESSAGE::WARNING, "Failed to fade out sound \"" + name + "\" because it is not loaded");
 			has_play_failed = true; // Set the play failure boolean
 		}
 		return 1; // Return 1 when not loaded
@@ -613,7 +613,7 @@ int BEE::Sound::fade_out(int ticks) {
 int BEE::Sound::effect_set(int new_sound_effects) {
 	if (!is_loaded) { // Do not attempt to add any sound effects if the sound has not been loaded
 		if (!has_play_failed) { // If the play call hasn't failed before, output a warning
-			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "Failed to play sound \"" + name + "\" because it is not loaded");
+			game->messenger_send({"engine", "sound"}, bee::E_MESSAGE::WARNING, "Failed to play sound \"" + name + "\" because it is not loaded");
 			has_play_failed = true; // Set the play failure boolean
 		}
 		return 1; // Return 1 when not loaded
@@ -639,39 +639,39 @@ int BEE::Sound::effect_set(int new_sound_effects) {
 }
 /*
 * BEE::Sound::effect_add() - Apply the given sound effects on the given channel
-* ! Note that bee_se_none is a separate bit in the mask and will override all other effects
+* ! Note that bee::E_SOUNDEFFECT::NONE is a separate bit in the mask and will override all other effects
 * @channel: the channel to set the sound effects for
 * @se_mask: the desired sound effects to register
 */
 int BEE::Sound::effect_add(int channel, int se_mask) {
-	if (se_mask & BEE_SE_NONE) { // If no effects are desired, remove all previous effects
+	if (se_mask & (int)bee::E_SOUNDEFFECT::NONE) { // If no effects are desired, remove all previous effects
 		Mix_UnregisterAllEffects(channel); // Remove the effects
 		effect_reset_data(); // Reset the effect data
 	} else { // Otherwise set the desired effects
-		if (se_mask & BEE_SE_CHORUS) { // If the chorus effect is requeted, apply it
+		if (se_mask & (int)bee::E_SOUNDEFFECT::CHORUS) { // If the chorus effect is requeted, apply it
 			Mix_RegisterEffect(channel, sound_effect_chorus, sound_effect_chorus_cleanup, chorus_data);
 		}
-		if (se_mask & BEE_SE_ECHO) { // If the echo effect is requeted, apply it
+		if (se_mask & (int)bee::E_SOUNDEFFECT::ECHO) { // If the echo effect is requeted, apply it
 			Mix_RegisterEffect(channel, sound_effect_echo, sound_effect_echo_cleanup, echo_data);
 		}
-		if (se_mask & BEE_SE_FLANGER) { // If the flanger effect is requeted, apply it
+		if (se_mask & (int)bee::E_SOUNDEFFECT::FLANGER) { // If the flanger effect is requeted, apply it
 			Mix_RegisterEffect(channel, sound_effect_flanger, sound_effect_flanger_cleanup, flanger_data);
 		}
 		// Output warnings for the gargle, reverb, compressor, and equalizer effects which are currently unimplemented
-		if (se_mask & BEE_SE_GARGLE) { // If the gargle effect is requeted, apply it
-			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "The gargle sound effect is currently unimplemented and will have no effect");
+		if (se_mask & (int)bee::E_SOUNDEFFECT::GARGLE) { // If the gargle effect is requeted, apply it
+			game->messenger_send({"engine", "sound"}, bee::E_MESSAGE::WARNING, "The gargle sound effect is currently unimplemented and will have no effect");
 			Mix_RegisterEffect(channel, sound_effect_gargle, sound_effect_gargle_cleanup, gargle_data);
 		}
-		if (se_mask & BEE_SE_REVERB) { // If the reverb effect is requeted, apply it
-			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "The reverb sound effect is currently unimplemented and will have no effect");
+		if (se_mask & (int)bee::E_SOUNDEFFECT::REVERB) { // If the reverb effect is requeted, apply it
+			game->messenger_send({"engine", "sound"}, bee::E_MESSAGE::WARNING, "The reverb sound effect is currently unimplemented and will have no effect");
 			Mix_RegisterEffect(channel, sound_effect_reverb, sound_effect_reverb_cleanup, reverb_data);
 		}
-		if (se_mask & BEE_SE_COMPRESSOR) { // If the compressor effect is requeted, apply it
-			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "The compressor sound effect is currently unimplemented and will have no effect");
+		if (se_mask & (int)bee::E_SOUNDEFFECT::COMPRESSOR) { // If the compressor effect is requeted, apply it
+			game->messenger_send({"engine", "sound"}, bee::E_MESSAGE::WARNING, "The compressor sound effect is currently unimplemented and will have no effect");
 			Mix_RegisterEffect(channel, sound_effect_compressor, sound_effect_compressor_cleanup, compressor_data);
 		}
-		if (se_mask & BEE_SE_EQUALIZER) { // If the equalizer effect is requeted, apply it
-			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "The equalizer sound effect is currently unimplemented and will have no effect");
+		if (se_mask & (int)bee::E_SOUNDEFFECT::EQUALIZER) { // If the equalizer effect is requeted, apply it
+			game->messenger_send({"engine", "sound"}, bee::E_MESSAGE::WARNING, "The equalizer sound effect is currently unimplemented and will have no effect");
 			Mix_RegisterEffect(channel, sound_effect_equalizer, sound_effect_equalizer_cleanup, equalizer_data);
 		}
 	}
@@ -680,38 +680,38 @@ int BEE::Sound::effect_add(int channel, int se_mask) {
 }
 /*
 * BEE::Sound::effect_add_post() - Apply the given sound effects to the music
-* ! Note that bee_se_none is a separate bit in the mask and will override all other effects
+* ! Note that bee::E_SOUNDEFFECT::NONE is a separate bit in the mask and will override all other effects
 * @se_mask: the desired sound effects to register
 */
 int BEE::Sound::effect_add_post(int se_mask) {
-	if (se_mask & BEE_SE_NONE) { // If no effects are desired, remove all previous effects
+	if (se_mask & (int)bee::E_SOUNDEFFECT::NONE) { // If no effects are desired, remove all previous effects
 		Mix_UnregisterAllEffects(MIX_CHANNEL_POST); // Remove the effects
 		effect_reset_data(); // Reset the effect data
 	} else { // Otherwise set the desired effect
-		if (se_mask & BEE_SE_CHORUS) { // If the chorus effect is requested, apply it
+		if (se_mask & (int)bee::E_SOUNDEFFECT::CHORUS) { // If the chorus effect is requested, apply it
 			Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_chorus, sound_effect_chorus_cleanup, chorus_data);
 		}
-		if (se_mask & BEE_SE_ECHO) { // If the echo effect is requested, apply it
+		if (se_mask & (int)bee::E_SOUNDEFFECT::ECHO) { // If the echo effect is requested, apply it
 			Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_echo, sound_effect_echo_cleanup, echo_data);
 		}
-		if (se_mask & BEE_SE_FLANGER) { // If the flanger effect is requested, apply it
+		if (se_mask & (int)bee::E_SOUNDEFFECT::FLANGER) { // If the flanger effect is requested, apply it
 			Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_flanger, sound_effect_flanger_cleanup, flanger_data);
 		}
 		// Output warnings for the gargle, reverb, compressor, and equalizer effects which are currently unimplemented
-		if (se_mask & BEE_SE_GARGLE) { // If the gargle effect is requested, apply it
-			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "The gargle sound effect is currently unimplemented and will have no effect");
+		if (se_mask & (int)bee::E_SOUNDEFFECT::GARGLE) { // If the gargle effect is requested, apply it
+			game->messenger_send({"engine", "sound"}, bee::E_MESSAGE::WARNING, "The gargle sound effect is currently unimplemented and will have no effect");
 			Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_gargle, sound_effect_gargle_cleanup, gargle_data);
 		}
-		if (se_mask & BEE_SE_REVERB) { // If the reverb effect is requested, apply it
-			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "The reverb sound effect is currently unimplemented and will have no effect");
+		if (se_mask & (int)bee::E_SOUNDEFFECT::REVERB) { // If the reverb effect is requested, apply it
+			game->messenger_send({"engine", "sound"}, bee::E_MESSAGE::WARNING, "The reverb sound effect is currently unimplemented and will have no effect");
 			Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_reverb, sound_effect_reverb_cleanup, reverb_data);
 		}
-		if (se_mask & BEE_SE_COMPRESSOR) { // If the compressor effect is requested, apply it
-			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "The compressor sound effect is currently unimplemented and will have no effect");
+		if (se_mask & (int)bee::E_SOUNDEFFECT::COMPRESSOR) { // If the compressor effect is requested, apply it
+			game->messenger_send({"engine", "sound"}, bee::E_MESSAGE::WARNING, "The compressor sound effect is currently unimplemented and will have no effect");
 			Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_compressor, sound_effect_compressor_cleanup, compressor_data);
 		}
-		if (se_mask & BEE_SE_EQUALIZER) { // If the equalizer effect is requested, apply it
-			game->messenger_send({"engine", "sound"}, BEE_MESSAGE_WARNING, "The equalizer sound effect is currently unimplemented and will have no effect");
+		if (se_mask & (int)bee::E_SOUNDEFFECT::EQUALIZER) { // If the equalizer effect is requested, apply it
+			game->messenger_send({"engine", "sound"}, bee::E_MESSAGE::WARNING, "The equalizer sound effect is currently unimplemented and will have no effect");
 			Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_equalizer, sound_effect_equalizer_cleanup, equalizer_data);
 		}
 	}
@@ -720,52 +720,52 @@ int BEE::Sound::effect_add_post(int se_mask) {
 }
 /*
 * BEE::Sound::effect_remove() - Remove the given sound effects from the given channel
-* ! Note that bee_se_none is a separate bit in the mask and will override all other effects
+* ! Note that bee::E_SOUNDEFFECT::NONE is a separate bit in the mask and will override all other effects
 * @channel: the channel to remove the sound effects from
 * @se_mask: the desired sound effects to unregister
 */
 int BEE::Sound::effect_remove(int channel, int se_mask) {
-	if (se_mask & BEE_SE_NONE) { // If there are no undesired sound effects, do not attempt to remove any
+	if (se_mask & (int)bee::E_SOUNDEFFECT::NONE) { // If there are no undesired sound effects, do not attempt to remove any
 		return 0; // Return 0 on success
 	}
 
-	if (se_mask & BEE_SE_CHORUS) { // If the chorus effect is no longer desired, remove it and clean up the old data
+	if (se_mask & (int)bee::E_SOUNDEFFECT::CHORUS) { // If the chorus effect is no longer desired, remove it and clean up the old data
 		Mix_UnregisterEffect(channel, sound_effect_chorus); // Unregister the effect
 		if (chorus_data != nullptr) { // Clean up the old data
 			sound_effect_chorus_cleanup(-1, (void*)chorus_data);
 		}
 	}
-	if (se_mask & BEE_SE_ECHO) { // If the echo effect is no longer desired, remove it and clean up the old data
+	if (se_mask & (int)bee::E_SOUNDEFFECT::ECHO) { // If the echo effect is no longer desired, remove it and clean up the old data
 		Mix_UnregisterEffect(channel, sound_effect_echo); // Unregister the effect
 		if (echo_data != nullptr) { // Clean up the old data
 			sound_effect_echo_cleanup(-1, (void*)echo_data);
 		}
 	}
-	if (se_mask & BEE_SE_FLANGER) { // If the flanger effect is no longer desired, remove it and clean up the old data
+	if (se_mask & (int)bee::E_SOUNDEFFECT::FLANGER) { // If the flanger effect is no longer desired, remove it and clean up the old data
 		Mix_UnregisterEffect(channel, sound_effect_flanger); // Unregister the effect
 		if (flanger_data != nullptr) { // Clean up the old data
 			sound_effect_flanger_cleanup(-1, (void*)flanger_data);
 		}
 	}
-	if (se_mask & BEE_SE_GARGLE) { // If the gargle effect is no longer desired, remove it and clean up the old data
+	if (se_mask & (int)bee::E_SOUNDEFFECT::GARGLE) { // If the gargle effect is no longer desired, remove it and clean up the old data
 		Mix_UnregisterEffect(channel, sound_effect_gargle); // Unregister the effect
 		if (gargle_data != nullptr) { // Clean up the old data
 			sound_effect_gargle_cleanup(-1, (void*)gargle_data);
 		}
 	}
-	if (se_mask & BEE_SE_REVERB) { // If the reverb effect is no longer desired, remove it and clean up the old data
+	if (se_mask & (int)bee::E_SOUNDEFFECT::REVERB) { // If the reverb effect is no longer desired, remove it and clean up the old data
 		Mix_UnregisterEffect(channel, sound_effect_reverb); // Unregister the effect
 		if (reverb_data != nullptr) { // Clean up the old data
 			sound_effect_reverb_cleanup(-1, (void*)reverb_data);
 		}
 	}
-	if (se_mask & BEE_SE_COMPRESSOR) { // If the compressor effect is no longer desired, remove it and clean up the old data
+	if (se_mask & (int)bee::E_SOUNDEFFECT::COMPRESSOR) { // If the compressor effect is no longer desired, remove it and clean up the old data
 		Mix_UnregisterEffect(channel, sound_effect_compressor); // Unregister the effect
 		if (compressor_data != nullptr) { // Clean up the old data
 			sound_effect_compressor_cleanup(-1, (void*)compressor_data);
 		}
 	}
-	if (se_mask & BEE_SE_EQUALIZER) { // If the equalizer effect is no longer desired, remove it and clean up the old data
+	if (se_mask & (int)bee::E_SOUNDEFFECT::EQUALIZER) { // If the equalizer effect is no longer desired, remove it and clean up the old data
 		Mix_UnregisterEffect(channel, sound_effect_equalizer); // Unregister the effect
 		if (equalizer_data != nullptr) { // Clean up the old data
 			sound_effect_equalizer_cleanup(-1, (void*)equalizer_data);
@@ -776,51 +776,51 @@ int BEE::Sound::effect_remove(int channel, int se_mask) {
 }
 /*
 * BEE::Sound::effect_remove() - Remove the given sound effects from the given channel
-* ! Note that bee_se_none is a separate bit in the mask and will override all other effects
+* ! Note that bee::E_SOUNDEFFECT::NONE is a separate bit in the mask and will override all other effects
 * @se_mask: the desired sound effects to unregister
 */
 int BEE::Sound::effect_remove_post(int se_mask) {
-	if (se_mask & BEE_SE_NONE) { // If there are no undesired sound effects, do not attempt to remove any
+	if (se_mask & (int)bee::E_SOUNDEFFECT::NONE) { // If there are no undesired sound effects, do not attempt to remove any
 		return 0; // Return 0 on success
 	}
 
-	if (se_mask & BEE_SE_CHORUS) { // If the chorus effect is no longer desired, remove it and clean up the old data
+	if (se_mask & (int)bee::E_SOUNDEFFECT::CHORUS) { // If the chorus effect is no longer desired, remove it and clean up the old data
 		Mix_UnregisterEffect(MIX_CHANNEL_POST, sound_effect_chorus); // Unregister the effect
 		if (chorus_data != nullptr) { // Clean up the old data
 			sound_effect_chorus_cleanup(-1, (void*)chorus_data);
 		}
 	}
-	if (se_mask & BEE_SE_ECHO) { // If the echo effect is no longer desired, remove it and clean up the old data
+	if (se_mask & (int)bee::E_SOUNDEFFECT::ECHO) { // If the echo effect is no longer desired, remove it and clean up the old data
 		Mix_UnregisterEffect(MIX_CHANNEL_POST, sound_effect_echo); // Unregister the effect
 		if (echo_data != nullptr) { // Clean up the old data
 			sound_effect_echo_cleanup(-1, (void*)echo_data);
 		}
 	}
-	if (se_mask & BEE_SE_FLANGER) { // If the flanger effect is no longer desired, remove it and clean up the old data
+	if (se_mask & (int)bee::E_SOUNDEFFECT::FLANGER) { // If the flanger effect is no longer desired, remove it and clean up the old data
 		Mix_UnregisterEffect(MIX_CHANNEL_POST, sound_effect_flanger); // Unregister the effect
 		if (flanger_data != nullptr) { // Clean up the old data
 			sound_effect_flanger_cleanup(-1, (void*)flanger_data);
 		}
 	}
-	if (se_mask & BEE_SE_GARGLE) { // If the gargle effect is no longer desired, remove it and clean up the old data
+	if (se_mask & (int)bee::E_SOUNDEFFECT::GARGLE) { // If the gargle effect is no longer desired, remove it and clean up the old data
 		Mix_UnregisterEffect(MIX_CHANNEL_POST, sound_effect_gargle); // Unregister the effect
 		if (gargle_data != nullptr) { // Clean up the old data
 			sound_effect_gargle_cleanup(-1, (void*)gargle_data);
 		}
 	}
-	if (se_mask & BEE_SE_REVERB) { // If the reverb effect is no longer desired, remove it and clean up the old data
+	if (se_mask & (int)bee::E_SOUNDEFFECT::REVERB) { // If the reverb effect is no longer desired, remove it and clean up the old data
 		Mix_UnregisterEffect(MIX_CHANNEL_POST, sound_effect_reverb); // Unregister the effect
 		if (reverb_data != nullptr) { // Clean up the old data
 			sound_effect_reverb_cleanup(-1, (void*)reverb_data);
 		}
 	}
-	if (se_mask & BEE_SE_COMPRESSOR) { // If the compressor effect is no longer desired, remove it and clean up the old data
+	if (se_mask & (int)bee::E_SOUNDEFFECT::COMPRESSOR) { // If the compressor effect is no longer desired, remove it and clean up the old data
 		Mix_UnregisterEffect(MIX_CHANNEL_POST, sound_effect_compressor); // Unregister the effect
 		if (compressor_data != nullptr) { // Clean up the old data
 			sound_effect_compressor_cleanup(-1, (void*)compressor_data);
 		}
 	}
-	if (se_mask & BEE_SE_EQUALIZER) { // If the equalizer effect is no longer desired, remove it and clean up the old data
+	if (se_mask & (int)bee::E_SOUNDEFFECT::EQUALIZER) { // If the equalizer effect is no longer desired, remove it and clean up the old data
 		Mix_UnregisterEffect(MIX_CHANNEL_POST, sound_effect_equalizer); // Unregister the effect
 		if (equalizer_data != nullptr) { // Clean up the old data
 			sound_effect_equalizer_cleanup(-1, (void*)equalizer_data);

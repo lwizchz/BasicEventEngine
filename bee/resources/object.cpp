@@ -26,14 +26,43 @@ BEE::Object::Object (const std::string& new_name, const std::string& new_path) {
 
 	reset();
 
-	std::vector<bee_event_t> events = {BEE_EVENT_UPDATE, BEE_EVENT_CREATE, BEE_EVENT_DESTROY, BEE_EVENT_ALARM, BEE_EVENT_STEP_BEGIN, BEE_EVENT_STEP_MID, BEE_EVENT_STEP_END, BEE_EVENT_KEYBOARD_PRESS, BEE_EVENT_MOUSE_PRESS, BEE_EVENT_KEYBOARD_INPUT, BEE_EVENT_MOUSE_INPUT, BEE_EVENT_KEYBOARD_RELEASE, BEE_EVENT_MOUSE_RELEASE, BEE_EVENT_CONTROLLER_AXIS, BEE_EVENT_CONTROLLER_PRESS, BEE_EVENT_CONTROLLER_RELEASE, BEE_EVENT_CONTROLLER_MODIFY, BEE_EVENT_PATH_END, BEE_EVENT_OUTSIDE_ROOM, BEE_EVENT_INTERSECT_BOUNDARY, BEE_EVENT_COLLISION, BEE_EVENT_CHECK_COLLISION_LIST, BEE_EVENT_DRAW, BEE_EVENT_ANIMATION_END, BEE_EVENT_ROOM_START, BEE_EVENT_ROOM_END, BEE_EVENT_GAME_START, BEE_EVENT_GAME_END, BEE_EVENT_WINDOW};
+	std::vector<bee::E_EVENT> events = {
+		bee::E_EVENT::CREATE,
+		bee::E_EVENT::DESTROY,
+		bee::E_EVENT::ALARM,
+		bee::E_EVENT::STEP_BEGIN,
+		bee::E_EVENT::STEP_MID,
+		bee::E_EVENT::STEP_END,
+		bee::E_EVENT::KEYBOARD_PRESS,
+		bee::E_EVENT::MOUSE_PRESS,
+		bee::E_EVENT::KEYBOARD_INPUT,
+		bee::E_EVENT::MOUSE_INPUT,
+		bee::E_EVENT::KEYBOARD_RELEASE,
+		bee::E_EVENT::MOUSE_RELEASE,
+		bee::E_EVENT::CONTROLLER_AXIS,
+		bee::E_EVENT::CONTROLLER_PRESS,
+		bee::E_EVENT::CONTROLLER_RELEASE,
+		bee::E_EVENT::CONTROLLER_MODIFY,
+		bee::E_EVENT::COMMANDLINE_INPUT,
+		bee::E_EVENT::PATH_END,
+		bee::E_EVENT::OUTSIDE_ROOM,
+		bee::E_EVENT::INTERSECT_BOUNDARY,
+		bee::E_EVENT::COLLISION,
+		bee::E_EVENT::DRAW,
+		bee::E_EVENT::ANIMATION_END,
+		bee::E_EVENT::ROOM_START,
+		bee::E_EVENT::ROOM_END,
+		bee::E_EVENT::GAME_START,
+		bee::E_EVENT::GAME_END,
+		bee::E_EVENT::WINDOW
+	};
 	for (auto& e : events) {
 		implemented_events[e] = false;
 	}
 
 	add_to_resources();
 	if (id < 0) {
-		game->messenger_send({"engine", "resource"}, BEE_MESSAGE_WARNING, "Failed to add object resource: \"" + new_name + "\" from " + new_path);
+		game->messenger_send({"engine", "resource"}, bee::E_MESSAGE::WARNING, "Failed to add object resource: \"" + new_name + "\" from " + new_path);
 		throw(-1);
 	}
 
@@ -98,7 +127,7 @@ int BEE::Object::print() const {
 	}
 	s << "\n	instances\n" << debug_indent(instance_string, 2) <<
 	"\n}\n";
-	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str());
+	game->messenger_send({"engine", "resource"}, bee::E_MESSAGE::INFO, s.str());
 
 	return 0;
 }

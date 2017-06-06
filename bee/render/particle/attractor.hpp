@@ -19,7 +19,7 @@ class BEE::ParticleAttractor {
 
 		double force;
 		double max_distance;
-		bee_ps_force_t force_type;
+		bee::E_PS_FORCE force_type;
 
 		ParticleAttractor();
 };

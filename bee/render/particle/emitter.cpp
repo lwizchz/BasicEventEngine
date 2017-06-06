@@ -17,12 +17,12 @@ BEE::ParticleEmitter::ParticleEmitter() :
 	w(1),
 	h(1),
 	following(nullptr),
-	
-	shape(BEE_PS_SHAPE_RECTANGLE),
-	distribution(BEE_PS_DISTR_LINEAR),
-	
+
+	shape(bee::E_PS_SHAPE::RECTANGLE),
+	distribution(bee::E_PS_DISTR::LINEAR),
+
 	particle_type(nullptr),
-	
+
 	number(1),
 	number_count(0)
 {}

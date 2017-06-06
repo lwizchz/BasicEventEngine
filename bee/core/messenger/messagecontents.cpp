@@ -15,11 +15,11 @@ BEE::MessageContents::MessageContents() :
 	has_processed(false),
 	tickstamp(0),
 	tags(),
-	type(BEE_MESSAGE_GENERAL),
+	type(bee::E_MESSAGE::GENERAL),
 	descr(),
 	data(nullptr)
 {}
-BEE::MessageContents::MessageContents(Uint32 tm, std::vector<std::string> tg, bee_message_t tp, std::string de, std::shared_ptr<void> da) :
+BEE::MessageContents::MessageContents(Uint32 tm, std::vector<std::string> tg, bee::E_MESSAGE tp, std::string de, std::shared_ptr<void> da) :
 	has_processed(false),
 	tickstamp(tm),
 	tags(tg),

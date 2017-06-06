@@ -147,18 +147,24 @@ int BEE::SIDP::map(std::map<SIDP,SIDP>* m) {
 }
 std::string BEE::SIDP::to_str() {
 	switch (type) {
-		case 0:
+		case 0: {
 			return str;
-		case 1:
+		}
+		case 1: {
 			return std::to_string(integer);
-		case 2:
+		}
+		case 2: {
 			return std::to_string(floating);
-		case 3:
+		}
+		case 3: {
 			std::stringstream ss;
 			ss << pointer;
 			return ss.str();
+		}
+		default: {
+			return std::string();
+		}
 	}
-	return "";
 }
 
 // Return the requested type
@@ -342,6 +348,7 @@ BEE::SIDP& BEE::SIDP::operator+=(int rhs) {
 			char* tmp = (char*)this->pointer;
 			tmp += rhs;
 			this->pointer = (void*)tmp;
+			break;
 		}
 		default: {
 			throw std::runtime_error("Error: SIDP operator invalid type");
@@ -366,7 +373,7 @@ BEE::SIDP& BEE::SIDP::operator-=(const SIDP& rhs) {
 			break;
 		}
 		case 3: {
-			//this->pointer += rhs.pointer;
+			//this->pointer -= rhs.pointer;
 		}
 		default: {
 			throw std::runtime_error("Error: SIDP operator invalid type");
@@ -389,6 +396,7 @@ BEE::SIDP& BEE::SIDP::operator-=(int rhs) {
 			char* tmp = (char*)this->pointer;
 			tmp -= rhs;
 			this->pointer = (void*)tmp;
+			break;
 		}
 		default: {
 			throw std::runtime_error("Error: SIDP operator invalid type");

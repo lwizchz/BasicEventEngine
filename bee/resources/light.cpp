@@ -28,7 +28,7 @@ BEE::Light::Light (const std::string& new_name, const std::string& new_path) {
 
 	add_to_resources();
 	if (id < 0) {
-		game->messenger_send({"engine", "resource"}, BEE_MESSAGE_WARNING, "Failed to add light resource: \"" + new_name + "\" from " + new_path);
+		game->messenger_send({"engine", "resource"}, bee::E_MESSAGE::WARNING, "Failed to add light resource: \"" + new_name + "\" from " + new_path);
 		throw(-1);
 	}
 
@@ -49,7 +49,7 @@ int BEE::Light::reset() {
 	name = "";
 	path = "";
 
-	lighting.type = BEE_LIGHT_AMBIENT;
+	lighting.type = bee::E_LIGHT::AMBIENT;
 	lighting.position = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 	lighting.direction = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 	lighting.color = {255, 255, 255, 255};
@@ -66,19 +66,19 @@ int BEE::Light::print() const {
 	"\n	name        " << name <<
 	"\n	path        " << path;
 	switch (lighting.type) {
-		case BEE_LIGHT_AMBIENT: {
+		case bee::E_LIGHT::AMBIENT: {
 			s << "\n	type        ambient";
 			break;
 		}
-		case BEE_LIGHT_DIFFUSE: {
+		case bee::E_LIGHT::DIFFUSE: {
 			s << "\n	type        diffuse";
 			break;
 		}
-		case BEE_LIGHT_POINT: {
+		case bee::E_LIGHT::POINT: {
 			s << "\n	type        point";
 			break;
 		}
-		case BEE_LIGHT_SPOT: {
+		case bee::E_LIGHT::SPOT: {
 			s << "\n	type        spot";
 			break;
 		}
@@ -92,7 +92,7 @@ int BEE::Light::print() const {
 	"\n	attenuation (" << lighting.attenuation.x << ", " << lighting.attenuation.y << ", " << lighting.attenuation.z << ")" <<
 	"\n	color       " << (int)lighting.color.r << ", " << (int)lighting.color.g << ", " << (int)lighting.color.b <<
 	"\n}\n";
-	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str());
+	game->messenger_send({"engine", "resource"}, bee::E_MESSAGE::INFO, s.str());
 
 	return 0;
 }
@@ -106,7 +106,7 @@ std::string BEE::Light::get_name() const {
 std::string BEE::Light::get_path() const {
 	return path;
 }
-bee_light_t BEE::Light::get_type() const {
+bee::E_LIGHT BEE::Light::get_type() const {
 	return lighting.type;
 }
 glm::vec4 BEE::Light::get_position() const {
@@ -130,7 +130,7 @@ int BEE::Light::set_path(const std::string& new_path) {
 	path = new_path;
 	return 0;
 }
-int BEE::Light::set_type(bee_light_t new_type) {
+int BEE::Light::set_type(bee::E_LIGHT new_type) {
 	lighting.type = new_type;
 	return 0;
 }
@@ -152,9 +152,9 @@ int BEE::Light::set_color(RGBA new_color) {
 }
 
 int BEE::Light::queue() {
-	if (game->options->renderer_type == BEE_RENDERER_SDL) {
+	if (game->options->renderer_type == bee::E_RENDERER::SDL) {
 		if (!has_drawn_sdl) {
-			game->messenger_send({"engine", "light"}, BEE_MESSAGE_WARNING, "Lighting is not fully supported in SDL mode");
+			game->messenger_send({"engine", "light"}, bee::E_MESSAGE::WARNING, "Lighting is not fully supported in SDL mode");
 			has_drawn_sdl = true;
 		}
 	}

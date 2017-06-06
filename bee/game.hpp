@@ -43,6 +43,8 @@
 
 #define DEFAULT_GAME_FPS 60 // Define the default game fps goal
 
+#define BEE_ALARM_COUNT 8
+
 #define BEE_MAX_LIGHTS 8 // Define the maximum amount of processed lights
 #define BEE_MAX_LIGHTABLES 96
 #define BEE_MAX_MASK_VERTICES 8
@@ -67,7 +69,7 @@ class BEE { // The master engine class which effectively acts as a namespace
 	public:
 		class Sprite; class Sound; class Background; class Font; class Path; class Timeline; class Mesh; class Object; class Room; // The main resource types
 		class Particle; class ParticleData; class ParticleEmitter; class ParticleAttractor; class ParticleDestroyer; class ParticleDeflector; class ParticleChanger; class ParticleSystem; // The particle system components
-		class Light; class Camera; // The OpenGL-only resources (poor SDL implementations may exist)
+		class Renderer; class Light; class Camera; // The OpenGL-only resources (poor SDL implementations may exist)
 		class ProgramFlags; class GameOptions; class RGBA; // The engine related data
 		class Instance; // The additional resource data types
 		class PhysicsWorld; class PhysicsDraw; class PhysicsBody; // The classes which interface with the external Physics library
@@ -103,57 +105,7 @@ class BEE { // The master engine class which effectively acts as a namespace
 		unsigned int width, height;
 		SDL_Cursor* cursor;
 
-		// These are used for the SDL renderer
-		SDL_Window* window;
-		SDL_Renderer* renderer;
-
-		// This is the OpenGL renderer context
-		SDL_GLContext context;
-
-		// The following GLint's are all uniforms in the OpenGL shaders
-		GLuint program = 0; // This is the location of the OpenGL program (where the shaders are compiled)
-		GLint vertex_location = -1;
-		GLint normal_location = -1;
-		GLint fragment_location = -1;
-		GLuint target = 0;
-
-		GLint projection_location = -1;
-		GLint view_location = -1;
-		GLint model_location = -1;
-		GLint port_location = -1;
-
-		GLint rotation_location = -1;
-
-		GLint texture_location = -1;
-		GLint colorize_location = -1;
-		GLint primitive_location = -1;
-		GLint flip_location = -1;
-
-		GLint is_lightable_location = -1;
-		GLint light_amount_location = -1;
-		struct {
-			GLint type;
-			GLint position;
-			GLint direction;
-			GLint attenuation;
-			GLint color;
-		} lighting_location[BEE_MAX_LIGHTS];
-
-		GLint lightable_amount_location = -1;
-		struct {
-			GLint position;
-			GLint vertex_amount;
-			GLint mask[BEE_MAX_MASK_VERTICES];
-		} lightable_location[BEE_MAX_LIGHTABLES];
-
-		bool render_is_3d;
-		Camera* render_camera;
-		glm::mat4* projection_cache;
-
-		// These should only be used internally by the functions in bee/game/draw.cpp
-		GLuint triangle_vao;
-		GLuint triangle_vbo;
-		GLuint triangle_ibo;
+		Renderer* renderer;
 
 		// This is the current drawing color
 		RGBA* color;
@@ -174,7 +126,7 @@ class BEE { // The master engine class which effectively acts as a namespace
 
 		Sprite* texture_before;
 		Sprite* texture_after;
-		bee_transition_t transition_type;
+		bee::E_TRANSITION transition_type;
 		double transition_speed;
 		std::function<void (BEE*, Sprite*, Sprite*)> transition_custom_func;
 
@@ -188,7 +140,7 @@ class BEE { // The master engine class which effectively acts as a namespace
 		std::unordered_map<std::string,std::unordered_set<std::shared_ptr<MessageRecipient>>> recipients;
 		const std::unordered_set<std::string> protected_tags;
 		std::vector<std::shared_ptr<MessageContents>> messages;
-		bee_output_t messenger_output_level;
+		bee::E_OUTPUT messenger_output_level;
 
 		Console* console;
 
@@ -223,7 +175,7 @@ class BEE { // The master engine class which effectively acts as a namespace
 		int loop();
 		int close();
 
-		// User defined
+		// User defined in resources/resources.hpp
 		static int init_resources();
 		static int close_resources();
 
@@ -281,16 +233,6 @@ class BEE { // The master engine class which effectively acts as a namespace
 		GameOptions get_options() const;
 		int set_options(const GameOptions&);
 
-		int opengl_init();
-		int opengl_close();
-		std::string opengl_prepend_version(const std::string&);
-		int sdl_renderer_init();
-		int sdl_renderer_close();
-
-		int render_clear();
-		int render() const;
-		int render_reset();
-
 		int restart_game() const;
 		int end_game() const;
 
@@ -325,8 +267,8 @@ class BEE { // The master engine class which effectively acts as a namespace
 		int set_render_target(Background*, int, int);
 		int set_render_target(Background*);
 
-		int get_transition_type() const;
-		int set_transition_type(bee_transition_t);
+		bee::E_TRANSITION get_transition_type() const;
+		int set_transition_type(bee::E_TRANSITION);
 		int set_transition_custom(std::function<void (BEE*, Sprite*, Sprite*)>);
 		double get_transition_speed() const;
 		int set_transition_speed(double);
@@ -383,23 +325,23 @@ class BEE { // The master engine class which effectively acts as a namespace
 		std::string keystrings_get_string(SDL_Keycode);
 
 		// bee/game/draw.cpp
-		RGBA get_enum_color(bee_rgba_t, Uint8) const;
-		RGBA get_enum_color(bee_rgba_t) const;
+		RGBA get_enum_color(bee::E_RGB, Uint8) const;
+		RGBA get_enum_color(bee::E_RGB) const;
 
 		int draw_triangle(glm::vec3, glm::vec3, glm::vec3, const RGBA&, bool);
 		int draw_line(glm::vec3, glm::vec3, const RGBA&);
 		int draw_line(int, int, int, int, const RGBA&);
 		int draw_line(int, int, int, int);
-		int draw_line(int, int, int, int, bee_rgba_t);
+		int draw_line(int, int, int, int, bee::E_RGB);
 		int draw_line(const Line&, const RGBA&);
 		int draw_quad(glm::vec3, glm::vec3, bool, const RGBA&);
 		int draw_rectangle(int, int, int, int, bool, const RGBA&);
 		int draw_rectangle(int, int, int, int, bool);
-		int draw_rectangle(int, int, int, int, bool, bee_rgba_t);
+		int draw_rectangle(int, int, int, int, bool, bee::E_RGB);
 		int draw_rectangle(const SDL_Rect&, bool, const RGBA&);
 
 		int draw_set_color(const RGBA&);
-		int draw_set_color(bee_rgba_t);
+		int draw_set_color(bee::E_RGB);
 		RGBA draw_get_color() const;
 		int draw_set_blend(SDL_BlendMode);
 		SDL_BlendMode draw_get_blend();
@@ -425,14 +367,14 @@ class BEE { // The master engine class which effectively acts as a namespace
 		int messenger_unregister_all();
 
 		int messenger_send(std::shared_ptr<MessageContents>);
-		int messenger_send(const std::vector<std::string>&, bee_message_t, const std::string&, std::shared_ptr<void>);
-		int messenger_send(const std::vector<std::string>&, bee_message_t, const std::string&);
+		int messenger_send(const std::vector<std::string>&, bee::E_MESSAGE, const std::string&, std::shared_ptr<void>);
+		int messenger_send(const std::vector<std::string>&, bee::E_MESSAGE, const std::string&);
 
-		int messenger_set_level(bee_output_t);
-		bee_output_t messenger_get_level();
+		int messenger_set_level(bee::E_OUTPUT);
+		bee::E_OUTPUT messenger_get_level();
 
 		int handle_messages();
-		std::string messenger_get_type_string(bee_message_t) const;
+		std::string messenger_get_type_string(bee::E_MESSAGE) const;
 
 		// bee/game/network.cpp
 		int net_init();
@@ -488,6 +430,7 @@ typedef std::multimap<Uint32, std::pair<std::string,std::function<void()>>> bee_
 #include "core/network/networkclient.hpp"
 
 #include "render/camera.hpp"
+#include "render/renderer.hpp"
 #include "render/viewdata.hpp"
 #include "render/particle/particle.hpp"
 #include "render/particle/particledata.hpp"

@@ -17,8 +17,8 @@ BEE::ParticleDestroyer::ParticleDestroyer() :
 	w(1),
 	h(1),
 	following(nullptr),
-	
-	shape(BEE_PS_SHAPE_RECTANGLE)
+
+	shape(bee::E_PS_SHAPE::RECTANGLE)
 {}
 
 #endif // _BEE_RENDER_PARTICLE_DESTROYER

@@ -16,11 +16,11 @@
 * ! See https://wiki.libsdl.org/SDL_SetRenderTarget for details
 */
 int BEE::reset_render_target() {
-	if (options->renderer_type != BEE_RENDERER_SDL) {
+	if (options->renderer_type != bee::E_RENDERER::SDL) {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0); // Reset the bound framebuffer
-		target = 0; // Reset the target
+		renderer->target = 0; // Reset the target
 	} else {
-		SDL_SetRenderTarget(renderer, nullptr); // Reset the SDL render target
+		SDL_SetRenderTarget(renderer->sdl_renderer, nullptr); // Reset the SDL render target
 	}
 	return 0;
 }
@@ -34,7 +34,7 @@ int BEE::set_render_target(Sprite* sprite_target, int w, int h) {
 	if (sprite_target == nullptr) { // If the given target is nullptr then reset the render target
 		reset_render_target();
 	} else {
-		target = sprite_target->set_as_target(w, h);
+		renderer->target = sprite_target->set_as_target(w, h);
 	}
 
 	return 0;
@@ -57,7 +57,7 @@ int BEE::set_render_target(Background* background_target, int w, int h) {
 	if (background_target == nullptr) { // If the given target is nullptr then reset the render target
 		reset_render_target();
 	} else {
-		target = background_target->set_as_target(w, h);
+		renderer->target = background_target->set_as_target(w, h);
 	}
 
 	return 0;
@@ -73,14 +73,14 @@ int BEE::set_render_target(Background* background_target) {
 /*
 * BEE::get_transition_type() - Return the transition type for draw_transition()
 */
-int BEE::get_transition_type() const {
+bee::E_TRANSITION BEE::get_transition_type() const {
 	return transition_type;
 }
 /*
 * BEE::set_transition_type() - Set the transition type for draw_transition()
 * @new_type: the new transition type to use
 */
-int BEE::set_transition_type(bee_transition_t new_type) {
+int BEE::set_transition_type(bee::E_TRANSITION new_type) {
 	transition_type = new_type; // Set the new type
 	return 0; // Return 0 on success
 }
@@ -90,7 +90,7 @@ int BEE::set_transition_type(bee_transition_t new_type) {
 */
 int BEE::set_transition_custom(std::function<void (BEE*, Sprite*, Sprite*)> new_custom) {
 	transition_custom_func = new_custom; // Set the new custom function
-	transition_type = BEE_TRANSITION_CUSTOM;
+	transition_type = bee::E_TRANSITION::CUSTOM;
 	return 0; // Return 0 on success
 }
 /*
@@ -112,78 +112,78 @@ int BEE::set_transition_speed(double new_speed) {
 */
 int BEE::draw_transition() {
 	SDL_RendererFlip f = SDL_FLIP_NONE;
-	if (options->renderer_type != BEE_RENDERER_SDL) {
+	if (options->renderer_type != bee::E_RENDERER::SDL) {
 		f = SDL_FLIP_VERTICAL;
 	}
 
 	switch (transition_type) {
-		case BEE_TRANSITION_NONE: { // No transition
+		case bee::E_TRANSITION::NONE: { // No transition
 			break;
 		}
-		case BEE_TRANSITION_CREATE_LEFT: { // Create from left
+		case bee::E_TRANSITION::CREATE_LEFT: { // Create from left
 			for (double i=0; i<get_width(); i+=transition_speed*get_delta()) {
 				if (((int)i%10 == 0)&&(compute_check_quit())) {
 					break;
 				}
 
-				render_clear();
+				renderer->render_clear();
 				texture_before->draw(0, 0, 0, f);
 				texture_after->crop_image_width(i);
 				texture_after->draw(0, 0, 0, i, -1, 0.0, {255, 255, 255, 255}, f);
-				render();
+				renderer->render();
 			}
 			break;
 		}
-		case BEE_TRANSITION_CREATE_RIGHT: { // Create from right
+		case bee::E_TRANSITION::CREATE_RIGHT: { // Create from right
 			for (double i=get_width(); i>=0; i-=transition_speed*get_delta()) {
 				if (((int)i%10 == 0)&&(compute_check_quit())) {
 					break;
 				}
 
-				render_clear();
+				renderer->render_clear();
 				texture_after->draw(0, 0, 0, f);
 				texture_before->crop_image_width(i);
 				texture_before->draw(0, 0, 0, i, -1, 0.0, {255, 255, 255, 255}, f);
-				render();
+				renderer->render();
 			}
 			break;
 		}
-		case BEE_TRANSITION_CREATE_TOP: { // Create from top
+		case bee::E_TRANSITION::CREATE_TOP: { // Create from top
 			for (double i=0; i<get_height(); i+=transition_speed*get_delta()) {
 				if (((int)i%10 == 0)&&(compute_check_quit())) {
 					break;
 				}
 
-				render_clear();
+				renderer->render_clear();
 				texture_before->draw(0, 0, 0, f);
 				texture_after->crop_image_height(i);
 				texture_after->draw(0, 0, 0, -1, i, 0.0, {255, 255, 255, 255}, f);
-				render();
+				renderer->render();
 			}
 			break;
 		}
-		case BEE_TRANSITION_CREATE_BOTTOM: { // Create from bottom
+		case bee::E_TRANSITION::CREATE_BOTTOM: { // Create from bottom
 			for (double i=get_height(); i>=0; i-=transition_speed*get_delta()) {
 				if (((int)i%10 == 0)&&(compute_check_quit())) {
 					break;
 				}
 
-				render_clear();
+				renderer->render_clear();
 				texture_after->draw(0, 0, 0, f);
 				texture_before->crop_image_height(i);
 				texture_before->draw(0, 0, 0, -1, i, 0.0, {255, 255, 255, 255}, f);
-				render();
+				renderer->render();
 			}
 			break;
 		}
-		case BEE_TRANSITION_CREATE_CENTER: { // Create from center
+		case bee::E_TRANSITION::CREATE_CENTER: { // Create from center
 			const int w = get_width(), h = get_height();
 			for (double i=0; i<w; i+=transition_speed*get_delta()) {
 				if (((int)i%10 == 0)&&(compute_check_quit())) {
 					break;
 				}
 
-				render_clear();
+				renderer->render_clear();
 				texture_before->draw(0, 0, 0, f);
 
 				double ih = i/w * h;
@@ -192,139 +192,139 @@ int BEE::draw_transition() {
 				texture_after->crop_image({x, y, (int)i, (int)ih});
 				texture_after->draw(x, y, 0, i, ih, 0.0, {255, 255, 255, 255}, f);
 
-				render();
+				renderer->render();
 			}
 			break;
 		}
-		case BEE_TRANSITION_SHIFT_LEFT: { // Shift from left
+		case bee::E_TRANSITION::SHIFT_LEFT: { // Shift from left
 			for (double i=-get_width(); i<0; i+=transition_speed*get_delta()) {
 				if (((int)i%10 == 0)&&(compute_check_quit())) {
 					break;
 				}
 
-				render_clear();
+				renderer->render_clear();
 				texture_before->draw(0, 0, 0, f);
 				texture_after->draw(i, 0, 0,  f);
-				render();
+				renderer->render();
 			}
 			break;
 		}
-		case BEE_TRANSITION_SHIFT_RIGHT: { // Shift from right
+		case bee::E_TRANSITION::SHIFT_RIGHT: { // Shift from right
 			for (double i=get_width(); i>=0; i-=transition_speed*get_delta()) {
 				if (((int)i%10 == 0)&&(compute_check_quit())) {
 					break;
 				}
 
-				render_clear();
+				renderer->render_clear();
 				texture_before->draw(0, 0, 0, f);
 				texture_after->draw(i, 0, 0, f);
-				render();
+				renderer->render();
 			}
 			break;
 		}
-		case BEE_TRANSITION_SHIFT_TOP: { // Shift from top
+		case bee::E_TRANSITION::SHIFT_TOP: { // Shift from top
 			for (double i=-get_height(); i<0; i+=transition_speed*get_delta()) {
 				if (((int)i%10 == 0)&&(compute_check_quit())) {
 					break;
 				}
 
-				render_clear();
+				renderer->render_clear();
 				texture_before->draw(0, 0, 0, f);
 				texture_after->draw(0, i, 0, f);
-				render();
+				renderer->render();
 			}
 			break;
 		}
-		case BEE_TRANSITION_SHIFT_BOTTOM: { // Shift from bottom
+		case bee::E_TRANSITION::SHIFT_BOTTOM: { // Shift from bottom
 			for (double i=get_height(); i>=0; i-=transition_speed*get_delta()) {
 				if (((int)i%10 == 0)&&(compute_check_quit())) {
 					break;
 				}
 
-				render_clear();
+				renderer->render_clear();
 				texture_before->draw(0, 0, 0, f);
 				texture_after->draw(0, i, 0, f);
-				render();
+				renderer->render();
 			}
 			break;
 		}
-		case BEE_TRANSITION_INTERLACE_LEFT: { // Interlaced from left
+		case bee::E_TRANSITION::INTERLACE_LEFT: { // Interlaced from left
 			// Not yet implemented
-			messenger_send({"engine"}, BEE_MESSAGE_WARNING, "The interlace transitions are not yet implemented.");
+			messenger_send({"engine"}, bee::E_MESSAGE::WARNING, "The interlace transitions are not yet implemented.");
 			break;
 		}
-		case BEE_TRANSITION_INTERLACE_RIGHT: { // Interlaced from right
+		case bee::E_TRANSITION::INTERLACE_RIGHT: { // Interlaced from right
 			// Not yet implemented
-			messenger_send({"engine"}, BEE_MESSAGE_WARNING, "The interlace transitions are not yet implemented.");
+			messenger_send({"engine"}, bee::E_MESSAGE::WARNING, "The interlace transitions are not yet implemented.");
 			break;
 		}
-		case BEE_TRANSITION_INTERLACE_TOP: { // Interlaced from top
+		case bee::E_TRANSITION::INTERLACE_TOP: { // Interlaced from top
 			// Not yet implemented
-			messenger_send({"engine"}, BEE_MESSAGE_WARNING, "The interlace transitions are not yet implemented.");
+			messenger_send({"engine"}, bee::E_MESSAGE::WARNING, "The interlace transitions are not yet implemented.");
 			break;
 		}
-		case BEE_TRANSITION_INTERLACE_BOTTOM: { // Interlaced from bottom
+		case bee::E_TRANSITION::INTERLACE_BOTTOM: { // Interlaced from bottom
 			// Not yet implemented
-			messenger_send({"engine"}, BEE_MESSAGE_WARNING, "The interlace transitions are not yet implemented.");
+			messenger_send({"engine"}, bee::E_MESSAGE::WARNING, "The interlace transitions are not yet implemented.");
 			break;
 		}
-		case BEE_TRANSITION_PUSH_LEFT: { // Push from left
+		case bee::E_TRANSITION::PUSH_LEFT: { // Push from left
 			const int w = get_width();
 			for (double i=-w; i<0; i+=transition_speed*get_delta()) {
 				if (((int)i%10 == 0)&&(compute_check_quit())) {
 					break;
 				}
 
-				render_clear();
+				renderer->render_clear();
 				texture_before->draw(i+w, 0, 0, f);
 				texture_after->draw(i, 0, 0, f);
-				render();
+				renderer->render();
 			}
 			break;
 		}
-		case BEE_TRANSITION_PUSH_RIGHT: { // Push from right
+		case bee::E_TRANSITION::PUSH_RIGHT: { // Push from right
 			const int w = get_width();
 			for (double i=w; i>=0; i-=transition_speed*get_delta()) {
 				if (((int)i%10 == 0)&&(compute_check_quit())) {
 					break;
 				}
 
-				render_clear();
+				renderer->render_clear();
 				texture_before->draw(i-w, 0, 0, f);
 				texture_after->draw(i, 0, 0, f);
-				render();
+				renderer->render();
 			}
 			break;
 		}
-		case BEE_TRANSITION_PUSH_TOP: { // Push from top
+		case bee::E_TRANSITION::PUSH_TOP: { // Push from top
 			const int h = get_height();
 			for (double i=-h; i<0; i+=transition_speed*get_delta()) {
 				if (((int)i%10 == 0)&&(compute_check_quit())) {
 					break;
 				}
 
-				render_clear();
+				renderer->render_clear();
 				texture_before->draw(0, i+h, 0, f);
 				texture_after->draw(0, i, 0, f);
-				render();
+				renderer->render();
 			}
 			break;
 		}
-		case BEE_TRANSITION_PUSH_BOTTOM: { // Push from bottom
+		case bee::E_TRANSITION::PUSH_BOTTOM: { // Push from bottom
 			const int h = get_height();
 			for (double i=h; i>=0; i-=transition_speed*get_delta()) {
 				if (((int)i%10 == 0)&&(compute_check_quit())) {
 					break;
 				}
 
-				render_clear();
+				renderer->render_clear();
 				texture_before->draw(0, i-h, 0, f);
 				texture_after->draw(0, i, 0, f);
-				render();
+				renderer->render();
 			}
 			break;
 		}
-		case BEE_TRANSITION_ROTATE_LEFT: { // Rotate to left
+		case bee::E_TRANSITION::ROTATE_LEFT: { // Rotate to left
 			texture_before->set_rotate_xy(0.0, 1.0);
 			texture_after->set_rotate_xy(0.0, 1.0);
 			for (double a=0.0; a<90.0; a+=transition_speed*get_delta()/20.0) {
@@ -332,14 +332,14 @@ int BEE::draw_transition() {
 					break;
 				}
 
-				render_clear();
+				renderer->render_clear();
 				texture_before->draw(0, 0, 0, -1, -1, -a, {255, 255, 255, 255}, f);
 				texture_after->draw(0, 0, 0, -1, -1, 90.0-a, {255, 255, 255, 255}, f);
-				render();
+				renderer->render();
 			}
 			break;
 		}
-		case BEE_TRANSITION_ROTATE_RIGHT: { // Rotate to right
+		case bee::E_TRANSITION::ROTATE_RIGHT: { // Rotate to right
 			texture_before->set_rotate_xy(1.0, 1.0);
 			texture_after->set_rotate_xy(1.0, 1.0);
 			for (double a=0.0; a<90.0; a+=transition_speed*get_delta()/20.0) {
@@ -347,55 +347,55 @@ int BEE::draw_transition() {
 					break;
 				}
 
-				render_clear();
+				renderer->render_clear();
 				texture_before->draw(0, 0, 0, -1, -1, a, {255, 255, 255, 255}, f);
 				texture_after->draw(0, 0, 0, -1, -1, a-90.0, {255, 255, 255, 255}, f);
-				render();
+				renderer->render();
 			}
 			break;
 		}
-		case BEE_TRANSITION_BLEND: { // Blend (crossfade)
+		case bee::E_TRANSITION::BLEND: { // Blend (crossfade)
 			for (double a=0.0; a<255.0; a+=transition_speed*get_delta()/5.0) {
 				if (((int)a%10 == 0)&&(compute_check_quit())) {
 					break;
 				}
 
-				render_clear();
+				renderer->render_clear();
 				texture_before->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, (Uint8)(255.0-a)}, f);
 				texture_after->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, (Uint8)a}, f);
-				render();
+				renderer->render();
 			}
 			break;
 		}
-		case BEE_TRANSITION_FADE: { // Fade out and in
+		case bee::E_TRANSITION::FADE: { // Fade out and in
 			for (double a=0.0; a<255.0; a+=transition_speed*get_delta()/5.0) {
 				if (((int)a%10 == 0)&&(compute_check_quit())) {
 					break;
 				}
 
-				render_clear();
+				renderer->render_clear();
 				texture_before->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, (Uint8)(255.0-a)}, f);
-				render();
+				renderer->render();
 			}
 			for (double a=0.0; a<255.0; a+=transition_speed*get_delta()/5.0) {
 				if (((int)a%10 == 0)&&(compute_check_quit())) {
 					break;
 				}
 
-				render_clear();
+				renderer->render_clear();
 				texture_after->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, (Uint8)a}, f);
-				render();
+				renderer->render();
 			}
 			break;
 		}
-		case BEE_TRANSITION_CUSTOM: { // Run a custom transition
+		case bee::E_TRANSITION::CUSTOM: { // Run a custom transition
 			if (transition_custom_func != nullptr) {
 				transition_custom_func(this, texture_before, texture_after);
 			}
 			break;
 		}
 		default: {
-			transition_type = BEE_TRANSITION_NONE;
+			transition_type = bee::E_TRANSITION::NONE;
 			break;
 		}
 	}

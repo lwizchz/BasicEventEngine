@@ -17,8 +17,8 @@ class BEE::ParticleEmitter {
 		unsigned int w, h;
 		Instance* following;
 
-		bee_ps_shape_t shape;
-		bee_ps_distr_t distribution;
+		bee::E_PS_SHAPE shape;
+		bee::E_PS_DISTR distribution;
 
 		Particle* particle_type;
 

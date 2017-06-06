@@ -19,11 +19,11 @@
 * @new_is_lightable: whether to enable lighting
 */
 int BEE::set_is_lightable(bool new_is_lightable) {
-	if (options->renderer_type == BEE_RENDERER_SDL) {
+	if (options->renderer_type == bee::E_RENDERER::SDL) {
 		return 1;
 	}
 
-	glUniform1i(is_lightable_location, (new_is_lightable) ? 1 : 0);
+	glUniform1i(renderer->is_lightable_location, (new_is_lightable) ? 1 : 0);
 
 	return 0;
 }
@@ -33,18 +33,18 @@ int BEE::set_is_lightable(bool new_is_lightable) {
 * @new_is_3d: whether to enable 3D mode
 */
 int BEE::render_set_3d(bool new_is_3d) {
-	if (options->renderer_type == BEE_RENDERER_SDL) {
-		messenger_send({"engine", "renderer"}, BEE_MESSAGE_WARNING, "Cannot enable 3D rendering in SDL mode");
+	if (options->renderer_type == bee::E_RENDERER::SDL) {
+		messenger_send({"engine", "renderer"}, bee::E_MESSAGE::WARNING, "Cannot enable 3D rendering in SDL mode");
 		return 1;
 	}
 
-	render_is_3d = new_is_3d;
+	renderer->render_is_3d = new_is_3d;
 
-	if (render_camera == nullptr) {
+	if (renderer->render_camera == nullptr) {
 		render_set_camera(nullptr);
 	}
 
-	if (render_is_3d) {
+	if (renderer->render_is_3d) {
 		glEnable(GL_DEPTH_TEST);
 	} else {
 		glDisable(GL_DEPTH_TEST);
@@ -59,30 +59,30 @@ int BEE::render_set_3d(bool new_is_3d) {
 * @new_camera: the new camera to render as
 */
 int BEE::render_set_camera(Camera* new_camera) {
-	if (render_camera != nullptr) {
-		if (render_camera == new_camera) {
+	if (renderer->render_camera != nullptr) {
+		if (renderer->render_camera == new_camera) {
 			return 1;
 		}
 
-		delete render_camera;
-		render_camera = nullptr;
+		delete renderer->render_camera;
+		renderer->render_camera = nullptr;
 	}
 
 	if (new_camera == nullptr) {
-		if (render_is_3d) {
-			render_camera = new Camera(glm::vec3(0.0f, 0.0f, -540.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+		if (renderer->render_is_3d) {
+			renderer->render_camera = new Camera(glm::vec3(0.0f, 0.0f, -540.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 		} else {
-			render_camera = new Camera(get_width(), get_height());
+			renderer->render_camera = new Camera(get_width(), get_height());
 		}
 	} else {
-		render_camera = new_camera;
+		renderer->render_camera = new_camera;
 	}
 
-	if (render_camera->width == 0.0) {
-		render_camera->width = get_width();
+	if (renderer->render_camera->width == 0.0) {
+		renderer->render_camera->width = get_width();
 	}
-	if (render_camera->height == 0.0) {
-		render_camera->height = get_height();
+	if (renderer->render_camera->height == 0.0) {
+		renderer->render_camera->height = get_height();
 	}
 
 	render_calc_projection();
@@ -93,42 +93,42 @@ int BEE::render_set_camera(Camera* new_camera) {
 * BEE::render_get_3d() - Return whether 3D mode is enabled or not
 */
 bool BEE::render_get_3d() const {
-	return render_is_3d;
+	return renderer->render_is_3d;
 }
 /*
 * BEE::render_get_projection() - Get the projection matrix of the current camera
 */
 glm::mat4 BEE::render_get_projection() {
-	if (render_camera == nullptr) {
+	if (renderer->render_camera == nullptr) {
 		render_set_camera(nullptr);
 	}
 
-	if (projection_cache == nullptr) {
+	if (renderer->projection_cache == nullptr) {
 		return render_calc_projection();
 	}
 
-	return *projection_cache;
+	return *(renderer->projection_cache);
 }
 /*
 * BEE::render_calc_projection() - Recalculate the projection matrix for the current camera
 */
 glm::mat4 BEE::render_calc_projection() {
-	if (render_camera == nullptr) {
+	if (renderer->render_camera == nullptr) {
 		render_set_camera(nullptr);
 	}
 
 	glm::mat4 projection = glm::mat4(1.0f);
-	if (render_is_3d) {
-		projection = glm::perspective((float)degtorad(render_camera->fov), render_camera->width/render_camera->height, render_camera->z_near, render_camera->z_far);
-		projection *= glm::lookAt(render_camera->position, render_camera->position+render_camera->direction, render_camera->orientation);
+	if (renderer->render_is_3d) {
+		projection = glm::perspective((float)degtorad(renderer->render_camera->fov), renderer->render_camera->width/renderer->render_camera->height, renderer->render_camera->z_near, renderer->render_camera->z_far);
+		projection *= glm::lookAt(renderer->render_camera->position, renderer->render_camera->position+renderer->render_camera->direction, renderer->render_camera->orientation);
 	} else {
-		projection = glm::ortho(0.0f, render_camera->width, render_camera->height, 0.0f, 0.0f, render_camera->z_far);
+		projection = glm::ortho(0.0f, renderer->render_camera->width, renderer->render_camera->height, 0.0f, 0.0f, renderer->render_camera->z_far);
 	}
 
-	if (projection_cache == nullptr) {
-		projection_cache = new glm::mat4(1.0f);
+	if (renderer->projection_cache == nullptr) {
+		renderer->projection_cache = new glm::mat4(1.0f);
 	}
-	*projection_cache = projection;
+	*(renderer->projection_cache) = projection;
 
 	return projection;
 }
@@ -136,7 +136,7 @@ glm::mat4 BEE::render_calc_projection() {
 * BEE::render_get_camera() - Get a copy of the camera values
 */
 BEE::Camera BEE::render_get_camera() const {
-	return *render_camera;
+	return *(renderer->render_camera);
 }
 
 #endif // _BEE_RENDER

@@ -15,12 +15,12 @@ struct BEE::MessageContents {
 	bool has_processed;
 	Uint32 tickstamp;
 	std::vector<std::string> tags;
-	bee_message_t type;
+	bee::E_MESSAGE type;
 	std::string descr;
 	std::shared_ptr<void> data;
 
 	MessageContents();
-	MessageContents(Uint32, std::vector<std::string>, bee_message_t, std::string, std::shared_ptr<void>);
+	MessageContents(Uint32, std::vector<std::string>, bee::E_MESSAGE, std::string, std::shared_ptr<void>);
 };
 
 #endif // _BEE_CORE_MESSAGECONTENTS_H

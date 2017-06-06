@@ -25,7 +25,6 @@ BEE::Sprite::Sprite() :
 	subimage_width(0),
 	crop({0,0,0,0}),
 	speed(0.0),
-	alpha(1.0),
 	is_animated(false),
 	origin_x(0),
 	origin_y(0),
@@ -61,7 +60,7 @@ BEE::Sprite::Sprite(const std::string& new_name, const std::string& new_path) :
 {
 	add_to_resources(); // Add the sprite to the appropriate resource list
 	if (id < 0) { // If the sprite could not be added to the resource list, output a warning
-		game->messenger_send({"engine", "resource"}, BEE_MESSAGE_WARNING, "Failed to add sprite resource: \"" + new_name + "\" from " + new_path);
+		game->messenger_send({"engine", "resource"}, bee::E_MESSAGE::WARNING, "Failed to add sprite resource: \"" + new_name + "\" from " + new_path);
 		throw(-1); // Throw an exception
 	}
 
@@ -100,7 +99,6 @@ int BEE::Sprite::reset() {
 	subimage_width = 0;
 	crop = {0, 0, 0, 0};
 	speed = 0.0;
-	alpha = 1.0;
 	is_animated = false;
 	origin_x = 0;
 	origin_y = 0;
@@ -132,7 +130,6 @@ int BEE::Sprite::print() const {
 	"\n	subimage_width  " << subimage_width <<
 	"\n	crop            {" << crop.x << "x, " << crop.y << "y, " << crop.w << "w, " << crop.h << "h}" <<
 	"\n	speed           " << speed <<
-	"\n	alpha           " << alpha <<
 	"\n	origin_x        " << origin_x <<
 	"\n	origin_y        " << origin_y <<
 	"\n	rotate_x        " << rotate_x <<
@@ -140,10 +137,9 @@ int BEE::Sprite::print() const {
 	"\n	texture         " << texture <<
 	"\n	is_loaded       " << is_loaded <<
 	"\n	has_draw_failed " << has_draw_failed <<
-	"\n	subimage amount " << subimages.size() <<
 	"\n	is_lightable    " << is_lightable <<
 	"\n}\n";
-	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str()); // Send the info to the messaging system for output
+	game->messenger_send({"engine", "resource"}, bee::E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for output
 
 	return 0; // Return 0 on success
 }
@@ -174,9 +170,6 @@ int BEE::Sprite::get_subimage_width() const {
 }
 double BEE::Sprite::get_speed() const {
 	return speed;
-}
-double BEE::Sprite::get_alpha() const {
-	return alpha;
 }
 bool BEE::Sprite::get_is_animated() const {
 	return is_animated;
@@ -235,7 +228,7 @@ int BEE::Sprite::set_subimage_amount(int new_subimage_amount, int new_subimage_w
 		subimages.push_back({(int)(i*subimage_width), 0, (int)subimage_width, (int)height});
 	}
 
-	if (game->options->renderer_type == BEE_RENDERER_SDL) { // If SDL rendering is being used, exit early
+	if (game->options->renderer_type == bee::E_RENDERER::SDL) { // If SDL rendering is being used, exit early
 		return 0; // Return 0 on success
 	}
 
@@ -291,7 +284,7 @@ int BEE::Sprite::crop_image(SDL_Rect new_crop) {
 	set_subimage_amount(1, crop.w);
 	subimages[0] = crop;
 
-	if (game->options->renderer_type == BEE_RENDERER_SDL) { // If SDL rendering is being used, exit early
+	if (game->options->renderer_type == bee::E_RENDERER::SDL) { // If SDL rendering is being used, exit early
 		return 0; // Return 0 on success
 	}
 
@@ -350,15 +343,6 @@ int BEE::Sprite::crop_image_height(int new_crop_height) {
 */
 int BEE::Sprite::set_speed(double new_speed) {
 	speed = new_speed; // Set the speed
-	return 0; // Return 0 on success
-}
-/*
-* BEE::Sprite::set_alpha() - Change the alpha of the sprite
-* ! This will be overridden in each draw call which specifies a color with alpha other than 0
-* @new_alpha - the new alpha to draw with
-*/
-int BEE::Sprite::set_alpha(double new_alpha) {
-	alpha = new_alpha; // Set the alpha
 	return 0; // Return 0 on success
 }
 /*
@@ -438,7 +422,7 @@ int BEE::Sprite::set_is_lightable(bool new_is_lightable) {
 */
 int BEE::Sprite::load_from_surface(SDL_Surface* tmp_surface) {
 	if (is_loaded) { // If the sprite has already been loaded, output a warning
-		game->messenger_send({"engine", "sprite"}, BEE_MESSAGE_WARNING, "Failed to load sprite \"" + name + "\" from surface because it has already been loaded");
+		game->messenger_send({"engine", "sprite"}, bee::E_MESSAGE::WARNING, "Failed to load sprite \"" + name + "\" from surface because it has already been loaded");
 		return 1; // Return 1 when not loaded
 	}
 
@@ -453,7 +437,7 @@ int BEE::Sprite::load_from_surface(SDL_Surface* tmp_surface) {
 	}
 	crop = {0, 0, (int)width, (int)height}; // Set the default crop to be the entire image
 
-	if (game->options->renderer_type != BEE_RENDERER_SDL) {
+	if (game->options->renderer_type != bee::E_RENDERER::SDL) {
 		// Generate the vertex array object for the sprite
 		glGenVertexArrays(1, &vao);
 		glBindVertexArray(vao);
@@ -479,10 +463,10 @@ int BEE::Sprite::load_from_surface(SDL_Surface* tmp_surface) {
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
 
 		// Bind the vertices to the VAO's vertex buffer
-		glEnableVertexAttribArray(game->vertex_location);
+		glEnableVertexAttribArray(game->renderer->vertex_location);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
 		glVertexAttribPointer(
-			game->vertex_location,
+			game->renderer->vertex_location,
 			2,
 			GL_FLOAT,
 			GL_FALSE,
@@ -509,15 +493,15 @@ int BEE::Sprite::load_from_surface(SDL_Surface* tmp_surface) {
 		glBindVertexArray(0); // Unbind VAO when done loading
 	} else {
 		// Generate an SDL texture from the surface pixels
-		texture = SDL_CreateTextureFromSurface(game->renderer, tmp_surface);
+		texture = SDL_CreateTextureFromSurface(game->renderer->sdl_renderer, tmp_surface);
 		if (texture == nullptr) { // If the texture could not be generated, output a warning
-			game->messenger_send({"engine", "sprite"}, BEE_MESSAGE_WARNING, "Failed to create texture from surface for \"" + name + "\": " + get_sdl_error());
+			game->messenger_send({"engine", "sprite"}, bee::E_MESSAGE::WARNING, "Failed to create texture from surface for \"" + name + "\": " + get_sdl_error());
 			return 2; // Return 2 on failure to create the texture
 		}
 
 		// Reset the blend mode and alpha to normal defaults
 		SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
-		SDL_SetTextureAlphaMod(texture, alpha*255);
+		SDL_SetTextureAlphaMod(texture, 255);
 	}
 
 	// Set loaded booleans
@@ -531,7 +515,7 @@ int BEE::Sprite::load_from_surface(SDL_Surface* tmp_surface) {
 */
 int BEE::Sprite::load() {
 	if (is_loaded) { // If the sprite has already been loaded, output a warning
-	       game->messenger_send({"engine", "sprite"}, BEE_MESSAGE_WARNING, "Failed to load sprite \"" + name + "\" because it has already been loaded");
+	       game->messenger_send({"engine", "sprite"}, bee::E_MESSAGE::WARNING, "Failed to load sprite \"" + name + "\" because it has already been loaded");
 	       return 1; // Return 1 when already loaded
 	}
 
@@ -539,7 +523,7 @@ int BEE::Sprite::load() {
 	SDL_Surface* tmp_surface;
 	tmp_surface = IMG_Load(path.c_str());
 	if (tmp_surface == nullptr) { // If the surface could not be loaded, output a warning
-		game->messenger_send({"engine", "sprite"}, BEE_MESSAGE_WARNING, "Failed to load sprite \"" + name + "\": " + IMG_GetError());
+		game->messenger_send({"engine", "sprite"}, bee::E_MESSAGE::WARNING, "Failed to load sprite \"" + name + "\": " + IMG_GetError());
 		return 2; // Return 2 on loding failure
 	}
 
@@ -556,7 +540,7 @@ int BEE::Sprite::free() {
 		return 0; // Return 0 on success
 	}
 
-	if (game->options->renderer_type != BEE_RENDERER_SDL) {
+	if (game->options->renderer_type != bee::E_RENDERER::SDL) {
 		// Delete the vertex and index buffer
 		glDeleteBuffers(1, &vbo_vertices);
 		glDeleteBuffers(1, &ibo);
@@ -580,9 +564,45 @@ int BEE::Sprite::free() {
 	}
 
 	is_loaded = false; // Set the loaded boolean
+	has_draw_failed = false;
 
 	return 0; // Return 0 on success
 }
+/*
+* BEE::Sprite::drawing_begin() - Enable all required buffers
+*/
+int BEE::Sprite::drawing_begin() {
+	if (game->options->renderer_type == bee::E_RENDERER::SDL) {
+		return 0; // Return 0 since nothing needs to be done for SDL mode
+	}
+
+	glBindVertexArray(vao); // Bind the VAO for the sprite
+
+	// Bind the sprite texture
+	glUniform1i(game->renderer->texture_location, 0);
+	glBindTexture(GL_TEXTURE_2D, gl_texture);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+
+	return 0; // Return 0 on success
+}
+/*
+* BEE::Sprite::drawing_end() - Disable all required buffers
+*/
+int BEE::Sprite::drawing_end() {
+	if (game->options->renderer_type == bee::E_RENDERER::SDL) {
+		return 0; // Return 0 since nothing needs to be done for SDL mode
+	}
+
+	glUniformMatrix4fv(game->renderer->model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the partial transformation matrix
+	glUniformMatrix4fv(game->renderer->rotation_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the rotation matrix
+	glUniform1i(game->renderer->flip_location, 0); // Reset the flip type
+
+	glBindVertexArray(0); // Unbind the VAO
+
+	return 0; // Return 0 on success
+}
+
 /*
 * BEE::Sprite::draw_subimage() - Draw a given subimage of the sprite with the given attributes
 * @x: the x-coordinate to draw the subimage at
@@ -597,7 +617,7 @@ int BEE::Sprite::free() {
 int BEE::Sprite::draw_subimage(int x, int y, unsigned int current_subimage, int w, int h, double angle, RGBA new_color, SDL_RendererFlip flip) {
 	if (!is_loaded) { // Do not attempt to draw the subimage if it has not been loaded
 		if (!has_draw_failed) { // If the draw call hasn't failed before, output a warning
-			game->messenger_send({"engine", "sprite"}, BEE_MESSAGE_WARNING, "Failed to draw sprite \"" + name + "\" because it is not loaded");
+			game->messenger_send({"engine", "sprite"}, bee::E_MESSAGE::WARNING, "Failed to draw sprite \"" + name + "\" because it is not loaded");
 			has_draw_failed = true; // Set the draw failure boolean
 		}
 		return 1; // Return 1 when not loaded
@@ -617,7 +637,7 @@ int BEE::Sprite::draw_subimage(int x, int y, unsigned int current_subimage, int 
 		}
 	}
 
-	if (game->options->renderer_type != BEE_RENDERER_SDL) {
+	if (game->options->renderer_type != bee::E_RENDERER::SDL) {
 		// Get the full width of the sprite to be used for scaling
 		int rect_width = width;
 		if (subimage_amount > 1) {
@@ -632,12 +652,12 @@ int BEE::Sprite::draw_subimage(int x, int y, unsigned int current_subimage, int 
 			h = height;
 		}
 
-		glBindVertexArray(vao); // Bind the VAO for the sprite
+		drawing_begin();
 
 		// Generate the partial transformation matrix (translation and scaling) for the subimage
 		glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3((float)drect.x, (float)drect.y, -0.5f)); // Translate the subimage the desired amount in the x- and y-planes, note that the z-coordinate is nonzero so that there is no z-fighting with backgrounds in 3D mode
 		model = glm::scale(model, glm::vec3((float)w/rect_width, (float)h/height, 1.0f)); // Scale the subimage in the x- and y-planes
-		glUniformMatrix4fv(game->model_location, 1, GL_FALSE, glm::value_ptr(model)); // Send the transformation matrix to the shader
+		glUniformMatrix4fv(game->renderer->model_location, 1, GL_FALSE, glm::value_ptr(model)); // Send the transformation matrix to the shader
 
 		// Generate the rotation matrix for the subimage
 		// This is not included in the above transformation matrix because it is faster to rotate everything in the geometry shader
@@ -645,22 +665,12 @@ int BEE::Sprite::draw_subimage(int x, int y, unsigned int current_subimage, int 
 			glm::mat4 rotation = glm::translate(glm::mat4(1.0f), glm::vec3((float)rect_width*rotate_x, (float)height*rotate_y, 0.0f));
 			rotation = glm::rotate(rotation, (float)degtorad(angle), glm::vec3(0.0f, 0.0f, 1.0f)); // Rotate the subimage on the z-axis around the sprite's rotation origin at (rotate_x, rotate_y)
 			rotation = glm::translate(rotation, glm::vec3(-(float)rect_width*rotate_x, -(float)height*rotate_y, 0.0f));
-			glUniformMatrix4fv(game->rotation_location, 1, GL_FALSE, glm::value_ptr(rotation)); // Send the rotation matrix to the shader
+			glUniformMatrix4fv(game->renderer->rotation_location, 1, GL_FALSE, glm::value_ptr(rotation)); // Send the rotation matrix to the shader
 		}
-
-		// Bind the sprite texture
-		glUniform1i(game->texture_location, 0);
-		glBindTexture(GL_TEXTURE_2D, gl_texture);
 
 		// Colorize the sprite with the given color
-		/*float a = alpha; // Set the default alpha to be the sprite's general alpha value
-		if (new_color.a != 0) { // If the provided color has an alpha value, use that instead
-			a = (float)new_color.a/255.0f; // Normalize the alpha
-		}
-		glm::vec4 color = glm::vec4((float)new_color.r/255.0f, (float)new_color.g/255.0f, (float)new_color.b/255.0f, a); // Normalize the color values from 0.0 to 1.0
-		*/
 		glm::vec4 color = glm::vec4((float)new_color.r/255.0f, (float)new_color.g/255.0f, (float)new_color.b/255.0f, (float)new_color.a/255.0f); // Normalize the color values from 0.0 to 1.0
-		glUniform4fv(game->colorize_location, 1, glm::value_ptr(color)); // Send the color to the shader
+		glUniform4fv(game->renderer->colorize_location, 1, glm::value_ptr(color)); // Send the color to the shader
 
 		// Determine the desired flip type
 		int f = 0; // The default behavior is to not flip
@@ -670,13 +680,14 @@ int BEE::Sprite::draw_subimage(int x, int y, unsigned int current_subimage, int 
 		if (flip & SDL_FLIP_VERTICAL) {
 			f += 2;
 		}
-		glUniform1i(game->flip_location, f); // Send the flip type to the shader
+		glUniform1i(game->renderer->flip_location, f); // Send the flip type to the shader
 
 		// Add the subimage to the list of lightables so that it can cast shadows
 		if (is_lightable) { // If the sprite is set as lightable
 			// Fill a lightable data struct with the position and vertices of the subimage
 			LightableData* l = new LightableData();
 			l->position = glm::vec4((float)drect.x, (float)drect.y, 0.0f, 0.0f);
+			l->mask.reserve(4);
 			l->mask.push_back(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
 			l->mask.push_back(glm::vec4((float)rect_width, 0.0f, 0.0f, 0.0f));
 			l->mask.push_back(glm::vec4((float)rect_width, (float)height, 0.0f, 0.0f));
@@ -686,10 +697,10 @@ int BEE::Sprite::draw_subimage(int x, int y, unsigned int current_subimage, int 
 		}
 
 		// Bind the texture coordinates of the current subimage
-		glEnableVertexAttribArray(game->fragment_location);
+		glEnableVertexAttribArray(game->renderer->fragment_location);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords[current_subimage]);
 		glVertexAttribPointer(
-			game->fragment_location,
+			game->renderer->fragment_location,
 			2,
 			GL_FLOAT,
 			GL_FALSE,
@@ -698,29 +709,16 @@ int BEE::Sprite::draw_subimage(int x, int y, unsigned int current_subimage, int 
 		);
 
 		// Draw the triangles which form the rectangular subimage
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 		int size;
 		glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
 		glDrawElements(GL_TRIANGLES, size/sizeof(GLushort), GL_UNSIGNED_SHORT, 0);
 
-		// Reset the shader state
-		glDisableVertexAttribArray(game->fragment_location); // Unbind the texture coordinates
-
-		glUniformMatrix4fv(game->model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the partial transformation matrix
-		glUniformMatrix4fv(game->rotation_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the rotation matrix
-		glBindTexture(GL_TEXTURE_2D, 0); // Unbind the sprite texture
-		glUniform1i(game->flip_location, 0); // Reset the flip type
-
-		glBindVertexArray(0); // Unbind the VAO
+		drawing_end();
 	} else { // Otherwise, render with SDL
 		if (game->is_on_screen(drect)) { // If the render will actually appear on screen
 			// Colorize the sprite with the given color
 			SDL_SetTextureColorMod(texture, new_color.r, new_color.g, new_color.b);
-			if (new_color.a == 0) { // If the given color doesn't have an alpha value, use the sprite's general value
-				SDL_SetTextureAlphaMod(texture, alpha*255);
-			} else { // Otherwise, use the value from the given color
-				SDL_SetTextureAlphaMod(texture, new_color.a);
-			}
+			SDL_SetTextureAlphaMod(texture, new_color.a);
 
 			// Reset the sprite's blend mode to the global mode
 			SDL_SetTextureBlendMode(texture, game->draw_get_blend());
@@ -728,9 +726,9 @@ int BEE::Sprite::draw_subimage(int x, int y, unsigned int current_subimage, int 
 			SDL_Point r = {(int)(rotate_x*subimage_width), (int)(rotate_y*height)}; // Create a point to use as the rotation origin
 			// Render the subimage
 			if (!subimages.empty()) { // If the sprite has multiple subimages, render without further cropping
-				SDL_RenderCopyEx(game->renderer, texture, &subimages[current_subimage], &drect, angle, &r, flip);
+				SDL_RenderCopyEx(game->renderer->sdl_renderer, texture, &subimages[current_subimage], &drect, angle, &r, flip);
 			} else { // Otherwise, render and crop as requested
-				SDL_RenderCopyEx(game->renderer, texture, &crop, &drect, angle, &r, flip);
+				SDL_RenderCopyEx(game->renderer->sdl_renderer, texture, &crop, &drect, angle, &r, flip);
 			}
 		}
 	}
@@ -770,7 +768,7 @@ int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h, double a
 * @subimage_time: the frame of animation to choose the subimage from
 */
 int BEE::Sprite::draw(int x, int y, Uint32 subimage_time) {
-	return draw(x, y, subimage_time, -1, -1, 0.0, {255, 255, 255, (Uint8)(alpha*255)}, SDL_FLIP_NONE); // Return the result of drawing the sprite
+	return draw(x, y, subimage_time, -1, -1, 0.0, {255, 255, 255, 255}, SDL_FLIP_NONE); // Return the result of drawing the sprite
 }
 /*
 * BEE::Sprite::draw() - Draw the sprite with a given subimage timing using the given attributes
@@ -782,7 +780,7 @@ int BEE::Sprite::draw(int x, int y, Uint32 subimage_time) {
 * @h: the height to scale the sprite to
 */
 int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h) {
-	return draw(x, y, subimage_time, w, h, 0.0, {255, 255, 255, (Uint8)(alpha*255)}, SDL_FLIP_NONE); // Return the resul of drawing the scaled sprite
+	return draw(x, y, subimage_time, w, h, 0.0, {255, 255, 255, 255}, SDL_FLIP_NONE); // Return the resul of drawing the scaled sprite
 }
 /*
 * BEE::Sprite::draw() - Draw the sprite with a given subimage timing using the given attributes
@@ -793,7 +791,7 @@ int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h) {
 * @angle: the number of degrees to rotate the sprite clockwise
 */
 int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, double angle) {
-	return draw(x, y, subimage_time, -1, -1, angle, {255, 255, 255, (Uint8)(alpha*255)}, SDL_FLIP_NONE); // Return the result of drawing the rotated sprite
+	return draw(x, y, subimage_time, -1, -1, angle, {255, 255, 255, 255}, SDL_FLIP_NONE); // Return the result of drawing the rotated sprite
 }
 /*
 * BEE::Sprite::draw() - Draw the sprite with a given subimage timing using the given attributes
@@ -815,7 +813,7 @@ int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, RGBA color) {
 * @flip: the type of flip to draw the sprite with
 */
 int BEE::Sprite::draw(int x, int y, Uint32 subimage_time, SDL_RendererFlip flip) {
-	return draw(x, y, subimage_time, -1, -1, 0.0, {255, 255, 255, (Uint8)(alpha*255)}, flip); // Return the result of drawing the flipped sprite
+	return draw(x, y, subimage_time, -1, -1, 0.0, {255, 255, 255, 255}, flip); // Return the result of drawing the flipped sprite
 }
 /*
 * BEE::Sprite::draw_simple() - Draw the sprite with a simple SDL blit
@@ -827,11 +825,11 @@ int BEE::Sprite::draw_simple(SDL_Rect* source, SDL_Rect* dest) {
 	if (!is_loaded) { // If the sprite is not loaded, exit
 		return 1; // Return 1 when not loaded
 	}
-	if (game->options->renderer_type != BEE_RENDERER_SDL) { // If the rendering mode is not SDL, exit
+	if (game->options->renderer_type != bee::E_RENDERER::SDL) { // If the rendering mode is not SDL, exit
 		return 2; // Return 2 when not in SDL rendering more
 	}
 
-	return SDL_RenderCopy(game->renderer, texture, source, dest); // Return the result of rendering the sprite
+	return SDL_RenderCopy(game->renderer->sdl_renderer, texture, source, dest); // Return the result of rendering the sprite
 }
 /*
 * BEE::Sprite::draw_array() - Draw a list of sprite instances with the given attributes
@@ -844,22 +842,18 @@ int BEE::Sprite::draw_simple(SDL_Rect* source, SDL_Rect* dest) {
 int BEE::Sprite::draw_array(const std::list<SpriteDrawData*>& draw_list, const std::vector<glm::mat4>& rotation_cache, RGBA new_color, SDL_RendererFlip flip) {
 	if (!is_loaded) { // Do not attempt to draw the instances if the sprite is not loaded
 		if (!has_draw_failed) { // If the draw call hasn't failed yet, output a warning
-			game->messenger_send({"engine", "sprite"}, BEE_MESSAGE_WARNING, "Failed to draw sprite instances for \"" + name + "\" because it is not loaded");
+			game->messenger_send({"engine", "sprite"}, bee::E_MESSAGE::WARNING, "Failed to draw sprite instances for \"" + name + "\" because it is not loaded");
 			has_draw_failed = true; // Set the draw failure boolean
 		}
 		return 1; // Return 1 when not loaded
 	}
 
-	if (game->options->renderer_type != BEE_RENDERER_SDL) {
-		glBindVertexArray(vao); // Bind the VAO for the sprite
-
-		// Bind the sprite texture
-		glUniform1i(game->texture_location, 0);
-		glBindTexture(GL_TEXTURE_2D, gl_texture);
+	if (game->options->renderer_type != bee::E_RENDERER::SDL) {
+		drawing_begin();
 
 		// Colorize the sprite with the given color
 		glm::vec4 color = glm::vec4((float)new_color.r/255.0f, (float)new_color.g/255.0f, (float)new_color.b/255.0f, (float)new_color.a/255.0f); // Normalize the color values from 0.0 to 1.0
-		glUniform4fv(game->colorize_location, 1, glm::value_ptr(color)); // Send the color to the shader
+		glUniform4fv(game->renderer->colorize_location, 1, glm::value_ptr(color)); // Send the color to the shader
 
 		// Determine the desired flip type
 		int f = 0; // The default behavior is to not flip
@@ -869,14 +863,14 @@ int BEE::Sprite::draw_array(const std::list<SpriteDrawData*>& draw_list, const s
 		if (flip & SDL_FLIP_VERTICAL) {
 			f += 2;
 		}
-		glUniform1i(game->flip_location, f); // Send the flip type to the shader
+		glUniform1i(game->renderer->flip_location, f); // Send the flip type to the shader
 
-		// Bind the indices that will be drawn
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+		// Get the amount indices that will be drawn per sprite instance
 		int size;
 		glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
 
 		LightableData* lightable_data = new LightableData();
+		lightable_data->mask.reserve(4);
 		lightable_data->mask.push_back(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
 		lightable_data->mask.push_back(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
 		lightable_data->mask.push_back(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
@@ -917,12 +911,12 @@ int BEE::Sprite::draw_array(const std::list<SpriteDrawData*>& draw_list, const s
 			// Generate the partial transformation matrix (translation and scaling) for the instance
 			glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3((float)drect.x, (float)drect.y, -1.0f)); // Translate the instance the desired amount in the x- and y-planes, note that the z-coordinate is nonzero so that there is no z-fighting with non-particle sprites in 3D mode
 			model = glm::scale(model, glm::vec3((float)s->w/rect_width, (float)s->h/height, 1.0)); // Scale the instance in the x- and y-planes
-			glUniformMatrix4fv(game->model_location, 1, GL_FALSE, glm::value_ptr(model)); // Send the transformation matrix to the shader
+			glUniformMatrix4fv(game->renderer->model_location, 1, GL_FALSE, glm::value_ptr(model)); // Send the transformation matrix to the shader
 
 			// Send the cached rotation matrix to the shader
 			// This is not included in the above transformation matrix because it is faster to rotate everything in the geometry shader
 			if (s->angle != 0.0) {
-				glUniformMatrix4fv(game->rotation_location, 1, GL_FALSE, glm::value_ptr(rotation_cache[s->angle]));
+				glUniformMatrix4fv(game->renderer->rotation_location, 1, GL_FALSE, glm::value_ptr(rotation_cache[s->angle]));
 			}
 
 			// Add the subimage to the list of lightables so that it can cast shadows
@@ -939,10 +933,10 @@ int BEE::Sprite::draw_array(const std::list<SpriteDrawData*>& draw_list, const s
 			}
 
 			// Bind the texture coordinates of the current subimage
-			glEnableVertexAttribArray(game->fragment_location);
+			glEnableVertexAttribArray(game->renderer->fragment_location);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords[current_subimage]);
 			glVertexAttribPointer(
-				game->fragment_location,
+				game->renderer->fragment_location,
 				2,
 				GL_FLOAT,
 				GL_FALSE,
@@ -953,23 +947,11 @@ int BEE::Sprite::draw_array(const std::list<SpriteDrawData*>& draw_list, const s
 			glDrawElements(GL_TRIANGLES, size/sizeof(GLushort), GL_UNSIGNED_SHORT, 0); // Draw the triangles which form the rectangular subimage
 		}
 
-		// Reset the shader state
-		glDisableVertexAttribArray(game->fragment_location); // Unbind the texture coordinates
-
-		glUniformMatrix4fv(game->model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the partial transformation matrix
-		glUniformMatrix4fv(game->rotation_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the rotation matrix
-		glBindTexture(GL_TEXTURE_2D, 0); // Unbind the sprite texture
-		glUniform1i(game->flip_location, 0); // Reset the flip type
-
-		glBindVertexArray(0); // Unbind the VAO
+		drawing_end();
 	} else {
 		// Colorize the instances with the given color
 		SDL_SetTextureColorMod(texture, new_color.r, new_color.g, new_color.b);
-		if (new_color.a == 0) { // If the given color doesn't have an alpha value, use the sprite's general value
-			SDL_SetTextureAlphaMod(texture, alpha*255);
-		} else { // Otherwise, use the value from the given color
-			SDL_SetTextureAlphaMod(texture, new_color.a);
-		}
+		SDL_SetTextureAlphaMod(texture, new_color.a);
 
 		Uint32 t = game->get_ticks(); // Calculate the current time to be used when finding the subimage to draw
 		for (auto& s : draw_list) { // Loop over the list and draw each instance
@@ -991,9 +973,9 @@ int BEE::Sprite::draw_array(const std::list<SpriteDrawData*>& draw_list, const s
 
 			// Render the subimage
 			if (!subimages.empty()) { // If the sprite has multiple subimages, render without further cropping
-				SDL_RenderCopyEx(game->renderer, texture, &subimages[current_subimage], &drect, s->angle, nullptr, flip);
+				SDL_RenderCopyEx(game->renderer->sdl_renderer, texture, &subimages[current_subimage], &drect, s->angle, nullptr, flip);
 			} else { // Otherwise, render without cropping
-				SDL_RenderCopyEx(game->renderer, texture, nullptr, &drect, s->angle, nullptr, flip);
+				SDL_RenderCopyEx(game->renderer->sdl_renderer, texture, nullptr, &drect, s->angle, nullptr, flip);
 			}
 		}
 	}
@@ -1016,7 +998,7 @@ int BEE::Sprite::set_as_target(int w, int h) {
 	set_subimage_amount(1, width);
 	crop = {0, 0, (int)width, (int)height};
 
-	if (game->options->renderer_type != BEE_RENDERER_SDL) {
+	if (game->options->renderer_type != bee::E_RENDERER::SDL) {
 		// Generate the vertex array object for the sprite
 		glGenVertexArrays(1, &vao);
 		glBindVertexArray(vao);
@@ -1042,10 +1024,10 @@ int BEE::Sprite::set_as_target(int w, int h) {
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
 
 		// Bind the vertices to the VAO's vertex buffer
-		glEnableVertexAttribArray(game->vertex_location);
+		glEnableVertexAttribArray(game->renderer->vertex_location);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
 		glVertexAttribPointer(
-			game->vertex_location,
+			game->renderer->vertex_location,
 			2,
 			GL_FLOAT,
 			GL_FALSE,
@@ -1080,7 +1062,7 @@ int BEE::Sprite::set_as_target(int w, int h) {
 
 		// Check whether the framebuffer has been successfully initialized
 		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) { // If not, reset the state
-			game->messenger_send({"engine", "sprite"}, BEE_MESSAGE_WARNING, "Failed to create a new framebuffer.");
+			game->messenger_send({"engine", "sprite"}, bee::E_MESSAGE::WARNING, "Failed to create a new framebuffer.");
 			glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind the frame buffer to switch back to the default
 			this->free(); // Free the old data
 			return 0; // Return 0 on failure to initialize the framebuffer
@@ -1094,13 +1076,13 @@ int BEE::Sprite::set_as_target(int w, int h) {
 
 		return (int)framebuffer; // Return the framebuffer index on success
 	} else {
-		texture = SDL_CreateTexture(game->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w, h); // Create an empty texture
+		texture = SDL_CreateTexture(game->renderer->sdl_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w, h); // Create an empty texture
 		if (texture == nullptr) { // If the texture could not be created, output a warning
-			game->messenger_send({"engine", "sprite"}, BEE_MESSAGE_WARNING, "Failed to create a blank texture: " + get_sdl_error());
+			game->messenger_send({"engine", "sprite"}, bee::E_MESSAGE::WARNING, "Failed to create a blank texture: " + get_sdl_error());
 			return 0; // Return 0 on failure to create a blank texture
 		}
 
-		SDL_SetRenderTarget(game->renderer, texture); // Set the SDL render target
+		SDL_SetRenderTarget(game->renderer->sdl_renderer, texture); // Set the SDL render target
 	}
 
 	// Set loaded booleans

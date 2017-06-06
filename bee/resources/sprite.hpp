@@ -31,7 +31,6 @@ class BEE::Sprite: public Resource { // The sprite resource class is used to dra
 		unsigned int subimage_amount, subimage_width; // The variables which determine how the subimages are divided
 		SDL_Rect crop; // A rectangle which determines how the sprite is cropped before being drawn
 		double speed; // The speed at which the subimages animate
-		double alpha; // The opacity of the texture from 0.0 to 1.0
 		bool is_animated; // Whether the sprite is currently animating or not
 		int origin_x, origin_y; // The origin from which the texture is drawn
 		double rotate_x, rotate_y; // The origin around which the texture is rotated, scaled from 0.0 to 1.0 in both width and height
@@ -49,6 +48,10 @@ class BEE::Sprite: public Resource { // The sprite resource class is used to dra
 		bool is_lightable; // Whether the sprite is affected by the lighting system
 
 		GLuint framebuffer; // The framebuffer object used by set_as_target()
+
+		// See bee/resources/sprite.cpp for function comments
+		int drawing_begin();
+		int drawing_end();
 	public:
 		// See bee/resources/sprite.cpp for function comments
 		Sprite();
@@ -66,7 +69,6 @@ class BEE::Sprite: public Resource { // The sprite resource class is used to dra
 		int get_subimage_amount() const;
 		int get_subimage_width() const;
 		double get_speed() const;
-		double get_alpha() const;
 		bool get_is_animated() const;
 		int get_origin_x() const;
 		int get_origin_y() const;
@@ -83,7 +85,6 @@ class BEE::Sprite: public Resource { // The sprite resource class is used to dra
 		int crop_image_width(int);
 		int crop_image_height(int);
 		int set_speed(double);
-		int set_alpha(double);
 		int set_origin_xy(int, int);
 		int set_origin_x(int);
 		int set_origin_y(int);
@@ -97,6 +98,7 @@ class BEE::Sprite: public Resource { // The sprite resource class is used to dra
 		int load_from_surface(SDL_Surface*);
 		int load();
 		int free();
+
 		int draw_subimage(int, int, unsigned int, int, int, double, RGBA, SDL_RendererFlip);
 		int draw(int, int, Uint32, int, int, double, RGBA, SDL_RendererFlip);
 		int draw(int, int, Uint32);

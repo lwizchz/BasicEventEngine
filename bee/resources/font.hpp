@@ -15,7 +15,7 @@
 #include "../game.hpp" // Include the engine headers
 
 struct BEE::TextData { // The data struct which is used to pass reusable texture data to Font::draw()
-	std::map<int,BEE::Sprite*> sprite; // A map of temporary pre-rendered sprites for each line of the text
+	std::map<int,BEE::Sprite*> sprites; // A map of temporary pre-rendered sprites for each line of the text
 	std::string text; // The string of text that has been rendered
 
 	// See bee/resources/font.cpp for function comments

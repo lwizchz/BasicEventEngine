@@ -8,7 +8,7 @@ set(deps_bee_core_network core/network/network.cpp core/network/networkclient.cp
 set(deps_bee_core core/console.cpp core/display.cpp core/input.cpp core/instance.cpp core/resources.cpp core/room.cpp core/window.cpp ${deps_bee_core_messenger} ${deps_bee_core_network})
 
 set(deps_bee_render_particle render/particle/attractor.cpp render/particle/changer.cpp render/particle/deflector.cpp render/particle/destroyer.cpp render/particle/emitter.cpp render/particle/particle.cpp render/particle/particledata.cpp render/particle/system.cpp)
-set(deps_bee_render render/camera.cpp render/drawing.cpp render/render.cpp render/transition.cpp render/viewdata.cpp ${deps_bee_render_particle})
+set(deps_bee_render render/camera.cpp render/drawing.cpp render/render.cpp render/renderer.cpp render/transition.cpp render/viewdata.cpp ${deps_bee_render_particle})
 
 set(deps_bee_physics physics/body.cpp physics/draw.cpp physics/world.cpp)
 

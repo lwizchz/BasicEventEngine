@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	// Output initialization message
-	game->messenger_send({"engine", "init"}, BEE_MESSAGE_INFO,
+	game->messenger_send({"engine", "init"}, bee::E_MESSAGE::INFO,
 		std::string("Initialized ") + MACRO_TO_STR(GAME_NAME) + " v" +
 		std::to_string(GAME_VERSION_MAJOR) + "." + std::to_string(GAME_VERSION_MINOR) + "." + std::to_string(GAME_VERSION_RELEASE)
 	);

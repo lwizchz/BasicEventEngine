@@ -41,8 +41,8 @@ class BEE::PhysicsWorld {
 		int set_scale(double);
 
 		int add_body(PhysicsBody*);
-		int add_constraint(bee_phys_constraint_t, PhysicsBody*, double*);
-		int add_constraint(bee_phys_constraint_t, PhysicsBody*, PhysicsBody*, double*);
+		int add_constraint(bee::E_PHYS_CONSTRAINT, PhysicsBody*, double*);
+		int add_constraint(bee::E_PHYS_CONSTRAINT, PhysicsBody*, PhysicsBody*, double*);
 		int add_constraint_external(btTypedConstraint*);
 
 		int remove_body(PhysicsBody*);
@@ -52,7 +52,7 @@ class BEE::PhysicsWorld {
 
 		int draw_debug();
 
-		size_t get_constraint_param_amount(bee_phys_constraint_t) const;
+		size_t get_constraint_param_amount(bee::E_PHYS_CONSTRAINT) const;
 };
 
 #endif // _BEE_PHYSICS_WORLD_H

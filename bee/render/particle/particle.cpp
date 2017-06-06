@@ -38,68 +38,68 @@ BEE::Particle::Particle(BEE* new_game, Sprite* new_sprite, double new_scale, Uin
 		init();
 	}
 }
-BEE::Particle::Particle(BEE* new_game, bee_pt_shape_t new_shape, double new_scale, Uint32 new_max_time, bool new_should_reanimate) :
+BEE::Particle::Particle(BEE* new_game, bee::E_PT_SHAPE new_shape, double new_scale, Uint32 new_max_time, bool new_should_reanimate) :
 	Particle(new_game, nullptr, new_scale, new_max_time, new_should_reanimate)
 {
 	switch (new_shape) {
-		case BEE_PT_SHAPE_PIXEL: {
+		case bee::E_PT_SHAPE::PIXEL: {
 			sprite = game->add_sprite("pt_sprite_pixel", "particles/00_pixel.png");
 			break;
 		}
-		case BEE_PT_SHAPE_DISK: {
+		case bee::E_PT_SHAPE::DISK: {
 			sprite = game->add_sprite("pt_sprite_disk", "particles/01_disk.png");
 			break;
 		}
-		case BEE_PT_SHAPE_SQUARE: {
+		case bee::E_PT_SHAPE::SQUARE: {
 			sprite = game->add_sprite("pt_sprite_square", "particles/02_square.png");
 			break;
 		}
-		case BEE_PT_SHAPE_LINE: {
+		case bee::E_PT_SHAPE::LINE: {
 			sprite = game->add_sprite("pt_sprite_line", "particles/03_line.png");
 			break;
 		}
-		case BEE_PT_SHAPE_STAR: {
+		case bee::E_PT_SHAPE::STAR: {
 			sprite = game->add_sprite("pt_sprite_star", "particles/04_star.png");
 			break;
 		}
-		case BEE_PT_SHAPE_CIRCLE: {
+		case bee::E_PT_SHAPE::CIRCLE: {
 			sprite = game->add_sprite("pt_sprite_circle", "particles/05_circle.png");
 			break;
 		}
-		case BEE_PT_SHAPE_RING: {
+		case bee::E_PT_SHAPE::RING: {
 			sprite = game->add_sprite("pt_sprite_ring", "particles/06_ring.png");
 			break;
 		}
-		case BEE_PT_SHAPE_SPHERE: {
+		case bee::E_PT_SHAPE::SPHERE: {
 			sprite = game->add_sprite("pt_sprite_sphere", "particles/07_sphere.png");
 			break;
 		}
-		case BEE_PT_SHAPE_FLARE: {
+		case bee::E_PT_SHAPE::FLARE: {
 			sprite = game->add_sprite("pt_sprite_flare", "particles/08_flare.png");
 			break;
 		}
-		case BEE_PT_SHAPE_SPARK: {
+		case bee::E_PT_SHAPE::SPARK: {
 			sprite = game->add_sprite("pt_sprite_spark", "particles/09_spark.png");
 			break;
 		}
-		case BEE_PT_SHAPE_EXPLOSION: {
+		case bee::E_PT_SHAPE::EXPLOSION: {
 			sprite = game->add_sprite("pt_sprite_explosion", "particles/10_explosion.png");
 			break;
 		}
-		case BEE_PT_SHAPE_CLOUD: {
+		case bee::E_PT_SHAPE::CLOUD: {
 			sprite = game->add_sprite("pt_sprite_cloud", "particles/11_cloud.png");
 			break;
 		}
-		case BEE_PT_SHAPE_SMOKE: {
+		case bee::E_PT_SHAPE::SMOKE: {
 			sprite = game->add_sprite("pt_sprite_smoke", "particles/12_smoke.png");
 			break;
 		}
-		case BEE_PT_SHAPE_SNOW: {
+		case bee::E_PT_SHAPE::SNOW: {
 			sprite = game->add_sprite("pt_sprite_snow", "particles/13_snow.png");
 			break;
 		}
 		default: // This should never happen
-			game->messenger_send({"engine", "resource"}, BEE_MESSAGE_WARNING, "Couldn't initialize particle: unknown particle type " + bee_itos(new_shape));
+			game->messenger_send({"engine", "resource"}, bee::E_MESSAGE::WARNING, "Couldn't initialize particle: unknown particle type " + bee_itos((int)new_shape));
 			return;
 	}
 
@@ -141,7 +141,7 @@ int BEE::Particle::print() {
 	"\n	is_lightable            " << is_lightable <<
 	"\n	is_sprite_lightable	" << is_sprite_lightable <<
 	"\n}\n";
-	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str());
+	game->messenger_send({"engine", "resource"}, bee::E_MESSAGE::INFO, s.str());
 
 	return 0;
 }

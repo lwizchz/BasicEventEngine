@@ -28,7 +28,7 @@ BEE::Timeline::Timeline (const std::string& new_name, const std::string& new_pat
 
 	add_to_resources();
 	if (id < 0) {
-		game->messenger_send({"engine", "resource"}, BEE_MESSAGE_WARNING, "Failed to add timeline resource: \" + new_name + \" from " + new_path);
+		game->messenger_send({"engine", "resource"}, bee::E_MESSAGE::WARNING, "Failed to add timeline resource: \" + new_name + \" from " + new_path);
 		throw(-1);
 	}
 
@@ -72,7 +72,7 @@ int BEE::Timeline::print() const {
 	"\n	is_looping     " << is_looping <<
 	"\n	action_list\n" << debug_indent(action_string, 2) <<
 	"\n}\n";
-	game->messenger_send({"engine", "resource"}, BEE_MESSAGE_INFO, s.str());
+	game->messenger_send({"engine", "resource"}, bee::E_MESSAGE::INFO, s.str());
 
 	return 0;
 }

@@ -40,7 +40,7 @@ class BEE::Particle {
 		bool is_sprite_lightable;
 
 		Particle(BEE*, Sprite*, double, Uint32, bool);
-		Particle(BEE*, bee_pt_shape_t, double, Uint32, bool);
+		Particle(BEE*, bee::E_PT_SHAPE, double, Uint32, bool);
 		int init();
 		int print();
 };

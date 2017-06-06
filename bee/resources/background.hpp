@@ -26,15 +26,15 @@ struct BEE::BackgroundData { // The data struct which is used to pass data to th
 };
 
 class BEE::Background: public Resource { // The background class is used to draw tiled textures behind or in front of all other on-screen objects
-		int id = -1; // The id of the resource
+		int id; // The id of the resource
 		std::string name; // An arbitrary name for the resource
 		std::string path; // The path of the image file which is used as the background's texture
 		unsigned int width, height; // The width and height of the texture
 		Uint32 animation_time; // The starting time of a movement animation for the texture
 
 		SDL_Texture* texture; // The internal texture storage for SDL mode
-		bool is_loaded = false; // Whether the image file was successfully loaded into a texture
-		bool has_draw_failed = false; // Whether the draw function has previously failed, this prevents continous warning outputs
+		bool is_loaded; // Whether the image file was successfully loaded into a texture
+		bool has_draw_failed; // Whether the draw function has previously failed, this prevents continous warning outputs
 
 		GLuint vao; // The Vertex Array Object which contains most of the following data
 		GLuint vbo_vertices; // The Vertex Buffer Object which contains the vertices of the quad
@@ -45,9 +45,13 @@ class BEE::Background: public Resource { // The background class is used to draw
 		GLuint framebuffer; // The framebuffer object used by set_as_target()
 
 		// See bee/resources/background.cpp for function comments
+		int draw_internal(const SDL_Rect*, const SDL_Rect*, const glm::mat4&) const;
 		int draw_internal(const SDL_Rect*, const SDL_Rect*) const;
 		int tile_horizontal(const SDL_Rect*) const;
 		int tile_vertical(const SDL_Rect*) const;
+
+		int drawing_begin();
+		int drawing_end();
 	public:
 		// See bee/resources/background.cpp for function comments
 		Background();

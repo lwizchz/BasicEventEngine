@@ -25,18 +25,18 @@ class ObjBee : public BEE::Object/*<ObjBee>*/ {
 		void draw(BEE::Instance*);
 };
 ObjBee::ObjBee() : Object/*<ObjBee>*/("obj_bee", "bee.hpp") {
-	implemented_events[BEE_EVENT_UPDATE] = true;
-	implemented_events[BEE_EVENT_CREATE] = true;
-	implemented_events[BEE_EVENT_DESTROY] = true;
-	implemented_events[BEE_EVENT_ALARM] = true;
-	implemented_events[BEE_EVENT_STEP_MID] = true;
-	implemented_events[BEE_EVENT_KEYBOARD_PRESS] = true;
-	implemented_events[BEE_EVENT_MOUSE_PRESS] = true;
-	implemented_events[BEE_EVENT_MOUSE_INPUT] = true;
-	implemented_events[BEE_EVENT_COMMANDLINE_INPUT] = true;
-	implemented_events[BEE_EVENT_OUTSIDE_ROOM] = true;
-	implemented_events[BEE_EVENT_COLLISION] = true;
-	implemented_events[BEE_EVENT_DRAW] = true;
+	implemented_events[bee::E_EVENT::UPDATE] = true;
+	implemented_events[bee::E_EVENT::CREATE] = true;
+	implemented_events[bee::E_EVENT::DESTROY] = true;
+	implemented_events[bee::E_EVENT::ALARM] = true;
+	implemented_events[bee::E_EVENT::STEP_MID] = true;
+	implemented_events[bee::E_EVENT::KEYBOARD_PRESS] = true;
+	implemented_events[bee::E_EVENT::MOUSE_PRESS] = true;
+	implemented_events[bee::E_EVENT::MOUSE_INPUT] = true;
+	implemented_events[bee::E_EVENT::COMMANDLINE_INPUT] = true;
+	implemented_events[bee::E_EVENT::OUTSIDE_ROOM] = true;
+	implemented_events[bee::E_EVENT::COLLISION] = true;
+	implemented_events[bee::E_EVENT::DRAW] = true;
 
 	set_sprite(spr_bee);
 }
@@ -51,12 +51,13 @@ void ObjBee::create(BEE::Instance* self) {
 	update(self);
 
 	self->get_physbody()->set_mass(0.0);
-	self->get_physbody()->set_shape(BEE_PHYS_SHAPE_BOX, new double[3] {100.0, 100.0, 100.0});
-	self->get_physbody()->add_constraint(BEE_PHYS_CONSTRAINT_2D, nullptr);
+	self->get_physbody()->set_shape(bee::E_PHYS_SHAPE::BOX, new double[3] {100.0, 100.0, 100.0});
+	self->get_physbody()->add_constraint(bee::E_PHYS_CONSTRAINT::FLAT, nullptr);
 
 	// create event
 	std::cout << "u r a b " << self->id << "\n";
-	(*s)["fps_display"] = (void*)nullptr;
+	(*s)["text_id"] = (void*)nullptr;
+	(*s)["text_fps"] = (void*)nullptr;
 
 	//self->set_alarm(0, 2000);
 	//spr_bee->set_alpha(0.5);
@@ -76,9 +77,9 @@ void ObjBee::create(BEE::Instance* self) {
 			BEE::ParticleSystem* part_system = new BEE::ParticleSystem(game);
 			//part_system->following = nullptr;
 
-			//BEE::Particle* part_done = new BEE::Particle(game, BEE_PT_SHAPE_EXPLOSION, 0.5, 100);
+			//BEE::Particle* part_done = new BEE::Particle(game, bee::E_PT_SHAPE::EXPLOSION, 0.5, 100);
 
-			BEE::Particle* part_firework = new BEE::Particle(game, BEE_PT_SHAPE_SNOW, 0.5, 10000, true);
+			BEE::Particle* part_firework = new BEE::Particle(game, bee::E_PT_SHAPE::SNOW, 0.5, 10000, true);
 			//BEE::Particle* part_firework = new BEE::Particle(game, spr_bee, 0.5, 10000, true);
 			part_firework->velocity = {20.0, 270.0};
 			part_firework->angle_increase = 0.3;
@@ -111,13 +112,15 @@ void ObjBee::create(BEE::Instance* self) {
 	}
 }
 void ObjBee::destroy(BEE::Instance* self) {
+	delete (BEE::TextData*) _p("text_id");
+
 	if (self->id == 0) {
 		if (game->net_get_is_connected()) {
 			game->net_session_end();
 		}
-
-		delete (BEE::TextData*) _p("fps_display");
+		delete (BEE::TextData*) _p("text_fps");
 	}
+
 	instance_data.erase(self->id);
 }
 void ObjBee::alarm(BEE::Instance* self, int a) {
@@ -127,6 +130,7 @@ void ObjBee::alarm(BEE::Instance* self, int a) {
 			//self->set_alarm(0, 2000);
 			break;
 		}
+		default: {}
 	}
 
 }
@@ -157,7 +161,7 @@ void ObjBee::keyboard_press(BEE::Instance* self, SDL_Event* e) {
 
 	switch (e->key.keysym.sym) {
 		case SDLK_RETURN: {
-			game->set_transition_type((bee_transition_t)(game->get_transition_type()+1));
+			game->set_transition_type((bee::E_TRANSITION)((int)game->get_transition_type()+1));
 			game->restart_room();
 			break;
 		}
@@ -201,7 +205,7 @@ void ObjBee::keyboard_press(BEE::Instance* self, SDL_Event* e) {
 
 		case SDLK_y: {
 			self->set_mass(1.0);
-			self->path_start(path_bee, 100.0, BEE_PATH_END_STOP, true);
+			self->path_start(path_bee, 100.0, bee::E_PATH_END::STOP, true);
 			self->set_path_drawn(true);
 			break;
 		}
@@ -230,7 +234,7 @@ void ObjBee::keyboard_press(BEE::Instance* self, SDL_Event* e) {
 
 		case SDLK_1: {
 			//snd_chirp->stop();
-			snd_chirp->effect_set(BEE_SE_NONE);
+			snd_chirp->effect_set((int)bee::E_SOUNDEFFECT::NONE);
 
 			if (snd_chirp->get_is_playing()) {
 				snd_chirp->rewind();
@@ -241,7 +245,7 @@ void ObjBee::keyboard_press(BEE::Instance* self, SDL_Event* e) {
 		}
 		case SDLK_2: {
 			snd_chirp->stop();
-			snd_chirp->effect_set(BEE_SE_ECHO);
+			snd_chirp->effect_set((int)bee::E_SOUNDEFFECT::ECHO);
 			snd_chirp->play();
 			break;
 		}
@@ -255,7 +259,7 @@ void ObjBee::keyboard_press(BEE::Instance* self, SDL_Event* e) {
 			break;
 		}
 		case SDLK_b: {
-			game->messenger_send({"bee"}, BEE_MESSAGE_INFO, self->serialize(true));
+			game->messenger_send({"bee"}, bee::E_MESSAGE::INFO, self->serialize(true));
 			(*s)["serialdata"] = self->serialize();
 			break;
 		}
@@ -313,9 +317,9 @@ void ObjBee::collision(BEE::Instance* self, BEE::Instance* other) {
 void ObjBee::draw(BEE::Instance* self) {
 	int size = 100;
 	double r = radtodeg(self->get_physbody()->get_rotation_z());
-	self->draw(size, size, r, c_white, SDL_FLIP_NONE);
+	self->draw(size, size, r, bee::E_RGB::WHITE, SDL_FLIP_NONE);
 
-	font_liberation->draw_fast(self->get_corner_x(), self->get_corner_y(), bee_itos(self->id));
+	(*s)["text_id"] = (void*)font_liberation->draw((BEE::TextData*) _p("text_id"), self->get_corner_x(), self->get_corner_y(), bee_itos(self->id));
 
 	lt_bee->set_position(glm::vec4(self->get_x(), self->get_y(), 0.0, 1.0));
 	lt_bee->set_color({(Uint8)(self->id*50), (Uint8)(self->id*20), 255, 255});
@@ -328,6 +332,6 @@ void ObjBee::draw(BEE::Instance* self) {
 		float a = 180.0f + radtodeg(sin(t));
 		mesh_monkey->draw(glm::vec3(1000.0f+500.0f*cos(t), 500.0f+300.0f*sin(t), 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, a, 180.0f), {255, 255, 0, 255}, false);
 
-		(*s)["fps_display"] = (void*)font_liberation->draw((BEE::TextData*) _p("fps_display"), 0, 0, "FPS: " + bee_itos(game->fps_stable));
+		(*s)["text_fps"] = (void*)font_liberation->draw((BEE::TextData*) _p("text_fps"), 0, 0, "FPS: " + bee_itos(game->fps_stable));
 	}
 }

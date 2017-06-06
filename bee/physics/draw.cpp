@@ -61,7 +61,7 @@ void BEE::PhysicsDraw::drawContactPoint(const btVector3& v1, const btVector3& no
 
 void BEE::PhysicsDraw::reportErrorWarning(const char* str) {
 	if (attached_game != nullptr) {
-		attached_game->messenger_send({"engine", "physics", "draw"}, BEE_MESSAGE_WARNING, std::string(str));
+		attached_game->messenger_send({"engine", "physics", "draw"}, bee::E_MESSAGE::WARNING, std::string(str));
 	} else {
 		std::cerr << "PHYS WARN: " << str << "\n";
 	}

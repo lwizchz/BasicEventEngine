@@ -17,12 +17,12 @@ class BEE::ParticleChanger {
 		unsigned int w, h;
 		Instance* following;
 
-		bee_ps_shape_t shape;
+		bee::E_PS_SHAPE shape;
 
 		Particle* particle_before;
 		Particle* particle_after;
 
-		bee_ps_change_t change_type;
+		bee::E_PS_CHANGE change_type;
 
 		ParticleChanger();
 };

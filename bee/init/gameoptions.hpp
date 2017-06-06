@@ -19,7 +19,7 @@ struct BEE::GameOptions {
 	bool is_minimized;
 
 	// Renderer options
-	bee_renderer_t renderer_type;
+	bee::E_RENDERER renderer_type;
 	bool is_vsync_enabled;
 	bool is_basic_shaders_enabled;
 
@@ -32,7 +32,7 @@ struct BEE::GameOptions {
 	bool single_run;
 
 	GameOptions();
-	GameOptions(bool, bool, bool, bool, bool, bool, bee_renderer_t, bool, bool, bool, bool);
+	GameOptions(bool, bool, bool, bool, bool, bool, bee::E_RENDERER, bool, bool, bool, bool);
 };
 
 #endif // _BEE_INIT_GAMEOPTIONS_H

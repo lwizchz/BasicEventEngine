@@ -213,8 +213,8 @@ int BEE::console_init_commands() {
 		"quit",
 		"End the game",
 		[] (BEE* g, std::shared_ptr<MessageContents> msg) {
-			g->messenger_send({"engine", "console"}, BEE_MESSAGE_INFO, "Quitting...");
-			g->set_transition_type(BEE_TRANSITION_NONE);
+			g->messenger_send({"engine", "console"}, bee::E_MESSAGE::INFO, "Quitting...");
+			g->set_transition_type(bee::E_TRANSITION::NONE);
 			g->end_game();
 		}
 	);
@@ -231,7 +231,7 @@ int BEE::console_init_commands() {
 			std::vector<SIDP> params = g->console_parse_parameters(msg->descr); // Parse the parameters from the given command
 
 			if (params.size() > 1) { // If a specific command was specified, output its entire help text
-				g->messenger_send({"engine", "console"}, BEE_MESSAGE_INFO, "Command help for \"" + params[1].s() + "\":\n" + g->console_get_help(params[1].s()));
+				g->messenger_send({"engine", "console"}, bee::E_MESSAGE::INFO, "Command help for \"" + params[1].s() + "\":\n" + g->console_get_help(params[1].s()));
 			} else { // If the command was called without any arguments, output the first line of help text for every registered command
 				std::string help = "Available commands are:\n"; // Initialize a help string to be used as output
 
@@ -264,7 +264,7 @@ int BEE::console_init_commands() {
 						help += c + "\n\t" + handle_newlines(h)[0] + "\n";
 					}
 				}
-				g->messenger_send({"engine", "console"}, BEE_MESSAGE_INFO, help); // Send the output to the console log
+				g->messenger_send({"engine", "console"}, bee::E_MESSAGE::INFO, help); // Send the output to the console log
 			}
 		}
 	);
@@ -293,7 +293,7 @@ int BEE::console_init_commands() {
 				}
 			}
 
-			g->messenger_send({"engine", "console"}, BEE_MESSAGE_INFO, commands); // Send the output to the console log
+			g->messenger_send({"engine", "console"}, bee::E_MESSAGE::INFO, commands); // Send the output to the console log
 		}
 	);
 	/*
@@ -327,7 +327,7 @@ int BEE::console_init_commands() {
 				output += " ";
 			}
 			if (!output.empty()) { // If the output isn't empty, send it to the console log
-				g->messenger_send({"engine", "console"}, BEE_MESSAGE_INFO, output);
+				g->messenger_send({"engine", "console"}, bee::E_MESSAGE::INFO, output);
 			}
 		}
 	);
@@ -383,9 +383,9 @@ int BEE::console_init_commands() {
 			} else if (params.size() > 1) {
 				auto a = g->console_get_aliases();
 				if (a.find(params[1].s()) != a.end()) {
-					g->messenger_send({"engine", "console"}, BEE_MESSAGE_INFO, a[params[1].s()]);
+					g->messenger_send({"engine", "console"}, bee::E_MESSAGE::INFO, a[params[1].s()]);
 				} else {
-					g->messenger_send({"engine", "console"}, BEE_MESSAGE_INFO, "No alias set for \"" + params[1].s() + "\"");
+					g->messenger_send({"engine", "console"}, bee::E_MESSAGE::INFO, "No alias set for \"" + params[1].s() + "\"");
 				}
 			} else {
 				auto amap = g->console_get_aliases();
@@ -393,7 +393,7 @@ int BEE::console_init_commands() {
 				for (auto& a : amap) {
 					aliases += a.first + "\n\t" + a.second + "\n";
 				}
-				g->messenger_send({"engine", "console"}, BEE_MESSAGE_INFO, aliases);
+				g->messenger_send({"engine", "console"}, bee::E_MESSAGE::INFO, aliases);
 			}
 		}
 	);
@@ -413,9 +413,9 @@ int BEE::console_init_commands() {
 			if (params.size() > 2) { // If both a key and command are provided, bind the command to the key
 				g->console_bind(g->keystrings_get_key(params[1].s()), string_unescape(params[2].s()));
 			} else if (params.size() > 1) { // If only a command is provided, output the command that is bound to it
-				g->messenger_send({"engine", "console"}, BEE_MESSAGE_INFO, g->console_bind(g->keystrings_get_key(params[1].s())));
+				g->messenger_send({"engine", "console"}, bee::E_MESSAGE::INFO, g->console_bind(g->keystrings_get_key(params[1].s())));
 			} else { // If no key is provided, output a warning
-				g->messenger_send({"engine", "console"}, BEE_MESSAGE_WARNING, "No key specified for binding");
+				g->messenger_send({"engine", "console"}, bee::E_MESSAGE::WARNING, "No key specified for binding");
 			}
 		}
 	);
@@ -437,7 +437,7 @@ int BEE::console_init_commands() {
 					g->console_unbind(g->keystrings_get_key(params[1].s()));
 				}
 			} else { // If no key is provided, output a warning
-				g->messenger_send({"engine", "console"}, BEE_MESSAGE_WARNING, "No key specified for unbinding");
+				g->messenger_send({"engine", "console"}, bee::E_MESSAGE::WARNING, "No key specified for unbinding");
 			}
 		}
 	);
@@ -464,10 +464,10 @@ int BEE::console_init_commands() {
 						}
 					}
 				} else { // If the file cannot be opened, output a warning
-					g->messenger_send({"engine", "console"}, BEE_MESSAGE_WARNING, "The requested exec file \"" + fn + "\" does not exist");
+					g->messenger_send({"engine", "console"}, bee::E_MESSAGE::WARNING, "The requested exec file \"" + fn + "\" does not exist");
 				}
 			} else { // If no filename is provided, output a warning
-				g->messenger_send({"engine", "console"}, BEE_MESSAGE_WARNING, "No config file specified for execution");
+				g->messenger_send({"engine", "console"}, bee::E_MESSAGE::WARNING, "No config file specified for execution");
 			}
 		}
 	);
@@ -487,9 +487,9 @@ int BEE::console_init_commands() {
 			if (params.size() > 2) { // If both required arguments were provided, execute the command
 				this->console_run(string_unescape(params[2].s()), true, params[1].i());
 			} else if (params.size() > 1) { // If no command was provided, output a warning
-				g->messenger_send({"engine", "console"}, BEE_MESSAGE_WARNING, "No command specified for wait");
+				g->messenger_send({"engine", "console"}, bee::E_MESSAGE::WARNING, "No command specified for wait");
 			} else { // If no arguments were provided, output a warning
-				g->messenger_send({"engine", "console"}, BEE_MESSAGE_WARNING, "No arguments specified for wait");
+				g->messenger_send({"engine", "console"}, bee::E_MESSAGE::WARNING, "No arguments specified for wait");
 			}
 		}
 	);
@@ -521,7 +521,7 @@ int BEE::console_init_commands() {
 			if (params.size() > 2) {
 				g->console_set_var(params[1].s(), params[2]);
 			} else {
-				g->messenger_send({"engine", "console"}, BEE_MESSAGE_WARNING, "Not enough arguments specified for set");
+				g->messenger_send({"engine", "console"}, bee::E_MESSAGE::WARNING, "Not enough arguments specified for set");
 			}
 		}
 	);
@@ -536,9 +536,9 @@ int BEE::console_init_commands() {
 			std::vector<SIDP> params = g->console_parse_parameters(msg->descr); // Parse the parameters from the given command
 
 			if (params.size() > 1) {
-				g->messenger_send({"engine", "console"}, BEE_MESSAGE_INFO, g->console_get_var(params[1].s()).to_str());
+				g->messenger_send({"engine", "console"}, bee::E_MESSAGE::INFO, g->console_get_var(params[1].s()).to_str());
 			} else {
-				g->messenger_send({"engine", "console"}, BEE_MESSAGE_WARNING, "Not enough arguments specified for get");
+				g->messenger_send({"engine", "console"}, bee::E_MESSAGE::WARNING, "Not enough arguments specified for get");
 			}
 		}
 	);
@@ -577,7 +577,7 @@ int BEE::console_init_commands() {
 				o.is_debug_enabled = params[1].i();
 				g->set_options(o);
 			} else {
-				g->messenger_send({"engine", "console"}, BEE_MESSAGE_INFO, std::to_string(g->get_options().is_debug_enabled));
+				g->messenger_send({"engine", "console"}, bee::E_MESSAGE::INFO, std::to_string(g->get_options().is_debug_enabled));
 			}
 		}
 	);
@@ -596,7 +596,7 @@ int BEE::console_init_commands() {
 			if (params.size() > 1) {
 				g->set_volume(params[1].d());
 			} else {
-				g->messenger_send({"engine", "console"}, BEE_MESSAGE_INFO, std::to_string(g->get_volume()));
+				g->messenger_send({"engine", "console"}, bee::E_MESSAGE::INFO, std::to_string(g->get_volume()));
 			}
 		}
 	);
@@ -629,7 +629,7 @@ int BEE::console_init_commands() {
 		"info",
 		"Output information about the current room",
 		[] (BEE* g, std::shared_ptr<MessageContents> msg) {
-			g->messenger_send({"engine", "console"}, BEE_MESSAGE_INFO, g->get_current_room()->get_print());
+			g->messenger_send({"engine", "console"}, bee::E_MESSAGE::INFO, g->get_current_room()->get_print());
 		}
 	);
 
@@ -659,7 +659,7 @@ int BEE::console_run_internal(const std::string& command, bool is_urgent, Uint32
 
 	if (console->commands.find(params[0].s()) == console->commands.end()) { // If the command or alias does not exist, then output a warning
 		if (console->aliases.find(params[0].s()) == console->aliases.end()) {
-			messenger_send({"engine", "console"}, BEE_MESSAGE_WARNING, "Failed to run command \"" + params[0].s() + "\", the command does not exist.");
+			messenger_send({"engine", "console"}, bee::E_MESSAGE::WARNING, "Failed to run command \"" + params[0].s() + "\", the command does not exist.");
 			return 2; // Return 2 on non-existent command
 		} else { // Otherwise if the alias exists, run it
 			return console_run(console->aliases[params[0].s()], true, delay);
@@ -670,7 +670,7 @@ int BEE::console_run_internal(const std::string& command, bool is_urgent, Uint32
 		messenger_send_urgent(std::shared_ptr<MessageContents>(new MessageContents(
 			get_ticks()+delay,
 			{"engine", "console", params[0].s()},
-			BEE_MESSAGE_GENERAL,
+			bee::E_MESSAGE::GENERAL,
 			c,
 			nullptr
 		)));
@@ -678,7 +678,7 @@ int BEE::console_run_internal(const std::string& command, bool is_urgent, Uint32
 		messenger_send(std::shared_ptr<MessageContents>(new MessageContents(
 			get_ticks()+delay,
 			{"engine", "console", params[0].s()},
-			BEE_MESSAGE_GENERAL,
+			bee::E_MESSAGE::GENERAL,
 			c,
 			nullptr
 		)));
@@ -705,7 +705,7 @@ int BEE::console_run(const std::string& command, bool is_silent, Uint32 delay) {
 				console->history.push_back(command);
 			}
 		}
-		messenger_send({"engine", "console"}, BEE_MESSAGE_INFO, "> " + trim(command)); // Output the command to the messenger log
+		messenger_send({"engine", "console"}, bee::E_MESSAGE::INFO, "> " + trim(command)); // Output the command to the messenger log
 	}
 	console->history_index = -1; // Reset the history index
 
@@ -809,7 +809,7 @@ int BEE::console_draw() {
 
 	// Draw console rectangle and input line
 	draw_rectangle(cx, cy, console->w, console->h, true, {127, 127, 127, 225});
-	draw_line(cx, cy + console->h - console->line_height, cx + console->w, cy + console->h - console->line_height, c_black);
+	draw_line(cx, cy + console->h - console->line_height, cx + console->w, cy + console->h - console->line_height, bee::E_RGB::BLACK);
 
 	// Remove the top of the console log if it doesn't fit
 	size_t line_amount = input_line_y/console->line_height; // Calculate the total lines that can be stored in the console window
@@ -859,7 +859,7 @@ int BEE::console_draw() {
 	console->td_log = font_default->draw(console->td_log, cx, cy, short_log, {0, 0, 0, 255}); // Draw the console log
 
 	// Define several drawing colors
-	RGBA c_text = get_enum_color(c_black);
+	RGBA c_text = get_enum_color(bee::E_RGB::BLACK);
 	RGBA c_back = {127, 127, 127, 127};
 
 	// Draw the console page number
@@ -923,7 +923,7 @@ bool BEE::console_get_is_open() const {
 */
 int BEE::console_add_command(const std::string& command, const std::string& descr, std::function<void (BEE*, std::shared_ptr<MessageContents>)> func) {
 	if (console->commands.find(command) != console->commands.end()) { // If the command already exists, then output a warning
-		messenger_send({"engine", "console"}, BEE_MESSAGE_WARNING, "Failed to register new command \"" + command + "\", the command name is already in use.");
+		messenger_send({"engine", "console"}, bee::E_MESSAGE::WARNING, "Failed to register new command \"" + command + "\", the command name is already in use.");
 		return 1; // Return 1 on command existence
 	}
 
@@ -958,7 +958,7 @@ std::string BEE::console_bind(SDL_Keycode key, const std::string& command) {
 	if (console->bindings.find(key) == console->bindings.end()) { // If the key has not been bound, then bind it to the given command
 		console->bindings.emplace(key, trim(command));
 	} else { // Otherwise, output a warning
-		messenger_send({"engine", "console"}, BEE_MESSAGE_WARNING, "Failed to bind key \"" + keystrings_get_string(key) + "\", the key is already in bound.");
+		messenger_send({"engine", "console"}, bee::E_MESSAGE::WARNING, "Failed to bind key \"" + keystrings_get_string(key) + "\", the key is already in bound.");
 	}
 
 	return trim(command); // Return the bound command on success
@@ -994,7 +994,7 @@ int BEE::console_unbind_all() {
 */
 int BEE::console_alias(const std::string& alias, const std::string& commands) {
 	if (console->commands.find(alias) != console->commands.end()) { // If a command already exists, then return a warning
-		messenger_send({"engine", "console"}, BEE_MESSAGE_WARNING, "Failed to add alias \"" + alias + "\", a command with the same name exists.");
+		messenger_send({"engine", "console"}, bee::E_MESSAGE::WARNING, "Failed to add alias \"" + alias + "\", a command with the same name exists.");
 		return 1;
 	}
 
@@ -1015,7 +1015,7 @@ const std::unordered_map<std::string,std::string>& BEE::console_get_aliases() co
 */
 int BEE::console_set_var(const std::string& name, SIDP value) {
 	if (console->commands.find(name) != console->commands.end()) { // If a command already exists, then return a warning
-		messenger_send({"engine", "console"}, BEE_MESSAGE_WARNING, "Failed to set variable \"" + name + "\", a command with the same name exists.");
+		messenger_send({"engine", "console"}, bee::E_MESSAGE::WARNING, "Failed to set variable \"" + name + "\", a command with the same name exists.");
 		return 1;
 	}
 

@@ -74,7 +74,7 @@ int BEE::init_resources() {
 			//lt_ambient->set_color({255, 255, 255, 192});
 			lt_ambient->set_color({255, 255, 255, 30});
 		lt_bee = new Light();
-			lt_bee->set_type(BEE_LIGHT_POINT);
+			lt_bee->set_type(bee::E_LIGHT::POINT);
 			//lt_bee->set_attenuation({2.0, 100.0, 2000.0, 0.0});
 			lt_bee->set_attenuation({2.0, 100.0, 20000.0, 0.0});
 			//lt_bee->set_attenuation({5.0, 1000.0, 40000.0, 0.0});

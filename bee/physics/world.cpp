@@ -106,26 +106,26 @@ int BEE::PhysicsWorld::add_body(PhysicsBody* new_body) {
 
 	return 0;
 }
-int BEE::PhysicsWorld::add_constraint(bee_phys_constraint_t type, PhysicsBody* body, double* p) {
+int BEE::PhysicsWorld::add_constraint(bee::E_PHYS_CONSTRAINT type, PhysicsBody* body, double* p) {
 	btTypedConstraint* constraint = nullptr;
 
 	bool should_disable_collisions = false;
 	switch (type) {
-		case BEE_PHYS_CONSTRAINT_POINT: {
+		case bee::E_PHYS_CONSTRAINT::POINT: {
 			btPoint2PointConstraint* c = new btPoint2PointConstraint(*(body->get_body()), btVector3(p[0], p[1], p[2]));
 			world->addConstraint(c, should_disable_collisions);
 
 			constraint = c;
 			break;
 		}
-		case BEE_PHYS_CONSTRAINT_HINGE: {
+		case bee::E_PHYS_CONSTRAINT::HINGE: {
 			btHingeConstraint* c = new btHingeConstraint(*(body->get_body()), btVector3(p[0], p[1], p[2]), btVector3(p[3], p[4], p[5]));
 			world->addConstraint(c, should_disable_collisions);
 
 			constraint = c;
 			break;
 		}
-		case BEE_PHYS_CONSTRAINT_SLIDER: {
+		case bee::E_PHYS_CONSTRAINT::SLIDER: {
 			btSliderConstraint* c = new btSliderConstraint(*(body->get_body()), btTransform::getIdentity(), true);
 			world->addConstraint(c, should_disable_collisions);
 
@@ -137,7 +137,7 @@ int BEE::PhysicsWorld::add_constraint(bee_phys_constraint_t type, PhysicsBody* b
 			constraint = c;
 			break;
 		}
-		case BEE_PHYS_CONSTRAINT_CONE: {
+		case bee::E_PHYS_CONSTRAINT::CONE: {
 			btConeTwistConstraint* c = new btConeTwistConstraint(*(body->get_body()), btTransform::getIdentity());
 			world->addConstraint(c, should_disable_collisions);
 
@@ -146,7 +146,7 @@ int BEE::PhysicsWorld::add_constraint(bee_phys_constraint_t type, PhysicsBody* b
 			constraint = c;
 			break;
 		}
-		case BEE_PHYS_CONSTRAINT_6DOF: {
+		case bee::E_PHYS_CONSTRAINT::SIXDOF: {
 			btGeneric6DofConstraint* c = new btGeneric6DofConstraint(*(body->get_body()), btTransform::getIdentity(), true);
 			world->addConstraint(c, should_disable_collisions);
 
@@ -158,7 +158,7 @@ int BEE::PhysicsWorld::add_constraint(bee_phys_constraint_t type, PhysicsBody* b
 			constraint = c;
 			break;
 		}
-		case BEE_PHYS_CONSTRAINT_FIXED: {
+		case bee::E_PHYS_CONSTRAINT::FIXED: {
 			btGeneric6DofConstraint* c = new btGeneric6DofConstraint(*(body->get_body()), btTransform::getIdentity(), true);
 			world->addConstraint(c, should_disable_collisions);
 
@@ -170,7 +170,7 @@ int BEE::PhysicsWorld::add_constraint(bee_phys_constraint_t type, PhysicsBody* b
 			constraint = c;
 			break;
 		}
-		case BEE_PHYS_CONSTRAINT_2D: {
+		case bee::E_PHYS_CONSTRAINT::FLAT: {
 			btGeneric6DofConstraint* c = new btGeneric6DofConstraint(*(body->get_body()), btTransform::getIdentity(), true);
 			world->addConstraint(c, should_disable_collisions);
 
@@ -182,7 +182,7 @@ int BEE::PhysicsWorld::add_constraint(bee_phys_constraint_t type, PhysicsBody* b
 			constraint = c;
 			break;
 		}
-		case BEE_PHYS_CONSTRAINT_TILE: {
+		case bee::E_PHYS_CONSTRAINT::TILE: {
 			btGeneric6DofConstraint* c = new btGeneric6DofConstraint(*(body->get_body()), btTransform::getIdentity(), true);
 			world->addConstraint(c, should_disable_collisions);
 
@@ -196,7 +196,7 @@ int BEE::PhysicsWorld::add_constraint(bee_phys_constraint_t type, PhysicsBody* b
 		}
 		default:
 			std::cerr << "PHYS ERR invalid constraint type\n";
-		case BEE_PHYS_CONSTRAINT_NONE:
+		case bee::E_PHYS_CONSTRAINT::NONE:
 			break;
 	}
 
@@ -204,26 +204,26 @@ int BEE::PhysicsWorld::add_constraint(bee_phys_constraint_t type, PhysicsBody* b
 
 	return 0;
 }
-int BEE::PhysicsWorld::add_constraint(bee_phys_constraint_t type, PhysicsBody* body1, PhysicsBody* body2, double* p) {
+int BEE::PhysicsWorld::add_constraint(bee::E_PHYS_CONSTRAINT type, PhysicsBody* body1, PhysicsBody* body2, double* p) {
 	btTypedConstraint* constraint = nullptr;
 
 	bool should_disable_collisions = false;
 	switch (type) {
-		case BEE_PHYS_CONSTRAINT_POINT: {
+		case bee::E_PHYS_CONSTRAINT::POINT: {
 			btPoint2PointConstraint* c = new btPoint2PointConstraint(*(body1->get_body()), *(body2->get_body()), btVector3(p[0], p[1], p[2]), btVector3(p[3], p[4], p[5]));
 			world->addConstraint(c, should_disable_collisions);
 
 			constraint = c;
 			break;
 		}
-		case BEE_PHYS_CONSTRAINT_HINGE: {
+		case bee::E_PHYS_CONSTRAINT::HINGE: {
 			btHingeConstraint* c = new btHingeConstraint(*(body1->get_body()), *(body2->get_body()), btVector3(p[0], p[1], p[2]), btVector3(p[3], p[4], p[5]), btVector3(p[6], p[7], p[8]), btVector3(p[9], p[10], p[11]));
 			world->addConstraint(c, should_disable_collisions);
 
 			constraint = c;
 			break;
 		}
-		case BEE_PHYS_CONSTRAINT_SLIDER: {
+		case bee::E_PHYS_CONSTRAINT::SLIDER: {
 			btSliderConstraint* c = new btSliderConstraint(*(body1->get_body()), *(body2->get_body()), btTransform::getIdentity(), btTransform::getIdentity(), true);
 			world->addConstraint(c, should_disable_collisions);
 
@@ -235,7 +235,7 @@ int BEE::PhysicsWorld::add_constraint(bee_phys_constraint_t type, PhysicsBody* b
 			constraint = c;
 			break;
 		}
-		case BEE_PHYS_CONSTRAINT_CONE: {
+		case bee::E_PHYS_CONSTRAINT::CONE: {
 			btConeTwistConstraint* c = new btConeTwistConstraint(*(body1->get_body()), *(body2->get_body()), btTransform::getIdentity(), btTransform::getIdentity());
 			world->addConstraint(c, should_disable_collisions);
 
@@ -244,7 +244,7 @@ int BEE::PhysicsWorld::add_constraint(bee_phys_constraint_t type, PhysicsBody* b
 			constraint = c;
 			break;
 		}
-		case BEE_PHYS_CONSTRAINT_6DOF: {
+		case bee::E_PHYS_CONSTRAINT::SIXDOF: {
 			btGeneric6DofConstraint* c = new btGeneric6DofConstraint(*(body1->get_body()), *(body2->get_body()), btTransform::getIdentity(), btTransform::getIdentity(), true);
 			world->addConstraint(c, should_disable_collisions);
 
@@ -256,14 +256,14 @@ int BEE::PhysicsWorld::add_constraint(bee_phys_constraint_t type, PhysicsBody* b
 			constraint = c;
 			break;
 		}
-		case BEE_PHYS_CONSTRAINT_FIXED: {
+		case bee::E_PHYS_CONSTRAINT::FIXED: {
 			btGeneric6DofConstraint* c = new btGeneric6DofConstraint(*(body1->get_body()), *(body2->get_body()), btTransform::getIdentity(), btTransform::getIdentity(), true);
 			world->addConstraint(c, should_disable_collisions);
 
 			constraint = c;
 			break;
 		}
-		case BEE_PHYS_CONSTRAINT_2D: {
+		case bee::E_PHYS_CONSTRAINT::FLAT: {
 			btGeneric6DofConstraint* c = new btGeneric6DofConstraint(*(body1->get_body()), *(body2->get_body()), btTransform::getIdentity(), btTransform::getIdentity(), true);
 			world->addConstraint(c, should_disable_collisions);
 
@@ -275,7 +275,7 @@ int BEE::PhysicsWorld::add_constraint(bee_phys_constraint_t type, PhysicsBody* b
 			constraint = c;
 			break;
 		}
-		case BEE_PHYS_CONSTRAINT_TILE: {
+		case bee::E_PHYS_CONSTRAINT::TILE: {
 			btGeneric6DofConstraint* c = new btGeneric6DofConstraint(*(body1->get_body()), *(body2->get_body()), btTransform::getIdentity(), btTransform::getIdentity(), true);
 			world->addConstraint(c, should_disable_collisions);
 
@@ -289,7 +289,7 @@ int BEE::PhysicsWorld::add_constraint(bee_phys_constraint_t type, PhysicsBody* b
 		}
 		default:
 			std::cerr << "PHYS ERR invalid constraint type\n";
-		case BEE_PHYS_CONSTRAINT_NONE:
+		case bee::E_PHYS_CONSTRAINT::NONE:
 			break;
 	}
 
@@ -324,19 +324,19 @@ int BEE::PhysicsWorld::draw_debug() {
 	return 0;
 }
 
-size_t BEE::PhysicsWorld::get_constraint_param_amount(bee_phys_constraint_t constraint) const {
+size_t BEE::PhysicsWorld::get_constraint_param_amount(bee::E_PHYS_CONSTRAINT constraint) const {
 	switch (constraint) {
-		case BEE_PHYS_CONSTRAINT_POINT:  return 6;
-		case BEE_PHYS_CONSTRAINT_HINGE:  return 12;
-		case BEE_PHYS_CONSTRAINT_SLIDER: return 4;
-		case BEE_PHYS_CONSTRAINT_CONE:   return 4;
-		case BEE_PHYS_CONSTRAINT_6DOF:   return 12;
+		case bee::E_PHYS_CONSTRAINT::POINT:  return 6;
+		case bee::E_PHYS_CONSTRAINT::HINGE:  return 12;
+		case bee::E_PHYS_CONSTRAINT::SLIDER: return 4;
+		case bee::E_PHYS_CONSTRAINT::CONE:   return 4;
+		case bee::E_PHYS_CONSTRAINT::SIXDOF:   return 12;
 
 		default:
-		case BEE_PHYS_CONSTRAINT_FIXED:
-		case BEE_PHYS_CONSTRAINT_2D:
-		case BEE_PHYS_CONSTRAINT_TILE:
-		case BEE_PHYS_CONSTRAINT_NONE:   return 0;
+		case bee::E_PHYS_CONSTRAINT::FIXED:
+		case bee::E_PHYS_CONSTRAINT::FLAT:
+		case bee::E_PHYS_CONSTRAINT::TILE:
+		case bee::E_PHYS_CONSTRAINT::NONE:   return 0;
 	}
 }
 

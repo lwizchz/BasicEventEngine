@@ -31,19 +31,19 @@ int BEE::change_room(Room* new_room, bool should_jump) {
 
 	bool is_game_start = false;
 	if (current_room != nullptr) { // if we are currently in a room
-		if (transition_type != BEE_TRANSITION_NONE) { // If a transition has been defined then draw the current room into the before buffer
+		if (transition_type != bee::E_TRANSITION::NONE) { // If a transition has been defined then draw the current room into the before buffer
 			set_render_target(texture_before);
-			render_clear();
+			renderer->render_clear();
 			current_room->draw();
-			render();
+			renderer->render();
 		}
 		current_room->room_end(); // Run the room_end event for the current room
 		current_room->reset_properties(); // Reset the current room's properties
 	} else { // if we are not in a room
-		if (transition_type != BEE_TRANSITION_NONE) { // If a transition has been defined then draw nothing into the before buffer
+		if (transition_type != bee::E_TRANSITION::NONE) { // If a transition has been defined then draw nothing into the before buffer
 			set_render_target(texture_before);
-			render_clear();
-			render();
+			renderer->render_clear();
+			renderer->render();
 		}
 		is_game_start = true;
 		first_room = new_room; // Set the new room as the first room
@@ -53,10 +53,10 @@ int BEE::change_room(Room* new_room, bool should_jump) {
 	free_media(); // Free all resources from the previous room
 
 	if (new_room == nullptr) { // If we're transitioning to a null room, i.e. the game is ending
-		if (transition_type != BEE_TRANSITION_NONE) { // If a transition has been defined then prepare for drawing an empty room into the after buffer
+		if (transition_type != bee::E_TRANSITION::NONE) { // If a transition has been defined then prepare for drawing an empty room into the after buffer
 			set_render_target(texture_after);
-			render_clear();
-			render();
+			renderer->render_clear();
+			renderer->render();
 			reset_render_target();
 			draw_transition(); // Animate the defined transition from the before and after buffers
 		}
@@ -70,20 +70,20 @@ int BEE::change_room(Room* new_room, bool should_jump) {
 	current_room->init(); // Initialize the room
 
 	if (load_media()) { // Attempt to load all resources for the new room
-		messenger_send({"engine", "room"}, BEE_MESSAGE_WARNING, "Couldn't load room media for " + current_room->get_name());
+		messenger_send({"engine", "room"}, bee::E_MESSAGE::WARNING, "Couldn't load room media for " + current_room->get_name());
 		return 2; // Return 2 on resource loading error
 	}
 
 	set_window_title(current_room->get_name()); // Set the window title to the room's name
-	//messenger_send({"engine", "room"}, BEE_MESSAGE_INFO, current_room->get_instance_string());
-	messenger_send({"engine", "room"}, BEE_MESSAGE_INFO, "Changed to room \"" + current_room->get_name() + "\"");
+	//messenger_send({"engine", "room"}, bee::E_MESSAGE::INFO, current_room->get_instance_string());
+	messenger_send({"engine", "room"}, bee::E_MESSAGE::INFO, "Changed to room \"" + current_room->get_name() + "\"");
 
-	if (transition_type != BEE_TRANSITION_NONE) { // If a transition has been defined then prepare for drawing the new room into the after buffer
+	if (transition_type != bee::E_TRANSITION::NONE) { // If a transition has been defined then prepare for drawing the new room into the after buffer
 		set_render_target(texture_after);
 	} else { // Otherwise reset the render target just to be sure
 		reset_render_target();
 	}
-	render_clear();
+	renderer->render_clear();
 
 	is_ready = true; // Set the event loop as running
 	handle_messages();
@@ -94,8 +94,8 @@ int BEE::change_room(Room* new_room, bool should_jump) {
 	current_room->room_start(); // Run the room_start event for the new room
 	current_room->draw(); // Run the draw event for the new room
 
-	if (transition_type != BEE_TRANSITION_NONE) { // If a transition has been defined then finish drawing the new room into the after buffer
-		render();
+	if (transition_type != bee::E_TRANSITION::NONE) { // If a transition has been defined then finish drawing the new room into the after buffer
+		renderer->render();
 		reset_render_target();
 		draw_transition(); // Animate the defined transition from the before and after buffers
 	}
@@ -182,7 +182,7 @@ bool BEE::is_on_screen(const SDL_Rect& rect) const {
 * @viewport: the rectangle defining the desired viewport
 */
 int BEE::set_viewport(ViewData* viewport) {
-	if (options->renderer_type != BEE_RENDERER_SDL) {
+	if (options->renderer_type != bee::E_RENDERER::SDL) {
 		glm::mat4 view, projection;
 		glm::vec4 port;
 
@@ -197,9 +197,9 @@ int BEE::set_viewport(ViewData* viewport) {
 			projection = render_get_projection();
 		}
 
-		glUniformMatrix4fv(view_location, 1, GL_FALSE, glm::value_ptr(view));
-		glUniform4fv(port_location, 1, glm::value_ptr(port));
-		glUniformMatrix4fv(projection_location, 1, GL_FALSE, glm::value_ptr(projection));
+		glUniformMatrix4fv(renderer->view_location, 1, GL_FALSE, glm::value_ptr(view));
+		glUniform4fv(renderer->port_location, 1, glm::value_ptr(port));
+		glUniformMatrix4fv(renderer->projection_location, 1, GL_FALSE, glm::value_ptr(projection));
 
 		return 0;
 	} else {
@@ -209,7 +209,7 @@ int BEE::set_viewport(ViewData* viewport) {
 		} else { // If the viewport is defined then use it
 			v = {viewport->port_x, viewport->port_y, viewport->port_width, viewport->port_height};
 		}
-		return SDL_RenderSetViewport(renderer, &v);
+		return SDL_RenderSetViewport(renderer->sdl_renderer, &v);
 	}
 }
 

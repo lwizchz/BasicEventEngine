@@ -146,16 +146,16 @@ int BEE::ParticleSystem::draw(Uint32 now, double delta, bool should_draw) {
 			if (ds < sqr(a->max_distance)) {
 				double f = 0.0;
 				switch (a->force_type) {
-					case BEE_PS_FORCE_CONSTANT: {
+					case bee::E_PS_FORCE::CONSTANT: {
 						f = a->force * (p->randomness+1.0);
 						break;
 					}
-					case BEE_PS_FORCE_LINEAR:
+					case bee::E_PS_FORCE::LINEAR:
 					default: {
 						f = a->force * (p->randomness+1.0) * (sqr(a->max_distance) - ds) / sqr(a->max_distance);
 						break;
 					}
-					case BEE_PS_FORCE_QUADRATIC: {
+					case bee::E_PS_FORCE::QUADRATIC: {
 						f = a->force * (p->randomness+1.0) * sqr((sqr(a->max_distance) - ds) / sqr(a->max_distance));
 						break;
 					}
@@ -264,7 +264,7 @@ int BEE::ParticleSystem::draw_debug() {
 	}
 
 	for (auto& p : particles) {
-		game->draw_rectangle((sx+p->x) - p->w/2, (sy+p->y) - p->h/2, p->w, p->h, false, c_aqua);
+		game->draw_rectangle((sx+p->x) - p->w/2, (sy+p->y) - p->h/2, p->w, p->h, false, bee::E_RGB::AQUA);
 	}
 	for (auto& e : emitters) {
 		int ex = sx, ey = sy;
@@ -272,7 +272,7 @@ int BEE::ParticleSystem::draw_debug() {
 			ex = e->following->get_x();
 			ey = e->following->get_y();
 		}
-		game->draw_rectangle(ex+e->x, ey+e->y, e->w, e->h, false, c_green);
+		game->draw_rectangle(ex+e->x, ey+e->y, e->w, e->h, false, bee::E_RGB::GREEN);
 	}
 	for (auto& a : attractors) {
 		int ax = sx, ay = sy;
@@ -280,7 +280,7 @@ int BEE::ParticleSystem::draw_debug() {
 			ax = a->following->get_x();
 			ay = a->following->get_y();
 		}
-		game->draw_rectangle(ax+a->x, ay+a->y, a->w, a->h, false, c_magenta);
+		game->draw_rectangle(ax+a->x, ay+a->y, a->w, a->h, false, bee::E_RGB::MAGENTA);
 	}
 	for (auto& d : destroyers) {
 		int dx = sx, dy = sx;
@@ -288,7 +288,7 @@ int BEE::ParticleSystem::draw_debug() {
 			dx = d->following->get_x();
 			dy = d->following->get_y();
 		}
-		game->draw_rectangle(dx+d->x, dy+d->y, d->w, d->h, false, c_red);
+		game->draw_rectangle(dx+d->x, dy+d->y, d->w, d->h, false, bee::E_RGB::RED);
 	}
 	for (auto& d : deflectors) {
 		int dx = sx, dy = sx;
@@ -296,7 +296,7 @@ int BEE::ParticleSystem::draw_debug() {
 			dx = d->following->get_x();
 			dy = d->following->get_y();
 		}
-		game->draw_rectangle(dx+d->x, dy+d->y, d->w, d->h, false, c_navy);
+		game->draw_rectangle(dx+d->x, dy+d->y, d->w, d->h, false, bee::E_RGB::NAVY);
 	}
 	for (auto& c : changers) {
 		int cx = sx, cy = sx;
@@ -304,7 +304,7 @@ int BEE::ParticleSystem::draw_debug() {
 			cx = c->following->get_x();
 			cy = c->following->get_y();
 		}
-		game->draw_rectangle(cx+c->x, cy+c->y, c->w, c->h, false, c_yellow);
+		game->draw_rectangle(cx+c->x, cy+c->y, c->w, c->h, false, bee::E_RGB::YELLOW);
 	}
 	return 0;
 }

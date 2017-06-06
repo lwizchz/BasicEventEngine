@@ -252,8 +252,8 @@ int BEE::messenger_send(std::shared_ptr<MessageContents> msg) {
 * @descr: the message description
 * @data: the message data
 */
-//int BEE::messenger_send(const std::vector<std::string>& tags, bee_message_t type, const std::string& descr, void* data) {
-int BEE::messenger_send(const std::vector<std::string>& tags, bee_message_t type, const std::string& descr, std::shared_ptr<void> data) {
+//int BEE::messenger_send(const std::vector<std::string>& tags, bee::E_MESSAGE type, const std::string& descr, void* data) {
+int BEE::messenger_send(const std::vector<std::string>& tags, bee::E_MESSAGE type, const std::string& descr, std::shared_ptr<void> data) {
 	std::shared_ptr<MessageContents> msg (new MessageContents(get_ticks(), tags, type, descr, data)); // Create a pointer for the given message data
 	return messenger_send(msg); // Return the attempt at message sending
 }
@@ -264,7 +264,7 @@ int BEE::messenger_send(const std::vector<std::string>& tags, bee_message_t type
 * @tags: the list of tags that the message should be sent to
 * @descr: the message description
 */
-int BEE::messenger_send(const std::vector<std::string>& tags, bee_message_t type, const std::string& descr) {
+int BEE::messenger_send(const std::vector<std::string>& tags, bee::E_MESSAGE type, const std::string& descr) {
 	return messenger_send(tags, type, descr, nullptr);
 }
 
@@ -272,14 +272,14 @@ int BEE::messenger_send(const std::vector<std::string>& tags, bee_message_t type
 * BEE::messenger_set_level() - Set the output level when printing message descriptions
 * @new_level: the output level to use
 */
-int BEE::messenger_set_level(bee_output_t new_level) {
+int BEE::messenger_set_level(bee::E_OUTPUT new_level) {
 	messenger_output_level = new_level;
 	return 0;
 }
 /*
 * BEE::messenger_get_level() - Return the output level when printing message descriptions
 */
-bee_output_t BEE::messenger_get_level() {
+bee::E_OUTPUT BEE::messenger_get_level() {
 	return messenger_output_level;
 }
 
@@ -299,23 +299,23 @@ int BEE::handle_messages() {
 		}
 
 		switch (messenger_get_level()) { // Skip certain messages depending on the verbosity level
-			case BEE_OUTPUT_NONE: // When the verbosity is NONE, skip all message types
+			case bee::E_OUTPUT::NONE: // When the verbosity is NONE, skip all message types
 				continue;
-			case BEE_OUTPUT_QUIET: // When the verbosity is QUIET, skip all types except warnings and errors
+			case bee::E_OUTPUT::QUIET: // When the verbosity is QUIET, skip all types except warnings and errors
 				if (
-					(msg->type != BEE_MESSAGE_WARNING)
-					|| (msg->type != BEE_MESSAGE_ERROR)
+					(msg->type != bee::E_MESSAGE::WARNING)
+					|| (msg->type != bee::E_MESSAGE::ERROR)
 				) {
 					continue;
 				}
 				break;
-			case BEE_OUTPUT_NORMAL: // When the verbosity is NORMAL, skip internal messages
+			case bee::E_OUTPUT::NORMAL: // When the verbosity is NORMAL, skip internal messages
 			default:
-				if (msg->type == BEE_MESSAGE_INTERNAL) {
+				if (msg->type == bee::E_MESSAGE::INTERNAL) {
 					continue;
 				}
 				break;
-			case BEE_OUTPUT_VERBOSE: // When the verbosity is VERBOSE, skip no message types
+			case bee::E_OUTPUT::VERBOSE: // When the verbosity is VERBOSE, skip no message types
 				break;
 		}
 
@@ -323,16 +323,16 @@ int BEE::handle_messages() {
 		std::string tags = joinv(msg->tags, ',');
 
 		// Change the output color depending on the message type
-		if (msg->type == BEE_MESSAGE_WARNING) {
+		if (msg->type == bee::E_MESSAGE::WARNING) {
 			bee_commandline_color(11); // Yellow
 		}
-		if (msg->type == BEE_MESSAGE_ERROR) {
+		if (msg->type == bee::E_MESSAGE::ERROR) {
 			bee_commandline_color(9); // Red
 		}
 
 		// Output to the appropriate stream
 		std::ostream* o = &std::cout;
-		if ((msg->type == BEE_MESSAGE_WARNING)||(msg->type == BEE_MESSAGE_ERROR)) {
+		if ((msg->type == bee::E_MESSAGE::WARNING)||(msg->type == bee::E_MESSAGE::ERROR)) {
 			o = &std::cerr;
 		}
 
@@ -417,16 +417,16 @@ int BEE::handle_messages() {
 * BEE::messenger_get_type_string() - Return the name describing the message type
 * @type: the type of message to evaluate
 */
-std::string BEE::messenger_get_type_string(bee_message_t type) const {
+std::string BEE::messenger_get_type_string(bee::E_MESSAGE type) const {
 	switch (type) { // Return the string for the requested type
-		case BEE_MESSAGE_GENERAL:  return "general";
-		case BEE_MESSAGE_START:    return "start";
-		case BEE_MESSAGE_END:      return "end";
-		case BEE_MESSAGE_INFO:     return "info";
-		case BEE_MESSAGE_WARNING:  return "warning";
-		case BEE_MESSAGE_ERROR:    return "error";
-		case BEE_MESSAGE_INTERNAL: return "internal";
-		default:                   return "unknown"; // Return "unknown" when an undefined type of provided
+		case bee::E_MESSAGE::GENERAL:  return "general";
+		case bee::E_MESSAGE::START:    return "start";
+		case bee::E_MESSAGE::END:      return "end";
+		case bee::E_MESSAGE::INFO:     return "info";
+		case bee::E_MESSAGE::WARNING:  return "warning";
+		case bee::E_MESSAGE::ERROR:    return "error";
+		case bee::E_MESSAGE::INTERNAL: return "internal";
+		default:                       return "unknown"; // Return "unknown" when an undefined type of provided
 	}
 }
 

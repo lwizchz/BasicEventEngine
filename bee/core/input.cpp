@@ -74,7 +74,7 @@ int BEE::get_mouse_y() const {
 * @new_my: the y-coordinate to move the mouse to
 */
 int BEE::set_mouse_global_position(int new_mx, int new_my) const {
-	SDL_WarpMouseInWindow(window, new_mx, new_my); // Move the mouse to the given coordinates
+	SDL_WarpMouseInWindow(renderer->window, new_mx, new_my); // Move the mouse to the given coordinates
 	return 0;
 }
 /*

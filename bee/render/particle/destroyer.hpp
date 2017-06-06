@@ -17,7 +17,7 @@ class BEE::ParticleDestroyer {
 		unsigned int w, h;
 		Instance* following;
 
-		bee_ps_shape_t shape;
+		bee::E_PS_SHAPE shape;
 
 		ParticleDestroyer();
 };
