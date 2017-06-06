@@ -9,13 +9,15 @@
 #ifndef _BEE_RENDER_RGBA_H
 #define _BEE_RENDER_RGBA_H 1
 
-#include "../game.hpp"
+#include "../engine.hpp"
 
-struct BEE::RGBA {
-	Uint8 r, g, b, a;
+namespace bee {
+	struct RGBA {
+		Uint8 r, g, b, a;
 
-	RGBA();
-	RGBA(Uint8, Uint8, Uint8, Uint8);
-};
+		RGBA();
+		RGBA(Uint8, Uint8, Uint8, Uint8);
+	};
+}
 
 #endif // _BEE_RENDER_RGBA_H

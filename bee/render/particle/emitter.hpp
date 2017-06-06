@@ -9,23 +9,25 @@
 #ifndef _BEE_RENDER_PARTICLE_EMITTER_H
 #define _BEE_RENDER_PARTICLE_EMITTER_H 1
 
-#include "../../game.hpp"
+#include "../../engine.hpp"
 
-class BEE::ParticleEmitter {
-	public:
-		double x, y;
-		unsigned int w, h;
-		Instance* following;
+namespace bee {
+	class ParticleEmitter {
+		public:
+			double x, y;
+			unsigned int w, h;
+			Instance* following;
 
-		bee::E_PS_SHAPE shape;
-		bee::E_PS_DISTR distribution;
+			E_PS_SHAPE shape;
+			E_PS_DISTR distribution;
 
-		Particle* particle_type;
+			Particle* particle_type;
 
-		int number;
-		int number_count;
+			int number;
+			int number_count;
 
-		ParticleEmitter();
-};
+			ParticleEmitter();
+	};
+}
 
 #endif // _BEE_RENDER_PARTICLE_EMITTER_H

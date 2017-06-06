@@ -54,6 +54,8 @@ std::string map_serialize(std::map<std::string,A> m, bool should_pretty_print) {
 
 	return s.str();
 }
+//template std::string map_serialize<int>(std::map<std::string,int>, bool);
+//template std::string map_serialize<bee::SIDP>(std::map<std::string,bee::SIDP>, bool);
 /*
 * map_deserialize() - Convert a serialized string into a map
 * @s: the string to deserialize
@@ -82,6 +84,8 @@ int map_deserialize(std::string s, std::map<std::string,A>* mv) {
 	*mv = m;
 	return 0;
 }
+//template int map_deserialize<int>(std::string, std::map<std::string,int>*);
+//template int map_deserialize<bee::SIDP>(std::string, std::map<std::string,bee::SIDP>*);
 
 /*
 * print_map() - Format and print a map's key-value pairs on standard output

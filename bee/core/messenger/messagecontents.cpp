@@ -11,21 +11,23 @@
 
 #include "messagecontents.hpp"
 
-BEE::MessageContents::MessageContents() :
-	has_processed(false),
-	tickstamp(0),
-	tags(),
-	type(bee::E_MESSAGE::GENERAL),
-	descr(),
-	data(nullptr)
-{}
-BEE::MessageContents::MessageContents(Uint32 tm, std::vector<std::string> tg, bee::E_MESSAGE tp, std::string de, std::shared_ptr<void> da) :
-	has_processed(false),
-	tickstamp(tm),
-	tags(tg),
-	type(tp),
-	descr(de),
-	data(da)
-{}
+namespace bee {
+	MessageContents::MessageContents() :
+		has_processed(false),
+		tickstamp(0),
+		tags(),
+		type(E_MESSAGE::GENERAL),
+		descr(),
+		data(nullptr)
+	{}
+	MessageContents::MessageContents(Uint32 tm, std::vector<std::string> tg, E_MESSAGE tp, std::string de, std::shared_ptr<void> da) :
+		has_processed(false),
+		tickstamp(tm),
+		tags(tg),
+		type(tp),
+		descr(de),
+		data(da)
+	{}
+}
 
 #endif // _BEE_CORE_MESSAGECONTENTS

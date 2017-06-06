@@ -11,20 +11,22 @@
 
 #include "emitter.hpp"
 
-BEE::ParticleEmitter::ParticleEmitter() :
-	x(0.0),
-	y(0.0),
-	w(1),
-	h(1),
-	following(nullptr),
+namespace bee {
+	ParticleEmitter::ParticleEmitter() :
+		x(0.0),
+		y(0.0),
+		w(1),
+		h(1),
+		following(nullptr),
 
-	shape(bee::E_PS_SHAPE::RECTANGLE),
-	distribution(bee::E_PS_DISTR::LINEAR),
+		shape(E_PS_SHAPE::RECTANGLE),
+		distribution(E_PS_DISTR::LINEAR),
 
-	particle_type(nullptr),
+		particle_type(nullptr),
 
-	number(1),
-	number_count(0)
-{}
+		number(1),
+		number_count(0)
+	{}
+}
 
 #endif // _BEE_RENDER_PARTICLE_EMITTER

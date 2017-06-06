@@ -9,17 +9,19 @@
 #ifndef _BEE_RENDER_PARTICLE_DEFLECTOR_H
 #define _BEE_RENDER_PARTICLE_DEFLECTOR_H 1
 
-#include "../../game.hpp"
+#include "../../engine.hpp"
 
-class BEE::ParticleDeflector {
-	public:
-		double x, y;
-		unsigned int w, h;
-		Instance* following;
+namespace bee {
+	class ParticleDeflector {
+		public:
+			double x, y;
+			unsigned int w, h;
+			Instance* following;
 
-		double friction;
+			double friction;
 
-		ParticleDeflector();
-};
+			ParticleDeflector();
+	};
+}
 
 #endif // _BEE_RENDER_PARTICLE_DEFLECTOR_H

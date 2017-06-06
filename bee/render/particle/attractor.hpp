@@ -9,19 +9,21 @@
 #ifndef _BEE_RENDER_PARTICLE_ATTRACTOR_H
 #define _BEE_RENDER_PARTICLE_ATTRACTOR_H 1
 
-#include "../../game.hpp"
+#include "../../engine.hpp"
 
-class BEE::ParticleAttractor {
-	public:
-		double x, y;
-		unsigned int w, h;
-		Instance* following;
+namespace bee {
+	class ParticleAttractor {
+		public:
+			double x, y;
+			unsigned int w, h;
+			Instance* following;
 
-		double force;
-		double max_distance;
-		bee::E_PS_FORCE force_type;
+			double force;
+			double max_distance;
+			E_PS_FORCE force_type;
 
-		ParticleAttractor();
-};
+			ParticleAttractor();
+	};
+}
 
 #endif // _BEE_RENDER_PARTICLE_ATTRACTOR_H

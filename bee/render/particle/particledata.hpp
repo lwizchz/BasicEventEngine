@@ -9,32 +9,34 @@
 #ifndef _BEE_RENDER_PARTICLEDATA_H
 #define _BEE_RENDER_PARTICLEDATA_H 1
 
-#include "../../game.hpp"
+#include "../../engine.hpp"
 
-class BEE::ParticleData {
-	public:
-		Particle* particle_type;
-		SpriteDrawData* sprite_data;
+namespace bee {
+	class ParticleData {
+		public:
+			Particle* particle_type;
+			SpriteDrawData* sprite_data;
 
-		double x, y;
-		unsigned int w, h;
+			double x, y;
+			unsigned int w, h;
 
-		int depth;
+			int depth;
 
-		std::pair<double,double> velocity;
+			std::pair<double,double> velocity;
 
-		Uint32 creation_time;
-		bool is_old;
+			Uint32 creation_time;
+			bool is_old;
 
-		unsigned int randomness;
+			unsigned int randomness;
 
-		ParticleData(Particle*, int, int, Uint32);
-		int init(double, double, Uint32);
-		double get_angle(Uint32);
-		int draw(int, int, Uint32);
-		bool is_dead(Uint32);
+			ParticleData(Particle*, int, int, Uint32);
+			int init(double, double, Uint32);
+			double get_angle(Uint32);
+			int draw(int, int, Uint32);
+			bool is_dead(Uint32);
 
-		bool operator< (const ParticleData&);
-};
+			bool operator< (const ParticleData&);
+	};
+}
 
 #endif // _BEE_RENDER_PARTICLEDATA_H

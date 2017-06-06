@@ -9,18 +9,20 @@
 #ifndef _BEE_CORE_MESSAGECONTENTS_H
 #define _BEE_CORE_MESSAGECONTENTS_H 1
 
-#include "../../game.hpp"
+#include "../../engine.hpp"
 
-struct BEE::MessageContents {
-	bool has_processed;
-	Uint32 tickstamp;
-	std::vector<std::string> tags;
-	bee::E_MESSAGE type;
-	std::string descr;
-	std::shared_ptr<void> data;
+namespace bee {
+	struct MessageContents {
+		bool has_processed;
+		Uint32 tickstamp;
+		std::vector<std::string> tags;
+		E_MESSAGE type;
+		std::string descr;
+		std::shared_ptr<void> data;
 
-	MessageContents();
-	MessageContents(Uint32, std::vector<std::string>, bee::E_MESSAGE, std::string, std::shared_ptr<void>);
-};
+		MessageContents();
+		MessageContents(Uint32, std::vector<std::string>, E_MESSAGE, std::string, std::shared_ptr<void>);
+	};
+}
 
 #endif // _BEE_CORE_MESSAGECONTENTS_H

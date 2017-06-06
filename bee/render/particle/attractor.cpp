@@ -11,16 +11,18 @@
 
 #include "attractor.hpp"
 
-BEE::ParticleAttractor::ParticleAttractor() :
-	x(0.0),
-	y(0.0),
-	w(1),
-	h(1),
-	following(nullptr),
+namespace bee {
+	ParticleAttractor::ParticleAttractor() :
+		x(0.0),
+		y(0.0),
+		w(1),
+		h(1),
+		following(nullptr),
 
-	force(1.0),
-	max_distance(100.0),
-	force_type(bee::E_PS_FORCE::LINEAR)
-{}
+		force(1.0),
+		max_distance(100.0),
+		force_type(E_PS_FORCE::LINEAR)
+	{}
+}
 
 #endif // _BEE_RENDER_PARTICLE_ATTRACTOR

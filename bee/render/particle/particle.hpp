@@ -12,37 +12,37 @@
 #include <list>
 #include <functional>
 
-#include "../../game.hpp"
+#include "../../engine.hpp"
 
-class BEE::Particle {
-	public:
-		BEE* game;
+namespace bee {
+	class Particle {
+		public:
+			Sprite* sprite;
 
-		Sprite* sprite;
+			double scale;
+			std::pair<double,double> velocity;
 
-		double scale;
-		std::pair<double,double> velocity;
+			double angle;
+			double angle_increase;
+			std::vector<glm::mat4> rotation_cache;
 
-		double angle;
-		double angle_increase;
-		std::vector<glm::mat4> rotation_cache;
+			RGBA color;
 
-		RGBA color;
+			Uint32 max_time;
+			std::function<void (ParticleSystem*, ParticleData*, Particle*)> on_death;
+			Particle* death_type;
+			unsigned int death_amount;
+			std::list<ParticleData*> old_particles;
 
-		Uint32 max_time;
-		std::function<void (ParticleSystem*, ParticleData*, Particle*)> on_death;
-		Particle* death_type;
-		unsigned int death_amount;
-		std::list<ParticleData*> old_particles;
+			bool should_reanimate;
+			bool is_lightable;
+			bool is_sprite_lightable;
 
-		bool should_reanimate;
-		bool is_lightable;
-		bool is_sprite_lightable;
-
-		Particle(BEE*, Sprite*, double, Uint32, bool);
-		Particle(BEE*, bee::E_PT_SHAPE, double, Uint32, bool);
-		int init();
-		int print();
-};
+			Particle(Sprite*, double, Uint32, bool);
+			Particle(E_PT_SHAPE, double, Uint32, bool);
+			int init();
+			int print();
+	};
+}
 
 #endif // _BEE_RENDER_PARTICLE_H

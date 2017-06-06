@@ -9,16 +9,18 @@
 #ifndef _BEE_CORE_MESSAGERECIPIENT_H
 #define _BEE_CORE_MESSAGERECIPIENT_H 1
 
-#include "../../game.hpp"
+#include "../../engine.hpp"
 
-struct BEE::MessageRecipient {
-	std::string name;
-	std::vector<std::string> tags;
-	bool is_strict;
-	std::function<void (BEE*, std::shared_ptr<MessageContents>)> func = nullptr;
+namespace bee {
+	struct MessageRecipient {
+		std::string name;
+		std::vector<std::string> tags;
+		bool is_strict;
+		std::function<void (std::shared_ptr<MessageContents>)> func = nullptr;
 
-	MessageRecipient();
-	MessageRecipient(std::string, std::vector<std::string>, bool, std::function<void (BEE*, std::shared_ptr<MessageContents>)>);
-};
+		MessageRecipient();
+		MessageRecipient(std::string, std::vector<std::string>, bool, std::function<void (std::shared_ptr<MessageContents>)>);
+	};
+}
 
 #endif // _BEE_CORE_MESSAGERECIPIENT_H

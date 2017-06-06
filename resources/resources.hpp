@@ -1,43 +1,43 @@
 // Define sprites
-BEE::Sprite* spr_bee;
-BEE::Sprite* spr_dot;
+bee::Sprite* spr_bee;
+bee::Sprite* spr_dot;
 
 // Define sounds
-BEE::Sound* snd_chirp;
+bee::Sound* snd_chirp;
 
 // Define backgrounds
-BEE::Background* bk_green;
+bee::Background* bk_green;
 
 // Define fonts
-BEE::Font* font_liberation;
+bee::Font* font_liberation;
 
 // Define paths
-BEE::Path* path_bee;
+bee::Path* path_bee;
 
 // Define timelines
 
 // Define meshes
-BEE::Mesh* mesh_monkey;
+bee::Mesh* mesh_monkey;
 
 // Define lights
-BEE::Light* lt_ambient;
-BEE::Light* lt_bee;
+bee::Light* lt_ambient;
+bee::Light* lt_bee;
 
 // Include and define objects
 #include "sidp.hpp"
 
 #include "objects/bee.hpp"
-BEE::Object* obj_bee;
+bee::Object* obj_bee;
 
 // Include and define rooms
 #include "rooms/test.hpp"
-BEE::Room* rm_test;
+bee::Room* rm_test;
 
 /*
-* BEE::init_resources() - Initialize all game resources
+* bee::init_resources() - Initialize all game resources
 * ! Note that loading is note required at this stage, just initialization
 */
-int BEE::init_resources() {
+int bee::init_resources() {
 	try { // Catch any exceptions so that the engine can properly clean up
 		// Init sprites
 		spr_bee = new Sprite("spr_bee", "bee.png");
@@ -97,9 +97,9 @@ int BEE::init_resources() {
 
 #define DEL(x) delete x; x=nullptr
 /*
-* BEE::close_resources() - Destroy all game resources
+* bee::close_resources() - Destroy all game resources
 */
-int BEE::close_resources() {
+int bee::close_resources() {
 	// Destroy sprites
 	DEL(spr_bee);
 	DEL(spr_dot);

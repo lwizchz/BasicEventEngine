@@ -11,14 +11,16 @@
 
 #include "deflector.hpp"
 
-BEE::ParticleDeflector::ParticleDeflector() :
-	x(0.0),
-	y(0.0),
-	w(1),
-	h(1),
-	following(nullptr),
-	
-	friction(1.0)
-{}
+namespace bee {
+	ParticleDeflector::ParticleDeflector() :
+		x(0.0),
+		y(0.0),
+		w(1),
+		h(1),
+		following(nullptr),
+
+		friction(1.0)
+	{}
+}
 
 #endif // _BEE_RENDER_PARTICLE_DEFLECTOR

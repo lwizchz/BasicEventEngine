@@ -11,14 +11,16 @@
 
 #include "destroyer.hpp"
 
-BEE::ParticleDestroyer::ParticleDestroyer() :
-	x(0.0),
-	y(0.0),
-	w(1),
-	h(1),
-	following(nullptr),
+namespace bee {
+	ParticleDestroyer::ParticleDestroyer() :
+		x(0.0),
+		y(0.0),
+		w(1),
+		h(1),
+		following(nullptr),
 
-	shape(bee::E_PS_SHAPE::RECTANGLE)
-{}
+		shape(E_PS_SHAPE::RECTANGLE)
+	{}
+}
 
 #endif // _BEE_RENDER_PARTICLE_DESTROYER

@@ -9,17 +9,19 @@
 #ifndef _BEE_RENDER_PARTICLE_DESTROYER_H
 #define _BEE_RENDER_PARTICLE_DESTROYER_H 1
 
-#include "../../game.hpp"
+#include "../../engine.hpp"
 
-class BEE::ParticleDestroyer {
-	public:
-		double x, y;
-		unsigned int w, h;
-		Instance* following;
+namespace bee {
+	class ParticleDestroyer {
+		public:
+			double x, y;
+			unsigned int w, h;
+			Instance* following;
 
-		bee::E_PS_SHAPE shape;
+			E_PS_SHAPE shape;
 
-		ParticleDestroyer();
-};
+			ParticleDestroyer();
+	};
+}
 
 #endif // _BEE_RENDER_PARTICLE_DESTROYER_H

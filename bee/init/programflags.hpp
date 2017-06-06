@@ -9,17 +9,19 @@
 #ifndef _BEE_INIT_PROGRAMFLAGS_H
 #define _BEE_INIT_PROGRAMFLAGS_H 1
 
-#include "../game.hpp"
+#include "../engine.hpp"
 
-struct BEE::ProgramFlags {
-	std::string longopt;
-	char shortopt;
-	bool pre_init;
-	int has_arg;
-	std::function<void (BEE*, char*)> func;
+namespace bee {
+	struct ProgramFlags {
+		std::string longopt;
+		char shortopt;
+		bool pre_init;
+		int has_arg;
+		std::function<void (char*)> func;
 
-	ProgramFlags();
-	ProgramFlags(std::string, char, bool, int, std::function<void (BEE*, char*)>);
-};
+		ProgramFlags();
+		ProgramFlags(std::string, char, bool, int, std::function<void (char*)>);
+	};
+}
 
 #endif // _BEE_INIT_PROGRAMFLAGS_H

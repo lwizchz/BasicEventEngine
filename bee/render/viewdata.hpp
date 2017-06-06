@@ -9,20 +9,22 @@
 #ifndef _BEE_RENDER_VIEWDATA_H
 #define _BEE_RENDER_VIEWDATA_H 1
 
-#include "../game.hpp"
+#include "../engine.hpp"
 
-struct BEE::ViewData {
-	bool is_visible;
+namespace bee {
+	struct ViewData {
+		bool is_visible;
 
-	int view_x, view_y, view_width, view_height;
-	int port_x, port_y, port_width, port_height;
+		int view_x, view_y, view_width, view_height;
+		int port_x, port_y, port_width, port_height;
 
-	Instance* following;
+		Instance* following;
 
-	int horizontal_border, vertical_border;
-	int horizontal_speed, vertical_speed;
+		int horizontal_border, vertical_border;
+		int horizontal_speed, vertical_speed;
 
-	//ViewData();
-};
+		//ViewData();
+	};
+}
 
 #endif // _BEE_RENDER_VIEWDATA_H

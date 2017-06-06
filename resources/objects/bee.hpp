@@ -6,23 +6,23 @@
 * See LICENSE for more details.
 */
 
-class ObjBee : public BEE::Object/*<ObjBee>*/ {
+class ObjBee : public bee::Object/*<ObjBee>*/ {
 	public:
 		ObjBee();
 		~ObjBee();
 
-		void update(BEE::Instance*);
-		void create(BEE::Instance*);
-		void destroy(BEE::Instance*);
-		void alarm(BEE::Instance*, int);
-		void step_mid(BEE::Instance*);
-		void keyboard_press(BEE::Instance*, SDL_Event*);
-		void mouse_press(BEE::Instance*, SDL_Event*);
-		void mouse_input(BEE::Instance*, SDL_Event*);
-		void commandline_input(BEE::Instance*, const std::string&);
-		void outside_room(BEE::Instance*);
-		void collision(BEE::Instance*, BEE::Instance*);
-		void draw(BEE::Instance*);
+		void update(bee::Instance*);
+		void create(bee::Instance*);
+		void destroy(bee::Instance*);
+		void alarm(bee::Instance*, int);
+		void step_mid(bee::Instance*);
+		void keyboard_press(bee::Instance*, SDL_Event*);
+		void mouse_press(bee::Instance*, SDL_Event*);
+		void mouse_input(bee::Instance*, SDL_Event*);
+		void commandline_input(bee::Instance*, const std::string&);
+		void outside_room(bee::Instance*);
+		void collision(bee::Instance*, bee::Instance*);
+		void draw(bee::Instance*);
 };
 ObjBee::ObjBee() : Object/*<ObjBee>*/("obj_bee", "bee.hpp") {
 	implemented_events[bee::E_EVENT::UPDATE] = true;
@@ -41,12 +41,12 @@ ObjBee::ObjBee() : Object/*<ObjBee>*/("obj_bee", "bee.hpp") {
 	set_sprite(spr_bee);
 }
 ObjBee::~ObjBee() {}
-void ObjBee::update(BEE::Instance* self) {
+void ObjBee::update(bee::Instance* self) {
 	if (!instance_data.empty()) {
 		s = &instance_data[self->id];
 	}
 }
-void ObjBee::create(BEE::Instance* self) {
+void ObjBee::create(bee::Instance* self) {
 	instance_data[self->id].clear();
 	update(self);
 
@@ -74,31 +74,31 @@ void ObjBee::create(BEE::Instance* self) {
 
 		bool enable_partsys = false;
 		if (enable_partsys) {
-			BEE::ParticleSystem* part_system = new BEE::ParticleSystem(game);
+			bee::ParticleSystem* part_system = new bee::ParticleSystem();
 			//part_system->following = nullptr;
 
-			//BEE::Particle* part_done = new BEE::Particle(game, bee::E_PT_SHAPE::EXPLOSION, 0.5, 100);
+			//bee::Particle* part_done = new bee::Particle(bee::E_PT_SHAPE::EXPLOSION, 0.5, 100);
 
-			BEE::Particle* part_firework = new BEE::Particle(game, bee::E_PT_SHAPE::SNOW, 0.5, 10000, true);
-			//BEE::Particle* part_firework = new BEE::Particle(game, spr_bee, 0.5, 10000, true);
+			bee::Particle* part_firework = new bee::Particle(bee::E_PT_SHAPE::SNOW, 0.5, 10000, true);
+			//bee::Particle* part_firework = new bee::Particle(spr_bee, 0.5, 10000, true);
 			part_firework->velocity = {20.0, 270.0};
 			part_firework->angle_increase = 0.3;
-			//part_firework->color = game->get_enum_color(c_orange, 100);
+			//part_firework->color = get_enum_color(c_orange, 100);
 			//part_firework->death_type = part_done;
 			//part_firework->is_sprite_lightable = true;
 
-			BEE::ParticleEmitter* part_emitter = new BEE::ParticleEmitter();
+			bee::ParticleEmitter* part_emitter = new bee::ParticleEmitter();
 			part_emitter->w = 1920;
 			part_emitter->particle_type = part_firework;
 			part_emitter->number = 3;
 			part_system->emitters.push_back(part_emitter);
 
-			BEE::ParticleDestroyer* part_destroyer = new BEE::ParticleDestroyer();
+			bee::ParticleDestroyer* part_destroyer = new bee::ParticleDestroyer();
 			part_destroyer->y = 1000;
 			part_destroyer->w = 1920;
 			part_system->destroyers.push_back(part_destroyer);
 
-			BEE::ParticleAttractor* part_attr = new BEE::ParticleAttractor();
+			bee::ParticleAttractor* part_attr = new bee::ParticleAttractor();
 			part_attr->x = 300;
 			part_attr->y = 1000;
 			part_attr->w = 200;
@@ -106,24 +106,24 @@ void ObjBee::create(BEE::Instance* self) {
 			part_attr->max_distance = 500;
 			part_system->attractors.push_back(part_attr);
 
-			game->get_current_room()->add_particle_system(part_system);
+			bee::get_current_room()->add_particle_system(part_system);
 			//part_system->fast_forward(300);
 		}
 	}
 }
-void ObjBee::destroy(BEE::Instance* self) {
-	delete (BEE::TextData*) _p("text_id");
+void ObjBee::destroy(bee::Instance* self) {
+	delete (bee::TextData*) _p("text_id");
 
 	if (self->id == 0) {
-		if (game->net_get_is_connected()) {
-			game->net_session_end();
+		if (bee::net_get_is_connected()) {
+			bee::net_session_end();
 		}
-		delete (BEE::TextData*) _p("text_fps");
+		delete (bee::TextData*) _p("text_fps");
 	}
 
 	instance_data.erase(self->id);
 }
-void ObjBee::alarm(BEE::Instance* self, int a) {
+void ObjBee::alarm(bee::Instance* self, int a) {
 	switch (a) {
 		case 0: { // Alarm 0
 			//snd_chirp->play();
@@ -134,48 +134,48 @@ void ObjBee::alarm(BEE::Instance* self, int a) {
 	}
 
 }
-void ObjBee::step_mid(BEE::Instance* self) {
+void ObjBee::step_mid(bee::Instance* self) {
 	/*int mx, my;
-	std::tie(mx, my) = game->get_mouse_position();
-	std::pair<int,int> c = coord_approach(self->x, self->y, mx, my, 10, game->get_delta());
+	std::tie(mx, my) = get_mouse_position();
+	std::pair<int,int> c = coord_approach(self->x, self->y, mx, my, 10, get_delta());
 	self->x = c.first;
 	self->y = c.second;*/
 
 	if (self->id == 0) {
-		if (game->render_get_3d()) {
-			//game->render_set_camera(new BEE::Camera(glm::vec3(1920.0/2.0, 1080.0/2.0, -540.0), glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
-			//game->render_set_camera(new BEE::Camera(glm::vec3(1920.0/2.0 + s->camx, 1080.0/2.0 + s->camy, -540.0 + s->camz), glm::vec3((1920.0/2.0-game->get_mouse_global_x())/1920.0, (1080.0/2.0-game->get_mouse_global_y())/1080.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
-			game->render_set_camera(new BEE::Camera(glm::vec3(_d("camx"), _d("camy"), -540.0 + _d("camz")), glm::vec3((-1920.0/2.0+game->get_mouse_global_x())/1920.0*2.0, (-1080.0/2.0+game->get_mouse_global_y())/1080.0*2.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
-			//game->render_set_camera(new BEE::Camera(glm::vec3(1920.0-game->get_mouse_global_x(), 1080.0-game->get_mouse_global_y(), -540.0), glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
+		if (bee::render_get_3d()) {
+			//bee::render_set_camera(new bee::Camera(glm::vec3(1920.0/2.0, 1080.0/2.0, -540.0), glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
+			//bee::render_set_camera(new bee::Camera(glm::vec3(1920.0/2.0 + s->camx, 1080.0/2.0 + s->camy, -540.0 + s->camz), glm::vec3((1920.0/2.0-bee::get_mouse_global_x())/1920.0, (1080.0/2.0-get_mouse_global_y())/1080.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
+			bee::render_set_camera(new bee::Camera(glm::vec3(_d("camx"), _d("camy"), -540.0 + _d("camz")), glm::vec3((-1920.0/2.0+bee::get_mouse_global_x())/1920.0*2.0, (-1080.0/2.0+bee::get_mouse_global_y())/1080.0*2.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
+			//bee::render_set_camera(new bee::Camera(glm::vec3(1920.0-bee::get_mouse_global_x(), 1080.0-bee::get_mouse_global_y(), -540.0), glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
 		}
 	}
 }
-void ObjBee::keyboard_press(BEE::Instance* self, SDL_Event* e) {
+void ObjBee::keyboard_press(bee::Instance* self, SDL_Event* e) {
 	if (self->id != 0) {
 		return;
 	}
 
-	if (game->console_get_is_open()) {
+	if (bee::console_get_is_open()) {
 		return;
 	}
 
 	switch (e->key.keysym.sym) {
 		case SDLK_RETURN: {
-			game->set_transition_type((bee::E_TRANSITION)((int)game->get_transition_type()+1));
-			game->restart_room();
+			bee::set_transition_type((bee::E_TRANSITION)((int)bee::get_transition_type()+1));
+			bee::restart_room();
 			break;
 		}
 
 		/*case SDLK_w: {
-			game->sound_stop_all();
+			sound_stop_all();
 			break;
 		}
 		case SDLK_a: {
-			game->set_volume(game->get_volume()/2);
+			set_volume(get_volume()/2);
 			break;
 		}
 		case SDLK_d: {
-			game->set_volume(game->get_volume()*2);
+			set_volume(get_volume()*2);
 			break;
 		}*/
 		case SDLK_w: {
@@ -211,16 +211,16 @@ void ObjBee::keyboard_press(BEE::Instance* self, SDL_Event* e) {
 		}
 
 		case SDLK_z: {
-			game->net_session_start("test_session", 4, "hostplayer");
+			bee::net_session_start("test_session", 4, "hostplayer");
 			break;
 		}
 		case SDLK_x: {
-			//game->net_session_join("127.0.0.1", "clientplayer");
-			game->net_session_join("192.168.1.155", "clientplayer");
+			//net_session_join("127.0.0.1", "clientplayer");
+			bee::net_session_join("192.168.1.155", "clientplayer");
 			break;
 		}
 		case SDLK_c: {
-			std::map<std::string,std::string> servers = game->net_session_find();
+			std::map<std::string,std::string> servers = bee::net_session_find();
 			if (!servers.empty()) {
 				std::cerr << "Available servers:\n";
 				for (auto& srv : servers) {
@@ -251,15 +251,15 @@ void ObjBee::keyboard_press(BEE::Instance* self, SDL_Event* e) {
 		}
 
 		case SDLK_n: {
-			game->render_set_3d(true);
+			bee::render_set_3d(true);
 			break;
 		}
 		case SDLK_m: {
-			game->render_set_3d(false);
+			bee::render_set_3d(false);
 			break;
 		}
 		case SDLK_b: {
-			game->messenger_send({"bee"}, bee::E_MESSAGE::INFO, self->serialize(true));
+			bee::messenger_send({"bee"}, bee::E_MESSAGE::INFO, self->serialize(true));
 			(*s)["serialdata"] = self->serialize();
 			break;
 		}
@@ -269,8 +269,8 @@ void ObjBee::keyboard_press(BEE::Instance* self, SDL_Event* e) {
 		}
 	}
 }
-void ObjBee::mouse_press(BEE::Instance* self, SDL_Event* e) {
-	if (game->console_get_is_open()) {
+void ObjBee::mouse_press(bee::Instance* self, SDL_Event* e) {
+	if (bee::console_get_is_open()) {
 		return;
 	}
 
@@ -280,7 +280,7 @@ void ObjBee::mouse_press(BEE::Instance* self, SDL_Event* e) {
 			SDL_Rect b = {e->button.x-10, e->button.y-10, 20, 20};
 			if ((self->id == 0)&&(!check_collision(a, b))) {
 				if (self->is_place_empty(e->button.x, e->button.y)) {
-					BEE::Instance* bee = game->get_current_room()->add_instance(-1, this, e->button.x, e->button.y, 0.0);
+					bee::Instance* bee = bee::get_current_room()->add_instance(-1, this, e->button.x, e->button.y, 0.0);
 					bee->set_mass(1.0);
 				}
 			}
@@ -288,8 +288,8 @@ void ObjBee::mouse_press(BEE::Instance* self, SDL_Event* e) {
 		}
 	}
 }
-void ObjBee::mouse_input(BEE::Instance* self, SDL_Event* e) {
-	if (game->console_get_is_open()) {
+void ObjBee::mouse_input(bee::Instance* self, SDL_Event* e) {
+	if (bee::console_get_is_open()) {
 		return;
 	}
 
@@ -305,21 +305,21 @@ void ObjBee::mouse_input(BEE::Instance* self, SDL_Event* e) {
 	}
 }
 
-void ObjBee::commandline_input(BEE::Instance* self, const std::string& str) {
+void ObjBee::commandline_input(bee::Instance* self, const std::string& str) {
 	std::cout << "bee" << self->id << ":~~~" << str << "~~~\n";
 }
-void ObjBee::outside_room(BEE::Instance* self) {
-	game->get_current_room()->destroy(self);
+void ObjBee::outside_room(bee::Instance* self) {
+	bee::get_current_room()->destroy(self);
 }
-void ObjBee::collision(BEE::Instance* self, BEE::Instance* other) {
+void ObjBee::collision(bee::Instance* self, bee::Instance* other) {
 	//self->move_away(2.0, other->get_x(), other->get_y());
 }
-void ObjBee::draw(BEE::Instance* self) {
+void ObjBee::draw(bee::Instance* self) {
 	int size = 100;
 	double r = radtodeg(self->get_physbody()->get_rotation_z());
 	self->draw(size, size, r, bee::E_RGB::WHITE, SDL_FLIP_NONE);
 
-	(*s)["text_id"] = (void*)font_liberation->draw((BEE::TextData*) _p("text_id"), self->get_corner_x(), self->get_corner_y(), bee_itos(self->id));
+	(*s)["text_id"] = (void*)font_liberation->draw((bee::TextData*) _p("text_id"), self->get_corner_x(), self->get_corner_y(), bee_itos(self->id));
 
 	lt_bee->set_position(glm::vec4(self->get_x(), self->get_y(), 0.0, 1.0));
 	lt_bee->set_color({(Uint8)(self->id*50), (Uint8)(self->id*20), 255, 255});
@@ -328,10 +328,10 @@ void ObjBee::draw(BEE::Instance* self) {
 	if (self->id == 0) {
 		lt_ambient->queue();
 
-		float t = (float)game->get_ticks()/1000.0f;
+		float t = (float)bee::get_ticks()/1000.0f;
 		float a = 180.0f + radtodeg(sin(t));
 		mesh_monkey->draw(glm::vec3(1000.0f+500.0f*cos(t), 500.0f+300.0f*sin(t), 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, a, 180.0f), {255, 255, 0, 255}, false);
 
-		(*s)["text_fps"] = (void*)font_liberation->draw((BEE::TextData*) _p("text_fps"), 0, 0, "FPS: " + bee_itos(game->fps_stable));
+		(*s)["text_fps"] = (void*)font_liberation->draw((bee::TextData*) _p("text_fps"), 0, 0, "FPS: " + bee_itos(bee::engine.fps_stable));
 	}
 }

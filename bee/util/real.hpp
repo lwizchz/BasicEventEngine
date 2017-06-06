@@ -28,9 +28,9 @@ unsigned int random_set_seed(unsigned int);
 unsigned int random_reset_seed();
 unsigned int randomize();
 template <typename T>
-int sign(T);
+extern int sign(T);
 template <typename T>
-T sqr(T);
+extern T sqr(T);
 double logn(double, double);
 double degtorad(double);
 double radtodeg(double);
@@ -48,14 +48,14 @@ std::pair<double,double> coord_approach(double, double, double, double, double, 
 glm::vec3 bt_to_glm3(const btVector3&);
 btVector3 glm_to_bt3(const glm::vec3&);
 template <typename T>
-T dot_product(T, T, T, T);
+extern T dot_product(T, T, T, T);
 template <typename T>
-T dot_product(const std::pair<T,T>&, const std::pair<T,T>&);
+extern T dot_product(const std::pair<T,T>&, const std::pair<T,T>&);
 template <typename T>
-bool is_between(T, T, T);
+extern bool is_between(T, T, T);
 template <typename T>
-bool is_angle_between(T, T, T);
+extern bool is_angle_between(T, T, T);
 template <typename T>
-T fit_bounds(T, T, T);
+extern T fit_bounds(T, T, T);
 
 #endif // _BEE_UTIL_REAL_H

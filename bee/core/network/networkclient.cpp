@@ -11,10 +11,12 @@
 
 #include "networkclient.hpp"
 
-BEE::NetworkClient::NetworkClient() :
-	sock(nullptr),
-	channel(-1),
-	last_recv(0)
-{}
+namespace bee {
+	NetworkClient::NetworkClient() :
+		sock(nullptr),
+		channel(-1),
+		last_recv(0)
+	{}
+}
 
 #endif // _BEE_CORE_NETWORKCLIENT

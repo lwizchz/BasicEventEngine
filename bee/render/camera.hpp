@@ -9,21 +9,23 @@
 #ifndef _BEE_RENDER_CAMERA_H
 #define _BEE_RENDER_CAMERA_H 1
 
-#include "../game.hpp"
+#include "../engine.hpp"
 
-struct BEE::Camera {
-	glm::vec3 position;
-	glm::vec3 direction;
-	glm::vec3 orientation;
+namespace bee {
+	struct Camera {
+		glm::vec3 position;
+		glm::vec3 direction;
+		glm::vec3 orientation;
 
-	float width, height;
+		float width, height;
 
-	float fov;
-	float z_near, z_far;
+		float fov;
+		float z_near, z_far;
 
-	Camera();
-	Camera(float, float);
-	Camera(glm::vec3, glm::vec3, glm::vec3);
-};
+		Camera();
+		Camera(float, float);
+		Camera(glm::vec3, glm::vec3, glm::vec3);
+	};
+}
 
 #endif // _BEE_RENDER_CAMERA_H

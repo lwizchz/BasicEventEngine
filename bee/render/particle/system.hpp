@@ -11,40 +11,41 @@
 
 #include <list>
 
-#include "../../game.hpp"
+#include "../../engine.hpp"
 
-class BEE::ParticleSystem {
-	public:
-		BEE* game;
-		int id;
+namespace bee {
+	class ParticleSystem {
+		public:
+			int id;
 
-		bool is_oldfirst;
-		int depth;
+			bool is_oldfirst;
+			int depth;
 
-		double xoffset, yoffset;
-		Instance* following;
+			double xoffset, yoffset;
+			Instance* following;
 
-		Uint32 time_offset;
+			Uint32 time_offset;
 
-		std::list<ParticleData*> particles;
-		std::list<ParticleEmitter*> emitters;
-		std::list<ParticleAttractor*> attractors;
-		std::list<ParticleDestroyer*> destroyers;
-		std::list<ParticleDeflector*> deflectors;
-		std::list<ParticleChanger*> changers;
+			std::list<ParticleData*> particles;
+			std::list<ParticleEmitter*> emitters;
+			std::list<ParticleAttractor*> attractors;
+			std::list<ParticleDestroyer*> destroyers;
+			std::list<ParticleDeflector*> deflectors;
+			std::list<ParticleChanger*> changers;
 
-		std::map<Particle*,std::list<SpriteDrawData*>> draw_data;
+			std::map<Particle*,std::list<SpriteDrawData*>> draw_data;
 
-		ParticleSystem(BEE*);
-		int print();
-		int load();
-		int fast_forward(int);
-		int draw();
-		int draw(Uint32, double, bool);
-		int draw_debug();
-		int clear();
+			ParticleSystem();
+			int print();
+			int load();
+			int fast_forward(int);
+			int draw();
+			int draw(Uint32, double, bool);
+			int draw_debug();
+			int clear();
 
-		int add_particle(Particle*, int, int);
-};
+			int add_particle(Particle*, int, int);
+	};
+}
 
 #endif // _BEE_RENDER_PARTICLE_SYSTEM_H

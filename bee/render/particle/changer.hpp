@@ -9,22 +9,24 @@
 #ifndef _BEE_RENDER_PARTICLE_CHANGER_H
 #define _BEE_RENDER_PARTICLE_CHANGER_H 1
 
-#include "../../game.hpp"
+#include "../../engine.hpp"
 
-class BEE::ParticleChanger {
-	public:
-		double x, y;
-		unsigned int w, h;
-		Instance* following;
+namespace bee {
+	class ParticleChanger {
+		public:
+			double x, y;
+			unsigned int w, h;
+			Instance* following;
 
-		bee::E_PS_SHAPE shape;
+			E_PS_SHAPE shape;
 
-		Particle* particle_before;
-		Particle* particle_after;
+			Particle* particle_before;
+			Particle* particle_after;
 
-		bee::E_PS_CHANGE change_type;
+			E_PS_CHANGE change_type;
 
-		ParticleChanger();
-};
+			ParticleChanger();
+	};
+}
 
 #endif // _BEE_RENDER_PARTICLE_CHANGER_H

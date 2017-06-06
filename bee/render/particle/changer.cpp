@@ -11,18 +11,20 @@
 
 #include "changer.hpp"
 
-BEE::ParticleChanger::ParticleChanger() :
-	x(0.0),
-	y(0.0),
-	w(1), h(1),
-	following(nullptr),
+namespace bee {
+	ParticleChanger::ParticleChanger() :
+		x(0.0),
+		y(0.0),
+		w(1), h(1),
+		following(nullptr),
 
-	shape(bee::E_PS_SHAPE::RECTANGLE),
+		shape(E_PS_SHAPE::RECTANGLE),
 
-	particle_before(nullptr),
-	particle_after(nullptr),
+		particle_before(nullptr),
+		particle_after(nullptr),
 
-	change_type(bee::E_PS_CHANGE::ALL)
-{}
+		change_type(E_PS_CHANGE::ALL)
+	{}
+}
 
 #endif // _BEE_RENDER_PARTICLE_CHANGER

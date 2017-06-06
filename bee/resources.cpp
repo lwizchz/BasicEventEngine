@@ -18,11 +18,9 @@ ResourceList::ResourceList() {
 	next_index = 0;
 }
 /*
-* ResourceList::reset() - Reset the list with a pointer to the engine
-* @new_game: a pointer to the current engine instantiation
+* ResourceList::reset() - Reset the list
 */
-int ResourceList::reset(BEE* new_game) {
-	game = new_game; // Set the engine pointer
+int ResourceList::reset() {
 	resources.clear(); // Clear the internal list
 	next_index = 0; // Reset the index
 	return 0; // Return 0 on success
@@ -80,27 +78,25 @@ int ResourceList::remove_resource(int id) {
 }
 
 /*
-* MetaResourceList::MetaResourceList() - Construct the lists by resetting them and setting the engine pointer
-* @game: a pointer to the current engine instantiation
+* MetaResourceList::MetaResourceList() - Construct the lists by resetting them
 */
-MetaResourceList::MetaResourceList(BEE* game) {
-	reset(game);
+MetaResourceList::MetaResourceList() {
+	reset();
 }
 /*
 * MetaResourceList::reset() - Reset the resource lists
-* @game: a pointer to the current engine instantiation
 */
-int MetaResourceList::reset(BEE* game) {
-	sprites.reset(game);
-	sounds.reset(game);
-	backgrounds.reset(game);
-	fonts.reset(game);
-	paths.reset(game);
-	timelines.reset(game);
-	meshes.reset(game);
-	lights.reset(game);
-	objects.reset(game);
-	rooms.reset(game);
+int MetaResourceList::reset() {
+	sprites.reset();
+	sounds.reset();
+	backgrounds.reset();
+	fonts.reset();
+	paths.reset();
+	timelines.reset();
+	meshes.reset();
+	lights.reset();
+	objects.reset();
+	rooms.reset();
 	return 0; // Return 0 on success
 }
 

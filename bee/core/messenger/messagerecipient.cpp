@@ -11,17 +11,19 @@
 
 #include "messagerecipient.hpp"
 
-BEE::MessageRecipient::MessageRecipient() :
-	name(),
-	tags(),
-	is_strict(false),
-	func(nullptr)
-{}
-BEE::MessageRecipient::MessageRecipient(std::string n, std::vector<std::string> t, bool s, std::function<void (BEE*, std::shared_ptr<MessageContents>)> f) :
-	name(n),
-	tags(t),
-	is_strict(s),
-	func(f)
-{}
+namespace bee {
+	MessageRecipient::MessageRecipient() :
+		name(),
+		tags(),
+		is_strict(false),
+		func(nullptr)
+	{}
+	MessageRecipient::MessageRecipient(std::string n, std::vector<std::string> t, bool s, std::function<void (std::shared_ptr<MessageContents>)> f) :
+		name(n),
+		tags(t),
+		is_strict(s),
+		func(f)
+	{}
+}
 
 #endif // _BEE_CORE_MESSAGERECIPIENT

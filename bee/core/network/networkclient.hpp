@@ -9,14 +9,16 @@
 #ifndef _BEE_CORE_NETWORKCLIENT_H
 #define _BEE_CORE_NETWORKCLIENT_H 1
 
-#include "../../game.hpp"
+#include "../../engine.hpp"
 
-struct BEE::NetworkClient {
-	UDPsocket sock;
-	int channel;
-	Uint32 last_recv;
+namespace bee {
+	struct NetworkClient {
+		UDPsocket sock;
+		int channel;
+		Uint32 last_recv;
 
-	NetworkClient();
-};
+		NetworkClient();
+	};
+}
 
 #endif // _BEE_CORE_NETWORKCLIENT_H
