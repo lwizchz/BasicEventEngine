@@ -9,6 +9,8 @@
 #ifndef BEE_RENDER_PARTICLE_H
 #define BEE_RENDER_PARTICLE_H 1
 
+#include "../../defines.hpp"
+
 #include <list>
 #include <vector>
 #include <functional>

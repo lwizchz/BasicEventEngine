@@ -9,6 +9,8 @@
 #ifndef BEE_LIGHT_H
 #define BEE_LIGHT_H 1
 
+#include "../defines.hpp"
+
 #include <vector>
 
 #include <glm/glm.hpp> // Include the required OpenGL headers

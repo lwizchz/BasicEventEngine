@@ -9,6 +9,8 @@
 #ifndef BEE_RENDER_PARTICLE
 #define BEE_RENDER_PARTICLE 1
 
+#include "../../defines.hpp"
+
 #include <sstream>
 #include <glm/gtc/matrix_transform.hpp>
 

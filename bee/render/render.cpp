@@ -9,6 +9,8 @@
 #ifndef BEE_RENDER
 #define BEE_RENDER 1
 
+#include "../defines.hpp"
+
 #include <GL/glew.h> // Include the required OpenGL headers
 #include <SDL2/SDL_opengl.h>
 #include <glm/gtc/matrix_transform.hpp>

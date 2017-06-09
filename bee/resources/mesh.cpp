@@ -9,6 +9,8 @@
 #ifndef BEE_MESH
 #define BEE_MESH 1
 
+#include "../defines.hpp"
+
 #include <sstream>
 
 #include <SDL2/SDL_image.h>

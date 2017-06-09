@@ -9,6 +9,8 @@
 #ifndef BEE_ROOM
 #define BEE_ROOM 1
 
+#include "../defines.hpp"
+
 #include <sstream>
 #include <fstream>
 #include <algorithm>

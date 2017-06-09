@@ -21,9 +21,10 @@
 
 #include <SDL2/SDL.h> // Include the required SDL headers
 
+#include "defines.hpp"
+
 #include <glm/glm.hpp> // Include the required OpenGL headers
 
-#include "defines.hpp"
 #include "enum.hpp" // Include the required engine enumerations
 
 namespace bee { // The engine namespace

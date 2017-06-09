@@ -9,6 +9,8 @@
 #ifndef BEE_CORE_ROOM
 #define BEE_CORE_ROOM 1
 
+#include "../defines.hpp"
+
 #include <SDL2/SDL.h> // Include the required SDL headers
 
 #include <GL/glew.h> // Include the required OpenGL headers

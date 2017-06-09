@@ -9,6 +9,8 @@
 #ifndef BEE_UTIL_REAL_H
 #define BEE_UTIL_REAL_H 1
 
+#define GLM_FORCE_RADIANS
+
 #include <string> // Include the required library headers
 
 #include <glm/glm.hpp> // Include the required headers for vector handling

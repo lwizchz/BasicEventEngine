@@ -9,6 +9,8 @@
 #ifndef BEE_RENDER_DRAWING
 #define BEE_RENDER_DRAWING 1
 
+#include "../defines.hpp"
+
 #include <GL/glew.h> // Include the required OpenGL headers
 #include <SDL2/SDL_opengl.h>
 #include <glm/gtc/type_ptr.hpp>

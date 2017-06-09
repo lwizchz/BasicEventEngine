@@ -9,6 +9,8 @@
 #ifndef BEE_RENDER_CAMERA_H
 #define BEE_RENDER_CAMERA_H 1
 
+#include "../defines.hpp"
+
 #include <glm/glm.hpp> // Include the required OpenGL headers
 
 namespace bee {

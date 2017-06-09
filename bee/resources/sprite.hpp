@@ -9,6 +9,8 @@
 #ifndef BEE_SPRITE_H
 #define BEE_SPRITE_H 1
 
+#include "../defines.hpp"
+
 #include <string> // Include the required library headers
 #include <vector>
 #include <list>
