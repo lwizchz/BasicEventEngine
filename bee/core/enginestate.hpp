@@ -53,7 +53,7 @@ namespace bee {
 			const unsigned int platform = 0;
 		#elif _WIN32
 			const unsigned int platform = 1;
-		#elif __APPLE__engine.
+		#elif __APPLE__
 			const unsigned int platform = 2;
 		#else
 			const unsigned int platform = 3;
