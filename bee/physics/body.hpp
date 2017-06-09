@@ -6,15 +6,21 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_PHYSICS_BODY_H
-#define _BEE_PHYSICS_BODY_H 1
+#ifndef BEE_PHYSICS_BODY_H
+#define BEE_PHYSICS_BODY_H 1
+
+#include <string>
+#include <vector>
 
 #include <btBulletDynamicsCommon.h>
-#include <LinearMath/btIDebugDraw.h>
 
-#include "../engine.hpp"
+#include "../enum.hpp"
 
 namespace bee {
+	class Instance;
+	class PhysicsWorld;
+	class PhysicsDraw;
+
 	class PhysicsBody {
 		private:
 			E_PHYS_SHAPE type;
@@ -72,4 +78,4 @@ namespace bee {
 	};
 }
 
-#endif // _BEE_PHYSICS_BODY_H
+#endif // BEE_PHYSICS_BODY_H

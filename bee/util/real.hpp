@@ -6,13 +6,10 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_UTIL_REAL_H
-#define _BEE_UTIL_REAL_H 1
+#ifndef BEE_UTIL_REAL_H
+#define BEE_UTIL_REAL_H 1
 
 #include <string> // Include the required library headers
-#include <random>
-#include <time.h>
-#include <tuple>
 
 #include <glm/glm.hpp> // Include the required headers for vector handling
 #include <btBulletDynamicsCommon.h>
@@ -58,4 +55,4 @@ extern bool is_angle_between(T, T, T);
 template <typename T>
 extern T fit_bounds(T, T, T);
 
-#endif // _BEE_UTIL_REAL_H
+#endif // BEE_UTIL_REAL_H

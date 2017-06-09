@@ -6,10 +6,17 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_CORE_WINDOW
-#define _BEE_CORE_WINDOW 1
+#ifndef BEE_CORE_WINDOW
+#define BEE_CORE_WINDOW 1
 
-#include "../engine.hpp" // Include the engine headers
+#include <SDL2/SDL.h> // Include the required SDL headers
+
+#include <GL/glew.h> // Include the required OpenGL headers
+#include <SDL2/SDL_opengl.h>
+
+#include "enginestate.hpp"
+
+#include "../render/renderer.hpp"
 
 namespace bee {
 	/*
@@ -17,20 +24,20 @@ namespace bee {
 	* ! See https://wiki.libsdl.org/SDL_GetWindowTitle for details
 	*/
 	std::string get_window_title() {
-		return SDL_GetWindowTitle(engine.renderer->window);
+		return SDL_GetWindowTitle(engine->renderer->window);
 	}
 	/*
 	* get_cursor() - Return the current window cursor
 	*/
 	SDL_Cursor* get_cursor()  {
-		return engine.cursor;
+		return engine->cursor;
 	}
 	/*
 	* get_window_x() - Return the x-coordinate of the game window
 	*/
 	int get_window_x() {
 		int wx;
-		SDL_GetWindowPosition(engine.renderer->window, &wx, nullptr);
+		SDL_GetWindowPosition(engine->renderer->window, &wx, nullptr);
 		return wx;
 	}
 	/*
@@ -38,20 +45,20 @@ namespace bee {
 	*/
 	int get_window_y() {
 		int wy;
-		SDL_GetWindowPosition(engine.renderer->window, nullptr, &wy);
+		SDL_GetWindowPosition(engine->renderer->window, nullptr, &wy);
 		return wy;
 	}
 	/*
 	* get_width() - Return the width of the game window
 	*/
 	int get_width() {
-		return engine.width;
+		return engine->width;
 	}
 	/*
 	* get_height() - Return the height of the game window
 	*/
 	int get_height() {
-		return engine.height;
+		return engine->height;
 	}
 
 	/*
@@ -59,7 +66,7 @@ namespace bee {
 	* @new_title: the string to set the title to
 	*/
 	int set_window_title(const std::string& new_title) {
-		SDL_SetWindowTitle(engine.renderer->window, new_title.c_str());
+		SDL_SetWindowTitle(engine->renderer->window, new_title.c_str());
 		return 0;
 	}
 	/*
@@ -68,9 +75,9 @@ namespace bee {
 	* @cid: the SDL system cursor enum id
 	*/
 	int set_cursor(SDL_SystemCursor cid) {
-		SDL_FreeCursor(engine.cursor);
-		engine.cursor = SDL_CreateSystemCursor(cid);
-		SDL_SetCursor(engine.cursor);
+		SDL_FreeCursor(engine->cursor);
+		engine->cursor = SDL_CreateSystemCursor(cid);
+		SDL_SetCursor(engine->cursor);
 		return 0;
 	}
 	/*
@@ -87,7 +94,7 @@ namespace bee {
 	* @new_y: the new y-coordinate to move the window to
 	*/
 	int set_window_position(int new_x, int new_y) {
-		SDL_SetWindowPosition(engine.renderer->window, new_x, new_y);
+		SDL_SetWindowPosition(engine->renderer->window, new_x, new_y);
 		return 0;
 	}
 	/*
@@ -115,9 +122,9 @@ namespace bee {
 	* @new_height: the new height to change the window to
 	*/
 	int set_window_size(int new_width, int new_height) {
-		engine.width = new_width;
-		engine.height = new_height;
-		SDL_SetWindowSize(engine.renderer->window, engine.width, engine.height);
+		engine->width = new_width;
+		engine->height = new_height;
+		SDL_SetWindowSize(engine->renderer->window, engine->width, engine->height);
 		return 0;
 	}
 	/*
@@ -125,15 +132,15 @@ namespace bee {
 	* @new_width: the new width to change the window to
 	*/
 	int set_width(int new_width) {
-		return set_window_size(new_width, engine.height);
+		return set_window_size(new_width, engine->height);
 	}
 	/*
 	* set_height() - Change the height of the game window
 	* @new_height: the new height to change the window to
 	*/
 	int set_height(int new_height) {
-		return set_window_size(engine.width, new_height);
+		return set_window_size(engine->width, new_height);
 	}
 }
 
-#endif // _BEE_CORE_WINDOW
+#endif // BEE_CORE_WINDOW

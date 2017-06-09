@@ -6,12 +6,16 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_SOUND_H
-#define _BEE_SOUND_H 1
+#ifndef BEE_SOUND_H
+#define BEE_SOUND_H 1
 
 #include <list> // Include the required library headers
 
-#include "../engine.hpp" // Include the engine headers
+#include <SDL2/SDL_mixer.h> // Include the SDL2_mixer headers for the audio data types
+
+#include "../resources.hpp"
+
+#include "../util/sound.hpp"
 
 namespace bee {
 	class Sound: public Resource { // The sound resource class is used to play all audio
@@ -93,4 +97,4 @@ namespace bee {
 	};
 }
 
-#endif // _BEE_SOUND_H
+#endif // BEE_SOUND_H

@@ -6,10 +6,23 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_CORE_MESSENGER
-#define _BEE_CORE_MESSENGER 1
+#ifndef BEE_CORE_MESSENGER
+#define BEE_CORE_MESSENGER 1
+
+#include <iostream>
+#include <algorithm>
 
 #include "../../engine.hpp" // Include the engine headers
+
+#include "../../debug.hpp"
+
+#include "../../util/string.hpp"
+#include "../../util/platform.hpp"
+
+#include "messagerecipient.hpp"
+#include "messagecontents.hpp"
+
+#include "../enginestate.hpp"
 
 namespace bee {
 	/*
@@ -18,10 +31,10 @@ namespace bee {
 	*/
 	int messenger_register_protected(std::shared_ptr<MessageRecipient> recv) {
 		for (auto& tag : recv->tags) { // Iterate over the requested tags
-			if (engine.recipients.find(tag) == engine.recipients.end()) { // If the tag doesn't exist, then create it
-				engine.recipients.emplace(tag, std::unordered_set<std::shared_ptr<MessageRecipient>>()); // Emplace an empty set of recipients
+			if (engine->recipients.find(tag) == engine->recipients.end()) { // If the tag doesn't exist, then create it
+				engine->recipients.emplace(tag, std::unordered_set<std::shared_ptr<MessageRecipient>>()); // Emplace an empty set of recipients
 			}
-			engine.recipients[tag].insert(recv); // Add the recipient to the list
+			engine->recipients[tag].insert(recv); // Add the recipient to the list
 		}
 		return 0; // Return 0 on success
 	}
@@ -43,12 +56,12 @@ namespace bee {
 	*/
 	int messenger_unregister_protected(std::shared_ptr<MessageRecipient> recv) {
 		for (auto& tag : recv->tags) { // Iterate over the recipient's tags
-			auto rt = engine.recipients.find(tag);
-			if (rt != engine.recipients.end()) { // If the tag exists within the recipient list
+			auto rt = engine->recipients.find(tag);
+			if (rt != engine->recipients.end()) { // If the tag exists within the recipient list
 				if (rt->second.find(recv) != rt->second.end()) { // If the recipient exists within the list
 					rt->second.erase(recv); // Remove the recipient
 					if (rt->second.empty()) { // If the tag has no other recipients, remove it
-						engine.recipients.erase(tag);
+						engine->recipients.erase(tag);
 					}
 				}
 			}
@@ -61,13 +74,74 @@ namespace bee {
 	* @msg: the message to process
 	*/
 	int messenger_send_urgent(std::shared_ptr<MessageContents> msg) {
+		const Uint32 t = get_ticks();
 		msg->descr = trim(msg->descr); // Trim the message description
+
+		bool should_output = true;
+		switch (messenger_get_level()) { // Skip certain messages depending on the verbosity level
+			case E_OUTPUT::NONE: { // When the verbosity is NONE, skip all message types
+				should_output = false;
+				break;
+			}
+			case E_OUTPUT::QUIET: { // When the verbosity is QUIET, skip all types except warnings and errors
+				if (
+					(msg->type != E_MESSAGE::WARNING)
+					|| (msg->type != E_MESSAGE::ERROR)
+				) {
+					should_output = false;
+				}
+				break;
+			}
+			case E_OUTPUT::NORMAL: // When the verbosity is NORMAL, skip internal messages
+			default: {
+				if (msg->type == E_MESSAGE::INTERNAL) {
+					should_output = false;
+				}
+				break;
+			}
+			case E_OUTPUT::VERBOSE: { // When the verbosity is VERBOSE, skip no message types
+				break;
+			}
+		}
+
+		if (should_output) {
+			// Create a string of the message's tags
+			std::string tags = joinv(msg->tags, ',');
+
+			// Change the output color depending on the message type
+			if (msg->type == E_MESSAGE::WARNING) {
+				bee_commandline_color(11); // Yellow
+			}
+			if (msg->type == E_MESSAGE::ERROR) {
+				bee_commandline_color(9); // Red
+			}
+
+			// Output to the appropriate stream
+			std::ostream* o = &std::cout;
+			if ((msg->type == E_MESSAGE::WARNING)||(msg->type == E_MESSAGE::ERROR)) {
+				o = &std::cerr;
+			}
+
+			// Output the message metadata
+			*o << "MSG (" << t << "ms)[" << messenger_get_type_string(msg->type) << "]<" << tags << ">: ";
+
+			// Output the message description
+			if (msg->descr.find("\n") != std::string::npos) { // If the description is multiple liness, indent it as necessary
+				*o << "\n";
+				*o << debug_indent(msg->descr, 1);
+			} else { // Otherwise, output it as normal
+				*o << msg->descr << "\n";
+			}
+
+			bee_commandline_color_reset(); // Reset the output color
+			std::flush(std::cout); // Flush the output buffer before processing the recipients
+		}
 
 		std::exception_ptr ep; // Store any thrown values
 		for (auto& tag : msg->tags) { // Iterate over the message tags
-			auto rt = engine.recipients.find(tag); // Make sure that the message tag exists
-			if (rt != engine.recipients.end()) {
-				for (auto& recv : engine.recipients[tag]) { // Iterate over the recipients who wish to process the tag
+			auto rt = engine->recipients.find(tag); // Make sure that the message tag exists
+			if (rt != engine->recipients.end()) {
+				for (auto& recv : engine->recipients[tag]) { // Iterate over the recipients who wish to process the tag
 					if (recv->is_strict) { // If the recipient is strict and the tags don't match, skip it
 						if (recv->tags != msg->tags) {
 							continue;
@@ -81,12 +155,12 @@ namespace bee {
 						} catch (int e) { // Catch several kinds of exceptions that the recipient might throw
 							ep = std::current_exception();
 							bee_commandline_color(9);
-							std::cerr << "MSG ERR (" << get_ticks() << "ms): exception " << e << " thrown by recipient \"" << recv->name << "\"\n";
+							std::cerr << "MSG ERR (" << t << "ms): exception " << e << " thrown by recipient \"" << recv->name << "\"\n";
 							bee_commandline_color_reset();
 						} catch (const char* e) {
 							ep = std::current_exception();
 							bee_commandline_color(9);
-							std::cerr << "MSG ERR (" << get_ticks() << "ms): exception \"" << e << "\" thrown by recipient \"" << recv->name << "\"\n";
+							std::cerr << "MSG ERR (" << t << "ms): exception \"" << e << "\" thrown by recipient \"" << recv->name << "\"\n";
 							bee_commandline_color_reset();
 						} catch (...) {
 							ep = std::current_exception(); // Store any miscellaneous exceptions to be rethrown
@@ -112,7 +186,7 @@ namespace bee {
 		int r = 0; // Store any attempts to register a protected tag
 
 		for (auto& tag : recv->tags) { // Iterate over the requested tags
-			if (engine.protected_tags.find(tag) != engine.protected_tags.end()) { // If the requested tag is protected, deny registration
+			if (engine->protected_tags.find(tag) != engine->protected_tags.end()) { // If the requested tag is protected, deny registration
 				// Output an error message
 				bee_commandline_color(11);
 				std::cerr << "MSG failed to register recipient \"" << recv->name << "\" with protected tag \"" << tag << "\".\n";
@@ -123,10 +197,10 @@ namespace bee {
 				continue; // Skip to the next tag
 			}
 
-			if (engine.recipients.find(tag) == engine.recipients.end()) { // If the tag doesn't exist, then create it
-				engine.recipients.emplace(tag, std::unordered_set<std::shared_ptr<MessageRecipient>>()); // Emplace an empty set of recipients
+			if (engine->recipients.find(tag) == engine->recipients.end()) { // If the tag doesn't exist, then create it
+				engine->recipients.emplace(tag, std::unordered_set<std::shared_ptr<MessageRecipient>>()); // Emplace an empty set of recipients
 			}
-			engine.recipients[tag].insert(recv); // Add the recipient to the list
+			engine->recipients[tag].insert(recv); // Add the recipient to the list
 		}
 
 		return r; // Return the amount of attempts to register a protected tag
@@ -158,7 +232,7 @@ namespace bee {
 	*/
 	int messenger_unregister(std::shared_ptr<MessageRecipient> recv) {
 		for (auto& tag : recv->tags) { // Iterate over the recipient's tags
-			if (engine.protected_tags.find(tag) != engine.protected_tags.end()) { // If the specific tag is protected, deny removal for any tags
+			if (engine->protected_tags.find(tag) != engine->protected_tags.end()) { // If the specific tag is protected, deny removal for any tags
 				// Output an error message
 				bee_commandline_color(11);
 				std::cerr << "MSG failed to unregister recipient \"" << recv->name << "\" because of protected tag \"" << tag << "\".\n";
@@ -167,12 +241,12 @@ namespace bee {
 				return 1; // Return 1 on denial by protected tag
 			}
 
-			auto rt = engine.recipients.find(tag);
-			if (rt != engine.recipients.end()) { // If the tag exists within the recipient list
+			auto rt = engine->recipients.find(tag);
+			if (rt != engine->recipients.end()) { // If the tag exists within the recipient list
 				if (rt->second.find(recv) != rt->second.end()) { // If the recipient exists within the list
 					rt->second.erase(recv); // Remove the recipient
 					if (rt->second.empty()) { // If the tag has no other recipients, remove it
-						engine.recipients.erase(tag);
+						engine->recipients.erase(tag);
 					}
 				}
 			}
@@ -186,7 +260,7 @@ namespace bee {
 	int messenger_unregister_name(const std::string& name) {
 		std::shared_ptr<MessageRecipient> recv (nullptr);
 
-		for (auto& tag : engine.recipients) { // Iterate over all tags
+		for (auto& tag : engine->recipients) { // Iterate over all tags
 			for (auto& r : tag.second) { // Iterate over the recipients for a specific tag
 				if (r->name == name) { // If the specific recipient matches the desired recipient's name
 					recv = r; // Assign the recipient and break out
@@ -210,8 +284,8 @@ namespace bee {
 	int messenger_unregister_all() {
 		int r = 0; // Store any attempts to unregister a protected tag
 
-		for (auto& tag : engine.recipients) { // Iterate over all recipient tags
-			if (engine.protected_tags.find(tag.first) != engine.protected_tags.end()) { // If the specific tag is protected, deny removal
+		for (auto& tag : engine->recipients) { // Iterate over all recipient tags
+			if (engine->protected_tags.find(tag.first) != engine->protected_tags.end()) { // If the specific tag is protected, deny removal
 				r++; // Increment the protection counter
 				continue; // Skip to the next tag
 			}
@@ -220,9 +294,9 @@ namespace bee {
 		}
 
 		// Remove all non-protected tags
-		for (auto tag=engine.recipients.begin(); tag!=engine.recipients.end();) {
-			if (engine.protected_tags.find((*tag).first) == engine.protected_tags.end()) { // If the tag is not protected, remove it
-				tag = engine.recipients.erase(tag);
+		for (auto tag=engine->recipients.begin(); tag!=engine->recipients.end();) {
+			if (engine->protected_tags.find((*tag).first) == engine->protected_tags.end()) { // If the tag is not protected, remove it
+				tag = engine->recipients.erase(tag);
 			} else { // It the tag is protected, skip it
 				++tag;
 			}
@@ -241,7 +315,7 @@ namespace bee {
 		}
 
 		msg->descr = trim(msg->descr); // Trim the message description
-		engine.messages.push_back(msg); // Add the message to the list
+		engine->messages.push_back(msg); // Add the message to the list
 
 		return 0; // Return 0 on success
 	}
@@ -274,14 +348,14 @@ namespace bee {
 	* @new_level: the output level to use
 	*/
 	int messenger_set_level(E_OUTPUT new_level) {
-		engine.messenger_output_level = new_level;
+		engine->messenger_output_level = new_level;
 		return 0;
 	}
 	/*
 	* messenger_get_level() - Return the output level when printing message descriptions
 	*/
 	E_OUTPUT messenger_get_level() {
-		return engine.messenger_output_level;
+		return engine->messenger_output_level;
 	}
 
 	/*
@@ -291,18 +365,19 @@ namespace bee {
 	* ! Note that in certain situations the engine might call this more than once per frame
 	*/
 	int handle_messages() {
-		Uint32 t = get_ticks(); // Get the current tick to compare with message tickstamps
+		const Uint32 t = get_ticks(); // Get the current tick to compare with message tickstamps
 
 		// Print message descriptions
-		for (auto& msg : engine.messages) {
+		for (auto& msg : engine->messages) {
 			if (t < msg->tickstamp) { // If the message should be processed in the future, skip it
 				continue;
 			}
 
 			switch (messenger_get_level()) { // Skip certain messages depending on the verbosity level
-				case E_OUTPUT::NONE: // When the verbosity is NONE, skip all message types
+				case E_OUTPUT::NONE: { // When the verbosity is NONE, skip all message types
 					continue;
-				case E_OUTPUT::QUIET: // When the verbosity is QUIET, skip all types except warnings and errors
+				}
+				case E_OUTPUT::QUIET: { // When the verbosity is QUIET, skip all types except warnings and errors
 					if (
 						(msg->type != E_MESSAGE::WARNING)
 						|| (msg->type != E_MESSAGE::ERROR)
@@ -310,14 +385,17 @@ namespace bee {
 						continue;
 					}
 					break;
+				}
 				case E_OUTPUT::NORMAL: // When the verbosity is NORMAL, skip internal messages
-				default:
+				default: {
 					if (msg->type == E_MESSAGE::INTERNAL) {
 						continue;
 					}
 					break;
-				case E_OUTPUT::VERBOSE: // When the verbosity is VERBOSE, skip no message types
+				}
+				case E_OUTPUT::VERBOSE: { // When the verbosity is VERBOSE, skip no message types
 					break;
+				}
 			}
 
 			// Create a string of the message's tags
@@ -339,6 +417,7 @@ namespace bee {
 
 			// Output the message metadata
 			*o << "MSG (" << msg->tickstamp << "ms)[" << messenger_get_type_string(msg->type) << "]<" << tags << ">: ";
+			//*o << "MSG (" << t << "ms)[" << messenger_get_type_string(msg->type) << "]<" << tags << ">: ";
 
 			// Output the message description
 			if (msg->descr.find("\n") != std::string::npos) { // If the description is multiple liness, indent it as necessary
@@ -354,7 +433,7 @@ namespace bee {
 
 		// Process messages with recipient functions
 		std::exception_ptr ep; // Store any thrown values
-		for (auto& msg : engine.messages) { // Iterate over the messages
+		for (auto& msg : engine->messages) { // Iterate over the messages
 			auto m = msg; // Create an extra reference to the smart pointer to prevent it from being deallocated during the loop
 			if (t < m->tickstamp) { // If the message should be processed in the future, skip it
 				continue;
@@ -365,9 +444,9 @@ namespace bee {
 					continue;
 				}
 
-				auto rt = engine.recipients.find(tag); // Make sure that the message tag exists
-				if (rt != engine.recipients.end()) {
-					for (auto& recv : engine.recipients[tag]) { // Iterate over the recipients who wish to process the tag
+				auto rt = engine->recipients.find(tag); // Make sure that the message tag exists
+				if (rt != engine->recipients.end()) {
+					for (auto& recv : engine->recipients[tag]) { // Iterate over the recipients who wish to process the tag
 						if (recv->is_strict) { // If the recipient is strict
 							if (recv->tags != m->tags) { // If the tags don't match, skip it
 								continue;
@@ -383,12 +462,12 @@ namespace bee {
 							} catch (int e) { // Catch several kinds of exceptions that the recipient might throw
 								ep = std::current_exception();
 								bee_commandline_color(9);
-								std::cerr << "MSG ERR (" << get_ticks() << "ms): exception " << e << " thrown by recipient \"" << recv->name << "\"\n";
+								std::cerr << "MSG ERR (" << t << "ms): exception " << e << " thrown by recipient \"" << recv->name << "\"\n";
 								bee_commandline_color_reset();
 							} catch (const char* e) {
 								ep = std::current_exception();
 								bee_commandline_color(9);
-								std::cerr << "MSG ERR (" << get_ticks() << "ms): exception \"" << e << "\" thrown by recipient \"" << recv->name << "\"\n";
+								std::cerr << "MSG ERR (" << t << "ms): exception \"" << e << "\" thrown by recipient \"" << recv->name << "\"\n";
 								bee_commandline_color_reset();
 							} catch (...) {
 								ep = std::current_exception(); // Store any miscellaneous exceptions to be rethrown
@@ -403,9 +482,9 @@ namespace bee {
 		}
 
 		// Remove processed messages
-		engine.messages.erase(std::remove_if(engine.messages.begin(), engine.messages.end(), [] (std::shared_ptr<MessageContents> msg) {
+		engine->messages.erase(std::remove_if(engine->messages.begin(), engine->messages.end(), [] (std::shared_ptr<MessageContents> msg) {
 			return msg->has_processed;
-		}), engine.messages.end());
+		}), engine->messages.end());
 
 		if (ep != nullptr) { // If an exception was thrown, throw it after finishing processing the message
 			std::flush(std::cout);
@@ -432,4 +511,4 @@ namespace bee {
 	}
 }
 
-#endif // _BEE_INIT_MESSENGER
+#endif // BEE_INIT_MESSENGER

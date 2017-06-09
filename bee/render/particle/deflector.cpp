@@ -6,8 +6,8 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_RENDER_PARTICLE_DEFLECTOR
-#define _BEE_RENDER_PARTICLE_DEFLECTOR 1
+#ifndef BEE_RENDER_PARTICLE_DEFLECTOR
+#define BEE_RENDER_PARTICLE_DEFLECTOR 1
 
 #include "deflector.hpp"
 
@@ -23,4 +23,4 @@ namespace bee {
 	{}
 }
 
-#endif // _BEE_RENDER_PARTICLE_DEFLECTOR
+#endif // BEE_RENDER_PARTICLE_DEFLECTOR

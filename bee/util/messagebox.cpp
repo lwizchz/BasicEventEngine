@@ -6,8 +6,8 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_UTIL_MESSAGEBOX
-#define _BEE_UTIL_MESSAGEBOX 1
+#ifndef BEE_UTIL_MESSAGEBOX
+#define BEE_UTIL_MESSAGEBOX 1
 
 // Message box functions
 
@@ -17,6 +17,8 @@
 #include <SDL2/SDL.h> // Include the SDL2 headers for the message box functions
 
 #include "messagebox.hpp" // Include the function definitions
+
+#include "../debug.hpp"
 
 /*
 * show_message() - Display a modal message box with the given information and buttons
@@ -76,7 +78,7 @@ bool show_question(const std::string& str) {
 * @str: the string to display
 */
 int show_message(const std::string& str) {
-	std::cout << str << "\n"; // Output the message
+	std::cout << "UTIL Messagebox: " << str << "\n"; // Output the message
 	return show_message(str, "OK", "", "");
 }
 /*
@@ -84,7 +86,7 @@ int show_message(const std::string& str) {
 * @str: the string to display
 */
 int show_warning(const std::string& str) {
-	std::cerr << str << "\n"; // Output the message
+	std::cerr << "UTIL Messagebox: " << str << "\n"; // Output the message
 	return SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "Warning", str.c_str(), nullptr); // Return the status of the message box
 }
 /*
@@ -111,4 +113,4 @@ int show_error(const std::string& str) {
 	return show_error(str, false);
 }
 
-#endif // _BEE_UTIL_MESSAGEBOX
+#endif // BEE_UTIL_MESSAGEBOX

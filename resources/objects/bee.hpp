@@ -6,6 +6,9 @@
 * See LICENSE for more details.
 */
 
+#include "../../bee/util.hpp"
+#include "../../bee/all.hpp"
+
 class ObjBee : public bee::Object/*<ObjBee>*/ {
 	public:
 		ObjBee();
@@ -332,6 +335,6 @@ void ObjBee::draw(bee::Instance* self) {
 		float a = 180.0f + radtodeg(sin(t));
 		mesh_monkey->draw(glm::vec3(1000.0f+500.0f*cos(t), 500.0f+300.0f*sin(t), 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, a, 180.0f), {255, 255, 0, 255}, false);
 
-		(*s)["text_fps"] = (void*)font_liberation->draw((bee::TextData*) _p("text_fps"), 0, 0, "FPS: " + bee_itos(bee::engine.fps_stable));
+		(*s)["text_fps"] = (void*)font_liberation->draw((bee::TextData*) _p("text_fps"), 0, 0, "FPS: " + bee_itos(bee::engine->fps_stable));
 	}
 }

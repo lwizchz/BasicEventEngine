@@ -6,8 +6,8 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_CORE_NETWORKCLIENT
-#define _BEE_CORE_NETWORKCLIENT 1
+#ifndef BEE_CORE_NETWORKCLIENT
+#define BEE_CORE_NETWORKCLIENT 1
 
 #include "networkclient.hpp"
 
@@ -19,4 +19,4 @@ namespace bee {
 	{}
 }
 
-#endif // _BEE_CORE_NETWORKCLIENT
+#endif // BEE_CORE_NETWORKCLIENT

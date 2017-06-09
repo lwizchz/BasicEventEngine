@@ -11,7 +11,11 @@
 
 // Networking functions
 
+#include <iostream>
+
 #include "network.hpp" // Include the function definitions
+
+#include "platform.hpp" // Include the required inet_ntop() function
 
 /*
 * network_init() - Initialize SDL's networking functionality

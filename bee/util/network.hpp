@@ -6,15 +6,12 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_UTIL_NETWORK_H
-#define _BEE_UTIL_NETWORK_H 1
+#ifndef BEE_UTIL_NETWORK_H
+#define BEE_UTIL_NETWORK_H 1
 
 #include <string> // Include the required library headers
-#include <iostream>
 
 #include <SDL2/SDL_net.h> // Include the SDL2 networking headers
-
-#include "platform.hpp" // Include the required inet_ntop() function
 
 int network_init();
 int network_close();
@@ -51,4 +48,4 @@ UDPpacket* network_packet_realloc(UDPpacket*, int);
 UDPpacket** network_packet_alloc_vector(int, int);
 int network_packet_free_vector(UDPpacket**);
 
-#endif // _BEE_UTIL_NETWORK_H
+#endif // BEE_UTIL_NETWORK_H

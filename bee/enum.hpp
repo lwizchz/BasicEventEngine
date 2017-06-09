@@ -6,8 +6,8 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_ENUM_H
-#define _BEE_ENUM_H 1
+#ifndef BEE_ENUM_H
+#define BEE_ENUM_H 1
 
 namespace bee {
 	enum class E_SOUNDEFFECT : int {
@@ -199,4 +199,4 @@ namespace bee {
 	};
 }
 
-#endif // _BEE_ENUM_H
+#endif // BEE_ENUM_H

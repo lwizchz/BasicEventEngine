@@ -6,8 +6,8 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_UTIL
-#define _BEE_UTIL 1
+#ifndef BEE_UTIL
+#define BEE_UTIL 1
 
 #include "util.hpp" // Include the function declarations
 
@@ -378,4 +378,4 @@ bool verify_assertions() {
 	return verify_assertions(0, (char**)nullptr);
 }
 
-#endif // _BEE_UTIL
+#endif // BEE_UTIL

@@ -6,10 +6,16 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_RENDER_PARTICLEDATA
-#define _BEE_RENDER_PARTICLEDATA 1
+#ifndef BEE_RENDER_PARTICLEDATA
+#define BEE_RENDER_PARTICLEDATA 1
 
 #include "particledata.hpp"
+
+#include "particle.hpp"
+
+#include "../../util/real.hpp"
+
+#include "../../resources/sprite.hpp"
 
 namespace bee {
 	ParticleData::ParticleData(Particle* new_particle_type, int new_x, int new_y, Uint32 now) :
@@ -84,4 +90,4 @@ namespace bee {
 	}
 }
 
-#endif // _BEE_RENDER_PARTICLEDATA
+#endif // BEE_RENDER_PARTICLEDATA

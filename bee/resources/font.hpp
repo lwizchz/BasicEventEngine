@@ -6,15 +6,20 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_FONT_H
-#define _BEE_FONT_H 1
+#ifndef BEE_FONT_H
+#define BEE_FONT_H 1
 
-#include <iostream> // Include the required library headers
-#include <map>
+#include <map> // Include the required library headers
 
-#include "../engine.hpp" // Include the engine headers
+#include <SDL2/SDL_ttf.h>
+
+#include "../resources.hpp"
+
+#include "../render/rgba.hpp"
 
 namespace bee {
+	class Sprite;
+
 	struct TextData { // The data struct which is used to pass reusable texture data to Font::draw()
 		std::map<int,Sprite*> sprites; // A map of temporary pre-rendered sprites for each line of the text
 		std::string text; // The string of text that has been rendered
@@ -86,4 +91,4 @@ namespace bee {
 	};
 }
 
-#endif // _BEE_FONT_H
+#endif // BEE_FONT_H

@@ -6,12 +6,12 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_RENDER_VIEWDATA_H
-#define _BEE_RENDER_VIEWDATA_H 1
-
-#include "../engine.hpp"
+#ifndef BEE_RENDER_VIEWDATA_H
+#define BEE_RENDER_VIEWDATA_H 1
 
 namespace bee {
+	class Instance;
+
 	struct ViewData {
 		bool is_visible;
 
@@ -27,4 +27,4 @@ namespace bee {
 	};
 }
 
-#endif // _BEE_RENDER_VIEWDATA_H
+#endif // BEE_RENDER_VIEWDATA_H

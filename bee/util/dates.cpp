@@ -6,12 +6,19 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_UTIL_DATES
-#define _BEE_UTIL_DATES 1
+#ifndef BEE_UTIL_DATES
+#define BEE_UTIL_DATES 1
 
 // Date and time functions
 
+#include <iostream>
+#include <cmath>
+#include <chrono>
+
 #include "dates.hpp" // Include the function definitions
+
+#include "platform.hpp" // Include the required DST Windows functions
+#include "real.hpp" // Include the required real number functions
 
 /*
 * date_date_of() - Return a timestamp corresponding to the given timestamp's date
@@ -506,9 +513,9 @@ double stopwatch(std::string name, std::function<void()> func) {
 	auto end = std::chrono::high_resolution_clock::now(); // Store the new current time
 	double elapsed_ms = std::chrono::duration<double,std::milli>(end-start).count(); // Calculate the elapsed time
 
-	std::cout << "The function \"" << name << "\" finished in " << elapsed_ms << "ms.\n"; // Output the function name and elapsed time
+	std::cout << "UTIL The function \"" << name << "\" finished in " << elapsed_ms << "ms.\n"; // Output the function name and elapsed time
 
 	return elapsed_ms; // Return the elapsed time
 }
 
-#endif // _BEE_UTIL_DATES
+#endif // BEE_UTIL_DATES

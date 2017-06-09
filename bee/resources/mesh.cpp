@@ -6,10 +6,32 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_MESH
-#define _BEE_MESH 1
+#ifndef BEE_MESH
+#define BEE_MESH 1
+
+#include <sstream>
+
+#include <SDL2/SDL_image.h>
+
+#include <GL/glew.h> // Include the required OpenGL headers
+#include <SDL2/SDL_opengl.h>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#include <assimp/cimport.h>
+#include <assimp/postprocess.h>
 
 #include "mesh.hpp"
+
+#include "../engine.hpp"
+
+#include "../util/real.hpp"
+
+#include "../init/gameoptions.hpp"
+
+#include "../core/enginestate.hpp"
+
+#include "../render/renderer.hpp"
 
 namespace bee {
 	Mesh::Mesh () {
@@ -83,7 +105,7 @@ namespace bee {
 
 	int Mesh::load() {
 		if (!is_loaded) {
-			if (engine.options->renderer_type != E_RENDERER::SDL) {
+			if (engine->options->renderer_type != E_RENDERER::SDL) {
 				scene = aiImportFile(path.c_str(), aiProcessPreset_TargetRealtime_MaxQuality);
 				if (scene == nullptr) {
 					messenger_send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to load mesh \"" + name + "\": " + aiGetErrorString());
@@ -132,20 +154,20 @@ namespace bee {
 				glGenBuffers(1, &vbo_vertices);
 				glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
 				glBufferData(GL_ARRAY_BUFFER, 3 * vertex_amount * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
-				glVertexAttribPointer(engine.renderer->vertex_location, 3, GL_FLOAT, GL_FALSE, 0, 0);
-				glEnableVertexAttribArray(engine.renderer->vertex_location);
+				glVertexAttribPointer(engine->renderer->vertex_location, 3, GL_FLOAT, GL_FALSE, 0, 0);
+				glEnableVertexAttribArray(engine->renderer->vertex_location);
 
 				glGenBuffers(1, &vbo_normals);
 				glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
 				glBufferData(GL_ARRAY_BUFFER, 3 * vertex_amount * sizeof(GLfloat), normals, GL_STATIC_DRAW);
-				glVertexAttribPointer(engine.renderer->normal_location, 3, GL_FLOAT, GL_FALSE, 0, 0);
-				glEnableVertexAttribArray(engine.renderer->normal_location);
+				glVertexAttribPointer(engine->renderer->normal_location, 3, GL_FLOAT, GL_FALSE, 0, 0);
+				glEnableVertexAttribArray(engine->renderer->normal_location);
 
 				glGenBuffers(1, &vbo_texcoords);
 				glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords);
 				glBufferData(GL_ARRAY_BUFFER, 2 * vertex_amount * sizeof(GLfloat), uv_array, GL_STATIC_DRAW);
-				glVertexAttribPointer(engine.renderer->fragment_location, 2, GL_FLOAT, GL_FALSE, 0, 0);
-				glEnableVertexAttribArray(engine.renderer->fragment_location);
+				glVertexAttribPointer(engine->renderer->fragment_location, 2, GL_FLOAT, GL_FALSE, 0, 0);
+				glEnableVertexAttribArray(engine->renderer->fragment_location);
 
 				glGenBuffers(1, &ibo);
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
@@ -236,15 +258,15 @@ namespace bee {
 		glBindVertexArray(vao);
 
 		if (has_texture) {
-			glUniform1i(engine.renderer->texture_location, 0);
+			glUniform1i(engine->renderer->texture_location, 0);
 			glBindTexture(GL_TEXTURE_2D, gl_texture);
 		} else {
-			glUniform1i(engine.renderer->primitive_location, 1);
+			glUniform1i(engine->renderer->primitive_location, 1);
 		}
 
 		glm::mat4 model = glm::translate(glm::mat4(1.0f), pos);
 		model = glm::scale(model, scale);
-		glUniformMatrix4fv(engine.renderer->model_location, 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(engine->renderer->model_location, 1, GL_FALSE, glm::value_ptr(model));
 		glm::mat4 rotation = glm::mat4(1.0f);
 		if (rotate.x != 0.0) {
 			rotation = glm::rotate(rotation, (float)degtorad(rotate.x), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -255,19 +277,19 @@ namespace bee {
 		if (rotate.z != 0.0) {
 			rotation = glm::rotate(rotation, (float)degtorad(rotate.z), glm::vec3(0.0f, 0.0f, 1.0f));
 		}
-		glUniformMatrix4fv(engine.renderer->rotation_location, 1, GL_FALSE, glm::value_ptr(rotation));
+		glUniformMatrix4fv(engine->renderer->rotation_location, 1, GL_FALSE, glm::value_ptr(rotation));
 
 		glm::vec4 c = glm::vec4((float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f, (float)color.a/255.0f);
-		glUniform4fv(engine.renderer->colorize_location, 1, glm::value_ptr(c));
+		glUniform4fv(engine->renderer->colorize_location, 1, glm::value_ptr(c));
 
 		if (is_wireframe) {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		}
 
 		// Bind the vertices to fix disruption from primitive drawing
-		glEnableVertexAttribArray(engine.renderer->vertex_location);
+		glEnableVertexAttribArray(engine->renderer->vertex_location);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
-		glVertexAttribPointer(engine.renderer->vertex_location, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glVertexAttribPointer(engine->renderer->vertex_location, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 		int size;
@@ -286,12 +308,12 @@ namespace bee {
 			draw_triangle(glm::vec3(vert1[0], vert1[1], vert1[2]), glm::vec3(vert2[0], vert2[1], vert2[2]), glm::vec3(vert3[0], vert3[1], vert3[2]), {255, 0, 0, 255}, !is_wireframe);
 		}*/
 
-		glUniformMatrix4fv(engine.renderer->model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
-		glUniformMatrix4fv(engine.renderer->rotation_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
+		glUniformMatrix4fv(engine->renderer->model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
+		glUniformMatrix4fv(engine->renderer->rotation_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 		glBindTexture(GL_TEXTURE_2D, 0);
-		glUniform1i(engine.renderer->primitive_location, 0);
+		glUniform1i(engine->renderer->primitive_location, 0);
 
 		glBindVertexArray(0);
 
@@ -305,4 +327,4 @@ namespace bee {
 	}
 }
 
-#endif // _BEE_MESH
+#endif // BEE_MESH

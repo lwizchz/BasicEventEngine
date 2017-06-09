@@ -6,15 +6,19 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_TIMELINE_H
-#define _BEE_TIMELINE_H 1
+#ifndef BEE_TIMELINE_H
+#define BEE_TIMELINE_H 1
 
 #include <map>
 #include <functional>
 
-#include "../engine.hpp"
+#include <SDL2/SDL.h> // Include the required SDL headers
+
+#include "../resources.hpp"
 
 namespace bee {
+	typedef std::multimap<Uint32, std::pair<std::string,std::function<void()>>> timeline_list_t;
+
 	class Timeline: public Resource {
 			// Add new variables to the print() debugging method
 			int id = -1;
@@ -63,4 +67,4 @@ namespace bee {
 	};
 }
 
-#endif // _BEE_TIMELINE_H
+#endif // BEE_TIMELINE_H

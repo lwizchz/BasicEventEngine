@@ -6,12 +6,13 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_BACKGROUND_H
-#define _BEE_BACKGROUND_H 1
+#ifndef BEE_BACKGROUND_H
+#define BEE_BACKGROUND_H 1
 
-#include "../engine.hpp" // Include the engine headers
+#include "../resources.hpp"
 
 namespace bee {
+	class Background;
 	struct BackgroundData { // The data struct which is used to pass data to the Room class in bee/resources/room.hpp
 		Background* background = nullptr; // A pointer to the background to use this data with
 		bool is_visible = false; // Whether to draw the background
@@ -89,4 +90,4 @@ namespace bee {
 	};
 }
 
-#endif // _BEE_BACKGROUND_H
+#endif // BEE_BACKGROUND_H

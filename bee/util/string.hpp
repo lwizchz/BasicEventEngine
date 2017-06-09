@@ -6,15 +6,14 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_UTIL_STRING_H
-#define _BEE_UTIL_STRING_H 1
+#ifndef BEE_UTIL_STRING_H
+#define BEE_UTIL_STRING_H 1
 
 #include <string> // Include the required library headers
-#include <algorithm>
-#include <regex>
 #include <map>
+#include <vector>
 
-#include <SDL2/SDL.h> // Include the SDL2 headers for clipboard access
+#include <SDL2/SDL.h> // Include the SDL2 headers for clipboard access and the Uint8 type
 
 std::string chr(int);
 int ord(char);
@@ -46,4 +45,4 @@ bool clipboard_has_text();
 std::string clipboard_get_text();
 int clipboard_set_text(const std::string&);
 
-#endif // _BEE_UTIL_STRING_H
+#endif // BEE_UTIL_STRING_H

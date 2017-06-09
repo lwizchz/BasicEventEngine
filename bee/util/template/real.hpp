@@ -6,8 +6,8 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_UTIL_TEMPLATE_REAL_H
-#define _BEE_UTIL_TEMPLATE_REAL_H 1
+#ifndef BEE_UTIL_TEMPLATE_REAL_H
+#define BEE_UTIL_TEMPLATE_REAL_H 1
 
 // Real template-requiring functions
 
@@ -15,6 +15,8 @@
 #include <vector>
 #include <algorithm>
 #include <sstream>
+
+#include "../real.hpp"
 
 /*
 * choose() - Return a random value from the given arguments
@@ -99,4 +101,4 @@ T median(Args&&... args) {
 	}
 }
 
-#endif // _BEE_UTIL_TEMPLATE_REAL_H
+#endif // BEE_UTIL_TEMPLATE_REAL_H

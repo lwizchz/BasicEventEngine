@@ -6,104 +6,65 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_ENGINE
-#define _BEE_ENGINE 1
+#ifndef BEE_ENGINE
+#define BEE_ENGINE 1
+
+#include <SDL2/SDL_image.h> // Include the required SDL headers
+#include <SDL2/SDL_mixer.h>
 
 #include "engine.hpp" // Include the engine headers
 
+#include "debug.hpp"
+#include "util.hpp"
+#include "enum.hpp"
+#include "resources.hpp"
+
+#include "init/gameoptions.hpp"
+#include "core/console.hpp"
+#include "core/enginestate.hpp"
+#include "core/network/networkdata.hpp"
+#include "render/renderer.hpp"
+
+#include "resources/sprite.hpp"
+#include "resources/font.hpp"
+#include "resources/room.hpp"
+
 namespace bee {
-	EngineData engine = EngineData();
+	EngineState* engine = nullptr;
 	MetaResourceList* resource_list = nullptr;
 	bool is_initialized = false;
 
-	EngineData::EngineData() :
-		argc(0),
-		argv(nullptr),
-		flags(),
-		options(nullptr),
-
-		quit(false),
-		is_ready(false),
-		is_paused(false),
-
-		first_room(nullptr),
-		current_room(nullptr),
-
-		width(DEFAULT_WINDOW_WIDTH),
-		height(DEFAULT_WINDOW_HEIGHT),
-		cursor(nullptr),
-
-		renderer(new Renderer()),
-
-		color(new RGBA()),
-		font_default(nullptr),
-
-		has_mouse(false),
-		has_focus(false),
-
-		tickstamp(0),
-		new_tickstamp(0),
-		fps_ticks(0),
-		tick_delta(0),
-
-		net(new NetworkData()),
-
-		volume(1.0),
-
-		fps_goal(DEFAULT_GAME_FPS),
-		fps_max(300),
-		//fps_max(fps_goal),
-		fps_unfocused(fps_max/20),
-		fps_count(0),
-		frame_number(0),
-
-		texture_before(nullptr),
-		texture_after(nullptr),
-		transition_type(E_TRANSITION::NONE),
-		transition_speed(1024.0/DEFAULT_GAME_FPS),
-		transition_custom_func(nullptr),
-
-		keystrings_keys(),
-		keystrings_strings(),
-
-		commandline_input(),
-		commandline_current(0),
-
-		recipients(),
-		protected_tags({"engine", "console"}),
-		messages(),
-		messenger_output_level(E_OUTPUT::NORMAL),
-
-		console(nullptr),
-
-		fps_stable(0)
-	{}
-
 	int init(int argc, char** argv, const std::list<ProgramFlags*>& new_flags, Room** new_first_room, GameOptions* new_options) {
+		engine = new EngineState();
+		engine->argc = argc;
+		engine->argv = argv;
+		engine->options = new_options;
+
+		if (handle_flags(new_flags, true) < 0) {
+			return 1; // Return 1 when the flags request to exit
+		}
+
 		messenger_send({"engine", "init"}, E_MESSAGE::INFO,
-			"Initializing BasicEventEngine v" +
+			"Initializing with BasicEventEngine v" +
 			std::to_string(BEE_VERSION_MAJOR) + "." + std::to_string(BEE_VERSION_MINOR) + "." + std::to_string(BEE_VERSION_RELEASE)
 		);
 
-		engine.argc = argc;
-		engine.argv = argv;
-		handle_flags(new_flags, true);
-
-		engine.options = new_options;
-		if (engine.options->should_assert) {
+		if (engine->options->should_assert) {
 			if (!verify_assertions(argc, argv)) {
-				throw std::string("Couldn't verify assertions\n");
+				messenger_send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't verify assertions");
+				return 2; // Return 2 when assertions could not be verified
 			}
 		}
 
 		net_init();
 
 		if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
-			throw "Couldn't init SDL: " + get_sdl_error() + "\n";
+			messenger_send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't init SDL: " + get_sdl_error());
+			return 3; // Return 3 when SDL couldn't be initialized
 		}
 
 		// Use the highest version of OpenGL available
-		switch (engine.options->renderer_type) {
+		switch (engine->options->renderer_type) {
 			case E_RENDERER::OPENGL4: {
 				if (GL_VERSION_4_1) { // FIXME: Properly test for opengl support
 					SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
@@ -124,67 +85,71 @@ namespace bee {
 			}
 			case E_RENDERER::SDL:
 			default: {
-				engine.options->renderer_type = E_RENDERER::SDL;
+				engine->options->renderer_type = E_RENDERER::SDL;
 			}
 		}
 
 		int window_flags = SDL_WINDOW_OPENGL;
-		if (engine.options->is_fullscreen) {
+		if (engine->options->is_fullscreen) {
 			window_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 		}
-		if (engine.options->is_borderless) {
+		if (engine->options->is_borderless) {
 			window_flags |= SDL_WINDOW_BORDERLESS;
 		}
-		if (engine.options->is_resizable) {
+		if (engine->options->is_resizable) {
 			window_flags |= SDL_WINDOW_RESIZABLE;
 		}
-		if (engine.options->is_maximized) {
+		if (engine->options->is_maximized) {
 			window_flags |= SDL_WINDOW_MAXIMIZED;
 		}
-		if (engine.options->is_highdpi) {
+		if (engine->options->is_highdpi) {
 			window_flags |= SDL_WINDOW_ALLOW_HIGHDPI;
 		}
-		if (engine.options->is_visible) {
+		if (engine->options->is_visible) {
 			window_flags |= SDL_WINDOW_SHOWN;
 		}
-		engine.renderer->window = SDL_CreateWindow("BasicEventEngine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, engine.width, engine.height, window_flags);
-		if (engine.renderer->window == nullptr) {
-			throw "Couldn't create SDL window: " + get_sdl_error() + "\n";
+		engine->renderer->window = SDL_CreateWindow("BasicEventEngine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, engine->width, engine->height, window_flags);
+		if (engine->renderer->window == nullptr) {
+			messenger_send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't create SDL window: " + get_sdl_error());
+			return 4; // Return 4 when the window could not be created
 		}
-		if (engine.options->is_minimized) {
-			SDL_MinimizeWindow(engine.renderer->window);
+		if (engine->options->is_minimized) {
+			SDL_MinimizeWindow(engine->renderer->window);
 		}
 
-		engine.cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
-		SDL_SetCursor(engine.cursor);
+		engine->cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
+		SDL_SetCursor(engine->cursor);
 
-		engine.keystate = SDL_GetKeyboardState(nullptr);
+		engine->keystate = SDL_GetKeyboardState(nullptr);
 		keystrings_populate();
 
-		try {
-			if (engine.options->renderer_type != E_RENDERER::SDL) {
-				engine.renderer->opengl_init();
-			} else { // if not OpenGL, init an SDL renderer
-				engine.renderer->sdl_renderer_init();
+		if (engine->options->renderer_type != E_RENDERER::SDL) {
+			if (engine->renderer->opengl_init()) {
+				messenger_send({"engine", "init"}, E_MESSAGE::ERROR, "Could not initialize the OpenGL renderer");
+				return 5; // Return 5 when the renderer could not be initialized
 			}
-		} catch (const std::string& e) {
-			messenger_send({"engine", "init"}, E_MESSAGE::ERROR, e);
-			handle_messages();
-			std::rethrow_exception(std::current_exception());
+		} else { // if not OpenGL, init an SDL renderer
+			if (engine->renderer->sdl_renderer_init()) {
+				messenger_send({"engine", "init"}, E_MESSAGE::ERROR, "Could not initialized the SDL renderer");
+				return 5; // Return 5 when the renderer could not be initialized
+			}
 		}
 
 		int img_flags = IMG_INIT_PNG | IMG_INIT_JPG;
 		if (!(IMG_Init(img_flags) & img_flags)) {
-			throw std::string("Couldn't init SDL_image: ") + IMG_GetError() + "\n";
+			messenger_send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't init SDL_image: " + std::string(IMG_GetError()));
+			return 6; // Return 6 when SDL_image could not be initialized
 		}
 
 		if (TTF_Init() == -1) {
-			throw std::string("Couldn't init SDL_ttf: ") + TTF_GetError() + "\n";
+			messenger_send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't init SDL_ttf: " + std::string(TTF_GetError()));
+			return 7; // Return 7 when SDL_ttf could not be initialized
 		}
 
 		Mix_SetSoundFonts(""); // This will disable MIDI but fixes a small error when not including a soundfont
 		if (Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 1024) < 0) {
-			throw std::string("Couldn't init SDL_mixer: ") + Mix_GetError() + "\n";
+			messenger_send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't init SDL_mixer: " + std::string(Mix_GetError()));
+			return 8; // Return 8 when SDL_mixer could not be initialized
 		}
 		Mix_ChannelFinished(sound_finished);
 		Mix_AllocateChannels(128); // Probably overkill
@@ -192,88 +157,39 @@ namespace bee {
 		if (!is_initialized) {
 			resource_list = new MetaResourceList();
 			if (init_resources()) {
-				throw std::string("Couldn't init resources\n");
+				messenger_send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't init resources");
+				return 9; // Return 9 when the resources could not be initialized
 			}
 		}
 
-		engine.texture_before = new Sprite();
-		engine.texture_after = new Sprite();
+		engine->texture_before = new Sprite();
+		engine->texture_after = new Sprite();
 
-		engine.font_default = new Font("font_default", "liberation_mono.ttf", 16, false);
-			engine.font_default->load();
+		engine->font_default = new Font("font_default", "liberation_mono.ttf", 16, false);
+			engine->font_default->load();
 
 		handle_messages();
-		engine.console = new Console(); // Initialize the default console commands
+		engine->console = new Console(); // Initialize the default console commands
 		console_init_commands();
 		handle_messages();
 
 		if (*new_first_room != nullptr) {
 			if (change_room(*new_first_room, false)) {
-				throw std::string("Couldn't load first room\n");
+				messenger_send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't load first room");
+				return 10; // Return 10 when the first room could not be loaded
 			}
 		}
 
-		handle_flags(new_flags, false);
-
-		return 0;
-	}
-	int handle_flags(const std::list<ProgramFlags*>& new_flags, bool pre_init) {
-		engine.flags = new_flags;
-
-		if (engine.flags.empty()) {
-			return 0;
+		if (handle_flags(new_flags, false) < 0) {
+			return 1; // Return 1 when the flags request to exit
 		}
+		handle_messages();
 
-		int l = 0;
-		struct option* long_options = new struct option[engine.flags.size()+1];
-		std::string optstring = "";
-		for (auto& f : engine.flags) {
-			if (f->shortopt > 0) {
-				optstring += f->shortopt;
-				if (f->has_arg == optional_argument) {
-					optstring += "::";
-				} else if (f->has_arg == required_argument) {
-					optstring += ":";
-				}
-			}
-
-			long_options[l].name = f->longopt.c_str();
-			long_options[l].has_arg = f->has_arg;
-			long_options[l].flag = nullptr;
-			long_options[l].val = f->shortopt;
-			l++;
-		}
-		long_options[l++] = {0, 0, 0, 0};
-
-		optind = 1;
-		int index = -1;
-		int c = -1;
-		int amount = 0;
-		while ((c = getopt_long(engine.argc, engine.argv, optstring.c_str(), long_options, &index)) != -1) {
-			for (auto& f : engine.flags) {
-				if (((c != 0)&&(c == f->shortopt))||((c == 0)&&(strcmp(long_options[index].name, f->longopt.c_str()) == 0))) {
-					if (f->pre_init == pre_init) {
-						if (f->func != nullptr) {
-							if ((f->has_arg != no_argument)&&(optarg)) {
-								f->func(optarg);
-							} else {
-								f->func((char*)nullptr);
-							}
-						}
-						amount++;
-					}
-					break;
-				}
-			}
-		}
-
-		delete[] long_options;
-
-		return amount;
+		return 0; // Return 0 on success
 	}
 	int loop() {
-		engine.tickstamp = get_ticks();
-		engine.fps_ticks = get_ticks();
+		engine->tickstamp = get_ticks();
+		engine->fps_ticks = get_ticks();
 
 		messenger_send({"engine"}, E_MESSAGE::START, "gameloop");
 		handle_messages();
@@ -283,83 +199,83 @@ namespace bee {
 			std::cout << "[" << msg->descr << "]\n";
 		});
 
-		while (!engine.quit) {
-			if (engine.current_room == nullptr) {
+		while (!engine->quit) {
+			if (engine->current_room == nullptr) {
 				messenger_send({"engine"}, E_MESSAGE::ERROR, "Aborted event loop because current_room == nullptr");
 				return 1;
 			}
 
 			try {
-				engine.current_room->step_begin();
-				engine.current_room->check_alarms();
+				engine->current_room->step_begin();
+				engine->current_room->check_alarms();
 
 				SDL_Event event;
 				while (SDL_PollEvent(&event)) {
 					switch (event.type) {
 						case SDL_QUIT: {
-							engine.quit = true;
+							engine->quit = true;
 							break;
 						}
 						case SDL_WINDOWEVENT: {
 							switch (event.window.event) {
 								case SDL_WINDOWEVENT_SHOWN: {
 									render_set_camera(nullptr);
-									engine.renderer->render();
-									engine.has_focus = true;
+									engine->renderer->render();
+									engine->has_focus = true;
 									break;
 								}
 								case SDL_WINDOWEVENT_HIDDEN: {
-									engine.has_focus = false;
+									engine->has_focus = false;
 									break;
 								}
 								case SDL_WINDOWEVENT_EXPOSED: {
-									engine.renderer->render();
+									engine->renderer->render();
 									break;
 								}
 								case SDL_WINDOWEVENT_MOVED: {
 									break;
 								}
 								case SDL_WINDOWEVENT_RESIZED: {
-									engine.width = event.window.data1;
-									engine.height = event.window.data2;
+									engine->width = event.window.data1;
+									engine->height = event.window.data2;
 									render_set_camera(nullptr);
-									engine.renderer->render();
+									engine->renderer->render();
 									break;
 								}
 								case SDL_WINDOWEVENT_SIZE_CHANGED: {
-									engine.renderer->render();
+									engine->renderer->render();
 									break;
 								}
 								case SDL_WINDOWEVENT_MINIMIZED: {
-									engine.options->is_minimized = true;
-									engine.has_mouse = false;
-									engine.has_focus = false;
+									engine->options->is_minimized = true;
+									engine->has_mouse = false;
+									engine->has_focus = false;
 									break;
 								}
 								case SDL_WINDOWEVENT_MAXIMIZED: {
-									engine.options->is_minimized = false;
-									engine.has_focus = true;
+									engine->options->is_minimized = false;
+									engine->has_focus = true;
 									break;
 								}
 								case SDL_WINDOWEVENT_RESTORED: {
-									engine.options->is_minimized = false;
-									engine.has_focus = true;
+									engine->options->is_minimized = false;
+									engine->has_focus = true;
 									break;
 								}
 								case SDL_WINDOWEVENT_ENTER: {
-									engine.has_mouse = true;
+									engine->has_mouse = true;
 									break;
 								}
 								case SDL_WINDOWEVENT_LEAVE: {
-									engine.has_mouse = false;
+									engine->has_mouse = false;
 									break;
 								}
 								case SDL_WINDOWEVENT_FOCUS_GAINED: {
-									engine.has_focus = true;
+									engine->has_focus = true;
 									break;
 								}
 								case SDL_WINDOWEVENT_FOCUS_LOST: {
-									engine.has_focus = false;
+									engine->has_focus = false;
 									break;
 								}
 								case SDL_WINDOWEVENT_CLOSE: {
@@ -370,7 +286,7 @@ namespace bee {
 								}
 								#if SDL_VERSION_ATLEAST(2, 0, 5)
 									case SDL_WINDOWEVENT_TAKE_FOCUS:
-										SDL_SetWindowInputFocus(engine.renderer->window);
+										SDL_SetWindowInputFocus(engine->renderer->window);
 										break;
 									case SDL_WINDOWEVENT_HIT_TEST:
 										break;
@@ -380,7 +296,7 @@ namespace bee {
 									break;
 								}
 							}
-							engine.current_room->window(&event);
+							engine->current_room->window(&event);
 							break;
 						}
 
@@ -388,45 +304,45 @@ namespace bee {
 							console_handle_input(&event);
 
 							if (event.key.repeat == 0) {
-								engine.current_room->keyboard_press(&event);
+								engine->current_room->keyboard_press(&event);
 							}
-							engine.current_room->keyboard_input(&event);
+							engine->current_room->keyboard_input(&event);
 
 							break;
 						}
 						case SDL_KEYUP: {
-							engine.current_room->keyboard_release(&event);
+							engine->current_room->keyboard_release(&event);
 							break;
 						}
 						case SDL_MOUSEMOTION:
 						case SDL_MOUSEWHEEL: {
-							engine.current_room->mouse_input(&event);
+							engine->current_room->mouse_input(&event);
 							break;
 						}
 						case SDL_MOUSEBUTTONDOWN: {
-							engine.current_room->mouse_press(&event);
+							engine->current_room->mouse_press(&event);
 							break;
 						}
 						case SDL_MOUSEBUTTONUP: {
-							engine.current_room->mouse_release(&event);
+							engine->current_room->mouse_release(&event);
 							break;
 						}
 						case SDL_CONTROLLERAXISMOTION: {
-							engine.current_room->controller_axis(&event);
+							engine->current_room->controller_axis(&event);
 							break;
 						}
 						case SDL_CONTROLLERBUTTONDOWN: {
-							engine.current_room->controller_press(&event);
+							engine->current_room->controller_press(&event);
 							break;
 						}
 						case SDL_CONTROLLERBUTTONUP: {
-							engine.current_room->controller_release(&event);
+							engine->current_room->controller_release(&event);
 							break;
 						}
 						case SDL_CONTROLLERDEVICEADDED:
 						case SDL_CONTROLLERDEVICEREMOVED:
 						case SDL_CONTROLLERDEVICEREMAPPED: {
-							engine.current_room->controller_modify(&event);
+							engine->current_room->controller_modify(&event);
 							break;
 						}
 
@@ -461,54 +377,54 @@ namespace bee {
 					}
 				}
 				if (bee_has_commandline_input()) {
-					engine.commandline_input.push_back("");
-					std::getline(std::cin, engine.commandline_input[engine.commandline_current]);
-					if (engine.commandline_input[engine.commandline_current] == "") {
-						engine.commandline_input.pop_back();
+					engine->commandline_input.push_back("");
+					std::getline(std::cin, engine->commandline_input[engine->commandline_current]);
+					if (engine->commandline_input[engine->commandline_current] == "") {
+						engine->commandline_input.pop_back();
 					} else {
-						messenger_send({"engine", "commandline"}, E_MESSAGE::INFO, engine.commandline_input[engine.commandline_current]);
-						engine.current_room->commandline_input(engine.commandline_input[engine.commandline_current++]);
+						messenger_send({"engine", "commandline"}, E_MESSAGE::INFO, engine->commandline_input[engine->commandline_current]);
+						engine->current_room->commandline_input(engine->commandline_input[engine->commandline_current++]);
 					}
 				}
 
-				engine.current_room->step_mid();
-				engine.current_room->check_paths();
-				engine.current_room->outside_room();
-				engine.current_room->intersect_boundary();
-				engine.current_room->collision();
+				engine->current_room->step_mid();
+				engine->current_room->check_paths();
+				engine->current_room->outside_room();
+				engine->current_room->intersect_boundary();
+				engine->current_room->collision();
 
-				engine.current_room->step_end();
-				engine.current_room->draw();
-				engine.current_room->animation_end();
-				engine.current_room->destroy();
+				engine->current_room->step_end();
+				engine->current_room->draw();
+				engine->current_room->animation_end();
+				engine->current_room->destroy();
 
 				net_handle_events();
 				handle_messages();
 
-				engine.fps_count++;
-				engine.frame_number++;
-				engine.new_tickstamp = get_ticks();
-				unsigned int fps_desired = engine.fps_max;
-				if (!engine.has_focus) {
-					fps_desired = engine.fps_unfocused;
+				engine->fps_count++;
+				engine->frame_number++;
+				engine->new_tickstamp = get_ticks();
+				unsigned int fps_desired = engine->fps_max;
+				if (!engine->has_focus) {
+					fps_desired = engine->fps_unfocused;
 				}
-				if (engine.new_tickstamp - engine.tickstamp < 1000/fps_desired) {
-					if ((!engine.options->is_vsync_enabled)||(!engine.has_focus)) {
-						SDL_Delay((1000/fps_desired) - (engine.new_tickstamp - engine.tickstamp));
+				if (engine->new_tickstamp - engine->tickstamp < 1000/fps_desired) {
+					if ((!engine->options->is_vsync_enabled)||(!engine->has_focus)) {
+						SDL_Delay((1000/fps_desired) - (engine->new_tickstamp - engine->tickstamp));
 					}
 				}
 				update_delta();
 
-				if (engine.tickstamp - engine.fps_ticks >= 1000) {
-					engine.fps_stable = engine.fps_count / ((engine.tickstamp-engine.fps_ticks)/1000);
-					engine.fps_count = 0;
-					engine.fps_ticks = engine.tickstamp;
+				if (engine->tickstamp - engine->fps_ticks >= 1000) {
+					engine->fps_stable = engine->fps_count / ((engine->tickstamp-engine->fps_ticks)/1000);
+					engine->fps_count = 0;
+					engine->fps_ticks = engine->tickstamp;
 				}
 
-				if (engine.options->single_run) {
-					engine.current_room->draw();
+				if (engine->options->single_run) {
+					engine->current_room->draw();
 					save_screenshot("single_run.bmp");
-					engine.quit = true;
+					engine->quit = true;
 				}
 			} catch (int e) {
 				switch (e) {
@@ -520,15 +436,15 @@ namespace bee {
 						break;
 					}
 					case 1: { // Quit
-						engine.quit = true;
+						engine->quit = true;
 						break;
 					}
 					case 2: { // Restart game
-						change_room(engine.first_room, false);
+						change_room(engine->first_room, false);
 						break;
 					}
 					case 3: { // Restart room
-						change_room(engine.current_room, false);
+						change_room(engine->current_room, false);
 						break;
 					}
 					default: {
@@ -539,20 +455,23 @@ namespace bee {
 			} catch (...) {
 				close();
 
-				bee_commandline_color(9);
-				std::cout << "Unknown error\n";
-				bee_commandline_color_reset();
-				std::flush(std::cout);
+				messenger_send_urgent(std::shared_ptr<MessageContents>(new MessageContents(
+					get_ticks(),
+					{"engine"},
+					E_MESSAGE::ERROR,
+					"Unknown error",
+					nullptr
+				)));
 
 				std::rethrow_exception(std::current_exception());
 			}
 		}
 		messenger_send({"engine"}, E_MESSAGE::END, "gameloop");
 
-		engine.current_room->room_end();
-		engine.current_room->game_end();
+		engine->current_room->room_end();
+		engine->current_room->game_end();
 		change_room(nullptr, false);
-		engine.is_ready = false;
+		engine->is_ready = false;
 
 		return 0;
 	}
@@ -566,39 +485,39 @@ namespace bee {
 			close_resources();
 		}
 
-		if (engine.font_default != nullptr) {
-			delete engine.font_default;
-			engine.font_default = nullptr;
+		if (engine->font_default != nullptr) {
+			delete engine->font_default;
+			engine->font_default = nullptr;
 		}
 
-		if (engine.texture_before != nullptr) {
-			engine.texture_before->free();
-			delete engine.texture_before;
-			engine.texture_before = nullptr;
+		if (engine->texture_before != nullptr) {
+			engine->texture_before->free();
+			delete engine->texture_before;
+			engine->texture_before = nullptr;
 		}
-		if (engine.texture_after != nullptr) {
-			engine.texture_after->free();
-			delete engine.texture_after;
-			engine.texture_after = nullptr;
-		}
-
-		if (engine.color != nullptr) {
-			delete engine.color;
-			engine.color = nullptr;
+		if (engine->texture_after != nullptr) {
+			engine->texture_after->free();
+			delete engine->texture_after;
+			engine->texture_after = nullptr;
 		}
 
-		if (engine.renderer != nullptr) {
-			delete engine.renderer;
-			engine.renderer = nullptr;
-		}
-		if (engine.cursor != nullptr) {
-			SDL_FreeCursor(engine.cursor);
-			engine.cursor = nullptr;
+		if (engine->color != nullptr) {
+			delete engine->color;
+			engine->color = nullptr;
 		}
 
-		if (engine.console != nullptr) {
-			delete engine.console;
-			engine.console = nullptr;
+		if (engine->renderer != nullptr) {
+			delete engine->renderer;
+			engine->renderer = nullptr;
+		}
+		if (engine->cursor != nullptr) {
+			SDL_FreeCursor(engine->cursor);
+			engine->cursor = nullptr;
+		}
+
+		if (engine->console != nullptr) {
+			delete engine->console;
+			engine->console = nullptr;
 		}
 
 		Mix_CloseAudio();
@@ -606,10 +525,10 @@ namespace bee {
 		IMG_Quit();
 		SDL_Quit();
 
-		if (engine.net != nullptr) {
+		if (engine->net != nullptr) {
 			net_close();
-			delete engine.net;
-			engine.net = nullptr;
+			delete engine->net;
+			engine->net = nullptr;
 		}
 
 		if (resource_list != nullptr) {
@@ -620,18 +539,18 @@ namespace bee {
 
 		free_standard_flags();
 
+		if (engine != nullptr) {
+			delete engine;
+		}
+
+		handle_messages();
+
 		return 0;
 	}
-}
 
-#ifndef _WIN32
-#include "core/resources.cpp"
-#endif // _WIN32
-
-namespace bee {
 	int update_delta() {
-		engine.tick_delta = get_ticks() - engine.tickstamp;
-		engine.tickstamp = get_ticks();
+		engine->tick_delta = get_ticks() - engine->tickstamp;
+		engine->tickstamp = get_ticks();
 		return 0;
 	}
 	Uint32 get_ticks() {
@@ -641,16 +560,16 @@ namespace bee {
 		return get_ticks()/1000;
 	}
 	Uint32 get_frame() {
-		return engine.frame_number;
+		return engine->frame_number;
 	}
 	double get_delta() {
 		return max<double>((double)get_tick_delta(), 1.0) / 1000.0;
 	}
 	Uint32 get_tick_delta() {
-		return engine.tick_delta;
+		return engine->tick_delta;
 	}
 	unsigned int get_fps_goal() {
-		return engine.fps_goal;
+		return engine->fps_goal;
 	}
 
 	int restart_game() {
@@ -663,7 +582,4 @@ namespace bee {
 	}
 }
 
-#include "core/sidp.cpp" // Include the structs which are used in other classes
-#include "render/rgba.cpp"
-
-#endif // _BEE_ENGINE
+#endif // BEE_ENGINE

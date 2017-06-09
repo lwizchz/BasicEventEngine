@@ -6,12 +6,18 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_RENDERER_H
-#define _BEE_RENDERER_H 1
+#ifndef BEE_RENDERER_H
+#define BEE_RENDERER_H 1
 
-#include "../engine.hpp" // Include the engine headers
+#include <GL/glew.h> // Include the required OpenGL headers
+#include <SDL2/SDL_opengl.h>
+#include <glm/glm.hpp>
+
+#include "../defines.hpp"
 
 namespace bee {
+	class Camera;
+
 	class Renderer {
 		public:
 			// These are used for the SDL renderer
@@ -81,4 +87,4 @@ namespace bee {
 	};
 }
 
-#endif // _BEE_RENDERER_H
+#endif // BEE_RENDERER_H

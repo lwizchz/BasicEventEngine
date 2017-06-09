@@ -6,10 +6,30 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_RENDERER
-#define _BEE_RENDERER 1
+#ifndef BEE_RENDERER
+#define BEE_RENDERER 1
+
+#include <string>
+
+#include <SDL2/SDL.h> // Include the required SDL headers
 
 #include "renderer.hpp" // Include the engine headers
+
+#include "../debug.hpp"
+#include "../engine.hpp"
+
+#include "../util/files.hpp"
+#include "../util/platform.hpp"
+
+#include "../init/gameoptions.hpp"
+
+#include "../core/enginestate.hpp"
+
+#include "camera.hpp"
+#include "rgba.hpp"
+
+#include "../resources/sprite.hpp"
+#include "../resources/background.hpp"
 
 namespace bee {
 	Renderer::Renderer() :
@@ -46,17 +66,19 @@ namespace bee {
 	int Renderer::opengl_init() {
 		context = SDL_GL_CreateContext(window);
 		if (context == nullptr) {
-			throw "Couldn't create OpenGL context: " + get_sdl_error() + "\n";
+			messenger_send({"engine", "renderer"}, E_MESSAGE::ERROR, "Couldn't create OpenGL context: " + get_sdl_error() + "\n");
+			return 1; // Return 1 when the OpenGL context could not be created
 		}
 
 		// Initialize GLEW
 		glewExperimental = GL_TRUE;
 		GLenum glew_error = glewInit();
 		if (glew_error != GLEW_OK) {
-			throw "Couldn't initialize GLEW: " + std::string((const char*)glewGetErrorString(glew_error)) + "\n";
+			messenger_send({"engine", "renderer"}, E_MESSAGE::ERROR, "Couldn't initialize GLEW: " + std::string((const char*)glewGetErrorString(glew_error)) + "\n");
+			return 2; // Return 2 when GLEW could not be initialized
 		}
 
-		if (engine.options->is_vsync_enabled) {
+		if (engine->options->is_vsync_enabled) {
 			SDL_GL_SetSwapInterval(1);
 		} else {
 			SDL_GL_SetSwapInterval(0);
@@ -82,7 +104,7 @@ namespace bee {
 		const std::string fs_fn_basic_default = "bee/render/shader/basic.fragment.glsl";
 		const std::string fs_fn_basic_user = "resources/basic.fragment.glsl";
 		std::string fs_fn (fs_fn_default);
-		if (engine.options->is_basic_shaders_enabled == true) {
+		if (engine->options->is_basic_shaders_enabled == true) {
 			if (file_exists(fs_fn_basic_user)) {
 				fs_fn = fs_fn_basic_user;
 			}
@@ -102,9 +124,12 @@ namespace bee {
 		GLint is_shader_compiled = GL_FALSE;
 		glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &is_shader_compiled);
 		if (is_shader_compiled != GL_TRUE) {
-			messenger_send({"engine", "init"}, E_MESSAGE::ERROR, get_shader_error(vertex_shader));
 			glDeleteShader(vertex_shader);
-			throw std::string("Couldn't compile OpenGL vertex shader: ") + bee_itos(vertex_shader) + "\n";
+			messenger_send({"engine", "renderer"}, E_MESSAGE::ERROR,
+				"Couldn't compile OpenGL vertex shader: " + bee_itos(vertex_shader) + "\n"
+				+ get_shader_error(vertex_shader)
+			);
+			return 3; // Return 3 when the vertex shader could not be compiled
 		}
 		glAttachShader(program, vertex_shader);
 
@@ -118,11 +143,13 @@ namespace bee {
 		is_shader_compiled = GL_FALSE;
 		glGetShaderiv(geometry_shader, GL_COMPILE_STATUS, &is_shader_compiled);
 		if (is_shader_compiled != GL_TRUE) {
-			messenger_send({"engine", "init"}, E_MESSAGE::ERROR, get_shader_error(geometry_shader));
-			handle_messages();
 			glDeleteShader(vertex_shader);
 			glDeleteShader(geometry_shader);
-			throw std::string("Couldn't compile OpenGL geometry shader: ") + bee_itos(geometry_shader) + "\n";
+			messenger_send({"engine", "renderer"}, E_MESSAGE::ERROR,
+				"Couldn't compile OpenGL geometry shader: " + bee_itos(geometry_shader) + "\n"
+				+ get_shader_error(geometry_shader)
+			);
+			return 4; // Return 4 when the geometry shader could not be compiled
 		}
 		glAttachShader(program, geometry_shader);
 
@@ -136,12 +163,15 @@ namespace bee {
 		is_shader_compiled = GL_FALSE;
 		glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &is_shader_compiled);
 		if (is_shader_compiled != GL_TRUE) {
-			messenger_send({"engine", "init"}, E_MESSAGE::ERROR, get_shader_error(fragment_shader));
 			handle_messages();
 			glDeleteShader(vertex_shader);
 			glDeleteShader(geometry_shader);
 			glDeleteShader(fragment_shader);
-			throw std::string("Couldn't compile OpenGL fragment shader: ") + bee_itos(fragment_shader) + "\n";
+			messenger_send({"engine", "renderer"}, E_MESSAGE::ERROR,
+				"Couldn't compile OpenGL fragment shader: " + bee_itos(fragment_shader) + "\n"
+				+ get_shader_error(fragment_shader)
+			);
+			return 5; // Return 5 when the fragment shader could not be compiled
 		}
 		glAttachShader(program, fragment_shader);
 
@@ -149,11 +179,14 @@ namespace bee {
 		GLint is_program_linked = GL_FALSE;
 		glGetProgramiv(program, GL_LINK_STATUS, &is_program_linked);
 		if (is_program_linked != GL_TRUE) {
-			messenger_send({"engine", "init"}, E_MESSAGE::ERROR, get_program_error(program));
 			glDeleteShader(vertex_shader);
 			glDeleteShader(geometry_shader);
 			glDeleteShader(fragment_shader);
-			throw std::string("Couldn't link OpenGL program: ") + bee_itos(program) + "\n";
+			messenger_send({"engine", "renderer"}, E_MESSAGE::ERROR,
+				"Couldn't link OpenGL program: " + bee_itos(program) + "\n"
+				+ get_program_error(program)
+			);
+			return 6; // Return 6 when the program could not be linked
 		}
 
 		vertex_location = glGetAttribLocation(program, "v_position");
@@ -161,21 +194,24 @@ namespace bee {
 			glDeleteShader(vertex_shader);
 			glDeleteShader(geometry_shader);
 			glDeleteShader(fragment_shader);
-			throw std::string("Couldn't get location of 'v_position' in the vertex shader\n");
+			messenger_send({"engine", "renderer"}, E_MESSAGE::ERROR, "Couldn't get location of 'v_position' in the vertex shader");
+			return 7; // Return 7 when a uniform location could not be found
 		}
 		/*normal_location = glGetAttribLocation(program, "v_normal");
 		if (normal_location == -1) {
 			glDeleteShader(vertex_shader);
 			glDeleteShader(geometry_shader);
 			glDeleteShader(fragment_shader);
-			throw std::string("Couldn't get location of 'v_normal' in the vertex shader\n");
+			messenger_send({"engine", "renderer"}, E_MESSAGE::ERROR, "Couldn't get location of 'v_normal' in the vertex shader");
+			return 7; // Return 7 when a uniform location could not be found
 		}*/
 		fragment_location = glGetAttribLocation(program, "v_texcoord");
 		if (fragment_location == -1) {
 			glDeleteShader(vertex_shader);
 			glDeleteShader(geometry_shader);
 			glDeleteShader(fragment_shader);
-			throw std::string("Couldn't get location of 'v_texcoord' in the vertex shader\n");
+			messenger_send({"engine", "renderer"}, E_MESSAGE::ERROR, "Couldn't get location of 'v_texcoord' in the vertex shader");
+			return 7; // Return 7 when a uniform location could not be found
 		}
 
 		projection_location = glGetUniformLocation(program, "projection");
@@ -183,28 +219,32 @@ namespace bee {
 			glDeleteShader(vertex_shader);
 			glDeleteShader(geometry_shader);
 			glDeleteShader(fragment_shader);
-			throw std::string("Couldn't get location of 'projection' in the vertex shader\n");
+			messenger_send({"engine", "renderer"}, E_MESSAGE::ERROR, "Couldn't get location of 'projection' in the vertex shader");
+			return 7; // Return 7 when a uniform location could not be found
 		}
 		view_location = glGetUniformLocation(program, "view");
 		if (view_location == -1) {
 			glDeleteShader(vertex_shader);
 			glDeleteShader(geometry_shader);
 			glDeleteShader(fragment_shader);
-			throw std::string("Couldn't get location of 'view' in the vertex shader\n");
+			messenger_send({"engine", "renderer"}, E_MESSAGE::ERROR, "Couldn't get location of 'view' in the vertex shader");
+			return 7; // Return 7 when a uniform location could not be found
 		}
 		model_location = glGetUniformLocation(program, "model");
 		if (model_location == -1) {
 			glDeleteShader(vertex_shader);
 			glDeleteShader(geometry_shader);
 			glDeleteShader(fragment_shader);
-			throw std::string("Couldn't get location of 'model' in the vertex shader\n");
+			messenger_send({"engine", "renderer"}, E_MESSAGE::ERROR, "Couldn't get location of 'model' in the vertex shader");
+			return 7; // Return 7 when a uniform location could not be found
 		}
 		port_location = glGetUniformLocation(program, "port");
 		if (port_location == -1) {
 			glDeleteShader(vertex_shader);
 			glDeleteShader(geometry_shader);
 			glDeleteShader(fragment_shader);
-			throw std::string("Couldn't get location of 'port' in the vertex shader\n");
+			messenger_send({"engine", "renderer"}, E_MESSAGE::ERROR, "Couldn't get location of 'port' in the vertex shader");
+			return 7; // Return 7 when a uniform location could not be found
 		}
 
 		rotation_location = glGetUniformLocation(program, "rotation");
@@ -212,51 +252,58 @@ namespace bee {
 			glDeleteShader(vertex_shader);
 			glDeleteShader(geometry_shader);
 			glDeleteShader(fragment_shader);
-			throw std::string("Couldn't get location of 'rotation' in the geometry shader\n");
+			messenger_send({"engine", "renderer"}, E_MESSAGE::ERROR, "Couldn't get location of 'rotation' in the geometry shader");
+			return 7; // Return 7 when a uniform location could not be found
 		}
 
 		texture_location = glGetUniformLocation(program, "f_texture");
-		if ((texture_location == -1)&&(!engine.options->is_basic_shaders_enabled)) {
+		if ((texture_location == -1)&&(!engine->options->is_basic_shaders_enabled)) {
 			glDeleteShader(vertex_shader);
 			glDeleteShader(geometry_shader);
 			glDeleteShader(fragment_shader);
-			throw std::string("Couldn't get location of 'f_texture' in the fragment shader\n");
+			messenger_send({"engine", "renderer"}, E_MESSAGE::ERROR, "Couldn't get location of 'f_texture' in the fragment shader");
+			return 7; // Return 7 when a uniform location could not be found
 		}
 		colorize_location = glGetUniformLocation(program, "colorize");
-		if ((colorize_location == -1)&&(!engine.options->is_basic_shaders_enabled)) {
+		if ((colorize_location == -1)&&(!engine->options->is_basic_shaders_enabled)) {
 			glDeleteShader(vertex_shader);
 			glDeleteShader(geometry_shader);
 			glDeleteShader(fragment_shader);
-			throw std::string("Couldn't get location of 'colorize' in the fragment shader\n");
+			messenger_send({"engine", "renderer"}, E_MESSAGE::ERROR, "Couldn't get location of 'colorize' in the fragment shader");
+			return 7; // Return 7 when a uniform location could not be found
 		}
 		primitive_location = glGetUniformLocation(program, "is_primitive");
-		if ((primitive_location == -1)&&(!engine.options->is_basic_shaders_enabled)) {
+		if ((primitive_location == -1)&&(!engine->options->is_basic_shaders_enabled)) {
 			glDeleteShader(vertex_shader);
 			glDeleteShader(geometry_shader);
 			glDeleteShader(fragment_shader);
-			throw std::string("Couldn't get location of 'is_primitive' in the fragment shader\n");
+			messenger_send({"engine", "renderer"}, E_MESSAGE::ERROR, "Couldn't get location of 'is_primitive' in the fragment shader");
+			return 7; // Return 7 when a uniform location could not be found
 		}
 		flip_location = glGetUniformLocation(program, "flip");
-		if ((flip_location == -1)&&(!engine.options->is_basic_shaders_enabled)) {
+		if ((flip_location == -1)&&(!engine->options->is_basic_shaders_enabled)) {
 			glDeleteShader(vertex_shader);
 			glDeleteShader(geometry_shader);
 			glDeleteShader(fragment_shader);
-			throw std::string("Couldn't get location of 'flip' in the fragment shader\n");
+			messenger_send({"engine", "renderer"}, E_MESSAGE::ERROR, "Couldn't get location of 'flip' in the fragment shader");
+			return 7; // Return 7 when a uniform location could not be found
 		}
 
 		is_lightable_location = glGetUniformLocation(program, "is_lightable");
-		if ((is_lightable_location == -1)&&(!engine.options->is_basic_shaders_enabled)) {
+		if ((is_lightable_location == -1)&&(!engine->options->is_basic_shaders_enabled)) {
 			glDeleteShader(vertex_shader);
 			glDeleteShader(geometry_shader);
 			glDeleteShader(fragment_shader);
-			throw std::string("Couldn't get location of 'is_lightable' in the fragment shader\n");
+			messenger_send({"engine", "renderer"}, E_MESSAGE::ERROR, "Couldn't get location of 'is_lightable' in the fragment shader");
+			return 7; // Return 7 when a uniform location could not be found
 		}
 		light_amount_location = glGetUniformLocation(program, "light_amount");
-		if ((light_amount_location == -1)&&(!engine.options->is_basic_shaders_enabled)) {
+		if ((light_amount_location == -1)&&(!engine->options->is_basic_shaders_enabled)) {
 			glDeleteShader(vertex_shader);
 			glDeleteShader(geometry_shader);
 			glDeleteShader(fragment_shader);
-			throw std::string("Couldn't get location of 'light_amount' in the fragment shader\n");
+			messenger_send({"engine", "renderer"}, E_MESSAGE::ERROR, "Couldn't get location of 'light_amount' in the fragment shader");
+			return 7; // Return 7 when a uniform location could not be found
 		}
 		for (size_t i=0; i<BEE_MAX_LIGHTS; i++) {
 			lighting_location[i].type = glGetUniformLocation(program, std::string("lighting[" + bee_itos(i) + "].type").c_str());
@@ -267,11 +314,12 @@ namespace bee {
 		}
 
 		lightable_amount_location = glGetUniformLocation(program, "lightable_amount");
-		if ((lightable_amount_location == -1)&&(!engine.options->is_basic_shaders_enabled)) {
+		if ((lightable_amount_location == -1)&&(!engine->options->is_basic_shaders_enabled)) {
 			glDeleteShader(vertex_shader);
 			glDeleteShader(geometry_shader);
 			glDeleteShader(fragment_shader);
-			throw std::string("Couldn't get location of 'lightable_amount' in the fragment shader\n");
+			messenger_send({"engine", "renderer"}, E_MESSAGE::ERROR, "Couldn't get location of 'lightable_amount' in the fragment shader");
+			return 7; // Return 7 when a uniform location could not be found
 		}
 		for (size_t i=0; i<BEE_MAX_LIGHTABLES; i++) {
 			lightable_location[i].position = glGetUniformLocation(program, std::string("lightables[" + bee_itos(i) + "].position").c_str());
@@ -291,16 +339,16 @@ namespace bee {
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
 
-		if (engine.options->renderer_type == E_RENDERER::OPENGL4) {
-			messenger_send({"engine", "init"}, E_MESSAGE::INFO, "Now rendering with OpenGL 4.1");
-		} else if (engine.options->renderer_type == E_RENDERER::OPENGL3) {
-			messenger_send({"engine", "init"}, E_MESSAGE::INFO, "Now rendering with OpenGL 3.3");
+		if (engine->options->renderer_type == E_RENDERER::OPENGL4) {
+			messenger_send({"engine", "renderer"}, E_MESSAGE::INFO, "Now rendering with OpenGL 4.1");
+		} else if (engine->options->renderer_type == E_RENDERER::OPENGL3) {
+			messenger_send({"engine", "renderer"}, E_MESSAGE::INFO, "Now rendering with OpenGL 3.3");
 		}
 
 		int va = 0, vi = 0;
 		SDL_GL_GetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, &va);
 		SDL_GL_GetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, &vi);
-		messenger_send({"engine", "init"}, E_MESSAGE::INFO, "GLversion: " + bee_itos(va) + "." + bee_itos(vi));
+		messenger_send({"engine", "renderer"}, E_MESSAGE::INFO, "GLversion: " + bee_itos(va) + "." + bee_itos(vi));
 
 		projection_cache = new glm::mat4(1.0f);
 
@@ -315,7 +363,7 @@ namespace bee {
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, triangle_ibo);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
 
-		return 0;
+		return 0; // Return 0 on success
 	}
 	int Renderer::opengl_close() {
 		glDeleteBuffers(1, &triangle_vao);
@@ -337,7 +385,7 @@ namespace bee {
 		return 0;
 	}
 	std::string Renderer::opengl_prepend_version(const std::string& shader) {
-		switch (engine.options->renderer_type) {
+		switch (engine->options->renderer_type) {
 			case E_RENDERER::OPENGL4: {
 				if (GL_VERSION_4_1) {
 					return "#version 410 core\n" + shader;
@@ -350,28 +398,29 @@ namespace bee {
 			}
 			case E_RENDERER::SDL:
 			default: {
-				engine.options->renderer_type = E_RENDERER::SDL;
+				engine->options->renderer_type = E_RENDERER::SDL;
 				return shader;
 			}
 		}
 	}
 	int Renderer::sdl_renderer_init() {
 		int renderer_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE;
-		if (engine.options->is_vsync_enabled) {
+		if (engine->options->is_vsync_enabled) {
 			renderer_flags |= SDL_RENDERER_PRESENTVSYNC;
 		}
 
 		sdl_renderer = SDL_CreateRenderer(window, -1, renderer_flags);
 		if (sdl_renderer == nullptr) {
-			throw "Couldn't create SDL renderer: " + get_sdl_error() + "\n";
+			messenger_send({"engine", "renderer"}, E_MESSAGE::ERROR, "Couldn't create SDL renderer: " + get_sdl_error());
+			return 1; // Return 1 when the SDL renderer could not be created
 		}
 
 		SDL_SetRenderDrawColor(sdl_renderer, 255, 255, 255, 255);
 		SDL_SetRenderDrawBlendMode(sdl_renderer, SDL_BLENDMODE_BLEND);
 
-		messenger_send({"engine", "init"}, E_MESSAGE::INFO, "Now rendering with SDL2");
+		messenger_send({"engine", "renderer"}, E_MESSAGE::INFO, "Now rendering with SDL2");
 
-		return 0;
+		return 0; // Return 0 on success
 	}
 	int Renderer::sdl_renderer_close() {
 		if (sdl_renderer != nullptr) {
@@ -383,8 +432,8 @@ namespace bee {
 	}
 
 	int Renderer::render_clear() {
-		draw_set_color(*(engine.color));
-		if (engine.options->renderer_type != E_RENDERER::SDL) {
+		draw_set_color(*(engine->color));
+		if (engine->options->renderer_type != E_RENDERER::SDL) {
 			if (target > 0) {
 				glBindFramebuffer(GL_FRAMEBUFFER, target);
 			}
@@ -397,7 +446,7 @@ namespace bee {
 		return 0;
 	}
 	int Renderer::render() const {
-		if (engine.options->renderer_type != E_RENDERER::SDL) {
+		if (engine->options->renderer_type != E_RENDERER::SDL) {
 			SDL_GL_SwapWindow(window);
 		} else {
 			SDL_RenderPresent(sdl_renderer);
@@ -405,7 +454,7 @@ namespace bee {
 		return 0;
 	}
 	int Renderer::render_reset() {
-		if (engine.options->renderer_type != E_RENDERER::SDL) {
+		if (engine->options->renderer_type != E_RENDERER::SDL) {
 			opengl_close();
 			opengl_init();
 		} else {
@@ -439,4 +488,4 @@ namespace bee {
 	}
 }
 
-#endif // _BEE_RENDERER
+#endif // BEE_RENDERER

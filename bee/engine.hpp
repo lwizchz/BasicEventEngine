@@ -6,62 +6,33 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_ENGINE_H
-#define _BEE_ENGINE_H 1
+#ifndef BEE_ENGINE_H
+#define BEE_ENGINE_H 1
 
-#include <iostream> // Include the required library headers
+// Include the required library headers
 #include <string>
-#include <time.h>
 #include <functional>
-#include <getopt.h>
 #include <memory>
 #include <list>
+#include <vector>
+#include <map>
 #include <unordered_map>
 #include <unordered_set>
-#include <regex>
 
 #include <SDL2/SDL.h> // Include the required SDL headers
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_ttf.h>
-#include <SDL2/SDL_mixer.h>
-#include <SDL2/SDL_net.h>
 
-#define GLM_FORCE_RADIANS // Force all GLM functions to use radians instead of degrees
+#include <glm/glm.hpp> // Include the required OpenGL headers
 
-#define GLEW_STATIC // Statically link GLEW
-
-#include <GL/glew.h> // Include the required OpenGL headers
-#include <SDL2/SDL_opengl.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#define DEFAULT_WINDOW_WIDTH 1920 // Define the default window dimensions
-#define DEFAULT_WINDOW_HEIGHT 1080
-
-#define DEFAULT_GAME_FPS 60 // Define the default game fps goal
-
-#define BEE_ALARM_COUNT 8
-
-#define BEE_MAX_LIGHTS 8 // Define the maximum amount of processed lights
-#define BEE_MAX_LIGHTABLES 96
-#define BEE_MAX_MASK_VERTICES 8
-
-#define MACRO_TO_STR_(x) #x
-#define MACRO_TO_STR(x) MACRO_TO_STR_(x)
-
-#ifndef BEE_GAME_ID // BEE_GAME_ID should always be defined but just in case
-	#define BEE_GAME_ID 4294967295 // pow(2,32)-1, the maximum value
-#endif // BEE_GAME_ID
-
-#include "debug.hpp" // Include the required debug and utility functions
-#include "util.hpp"
-
-#include "resources.hpp" // Include the resource classes
-
+#include "defines.hpp"
 #include "enum.hpp" // Include the required engine enumerations
 
 namespace bee { // The engine namespace
+	struct EngineState; // The struct which holds the main game state
+
+	class Resource;
+	class ResourceList;
+	class MetaResourceList;
+
 	class Sprite; class Sound; class Background; class Font; class Path; class Timeline; class Mesh; class Object; class Room; // The main resource types
 	class Particle; class ParticleData; class ParticleEmitter; class ParticleAttractor; class ParticleDestroyer; class ParticleDeflector; class ParticleChanger; class ParticleSystem; // The particle system components
 	class Renderer; class Light; class Camera; // The OpenGL-only resources (poor SDL implementations may exist)
@@ -76,93 +47,26 @@ namespace bee { // The engine namespace
 	struct SIDP; // The utility structs
 	struct Console; // The console subsystem structs
 
-	struct EngineData {
-		// These contain data about the engine initialization
-		int argc;
-		char** argv; // The provided commandline flags
-		std::list<ProgramFlags*> flags; // The available commandline flags
-		GameOptions* options; // The engine options
-
-		// These contain data about the event loop
-		bool quit, is_ready, is_paused;
-		Room *first_room, *current_room;
-
-		// This defines the platform where 0=Linux, 1=Windows, 2=OSX, 3=other
-		#ifdef __linux__
-			const unsigned int platform = 0;
-		#elif _WIN32
-			const unsigned int platform = 1;
-		#elif __APPLE__engine.
-			const unsigned int platform = 2;
-		#else
-			const unsigned int platform = 3;
-		#endif
-
-		unsigned int width, height;
-		SDL_Cursor* cursor;
-
-		Renderer* renderer;
-
-		// This is the current drawing color
-		RGBA* color;
-		Font* font_default; // A default font for engine drawing
-
-		// These contain data about the current window state
-		bool has_mouse, has_focus;
-
-		Uint32 tickstamp, new_tickstamp, fps_ticks, tick_delta;
-
-		NetworkData* net;
-
-		double volume;
-
-		unsigned int fps_goal, fps_max, fps_unfocused;
-		unsigned int fps_count;
-		Uint32 frame_number;
-		Sprite* texture_before;
-		Sprite* texture_after;
-		E_TRANSITION transition_type;
-		double transition_speed;
-		std::function<void (Sprite*, Sprite*)> transition_custom_func;
-
-		const Uint8* keystate;
-		std::map<std::string,SDL_Keycode> keystrings_keys;
-		std::map<SDL_Keycode,std::string> keystrings_strings;
-
-		std::vector<std::string> commandline_input;
-		unsigned int commandline_current;
-
-		std::unordered_map<std::string,std::unordered_set<std::shared_ptr<MessageRecipient>>> recipients;
-		const std::unordered_set<std::string> protected_tags;
-		std::vector<std::shared_ptr<MessageContents>> messages;
-		E_OUTPUT messenger_output_level;
-
-		Console* console;
-
-		unsigned int fps_stable;
-
-		EngineData();
-	};
-
-	typedef std::tuple<double, double, double, double> path_coord_t; // {x, y, z, speed}
-	typedef std::multimap<Uint32, std::pair<std::string,std::function<void()>>> timeline_list_t;
-
-	extern EngineData engine;
+	extern EngineState* engine;
 	extern MetaResourceList* resource_list;
 	extern bool is_initialized;
 
+	// User defined in resources/resources.hpp
+	int init_resources();
+	int close_resources();
+
 	int update_delta();
 
-	// bee/game/info.cpp
+	// bee/init/programflags.cpp
 	std::list<ProgramFlags*>& get_standard_flags_internal();
 
-	// bee/game/messenger.cpp
+	// bee/core/messenger/messenger.cpp
 	int messenger_register_protected(std::shared_ptr<MessageRecipient>);
 	std::shared_ptr<MessageRecipient> messenger_register_protected(std::string, const std::vector<std::string>&, bool, std::function<void (std::shared_ptr<MessageContents>)>);
 	int messenger_unregister_protected(std::shared_ptr<MessageRecipient>);
 	int messenger_send_urgent(std::shared_ptr<MessageContents>);
 
-	// bee/game/console.cpp
+	// bee/core/console.cpp
 	int console_handle_input(SDL_Event*);
 	int console_init_commands();
 	int console_run_internal(const std::string&, bool, Uint32);
@@ -172,15 +76,10 @@ namespace bee { // The engine namespace
 	int console_draw();
 
 	int init(int, char**, const std::list<ProgramFlags*>&, Room**, GameOptions*);
-	int handle_flags(const std::list<ProgramFlags*>&, bool);
 	int loop();
 	int close();
 
-	// User defined in resources/resources.hpp
-	int init_resources();
-	int close_resources();
-
-	// bee/game/resources.cpp
+	// bee/core/resources.cpp
 	int load_media();
 	int free_media();
 
@@ -223,7 +122,7 @@ namespace bee { // The engine namespace
 	Object* get_object_by_name(const std::string&);
 	Room* get_room_by_name(const std::string&);
 
-	// bee/game.cpp
+	// bee/engine.cpp
 	Uint32 get_ticks();
 	Uint32 get_seconds();
 	Uint32 get_frame();
@@ -237,12 +136,15 @@ namespace bee { // The engine namespace
 	int restart_game();
 	int end_game();
 
-	// bee/game/info.cpp
+	// bee/init/info.cpp
 	std::string get_usage_text();
+
+	// bee/init/programflags.cpp
+	int handle_flags(const std::list<ProgramFlags*>&, bool);
 	std::list<ProgramFlags*> get_standard_flags();
 	int free_standard_flags();
 
-	// bee/game/room.cpp
+	// bee/core/room.cpp
 	void restart_room();
 	int change_room(Room*, bool);
 	int change_room(Room*);
@@ -261,7 +163,7 @@ namespace bee { // The engine namespace
 	bool set_is_paused(bool);
 	bool get_is_paused();
 
-	// bee/game/transition.cpp
+	// bee/core/transition.cpp
 	int reset_render_target();
 	int set_render_target(Sprite*, int, int);
 	int set_render_target(Sprite*);
@@ -276,7 +178,7 @@ namespace bee { // The engine namespace
 	int draw_transition();
 	bool compute_check_quit();
 
-	// bee/game/display.cpp
+	// bee/core/display.cpp
 	SDL_DisplayMode get_display();
 	Uint32 get_display_format();
 	int get_display_width();
@@ -286,7 +188,7 @@ namespace bee { // The engine namespace
 	int set_display_size(int, int);
 	int set_display_refresh_rate(int);
 
-	// bee/game/window.cpp
+	// bee/core/window.cpp
 	std::string get_window_title();
 	SDL_Cursor* get_cursor();
 	int get_window_x();
@@ -305,7 +207,7 @@ namespace bee { // The engine namespace
 	int set_width(int);
 	int set_height(int);
 
-	// bee/game/input.cpp
+	// bee/core/input.cpp
 	std::pair<int,int> get_mouse_global_position();
 	int get_mouse_global_x();
 	int get_mouse_global_y();
@@ -325,7 +227,7 @@ namespace bee { // The engine namespace
 	SDL_Keycode keystrings_get_key(const std::string&);
 	std::string keystrings_get_string(SDL_Keycode);
 
-	// bee/game/draw.cpp
+	// bee/render/draw.cpp
 	RGBA get_enum_color(E_RGB, Uint8);
 	RGBA get_enum_color(E_RGB);
 
@@ -334,7 +236,6 @@ namespace bee { // The engine namespace
 	int draw_line(int, int, int, int, const RGBA&);
 	int draw_line(int, int, int, int);
 	int draw_line(int, int, int, int, E_RGB);
-	int draw_line(const Line&, const RGBA&);
 	int draw_quad(glm::vec3, glm::vec3, bool, const RGBA&);
 	int draw_rectangle(int, int, int, int, bool, const RGBA&);
 	int draw_rectangle(int, int, int, int, bool);
@@ -359,7 +260,7 @@ namespace bee { // The engine namespace
 	glm::mat4 render_calc_projection();
 	Camera render_get_camera();
 
-	// bee/game/messenger.cpp
+	// bee/core/messenger/messenger.cpp
 	int messenger_register(std::shared_ptr<MessageRecipient>);
 	std::shared_ptr<MessageRecipient> messenger_register(std::string, const std::vector<std::string>&, bool, std::function<void (std::shared_ptr<MessageContents>)>);
 	std::shared_ptr<MessageRecipient> messenger_register(const std::vector<std::string>&, std::function<void (std::shared_ptr<MessageContents>)>);
@@ -377,7 +278,7 @@ namespace bee { // The engine namespace
 	int handle_messages();
 	std::string messenger_get_type_string(E_MESSAGE);
 
-	// bee/game/network.cpp
+	// bee/core/network/network.cpp
 	int net_init();
 	bool net_get_is_initialized();
 	int net_close();
@@ -393,7 +294,7 @@ namespace bee { // The engine namespace
 	int net_session_sync_data(const std::string&, const std::string&);
 	int net_session_sync_instance(Instance*);
 
-	// bee/game/console.cpp
+	// bee/core/console.cpp
 	int console_open();
 	int console_close();
 	int console_toggle();
@@ -414,44 +315,4 @@ namespace bee { // The engine namespace
 	std::string console_get_help(const std::string&);
 }
 
-#include "init/gameoptions.hpp"
-#include "init/programflags.hpp"
-
-#include "core/sidp.hpp" // Include the structs which are used in other classes
-#include "render/rgba.hpp"
-
-#include "core/console.hpp"
-#include "core/instance.hpp"
-#include "core/messenger/messagecontents.hpp"
-#include "core/messenger/messagerecipient.hpp"
-#include "core/network/networkdata.hpp"
-#include "core/network/networkclient.hpp"
-
-#include "render/camera.hpp"
-#include "render/renderer.hpp"
-#include "render/viewdata.hpp"
-#include "render/particle/particle.hpp"
-#include "render/particle/particledata.hpp"
-#include "render/particle/emitter.hpp"
-#include "render/particle/attractor.hpp"
-#include "render/particle/destroyer.hpp"
-#include "render/particle/deflector.hpp"
-#include "render/particle/changer.hpp"
-#include "render/particle/system.hpp"
-
-#include "physics/world.hpp"
-#include "physics/draw.hpp"
-#include "physics/body.hpp"
-
-#include "resources/sprite.hpp"
-#include "resources/sound.hpp"
-#include "resources/background.hpp"
-#include "resources/font.hpp"
-#include "resources/path.hpp"
-#include "resources/timeline.hpp"
-#include "resources/mesh.hpp"
-#include "resources/light.hpp"
-#include "resources/object.hpp"
-#include "resources/room.hpp"
-
-#endif // _BEE_ENGINE_H
+#endif // BEE_ENGINE_H

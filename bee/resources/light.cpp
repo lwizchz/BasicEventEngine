@@ -6,10 +6,20 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_LIGHT
-#define _BEE_LIGHT 1
+#ifndef BEE_LIGHT
+#define BEE_LIGHT 1
+
+#include <sstream>
 
 #include "light.hpp"
+
+#include "room.hpp"
+
+#include "../engine.hpp"
+
+#include "../init/gameoptions.hpp"
+
+#include "../core/enginestate.hpp"
 
 namespace bee {
 	Light::Light () {
@@ -144,7 +154,7 @@ namespace bee {
 	}
 
 	int Light::queue() {
-		if (engine.options->renderer_type == E_RENDERER::SDL) {
+		if (engine->options->renderer_type == E_RENDERER::SDL) {
 			if (!has_drawn_sdl) {
 				messenger_send({"engine", "light"}, E_MESSAGE::WARNING, "Lighting is not fully supported in SDL mode");
 				has_drawn_sdl = true;
@@ -157,4 +167,4 @@ namespace bee {
 	}
 }
 
-#endif // _BEE_LIGHT
+#endif // BEE_LIGHT

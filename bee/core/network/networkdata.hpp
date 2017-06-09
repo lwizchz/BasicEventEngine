@@ -6,10 +6,13 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_CORE_NETWORKDATA_H
-#define _BEE_CORE_NETWORKDATA_H 1
+#ifndef BEE_CORE_NETWORKDATA_H
+#define BEE_CORE_NETWORKDATA_H 1
 
-#include "../../engine.hpp"
+#include <string>
+#include <map>
+
+#include "networkclient.hpp"
 
 namespace bee {
 	struct NetworkData {
@@ -39,4 +42,4 @@ namespace bee {
 	};
 }
 
-#endif // _BEE_CORE_NETWORKDATA_H
+#endif // BEE_CORE_NETWORKDATA_H

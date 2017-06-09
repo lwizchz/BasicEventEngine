@@ -6,10 +6,31 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_SPRITE
-#define _BEE_SPRITE 1
+#ifndef BEE_SPRITE
+#define BEE_SPRITE 1
+
+#include <sstream>
+
+#include <SDL2/SDL_image.h>
+
+#include <glm/gtc/matrix_transform.hpp> // Include the required OpenGL headers
+#include <glm/gtc/type_ptr.hpp>
 
 #include "sprite.hpp" // Include the class resource header
+
+#include "../debug.hpp"
+#include "../engine.hpp"
+
+#include "../util/real.hpp"
+
+#include "../init/gameoptions.hpp"
+
+#include "../core/enginestate.hpp"
+
+#include "../render/renderer.hpp"
+
+#include "../resources/light.hpp"
+#include "../resources/room.hpp"
 
 namespace bee {
 	/*
@@ -224,7 +245,7 @@ namespace bee {
 			subimages.push_back({(int)(i*subimage_width), 0, (int)subimage_width, (int)height});
 		}
 
-		if (engine.options->renderer_type == E_RENDERER::SDL) { // If SDL rendering is being used, exit early
+		if (engine->options->renderer_type == E_RENDERER::SDL) { // If SDL rendering is being used, exit early
 			return 0; // Return 0 on success
 		}
 
@@ -280,7 +301,7 @@ namespace bee {
 		set_subimage_amount(1, crop.w);
 		subimages[0] = crop;
 
-		if (engine.options->renderer_type == E_RENDERER::SDL) { // If SDL rendering is being used, exit early
+		if (engine->options->renderer_type == E_RENDERER::SDL) { // If SDL rendering is being used, exit early
 			return 0; // Return 0 on success
 		}
 
@@ -433,7 +454,7 @@ namespace bee {
 		}
 		crop = {0, 0, (int)width, (int)height}; // Set the default crop to be the entire image
 
-		if (engine.options->renderer_type != E_RENDERER::SDL) {
+		if (engine->options->renderer_type != E_RENDERER::SDL) {
 			// Generate the vertex array object for the sprite
 			glGenVertexArrays(1, &vao);
 			glBindVertexArray(vao);
@@ -459,10 +480,10 @@ namespace bee {
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
 
 			// Bind the vertices to the VAO's vertex buffer
-			glEnableVertexAttribArray(engine.renderer->vertex_location);
+			glEnableVertexAttribArray(engine->renderer->vertex_location);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
 			glVertexAttribPointer(
-				engine.renderer->vertex_location,
+				engine->renderer->vertex_location,
 				2,
 				GL_FLOAT,
 				GL_FALSE,
@@ -489,7 +510,7 @@ namespace bee {
 			glBindVertexArray(0); // Unbind VAO when done loading
 		} else {
 			// Generate an SDL texture from the surface pixels
-			texture = SDL_CreateTextureFromSurface(engine.renderer->sdl_renderer, tmp_surface);
+			texture = SDL_CreateTextureFromSurface(engine->renderer->sdl_renderer, tmp_surface);
 			if (texture == nullptr) { // If the texture could not be generated, output a warning
 				messenger_send({"engine", "sprite"}, E_MESSAGE::WARNING, "Failed to create texture from surface for \"" + name + "\": " + get_sdl_error());
 				return 2; // Return 2 on failure to create the texture
@@ -536,7 +557,7 @@ namespace bee {
 			return 0; // Return 0 on success
 		}
 
-		if (engine.options->renderer_type != E_RENDERER::SDL) {
+		if (engine->options->renderer_type != E_RENDERER::SDL) {
 			// Delete the vertex and index buffer
 			glDeleteBuffers(1, &vbo_vertices);
 			glDeleteBuffers(1, &ibo);
@@ -568,14 +589,14 @@ namespace bee {
 	* Sprite::drawing_begin() - Enable all required buffers
 	*/
 	int Sprite::drawing_begin() {
-		if (engine.options->renderer_type == E_RENDERER::SDL) {
+		if (engine->options->renderer_type == E_RENDERER::SDL) {
 			return 0; // Return 0 since nothing needs to be done for SDL mode
 		}
 
 		glBindVertexArray(vao); // Bind the VAO for the sprite
 
 		// Bind the sprite texture
-		glUniform1i(engine.renderer->texture_location, 0);
+		glUniform1i(engine->renderer->texture_location, 0);
 		glBindTexture(GL_TEXTURE_2D, gl_texture);
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
@@ -586,13 +607,13 @@ namespace bee {
 	* Sprite::drawing_end() - Disable all required buffers
 	*/
 	int Sprite::drawing_end() {
-		if (engine.options->renderer_type == E_RENDERER::SDL) {
+		if (engine->options->renderer_type == E_RENDERER::SDL) {
 			return 0; // Return 0 since nothing needs to be done for SDL mode
 		}
 
-		glUniformMatrix4fv(engine.renderer->model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the partial transformation matrix
-		glUniformMatrix4fv(engine.renderer->rotation_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the rotation matrix
-		glUniform1i(engine.renderer->flip_location, 0); // Reset the flip type
+		glUniformMatrix4fv(engine->renderer->model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the partial transformation matrix
+		glUniformMatrix4fv(engine->renderer->rotation_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the rotation matrix
+		glUniform1i(engine->renderer->flip_location, 0); // Reset the flip type
 
 		glBindVertexArray(0); // Unbind the VAO
 
@@ -633,7 +654,7 @@ namespace bee {
 			}
 		}
 
-		if (engine.options->renderer_type != E_RENDERER::SDL) {
+		if (engine->options->renderer_type != E_RENDERER::SDL) {
 			// Get the full width of the sprite to be used for scaling
 			int rect_width = width;
 			if (subimage_amount > 1) {
@@ -653,7 +674,7 @@ namespace bee {
 			// Generate the partial transformation matrix (translation and scaling) for the subimage
 			glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3((float)drect.x, (float)drect.y, -0.5f)); // Translate the subimage the desired amount in the x- and y-planes, note that the z-coordinate is nonzero so that there is no z-fighting with backgrounds in 3D mode
 			model = glm::scale(model, glm::vec3((float)w/rect_width, (float)h/height, 1.0f)); // Scale the subimage in the x- and y-planes
-			glUniformMatrix4fv(engine.renderer->model_location, 1, GL_FALSE, glm::value_ptr(model)); // Send the transformation matrix to the shader
+			glUniformMatrix4fv(engine->renderer->model_location, 1, GL_FALSE, glm::value_ptr(model)); // Send the transformation matrix to the shader
 
 			// Generate the rotation matrix for the subimage
 			// This is not included in the above transformation matrix because it is faster to rotate everything in the geometry shader
@@ -661,12 +682,12 @@ namespace bee {
 				glm::mat4 rotation = glm::translate(glm::mat4(1.0f), glm::vec3((float)rect_width*rotate_x, (float)height*rotate_y, 0.0f));
 				rotation = glm::rotate(rotation, (float)degtorad(angle), glm::vec3(0.0f, 0.0f, 1.0f)); // Rotate the subimage on the z-axis around the sprite's rotation origin at (rotate_x, rotate_y)
 				rotation = glm::translate(rotation, glm::vec3(-(float)rect_width*rotate_x, -(float)height*rotate_y, 0.0f));
-				glUniformMatrix4fv(engine.renderer->rotation_location, 1, GL_FALSE, glm::value_ptr(rotation)); // Send the rotation matrix to the shader
+				glUniformMatrix4fv(engine->renderer->rotation_location, 1, GL_FALSE, glm::value_ptr(rotation)); // Send the rotation matrix to the shader
 			}
 
 			// Colorize the sprite with the given color
 			glm::vec4 color = glm::vec4((float)new_color.r/255.0f, (float)new_color.g/255.0f, (float)new_color.b/255.0f, (float)new_color.a/255.0f); // Normalize the color values from 0.0 to 1.0
-			glUniform4fv(engine.renderer->colorize_location, 1, glm::value_ptr(color)); // Send the color to the shader
+			glUniform4fv(engine->renderer->colorize_location, 1, glm::value_ptr(color)); // Send the color to the shader
 
 			// Determine the desired flip type
 			int f = 0; // The default behavior is to not flip
@@ -676,7 +697,7 @@ namespace bee {
 			if (flip & SDL_FLIP_VERTICAL) {
 				f += 2;
 			}
-			glUniform1i(engine.renderer->flip_location, f); // Send the flip type to the shader
+			glUniform1i(engine->renderer->flip_location, f); // Send the flip type to the shader
 
 			// Add the subimage to the list of lightables so that it can cast shadows
 			if (is_lightable) { // If the sprite is set as lightable
@@ -693,10 +714,10 @@ namespace bee {
 			}
 
 			// Bind the texture coordinates of the current subimage
-			glEnableVertexAttribArray(engine.renderer->fragment_location);
+			glEnableVertexAttribArray(engine->renderer->fragment_location);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords[current_subimage]);
 			glVertexAttribPointer(
-				engine.renderer->fragment_location,
+				engine->renderer->fragment_location,
 				2,
 				GL_FLOAT,
 				GL_FALSE,
@@ -722,9 +743,9 @@ namespace bee {
 				SDL_Point r = {(int)(rotate_x*subimage_width), (int)(rotate_y*height)}; // Create a point to use as the rotation origin
 				// Render the subimage
 				if (!subimages.empty()) { // If the sprite has multiple subimages, render without further cropping
-					SDL_RenderCopyEx(engine.renderer->sdl_renderer, texture, &subimages[current_subimage], &drect, angle, &r, flip);
+					SDL_RenderCopyEx(engine->renderer->sdl_renderer, texture, &subimages[current_subimage], &drect, angle, &r, flip);
 				} else { // Otherwise, render and crop as requested
-					SDL_RenderCopyEx(engine.renderer->sdl_renderer, texture, &crop, &drect, angle, &r, flip);
+					SDL_RenderCopyEx(engine->renderer->sdl_renderer, texture, &crop, &drect, angle, &r, flip);
 				}
 			}
 		}
@@ -749,7 +770,7 @@ namespace bee {
 	*/
 	int Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h, double angle, RGBA new_color, SDL_RendererFlip flip) {
 		// Calculate the current subimage to draw from the given animation frame
-		unsigned int current_subimage = (unsigned int)round(speed*(get_ticks()-subimage_time)/engine.fps_goal) % subimage_amount;
+		unsigned int current_subimage = (unsigned int)round(speed*(get_ticks()-subimage_time)/engine->fps_goal) % subimage_amount;
 		if (current_subimage == 0) { // If the first frame is being drawn, set the animation boolean
 			is_animated = true;
 		}
@@ -821,11 +842,11 @@ namespace bee {
 		if (!is_loaded) { // If the sprite is not loaded, exit
 			return 1; // Return 1 when not loaded
 		}
-		if (engine.options->renderer_type != E_RENDERER::SDL) { // If the rendering mode is not SDL, exit
+		if (engine->options->renderer_type != E_RENDERER::SDL) { // If the rendering mode is not SDL, exit
 			return 2; // Return 2 when not in SDL rendering more
 		}
 
-		return SDL_RenderCopy(engine.renderer->sdl_renderer, texture, source, dest); // Return the result of rendering the sprite
+		return SDL_RenderCopy(engine->renderer->sdl_renderer, texture, source, dest); // Return the result of rendering the sprite
 	}
 	/*
 	* Sprite::draw_array() - Draw a list of sprite instances with the given attributes
@@ -844,12 +865,12 @@ namespace bee {
 			return 1; // Return 1 when not loaded
 		}
 
-		if (engine.options->renderer_type != E_RENDERER::SDL) {
+		if (engine->options->renderer_type != E_RENDERER::SDL) {
 			drawing_begin();
 
 			// Colorize the sprite with the given color
 			glm::vec4 color = glm::vec4((float)new_color.r/255.0f, (float)new_color.g/255.0f, (float)new_color.b/255.0f, (float)new_color.a/255.0f); // Normalize the color values from 0.0 to 1.0
-			glUniform4fv(engine.renderer->colorize_location, 1, glm::value_ptr(color)); // Send the color to the shader
+			glUniform4fv(engine->renderer->colorize_location, 1, glm::value_ptr(color)); // Send the color to the shader
 
 			// Determine the desired flip type
 			int f = 0; // The default behavior is to not flip
@@ -859,7 +880,7 @@ namespace bee {
 			if (flip & SDL_FLIP_VERTICAL) {
 				f += 2;
 			}
-			glUniform1i(engine.renderer->flip_location, f); // Send the flip type to the shader
+			glUniform1i(engine->renderer->flip_location, f); // Send the flip type to the shader
 
 			// Get the amount indices that will be drawn per sprite instance
 			int size;
@@ -907,12 +928,12 @@ namespace bee {
 				// Generate the partial transformation matrix (translation and scaling) for the instance
 				glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3((float)drect.x, (float)drect.y, -1.0f)); // Translate the instance the desired amount in the x- and y-planes, note that the z-coordinate is nonzero so that there is no z-fighting with non-particle sprites in 3D mode
 				model = glm::scale(model, glm::vec3((float)s->w/rect_width, (float)s->h/height, 1.0)); // Scale the instance in the x- and y-planes
-				glUniformMatrix4fv(engine.renderer->model_location, 1, GL_FALSE, glm::value_ptr(model)); // Send the transformation matrix to the shader
+				glUniformMatrix4fv(engine->renderer->model_location, 1, GL_FALSE, glm::value_ptr(model)); // Send the transformation matrix to the shader
 
 				// Send the cached rotation matrix to the shader
 				// This is not included in the above transformation matrix because it is faster to rotate everything in the geometry shader
 				if (s->angle != 0.0) {
-					glUniformMatrix4fv(engine.renderer->rotation_location, 1, GL_FALSE, glm::value_ptr(rotation_cache[s->angle]));
+					glUniformMatrix4fv(engine->renderer->rotation_location, 1, GL_FALSE, glm::value_ptr(rotation_cache[s->angle]));
 				}
 
 				// Add the subimage to the list of lightables so that it can cast shadows
@@ -929,10 +950,10 @@ namespace bee {
 				}
 
 				// Bind the texture coordinates of the current subimage
-				glEnableVertexAttribArray(engine.renderer->fragment_location);
+				glEnableVertexAttribArray(engine->renderer->fragment_location);
 				glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords[current_subimage]);
 				glVertexAttribPointer(
-					engine.renderer->fragment_location,
+					engine->renderer->fragment_location,
 					2,
 					GL_FLOAT,
 					GL_FALSE,
@@ -969,9 +990,9 @@ namespace bee {
 
 				// Render the subimage
 				if (!subimages.empty()) { // If the sprite has multiple subimages, render without further cropping
-					SDL_RenderCopyEx(engine.renderer->sdl_renderer, texture, &subimages[current_subimage], &drect, s->angle, nullptr, flip);
+					SDL_RenderCopyEx(engine->renderer->sdl_renderer, texture, &subimages[current_subimage], &drect, s->angle, nullptr, flip);
 				} else { // Otherwise, render without cropping
-					SDL_RenderCopyEx(engine.renderer->sdl_renderer, texture, nullptr, &drect, s->angle, nullptr, flip);
+					SDL_RenderCopyEx(engine->renderer->sdl_renderer, texture, nullptr, &drect, s->angle, nullptr, flip);
 				}
 			}
 		}
@@ -994,7 +1015,7 @@ namespace bee {
 		set_subimage_amount(1, width);
 		crop = {0, 0, (int)width, (int)height};
 
-		if (engine.options->renderer_type != E_RENDERER::SDL) {
+		if (engine->options->renderer_type != E_RENDERER::SDL) {
 			// Generate the vertex array object for the sprite
 			glGenVertexArrays(1, &vao);
 			glBindVertexArray(vao);
@@ -1020,10 +1041,10 @@ namespace bee {
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
 
 			// Bind the vertices to the VAO's vertex buffer
-			glEnableVertexAttribArray(engine.renderer->vertex_location);
+			glEnableVertexAttribArray(engine->renderer->vertex_location);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
 			glVertexAttribPointer(
-				engine.renderer->vertex_location,
+				engine->renderer->vertex_location,
 				2,
 				GL_FLOAT,
 				GL_FALSE,
@@ -1072,13 +1093,13 @@ namespace bee {
 
 			return (int)framebuffer; // Return the framebuffer index on success
 		} else {
-			texture = SDL_CreateTexture(engine.renderer->sdl_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w, h); // Create an empty texture
+			texture = SDL_CreateTexture(engine->renderer->sdl_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w, h); // Create an empty texture
 			if (texture == nullptr) { // If the texture could not be created, output a warning
 				messenger_send({"engine", "sprite"}, E_MESSAGE::WARNING, "Failed to create a blank texture: " + get_sdl_error());
 				return 0; // Return 0 on failure to create a blank texture
 			}
 
-			SDL_SetRenderTarget(engine.renderer->sdl_renderer, texture); // Set the SDL render target
+			SDL_SetRenderTarget(engine->renderer->sdl_renderer, texture); // Set the SDL render target
 		}
 
 		// Set loaded booleans
@@ -1096,4 +1117,4 @@ namespace bee {
 	}
 }
 
-#endif // _BEE_SPRITE
+#endif // BEE_SPRITE

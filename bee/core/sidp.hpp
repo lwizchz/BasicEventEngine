@@ -6,10 +6,11 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_CORE_SIDP_H
-#define _BEE_CORE_SIDP_H 1
+#ifndef BEE_CORE_SIDP_H
+#define BEE_CORE_SIDP_H 1
 
-#include "../engine.hpp" // Include the engine headers
+#include <map>
+#include <vector>
 
 namespace bee {
 	struct SIDP { // This class can hold a string, integer, double, or pointer and is meant to allow multiple types in the same container
@@ -84,4 +85,4 @@ namespace bee {
 #define SIDP_cd(x,i) x.p(i, __FILE__, __LINE__).d(__FILE__, __LINE__)
 #define SIDP_cp(x,i) x.p(i, __FILE__, __LINE__).p(__FILE__, __LINE__)
 
-#endif // _BEE_CORE_SIDP_H
+#endif // BEE_CORE_SIDP_H

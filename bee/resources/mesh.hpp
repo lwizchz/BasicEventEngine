@@ -6,15 +6,15 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_MESH_H
-#define _BEE_MESH_H 1
+#ifndef BEE_MESH_H
+#define BEE_MESH_H 1
 
-#include <assimp/cimport.h>
 #include <assimp/scene.h>
 #include <assimp/mesh.h>
-#include <assimp/postprocess.h>
 
-#include "../engine.hpp"
+#include "../resources.hpp"
+
+#include "../render/rgba.hpp"
 
 namespace bee {
 	class Mesh: public Resource {
@@ -64,4 +64,4 @@ namespace bee {
 	};
 }
 
-#endif // _BEE_MESH_H
+#endif // BEE_MESH_H

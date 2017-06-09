@@ -6,10 +6,23 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_RENDER_TRANSITION
-#define _BEE_RENDER_TRANSITION 1
+#ifndef BEE_RENDER_TRANSITION
+#define BEE_RENDER_TRANSITION 1
+
+#include <GL/glew.h> // Include the required OpenGL headers
+#include <SDL2/SDL_opengl.h>
 
 #include "../engine.hpp" // Include the engine headers
+
+#include "../init/gameoptions.hpp"
+
+#include "../core/enginestate.hpp"
+
+#include "../render/renderer.hpp"
+
+#include "../resources/sprite.hpp"
+#include "../resources/background.hpp"
+#include "../resources/room.hpp"
 
 namespace bee {
 	/*
@@ -17,11 +30,11 @@ namespace bee {
 	* ! See https://wiki.libsdl.org/SDL_SetRenderTarget for details
 	*/
 	int reset_render_target() {
-		if (engine.options->renderer_type != E_RENDERER::SDL) {
+		if (engine->options->renderer_type != E_RENDERER::SDL) {
 			glBindFramebuffer(GL_FRAMEBUFFER, 0); // Reset the bound framebuffer
-			engine.renderer->target = 0; // Reset the target
+			engine->renderer->target = 0; // Reset the target
 		} else {
-			SDL_SetRenderTarget(engine.renderer->sdl_renderer, nullptr); // Reset the SDL render target
+			SDL_SetRenderTarget(engine->renderer->sdl_renderer, nullptr); // Reset the SDL render target
 		}
 		return 0;
 	}
@@ -35,7 +48,7 @@ namespace bee {
 		if (sprite_target == nullptr) { // If the given target is nullptr then reset the render target
 			reset_render_target();
 		} else {
-			engine.renderer->target = sprite_target->set_as_target(w, h);
+			engine->renderer->target = sprite_target->set_as_target(w, h);
 		}
 
 		return 0;
@@ -58,7 +71,7 @@ namespace bee {
 		if (background_target == nullptr) { // If the given target is nullptr then reset the render target
 			reset_render_target();
 		} else {
-			engine.renderer->target = background_target->set_as_target(w, h);
+			engine->renderer->target = background_target->set_as_target(w, h);
 		}
 
 		return 0;
@@ -75,14 +88,14 @@ namespace bee {
 	* get_transition_type() - Return the transition type for draw_transition()
 	*/
 	E_TRANSITION get_transition_type() {
-		return engine.transition_type;
+		return engine->transition_type;
 	}
 	/*
 	* set_transition_type() - Set the transition type for draw_transition()
 	* @new_type: the new transition type to use
 	*/
 	int set_transition_type(E_TRANSITION new_type) {
-		engine.transition_type = new_type; // Set the new type
+		engine->transition_type = new_type; // Set the new type
 		return 0; // Return 0 on success
 	}
 	/*
@@ -90,22 +103,22 @@ namespace bee {
 	* @new_custom: the new custom transition type to use
 	*/
 	int set_transition_custom(std::function<void (Sprite*, Sprite*)> new_custom) {
-		engine.transition_custom_func = new_custom; // Set the new custom function
-		engine.transition_type = E_TRANSITION::CUSTOM;
+		engine->transition_custom_func = new_custom; // Set the new custom function
+		engine->transition_type = E_TRANSITION::CUSTOM;
 		return 0; // Return 0 on success
 	}
 	/*
 	* get_transition_speed() - Return the transition speed for draw_transition()
 	*/
 	double get_transition_speed() {
-		return engine.transition_speed;
+		return engine->transition_speed;
 	}
 	/*
 	* set_transition_speed() - Set the transition speed for draw_transition()
 	* @new_speed: the new transition speed to use
 	*/
 	int set_transition_speed(double new_speed) {
-		engine.transition_speed = new_speed/get_fps_goal(); // Set the new speed
+		engine->transition_speed = new_speed/get_fps_goal(); // Set the new speed
 		return 0; // Return 0 on success
 	}
 	/*
@@ -113,139 +126,139 @@ namespace bee {
 	*/
 	int draw_transition() {
 		SDL_RendererFlip f = SDL_FLIP_NONE;
-		if (engine.options->renderer_type != E_RENDERER::SDL) {
+		if (engine->options->renderer_type != E_RENDERER::SDL) {
 			f = SDL_FLIP_VERTICAL;
 		}
 
-		switch (engine.transition_type) {
+		switch (engine->transition_type) {
 			case E_TRANSITION::NONE: { // No transition
 				break;
 			}
 			case E_TRANSITION::CREATE_LEFT: { // Create from left
-				for (double i=0; i<get_width(); i+=engine.transition_speed*get_delta()) {
+				for (double i=0; i<get_width(); i+=engine->transition_speed*get_delta()) {
 					if (((int)i%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
-					engine.renderer->render_clear();
-					engine.texture_before->draw(0, 0, 0, f);
-					engine.texture_after->crop_image_width(i);
-					engine.texture_after->draw(0, 0, 0, i, -1, 0.0, {255, 255, 255, 255}, f);
-					engine.renderer->render();
+					engine->renderer->render_clear();
+					engine->texture_before->draw(0, 0, 0, f);
+					engine->texture_after->crop_image_width(i);
+					engine->texture_after->draw(0, 0, 0, i, -1, 0.0, {255, 255, 255, 255}, f);
+					engine->renderer->render();
 				}
 				break;
 			}
 			case E_TRANSITION::CREATE_RIGHT: { // Create from right
-				for (double i=get_width(); i>=0; i-=engine.transition_speed*get_delta()) {
+				for (double i=get_width(); i>=0; i-=engine->transition_speed*get_delta()) {
 					if (((int)i%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
-					engine.renderer->render_clear();
-					engine.texture_after->draw(0, 0, 0, f);
-					engine.texture_before->crop_image_width(i);
-					engine.texture_before->draw(0, 0, 0, i, -1, 0.0, {255, 255, 255, 255}, f);
-					engine.renderer->render();
+					engine->renderer->render_clear();
+					engine->texture_after->draw(0, 0, 0, f);
+					engine->texture_before->crop_image_width(i);
+					engine->texture_before->draw(0, 0, 0, i, -1, 0.0, {255, 255, 255, 255}, f);
+					engine->renderer->render();
 				}
 				break;
 			}
 			case E_TRANSITION::CREATE_TOP: { // Create from top
-				for (double i=0; i<get_height(); i+=engine.transition_speed*get_delta()) {
+				for (double i=0; i<get_height(); i+=engine->transition_speed*get_delta()) {
 					if (((int)i%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
-					engine.renderer->render_clear();
-					engine.texture_before->draw(0, 0, 0, f);
-					engine.texture_after->crop_image_height(i);
-					engine.texture_after->draw(0, 0, 0, -1, i, 0.0, {255, 255, 255, 255}, f);
-					engine.renderer->render();
+					engine->renderer->render_clear();
+					engine->texture_before->draw(0, 0, 0, f);
+					engine->texture_after->crop_image_height(i);
+					engine->texture_after->draw(0, 0, 0, -1, i, 0.0, {255, 255, 255, 255}, f);
+					engine->renderer->render();
 				}
 				break;
 			}
 			case E_TRANSITION::CREATE_BOTTOM: { // Create from bottom
-				for (double i=get_height(); i>=0; i-=engine.transition_speed*get_delta()) {
+				for (double i=get_height(); i>=0; i-=engine->transition_speed*get_delta()) {
 					if (((int)i%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
-					engine.renderer->render_clear();
-					engine.texture_after->draw(0, 0, 0, f);
-					engine.texture_before->crop_image_height(i);
-					engine.texture_before->draw(0, 0, 0, -1, i, 0.0, {255, 255, 255, 255}, f);
-					engine.renderer->render();
+					engine->renderer->render_clear();
+					engine->texture_after->draw(0, 0, 0, f);
+					engine->texture_before->crop_image_height(i);
+					engine->texture_before->draw(0, 0, 0, -1, i, 0.0, {255, 255, 255, 255}, f);
+					engine->renderer->render();
 				}
 				break;
 			}
 			case E_TRANSITION::CREATE_CENTER: { // Create from center
 				const int w = get_width(), h = get_height();
-				for (double i=0; i<w; i+=engine.transition_speed*get_delta()) {
+				for (double i=0; i<w; i+=engine->transition_speed*get_delta()) {
 					if (((int)i%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
-					engine.renderer->render_clear();
-					engine.texture_before->draw(0, 0, 0, f);
+					engine->renderer->render_clear();
+					engine->texture_before->draw(0, 0, 0, f);
 
 					double ih = i/w * h;
 					int x = (w - i)/2;
 					int y = (h - ih)/2;
-					engine.texture_after->crop_image({x, y, (int)i, (int)ih});
-					engine.texture_after->draw(x, y, 0, i, ih, 0.0, {255, 255, 255, 255}, f);
+					engine->texture_after->crop_image({x, y, (int)i, (int)ih});
+					engine->texture_after->draw(x, y, 0, i, ih, 0.0, {255, 255, 255, 255}, f);
 
-					engine.renderer->render();
+					engine->renderer->render();
 				}
 				break;
 			}
 			case E_TRANSITION::SHIFT_LEFT: { // Shift from left
-				for (double i=-get_width(); i<0; i+=engine.transition_speed*get_delta()) {
+				for (double i=-get_width(); i<0; i+=engine->transition_speed*get_delta()) {
 					if (((int)i%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
-					engine.renderer->render_clear();
-					engine.texture_before->draw(0, 0, 0, f);
-					engine.texture_after->draw(i, 0, 0,  f);
-					engine.renderer->render();
+					engine->renderer->render_clear();
+					engine->texture_before->draw(0, 0, 0, f);
+					engine->texture_after->draw(i, 0, 0,  f);
+					engine->renderer->render();
 				}
 				break;
 			}
 			case E_TRANSITION::SHIFT_RIGHT: { // Shift from right
-				for (double i=get_width(); i>=0; i-=engine.transition_speed*get_delta()) {
+				for (double i=get_width(); i>=0; i-=engine->transition_speed*get_delta()) {
 					if (((int)i%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
-					engine.renderer->render_clear();
-					engine.texture_before->draw(0, 0, 0, f);
-					engine.texture_after->draw(i, 0, 0, f);
-					engine.renderer->render();
+					engine->renderer->render_clear();
+					engine->texture_before->draw(0, 0, 0, f);
+					engine->texture_after->draw(i, 0, 0, f);
+					engine->renderer->render();
 				}
 				break;
 			}
 			case E_TRANSITION::SHIFT_TOP: { // Shift from top
-				for (double i=-get_height(); i<0; i+=engine.transition_speed*get_delta()) {
+				for (double i=-get_height(); i<0; i+=engine->transition_speed*get_delta()) {
 					if (((int)i%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
-					engine.renderer->render_clear();
-					engine.texture_before->draw(0, 0, 0, f);
-					engine.texture_after->draw(0, i, 0, f);
-					engine.renderer->render();
+					engine->renderer->render_clear();
+					engine->texture_before->draw(0, 0, 0, f);
+					engine->texture_after->draw(0, i, 0, f);
+					engine->renderer->render();
 				}
 				break;
 			}
 			case E_TRANSITION::SHIFT_BOTTOM: { // Shift from bottom
-				for (double i=get_height(); i>=0; i-=engine.transition_speed*get_delta()) {
+				for (double i=get_height(); i>=0; i-=engine->transition_speed*get_delta()) {
 					if (((int)i%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
-					engine.renderer->render_clear();
-					engine.texture_before->draw(0, 0, 0, f);
-					engine.texture_after->draw(0, i, 0, f);
-					engine.renderer->render();
+					engine->renderer->render_clear();
+					engine->texture_before->draw(0, 0, 0, f);
+					engine->texture_after->draw(0, i, 0, f);
+					engine->renderer->render();
 				}
 				break;
 			}
@@ -271,137 +284,137 @@ namespace bee {
 			}
 			case E_TRANSITION::PUSH_LEFT: { // Push from left
 				const int w = get_width();
-				for (double i=-w; i<0; i+=engine.transition_speed*get_delta()) {
+				for (double i=-w; i<0; i+=engine->transition_speed*get_delta()) {
 					if (((int)i%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
-					engine.renderer->render_clear();
-					engine.texture_before->draw(i+w, 0, 0, f);
-					engine.texture_after->draw(i, 0, 0, f);
-					engine.renderer->render();
+					engine->renderer->render_clear();
+					engine->texture_before->draw(i+w, 0, 0, f);
+					engine->texture_after->draw(i, 0, 0, f);
+					engine->renderer->render();
 				}
 				break;
 			}
 			case E_TRANSITION::PUSH_RIGHT: { // Push from right
 				const int w = get_width();
-				for (double i=w; i>=0; i-=engine.transition_speed*get_delta()) {
+				for (double i=w; i>=0; i-=engine->transition_speed*get_delta()) {
 					if (((int)i%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
-					engine.renderer->render_clear();
-					engine.texture_before->draw(i-w, 0, 0, f);
-					engine.texture_after->draw(i, 0, 0, f);
-					engine.renderer->render();
+					engine->renderer->render_clear();
+					engine->texture_before->draw(i-w, 0, 0, f);
+					engine->texture_after->draw(i, 0, 0, f);
+					engine->renderer->render();
 				}
 				break;
 			}
 			case E_TRANSITION::PUSH_TOP: { // Push from top
 				const int h = get_height();
-				for (double i=-h; i<0; i+=engine.transition_speed*get_delta()) {
+				for (double i=-h; i<0; i+=engine->transition_speed*get_delta()) {
 					if (((int)i%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
-					engine.renderer->render_clear();
-					engine.texture_before->draw(0, i+h, 0, f);
-					engine.texture_after->draw(0, i, 0, f);
-					engine.renderer->render();
+					engine->renderer->render_clear();
+					engine->texture_before->draw(0, i+h, 0, f);
+					engine->texture_after->draw(0, i, 0, f);
+					engine->renderer->render();
 				}
 				break;
 			}
 			case E_TRANSITION::PUSH_BOTTOM: { // Push from bottom
 				const int h = get_height();
-				for (double i=h; i>=0; i-=engine.transition_speed*get_delta()) {
+				for (double i=h; i>=0; i-=engine->transition_speed*get_delta()) {
 					if (((int)i%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
-					engine.renderer->render_clear();
-					engine.texture_before->draw(0, i-h, 0, f);
-					engine.texture_after->draw(0, i, 0, f);
-					engine.renderer->render();
+					engine->renderer->render_clear();
+					engine->texture_before->draw(0, i-h, 0, f);
+					engine->texture_after->draw(0, i, 0, f);
+					engine->renderer->render();
 				}
 				break;
 			}
 			case E_TRANSITION::ROTATE_LEFT: { // Rotate to left
-				engine.texture_before->set_rotate_xy(0.0, 1.0);
-				engine.texture_after->set_rotate_xy(0.0, 1.0);
-				for (double a=0.0; a<90.0; a+=engine.transition_speed*get_delta()/20.0) {
+				engine->texture_before->set_rotate_xy(0.0, 1.0);
+				engine->texture_after->set_rotate_xy(0.0, 1.0);
+				for (double a=0.0; a<90.0; a+=engine->transition_speed*get_delta()/20.0) {
 					if (((int)a%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
-					engine.renderer->render_clear();
-					engine.texture_before->draw(0, 0, 0, -1, -1, -a, {255, 255, 255, 255}, f);
-					engine.texture_after->draw(0, 0, 0, -1, -1, 90.0-a, {255, 255, 255, 255}, f);
-					engine.renderer->render();
+					engine->renderer->render_clear();
+					engine->texture_before->draw(0, 0, 0, -1, -1, -a, {255, 255, 255, 255}, f);
+					engine->texture_after->draw(0, 0, 0, -1, -1, 90.0-a, {255, 255, 255, 255}, f);
+					engine->renderer->render();
 				}
 				break;
 			}
 			case E_TRANSITION::ROTATE_RIGHT: { // Rotate to right
-				engine.texture_before->set_rotate_xy(1.0, 1.0);
-				engine.texture_after->set_rotate_xy(1.0, 1.0);
-				for (double a=0.0; a<90.0; a+=engine.transition_speed*get_delta()/20.0) {
+				engine->texture_before->set_rotate_xy(1.0, 1.0);
+				engine->texture_after->set_rotate_xy(1.0, 1.0);
+				for (double a=0.0; a<90.0; a+=engine->transition_speed*get_delta()/20.0) {
 					if (((int)a%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
-					engine.renderer->render_clear();
-					engine.texture_before->draw(0, 0, 0, -1, -1, a, {255, 255, 255, 255}, f);
-					engine.texture_after->draw(0, 0, 0, -1, -1, a-90.0, {255, 255, 255, 255}, f);
-					engine.renderer->render();
+					engine->renderer->render_clear();
+					engine->texture_before->draw(0, 0, 0, -1, -1, a, {255, 255, 255, 255}, f);
+					engine->texture_after->draw(0, 0, 0, -1, -1, a-90.0, {255, 255, 255, 255}, f);
+					engine->renderer->render();
 				}
 				break;
 			}
 			case E_TRANSITION::BLEND: { // Blend (crossfade)
-				for (double a=0.0; a<255.0; a+=engine.transition_speed*get_delta()/5.0) {
+				for (double a=0.0; a<255.0; a+=engine->transition_speed*get_delta()/5.0) {
 					if (((int)a%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
-					engine.renderer->render_clear();
-					engine.texture_before->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, (Uint8)(255.0-a)}, f);
-					engine.texture_after->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, (Uint8)a}, f);
-					engine.renderer->render();
+					engine->renderer->render_clear();
+					engine->texture_before->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, (Uint8)(255.0-a)}, f);
+					engine->texture_after->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, (Uint8)a}, f);
+					engine->renderer->render();
 				}
 				break;
 			}
 			case E_TRANSITION::FADE: { // Fade out and in
-				for (double a=0.0; a<255.0; a+=engine.transition_speed*get_delta()/5.0) {
+				for (double a=0.0; a<255.0; a+=engine->transition_speed*get_delta()/5.0) {
 					if (((int)a%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
-					engine.renderer->render_clear();
-					engine.texture_before->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, (Uint8)(255.0-a)}, f);
-					engine.renderer->render();
+					engine->renderer->render_clear();
+					engine->texture_before->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, (Uint8)(255.0-a)}, f);
+					engine->renderer->render();
 				}
-				for (double a=0.0; a<255.0; a+=engine.transition_speed*get_delta()/5.0) {
+				for (double a=0.0; a<255.0; a+=engine->transition_speed*get_delta()/5.0) {
 					if (((int)a%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
-					engine.renderer->render_clear();
-					engine.texture_after->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, (Uint8)a}, f);
-					engine.renderer->render();
+					engine->renderer->render_clear();
+					engine->texture_after->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, (Uint8)a}, f);
+					engine->renderer->render();
 				}
 				break;
 			}
 			case E_TRANSITION::CUSTOM: { // Run a custom transition
-				if (engine.transition_custom_func != nullptr) {
-					engine.transition_custom_func(engine.texture_before, engine.texture_after);
+				if (engine->transition_custom_func != nullptr) {
+					engine->transition_custom_func(engine->texture_before, engine->texture_after);
 				}
 				break;
 			}
 			default: {
-				engine.transition_type = E_TRANSITION::NONE;
+				engine->transition_type = E_TRANSITION::NONE;
 				break;
 			}
 		}
 
-		for (auto& b : engine.current_room->get_backgrounds()) {
+		for (auto& b : engine->current_room->get_backgrounds()) {
 			b.second->background->set_time_update();
 		}
 
@@ -415,11 +428,11 @@ namespace bee {
 	bool compute_check_quit() {
 		SDL_PumpEvents();
 		if (SDL_PeepEvents(nullptr, 1, SDL_PEEKEVENT, SDL_QUIT, SDL_QUIT) > 0) {
-			engine.quit = true;
+			engine->quit = true;
 		}
 
-		return engine.quit;
+		return engine->quit;
 	}
 }
 
-#endif // _BEE_RENDER_TRANSITION
+#endif // BEE_RENDER_TRANSITION

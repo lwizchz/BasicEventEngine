@@ -6,8 +6,8 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_UTIL_H
-#define _BEE_UTIL_H 1
+#ifndef BEE_UTIL_H
+#define BEE_UTIL_H 1
 
 // General utility functions bee/util.cpp
 bool verify_assertions(int, char**);
@@ -23,6 +23,6 @@ bool verify_assertions();
 #include "util/files.hpp"
 #include "util/network.hpp"
 
-#include "util/template/template.hpp" // Include functions which require templates
+#include "util/template.hpp" // Include functions which require templates
 
-#endif // _BEE_UTIL_H
+#endif // BEE_UTIL_H

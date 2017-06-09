@@ -6,8 +6,8 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_RENDER_CAMERA
-#define _BEE_RENDER_CAMERA 1
+#ifndef BEE_RENDER_CAMERA
+#define BEE_RENDER_CAMERA 1
 
 #include "camera.hpp"
 
@@ -50,4 +50,4 @@ namespace bee {
 	{}
 }
 
-#endif // _BEE_RENDER_CAMERA
+#endif // BEE_RENDER_CAMERA

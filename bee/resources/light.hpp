@@ -6,10 +6,17 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_LIGHT_H
-#define _BEE_LIGHT_H 1
+#ifndef BEE_LIGHT_H
+#define BEE_LIGHT_H 1
 
-#include "../engine.hpp"
+#include <vector>
+
+#include <glm/glm.hpp> // Include the required OpenGL headers
+
+#include "../resources.hpp"
+#include "../enum.hpp"
+
+#include "../render/rgba.hpp"
 
 namespace bee {
 	class LightData {
@@ -64,4 +71,4 @@ namespace bee {
 	};
 }
 
-#endif // _BEE_LIGHT_H
+#endif // BEE_LIGHT_H

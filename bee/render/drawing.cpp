@@ -6,10 +6,24 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_RENDER_DRAWING
-#define _BEE_RENDER_DRAWING 1
+#ifndef BEE_RENDER_DRAWING
+#define BEE_RENDER_DRAWING 1
+
+#include <GL/glew.h> // Include the required OpenGL headers
+#include <SDL2/SDL_opengl.h>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "../engine.hpp" // Include the engine headers
+
+#include "../util/files.hpp"
+#include "../util/platform.hpp"
+
+#include "../init/gameoptions.hpp"
+
+#include "../core/enginestate.hpp"
+
+#include "renderer.hpp"
+#include "rgba.hpp"
 
 namespace bee {
 	/*
@@ -60,9 +74,9 @@ namespace bee {
 	int draw_triangle(glm::vec3 v1, glm::vec3 v2, glm::vec3 v3, const RGBA& c, bool is_filled) {
 		draw_set_color(c); // Set the desired color
 
-		if (engine.options->renderer_type != E_RENDERER::SDL) {
+		if (engine->options->renderer_type != E_RENDERER::SDL) {
 			// Bind the engine vao
-			glBindVertexArray(engine.renderer->triangle_vao);
+			glBindVertexArray(engine->renderer->triangle_vao);
 
 			// Put the list of triangle vertices into the engine vbo
 			GLfloat vertices[] = {
@@ -70,20 +84,20 @@ namespace bee {
 				v2.x, v2.y, v2.z,
 				v3.x, v3.y, v3.z
 			};
-			glBindBuffer(GL_ARRAY_BUFFER, engine.renderer->triangle_vbo);
+			glBindBuffer(GL_ARRAY_BUFFER, engine->renderer->triangle_vbo);
 			glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
 
-			glUniform1i(engine.renderer->primitive_location, 1); // Enable primitive mode so that the color is correctly applied
+			glUniform1i(engine->renderer->primitive_location, 1); // Enable primitive mode so that the color is correctly applied
 
 			if (!is_filled) {
 				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Enable line drawing (i.e. wireframe) mode so that the lines will be drawn correctly
 			}
 
 			// Bind the vertices to the vertex array buffer
-			glEnableVertexAttribArray(engine.renderer->vertex_location);
-			glBindBuffer(GL_ARRAY_BUFFER, engine.renderer->triangle_vbo);
+			glEnableVertexAttribArray(engine->renderer->vertex_location);
+			glBindBuffer(GL_ARRAY_BUFFER, engine->renderer->triangle_vbo);
 			glVertexAttribPointer(
-				engine.renderer->vertex_location,
+				engine->renderer->vertex_location,
 				3,
 				GL_FLOAT,
 				GL_FALSE,
@@ -91,22 +105,22 @@ namespace bee {
 				0
 			);
 
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, engine.renderer->triangle_ibo);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, engine->renderer->triangle_ibo);
 			glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, 0); // Draw the triangle
 
 			// Reset the shader state
-			glDisableVertexAttribArray(engine.renderer->vertex_location); // Unbind the vertices
+			glDisableVertexAttribArray(engine->renderer->vertex_location); // Unbind the vertices
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Reset the drawing type
 
-			glUniform1i(engine.renderer->primitive_location, 0); // Reset the colorization mode
+			glUniform1i(engine->renderer->primitive_location, 0); // Reset the colorization mode
 
 			glBindVertexArray(0); // Unbind the VAO
 
 			return 0; // Return 0 on success
 		} else {
-			int r = SDL_RenderDrawLine(engine.renderer->sdl_renderer, v1.x, v1.y, v2.x, v2.y); // Draw the given triangle in the given color
-			r |= SDL_RenderDrawLine(engine.renderer->sdl_renderer, v2.x, v2.y, v3.x, v3.y);
-			r |= SDL_RenderDrawLine(engine.renderer->sdl_renderer, v1.x, v1.y, v3.x, v3.y);
+			int r = SDL_RenderDrawLine(engine->renderer->sdl_renderer, v1.x, v1.y, v2.x, v2.y); // Draw the given triangle in the given color
+			r |= SDL_RenderDrawLine(engine->renderer->sdl_renderer, v2.x, v2.y, v3.x, v3.y);
+			r |= SDL_RenderDrawLine(engine->renderer->sdl_renderer, v1.x, v1.y, v3.x, v3.y);
 			return r; // Return the status
 		}
 	}
@@ -119,10 +133,10 @@ namespace bee {
 	int draw_line(glm::vec3 v1, glm::vec3 v2, const RGBA& c) {
 		draw_set_color(c); // Set the desired color
 
-		if (engine.options->renderer_type != E_RENDERER::SDL) {
+		if (engine->options->renderer_type != E_RENDERER::SDL) {
 			return draw_triangle(v1, v2, v2, c, false); // Draw the line as a set of triangles
 		} else {
-			return SDL_RenderDrawLine(engine.renderer->sdl_renderer, v1.x, v1.y, v2.x, v2.y); // Draw the given line in the given color
+			return SDL_RenderDrawLine(engine->renderer->sdl_renderer, v1.x, v1.y, v2.x, v2.y); // Draw the given line in the given color
 		}
 	}
 	/*
@@ -161,15 +175,6 @@ namespace bee {
 		return draw_line(x1, y1, x2, y2, get_enum_color(c));
 	}
 	/*
-	* draw_line() - Draw a line along the Line l in the given color c
-	* ! When the function is called with a Line structure, simply call it with the Line's coordinates
-	* @l: the Line data of the line
-	* @c: the color with which to draw the line
-	*/
-	int draw_line(const Line& l, const RGBA& c) {
-		return draw_line(l.x1, l.y1, l.x2, l.y2, c);
-	}
-	/*
 	* draw_quad() - Draw a quad at the given coordinates
 	* @position: the position to draw the quad at
 	* @dimensions: the width, height, and depth of the quad
@@ -179,7 +184,7 @@ namespace bee {
 	int draw_quad(glm::vec3 position, glm::vec3 dimensions, bool is_filled, const RGBA& c) {
 		draw_set_color(c); // Set the desired color
 
-		if (engine.options->renderer_type != E_RENDERER::SDL) {
+		if (engine->options->renderer_type != E_RENDERER::SDL) {
 			// Get the width, height, and depth into separate vectors for easy addition
 			glm::vec3 w = glm::vec3(dimensions.x, 0.0f, 0.0f);
 			glm::vec3 h = glm::vec3(0.0f, dimensions.y, 0.0f);
@@ -230,9 +235,9 @@ namespace bee {
 		} else {
 			SDL_Rect r = {(int)position.x, (int)position.y, (int)dimensions.x, (int)dimensions.y};
 			if (is_filled) {
-				return SDL_RenderFillRect(engine.renderer->sdl_renderer, &r); // Fill the given rectangle with the given color
+				return SDL_RenderFillRect(engine->renderer->sdl_renderer, &r); // Fill the given rectangle with the given color
 			} else {
-				return SDL_RenderDrawRect(engine.renderer->sdl_renderer, &r); // Draw the given rectangle in the given color
+				return SDL_RenderDrawRect(engine->renderer->sdl_renderer, &r); // Draw the given rectangle in the given color
 			}
 		}
 	}
@@ -291,18 +296,18 @@ namespace bee {
 	*/
 	int draw_set_color(const RGBA& new_color) {
 		// Set color to the new color
-		engine.color->r = new_color.r;
-		engine.color->g = new_color.g;
-		engine.color->b = new_color.b;
-		engine.color->a = new_color.a;
+		engine->color->r = new_color.r;
+		engine->color->g = new_color.g;
+		engine->color->b = new_color.b;
+		engine->color->a = new_color.a;
 
-		if (engine.options->renderer_type != E_RENDERER::SDL) {
+		if (engine->options->renderer_type != E_RENDERER::SDL) {
 			glClearColor(new_color.r/255.0f, new_color.g/255.0f, new_color.b/255.0f, new_color.a/255.0f); // Set the OpenGL clear and draw colors as floats from [0.0, 1.0]
 			glm::vec4 uc = glm::vec4((float)new_color.r/255.0f, (float)new_color.g/255.0f, (float)new_color.b/255.0f, (float)new_color.a/255.0f); // Change the fragment to the given color
-			glUniform4fv(engine.renderer->colorize_location, 1, glm::value_ptr(uc));
+			glUniform4fv(engine->renderer->colorize_location, 1, glm::value_ptr(uc));
 			return 0;
 		} else {
-			return SDL_SetRenderDrawColor(engine.renderer->sdl_renderer, new_color.r, new_color.g, new_color.b, new_color.a); // Set the SDL draw color as Uint8's from [0, 255]
+			return SDL_SetRenderDrawColor(engine->renderer->sdl_renderer, new_color.r, new_color.g, new_color.b, new_color.a); // Set the SDL draw color as Uint8's from [0, 255]
 		}
 	}
 	/*
@@ -319,19 +324,19 @@ namespace bee {
 	RGBA draw_get_color() {
 		RGBA c = {0, 0, 0, 0};
 
-		if (engine.options->renderer_type != E_RENDERER::SDL) {
-			glClearColor(engine.color->r/255.0f, engine.color->g/255.0f, engine.color->b/255.0f, engine.color->a/255.0f); // Set the OpenGL clear and draw colors as floats from [0.0, 1.0]
-			glm::vec4 uc = glm::vec4((float)engine.color->r/255.0f, (float)engine.color->g/255.0f, (float)engine.color->b/255.0f, (float)engine.color->a/255.0f); // Change the fragment to the given color
-			glUniform4fv(engine.renderer->colorize_location, 1, glm::value_ptr(uc));
+		if (engine->options->renderer_type != E_RENDERER::SDL) {
+			glClearColor(engine->color->r/255.0f, engine->color->g/255.0f, engine->color->b/255.0f, engine->color->a/255.0f); // Set the OpenGL clear and draw colors as floats from [0.0, 1.0]
+			glm::vec4 uc = glm::vec4((float)engine->color->r/255.0f, (float)engine->color->g/255.0f, (float)engine->color->b/255.0f, (float)engine->color->a/255.0f); // Change the fragment to the given color
+			glUniform4fv(engine->renderer->colorize_location, 1, glm::value_ptr(uc));
 		} else {
-			SDL_GetRenderDrawColor(engine.renderer->sdl_renderer, &c.r, &c.g, &c.b, &c.a); // Get the current SDL renderer color
+			SDL_GetRenderDrawColor(engine->renderer->sdl_renderer, &c.r, &c.g, &c.b, &c.a); // Get the current SDL renderer color
 
-			if ((engine.color->r != c.r)||(engine.color->g != c.g)||(engine.color->b != c.b)||(engine.color->a != c.a)) { // Only set the color if it needs to be changed
-				SDL_SetRenderDrawColor(engine.renderer->sdl_renderer, engine.color->r, engine.color->g, engine.color->b, engine.color->a); // Set the SDL draw color as Uint8's from [0, 255]
+			if ((engine->color->r != c.r)||(engine->color->g != c.g)||(engine->color->b != c.b)||(engine->color->a != c.a)) { // Only set the color if it needs to be changed
+				SDL_SetRenderDrawColor(engine->renderer->sdl_renderer, engine->color->r, engine->color->g, engine->color->b, engine->color->a); // Set the SDL draw color as Uint8's from [0, 255]
 			}
 		}
 
-		return *(engine.color); // Return the current draw color
+		return *(engine->color); // Return the current draw color
 	}
 	/*
 	* draw_set_blend() - Set the current drawing blend mode to the given type
@@ -339,8 +344,8 @@ namespace bee {
 	* @blend: the new blend mode to use
 	*/
 	int draw_set_blend(SDL_BlendMode blend) {
-		if (engine.options->renderer_type == E_RENDERER::SDL) {
-			SDL_SetRenderDrawBlendMode(engine.renderer->sdl_renderer, blend);
+		if (engine->options->renderer_type == E_RENDERER::SDL) {
+			SDL_SetRenderDrawBlendMode(engine->renderer->sdl_renderer, blend);
 		}
 		return 0;
 	}
@@ -349,8 +354,8 @@ namespace bee {
 	*/
 	SDL_BlendMode draw_get_blend() {
 		SDL_BlendMode blend = SDL_BLENDMODE_BLEND;
-		if (engine.options->renderer_type == E_RENDERER::SDL) {
-			SDL_GetRenderDrawBlendMode(engine.renderer->sdl_renderer, &blend);
+		if (engine->options->renderer_type == E_RENDERER::SDL) {
+			SDL_GetRenderDrawBlendMode(engine->renderer->sdl_renderer, &blend);
 		}
 		return blend;
 	}
@@ -362,7 +367,7 @@ namespace bee {
 	* @y: the y-coordinate of the pixel
 	*/
 	RGBA get_pixel_color(int x, int y) {
-		if (engine.options->renderer_type != E_RENDERER::SDL) {
+		if (engine->options->renderer_type != E_RENDERER::SDL) {
 			unsigned char* pixel = new unsigned char[4]; // Allocate 4 bytes per pixel for RGBA
 			glReadPixels(x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel); // Read the screen pixel into the array
 
@@ -372,11 +377,11 @@ namespace bee {
 
 			return c; // Return the pixel color
 		} else {
-			SDL_Surface* screenshot = SDL_CreateRGBSurface(0, engine.width, engine.height, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000); // Create a surface from the screen pixels
-			SDL_RenderReadPixels(engine.renderer->sdl_renderer, nullptr, SDL_PIXELFORMAT_ARGB8888, screenshot->pixels, screenshot->pitch);
+			SDL_Surface* screenshot = SDL_CreateRGBSurface(0, engine->width, engine->height, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000); // Create a surface from the screen pixels
+			SDL_RenderReadPixels(engine->renderer->sdl_renderer, nullptr, SDL_PIXELFORMAT_ARGB8888, screenshot->pixels, screenshot->pitch);
 
 			RGBA c;
-			SDL_GetRGBA(((Uint32*)screenshot->pixels)[x+y*engine.height], screenshot->format, &c.r, &c.g, &c.b, &c.a); // Fetch the pixel data from the surface into an RGBA
+			SDL_GetRGBA(((Uint32*)screenshot->pixels)[x+y*engine->height], screenshot->format, &c.r, &c.g, &c.b, &c.a); // Fetch the pixel data from the surface into an RGBA
 
 			SDL_FreeSurface(screenshot); // Free the surface
 
@@ -398,28 +403,28 @@ namespace bee {
 			}
 		}
 
-		if (engine.options->renderer_type != E_RENDERER::SDL) {
-			unsigned char* upsidedown_pixels = new unsigned char[engine.width*engine.height*4]; // Allocate 4 bytes per pixel for RGBA
-			glReadPixels(0, 0, engine.width, engine.height, GL_RGBA, GL_UNSIGNED_BYTE, upsidedown_pixels); // Read the screen pixels into the array
+		if (engine->options->renderer_type != E_RENDERER::SDL) {
+			unsigned char* upsidedown_pixels = new unsigned char[engine->width*engine->height*4]; // Allocate 4 bytes per pixel for RGBA
+			glReadPixels(0, 0, engine->width, engine->height, GL_RGBA, GL_UNSIGNED_BYTE, upsidedown_pixels); // Read the screen pixels into the array
 
-			unsigned char* pixels = new unsigned char[engine.width*engine.height*4];
-			for (size_t i=0; i<engine.height; i++) { // Reverse the order of the rows from glReadPixels() because the OpenGL origin is bottom-left and the SDL origin is top-left
-				for (size_t e=0; e<engine.width; e++) {
+			unsigned char* pixels = new unsigned char[engine->width*engine->height*4];
+			for (size_t i=0; i<engine->height; i++) { // Reverse the order of the rows from glReadPixels() because the OpenGL origin is bottom-left and the SDL origin is top-left
+				for (size_t e=0; e<engine->width; e++) {
 					for (size_t o=0; o<4; o++) {
-						pixels[i*engine.width*4 + e*4 + o] = upsidedown_pixels[(engine.height-i)*engine.width*4 + e*4 + o];
+						pixels[i*engine->width*4 + e*4 + o] = upsidedown_pixels[(engine->height-i)*engine->width*4 + e*4 + o];
 					}
 				}
 			}
 
-			SDL_Surface* screenshot  = SDL_CreateRGBSurfaceFrom(pixels, engine.width, engine.height, 8*4, engine.width*4, 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000); // Create a surface from the screen pixels
+			SDL_Surface* screenshot  = SDL_CreateRGBSurfaceFrom(pixels, engine->width, engine->height, 8*4, engine->width*4, 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000); // Create a surface from the screen pixels
 			SDL_SaveBMP(screenshot, fn.c_str()); // Save the surface to the given filename as a bitmap
 
 			SDL_FreeSurface(screenshot); // Free the surface and pixel data
 			delete[] pixels;
 			delete[] upsidedown_pixels;
 		} else {
-			SDL_Surface* screenshot = SDL_CreateRGBSurface(0, engine.width, engine.height, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000); // Create a surface from the screen pixels
-			SDL_RenderReadPixels(engine.renderer->sdl_renderer, nullptr, SDL_PIXELFORMAT_ARGB8888, screenshot->pixels, screenshot->pitch);
+			SDL_Surface* screenshot = SDL_CreateRGBSurface(0, engine->width, engine->height, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000); // Create a surface from the screen pixels
+			SDL_RenderReadPixels(engine->renderer->sdl_renderer, nullptr, SDL_PIXELFORMAT_ARGB8888, screenshot->pixels, screenshot->pitch);
 
 			SDL_SaveBMP(screenshot, fn.c_str()); // Save the surface to the given filename as a bitmap
 
@@ -434,4 +439,4 @@ namespace bee {
 	}
 }
 
-#endif // _BEE_RENDER_DRAWING
+#endif // BEE_RENDER_DRAWING

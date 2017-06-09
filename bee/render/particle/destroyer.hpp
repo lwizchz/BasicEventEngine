@@ -6,12 +6,14 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_RENDER_PARTICLE_DESTROYER_H
-#define _BEE_RENDER_PARTICLE_DESTROYER_H 1
+#ifndef BEE_RENDER_PARTICLE_DESTROYER_H
+#define BEE_RENDER_PARTICLE_DESTROYER_H 1
 
-#include "../../engine.hpp"
+#include "../../enum.hpp"
 
 namespace bee {
+	class Instance;
+
 	class ParticleDestroyer {
 		public:
 			double x, y;
@@ -24,4 +26,4 @@ namespace bee {
 	};
 }
 
-#endif // _BEE_RENDER_PARTICLE_DESTROYER_H
+#endif // BEE_RENDER_PARTICLE_DESTROYER_H

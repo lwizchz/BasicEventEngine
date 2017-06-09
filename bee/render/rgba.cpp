@@ -6,8 +6,8 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_RENDER_RGBA
-#define _BEE_RENDER_RGBA 1
+#ifndef BEE_RENDER_RGBA
+#define BEE_RENDER_RGBA 1
 
 #include "rgba.hpp"
 

@@ -6,8 +6,8 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_RENDER_PARTICLE_ATTRACTOR
-#define _BEE_RENDER_PARTICLE_ATTRACTOR 1
+#ifndef BEE_RENDER_PARTICLE_ATTRACTOR
+#define BEE_RENDER_PARTICLE_ATTRACTOR 1
 
 #include "attractor.hpp"
 
@@ -25,4 +25,4 @@ namespace bee {
 	{}
 }
 
-#endif // _BEE_RENDER_PARTICLE_ATTRACTOR
+#endif // BEE_RENDER_PARTICLE_ATTRACTOR

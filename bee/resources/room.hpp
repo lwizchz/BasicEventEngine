@@ -6,20 +6,32 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_ROOM_H
-#define _BEE_ROOM_H 1
+#ifndef BEE_ROOM_H
+#define BEE_ROOM_H 1
 
-#include <iostream>
 #include <map>
-#include <tuple>
-#include <algorithm>
-#include <fstream>
+#include <list>
 
 #include <btBulletDynamicsCommon.h>
 
-#include "../engine.hpp"
+#include "../resources.hpp"
+
+#include "../core/instance.hpp"
+
+#include "../render/rgba.hpp"
+
+#include "light.hpp"
 
 namespace bee {
+	class BackgroundData;
+	class ViewData;
+	class PhysicsWorld;
+	class Particle;
+	class ParticleSystem;
+
+	class Sprite;
+	class Background;
+
 	template <typename A, typename B>
 	std::pair<B,A> flip_pair(const std::pair<A,B>& p) {
 		return std::pair<B,A>(p.second, p.first);
@@ -207,4 +219,4 @@ namespace bee {
 	};
 }
 
-#endif // _BEE_ROOM_H
+#endif // BEE_ROOM_H

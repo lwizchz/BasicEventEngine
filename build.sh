@@ -65,7 +65,7 @@ debug()
                 cmake -DCMAKE_BUILD_TYPE=Debug -DGAME_NAME="$game" -DBEE_BUILD_ID=$build_id -DBEE_GAME_ID=$game_id ..
         fi
 
-        make
+        make -j5
         if [ $? -ne 0 ]; then
                 echo "Debug build failed!"
                 exit 3
@@ -101,7 +101,7 @@ release()
                 cmake -DCMAKE_BUILD_TYPE=Release -DGAME_NAME="$game" -DBEE_BUILD_ID=$build_id -DBEE_GAME_ID=$game_id ..
         fi
 
-        make
+        make -j5
         if [ $? -ne 0 ]; then
                 echo "Release build failed!"
                 exit 2

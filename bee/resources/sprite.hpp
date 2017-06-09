@@ -6,15 +6,21 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_SPRITE_H
-#define _BEE_SPRITE_H 1
+#ifndef BEE_SPRITE_H
+#define BEE_SPRITE_H 1
 
 #include <string> // Include the required library headers
 #include <vector>
 #include <list>
 #include <SDL2/SDL.h>
 
-#include "../engine.hpp" // Include the engine headers
+#include <GL/glew.h> // Include the required OpenGL headers
+#include <SDL2/SDL_opengl.h>
+#include <glm/glm.hpp>
+
+#include "../resources.hpp"
+
+#include "../render/rgba.hpp"
 
 namespace bee {
 	struct SpriteDrawData { // The data storage struct which is used in instanced drawing
@@ -114,4 +120,4 @@ namespace bee {
 	};
 }
 
-#endif // _BEE_SPRITE_H
+#endif // BEE_SPRITE_H

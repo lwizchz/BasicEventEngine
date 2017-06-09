@@ -6,10 +6,23 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_RENDER_PARTICLE
-#define _BEE_RENDER_PARTICLE 1
+#ifndef BEE_RENDER_PARTICLE
+#define BEE_RENDER_PARTICLE 1
+
+#include <sstream>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "particle.hpp"
+
+#include "particledata.hpp"
+
+#include "../../engine.hpp"
+
+#include "../../util/real.hpp"
+#include "../../util/platform.hpp"
+
+#include "../../resources/sprite.hpp"
+#include "../../resources/room.hpp"
 
 namespace bee {
 	Particle::Particle(Sprite* new_sprite, double new_scale, Uint32 new_max_time, bool new_should_reanimate) :
@@ -147,4 +160,4 @@ namespace bee {
 	}
 }
 
-#endif // _BEE_RENDER_PARTICLE
+#endif // BEE_RENDER_PARTICLE

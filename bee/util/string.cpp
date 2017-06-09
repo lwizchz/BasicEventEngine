@@ -6,10 +6,13 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_UTIL_STRING
-#define _BEE_UTIL_STRING 1
+#ifndef BEE_UTIL_STRING
+#define BEE_UTIL_STRING 1
 
 // String handling functions
+
+#include <algorithm>
+#include <regex>
 
 #include "string.hpp" // Include the function definitions
 
@@ -404,4 +407,4 @@ int clipboard_set_text(const std::string& str) {
 	return SDL_SetClipboardText(str.c_str());
 }
 
-#endif // _BEE_UTIL_STRING
+#endif // BEE_UTIL_STRING

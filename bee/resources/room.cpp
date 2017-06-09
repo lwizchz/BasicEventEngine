@@ -6,10 +6,42 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_ROOM
-#define _BEE_ROOM 1
+#ifndef BEE_ROOM
+#define BEE_ROOM 1
+
+#include <sstream>
+#include <fstream>
+#include <algorithm>
+
+#include <glm/gtc/type_ptr.hpp>
 
 #include "room.hpp"
+
+#include "sprite.hpp"
+#include "background.hpp"
+#include "timeline.hpp"
+#include "light.hpp"
+#include "object.hpp"
+
+#include "../debug.hpp"
+#include "../engine.hpp"
+
+#include "../util/real.hpp"
+#include "../util/string.hpp"
+#include "../util/collision.hpp"
+#include "../util/files.hpp"
+#include "../util/platform.hpp"
+
+#include "../init/gameoptions.hpp"
+
+#include "../core/enginestate.hpp"
+
+#include "../render/renderer.hpp"
+#include "../render/viewdata.hpp"
+#include "../render/particle/system.hpp"
+
+#include "../physics/body.hpp"
+#include "../physics/world.hpp"
 
 namespace bee {
 	Room::Room () {
@@ -390,7 +422,7 @@ namespace bee {
 			Instance* inst = instances[index];
 
 			if (inst->get_physbody() == nullptr) {
-				std::cerr << "PHYS ERR null physbody for " << inst->get_object()->get_name() << ":" << index << "\n";
+				messenger_send({"engine", "room"}, E_MESSAGE::WARNING, "Null physbody for " + inst->get_object()->get_name() + ":" + bee_itos(index) + "\n");
 			} else {
 				remove_physbody(inst->get_physbody());
 			}
@@ -462,29 +494,29 @@ namespace bee {
 		return 0;
 	}
 	int Room::handle_lights() {
-		if (engine.options->renderer_type != E_RENDERER::SDL) {
+		if (engine->options->renderer_type != E_RENDERER::SDL) {
 			int i = 0;
 			for (auto& l : lightables) {
 				if (i >= BEE_MAX_LIGHTABLES) {
 					break;
 				}
 
-				glUniform4fv(engine.renderer->lightable_location[i].position, 1, glm::value_ptr(l->position));
+				glUniform4fv(engine->renderer->lightable_location[i].position, 1, glm::value_ptr(l->position));
 				int e = 0;
 				for (auto& v : l->mask) {
 					if (e >= BEE_MAX_MASK_VERTICES) {
 						break;
 					}
 
-					glUniform4fv(engine.renderer->lightable_location[i].mask[e], 1, glm::value_ptr(v));
+					glUniform4fv(engine->renderer->lightable_location[i].mask[e], 1, glm::value_ptr(v));
 
 					e++;
 				}
-				glUniform1i(engine.renderer->lightable_location[i].vertex_amount, e);
+				glUniform1i(engine->renderer->lightable_location[i].vertex_amount, e);
 
 				i++;
 			}
-			glUniform1i(engine.renderer->lightable_amount_location, i);
+			glUniform1i(engine->renderer->lightable_amount_location, i);
 
 			i = 0;
 			for (auto& l : lights) {
@@ -494,21 +526,21 @@ namespace bee {
 
 				glm::vec4 c = glm::vec4((float)l.color.r/255.0f, (float)l.color.g/255.0f, (float)l.color.b/255.0f, (float)l.color.a/255.0f);
 
-				glUniform1i(engine.renderer->lighting_location[i].type, static_cast<int>(l.type));
-				glUniform4fv(engine.renderer->lighting_location[i].position, 1, glm::value_ptr(l.position));
-				glUniform4fv(engine.renderer->lighting_location[i].direction, 1, glm::value_ptr(l.direction));
-				glUniform4fv(engine.renderer->lighting_location[i].attenuation, 1, glm::value_ptr(l.attenuation));
-				glUniform4fv(engine.renderer->lighting_location[i].color, 1, glm::value_ptr(c));
+				glUniform1i(engine->renderer->lighting_location[i].type, static_cast<int>(l.type));
+				glUniform4fv(engine->renderer->lighting_location[i].position, 1, glm::value_ptr(l.position));
+				glUniform4fv(engine->renderer->lighting_location[i].direction, 1, glm::value_ptr(l.direction));
+				glUniform4fv(engine->renderer->lighting_location[i].attenuation, 1, glm::value_ptr(l.attenuation));
+				glUniform4fv(engine->renderer->lighting_location[i].color, 1, glm::value_ptr(c));
 
 				i++;
 			}
-			glUniform1i(engine.renderer->light_amount_location, i);
+			glUniform1i(engine->renderer->light_amount_location, i);
 		} else {
 			if (!lights.empty()) {
 				int w = get_width(), h = get_height();
 				set_render_target(light_map);
 				draw_set_color({0, 0, 0, 255});
-				engine.renderer->render_clear();
+				engine->renderer->render_clear();
 
 				Sprite* s = new Sprite("pt_sprite_sphere", "particles/07_sphere.png");
 				s->load();
@@ -865,14 +897,14 @@ namespace bee {
 			i.first->get_object()->step_begin(i.first);
 		}
 
-		if (engine.options->is_debug_enabled) {
+		if (engine->options->is_debug_enabled) {
 			if (is_background_color_enabled) {
 				draw_set_color(background_color);
 			} else {
 				draw_set_color(E_RGB::WHITE);
 			}
 
-			engine.renderer->render_clear();
+			engine->renderer->render_clear();
 		}
 
 		return 0;
@@ -1120,8 +1152,8 @@ namespace bee {
 		}
 
 		if (is_views_enabled) { // Render different viewports
-			if (!engine.options->is_debug_enabled) {
-				engine.renderer->render_clear();
+			if (!engine->options->is_debug_enabled) {
+				engine->renderer->render_clear();
 			}
 
 			for (auto& v : views) {
@@ -1168,8 +1200,8 @@ namespace bee {
 			view_current = nullptr;
 			set_viewport(nullptr);
 		} else {
-			if (!engine.options->is_debug_enabled) {
-				engine.renderer->render_clear();
+			if (!engine->options->is_debug_enabled) {
+				engine->renderer->render_clear();
 			}
 
 			set_viewport(nullptr);
@@ -1178,7 +1210,7 @@ namespace bee {
 			handle_lights();
 		}
 
-		engine.renderer->render();
+		engine->renderer->render();
 		reset_lights();
 
 		return 0;
@@ -1214,13 +1246,13 @@ namespace bee {
 		// Draw instance paths
 		for (auto& i : instances_sorted) {
 			if (i.first->has_path()) {
-				if ((engine.options->is_debug_enabled)||(i.first->get_path_drawn())) {
+				if ((engine->options->is_debug_enabled)||(i.first->get_path_drawn())) {
 					i.first->draw_path();
 				}
 			}
 		}
 
-		if (engine.options->is_debug_enabled) {
+		if (engine->options->is_debug_enabled) {
 			// Draw room outline
 			draw_rectangle(0, 0, get_width(), get_height(), false, E_RGB::RED);
 
@@ -1293,4 +1325,4 @@ namespace bee {
 	}
 }
 
-#endif // _BEE_ROOM
+#endif // BEE_ROOM

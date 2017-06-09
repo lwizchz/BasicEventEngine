@@ -6,8 +6,11 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_CORE_MESSAGECONTENTS
-#define _BEE_CORE_MESSAGECONTENTS 1
+#ifndef BEE_CORE_MESSAGECONTENTS
+#define BEE_CORE_MESSAGECONTENTS 1
+
+#include <vector>
+#include <memory>
 
 #include "messagecontents.hpp"
 
@@ -30,4 +33,4 @@ namespace bee {
 	{}
 }
 
-#endif // _BEE_CORE_MESSAGECONTENTS
+#endif // BEE_CORE_MESSAGECONTENTS

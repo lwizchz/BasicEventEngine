@@ -6,12 +6,21 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_CORE_CONSOLE_H
-#define _BEE_CORE_CONSOLE_H 1
+#ifndef BEE_CORE_CONSOLE_H
+#define BEE_CORE_CONSOLE_H 1
 
-#include "../engine.hpp"
+#include <unordered_map>
+#include <unordered_set>
+#include <functional>
+#include <memory>
+
+#include "sidp.hpp"
+
+#include "messenger/messagecontents.hpp"
 
 namespace bee{
+	class TextData;
+
 	struct Console {
 		bool is_open;
 
@@ -47,4 +56,4 @@ namespace bee{
 	};
 }
 
-#endif // _BEE_CORE_CONSOLE_H
+#endif // BEE_CORE_CONSOLE_H

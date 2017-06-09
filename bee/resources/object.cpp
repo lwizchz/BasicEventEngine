@@ -6,10 +6,22 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_OBJECT
-#define _BEE_OBJECT 1
+#ifndef BEE_OBJECT
+#define BEE_OBJECT 1
+
+#include <sstream>
 
 #include "object.hpp"
+
+#include "sprite.hpp"
+
+#include "../debug.hpp"
+#include "../engine.hpp"
+
+#include "../util/string.hpp"
+#include "../util/platform.hpp"
+
+#include "../core/instance.hpp"
 
 namespace bee {
 	Object::Object () {
@@ -91,35 +103,35 @@ namespace bee {
 	int Object::print() const {
 		std::string instance_string = get_instance_string();
 
-		std::stringstream s;
-		s <<
+		std::stringstream ss;
+		ss <<
 		"Object { "
 		"\n	id            " << id <<
 		"\n	name          " << name <<
 		"\n	path          " << path;
 		if (sprite != nullptr) {
-			s << "\n	sprite        " << sprite->get_id() << ", " << sprite->get_name();
+			ss << "\n	sprite        " << sprite->get_id() << ", " << sprite->get_name();
 		} else {
-			s << "\n	sprite        nullptr";
+			ss << "\n	sprite        nullptr";
 		}
-		s <<
+		ss <<
 		"\n	is_solid      " << is_solid <<
 		"\n	is_visible    " << is_visible <<
 		"\n	is_persistent " << is_persistent <<
 		"\n	depth		" << depth;
 		if (parent != nullptr) {
-			s << "\n	parent        " << parent->get_id() << ", " << parent->get_name();
+			ss << "\n	parent        " << parent->get_id() << ", " << parent->get_name();
 		} else {
-			s << "\n	parent        nullptr";
+			ss << "\n	parent        nullptr";
 		}
 		if (mask != nullptr) {
-			s << "\n	mask          " << mask->get_id() << ", " << mask->get_name();
+			ss << "\n	mask          " << mask->get_id() << ", " << mask->get_name();
 		} else {
-			s << "\n	mask          nullptr";
+			ss << "\n	mask          nullptr";
 		}
-		s << "\n	instances\n" << debug_indent(instance_string, 2) <<
+		ss << "\n	instances\n" << debug_indent(instance_string, 2) <<
 		"\n}\n";
-		messenger_send({"engine", "resource"}, E_MESSAGE::INFO, s.str());
+		messenger_send({"engine", "resource"}, E_MESSAGE::INFO, ss.str());
 
 		return 0;
 	}
@@ -285,97 +297,6 @@ namespace bee {
 		instance_data.at(inst_id)[field] = data;
 		return 0;
 	}
-
-	/*void Object::update(Instance* self) {
-		reinterpret_cast<const ObjType*>(this)->update(self);
-	}
-	void Object::create(Instance* self) {
-		reinterpret_cast<const ObjType*>(this)->create(self);
-	}
-	void Object::destroy(Instance* self) {
-		reinterpret_cast<const ObjType*>(this)->destroy(self);
-	}
-	void Object::alarm(Instance* self, int a) {
-		reinterpret_cast<const ObjType*>(this)->alarm(a);
-	}
-	void Object::step_begin(Instance* self) {
-		reinterpret_cast<const ObjType*>(this)->step_begin(self);
-	}
-	void Object::step_mid(Instance* self) {
-		reinterpret_cast<const ObjType*>(this)->step_mid(self);
-	}
-	void Object::step_end(Instance* self) {
-		reinterpret_cast<const ObjType*>(this)->step_end(self);
-	}
-	void Object::keyboard_press(Instance* self, SDL_Event* e) {
-		reinterpret_cast<const ObjType*>(this)->keyboard_press(self, e);
-	}
-	void Object::mouse_press(Instance* self, SDL_Event* e) {
-		reinterpret_cast<const ObjType*>(this)->mouse_press(self, e);
-	}
-	void Object::keyboard_input(Instance* self, SDL_Event* e) {
-		reinterpret_cast<const ObjType*>(this)->keyboard_input(self, e);
-	}
-	void Object::mouse_input(Instance* self, SDL_Event* e) {
-		reinterpret_cast<const ObjType*>(this)->mouse_input(self, e);
-	}
-	void Object::keyboard_release(Instance* self, SDL_Event* e) {
-		reinterpret_cast<const ObjType*>(this)->keyboard_release(self, e);
-	}
-	void Object::mouse_release(Instance* self, SDL_Event* e) {
-		reinterpret_cast<const ObjType*>(this)->mouse_release(self, e);
-	}
-	void Object::controller_axis(Instance* self, SDL_Event* e) {
-		reinterpret_cast<const ObjType*>(this)->controller_axis(self, e);
-	}
-	void Object::controller_press(Instance* self, SDL_Event* e) {
-		reinterpret_cast<const ObjType*>(this)->controller_press(self, e);
-	}
-	void Object::controller_release(Instance* self, SDL_Event* e) {
-		reinterpret_cast<const ObjType*>(this)->controller_release(self, e);
-	}
-	void Object::controller_modify(Instance* self, SDL_Event* e) {
-		reinterpret_cast<const ObjType*>(this)->controller_modify(self, e);
-	}
-	void Object::commandline_input(Instance* self, const std::string& str) {
-		reinterpret_cast<const ObjType*>(this)->commandline_input(self, str);
-	}
-	void Object::path_end(Instance* self) {
-		reinterpret_cast<const ObjType*>(this)->path_end(self);
-	}
-	void Object::outside_room(Instance* self) {
-		reinterpret_cast<const ObjType*>(this)->outside_room(self);
-	}
-	void Object::intersect_boundary(Instance* self) {
-		reinterpret_cast<const ObjType*>(this)->intersect_boundary(self);
-	}
-	void Object::collision(Instance* self, Instance* other) {
-		reinterpret_cast<const ObjType*>(this)->collision(self, other);
-	}
-	bool Object::check_collision_list(const Instance& self, const Instance& other) const {
-		reinterpret_cast<const ObjType*>(this)->check_collision_list(self, other);
-	}
-	void Object::draw(Instance* self) {
-		reinterpret_cast<const ObjType*>(this)->draw(self);
-	}
-	void Object::animation_end(Instance* self) {
-		reinterpret_cast<const ObjType*>(this)->animation_end(self);
-	}
-	void Object::room_start(Instance* self) {
-		reinterpret_cast<const ObjType*>(this)->room_start(self);
-	}
-	void Object::room_end(Instance* self) {
-		reinterpret_cast<const ObjType*>(this)->room_end(self);
-	}
-	void Object::game_start(Instance* self) {
-		reinterpret_cast<const ObjType*>(this)->game_start(self);
-	}
-	void Object::game_end(Instance* self) {
-		reinterpret_cast<const ObjType*>(this)->game_end(self);
-	}
-	void Object::window(Instance* self, SDL_Event* e) {
-		reinterpret_cast<const ObjType*>(this)->window(self, e);
-	}*/
 }
 
-#endif // _BEE_OBJECT
+#endif // BEE_OBJECT

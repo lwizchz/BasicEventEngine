@@ -6,10 +6,8 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_INIT_PROGRAMFLAGS_H
-#define _BEE_INIT_PROGRAMFLAGS_H 1
-
-#include "../engine.hpp"
+#ifndef BEE_INIT_PROGRAMFLAGS_H
+#define BEE_INIT_PROGRAMFLAGS_H 1
 
 namespace bee {
 	struct ProgramFlags {
@@ -24,4 +22,4 @@ namespace bee {
 	};
 }
 
-#endif // _BEE_INIT_PROGRAMFLAGS_H
+#endif // BEE_INIT_PROGRAMFLAGS_H

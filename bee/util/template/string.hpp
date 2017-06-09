@@ -6,8 +6,8 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_UTIL_TEMPLATE_STRING_H
-#define _BEE_UTIL_TEMPLATE_STRING_H 1
+#ifndef BEE_UTIL_TEMPLATE_STRING_H
+#define BEE_UTIL_TEMPLATE_STRING_H 1
 
 // String template-requiring functions
 
@@ -54,8 +54,6 @@ std::string map_serialize(std::map<std::string,A> m, bool should_pretty_print) {
 
 	return s.str();
 }
-//template std::string map_serialize<int>(std::map<std::string,int>, bool);
-//template std::string map_serialize<bee::SIDP>(std::map<std::string,bee::SIDP>, bool);
 /*
 * map_deserialize() - Convert a serialized string into a map
 * @s: the string to deserialize
@@ -67,8 +65,8 @@ int map_deserialize(std::string s, std::map<std::string,A>* mv) {
 	s = s.substr(1, s.length()-2); // Remove front and back brackets
 
 	std::map<std::string,A> m;
-	std::vector<std::string> v = splitv(s, ',', true);
-	for (auto& e : v) {
+	std::vector<std::string> elements = splitv(s, ',', true);
+	for (auto& e : elements) {
 		std::string ks = e.substr(0, e.find(":")); // Get the key and value pair
 		ks = trim(ks);
 		std::string vs = e.substr(e.find(":")+1);
@@ -84,8 +82,6 @@ int map_deserialize(std::string s, std::map<std::string,A>* mv) {
 	*mv = m;
 	return 0;
 }
-//template int map_deserialize<int>(std::string, std::map<std::string,int>*);
-//template int map_deserialize<bee::SIDP>(std::string, std::map<std::string,bee::SIDP>*);
 
 /*
 * print_map() - Format and print a map's key-value pairs on standard output
@@ -101,4 +97,4 @@ int print_map(std::map<A,B> m) {
 	return 0; // Return 0 on success
 }
 
-#endif // _BEE_UTIL_TEMPLATE_STRING_H
+#endif // BEE_UTIL_TEMPLATE_STRING_H

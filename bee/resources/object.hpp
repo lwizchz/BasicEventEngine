@@ -6,16 +6,23 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_OBJECT_H
-#define _BEE_OBJECT_H 1
+#ifndef BEE_OBJECT_H
+#define BEE_OBJECT_H 1
 
 #include <string>
 #include <map>
 
-#include "../engine.hpp"
+#include <SDL2/SDL.h> // Include the required SDL headers
+
+#include "../resources.hpp"
+#include "../enum.hpp"
+
+#include "../core/sidp.hpp"
 
 namespace bee {
-	//template <typename ObjType>
+	class Instance;
+	class Sprite;
+
 	class Object: public Resource {
 			// Add new variables to the print() debugging method
 			int id = -1;
@@ -113,221 +120,7 @@ namespace bee {
 			virtual void game_start(Instance*) {};
 			virtual void game_end(Instance*) {};
 			virtual void window(Instance*, SDL_Event*) {};
-
-			/*void update(Instance*);
-			void create(Instance*);
-			void destroy(Instance*);
-			void alarm(Instance*, size_t);
-			void step_begin(Instance*);
-			void step_mid(Instance*);
-			void step_end(Instance*);
-			void keyboard_press(Instance*, SDL_Event*);
-			void mouse_press(Instance*, SDL_Event*);
-			void keyboard_input(Instance*, SDL_Event*);
-			void mouse_input(Instance*, SDL_Event*);
-			void keyboard_release(Instance*, SDL_Event*);
-			void mouse_release(Instance*, SDL_Event*);
-			void controller_axis(Instance*, SDL_Event*);
-			void controller_press(Instance*, SDL_Event*);
-			void controller_release(Instance*, SDL_Event*);
-			void controller_modify(Instance*, SDL_Event*);
-			void commandline_input(Instance*, const std::string&);
-			void path_end(Instance*);
-			void outside_room(Instance*);
-			void intersect_boundary(Instance*);
-			void collision(Instance*, Instance*);
-			bool check_collision_list(const Instance&, const Instance&) const;
-			void draw(Instance*);
-			void animation_end(Instance*);
-			void room_start(Instance*);
-			void room_end(Instance*);
-			void game_start(Instance*);
-			void game_end(Instance*);
-			void window(Instance*, SDL_Event*);*/
-
-			/*void update(Instance* self) {
-				reinterpret_cast<const ObjType*>(this)->update(self);
-			}
-			void create(Instance* self) {
-				reinterpret_cast<const ObjType*>(this)->create(self);
-			}
-			void destroy(Instance* self) {
-				reinterpret_cast<const ObjType*>(this)->destroy(self);
-			}
-			void alarm(Instance* self, size_t a) {
-				reinterpret_cast<const ObjType*>(this)->alarm(a);
-			}
-			void step_begin(Instance* self) {
-				reinterpret_cast<const ObjType*>(this)->step_begin(self);
-			}
-			void step_mid(Instance* self) {
-				reinterpret_cast<const ObjType*>(this)->step_mid(self);
-			}
-			void step_end(Instance* self) {
-				reinterpret_cast<const ObjType*>(this)->step_end(self);
-			}
-			void keyboard_press(Instance* self, SDL_Event* e) {
-				reinterpret_cast<const ObjType*>(this)->keyboard_press(self, e);
-			}
-			void mouse_press(Instance* self, SDL_Event* e) {
-				reinterpret_cast<const ObjType*>(this)->mouse_press(self, e);
-			}
-			void keyboard_input(Instance* self, SDL_Event* e) {
-				reinterpret_cast<const ObjType*>(this)->keyboard_input(self, e);
-			}
-			void mouse_input(Instance* self, SDL_Event* e) {
-				reinterpret_cast<const ObjType*>(this)->mouse_input(self, e);
-			}
-			void keyboard_release(Instance* self, SDL_Event* e) {
-				reinterpret_cast<const ObjType*>(this)->keyboard_release(self, e);
-			}
-			void mouse_release(Instance* self, SDL_Event* e) {
-				reinterpret_cast<const ObjType*>(this)->mouse_release(self, e);
-			}
-			void controller_axis(Instance* self, SDL_Event* e) {
-				reinterpret_cast<const ObjType*>(this)->controller_axis(self, e);
-			}
-			void controller_press(Instance* self, SDL_Event* e) {
-				reinterpret_cast<const ObjType*>(this)->controller_press(self, e);
-			}
-			void controller_release(Instance* self, SDL_Event* e) {
-				reinterpret_cast<const ObjType*>(this)->controller_release(self, e);
-			}
-			void controller_modify(Instance* self, SDL_Event* e) {
-				reinterpret_cast<const ObjType*>(this)->controller_modify(self, e);
-			}
-			void commandline_input(Instance* self, const std::string& str) {
-				reinterpret_cast<const ObjType*>(this)->commandline_input(self, str);
-			}
-			void path_end(Instance* self) {
-				reinterpret_cast<const ObjType*>(this)->path_end(self);
-			}
-			void outside_room(Instance* self) {
-				reinterpret_cast<const ObjType*>(this)->outside_room(self);
-			}
-			void intersect_boundary(Instance* self) {
-				reinterpret_cast<const ObjType*>(this)->intersect_boundary(self);
-			}
-			void collision(Instance* self, Instance* other) {
-				reinterpret_cast<const ObjType*>(this)->collision(self, other);
-			}
-			bool check_collision_list(const Instance& self, const Instance& other) const {
-				reinterpret_cast<const ObjType*>(this)->check_collision_list(self, other);
-			}
-			void draw(Instance* self) {
-				reinterpret_cast<const ObjType*>(this)->draw(self);
-			}
-			void animation_end(Instance* self) {
-				reinterpret_cast<const ObjType*>(this)->animation_end(self);
-			}
-			void room_start(Instance* self) {
-				reinterpret_cast<const ObjType*>(this)->room_start(self);
-			}
-			void room_end(Instance* self) {
-				reinterpret_cast<const ObjType*>(this)->room_end(self);
-			}
-			void game_start(Instance* self) {
-				reinterpret_cast<const ObjType*>(this)->game_start(self);
-			}
-			void game_end(Instance* self) {
-				reinterpret_cast<const ObjType*>(this)->game_end(self);
-			}
-			void window(Instance* self, SDL_Event* e) {
-				reinterpret_cast<const ObjType*>(this)->window(self, e);
-			}*/
 	};
-
-	/*
-	void Object::update(Instance* self) {
-		reinterpret_cast<const ObjType*>(this)->update(self);
-	}
-	void Object::create(Instance* self) {
-		reinterpret_cast<const ObjType*>(this)->create(self);
-	}
-	void Object::destroy(Instance* self) {
-		reinterpret_cast<const ObjType*>(this)->destroy(self);
-	}
-	void Object::alarm(Instance* self, size_t a) {
-		reinterpret_cast<const ObjType*>(this)->alarm(a);
-	}
-	void Object::step_begin(Instance* self) {
-		reinterpret_cast<const ObjType*>(this)->step_begin(self);
-	}
-	void Object::step_mid(Instance* self) {
-		reinterpret_cast<const ObjType*>(this)->step_mid(self);
-	}
-	void Object::step_end(Instance* self) {
-		reinterpret_cast<const ObjType*>(this)->step_end(self);
-	}
-	void Object::keyboard_press(Instance* self, SDL_Event* e) {
-		reinterpret_cast<const ObjType*>(this)->keyboard_press(self, e);
-	}
-	void Object::mouse_press(Instance* self, SDL_Event* e) {
-		reinterpret_cast<const ObjType*>(this)->mouse_press(self, e);
-	}
-	void Object::keyboard_input(Instance* self, SDL_Event* e) {
-		reinterpret_cast<const ObjType*>(this)->keyboard_input(self, e);
-	}
-	void Object::mouse_input(Instance* self, SDL_Event* e) {
-		reinterpret_cast<const ObjType*>(this)->mouse_input(self, e);
-	}
-	void Object::keyboard_release(Instance* self, SDL_Event* e) {
-		reinterpret_cast<const ObjType*>(this)->keyboard_release(self, e);
-	}
-	void Object::mouse_release(Instance* self, SDL_Event* e) {
-		reinterpret_cast<const ObjType*>(this)->mouse_release(self, e);
-	}
-	void Object::controller_axis(Instance* self, SDL_Event* e) {
-		reinterpret_cast<const ObjType*>(this)->controller_axis(self, e);
-	}
-	void Object::controller_press(Instance* self, SDL_Event* e) {
-		reinterpret_cast<const ObjType*>(this)->controller_press(self, e);
-	}
-	void Object::controller_release(Instance* self, SDL_Event* e) {
-		reinterpret_cast<const ObjType*>(this)->controller_release(self, e);
-	}
-	void Object::controller_modify(Instance* self, SDL_Event* e) {
-		reinterpret_cast<const ObjType*>(this)->controller_modify(self, e);
-	}
-	void Object::commandline_input(Instance* self, const std::string& str) {
-		reinterpret_cast<const ObjType*>(this)->commandline_input(self, str);
-	}
-	void Object::path_end(Instance* self) {
-		reinterpret_cast<const ObjType*>(this)->path_end(self);
-	}
-	void Object::outside_room(Instance* self) {
-		reinterpret_cast<const ObjType*>(this)->outside_room(self);
-	}
-	void Object::intersect_boundary(Instance* self) {
-		reinterpret_cast<const ObjType*>(this)->intersect_boundary(self);
-	}
-	void Object::collision(Instance* self, Instance* other) {
-		reinterpret_cast<const ObjType*>(this)->collision(self, other);
-	}
-	bool Object::check_collision_list(const Instance& self, const Instance& other) const {
-		reinterpret_cast<const ObjType*>(this)->check_collision_list(self, other);
-	}
-	void Object::draw(Instance* self) {
-		reinterpret_cast<const ObjType*>(this)->draw(self);
-	}
-	void Object::animation_end(Instance* self) {
-		reinterpret_cast<const ObjType*>(this)->animation_end(self);
-	}
-	void Object::room_start(Instance* self) {
-		reinterpret_cast<const ObjType*>(this)->room_start(self);
-	}
-	void Object::room_end(Instance* self) {
-		reinterpret_cast<const ObjType*>(this)->room_end(self);
-	}
-	void Object::game_start(Instance* self) {
-		reinterpret_cast<const ObjType*>(this)->game_start(self);
-	}
-	void Object::game_end(Instance* self) {
-		reinterpret_cast<const ObjType*>(this)->game_end(self);
-	}
-	void Object::window(Instance* self, SDL_Event* e) {
-		reinterpret_cast<const ObjType*>(this)->window(self, e);
-	}*/
 }
 
-#endif // _BEE_OBJECT_H
+#endif // BEE_OBJECT_H

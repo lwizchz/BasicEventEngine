@@ -6,18 +6,36 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_CORE_RESOURCES
-#define _BEE_CORE_RESOURCES 1
+#ifndef BEE_CORE_RESOURCES
+#define BEE_CORE_RESOURCES 1
 
-#include "../engine.hpp" // Include the engine headers
+#include <SDL2/SDL.h> // Include the required SDL headers
+
+#include <GL/glew.h> // Include the required OpenGL headers
+#include <SDL2/SDL_opengl.h>
+
+#include "../engine.hpp"
+
+#include "enginestate.hpp"
+
+#include "../resources/sprite.hpp"
+#include "../resources/sound.hpp"
+#include "../resources/background.hpp"
+#include "../resources/font.hpp"
+#include "../resources/path.hpp"
+#include "../resources/timeline.hpp"
+#include "../resources/mesh.hpp"
+#include "../resources/light.hpp"
+#include "../resources/object.hpp"
+#include "../resources/room.hpp"
 
 namespace bee {
 	/*
 	* load_media() - Load the media (i.e. sprites and backgrounds) for the current room
 	*/
 	int load_media() {
-		if (engine.current_room != nullptr) { // If we are currently in a room, load its media
-			engine.current_room->load_media();
+		if (engine->current_room != nullptr) { // If we are currently in a room, load its media
+			engine->current_room->load_media();
 		}
 
 		return 0; // Return 0 on success
@@ -26,8 +44,8 @@ namespace bee {
 	* free_media() - Free the media (i.e. sprites and backgrounds) for the current room
 	*/
 	int free_media() {
-		if (engine.current_room != nullptr) { // If we are currently in a room, free its media
-			engine.current_room->free_media();
+		if (engine->current_room != nullptr) { // If we are currently in a room, free its media
+			engine->current_room->free_media();
 		}
 
 		return 0; // Return 0 on success
@@ -52,14 +70,14 @@ namespace bee {
 	* get_volume() - Return the global sound volume from [0.0, 1.0]
 	*/
 	double get_volume() {
-		return engine.volume;
+		return engine->volume;
 	}
 	/*
 	* set_volume() - Set a new global sound volume and update it for all currently playing sounds
 	* @new_volume: the new volume to use
 	*/
 	int set_volume(double new_volume) {
-		engine.volume = new_volume; // Set the volume
+		engine->volume = new_volume; // Set the volume
 
 		for (size_t i=0; i<resource_list->sounds.get_amount(); ++i) { // Iterate over the sounds and update them to the new volume
 			if (get_sound(i) != nullptr) {
@@ -408,4 +426,4 @@ namespace bee {
 	}
 }
 
-#endif // _BEE_CORE_RESOURCES
+#endif // BEE_CORE_RESOURCES

@@ -6,8 +6,12 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_DEBUG
-#define _BEE_DEBUG 1
+#ifndef BEE_DEBUG
+#define BEE_DEBUG 1
+
+#include <sstream>
+
+#include <SDL2/SDL.h>
 
 #include "debug.hpp" // Include the function declarations
 
@@ -94,4 +98,4 @@ std::string get_sdl_error() {
 	return std::string(SDL_GetError());
 }
 
-#endif // _BEE_DEBUG
+#endif // BEE_DEBUG

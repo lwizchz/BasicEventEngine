@@ -6,10 +6,10 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_CORE_NETWORKCLIENT_H
-#define _BEE_CORE_NETWORKCLIENT_H 1
+#ifndef BEE_CORE_NETWORKCLIENT_H
+#define BEE_CORE_NETWORKCLIENT_H 1
 
-#include "../../engine.hpp"
+#include <SDL2/SDL_net.h>
 
 namespace bee {
 	struct NetworkClient {
@@ -21,4 +21,4 @@ namespace bee {
 	};
 }
 
-#endif // _BEE_CORE_NETWORKCLIENT_H
+#endif // BEE_CORE_NETWORKCLIENT_H

@@ -6,17 +6,16 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_PATH_H
-#define _BEE_PATH_H 1
+#ifndef BEE_PATH_H
+#define BEE_PATH_H 1
 
-#include <iostream> // Include the required library headers
-#include <sstream>
-#include <vector>
-#include <tuple>
+#include <vector> // Include the required library headers
 
-#include "../engine.hpp" // Include the engine headers
+#include "../resources.hpp"
 
 namespace bee {
+	typedef std::tuple<double, double, double, double> path_coord_t; // {x, y, z, speed}
+
 	class Path: public Resource { // The path resource class is used to repeatedly move instances in complex, predefined patterns
 			int id; // The id of the resource
 			std::string name; // An arbitrary name for the resource
@@ -56,4 +55,4 @@ namespace bee {
 	};
 }
 
-#endif // _BEE_PATH_H
+#endif // BEE_PATH_H

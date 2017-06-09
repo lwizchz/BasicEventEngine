@@ -6,10 +6,12 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_CORE_MESSAGECONTENTS_H
-#define _BEE_CORE_MESSAGECONTENTS_H 1
+#ifndef BEE_CORE_MESSAGECONTENTS_H
+#define BEE_CORE_MESSAGECONTENTS_H 1
 
-#include "../../engine.hpp"
+#include <SDL2/SDL.h> // Include the required SDL headers
+
+#include "../../enum.hpp"
 
 namespace bee {
 	struct MessageContents {
@@ -25,4 +27,4 @@ namespace bee {
 	};
 }
 
-#endif // _BEE_CORE_MESSAGECONTENTS_H
+#endif // BEE_CORE_MESSAGECONTENTS_H

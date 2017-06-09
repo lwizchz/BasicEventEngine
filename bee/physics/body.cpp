@@ -6,10 +6,22 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_PHYSICS_BODY
-#define _BEE_PHYSICS_BODY 1
+#ifndef BEE_PHYSICS_BODY
+#define BEE_PHYSICS_BODY 1
 
 #include "body.hpp"
+
+#include "world.hpp"
+
+#include "../engine.hpp"
+
+#include "../util/string.hpp"
+#include "../util/template.hpp"
+
+#include "../core/instance.hpp"
+#include "../core/sidp.hpp"
+
+#include "../resources/room.hpp"
 
 namespace bee {
 	PhysicsBody::PhysicsBody(PhysicsWorld* new_world, Instance* new_inst, E_PHYS_SHAPE new_type, double new_mass, double x, double y, double z, double* p) {
@@ -325,7 +337,7 @@ namespace bee {
 			}
 
 			default:
-				std::cerr << "PHYS ERR invalid shape type\n";
+				messenger_send({"engine", "physics"}, E_MESSAGE::WARNING, "PHYS ERR invalid shape type\n");
 				/* FALL THROUGH */
 			case E_PHYS_SHAPE::NONE:
 				shape_param_amount = 0;
@@ -351,17 +363,17 @@ namespace bee {
 		return 0;
 	}
 
-	int PhysicsBody::add_constraint(E_PHYS_CONSTRAINT type, double* p) {
+	int PhysicsBody::add_constraint(E_PHYS_CONSTRAINT constraint_type, double* p) {
 		if (attached_world != nullptr) {
-			attached_world->add_constraint(type, this, p);
+			attached_world->add_constraint(constraint_type, this, p);
 		} else {
-			constraints.emplace_back(type, p, nullptr);
+			constraints.emplace_back(constraint_type, p, nullptr);
 		}
 
 		return 0;
 	}
-	int PhysicsBody::add_constraint_external(E_PHYS_CONSTRAINT type, double* p, btTypedConstraint* constraint) {
-		constraints.emplace_back(type, p, constraint);
+	int PhysicsBody::add_constraint_external(E_PHYS_CONSTRAINT constraint_type, double* p, btTypedConstraint* constraint) {
+		constraints.emplace_back(constraint_type, p, constraint);
 		return 0;
 	}
 	int PhysicsBody::remove_constraints() {
@@ -432,4 +444,4 @@ namespace bee {
 	}
 }
 
-#endif // _BEE_PHYSICS_BODY
+#endif // BEE_PHYSICS_BODY

@@ -6,8 +6,8 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_UTIL_SOUND_H
-#define _BEE_UTIL_SOUND_H 1
+#ifndef BEE_UTIL_SOUND_H
+#define BEE_UTIL_SOUND_H 1
 
 void sound_effect_chorus(int, void*, int, void*);
 void sound_effect_chorus_cleanup(int, void*);
@@ -95,4 +95,4 @@ class se_equalizer_data {
 		int ticks = 0; // The position of the stream, i.e. the size of the stream data
 };
 
-#endif // _BEE_UTIL_SOUND_H
+#endif // BEE_UTIL_SOUND_H

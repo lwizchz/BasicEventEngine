@@ -6,10 +6,18 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_PHYSICS_DRAW
-#define _BEE_PHYSICS_DRAW 1
+#ifndef BEE_PHYSICS_DRAW
+#define BEE_PHYSICS_DRAW 1
 
 #include "draw.hpp"
+
+#include "world.hpp"
+
+#include "../engine.hpp"
+
+#include "../util/real.hpp"
+
+#include "../render/rgba.hpp"
 
 namespace bee {
 	PhysicsDraw::PhysicsDraw() {
@@ -81,4 +89,4 @@ namespace bee {
 	}
 }
 
-#endif // _BEE_PHYSICS_DRAW
+#endif // BEE_PHYSICS_DRAW

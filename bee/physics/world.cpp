@@ -6,10 +6,19 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_PHYSICS_WORLD
-#define _BEE_PHYSICS_WORLD 1
+#ifndef BEE_PHYSICS_WORLD
+#define BEE_PHYSICS_WORLD 1
 
 #include "world.hpp"
+
+#include "draw.hpp"
+#include "body.hpp"
+
+#include "../engine.hpp"
+
+#include "../util/platform.hpp"
+
+#include "../resources/room.hpp"
 
 namespace bee {
 	PhysicsWorld::PhysicsWorld() {
@@ -81,7 +90,7 @@ namespace bee {
 			}
 
 			if (a > 0) {
-				std::cerr << "PHYS WARN scale change occurred with " << a << " non-removed objects and constraints, they have been deleted\n";
+				messenger_send({"engine", "physics"}, E_MESSAGE::WARNING, "Scale change occurred with " + bee_itos(a) + " non-removed objects and constraints, they have been deleted\n");
 			}
 		}
 
@@ -93,7 +102,7 @@ namespace bee {
 
 	int PhysicsWorld::add_body(PhysicsBody* new_body) {
 		if (scale != new_body->get_scale()) {
-			std::cerr << "PHYS WARN failed to add body to world: scale mismatch: world(" << scale << "), body(" << new_body->get_scale() << ")\n";
+			messenger_send({"engine", "physics"}, E_MESSAGE::WARNING, "Failed to add body to world: scale mismatch: world(" + bee_itos(scale) + "), body(" + bee_itos(new_body->get_scale()) + ")\n");
 			return 1;
 		}
 
@@ -191,7 +200,7 @@ namespace bee {
 				break;
 			}
 			default:
-				std::cerr << "PHYS ERR invalid constraint type\n";
+				messenger_send({"engine", "physics"}, E_MESSAGE::WARNING, "Invalid constraint type\n");
 			case E_PHYS_CONSTRAINT::NONE:
 				break;
 		}
@@ -284,7 +293,7 @@ namespace bee {
 				break;
 			}
 			default:
-				std::cerr << "PHYS ERR invalid constraint type\n";
+				messenger_send({"engine", "physics"}, E_MESSAGE::WARNING, "Invalid constraint type\n");
 			case E_PHYS_CONSTRAINT::NONE:
 				break;
 		}
@@ -337,4 +346,4 @@ namespace bee {
 	}
 }
 
-#endif // _BEE_PHYSICS_WORLD
+#endif // BEE_PHYSICS_WORLD

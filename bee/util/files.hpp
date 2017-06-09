@@ -6,15 +6,10 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_UTIL_FILES_H
-#define _BEE_UTIL_FILES_H 1
+#ifndef BEE_UTIL_FILES_H
+#define BEE_UTIL_FILES_H 1
 
 #include <string> // Include the required library headers
-#include <fstream>
-#include <algorithm>
-#include <sys/stat.h>
-
-#include "platform.hpp" // Include the required platform-specific file operation functions
 
 bool file_exists(const std::string&);
 int file_delete(const std::string&);
@@ -30,4 +25,4 @@ std::string file_dirname(const std::string&);
 std::string file_plainname(const std::string&);
 std::string file_extname(const std::string&);
 
-#endif // _BEE_UTIL_FILES_H
+#endif // BEE_UTIL_FILES_H

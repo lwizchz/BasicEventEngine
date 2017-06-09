@@ -6,8 +6,8 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_RENDER_PARTICLE_CHANGER
-#define _BEE_RENDER_PARTICLE_CHANGER 1
+#ifndef BEE_RENDER_PARTICLE_CHANGER
+#define BEE_RENDER_PARTICLE_CHANGER 1
 
 #include "changer.hpp"
 
@@ -27,4 +27,4 @@ namespace bee {
 	{}
 }
 
-#endif // _BEE_RENDER_PARTICLE_CHANGER
+#endif // BEE_RENDER_PARTICLE_CHANGER

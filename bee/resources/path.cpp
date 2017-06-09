@@ -6,10 +6,20 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_PATH
-#define _BEE_PATH 1
+#ifndef BEE_PATH
+#define BEE_PATH 1
+
+#include <sstream>
 
 #include "path.hpp" // Include the class resource header
+
+#include "../debug.hpp"
+#include "../engine.hpp"
+
+#include "../util/string.hpp"
+#include "../util/platform.hpp"
+
+#include "../render/rgba.hpp"
 
 namespace bee {
 	/*
@@ -245,4 +255,4 @@ namespace bee {
 	}
 }
 
-#endif // _BEE_PATH
+#endif // BEE_PATH

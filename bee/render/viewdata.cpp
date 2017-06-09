@@ -6,8 +6,8 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_RENDER_VIEWDATA
-#define _BEE_RENDER_VIEWDATA 1
+#ifndef BEE_RENDER_VIEWDATA
+#define BEE_RENDER_VIEWDATA 1
 
 #include "viewdata.hpp"
 
@@ -34,4 +34,4 @@ namespace bee {
 	{}*/
 }
 
-#endif // _BEE_RENDER_VIEWDATA
+#endif // BEE_RENDER_VIEWDATA

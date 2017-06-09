@@ -6,19 +6,29 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_CORE_INSTANCE_H
-#define _BEE_CORE_INSTANCE_H 1
+#ifndef BEE_CORE_INSTANCE_H
+#define BEE_CORE_INSTANCE_H 1
 
-#ifndef _BEE_ROOM_H
-#define _BEE_ROOM_H
-#define _BEE_ROOM_OPERATOR 1
-#endif // _BEE_ROOM
+#include <functional>
+
+#include <SDL2/SDL.h> // Include the required SDL headers
 
 #include <btBulletDynamicsCommon.h>
 
-#include "../engine.hpp"
+#include "../defines.hpp"
+#include "../enum.hpp"
+
+#include "sidp.hpp"
+
+#include "../render/rgba.hpp"
+
+#include "../resources/path.hpp"
 
 namespace bee {
+	class Sprite;
+	class Object;
+	class PhysicsBody;
+
 	class Instance {
 			btVector3 pos_start;
 
@@ -164,10 +174,4 @@ namespace bee {
 	};
 }
 
-#ifdef _BEE_ROOM_OPERATOR
-#undef _BEE_ROOM_H
-#undef _BEE_ROOM_OPERATOR
-#include "../resources/room.hpp"
-#endif // _BEE_ROOM_OPERATOR
-
-#endif // _BEE_CORE_INSTANCE_H
+#endif // BEE_CORE_INSTANCE_H

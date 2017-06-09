@@ -6,8 +6,8 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_RENDER_PARTICLE_EMITTER
-#define _BEE_RENDER_PARTICLE_EMITTER 1
+#ifndef BEE_RENDER_PARTICLE_EMITTER
+#define BEE_RENDER_PARTICLE_EMITTER 1
 
 #include "emitter.hpp"
 
@@ -29,4 +29,4 @@ namespace bee {
 	{}
 }
 
-#endif // _BEE_RENDER_PARTICLE_EMITTER
+#endif // BEE_RENDER_PARTICLE_EMITTER

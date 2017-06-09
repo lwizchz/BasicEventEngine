@@ -6,12 +6,19 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_UTIL_FILES
-#define _BEE_UTIL_FILES 1
+#ifndef BEE_UTIL_FILES
+#define BEE_UTIL_FILES 1
 
 // File handling functions
 
+#include <iostream>
+#include <fstream>
+#include <algorithm>
+#include <sys/stat.h>
+
 #include "files.hpp" // Include the function definitions
+
+#include "platform.hpp" // Include the required platform-specific file operation functions
 
 /*
 * file_exists() - Return whether the given filename is the location of a file
@@ -68,7 +75,7 @@ std::string file_get_contents(const std::string& fname) {
 		s.erase(s.end()-1); // Remove the last new line
 		return s; // Return the contents of the file on success
 	}
-	std::cerr << "Failed to open \"" << fname << "\"\n"; // Output error if the file could not be opened
+	std::cerr << "UTIL Failed to open \"" << fname << "\"\n"; // Output error if the file could not be opened
 	return ""; // Return an empty string if the file could not be opened
 }
 /*
@@ -84,7 +91,7 @@ size_t file_put_contents(const std::string& fname, const std::string& contents) 
 		output.close(); // Close the file
 		return n; // Return the number of bytes written on success
 	}
-	std::cerr << "Failed to open \"" << fname << "\"\n"; // Output error if the file could not be opened
+	std::cerr << "UTIL Failed to open \"" << fname << "\"\n"; // Output error if the file could not be opened
 	return 0;
 }
 
@@ -175,4 +182,4 @@ std::string file_extname(const std::string& path) {
 	}; // Return the string from the extension to the end
 }
 
-#endif // _BEE_UTIL_FILES
+#endif // BEE_UTIL_FILES

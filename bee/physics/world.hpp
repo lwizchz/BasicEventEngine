@@ -6,15 +6,17 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_PHYSICS_WORLD_H
-#define _BEE_PHYSICS_WORLD_H 1
+#ifndef BEE_PHYSICS_WORLD_H
+#define BEE_PHYSICS_WORLD_H 1
 
 #include <btBulletDynamicsCommon.h>
-#include <LinearMath/btIDebugDraw.h>
 
-#include "../engine.hpp"
+#include "../enum.hpp"
 
 namespace bee {
+	class PhysicsDraw;
+	class PhysicsBody;
+
 	class PhysicsWorld {
 		private:
 			btDefaultCollisionConfiguration* collision_configuration = nullptr;
@@ -54,4 +56,4 @@ namespace bee {
 	};
 }
 
-#endif // _BEE_PHYSICS_WORLD_H
+#endif // BEE_PHYSICS_WORLD_H

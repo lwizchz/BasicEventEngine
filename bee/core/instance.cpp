@@ -6,10 +6,28 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_CORE_INSTANCE
-#define _BEE_CORE_INSTANCE 1
+#ifndef BEE_CORE_INSTANCE
+#define BEE_CORE_INSTANCE 1
 
 #include "instance.hpp"
+
+#include "../debug.hpp"
+#include "../engine.hpp"
+
+#include "sidp.hpp"
+
+#include "../util/collision.hpp"
+#include "../util/string.hpp"
+#include "../util/template.hpp"
+
+#include "../render/viewdata.hpp"
+#include "../physics/body.hpp"
+#include "../physics/world.hpp"
+
+#include "../resources/sprite.hpp"
+#include "../resources/path.hpp"
+#include "../resources/object.hpp"
+#include "../resources/room.hpp"
 
 namespace bee {
 	Instance::Instance() {
@@ -462,9 +480,9 @@ namespace bee {
 				continue;
 			}
 
-			SDL_Rect other = i.second->get_aabb();
+			SDL_Rect other_rect = i.second->get_aabb();
 
-			if (check_collision(mask, other)) {
+			if (check_collision(mask, other_rect)) {
 				return true;
 			}
 		}
@@ -486,9 +504,9 @@ namespace bee {
 				continue;
 			}
 
-			SDL_Rect other = i.second->get_aabb();
+			SDL_Rect other_rect = i.second->get_aabb();
 
-			if (check_collision(mask, other)) {
+			if (check_collision(mask, other_rect)) {
 				r = true;
 				func(this, i.second);
 			}
@@ -872,4 +890,4 @@ namespace bee {
 	}
 }
 
-#endif // _BEE_CORE_INSTANCE
+#endif // BEE_CORE_INSTANCE

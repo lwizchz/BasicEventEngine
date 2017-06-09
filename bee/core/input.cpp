@@ -6,10 +6,25 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_CORE_INPUT
-#define _BEE_CORE_INPUT 1
+#ifndef BEE_CORE_INPUT
+#define BEE_CORE_INPUT 1
 
-#include "../engine.hpp" // Include the engine headers
+#include <GL/glew.h> // Include the required OpenGL headers
+#include <SDL2/SDL_opengl.h>
+
+#include "../engine.hpp"
+
+#include "../util/collision.hpp"
+#include "../util/string.hpp"
+
+#include "enginestate.hpp"
+#include "instance.hpp"
+#include "../render/renderer.hpp"
+#include "../render/viewdata.hpp"
+
+#include "../resources/sprite.hpp"
+#include "../resources/object.hpp"
+#include "../resources/room.hpp"
 
 namespace bee {
 	/*
@@ -75,7 +90,7 @@ namespace bee {
 	* @new_my: the y-coordinate to move the mouse to
 	*/
 	int set_mouse_global_position(int new_mx, int new_my) {
-		SDL_WarpMouseInWindow(engine.renderer->window, new_mx, new_my); // Move the mouse to the given coordinates
+		SDL_WarpMouseInWindow(engine->renderer->window, new_mx, new_my); // Move the mouse to the given coordinates
 		return 0;
 	}
 	/*
@@ -113,7 +128,7 @@ namespace bee {
 	* @k: the scancode to check
 	*/
 	bool get_key_state(SDL_Scancode k) {
-		return (bool)engine.keystate[k]; // Return the keystate of the given key as a boolean value
+		return (bool)engine->keystate[k]; // Return the keystate of the given key as a boolean value
 	}
 	/*
 	* get_key_state() - Return whether the given keycode is pressed
@@ -441,8 +456,8 @@ namespace bee {
 	* keystrings_populate() - Populate the map of keycodes
 	*/
 	int keystrings_populate() {
-		if (engine.keystrings_keys.empty()) {
-			engine.keystrings_keys = std::map<std::string,SDL_Keycode>{
+		if (engine->keystrings_keys.empty()) {
+			engine->keystrings_keys = std::map<std::string,SDL_Keycode>{
 				keystring(SDLK_UNKNOWN),
 				keystring(SDLK_BACKSPACE),
 				keystring(SDLK_TAB),
@@ -681,8 +696,8 @@ namespace bee {
 				keystring(SDLK_SLEEP)
 			};
 		}
-		if (engine.keystrings_strings.empty()) {
-			engine.keystrings_strings = std::map<SDL_Keycode,std::string>{
+		if (engine->keystrings_strings.empty()) {
+			engine->keystrings_strings = std::map<SDL_Keycode,std::string>{
 				stringkey(SDLK_UNKNOWN),
 				stringkey(SDLK_BACKSPACE),
 				stringkey(SDLK_TAB),
@@ -930,12 +945,12 @@ namespace bee {
 	* keystrings_get_key() - Return the SDL keycode from the given string
 	*/
 	SDL_Keycode keystrings_get_key(const std::string& key) {
-		if (engine.keystrings_keys.empty()) {
+		if (engine->keystrings_keys.empty()) {
 			keystrings_populate();
 		}
 
-		if (engine.keystrings_keys.find(key) != engine.keystrings_keys.end()) {
-			return engine.keystrings_keys[key];
+		if (engine->keystrings_keys.find(key) != engine->keystrings_keys.end()) {
+			return engine->keystrings_keys[key];
 		}
 
 		return SDLK_UNKNOWN;
@@ -944,16 +959,16 @@ namespace bee {
 	* keystrings_get_string() - Return the SDL keycode from the given string
 	*/
 	std::string keystrings_get_string(SDL_Keycode key) {
-		if (engine.keystrings_strings.empty()) {
+		if (engine->keystrings_strings.empty()) {
 			keystrings_populate();
 		}
 
-		if (engine.keystrings_strings.find(key) != engine.keystrings_strings.end()) {
-			return engine.keystrings_strings[key];
+		if (engine->keystrings_strings.find(key) != engine->keystrings_strings.end()) {
+			return engine->keystrings_strings[key];
 		}
 
 		return "SDLK_UNKNOWN";
 	}
 }
 
-#endif // _BEE_CORE_INPUT
+#endif // BEE_CORE_INPUT

@@ -6,10 +6,10 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_RENDER_CAMERA_H
-#define _BEE_RENDER_CAMERA_H 1
+#ifndef BEE_RENDER_CAMERA_H
+#define BEE_RENDER_CAMERA_H 1
 
-#include "../engine.hpp"
+#include <glm/glm.hpp> // Include the required OpenGL headers
 
 namespace bee {
 	struct Camera {
@@ -28,4 +28,4 @@ namespace bee {
 	};
 }
 
-#endif // _BEE_RENDER_CAMERA_H
+#endif // BEE_RENDER_CAMERA_H

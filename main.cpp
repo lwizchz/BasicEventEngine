@@ -10,7 +10,7 @@
 #include "resources/resources.hpp" // Include the resource definitions
 
 // Undefine main() if it has been previously defined on the Windows platform
-// I think this occurs because otimeline_listf SDL2/SDL_main.hpp
+// I think this occurs because of SDL2/SDL_main.hpp
 #ifdef _WIN32
 #ifdef main
 #undef main
@@ -18,16 +18,14 @@
 #endif // _WIN32
 
 int main(int argc, char* argv[]) {
-	// Declare some game options, see bee/game.hpp for the struct definition
+	// Declare some game options, see bee/init/gameoptions.hpp for the struct definition
 	bee::GameOptions options;
 	//options.is_debug_enabled = true;
 
-	try { // Catch all errors so that all resources will be freed properly
-		// Initialize the game engine
-		bee::init(argc, argv, bee::get_standard_flags(), &rm_test, &options);
-	} catch (std::string e) {
-		std::cerr << e; // Output the caught exception string
-		return 1; // Return 1 on exception during initialization
+	// Initialize the game engine
+	if (bee::init(argc, argv, bee::get_standard_flags(), &rm_test, &options)) {
+		bee::handle_messages();
+		return 1; // Return 1 on initialization failure
 	}
 
 	// Output initialization message

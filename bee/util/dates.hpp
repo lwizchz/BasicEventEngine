@@ -6,17 +6,12 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_UTIL_DATES_H
-#define _BEE_UTIL_DATES_H 1
+#ifndef BEE_UTIL_DATES_H
+#define BEE_UTIL_DATES_H 1
 
 #include <string> // Include the required library headers
 #include <ctime>
-#include <cmath>
 #include <functional>
-#include <chrono>
-
-#include "platform.hpp" // Include the required DST Windows functions
-#include "real.hpp" // Include the required real number functions
 
 time_t date_date_of(time_t);
 time_t date_time_of(time_t);
@@ -65,4 +60,4 @@ int date_days_in_month(time_t);
 int date_days_in_year(time_t);
 double stopwatch(std::string, std::function<void()>);
 
-#endif // _BEE_UTIL_DATES_H
+#endif // BEE_UTIL_DATES_H

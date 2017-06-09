@@ -6,8 +6,8 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_UTIL_TEMPLATE_NETWORK_H
-#define _BEE_UTIL_TEMPLATE_NETWORK_H 1
+#ifndef BEE_UTIL_TEMPLATE_NETWORK_H
+#define BEE_UTIL_TEMPLATE_NETWORK_H 1
 
 // Network template-requiring functions
 
@@ -32,8 +32,6 @@ Uint8* network_map_encode(std::map<A,B> m) {
 	d[0] = s.str().length(); // Set the first element of the array to the array size
 	return d; // Return the array on success
 }
-//template Uint8* network_map_encode<int,std::string>(std::map<int,std::string>);
-//template Uint8* network_map_encode<std::string,int>(std::map<std::string,int>);
 /*
 * network_map_decode() - Decode the given array of Uint8's into the given map
 * @data: the array to decode
@@ -72,6 +70,5 @@ int network_map_decode(Uint8* data, std::map<A,B>* mv) {
 	*mv = m; // Set the given map to the temporary map on success
 	return 0; // Return 0 on success
 }
-//template int network_map_decode<std::string,std::string>(Uint8*, std::map<std::string,std::string>*);
 
-#endif // _BEE_UTIL_TEMPLATE_NETWORK_H
+#endif // BEE_UTIL_TEMPLATE_NETWORK_H

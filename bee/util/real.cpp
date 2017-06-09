@@ -6,10 +6,13 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_UTIL_REAL
-#define _BEE_UTIL_REAL 1
+#ifndef BEE_UTIL_REAL
+#define BEE_UTIL_REAL 1
 
 // Real number functions
+
+#include <random>
+#include <time.h>
 
 #include "real.hpp" // Include the function definitions
 
@@ -364,4 +367,4 @@ template int fit_bounds<int>(int, int, int);
 template long fit_bounds<long>(long, long, long);
 template double fit_bounds<double>(double, double, double);
 
-#endif // _BEE_UTIL_REAL
+#endif // BEE_UTIL_REAL

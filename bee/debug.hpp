@@ -6,15 +6,12 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_DEBUG_H
-#define _BEE_DEBUG_H 1
+#ifndef BEE_DEBUG_H
+#define BEE_DEBUG_H 1
 
 #include <string> // Include the required library headers
-#include <sstream>
 
-#define GLEW_STATIC // Statically link GLEW
 #include <GL/glew.h> // Include the required OpenGL headers
-#include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 
 // Format indentions for debug output
@@ -28,4 +25,4 @@ std::string get_program_error(GLuint);
 // Return the SDL error string as a C++ string
 std::string get_sdl_error();
 
-#endif // _BEE_DEBUG_H
+#endif // BEE_DEBUG_H

@@ -6,8 +6,13 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_CORE_MESSAGERECIPIENT
-#define _BEE_CORE_MESSAGERECIPIENT 1
+#ifndef BEE_CORE_MESSAGERECIPIENT
+#define BEE_CORE_MESSAGERECIPIENT 1
+
+#include <string>
+#include <vector>
+#include <functional>
+#include <memory>
 
 #include "messagerecipient.hpp"
 
@@ -26,4 +31,4 @@ namespace bee {
 	{}
 }
 
-#endif // _BEE_CORE_MESSAGERECIPIENT
+#endif // BEE_CORE_MESSAGERECIPIENT

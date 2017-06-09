@@ -6,8 +6,8 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_CORE_NETWORKDATA
-#define _BEE_CORE_NETWORKDATA 1
+#ifndef BEE_CORE_NETWORKDATA
+#define BEE_CORE_NETWORKDATA 1
 
 #include "networkdata.hpp"
 
@@ -37,4 +37,4 @@ namespace bee {
 	{}
 }
 
-#endif // _BEE_CORE_NETWORKDATA
+#endif // BEE_CORE_NETWORKDATA

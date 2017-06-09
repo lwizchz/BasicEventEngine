@@ -6,10 +6,18 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_CORE_SIDP
-#define _BEE_CORE_SIDP 1
+#ifndef BEE_CORE_SIDP
+#define BEE_CORE_SIDP 1
+
+#include <regex>
 
 #include "sidp.hpp" // Include the engine headers
+
+#include "../enum.hpp"
+#include "../engine.hpp"
+
+#include "../util/string.hpp"
+#include "../util/platform.hpp"
 
 namespace bee {
 	SIDP::SIDP() :
@@ -125,7 +133,7 @@ namespace bee {
 		} catch (const std::invalid_argument &e) {}
 
 		if (type == -1) { // No possible type, this will only occur when std::stod or std::stoi fails
-			std::cerr << "WARN: SIDP type not determined, storing as string: \"" + ns + "\"\n";
+			messenger_send({"engine", "sidp"}, E_MESSAGE::WARNING, "WARN: SIDP type not determined, storing as string: \"" + ns + "\"\n");
 			type = 0;
 			str = ns;
 		}
@@ -171,13 +179,13 @@ namespace bee {
 	// Return the requested type
 	std::string SIDP::s(std::string file, int line) {
 		if (type != 0) {
-			std::cerr << "WARN: SIDP type is " << type << ", not a string but the string was requested, called from " << file << ":" << line << "\n";
+			messenger_send({"engine", "sidp"}, E_MESSAGE::WARNING, "Type is " + bee_itos(type) + ", not a string but the string was requested, called from " + file + ":" + bee_itos(line) + "\n");
 		}
 		return str;
 	}
 	int SIDP::i(std::string file, int line) {
 		if ((type != 1)&&(type != 2)) {
-			std::cerr << "WARN: SIDP type is " << type << ", not an integer but the integer was requested, called from " << file << ":" << line << "\n";
+			messenger_send({"engine", "sidp"}, E_MESSAGE::WARNING, "Type is " + bee_itos(type) + ", not an integer but the integer was requested, called from " + file + ":" + bee_itos(line) + "\n");
 		}
 		if (type == 2) {
 			return (int)floating;
@@ -186,7 +194,7 @@ namespace bee {
 	}
 	double SIDP::d(std::string file, int line) {
 		if ((type != 1)&&(type != 2)) {
-			std::cerr << "WARN: SIDP type is " << type << ", not a double but the double was requested, called from " << file << ":" << line << "\n";
+			messenger_send({"engine", "sidp"}, E_MESSAGE::WARNING, "Type is " + bee_itos(type) + ", not a double but the double was requested, called from " + file + ":" + bee_itos(line) + "\n");
 		}
 		if (type == 1) {
 			return (double)integer;
@@ -195,31 +203,31 @@ namespace bee {
 	}
 	void* SIDP::p(std::string file, int line) {
 		if (type != 3) {
-			std::cerr << "WARN: SIDP type is " << type << ", not a pointer but the pointer was requested, called from " << file << ":" << line << "\n";
+			messenger_send({"engine", "sidp"}, E_MESSAGE::WARNING, "Type is " + bee_itos(type) + ", not a pointer but the pointer was requested, called from " + file + ":" + bee_itos(line) + "\n");
 		}
 		return pointer;
 	}
 	SIDP SIDP::p(size_t index, std::string file, int line) {
 		if (type != 3) {
-			std::cerr << "WARN: SIDP type is " << type << ", not a pointer but the pointer array was requested, called from " << file << ":" << line << "\n";
+			messenger_send({"engine", "sidp"}, E_MESSAGE::WARNING, "Type is " + bee_itos(type) + ", not a pointer but the pointer array was requested, called from " + file + ":" + bee_itos(line) + "\n");
 		}
 		return (*static_cast<std::vector<SIDP>*>(pointer))[index];
 	}
 	SIDP SIDP::p(SIDP key, std::string file, int line) {
 		if (type != 3) {
-			std::cerr << "WARN: SIDP type is " << type << ", not a pointer but the pointer array was requested, called from " << file << ":" << line << "\n";
+			messenger_send({"engine", "sidp"}, E_MESSAGE::WARNING, "Type is " + bee_itos(type) + ", not a pointer but the pointer array was requested, called from " + file + ":" + bee_itos(line) + "\n");
 		}
 		return (*static_cast<std::map<SIDP,SIDP>*>(pointer))[key];
 	}
 	std::string SIDP::s() {
 		if (type != 0) {
-			std::cerr << "WARN: SIDP type not a string but the string was requested\n";
+			messenger_send({"engine", "sidp"}, E_MESSAGE::WARNING, "Type not a string but the string was requested\n");
 		}
 		return str;
 	}
 	int SIDP::i() {
 		if ((type != 1)&&(type != 2)) {
-			std::cerr << "WARN: SIDP type not an integer but the integer was requested\n";
+			messenger_send({"engine", "sidp"}, E_MESSAGE::WARNING, "Type not an integer but the integer was requested\n");
 		}
 		if (type == 2) {
 			return (int)floating;
@@ -228,7 +236,7 @@ namespace bee {
 	}
 	double SIDP::d() {
 		if ((type != 1)&&(type != 2)) {
-			std::cerr << "WARN: SIDP type not a double but the double was requested\n";
+			messenger_send({"engine", "sidp"}, E_MESSAGE::WARNING, "Type not a double but the double was requested\n");
 		}
 		if (type == 1) {
 			return (double)integer;
@@ -237,19 +245,19 @@ namespace bee {
 	}
 	void* SIDP::p() {
 		if (type != 3) {
-			std::cerr << "WARN: SIDP type not a pointer but the pointer was requested\n";
+			messenger_send({"engine", "sidp"}, E_MESSAGE::WARNING, "Type not a pointer but the pointer was requested\n");
 		}
 		return pointer;
 	}
 	SIDP SIDP::p(size_t index) {
 		if (type != 3) {
-			std::cerr << "WARN: SIDP type not a pointer but the pointer array was requested\n";
+			messenger_send({"engine", "sidp"}, E_MESSAGE::WARNING, "Type not a pointer but the pointer array was requested\n");
 		}
 		return (*static_cast<std::vector<SIDP>*>(pointer))[index];
 	}
 	SIDP SIDP::p(SIDP key) {
 		if (type != 3) {
-			std::cerr << "WARN: SIDP type not a pointer but the pointer array was requested\n";
+			messenger_send({"engine", "sidp"}, E_MESSAGE::WARNING, "Type not a pointer but the pointer array was requested\n");
 		}
 		return (*static_cast<std::map<SIDP,SIDP>*>(pointer))[key];
 	}
@@ -494,4 +502,4 @@ namespace bee {
 	}
 }
 
-#endif // _BEE_CORE_SIDP
+#endif // BEE_CORE_SIDP

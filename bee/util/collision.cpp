@@ -6,12 +6,14 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_UTIL_COLLISION
-#define _BEE_UTIL_COLLISION 1
+#ifndef BEE_UTIL_COLLISION
+#define BEE_UTIL_COLLISION 1
 
 // Collision checking functions
 
 #include "collision.hpp" // Include the function definitions
+
+#include "real.hpp" // Include the required real number functions
 
 /*
 * compare_lines() - Return whether the given lines are equal
@@ -246,4 +248,4 @@ double angle_vbounce(double a) {
 	return absolute_angle(a); // Return a new angle, ensuring that it is between 0.0 and 360.0
 }
 
-#endif // _BEE_UTIL_COLLISION
+#endif // BEE_UTIL_COLLISION

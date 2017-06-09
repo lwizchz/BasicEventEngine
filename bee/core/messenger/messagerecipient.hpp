@@ -6,10 +6,10 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_CORE_MESSAGERECIPIENT_H
-#define _BEE_CORE_MESSAGERECIPIENT_H 1
+#ifndef BEE_CORE_MESSAGERECIPIENT_H
+#define BEE_CORE_MESSAGERECIPIENT_H 1
 
-#include "../../engine.hpp"
+#include "messagecontents.hpp"
 
 namespace bee {
 	struct MessageRecipient {
@@ -23,4 +23,4 @@ namespace bee {
 	};
 }
 
-#endif // _BEE_CORE_MESSAGERECIPIENT_H
+#endif // BEE_CORE_MESSAGERECIPIENT_H

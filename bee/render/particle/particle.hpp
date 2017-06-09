@@ -6,15 +6,26 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_RENDER_PARTICLE_H
-#define _BEE_RENDER_PARTICLE_H 1
+#ifndef BEE_RENDER_PARTICLE_H
+#define BEE_RENDER_PARTICLE_H 1
 
 #include <list>
+#include <vector>
 #include <functional>
 
-#include "../../engine.hpp"
+#include <glm/glm.hpp> // Include the required OpenGL headers
+
+#include "../../enum.hpp"
+
+#include "../rgba.hpp"
 
 namespace bee {
+	class Sprite;
+
+	class Particle;
+	class ParticleData;
+	class ParticleSystem;
+
 	class Particle {
 		public:
 			Sprite* sprite;
@@ -45,4 +56,4 @@ namespace bee {
 	};
 }
 
-#endif // _BEE_RENDER_PARTICLE_H
+#endif // BEE_RENDER_PARTICLE_H

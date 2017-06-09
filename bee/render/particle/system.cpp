@@ -6,10 +6,29 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_RENDER_PARTICLE_SYSTEM
-#define _BEE_RENDER_PARTICLE_SYSTEM 1
+#ifndef BEE_RENDER_PARTICLE_SYSTEM
+#define BEE_RENDER_PARTICLE_SYSTEM 1
+
+#include <algorithm>
 
 #include "system.hpp"
+
+#include "particle.hpp"
+#include "particledata.hpp"
+#include "emitter.hpp"
+#include "attractor.hpp"
+#include "destroyer.hpp"
+#include "deflector.hpp"
+#include "changer.hpp"
+
+#include "../../engine.hpp"
+
+#include "../../util/real.hpp"
+#include "../../util/collision.hpp"
+
+#include "../../core/instance.hpp"
+
+#include "../../resources/sprite.hpp"
 
 namespace bee {
 	ParticleSystem::ParticleSystem() :
@@ -349,4 +368,4 @@ namespace bee {
 	}
 }
 
-#endif // _BEE_RENDER_PARTICLE_SYSTEM
+#endif // BEE_RENDER_PARTICLE_SYSTEM

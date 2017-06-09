@@ -6,12 +6,17 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_RENDER_PARTICLEDATA_H
-#define _BEE_RENDER_PARTICLEDATA_H 1
+#ifndef BEE_RENDER_PARTICLEDATA_H
+#define BEE_RENDER_PARTICLEDATA_H 1
 
-#include "../../engine.hpp"
+#include <utility>
+
+#include <SDL2/SDL.h> // Include the required SDL headers
 
 namespace bee {
+	class Particle;
+	class SpriteDrawData;
+
 	class ParticleData {
 		public:
 			Particle* particle_type;
@@ -39,4 +44,4 @@ namespace bee {
 	};
 }
 
-#endif // _BEE_RENDER_PARTICLEDATA_H
+#endif // BEE_RENDER_PARTICLEDATA_H

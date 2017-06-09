@@ -6,10 +6,18 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_TIMELINE
-#define _BEE_TIMELINE 1
+#ifndef BEE_TIMELINE
+#define BEE_TIMELINE 1
+
+#include <sstream>
 
 #include "timeline.hpp"
+
+#include "../debug.hpp"
+#include "../engine.hpp"
+
+#include "../util/string.hpp"
+#include "../util/platform.hpp"
 
 namespace bee {
 	Timeline::Timeline () {
@@ -217,4 +225,4 @@ namespace bee {
 	}
 }
 
-#endif // _BEE_TIMELINE
+#endif // BEE_TIMELINE

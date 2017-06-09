@@ -6,10 +6,11 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_INIT_INFO
-#define _BEE_INIT_INFO 1
+#ifndef BEE_INIT_INFO
+#define BEE_INIT_INFO 1
 
-#include "../engine.hpp" // Include the engine headers
+#include "../util/platform.hpp"
+#include "../util/files.hpp"
 
 namespace bee {
 	/*
@@ -43,9 +44,10 @@ namespace bee {
 			"		Disable fullscreen mode\n"
 			"Exit Status:\n"
 			"	0       Success\n"
-			"	1       Exception during engine initialization\n"
+			"	1       Failure to initialize the engine\n"
+			"	2       Unknown exception during game loop\n"
 		;
 	}
 }
 
-#endif // _BEE_INIT_INFO
+#endif // BEE_INIT_INFO

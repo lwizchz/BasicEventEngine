@@ -6,10 +6,10 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_INIT_GAMEOPTIONS_H
-#define _BEE_INIT_GAMEOPTIONS_H 1
+#ifndef BEE_INIT_GAMEOPTIONS_H
+#define BEE_INIT_GAMEOPTIONS_H 1
 
-#include "../engine.hpp"
+#include "../enum.hpp"
 
 namespace bee {
 	struct GameOptions {
@@ -37,4 +37,4 @@ namespace bee {
 	};
 }
 
-#endif // _BEE_INIT_GAMEOPTIONS_H
+#endif // BEE_INIT_GAMEOPTIONS_H

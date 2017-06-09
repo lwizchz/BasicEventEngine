@@ -6,10 +6,10 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_RENDER_RGBA_H
-#define _BEE_RENDER_RGBA_H 1
+#ifndef BEE_RENDER_RGBA_H
+#define BEE_RENDER_RGBA_H 1
 
-#include "../engine.hpp"
+#include <SDL2/SDL.h>
 
 namespace bee {
 	struct RGBA {
@@ -20,4 +20,4 @@ namespace bee {
 	};
 }
 
-#endif // _BEE_RENDER_RGBA_H
+#endif // BEE_RENDER_RGBA_H

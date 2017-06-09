@@ -6,10 +6,28 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_BACKGROUND
-#define _BEE_BACKGROUND 1
+#ifndef BEE_BACKGROUND
+#define BEE_BACKGROUND 1
+
+#include <sstream>
+
+#include <SDL2/SDL_image.h>
+
+#include <GL/glew.h> // Include the required OpenGL headers
+#include <SDL2/SDL_opengl.h>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "background.hpp" // Include the class resource header
+
+#include "../debug.hpp"
+#include "../engine.hpp"
+
+#include "../init/gameoptions.hpp"
+
+#include "../core/enginestate.hpp"
+
+#include "../render/renderer.hpp"
 
 namespace bee {
 	/*
@@ -203,7 +221,7 @@ namespace bee {
 			width = tmp_surface->w;
 			height = tmp_surface->h;
 
-			if (engine.options->renderer_type != E_RENDERER::SDL) {
+			if (engine->options->renderer_type != E_RENDERER::SDL) {
 				// Generate the vertex array object for the background
 				glGenVertexArrays(1, &vao);
 				glBindVertexArray(vao);
@@ -240,10 +258,10 @@ namespace bee {
 				glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
 
 				// Bind the vertices to the VAO's vertex buffer
-				glEnableVertexAttribArray(engine.renderer->vertex_location);
+				glEnableVertexAttribArray(engine->renderer->vertex_location);
 				glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
 				glVertexAttribPointer(
-					engine.renderer->vertex_location,
+					engine->renderer->vertex_location,
 					2,
 					GL_FLOAT,
 					GL_FALSE,
@@ -274,7 +292,7 @@ namespace bee {
 				has_draw_failed = false;
 			} else {
 				// Generate an SDL texture from the surface pixels
-				texture = SDL_CreateTextureFromSurface(engine.renderer->sdl_renderer, tmp_surface);
+				texture = SDL_CreateTextureFromSurface(engine->renderer->sdl_renderer, tmp_surface);
 				if (texture == nullptr) { // If the texture could not be generated, output a warning
 					messenger_send({"engine", "background"}, E_MESSAGE::WARNING, "Failed to create texture from surface for \"" + name + "\": " + get_sdl_error());
 					return 2; // Return 2 on failure to load
@@ -318,7 +336,7 @@ namespace bee {
 	*/
 	int Background::free() {
 		if (is_loaded) { // Do not attempt to free the texture if it has not been loaded
-			if (engine.options->renderer_type != E_RENDERER::SDL) {
+			if (engine->options->renderer_type != E_RENDERER::SDL) {
 				// Delete the vertex and index buffer
 				glDeleteBuffers(1, &vbo_vertices);
 				glDeleteBuffers(1, &ibo);
@@ -347,18 +365,18 @@ namespace bee {
 	* @model: the precalculated scale matrix
 	*/
 	int Background::draw_internal(const SDL_Rect* src, const SDL_Rect* dest, const glm::mat4& model) const {
-		if (engine.options->renderer_type != E_RENDERER::SDL) {
+		if (engine->options->renderer_type != E_RENDERER::SDL) {
 			// Generate the partial transformation matrix (translation) for the subimage
 			// Note that the scaling matrix has been precalculated by the caller function
 			glm::mat4 m = glm::translate(model, glm::vec3((float)dest->x, (float)dest->y, 0.0f)); // Translate the texture the desired amount in the x- and y-planes
-			glUniformMatrix4fv(engine.renderer->model_location, 1, GL_FALSE, glm::value_ptr(m)); // Send the transformation matrix to the shader
+			glUniformMatrix4fv(engine->renderer->model_location, 1, GL_FALSE, glm::value_ptr(m)); // Send the transformation matrix to the shader
 
 			// Draw the triangles which form the rectangular background
 			int size;
 			glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
 			glDrawElements(GL_TRIANGLES, size/sizeof(GLushort), GL_UNSIGNED_SHORT, 0);
 		} else {
-			SDL_RenderCopy(engine.renderer->sdl_renderer, texture, src, dest); // Render the background
+			SDL_RenderCopy(engine->renderer->sdl_renderer, texture, src, dest); // Render the background
 		}
 
 		return 0; // Return 0 on success
@@ -443,21 +461,21 @@ namespace bee {
 	* Background::drawing_begin() - Enable all required buffers
 	*/
 	int Background::drawing_begin() {
-		if (engine.options->renderer_type == E_RENDERER::SDL) {
+		if (engine->options->renderer_type == E_RENDERER::SDL) {
 			return 0; // Return 0 since nothing needs to be done for SDL mode
 		}
 
 		glBindVertexArray(vao); // Bind the VAO for the background
 
 		// Bind the background texture
-		glUniform1i(engine.renderer->texture_location, 0);
+		glUniform1i(engine->renderer->texture_location, 0);
 		glBindTexture(GL_TEXTURE_2D, gl_texture);
 
 		// Bind the texture coordinates
-		glEnableVertexAttribArray(engine.renderer->fragment_location);
+		glEnableVertexAttribArray(engine->renderer->fragment_location);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords);
 		glVertexAttribPointer(
-			engine.renderer->fragment_location,
+			engine->renderer->fragment_location,
 			2,
 			GL_FLOAT,
 			GL_FALSE,
@@ -473,11 +491,11 @@ namespace bee {
 	* Background::drawing_end() - Disable all required buffers
 	*/
 	int Background::drawing_end() {
-		if (engine.options->renderer_type == E_RENDERER::SDL) {
+		if (engine->options->renderer_type == E_RENDERER::SDL) {
 			return 0; // Return 0 since nothing needs to be done for SDL mode
 		}
 
-		glUniformMatrix4fv(engine.renderer->model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the partial transformation matrix
+		glUniformMatrix4fv(engine->renderer->model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the partial transformation matrix
 
 		glBindVertexArray(0); // Unbind the VAO
 
@@ -506,7 +524,7 @@ namespace bee {
 			drawing_end();
 		} else { // Otherwise, draw the background with optional animation and tiling
 			// Calculate the delta x and y for the current animation time
-			const float dt_fps = (get_ticks()-animation_time)/engine.fps_goal;
+			const float dt_fps = (get_ticks()-animation_time)/engine->fps_goal;
 			int dx = b->horizontal_speed*dt_fps;
 			int dy = b->vertical_speed*dt_fps;
 
@@ -551,7 +569,7 @@ namespace bee {
 		width = w;
 		height = h;
 
-		if (engine.options->renderer_type != E_RENDERER::SDL) {
+		if (engine->options->renderer_type != E_RENDERER::SDL) {
 			// Generate the vertex array object for the background
 			glGenVertexArrays(1, &vao);
 			glBindVertexArray(vao);
@@ -577,10 +595,10 @@ namespace bee {
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
 
 			// Bind the vertices to the VAO's vertex buffer
-			glEnableVertexAttribArray(engine.renderer->vertex_location);
+			glEnableVertexAttribArray(engine->renderer->vertex_location);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
 			glVertexAttribPointer(
-				engine.renderer->vertex_location,
+				engine->renderer->vertex_location,
 				2,
 				GL_FLOAT,
 				GL_FALSE,
@@ -625,13 +643,13 @@ namespace bee {
 
 			return (int)framebuffer; // Return the framebuffer index on success
 		} else {
-			texture = SDL_CreateTexture(engine.renderer->sdl_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w, h); // Create an empty texture
+			texture = SDL_CreateTexture(engine->renderer->sdl_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w, h); // Create an empty texture
 			if (texture == nullptr) { // If the texture could not be created, output a warning
 				messenger_send({"engine", "background"}, E_MESSAGE::WARNING, "Failed to create a blank texture: " + get_sdl_error());
 				return 0; // Return 0 on failure
 			}
 
-			SDL_SetRenderTarget(engine.renderer->sdl_renderer, texture); // Set the SDL render target
+			SDL_SetRenderTarget(engine->renderer->sdl_renderer, texture); // Set the SDL render target
 		}
 
 		// Set loaded booleans
@@ -649,4 +667,4 @@ namespace bee {
 	}
 }
 
-#endif // _BEE_BACKGROUND
+#endif // BEE_BACKGROUND

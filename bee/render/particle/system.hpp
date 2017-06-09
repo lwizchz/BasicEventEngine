@@ -6,14 +6,26 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_RENDER_PARTICLE_SYSTEM_H
-#define _BEE_RENDER_PARTICLE_SYSTEM_H 1
+#ifndef BEE_RENDER_PARTICLE_SYSTEM_H
+#define BEE_RENDER_PARTICLE_SYSTEM_H 1
 
 #include <list>
+#include <map>
 
-#include "../../engine.hpp"
+#include <SDL2/SDL.h> // Include the required SDL headers
 
 namespace bee {
+	class Instance;
+	class SpriteDrawData;
+
+	class Particle;
+	class ParticleData;
+	class ParticleEmitter;
+	class ParticleAttractor;
+	class ParticleDestroyer;
+	class ParticleDeflector;
+	class ParticleChanger;
+
 	class ParticleSystem {
 		public:
 			int id;
@@ -48,4 +60,4 @@ namespace bee {
 	};
 }
 
-#endif // _BEE_RENDER_PARTICLE_SYSTEM_H
+#endif // BEE_RENDER_PARTICLE_SYSTEM_H

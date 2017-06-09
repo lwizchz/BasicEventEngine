@@ -6,10 +6,19 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_CORE_DISPLAY
-#define _BEE_CORE_DISPLAY 1
+#ifndef BEE_CORE_DISPLAY
+#define BEE_CORE_DISPLAY 1
 
-#include "../engine.hpp" // Include the engine headers
+#include <SDL2/SDL.h> // Include the required SDL headers
+
+#include "../debug.hpp"
+#include "../engine.hpp"
+
+#include "../init/gameoptions.hpp"
+
+#include "enginestate.hpp"
+
+#include "../render/renderer.hpp"
 
 namespace bee {
 	/*
@@ -56,9 +65,9 @@ namespace bee {
 	* ! See https://wiki.libsdl.org/SDL_SetWindowDisplayMode for details
 	*/
 	int set_display(int w, int h, int hz) {
-		if (engine.options->is_fullscreen) { // Only set the display mode when the window is fullscreen
+		if (engine->options->is_fullscreen) { // Only set the display mode when the window is fullscreen
 			SDL_DisplayMode dm = {get_display_format(), w, h, hz, 0}; // Define a new display mode using the current pixel format
-			if (SDL_SetWindowDisplayMode(engine.renderer->window, &dm) != 0) { // Attempt to set the display mode that should be used when the window is visible
+			if (SDL_SetWindowDisplayMode(engine->renderer->window, &dm) != 0) { // Attempt to set the display mode that should be used when the window is visible
 				messenger_send({"engine"}, E_MESSAGE::WARNING, "Failed to set display mode: " + get_sdl_error());
 				return 1; // Return 1 on display mode fail
 			}
@@ -85,4 +94,4 @@ namespace bee {
 	}
 }
 
-#endif // _BEE_CORE_DISPLAY
+#endif // BEE_CORE_DISPLAY

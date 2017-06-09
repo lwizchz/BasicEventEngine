@@ -6,10 +6,25 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_INIT_PROGRAMFLAGS
-#define _BEE_INIT_PROGRAMFLAGS 1
+#ifndef BEE_INIT_PROGRAMFLAGS
+#define BEE_INIT_PROGRAMFLAGS 1
+
+#include <iostream>
+#include <getopt.h>
+#include <map>
+#include <vector>
+#include <functional>
+
+#include <SDL2/SDL.h> // Include the required SDL headers
 
 #include "programflags.hpp"
+
+#include "info.cpp"
+#include "gameoptions.hpp"
+
+#include "../util/platform.hpp"
+
+#include "../core/enginestate.hpp"
 
 namespace bee {
 	ProgramFlags::ProgramFlags() :
@@ -27,6 +42,65 @@ namespace bee {
 		func(f)
 	{}
 
+	int handle_flags(const std::list<ProgramFlags*>& new_flags, bool pre_init) {
+		engine->flags = new_flags;
+
+		if (engine->flags.empty()) {
+			return 0;
+		}
+
+		int l = 0;
+		struct option* long_options = new struct option[engine->flags.size()+1];
+		std::string optstring = "";
+		for (auto& f : engine->flags) {
+			if (f->shortopt > 0) {
+				optstring += f->shortopt;
+				if (f->has_arg == optional_argument) {
+					optstring += "::";
+				} else if (f->has_arg == required_argument) {
+					optstring += ":";
+				}
+			}
+
+			long_options[l].name = f->longopt.c_str();
+			long_options[l].has_arg = f->has_arg;
+			long_options[l].flag = nullptr;
+			long_options[l].val = f->shortopt;
+			l++;
+		}
+		long_options[l++] = {0, 0, 0, 0};
+
+		optind = 1;
+		int index = -1;
+		int c = -1;
+		int amount = 0;
+		try {
+			while ((c = getopt_long(engine->argc, engine->argv, optstring.c_str(), long_options, &index)) != -1) {
+				for (auto& f : engine->flags) {
+					if (((c != 0)&&(c == f->shortopt))||((c == 0)&&(strcmp(long_options[index].name, f->longopt.c_str()) == 0))) {
+						if (f->pre_init == pre_init) {
+							if (f->func != nullptr) {
+								if ((f->has_arg != no_argument)&&(optarg)) {
+									f->func(optarg);
+								} else {
+									f->func((char*)nullptr);
+								}
+							}
+							amount++;
+						}
+						break;
+					}
+				}
+			}
+		} catch(std::string e) {
+			delete[] long_options;
+			return -(amount+1);
+		}
+
+		delete[] long_options;
+
+		return amount;
+	}
 	/*
 	* get_standard_flags() - Return a list of the default ProgramFlags which can be appended by the user
 	*/
@@ -43,50 +117,50 @@ namespace bee {
 			ProgramFlags* f_help = new ProgramFlags(
 				"help", 'h', true, no_argument, [] (char* arg) -> void {
 					std::cerr << get_usage_text();
-					throw std::string();
+					throw std::string("help quit");
 				}
 			);
 			ProgramFlags* f_debug = new ProgramFlags(
 				"debug", 'd', true, no_argument, [] (char* arg) -> void {
-					engine.options->is_debug_enabled = true;
+					engine->options->is_debug_enabled = true;
 				}
 			);
 			ProgramFlags* f_dimensions = new ProgramFlags(
 				"dimensions", '\0', true, required_argument, [] (char* arg) -> void {
 					std::string d (arg);
-					engine.width = bee_stoi(d.substr(0, d.find("x")));
-					engine.height = bee_stoi(d.substr(d.find("x")+1));
-					engine.options->is_resizable = false;
+					engine->width = bee_stoi(d.substr(0, d.find("x")));
+					engine->height = bee_stoi(d.substr(d.find("x")+1));
+					engine->options->is_resizable = false;
 				}
 			);
 			ProgramFlags* f_fullscreen = new ProgramFlags(
 				"fullscreen", 'f', true, no_argument, [] (char* arg) -> void {
-					engine.options->is_fullscreen = true;
+					engine->options->is_fullscreen = true;
 				}
 			);
 			ProgramFlags* f_opengl = new ProgramFlags(
 				"opengl", '\0', true, no_argument, [] (char* arg) -> void {
-					engine.options->renderer_type = E_RENDERER::OPENGL4;
+					engine->options->renderer_type = E_RENDERER::OPENGL4;
 				}
 			);
 			ProgramFlags* f_noassert = new ProgramFlags(
 				"no-assert", '\0', true, no_argument, [] (char* arg) -> void {
-					engine.options->should_assert = false;
+					engine->options->should_assert = false;
 				}
 			);
 			ProgramFlags* f_sdl = new ProgramFlags(
 				"sdl", '\0', true, no_argument, [] (char* arg) -> void {
-					engine.options->renderer_type = E_RENDERER::SDL;
+					engine->options->renderer_type = E_RENDERER::SDL;
 				}
 			);
 			ProgramFlags* f_singlerun = new ProgramFlags(
 				"single-run", '\0', true, no_argument, [] (char* arg) -> void {
-					engine.options->single_run = true;
+					engine->options->single_run = true;
 				}
 			);
 			ProgramFlags* f_windowed = new ProgramFlags(
 				"windowed", 'w', true, no_argument, [] (char* arg) -> void {
-					engine.options->is_fullscreen = false;
+					engine->options->is_fullscreen = false;
 				}
 			);
 
@@ -110,4 +184,4 @@ namespace bee {
 	}
 }
 
-#endif // _BEE_INIT_PROGRAMFLAGS
+#endif // BEE_INIT_PROGRAMFLAGS

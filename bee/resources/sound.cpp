@@ -6,10 +6,18 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_SOUND
-#define _BEE_SOUND 1
+#ifndef BEE_SOUND
+#define BEE_SOUND 1
+
+#include <sstream>
+#include <vector>
 
 #include "sound.hpp" // Include the class resource header
+
+#include "../enum.hpp"
+#include "../engine.hpp"
+
+#include "../util/platform.hpp"
 
 namespace bee {
 	/*
@@ -875,4 +883,4 @@ namespace bee {
 	}
 }
 
-#endif // _BEE_SOUND
+#endif // BEE_SOUND

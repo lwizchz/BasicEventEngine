@@ -6,15 +6,15 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_PHYSICS_DRAW_H
-#define _BEE_PHYSICS_DRAW_H 1
+#ifndef BEE_PHYSICS_DRAW_H
+#define BEE_PHYSICS_DRAW_H 1
 
 #include <btBulletDynamicsCommon.h>
 #include <LinearMath/btIDebugDraw.h>
 
-#include "../engine.hpp"
-
 namespace bee {
+	class PhysicsWorld;
+
 	class PhysicsDraw : public btIDebugDraw {
 		private:
 			int debug_mode;
@@ -40,4 +40,4 @@ namespace bee {
 	};
 }
 
-#endif // _BEE_PHYSICS_DRAW_H
+#endif // BEE_PHYSICS_DRAW_H
