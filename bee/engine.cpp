@@ -20,9 +20,18 @@
 #include "resources.hpp"
 
 #include "init/gameoptions.hpp"
+#include "init/programflags.hpp"
+
 #include "core/console.hpp"
 #include "core/enginestate.hpp"
-#include "core/network/networkdata.hpp"
+#include "core/input.hpp"
+#include "core/resources.hpp"
+#include "core/room.hpp"
+#include "core/messenger/messenger.hpp"
+#include "core/network/network.hpp"
+
+#include "render/drawing.hpp"
+#include "render/render.hpp"
 #include "render/renderer.hpp"
 
 #include "resources/sprite.hpp"
@@ -170,7 +179,7 @@ namespace bee {
 
 		handle_messages();
 		engine->console = new Console(); // Initialize the default console commands
-		console_init_commands();
+		internal::console_init_commands();
 		handle_messages();
 
 		if (*new_first_room != nullptr) {
@@ -195,7 +204,7 @@ namespace bee {
 		handle_messages();
 
 		// Register the logging system
-		messenger_register_protected("cmdlog", {"engine", "commandline"}, true, [] (std::shared_ptr<MessageContents> msg) {
+		internal::messenger_register_protected("cmdlog", {"engine", "commandline"}, true, [] (std::shared_ptr<MessageContents> msg) {
 			std::cout << "[" << msg->descr << "]\n";
 		});
 
@@ -301,7 +310,7 @@ namespace bee {
 						}
 
 						case SDL_KEYDOWN: {
-							console_handle_input(&event);
+							internal::console_handle_input(&event);
 
 							if (event.key.repeat == 0) {
 								engine->current_room->keyboard_press(&event);
@@ -413,7 +422,7 @@ namespace bee {
 						SDL_Delay((1000/fps_desired) - (engine->new_tickstamp - engine->tickstamp));
 					}
 				}
-				update_delta();
+				internal::update_delta();
 
 				if (engine->tickstamp - engine->fps_ticks >= 1000) {
 					engine->fps_stable = engine->fps_count / ((engine->tickstamp-engine->fps_ticks)/1000);
@@ -455,7 +464,7 @@ namespace bee {
 			} catch (...) {
 				close();
 
-				messenger_send_urgent(std::shared_ptr<MessageContents>(new MessageContents(
+				internal::messenger_send_urgent(std::shared_ptr<MessageContents>(new MessageContents(
 					get_ticks(),
 					{"engine"},
 					E_MESSAGE::ERROR,
@@ -548,7 +557,7 @@ namespace bee {
 		return 0;
 	}
 
-	int update_delta() {
+	int internal::update_delta() {
 		engine->tick_delta = get_ticks() - engine->tickstamp;
 		engine->tickstamp = get_ticks();
 		return 0;

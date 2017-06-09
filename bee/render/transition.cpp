@@ -12,11 +12,15 @@
 #include <GL/glew.h> // Include the required OpenGL headers
 #include <SDL2/SDL_opengl.h>
 
-#include "../engine.hpp" // Include the engine headers
+#include "transition.hpp" // Include the engine headers
+
+#include "../engine.hpp"
 
 #include "../init/gameoptions.hpp"
 
 #include "../core/enginestate.hpp"
+#include "../core/window.hpp"
+#include "../core/messenger/messenger.hpp"
 
 #include "../render/renderer.hpp"
 

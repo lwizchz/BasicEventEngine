@@ -17,6 +17,7 @@
 #include "../enum.hpp"
 
 namespace bee {
+	// Forward declarations
 	class Instance;
 	class PhysicsWorld;
 	class PhysicsDraw;

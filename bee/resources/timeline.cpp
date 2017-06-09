@@ -19,6 +19,8 @@
 #include "../util/string.hpp"
 #include "../util/platform.hpp"
 
+#include "../core/messenger/messenger.hpp"
+
 namespace bee {
 	Timeline::Timeline () {
 		reset();

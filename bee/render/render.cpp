@@ -15,16 +15,18 @@
 #include <SDL2/SDL_opengl.h>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "../engine.hpp" // Include the engine headers
-
-#include "camera.hpp"
-#include "renderer.hpp"
+#include "render.hpp" // Include the engine headers
 
 #include "../util/real.hpp"
 
 #include "../init/gameoptions.hpp"
 
 #include "../core/enginestate.hpp"
+#include "../core/window.hpp"
+#include "../core/messenger/messenger.hpp"
+
+#include "camera.hpp"
+#include "renderer.hpp"
 
 namespace bee {
 	/*

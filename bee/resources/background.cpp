@@ -28,6 +28,8 @@
 #include "../init/gameoptions.hpp"
 
 #include "../core/enginestate.hpp"
+#include "../core/room.hpp"
+#include "../core/messenger/messenger.hpp"
 
 #include "../render/renderer.hpp"
 

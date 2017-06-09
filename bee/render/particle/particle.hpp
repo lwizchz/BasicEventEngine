@@ -22,6 +22,7 @@
 #include "../rgba.hpp"
 
 namespace bee {
+	// Forward declarations
 	class Sprite;
 
 	class Particle;

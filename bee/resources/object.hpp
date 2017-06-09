@@ -20,6 +20,7 @@
 #include "../core/sidp.hpp"
 
 namespace bee {
+	// Forward declarations
 	class Instance;
 	class Sprite;
 

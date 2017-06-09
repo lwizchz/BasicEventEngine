@@ -26,10 +26,15 @@
 #include "../init/gameoptions.hpp"
 
 #include "enginestate.hpp"
-#include "messenger/messagecontents.hpp"
+#include "input.hpp"
+#include "resources.hpp"
+#include "room.hpp"
+#include "messenger/messenger.hpp"
 
+#include "../render/drawing.hpp"
 #include "../render/renderer.hpp"
 #include "../render/rgba.hpp"
+#include "../render/transition.hpp"
 #include "../render/viewdata.hpp"
 
 #include "../resources/font.hpp"
@@ -77,10 +82,10 @@ namespace bee{
 	}
 
 	/*
-	* console_handle_input() - Handle the input as a console keypress
+	* internal::console_handle_input() - Handle the input as a console keypress
 	* @e: the keyboard input event
 	*/
-	int console_handle_input(SDL_Event* e) {
+	int internal::console_handle_input(SDL_Event* e) {
 		// If the console is closed, handle keybindings
 		if (!console_get_is_open()) {
 			if (e->key.repeat == 0) { // If the key is not repeating
@@ -169,7 +174,7 @@ namespace bee{
 				break;
 			}
 			case SDLK_RETURN: { // The enter key runs the command currently in the input line
-				console_run(engine->console->input); // Run the command
+				bee::console_run(engine->console->input); // Run the command
 
 				// Reset the console state
 				engine->console->input.clear();
@@ -220,13 +225,13 @@ namespace bee{
 		return 0; // Return 0 on successful handling of console input
 	}
 	/*
-	* console_init_commands() - Initialize the default console commands
+	* internal::console_init_commands() - Initialize the default console commands
 	*/
-	int console_init_commands() {
+	int internal::console_init_commands() {
 		engine->console->line_height = engine->font_default->get_string_height(); // Store the default drawing line height for later console drawing operations
 
 		// Register the console logger
-		messenger_register_protected("consolelog", {"engine", "console"}, true, [] (std::shared_ptr<MessageContents> msg) {
+		internal::messenger_register_protected("consolelog", {"engine", "console"}, true, [] (std::shared_ptr<MessageContents> msg) {
 			engine->console->log << msg->descr << "\n";
 		});
 
@@ -663,12 +668,12 @@ namespace bee{
 		return 0; // Return 0 on success
 	}
 	/*
-	* console_run_internal() - Run a command in the console, silently or urgently if requested
+	* internal::console_run_internal() - Run a command in the console, silently or urgently if requested
 	* @command: the command string to run, including the arguments
 	* @is_urgent: whether to Immediately send the command or to wait until the end of the frame
 	* @delay: the amount of milliseconds to delay command execution
 	*/
-	int console_run_internal(const std::string& command, bool is_urgent, Uint32 delay) {
+	int internal::console_run_internal(const std::string& command, bool is_urgent, Uint32 delay) {
 		std::string c = trim(command);
 		std::vector<SIDP> params = console_parse_parameters(c); // Parse the parameters from the given command in order to get the command name as params[0]
 
@@ -692,7 +697,7 @@ namespace bee{
 		}
 
 		if (is_urgent) { // If the command is urgent, send it immediately
-			messenger_send_urgent(std::shared_ptr<MessageContents>(new MessageContents(
+			internal::messenger_send_urgent(std::shared_ptr<MessageContents>(new MessageContents(
 				get_ticks()+delay,
 				{"engine", "console", params[0].s()},
 				E_MESSAGE::GENERAL,
@@ -712,12 +717,12 @@ namespace bee{
 		return 0; // Return 0 on success
 	}
 	/*
-	* console_run() - Run a command in the console
+	* internal::console_run() - Run a command in the console
 	* @command: the command string to run, including the arguments
 	* @is_silent: whether to append the command to history and display it in console
 	* @delay: the amount of milliseconds to delay command execution
 	*/
-	int console_run(const std::string& command, bool is_silent, Uint32 delay) {
+	int internal::console_run(const std::string& command, bool is_silent, Uint32 delay) {
 		if (!is_silent) { // If the command is not silent, then log it
 			if (command[0] != ' ') { // If the first character is not a space, then add it to the console history
 				// Fetch the last command if one exists
@@ -753,10 +758,10 @@ namespace bee{
 		}
 	}
 	/*
-	* console_complete() - Complete console commands
+	* internal::console_complete() - Complete console commands
 	* @command: the command to complete
 	*/
-	int console_complete(const std::string& command) {
+	int internal::console_complete(const std::string& command) {
 		// Find any command matches
 		for (auto& c : engine->console->commands) { // Iterate over the possible commands
 			if (c.first.find(command) == 0) { // If the given command begins with the completion string
@@ -804,10 +809,10 @@ namespace bee{
 		return 0; // Return 0 on success
 	}
 	/*
-	* console_parse_parameters() - Convert the command to a parameter list
+	* internal::console_parse_parameters() - Convert the command to a parameter list
 	* @command: the full command string
 	*/
-	std::vector<SIDP> console_parse_parameters(const std::string& command) {
+	std::vector<SIDP> internal::console_parse_parameters(const std::string& command) {
 		std::map<int,std::string> params = split(command, ' ', true); // Split the command parameters by spaces, respecting quotes
 
 		std::vector<SIDP> param_list; // Create a vector to store each parameter instead of the map from split()
@@ -818,9 +823,9 @@ namespace bee{
 		return param_list; // Return the vector of parameters on success
 	}
 	/*
-	* console_draw() - Draw the console and its output
+	* internal::console_draw() - Draw the console and its output
 	*/
-	int console_draw() {
+	int internal::console_draw() {
 		// Get the view offset
 		int cx = engine->console->x;
 		int cy = engine->console->y;
@@ -954,7 +959,7 @@ namespace bee{
 
 		engine->console->commands.emplace(command, std::make_pair(descr, func)); // Add the command to the console command map
 
-		messenger_register_protected("console_"+command, {"engine", "console", command}, true, func); // Register the command with the messaging system
+		internal::messenger_register_protected("console_"+command, {"engine", "console", command}, true, func); // Register the command with the messaging system
 
 		return 0; // Return 0 on success
 	}
@@ -1065,7 +1070,7 @@ namespace bee{
 	* @command: the command string to run, including the arguments
 	*/
 	int console_run(const std::string& command) {
-		return console_run(command, false, 0); // Return the status of running a non-silent command with no requested delay
+		return internal::console_run(command, false, 0); // Return the status of running a non-silent command with no requested delay
 	}
 	/*
 	* console_get_help() - Return the description string of the given command

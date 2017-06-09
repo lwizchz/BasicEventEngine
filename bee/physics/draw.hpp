@@ -13,6 +13,7 @@
 #include <LinearMath/btIDebugDraw.h>
 
 namespace bee {
+	// Forward declaration
 	class PhysicsWorld;
 
 	class PhysicsDraw : public btIDebugDraw {

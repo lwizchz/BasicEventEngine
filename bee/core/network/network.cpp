@@ -11,12 +11,10 @@
 
 #include <SDL2/SDL_net.h>
 
-#include "../../engine.hpp" // Include the engine headers
+#include "network.hpp"
 
 #include "../../debug.hpp"
-
-#include "networkdata.hpp"
-#include "networkclient.hpp"
+#include "../../engine.hpp"
 
 #include "../../util/real.hpp"
 #include "../../util/string.hpp"
@@ -28,6 +26,9 @@
 
 #include "../instance.hpp"
 #include "../enginestate.hpp"
+#include "../messenger/messenger.hpp"
+#include "networkdata.hpp"
+#include "networkclient.hpp"
 
 /*
 	Network message format {

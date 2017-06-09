@@ -16,6 +16,8 @@
 #include "../enum.hpp"
 #include "../engine.hpp"
 
+#include "messenger/messenger.hpp"
+
 #include "../util/string.hpp"
 #include "../util/platform.hpp"
 

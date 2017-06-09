@@ -9,6 +9,8 @@
 #ifndef BEE_INIT_PROGRAMFLAGS_H
 #define BEE_INIT_PROGRAMFLAGS_H 1
 
+#include <list>
+
 namespace bee {
 	struct ProgramFlags {
 		std::string longopt;
@@ -20,6 +22,15 @@ namespace bee {
 		ProgramFlags();
 		ProgramFlags(std::string, char, bool, int, std::function<void (char*)>);
 	};
+
+	namespace internal {
+		std::list<ProgramFlags*>& get_standard_flags();
+	}
+
+	int handle_flags(const std::list<ProgramFlags*>&, bool);
+
+	std::list<ProgramFlags*> get_standard_flags();
+	int free_standard_flags();
 }
 
 #endif // BEE_INIT_PROGRAMFLAGS_H

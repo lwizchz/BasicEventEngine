@@ -25,6 +25,7 @@
 #include "../resources/path.hpp"
 
 namespace bee {
+	// Forward declarations
 	class Sprite;
 	class Object;
 	class PhysicsBody;

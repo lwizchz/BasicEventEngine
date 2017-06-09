@@ -11,12 +11,14 @@
 
 #include <SDL2/SDL.h> // Include the required SDL headers
 
+#include "display.hpp"
+
 #include "../debug.hpp"
-#include "../engine.hpp"
 
 #include "../init/gameoptions.hpp"
 
 #include "enginestate.hpp"
+#include "messenger/messenger.hpp"
 
 #include "../render/renderer.hpp"
 

@@ -13,6 +13,15 @@
 
 #include "system.hpp"
 
+#include "../../engine.hpp"
+
+#include "../../util/real.hpp"
+#include "../../util/collision.hpp"
+
+#include "../../core/instance.hpp"
+
+#include "../drawing.hpp"
+#include "../render.hpp"
 #include "particle.hpp"
 #include "particledata.hpp"
 #include "emitter.hpp"
@@ -20,13 +29,6 @@
 #include "destroyer.hpp"
 #include "deflector.hpp"
 #include "changer.hpp"
-
-#include "../../engine.hpp"
-
-#include "../../util/real.hpp"
-#include "../../util/collision.hpp"
-
-#include "../../core/instance.hpp"
 
 #include "../../resources/sprite.hpp"
 

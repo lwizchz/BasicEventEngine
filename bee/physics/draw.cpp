@@ -17,6 +17,9 @@
 
 #include "../util/real.hpp"
 
+#include "../core/messenger/messenger.hpp"
+
+#include "../render/drawing.hpp"
 #include "../render/rgba.hpp"
 
 namespace bee {

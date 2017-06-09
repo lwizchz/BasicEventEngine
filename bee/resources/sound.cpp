@@ -19,6 +19,8 @@
 
 #include "../util/platform.hpp"
 
+#include "../core/messenger/messenger.hpp"
+
 namespace bee {
 	/*
 	* Sound::Sound() - Construct the sound and set its engine pointer

@@ -12,7 +12,9 @@
 #include "../resources.hpp"
 
 namespace bee {
+	// Forward declaration
 	class Background;
+
 	struct BackgroundData { // The data struct which is used to pass data to the Room class in bee/resources/room.hpp
 		Background* background = nullptr; // A pointer to the background to use this data with
 		bool is_visible = false; // Whether to draw the background

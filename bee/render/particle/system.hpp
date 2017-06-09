@@ -15,6 +15,7 @@
 #include <SDL2/SDL.h> // Include the required SDL headers
 
 namespace bee {
+	// Forward declarations
 	class Instance;
 	class SpriteDrawData;
 

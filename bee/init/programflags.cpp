@@ -19,7 +19,7 @@
 
 #include "programflags.hpp"
 
-#include "info.cpp"
+#include "info.hpp"
 #include "gameoptions.hpp"
 
 #include "../util/platform.hpp"
@@ -42,6 +42,19 @@ namespace bee {
 		func(f)
 	{}
 
+	/*
+	* internal::get_standard_flags() - Return the static list of the default ProgramFlags
+	*/
+	std::list<ProgramFlags*>& internal::get_standard_flags() {
+		static std::list<ProgramFlags*> flag_list;
+		return flag_list;
+	}
+
+	/*
+	* handle_flags() - Handle each flag's callback
+	* @new_flags: the new flags to use
+	* @pre_init: whether this function is being called before or after engine initialization
+	*/
 	int handle_flags(const std::list<ProgramFlags*>& new_flags, bool pre_init) {
 		engine->flags = new_flags;
 
@@ -101,18 +114,12 @@ namespace bee {
 
 		return amount;
 	}
-	/*
-	* get_standard_flags() - Return a list of the default ProgramFlags which can be appended by the user
-	*/
-	std::list<ProgramFlags*>& get_standard_flags_internal() {
-		static std::list<ProgramFlags*> flag_list;
-		return flag_list;
-	}
+
 	/*
 	* get_standard_flags() - Return a list of the default ProgramFlags which can be appended by the user
 	*/
 	std::list<ProgramFlags*> get_standard_flags() {
-		std::list<ProgramFlags*>& flag_list = get_standard_flags_internal();
+		std::list<ProgramFlags*>& flag_list = internal::get_standard_flags();
 		if (flag_list.empty()) {
 			ProgramFlags* f_help = new ProgramFlags(
 				"help", 'h', true, no_argument, [] (char* arg) -> void {
@@ -172,7 +179,7 @@ namespace bee {
 	* free_standard_flags() - Return a list of the default ProgramFlags which can be appended by the user
 	*/
 	int free_standard_flags() {
-		std::list<ProgramFlags*>& flag_list = get_standard_flags_internal();
+		std::list<ProgramFlags*>& flag_list = internal::get_standard_flags();
 		if (!flag_list.empty()) {
 			for (auto& flag : flag_list) {
 				delete flag;

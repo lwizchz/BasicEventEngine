@@ -19,7 +19,9 @@
 #include "../util/template.hpp"
 
 #include "../core/instance.hpp"
+#include "../core/room.hpp"
 #include "../core/sidp.hpp"
+#include "../core/messenger/messenger.hpp"
 
 #include "../resources/room.hpp"
 

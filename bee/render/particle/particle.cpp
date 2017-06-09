@@ -16,12 +16,16 @@
 
 #include "particle.hpp"
 
-#include "particledata.hpp"
-
 #include "../../engine.hpp"
 
 #include "../../util/real.hpp"
 #include "../../util/platform.hpp"
+
+#include "../../core/resources.hpp"
+#include "../../core/room.hpp"
+#include "../../core/messenger/messenger.hpp"
+
+#include "particledata.hpp"
 
 #include "../../resources/sprite.hpp"
 #include "../../resources/room.hpp"

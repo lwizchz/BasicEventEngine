@@ -24,6 +24,7 @@
 #include "../init/gameoptions.hpp"
 
 #include "../core/enginestate.hpp"
+#include "../core/messenger/messenger.hpp"
 
 namespace bee {
 	/*

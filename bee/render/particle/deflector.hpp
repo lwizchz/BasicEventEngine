@@ -10,6 +10,7 @@
 #define BEE_RENDER_PARTICLE_DEFLECTOR_H 1
 
 namespace bee {
+	// Forward declaration
 	class Instance;
 
 	class ParticleDeflector {

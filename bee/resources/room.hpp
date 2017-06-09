@@ -23,6 +23,7 @@
 #include "light.hpp"
 
 namespace bee {
+	// Forward declarations
 	class BackgroundData;
 	class ViewData;
 	class PhysicsWorld;

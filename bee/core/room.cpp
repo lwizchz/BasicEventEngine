@@ -18,16 +18,21 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "../engine.hpp"
-
-#include "enginestate.hpp"
+#include "room.hpp"
 
 #include "../util/collision.hpp"
 
 #include "../init/gameoptions.hpp"
 
-#include "../render/renderer.hpp"
+#include "enginestate.hpp"
+#include "resources.hpp"
+#include "window.hpp"
+#include "messenger/messenger.hpp"
+
 #include "../render/camera.hpp"
+#include "../render/render.hpp"
+#include "../render/renderer.hpp"
+#include "../render/transition.hpp"
 #include "../render/viewdata.hpp"
 
 #include "../resources/room.hpp"

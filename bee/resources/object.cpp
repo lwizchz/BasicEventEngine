@@ -22,6 +22,7 @@
 #include "../util/platform.hpp"
 
 #include "../core/instance.hpp"
+#include "../core/messenger/messenger.hpp"
 
 namespace bee {
 	Object::Object () {

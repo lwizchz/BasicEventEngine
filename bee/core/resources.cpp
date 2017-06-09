@@ -14,7 +14,10 @@
 #include <GL/glew.h> // Include the required OpenGL headers
 #include <SDL2/SDL_opengl.h>
 
+#include "resources.hpp"
+
 #include "../engine.hpp"
+#include "../resources.hpp"
 
 #include "enginestate.hpp"
 

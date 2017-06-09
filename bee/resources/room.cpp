@@ -36,9 +36,15 @@
 
 #include "../init/gameoptions.hpp"
 
+#include "../core/console.hpp"
 #include "../core/enginestate.hpp"
+#include "../core/resources.hpp"
+#include "../core/room.hpp"
+#include "../core/messenger/messenger.hpp"
 
+#include "../render/drawing.hpp"
 #include "../render/renderer.hpp"
+#include "../render/transition.hpp"
 #include "../render/viewdata.hpp"
 #include "../render/particle/system.hpp"
 
@@ -1268,7 +1274,7 @@ namespace bee {
 		}
 
 		if (console_get_is_open()) {
-			console_draw();
+			internal::console_draw();
 		}
 
 		return 0;

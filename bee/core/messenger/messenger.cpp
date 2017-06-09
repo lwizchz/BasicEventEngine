@@ -12,9 +12,10 @@
 #include <iostream>
 #include <algorithm>
 
-#include "../../engine.hpp" // Include the engine headers
+#include "messenger.hpp"
 
 #include "../../debug.hpp"
+#include "../../engine.hpp"
 
 #include "../../util/string.hpp"
 #include "../../util/platform.hpp"
@@ -26,10 +27,10 @@
 
 namespace bee {
 	/*
-	* messenger_register_protected() - Register the given recipient with protected tags within the messaging system
+	* internal::messenger_register_protected() - Register the given recipient with protected tags within the messaging system
 	* @recv: the recipient to register
 	*/
-	int messenger_register_protected(std::shared_ptr<MessageRecipient> recv) {
+	int internal::messenger_register_protected(std::shared_ptr<MessageRecipient> recv) {
 		for (auto& tag : recv->tags) { // Iterate over the requested tags
 			if (engine->recipients.find(tag) == engine->recipients.end()) { // If the tag doesn't exist, then create it
 				engine->recipients.emplace(tag, std::unordered_set<std::shared_ptr<MessageRecipient>>()); // Emplace an empty set of recipients
@@ -39,22 +40,22 @@ namespace bee {
 		return 0; // Return 0 on success
 	}
 	/*
-	* messenger_register_protected() - Register the given recipient within the messaging system
+	* internal::messenger_register_protected() - Register the given recipient within the messaging system
 	* @name: the name of the funciton
 	* @tags: the tags to register the recipient with
 	* @is_strict: whether the recipient should only take exact tags
 	* @func: the function to use to handle the messages
 	*/
-	std::shared_ptr<MessageRecipient> messenger_register_protected(std::string name, const std::vector<std::string>& tags, bool is_strict, std::function<void (std::shared_ptr<MessageContents>)> func) {
+	std::shared_ptr<MessageRecipient> internal::messenger_register_protected(std::string name, const std::vector<std::string>& tags, bool is_strict, std::function<void (std::shared_ptr<MessageContents>)> func) {
 		std::shared_ptr<MessageRecipient> recv (new MessageRecipient(name, tags, is_strict, func)); // Create a pointer for the given message data
 		messenger_register_protected(recv); // Attempt to register the recipient
 		return recv; // Return the newly constructed recipient
 	}
 	/*
-	* messenger_unregister_protected() - Unregister the given recipient from protected tags within the messaging system
+	* internal::messenger_unregister_protected() - Unregister the given recipient from protected tags within the messaging system
 	* @recv: the recipient to unregister
 	*/
-	int messenger_unregister_protected(std::shared_ptr<MessageRecipient> recv) {
+	int internal::messenger_unregister_protected(std::shared_ptr<MessageRecipient> recv) {
 		for (auto& tag : recv->tags) { // Iterate over the recipient's tags
 			auto rt = engine->recipients.find(tag);
 			if (rt != engine->recipients.end()) { // If the tag exists within the recipient list
@@ -69,11 +70,11 @@ namespace bee {
 		return 0; // Return 0 on success
 	}
 	/*
-	* messenger_send_urgent() - Immediately process the given message to its recipients
+	* internal::messenger_send_urgent() - Immediately process the given message to its recipients
 	* ! Warning: this can break things so use sparingly, most things can wait a couple milliseconds for handle_messages() to process at the end of each frame
 	* @msg: the message to process
 	*/
-	int messenger_send_urgent(std::shared_ptr<MessageContents> msg) {
+	int internal::messenger_send_urgent(std::shared_ptr<MessageContents> msg) {
 		const Uint32 t = get_ticks();
 		msg->descr = trim(msg->descr); // Trim the message description
 

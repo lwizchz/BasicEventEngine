@@ -9,6 +9,8 @@
 #ifndef BEE_INIT_INFO
 #define BEE_INIT_INFO 1
 
+#include "info.hpp"
+
 #include "../util/platform.hpp"
 #include "../util/files.hpp"
 

@@ -22,6 +22,8 @@
 #include "../engine.hpp"
 
 #include "../core/enginestate.hpp"
+#include "../core/window.hpp"
+#include "../core/network/network.hpp"
 
 #include "../render/renderer.hpp"
 

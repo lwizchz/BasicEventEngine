@@ -12,13 +12,15 @@
 #include <GL/glew.h> // Include the required OpenGL headers
 #include <SDL2/SDL_opengl.h>
 
-#include "../engine.hpp"
+#include "input.hpp"
 
 #include "../util/collision.hpp"
 #include "../util/string.hpp"
 
 #include "enginestate.hpp"
 #include "instance.hpp"
+#include "room.hpp"
+
 #include "../render/renderer.hpp"
 #include "../render/viewdata.hpp"
 

@@ -24,8 +24,11 @@
 #include "../init/gameoptions.hpp"
 
 #include "../core/enginestate.hpp"
+#include "../core/resources.hpp"
+#include "../core/messenger/messenger.hpp"
 
 #include "camera.hpp"
+#include "drawing.hpp"
 #include "rgba.hpp"
 
 #include "../resources/sprite.hpp"

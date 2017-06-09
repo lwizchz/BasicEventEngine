@@ -14,13 +14,19 @@
 #include "../debug.hpp"
 #include "../engine.hpp"
 
+#include "resources.hpp"
 #include "sidp.hpp"
 
 #include "../util/collision.hpp"
 #include "../util/string.hpp"
 #include "../util/template.hpp"
 
+#include "room.hpp"
+#include "messenger/messenger.hpp"
+
+#include "../render/drawing.hpp"
 #include "../render/viewdata.hpp"
+
 #include "../physics/body.hpp"
 #include "../physics/world.hpp"
 

@@ -18,6 +18,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include <SDL2/SDL.h> // Include the required SDL headers
+
 #include "../enum.hpp"
 
 namespace bee {

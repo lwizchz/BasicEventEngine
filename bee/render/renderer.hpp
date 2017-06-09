@@ -11,11 +11,16 @@
 
 #include "../defines.hpp"
 
+#include <string>
+
+#include <SDL2/SDL.h> // Include the required SDL headers
+
 #include <GL/glew.h> // Include the required OpenGL headers
 #include <SDL2/SDL_opengl.h>
 #include <glm/glm.hpp>
 
 namespace bee {
+	// Forward declaration
 	class Camera;
 
 	class Renderer {

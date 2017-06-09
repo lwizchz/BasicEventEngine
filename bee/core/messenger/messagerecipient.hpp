@@ -9,6 +9,8 @@
 #ifndef BEE_CORE_MESSAGERECIPIENT_H
 #define BEE_CORE_MESSAGERECIPIENT_H 1
 
+#include <functional>
+
 #include "messagecontents.hpp"
 
 namespace bee {

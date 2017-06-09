@@ -18,6 +18,9 @@
 
 #include "../util/platform.hpp"
 
+#include "../core/room.hpp"
+#include "../core/messenger/messenger.hpp"
+
 #include "../resources/room.hpp"
 
 namespace bee {

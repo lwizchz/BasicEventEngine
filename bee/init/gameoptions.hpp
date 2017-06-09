@@ -35,6 +35,9 @@ namespace bee {
 		GameOptions();
 		GameOptions(bool, bool, bool, bool, bool, bool, bee::E_RENDERER, bool, bool, bool, bool);
 	};
+
+	GameOptions get_options();
+	int set_options(const GameOptions&);
 }
 
 #endif // BEE_INIT_GAMEOPTIONS_H

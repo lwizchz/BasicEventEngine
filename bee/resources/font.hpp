@@ -18,6 +18,7 @@
 #include "../render/rgba.hpp"
 
 namespace bee {
+	// Forward declaration
 	class Sprite;
 
 	struct TextData { // The data struct which is used to pass reusable texture data to Font::draw()

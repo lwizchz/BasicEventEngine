@@ -19,6 +19,9 @@
 #include "../util/string.hpp"
 #include "../util/platform.hpp"
 
+#include "../core/messenger/messenger.hpp"
+
+#include "../render/drawing.hpp"
 #include "../render/rgba.hpp"
 
 namespace bee {

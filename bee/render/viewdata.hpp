@@ -10,6 +10,7 @@
 #define BEE_RENDER_VIEWDATA_H 1
 
 namespace bee {
+	// Forward declaration
 	class Instance;
 
 	struct ViewData {

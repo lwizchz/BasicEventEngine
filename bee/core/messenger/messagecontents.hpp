@@ -9,6 +9,9 @@
 #ifndef BEE_CORE_MESSAGECONTENTS_H
 #define BEE_CORE_MESSAGECONTENTS_H 1
 
+#include <vector>
+#include <memory>
+
 #include <SDL2/SDL.h> // Include the required SDL headers
 
 #include "../../enum.hpp"

@@ -15,7 +15,7 @@
 #include <SDL2/SDL_opengl.h>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "../engine.hpp" // Include the engine headers
+#include "drawing.hpp" // Include the engine headers
 
 #include "../util/files.hpp"
 #include "../util/platform.hpp"
@@ -23,6 +23,7 @@
 #include "../init/gameoptions.hpp"
 
 #include "../core/enginestate.hpp"
+#include "../core/messenger/messenger.hpp"
 
 #include "renderer.hpp"
 #include "rgba.hpp"
