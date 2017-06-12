@@ -19,6 +19,7 @@
 
 #include "../util/platform.hpp"
 
+#include "../core/resources.hpp"
 #include "../core/messenger/messenger.hpp"
 
 namespace bee {
@@ -226,9 +227,9 @@ namespace bee {
 		}
 
 		if (is_music) { // If the sound is music, set the volume appropriately
-			Mix_VolumeMusic(get_volume()*volume*128);
+			Mix_VolumeMusic(bee::get_volume()*volume*128);
 		} else { // Otherwise set the sound chunk volume
-			Mix_VolumeChunk(chunk, get_volume()*volume*128);
+			Mix_VolumeChunk(chunk, bee::get_volume()*volume*128);
 		}
 		return 0; // Return 0 on success
 	}

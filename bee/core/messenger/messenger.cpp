@@ -435,6 +435,10 @@ namespace bee {
 		// Process messages with recipient functions
 		std::exception_ptr ep; // Store any thrown values
 		for (auto& msg : engine->messages) { // Iterate over the messages
+			if (msg == nullptr) { // Skip null messages
+				continue;
+			}
+
 			auto m = msg; // Create an extra reference to the smart pointer to prevent it from being deallocated during the loop
 			if (t < m->tickstamp) { // If the message should be processed in the future, skip it
 				continue;
@@ -477,13 +481,14 @@ namespace bee {
 					}
 				}
 			}
-			if (m != nullptr) { // Set the processed flag after iterating over all message tags
-				m->has_processed = true;
-			}
+			m->has_processed = true; // Set the processed flag after iterating over all message tags
 		}
 
 		// Remove processed messages
 		engine->messages.erase(std::remove_if(engine->messages.begin(), engine->messages.end(), [] (std::shared_ptr<MessageContents> msg) {
+			if (msg == nullptr) {
+				return true;
+			}
 			return msg->has_processed;
 		}), engine->messages.end());
 

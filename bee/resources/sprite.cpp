@@ -29,6 +29,7 @@
 
 #include "../core/enginestate.hpp"
 #include "../core/room.hpp"
+#include "../core/window.hpp"
 #include "../core/messenger/messenger.hpp"
 
 #include "../render/drawing.hpp"
@@ -1118,7 +1119,7 @@ namespace bee {
 	* ! When the function is called without specifying width and height, simply call it with the window dimensions
 	*/
 	int Sprite::set_as_target() {
-		return set_as_target(get_width(), get_height()); // Return the result of attempting to set the render target
+		return set_as_target(bee::get_width(), bee::get_height()); // Return the result of attempting to set the render target
 	}
 }
 

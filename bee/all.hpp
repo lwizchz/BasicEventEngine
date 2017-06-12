@@ -20,6 +20,7 @@
 #include "core/resources.hpp"
 #include "core/room.hpp"
 #include "core/sidp.hpp"
+#include "core/window.hpp"
 #include "core/messenger/messenger.hpp"
 #include "core/messenger/messagecontents.hpp"
 #include "core/messenger/messagerecipient.hpp"
