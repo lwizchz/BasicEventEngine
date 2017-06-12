@@ -1,7 +1,7 @@
 #!/bin/bash
 # Builds BEE with CMake
 
-game="BasicEventEngine"
+game="BEE_Example"
 
 clean()
 {
