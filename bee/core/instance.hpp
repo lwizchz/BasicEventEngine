@@ -75,6 +75,7 @@ namespace bee {
 			int set_sprite(Sprite*);
 			int add_physbody();
 
+			SIDP get_data(const std::string&, const SIDP&, bool) const;
 			SIDP get_data(const std::string&) const;
 			int set_data(const std::string&, SIDP);
 
@@ -117,7 +118,12 @@ namespace bee {
 			int set_is_solid(bool);
 			int set_velocity(btVector3);
 			int set_velocity(double, double);
+			int add_velocity(btVector3);
+			int add_velocity(double, double);
 			int limit_velocity(double);
+			int limit_velocity_x(double);
+			int limit_velocity_y(double);
+			int limit_velocity_z(double);
 
 			double get_speed() const;
 			btVector3 get_velocity() const;

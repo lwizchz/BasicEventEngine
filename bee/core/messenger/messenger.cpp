@@ -343,6 +343,13 @@ namespace bee {
 	int messenger_send(const std::vector<std::string>& tags, E_MESSAGE type, const std::string& descr) {
 		return messenger_send(tags, type, descr, nullptr);
 	}
+	/*
+	* messenger_log() - Queue the given string as a simple log message
+	* @msg: the string to queue
+	*/
+	int messenger_log(const std::string& msg) {
+		return messenger_send({"log"}, E_MESSAGE::INFO, msg, nullptr);
+	}
 
 	/*
 	* messenger_set_level() - Set the output level when printing message descriptions

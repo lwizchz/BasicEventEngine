@@ -106,6 +106,7 @@ int sign(T x) {
 }
 template int sign<int>(int);
 template int sign<long>(long);
+template int sign<float>(float);
 template int sign<double>(double);
 /*
 * sqr() - Return the square of the given number
@@ -117,6 +118,7 @@ T sqr(T x) {
 }
 template int sqr<int>(int);
 template long sqr<long>(long);
+template float sqr<float>(float);
 template double sqr<double>(double);
 /*
 * logn() - Return the logarithm of the given number for any given base
@@ -298,6 +300,7 @@ T dot_product(const std::pair<T,T>& p1, const std::pair<T,T>& p2) {
 }
 template int dot_product<int>(const std::pair<int,int>&, const std::pair<int,int>&);
 template long dot_product<long>(const std::pair<long,long>&, const std::pair<long,long>&);
+template float dot_product<float>(const std::pair<float,float>&, const std::pair<float,float>&);
 template double dot_product<double>(const std::pair<double,double>&, const std::pair<double,double>&);
 
 /*
@@ -324,6 +327,7 @@ bool is_between(T x, T a, T b) {
 }
 template bool is_between<int>(int, int, int);
 template bool is_between<long>(long, long, long);
+template bool is_between<float>(float, float, float);
 template bool is_between<double>(double, double, double);
 /*
 * is_angle_between() - Return whether the given angle (in degrees) is between or equal to the given bounds
@@ -342,6 +346,7 @@ bool is_angle_between(T x, T a, T b) {
 }
 template bool is_angle_between<int>(int, int, int);
 template bool is_angle_between<long>(long, long, long);
+template bool is_angle_between<float>(float, float, float);
 template bool is_angle_between<double>(double, double, double);
 /*
 * fit_bounds() - Return a value in between the given bounds, either x or one of the bounds
@@ -365,6 +370,7 @@ T fit_bounds(T x, T a, T b) {
 }
 template int fit_bounds<int>(int, int, int);
 template long fit_bounds<long>(long, long, long);
+template float fit_bounds<float>(float, float, float);
 template double fit_bounds<double>(double, double, double);
 
 #endif // BEE_UTIL_REAL

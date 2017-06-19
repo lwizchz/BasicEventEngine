@@ -6,10 +6,10 @@
 * See LICENSE for more details.
 */
 
-#include "../../bee/util.hpp"
-#include "../../bee/all.hpp"
+#ifndef RES_OBJ_BEE_H
+#define RES_OBJ_BEE_H 1
 
-class ObjBee : public bee::Object/*<ObjBee>*/ {
+class ObjBee : public bee::Object {
 	public:
 		ObjBee();
 		~ObjBee();
@@ -27,7 +27,7 @@ class ObjBee : public bee::Object/*<ObjBee>*/ {
 		void collision(bee::Instance*, bee::Instance*);
 		void draw(bee::Instance*);
 };
-ObjBee::ObjBee() : Object/*<ObjBee>*/("obj_bee", "bee.hpp") {
+ObjBee::ObjBee() : Object("obj_bee", "bee.hpp") {
 	implemented_events[bee::E_EVENT::UPDATE] = true;
 	implemented_events[bee::E_EVENT::CREATE] = true;
 	implemented_events[bee::E_EVENT::DESTROY] = true;
@@ -40,21 +40,14 @@ ObjBee::ObjBee() : Object/*<ObjBee>*/("obj_bee", "bee.hpp") {
 	implemented_events[bee::E_EVENT::OUTSIDE_ROOM] = true;
 	implemented_events[bee::E_EVENT::COLLISION] = true;
 	implemented_events[bee::E_EVENT::DRAW] = true;
-
-	set_sprite(spr_bee);
 }
 ObjBee::~ObjBee() {}
 void ObjBee::update(bee::Instance* self) {
-	if (!instance_data.empty()) {
-		s = &instance_data[self->id];
-	}
+	Object::update(self);
 }
 void ObjBee::create(bee::Instance* self) {
-	instance_data[self->id].clear();
-	update(self);
-
-	self->get_physbody()->set_mass(0.0);
 	self->get_physbody()->set_shape(bee::E_PHYS_SHAPE::BOX, new double[3] {100.0, 100.0, 100.0});
+	self->get_physbody()->set_mass(0.0);
 	self->get_physbody()->add_constraint(bee::E_PHYS_CONSTRAINT::FLAT, nullptr);
 
 	// create event
@@ -124,7 +117,7 @@ void ObjBee::destroy(bee::Instance* self) {
 		delete (bee::TextData*) _p("text_fps");
 	}
 
-	instance_data.erase(self->id);
+	Object::destroy(self);
 }
 void ObjBee::alarm(bee::Instance* self, int a) {
 	switch (a) {
@@ -338,3 +331,5 @@ void ObjBee::draw(bee::Instance* self) {
 		(*s)["text_fps"] = (void*)font_liberation->draw((bee::TextData*) _p("text_fps"), 0, 0, "FPS: " + bee_itos(bee::engine->fps_stable));
 	}
 }
+
+#endif // RES_OBJ_BEE_H

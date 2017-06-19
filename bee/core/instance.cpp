@@ -18,6 +18,7 @@
 #include "sidp.hpp"
 
 #include "../util/collision.hpp"
+#include "../util/real.hpp"
 #include "../util/string.hpp"
 #include "../util/template.hpp"
 
@@ -215,6 +216,9 @@ namespace bee {
 		return 0;
 	}
 
+	SIDP Instance::get_data(const std::string& field, const SIDP& default_value, bool should_output) const {
+		return object->get_data(id, field, default_value, should_output);
+	}
 	SIDP Instance::get_data(const std::string& field) const {
 		return object->get_data(id, field);
 	}
@@ -403,21 +407,66 @@ namespace bee {
 			new_magnitude = fabs(new_magnitude);
 		}
 		new_direction = absolute_angle(new_direction);
-		return set_velocity(btVector3(new_magnitude*cos(degtorad(new_direction)), new_magnitude*-sin(degtorad(new_direction)), 0.0) / body->get_scale());
+		return set_velocity(btVector3(
+			new_magnitude*cos(degtorad(new_direction)),
+			new_magnitude*-sin(degtorad(new_direction)),
+			0.0
+		) / body->get_scale());
+	}
+	int Instance::add_velocity(btVector3 new_velocity) {
+		return set_velocity(get_velocity() + new_velocity);
+	}
+	int Instance::add_velocity(double new_magnitude, double new_direction) {
+		if (new_magnitude < 0.0) {
+			new_direction -= 180.0;
+			new_magnitude = fabs(new_magnitude);
+		}
+		new_direction = absolute_angle(new_direction);
+		return set_velocity(get_velocity() + btVector3(
+			new_magnitude*cos(degtorad(new_direction)),
+			new_magnitude*-sin(degtorad(new_direction)),
+			0.0
+		) / body->get_scale());
 	}
 	int Instance::limit_velocity(double new_limit) {
 		btVector3 v = get_velocity();
-		double speed_sqr = dist_sqr(v.x(), v.y(), v.z(), 0.0, 0.0, 0.0);
+		double speed_sqr = v.length2();
 		if (speed_sqr > sqr(new_limit)) {
 			set_velocity(new_limit * v.normalize());
 			return 1;
 		}
 		return 0;
 	}
+	int Instance::limit_velocity_x(double x_limit) {
+		btVector3 v = get_velocity();
+		if (abs(v.x()) > x_limit) {
+			v.setX(x_limit * sign(v.x()));
+			set_velocity(v);
+			return 1;
+		}
+		return 0;
+	}
+	int Instance::limit_velocity_y(double y_limit) {
+		btVector3 v = get_velocity();
+		if (abs(v.y()) > y_limit) {
+			v.setY(y_limit * sign(v.y()));
+			set_velocity(v);
+			return 1;
+		}
+		return 0;
+	}
+	int Instance::limit_velocity_z(double z_limit) {
+		btVector3 v = get_velocity();
+		if (abs(v.z()) > z_limit) {
+			v.setZ(z_limit * sign(v.z()));
+			set_velocity(v);
+			return 1;
+		}
+		return 0;
+	}
 
 	double Instance::get_speed() const {
-		btVector3 v = get_velocity();
-		return distance(v.x(), v.y(), v.z());
+		return get_velocity().length();
 	}
 	btVector3 Instance::get_velocity() const {
 		return body->get_body()->getLinearVelocity();
@@ -616,13 +665,13 @@ namespace bee {
 		return distance(get_x(), get_y(), get_z(), dx, dy, dz);
 	}
 	double Instance::get_distance(Instance* other) const {
-		return distance(get_x(), get_y(), get_z(), other->get_x(), other->get_y(), other->get_z());
+		return get_position().distance(other->get_position());
 	}
 	double Instance::get_distance(Object* other) const {
 		double shortest_distance = 0.0, current_distance = 0.0;
 		for (auto& i : get_current_room()->get_instances()) {
 			if (i.second->object->get_id() == other->get_id()) {
-				current_distance = distance(get_x(), get_y(), i.second->get_x(), i.second->get_y());
+				current_distance = get_position().distance(i.second->get_position());;
 				if (current_distance < shortest_distance) {
 					shortest_distance = current_distance;
 				}

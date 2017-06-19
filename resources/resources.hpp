@@ -1,37 +1,43 @@
+#include "../bee/util.hpp"
+#include "../bee/all.hpp"
+#include "sidp.hpp"
+
 // Define sprites
-bee::Sprite* spr_bee;
-bee::Sprite* spr_dot;
+bee::Sprite* spr_bee = nullptr;
+bee::Sprite* spr_dot = nullptr;
 
 // Define sounds
-bee::Sound* snd_chirp;
+bee::Sound* snd_chirp = nullptr;
 
 // Define backgrounds
-bee::Background* bk_green;
+bee::Background* bk_green = nullptr;
 
 // Define fonts
-bee::Font* font_liberation;
+bee::Font* font_liberation = nullptr;
 
 // Define paths
-bee::Path* path_bee;
+bee::Path* path_bee = nullptr;
 
 // Define timelines
 
 // Define meshes
-bee::Mesh* mesh_monkey;
+bee::Mesh* mesh_monkey = nullptr;
 
 // Define lights
-bee::Light* lt_ambient;
-bee::Light* lt_bee;
+bee::Light* lt_ambient = nullptr;
+bee::Light* lt_bee = nullptr;
 
-// Include and define objects
-#include "sidp.hpp"
+// Declare objects
+bee::Object* obj_bee = nullptr;
 
+// Declare rooms
+bee::Room* rm_test = nullptr;
+
+// Include objects
 #include "objects/bee.hpp"
-bee::Object* obj_bee;
 
-// Include and define rooms
+// Include rooms
 #include "rooms/test.hpp"
-bee::Room* rm_test;
 
 /*
 * bee::init_resources() - Initialize all game resources
@@ -83,6 +89,7 @@ int bee::init_resources() {
 		// Init objects
 		obj_bee = new ObjBee();
 			obj_bee->set_is_solid(true);
+			obj_bee->set_sprite(spr_bee);
 
 		// Init rooms
 		rm_test = new RmTest();

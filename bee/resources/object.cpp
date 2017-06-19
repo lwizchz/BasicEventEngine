@@ -98,6 +98,7 @@ namespace bee {
 		yoffset = 0;
 
 		instances.clear();
+		current_instance = nullptr;
 
 		return 0;
 	}
@@ -119,7 +120,7 @@ namespace bee {
 		"\n	is_solid      " << is_solid <<
 		"\n	is_visible    " << is_visible <<
 		"\n	is_persistent " << is_persistent <<
-		"\n	depth		" << depth;
+		"\n	depth         " << depth;
 		if (parent != nullptr) {
 			ss << "\n	parent        " << parent->get_id() << ", " << parent->get_name();
 		} else {
@@ -130,7 +131,8 @@ namespace bee {
 		} else {
 			ss << "\n	mask          nullptr";
 		}
-		ss << "\n	instances\n" << debug_indent(instance_string, 2) <<
+		ss <<
+		"\n	instances\n" << debug_indent(instance_string, 2) <<
 		"\n}\n";
 		messenger_send({"engine", "resource"}, E_MESSAGE::INFO, ss.str());
 
@@ -283,13 +285,37 @@ namespace bee {
 		return "none\n";
 	}
 
-	SIDP Object::get_data(int inst_id, const std::string& field) const {
+	SIDP Object::get_data(int inst_id, const std::string& field, const SIDP& default_value, bool should_output) const {
+		int error_type = 0;
+
 		if (instance_data.find(inst_id) != instance_data.end()) {
 			if (instance_data.at(inst_id).find(field) != instance_data.at(inst_id).end()) {
 				return instance_data.at(inst_id).at(field);
+			} else {
+				error_type = 1;
+			}
+		} else {
+			error_type = 2;
+		}
+
+		if (should_output) {
+			switch (error_type) {
+				case 1: {
+					messenger_send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to get the data field \"" + field + "\" from the instance of object \"" + name + "\", returning SIDP(0)");
+					break;
+				}
+				case 2: {
+					messenger_send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to get data for the instance with id " + bee_itos(inst_id) + " of object \"" + name + "\"");
+					break;
+				}
+				default: {}
 			}
 		}
-		return 1;
+
+		return default_value;
+	}
+	SIDP Object::get_data(int inst_id, const std::string& field) const {
+		return get_data(inst_id, field, 0, true);
 	}
 	int Object::set_data(int inst_id, const std::string& field, SIDP data) {
 		if (instance_data.find(inst_id) == instance_data.end()) {
@@ -297,6 +323,15 @@ namespace bee {
 		}
 		instance_data.at(inst_id)[field] = data;
 		return 0;
+	}
+
+	void Object::update(Instance* self) {
+		current_instance = self;
+		s = &instance_data[self->id];
+		(*s)["object"] = name;
+	}
+	void Object::destroy(Instance* self) {
+		instance_data.erase(self->id);
 	}
 }
 

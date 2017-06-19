@@ -40,6 +40,7 @@ namespace bee {
 		protected:
 			std::map<int,std::map<std::string,SIDP>> instance_data;
 			std::map<std::string,SIDP>* s;
+			Instance* current_instance;
 
 			Object();
 			Object(const std::string&, const std::string&);
@@ -87,13 +88,14 @@ namespace bee {
 			Instance* get_instance(int) const;
 			std::string get_instance_string() const;
 
+			SIDP get_data(int, const std::string&, const SIDP&, bool) const;
 			SIDP get_data(int, const std::string&) const;
 			int set_data(int, const std::string&, SIDP);
 
 			std::map<E_EVENT,bool> implemented_events;
 			virtual void update(Instance*) =0;
 			virtual void create(Instance*) {};
-			virtual void destroy(Instance*) {};
+			virtual void destroy(Instance*) =0;
 			virtual void alarm(Instance*, size_t) {};
 			virtual void step_begin(Instance*) {};
 			virtual void step_mid(Instance*) {};

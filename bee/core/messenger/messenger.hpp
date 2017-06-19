@@ -30,6 +30,7 @@ namespace bee {
 	int messenger_send(std::shared_ptr<MessageContents>);
 	int messenger_send(const std::vector<std::string>&, E_MESSAGE, const std::string&, std::shared_ptr<void>);
 	int messenger_send(const std::vector<std::string>&, E_MESSAGE, const std::string&);
+	int messenger_log(const std::string&);
 
 	int messenger_set_level(E_OUTPUT);
 	E_OUTPUT messenger_get_level();
