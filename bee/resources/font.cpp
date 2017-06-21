@@ -9,11 +9,9 @@
 #ifndef BEE_FONT
 #define BEE_FONT 1
 
-#include <sstream>
+#include <sstream> // Include the required library headers
 
 #include "font.hpp" // Include the class resource header
-
-#include "sprite.hpp"
 
 #include "../debug.hpp"
 #include "../engine.hpp"
@@ -25,6 +23,8 @@
 
 #include "../core/enginestate.hpp"
 #include "../core/messenger/messenger.hpp"
+
+#include "sprite.hpp"
 
 namespace bee {
 	/*

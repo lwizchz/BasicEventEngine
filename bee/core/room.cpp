@@ -242,7 +242,7 @@ namespace bee {
 
 	/*
 	* set_is_paused() - Set the pause state of the engine and return the previous state
-	* ! Note that this does not pause the event loop, it is simply meant as a way to globally check an arbitrary state
+	* ! Note that this will stop processing non-draw events for all objects which have is_pausable set to true
 	*/
 	bool set_is_paused(bool new_is_paused) {
 		bool p = engine->is_paused;

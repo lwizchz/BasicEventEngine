@@ -9,7 +9,7 @@
 #ifndef BEE_OBJECT
 #define BEE_OBJECT 1
 
-#include <sstream>
+#include <sstream> // Include the required library headers
 
 #include "object.hpp"
 
@@ -96,6 +96,7 @@ namespace bee {
 		mask = nullptr;
 		xoffset = 0;
 		yoffset = 0;
+		is_pausable = true;
 
 		instances.clear();
 		current_instance = nullptr;
@@ -132,6 +133,7 @@ namespace bee {
 			ss << "\n	mask          nullptr";
 		}
 		ss <<
+		"\n	is_pausable   " << is_pausable <<
 		"\n	instances\n" << debug_indent(instance_string, 2) <<
 		"\n}\n";
 		messenger_send({"engine", "resource"}, E_MESSAGE::INFO, ss.str());
@@ -180,6 +182,9 @@ namespace bee {
 	}
 	std::pair<int,int> Object::get_mask_offset() const {
 		return std::make_pair(xoffset, yoffset);
+	}
+	bool Object::get_is_pausable() const {
+		return is_pausable;
 	}
 
 	int Object::set_name(const std::string& new_name) {
@@ -233,6 +238,10 @@ namespace bee {
 	int Object::set_mask_offset(int new_xoffset, int new_yoffset) {
 		xoffset = new_xoffset;
 		yoffset = new_yoffset;
+		return 0;
+	}
+	int Object::set_is_pausable(bool new_is_pausable) {
+		is_pausable = new_is_pausable;
 		return 0;
 	}
 

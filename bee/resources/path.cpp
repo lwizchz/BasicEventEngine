@@ -9,7 +9,7 @@
 #ifndef BEE_PATH
 #define BEE_PATH 1
 
-#include <sstream>
+#include <sstream> // Include the required library headers
 
 #include "path.hpp" // Include the class resource header
 
@@ -26,7 +26,7 @@
 
 namespace bee {
 	/*
-	* Path::Path() - Construct the path and set its engine pointer
+	* Path::Path() - Default construct the path
 	* ! This constructor should only be directly used for temporary paths, the other constructor should be used for all other cases
 	*/
 	Path::Path () :
@@ -38,7 +38,7 @@ namespace bee {
 		is_closed(true)
 	{}
 	/*
-	* Path::Path() - Construct the path, reset all variables, add it to the path resource list, and set the new name and path
+	* Path::Path() - Construct the path, add it to the path resource list, and set the new name and path
 	* @new_name: the name of the path to use
 	* @new_path: the path filename of the path's config file
 	*/
@@ -120,7 +120,7 @@ namespace bee {
 		return coordinate_list;
 	}
 	std::string Path::get_coordinate_string() const {
-		if (coordinate_list.size() == 0) { // If there are no coordinates in the list, return a none-string
+		if (coordinate_list.empty()) { // If there are no coordinates in the list, return a none-string
 			return "none\n";
 		}
 

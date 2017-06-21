@@ -11,9 +11,9 @@
 
 #include "../defines.hpp"
 
-#include <sstream>
+#include <sstream> // Include the required library headers
 
-#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_image.h> // Include the required SDL headers
 
 #include <glm/gtc/matrix_transform.hpp> // Include the required OpenGL headers
 #include <glm/gtc/type_ptr.hpp>
@@ -40,7 +40,32 @@
 
 namespace bee {
 	/*
-	* Sprite::Sprite() - Construct the sprite and set its engine pointer
+	* SpriteDrawData::SpriteDrawData() - Construct the data struct and initialize all values
+	* ! See bee/resources/sprite.hpp for a description of these member variables
+	*/
+	SpriteDrawData::SpriteDrawData() :
+		x(0),
+		y(0),
+		subimage_time(0),
+		w(0),
+		h(0),
+		angle(0.0)
+	{}
+	/*
+	* SpriteDrawData::SpriteDrawData() - Construct the data struct and initialize with all the given values
+	* ! See bee/resources/sprite.hpp for a description of these member variables
+	*/
+	SpriteDrawData::SpriteDrawData(int new_x, int new_y, Uint32 new_subimage_time, int new_w, int new_h, double new_angle):
+		x(new_x),
+		y(new_y),
+		subimage_time(new_subimage_time),
+		w(new_w),
+		h(new_h),
+		angle(new_angle)
+	{}
+
+	/*
+	* Sprite::Sprite() - Default construct the sprite
 	* ! This constructor should only be directly used for temporary sprites (e.g. framebuffers), the other constructor should be used for all other cases
 	*/
 	Sprite::Sprite() :
@@ -74,7 +99,7 @@ namespace bee {
 		framebuffer(-1)
 	{}
 	/*
-	* Sprite::Sprite() - Construct the sprite, reset all variables, add it to the sprite resource list, and set the new name and path
+	* Sprite::Sprite() - Construct the sprite, add it to the sprite resource list, and set the new name and path
 	* @new_name: the name of the sprite to use
 	* @new_path: the path of the sprite's image
 	*/
@@ -527,7 +552,7 @@ namespace bee {
 			SDL_SetTextureAlphaMod(texture, 255);
 		}
 
-		// Set loaded booleans
+		// Set the loaded booleans
 		is_loaded = true;
 		has_draw_failed = false;
 
@@ -586,7 +611,8 @@ namespace bee {
 			texture = nullptr;
 		}
 
-		is_loaded = false; // Set the loaded boolean
+		// Reset the loaded booleans
+		is_loaded = false;
 		has_draw_failed = false;
 
 		return 0; // Return 0 on success
@@ -803,7 +829,7 @@ namespace bee {
 	* @h: the height to scale the sprite to
 	*/
 	int Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h) {
-		return draw(x, y, subimage_time, w, h, 0.0, {255, 255, 255, 255}, SDL_FLIP_NONE); // Return the resul of drawing the scaled sprite
+		return draw(x, y, subimage_time, w, h, 0.0, {255, 255, 255, 255}, SDL_FLIP_NONE); // Return the result of drawing the scaled sprite
 	}
 	/*
 	* Sprite::draw() - Draw the sprite with a given subimage timing using the given attributes
@@ -1093,7 +1119,7 @@ namespace bee {
 
 			glBindVertexArray(0); // Unbind VAO when done loading
 
-			// Set loaded booleans
+			// Set the loaded booleans
 			is_loaded = true;
 			has_draw_failed = false;
 
@@ -1108,7 +1134,7 @@ namespace bee {
 			SDL_SetRenderTarget(engine->renderer->sdl_renderer, texture); // Set the SDL render target
 		}
 
-		// Set loaded booleans
+		// Set the loaded booleans
 		is_loaded = true;
 		has_draw_failed = false;
 

@@ -11,9 +11,9 @@
 
 #include "../defines.hpp"
 
-#include <sstream>
+#include <sstream> // Include the required library headers
 
-#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_image.h> // Include the required SDL headers
 
 #include <GL/glew.h> // Include the required OpenGL headers
 #include <SDL2/SDL_opengl.h>
@@ -36,7 +36,7 @@
 namespace bee {
 	/*
 	* BackgroundData::BackgroundData() - Construct the data struct and initiliaze all values
-	* ! See a description for these arguments in the struct definition in bee/resources/background.hpp
+	* ! See bee/resources/background.hpp for a description of these member variables
 	*/
 	BackgroundData::BackgroundData() :
 		background(nullptr),
@@ -51,8 +51,8 @@ namespace bee {
 		is_stretched(false)
 	{}
 	/*
-	* BackgroundData::BackgroundData() - Construct the data struct and initiliaze all values
-	* ! See a description for these arguments in the struct definition in bee/resources/background.hpp
+	* BackgroundData::BackgroundData() - Construct the data struct and initiliaze with all the given values
+	* ! See bee/resources/background.hpp for a description of these member variables
 	*/
 	BackgroundData::BackgroundData(Background* new_background, bool new_is_visible, bool new_is_foreground, int new_x, int new_y, bool new_is_horizontal_tile, bool new_is_vertical_tile, int new_horizontal_speed, int new_vertical_speed, bool new_is_stretched) :
 		background(new_background),
@@ -68,7 +68,7 @@ namespace bee {
 	{}
 
 	/*
-	* Background::Background() - Construct the background and set its engine pointer
+	* Background::Background() - Default construct the background
 	* ! This constructor should only be directly used for temporary backgrounds (e.g. framebuffers), the other constructor should be used for all other cases
 	*/
 	Background::Background() :
@@ -92,7 +92,7 @@ namespace bee {
 		framebuffer(-1)
 	{}
 	/*
-	* Background::Background() - Construct the background, reset all variables, add it to the background resource list, and set the new name and path
+	* Background::Background() - Construct the background, add it to the background resource list, and set the new name and path
 	* @new_name: the name of the background to use
 	* @new_path: the path of the background's image
 	*/
@@ -291,7 +291,7 @@ namespace bee {
 
 				glBindVertexArray(0); // Unbind the VAO when done loading
 
-				// Set loaded booleans
+				// Set the loaded booleans
 				is_loaded = true;
 				has_draw_failed = false;
 			} else {
@@ -302,7 +302,7 @@ namespace bee {
 					return 2; // Return 2 on failure to load
 				}
 
-				// Set loaded booleans
+				// Set the loaded booleans
 				is_loaded = true;
 				has_draw_failed = false;
 			}
@@ -656,7 +656,7 @@ namespace bee {
 			SDL_SetRenderTarget(engine->renderer->sdl_renderer, texture); // Set the SDL render target
 		}
 
-		// Set loaded booleans
+		// Set the loaded booleans
 		is_loaded = true;
 		has_draw_failed = false;
 

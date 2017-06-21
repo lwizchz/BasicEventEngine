@@ -153,6 +153,12 @@ namespace bee {
 		TILE
 	};
 
+	enum class E_COMPUTATION {
+		STATIC,
+		SEMISTATIC,
+		DYNAMIC
+	};
+
 	enum class E_PATH_END {
 		STOP,
 		RESTART,

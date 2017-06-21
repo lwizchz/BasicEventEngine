@@ -9,7 +9,7 @@
 #ifndef BEE_SOUND
 #define BEE_SOUND 1
 
-#include <sstream>
+#include <sstream> // Include the required library headers
 #include <vector>
 
 #include "sound.hpp" // Include the class resource header
@@ -24,7 +24,7 @@
 
 namespace bee {
 	/*
-	* Sound::Sound() - Construct the sound and set its engine pointer
+	* Sound::Sound() - Default construct the sound
 	* ! This constructor should only be used for temporary sounds, the other constructor should be used for all other cases
 	*/
 	Sound::Sound() :
@@ -52,7 +52,7 @@ namespace bee {
 		equalizer_data(new se_equalizer_data())
 	{}
 	/*
-	* Sound::Sound() - Construct the sound, reset all variables, add it to the sound resource list, and set the new name and path
+	* Sound::Sound() - Construct the sound, add it to the sound resource list, and set the new name and path
 	* @new_name: the name of the sound to use
 	* @new_path: the path of the sound's file
 	* @new_is_music: whether the sound should be treated as music or a sound effect
@@ -305,7 +305,7 @@ namespace bee {
 		// Set the volume for the now-loaded sound
 		update_volume();
 
-		// Set loaded booleans
+		// Set the loaded booleans
 		is_loaded = true;
 		has_play_failed = false;
 

@@ -9,11 +9,9 @@
 #ifndef BEE_LIGHT
 #define BEE_LIGHT 1
 
-#include <sstream>
+#include <sstream> // Include the required library headers
 
-#include "light.hpp"
-
-#include "room.hpp"
+#include "light.hpp" // Include the class resource header
 
 #include "../engine.hpp"
 
@@ -23,33 +21,69 @@
 #include "../core/room.hpp"
 #include "../core/messenger/messenger.hpp"
 
-namespace bee {
-	Light::Light () {
-		reset();
-	}
-	Light::Light (const std::string& new_name, const std::string& new_path) {
-		reset();
+#include "room.hpp"
 
-		add_to_resources();
-		if (id < 0) {
+namespace bee {
+	/*
+	* LightData::LightData() - Construct the data struct and initialize all values
+	*/
+	LightData::LightData() :
+		type(E_LIGHT::AMBIENT),
+		position(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)),
+		direction(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)),
+		attenuation(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)),
+		color({255, 255, 255, 255})
+	{}
+
+	/*
+	* Light::Light() - Default construct the light
+	* ! This constructor should only be directly used for temporary lights, the other constructor should be used for all other cases
+	*/
+	Light::Light () :
+		id(-1),
+		name(),
+		path(),
+
+		lighting(),
+
+		has_drawn_sdl(false)
+	{}
+	/*
+	* Light::Light() - Construct the light, add it to the light resource list, and set the new name and path
+	*/
+	Light::Light (const std::string& new_name, const std::string& new_path) :
+		Light() // Default initialize all variables
+	{
+		add_to_resources(); // Add the light to the appropriate resource list
+		if (id < 0) { // If the light could not be added to the resource list, output a warning
 			messenger_send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add light resource: \"" + new_name + "\" from " + new_path);
-			throw(-1);
+			throw(-1); // Throw an exception
 		}
 
-		set_name(new_name);
-		set_path(new_path);
+		set_name(new_name); // Set the light name
+		set_path(new_path); // Set the light path
 	}
+	/*
+	* Light::~Light() - Remove the light from the resouce list
+	*/
 	Light::~Light() {
 		resource_list->lights.remove_resource(id);
 	}
+	/*
+	* Light::add_to_resources() - Add the sprite to the appropriate resource list
+	*/
 	int Light::add_to_resources() {
 		if (id < 0) { // If the resource needs to be added to the resource list
 			id = resource_list->lights.add_resource(this); // Add the resource and get the new id
 		}
 
-		return 0;
+		return 0; // Return 0 on success
 	}
+	/*
+	* Light::reset() - Reset all resource variables for reinitialization
+	*/
 	int Light::reset() {
+		// Reset all properties
 		name = "";
 		path = "";
 
@@ -60,11 +94,14 @@ namespace bee {
 
 		has_drawn_sdl = false;
 
-		return 0;
+		return 0; // Return 0 on success
 	}
+	/*
+	* Light::print() - Print all relevant information about the resource
+	*/
 	int Light::print() const {
-		std::stringstream s;
-		s <<
+		std::stringstream s; // Declare the output stream
+		s << // Append all info to the output
 		"Light { "
 		"\n	id          " << id <<
 		"\n	name        " << name <<
@@ -96,11 +133,14 @@ namespace bee {
 		"\n	attenuation (" << lighting.attenuation.x << ", " << lighting.attenuation.y << ", " << lighting.attenuation.z << ")" <<
 		"\n	color       " << (int)lighting.color.r << ", " << (int)lighting.color.g << ", " << (int)lighting.color.b <<
 		"\n}\n";
-		messenger_send({"engine", "resource"}, E_MESSAGE::INFO, s.str());
+		messenger_send({"engine", "resource"}, E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for output
 
-		return 0;
+		return 0; // Return 0 on success
 	}
 
+	/*
+	* Light::get_*() - Return the requested resource information
+	*/
 	int Light::get_id() const {
 		return id;
 	}
@@ -126,6 +166,9 @@ namespace bee {
 		return lighting.color;
 	}
 
+	/*
+	* Light::set_*() - Set the requested resource data
+	*/
 	int Light::set_name(const std::string& new_name) {
 		name = new_name;
 		return 0;
@@ -138,15 +181,15 @@ namespace bee {
 		lighting.type = new_type;
 		return 0;
 	}
-	int Light::set_position(glm::vec4 new_position) {
+	int Light::set_position(const glm::vec4& new_position) {
 		lighting.position = new_position;
 		return 0;
 	}
-	int Light::set_direction(glm::vec4 new_direction) {
+	int Light::set_direction(const glm::vec4& new_direction) {
 		lighting.direction = new_direction;
 		return 0;
 	}
-	int Light::set_attenuation(glm::vec4 new_attenuation) {
+	int Light::set_attenuation(const glm::vec4& new_attenuation) {
 		lighting.attenuation = new_attenuation;
 		return 0;
 	}
@@ -155,17 +198,20 @@ namespace bee {
 		return 0;
 	}
 
+	/*
+	* Light::queue() - Queue the light for drawing in the Room rendering loop
+	*/
 	int Light::queue() {
-		if (engine->options->renderer_type == E_RENDERER::SDL) {
-			if (!has_drawn_sdl) {
+		if (engine->options->renderer_type == E_RENDERER::SDL) { // If the SDL rendering is being used, output a warning
+			if (!has_drawn_sdl) { // If the SDL draw call hasn't been called before, output a warning
 				messenger_send({"engine", "light"}, E_MESSAGE::WARNING, "Lighting is not fully supported in SDL mode");
-				has_drawn_sdl = true;
+				has_drawn_sdl = true; // Set the SDL drawing boolean
 			}
 		}
 
-		get_current_room()->add_light(lighting);
+		get_current_room()->add_light(lighting); // Add the light to the Room lighting queue
 
-		return 0;
+		return 0; // Return 0 on success
 	}
 }
 

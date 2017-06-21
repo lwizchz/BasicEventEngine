@@ -9,10 +9,10 @@
 #ifndef BEE_ROOM_H
 #define BEE_ROOM_H 1
 
-#include <map>
+#include <map> // Include the required library headers
 #include <list>
 
-#include <btBulletDynamicsCommon.h>
+#include <btBulletDynamicsCommon.h> // Include the required Bullet headers
 
 #include "../resources.hpp"
 

@@ -11,13 +11,13 @@
 
 #include "../defines.hpp"
 
-#include <sstream>
+#include <sstream> // Include the required library headers
 #include <fstream>
 #include <algorithm>
 
-#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/type_ptr.hpp> // Include the required OpenGL headers
 
-#include "room.hpp"
+#include "room.hpp" // Include the class resource header
 
 #include "sprite.hpp"
 #include "background.hpp"
@@ -886,6 +886,9 @@ namespace bee {
 	}
 	int Room::check_alarms() {
 		for (auto& i : instances_sorted_events[E_EVENT::ALARM]) {
+			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
+				continue;
+			}
 			for (int e=0; e<BEE_ALARM_COUNT; e++) {
 				if (i.first->alarm_end[e] != 0xffffffff) {
 					if (get_ticks() >= i.first->alarm_end[e]) {
@@ -901,6 +904,9 @@ namespace bee {
 	}
 	int Room::step_begin() {
 		for (auto& i : instances_sorted_events[E_EVENT::STEP_BEGIN]) {
+			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
+				continue;
+			}
 			i.first->get_object()->update(i.first);
 			i.first->get_object()->step_begin(i.first);
 		}
@@ -919,6 +925,9 @@ namespace bee {
 	}
 	int Room::step_mid() {
 		for (auto& i : instances_sorted_events[E_EVENT::STEP_MID]) {
+			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
+				continue;
+			}
 			i.first->get_object()->update(i.first);
 			i.first->get_object()->step_mid(i.first);
 		}
@@ -926,7 +935,11 @@ namespace bee {
 		// Move instances along their paths
 		for (auto& i : instances_sorted) {
 			if (i.first->has_path()) {
-				if ((get_is_paused())&&(i.first->get_path_pausable())) {
+				if (
+					(get_is_paused())
+					&&(i.first->get_object()->get_is_pausable())
+					&&(i.first->get_path_pausable())
+				) {
 					continue;
 				}
 
@@ -972,6 +985,9 @@ namespace bee {
 	}
 	int Room::step_end() {
 		for (auto& i : instances_sorted_events[E_EVENT::STEP_END]) {
+			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
+				continue;
+			}
 			i.first->get_object()->update(i.first);
 			i.first->get_object()->step_end(i.first);
 		}
@@ -980,6 +996,9 @@ namespace bee {
 	}
 	int Room::keyboard_press(SDL_Event* e) {
 		for (auto& i : instances_sorted_events[E_EVENT::KEYBOARD_PRESS]) {
+			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
+				continue;
+			}
 			i.first->get_object()->update(i.first);
 			i.first->get_object()->keyboard_press(i.first, e);
 		}
@@ -988,6 +1007,9 @@ namespace bee {
 	}
 	int Room::mouse_press(SDL_Event* e) {
 		for (auto& i : instances_sorted_events[E_EVENT::MOUSE_PRESS]) {
+			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
+				continue;
+			}
 			i.first->get_object()->update(i.first);
 			i.first->get_object()->mouse_press(i.first, e);
 		}
@@ -995,6 +1017,9 @@ namespace bee {
 		return 0;
 	}int Room::keyboard_input(SDL_Event* e) {
 		for (auto& i : instances_sorted_events[E_EVENT::KEYBOARD_INPUT]) {
+			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
+				continue;
+			}
 			i.first->get_object()->update(i.first);
 			i.first->get_object()->keyboard_input(i.first, e);
 		}
@@ -1003,6 +1028,9 @@ namespace bee {
 	}
 	int Room::mouse_input(SDL_Event* e) {
 		for (auto& i : instances_sorted_events[E_EVENT::MOUSE_INPUT]) {
+			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
+				continue;
+			}
 			i.first->get_object()->update(i.first);
 			i.first->get_object()->mouse_input(i.first, e);
 		}
@@ -1011,6 +1039,9 @@ namespace bee {
 	}
 	int Room::keyboard_release(SDL_Event* e) {
 		for (auto& i : instances_sorted_events[E_EVENT::KEYBOARD_RELEASE]) {
+			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
+				continue;
+			}
 			i.first->get_object()->update(i.first);
 			i.first->get_object()->keyboard_release(i.first, e);
 		}
@@ -1019,6 +1050,9 @@ namespace bee {
 	}
 	int Room::mouse_release(SDL_Event* e) {
 		for (auto& i : instances_sorted_events[E_EVENT::MOUSE_RELEASE]) {
+			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
+				continue;
+			}
 			i.first->get_object()->update(i.first);
 			i.first->get_object()->mouse_release(i.first, e);
 		}
@@ -1027,6 +1061,9 @@ namespace bee {
 	}
 	int Room::controller_axis(SDL_Event* e) {
 		for (auto& i : instances_sorted_events[E_EVENT::CONTROLLER_AXIS]) {
+			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
+				continue;
+			}
 			i.first->get_object()->update(i.first);
 			i.first->get_object()->controller_axis(i.first, e);
 		}
@@ -1035,6 +1072,9 @@ namespace bee {
 	}
 	int Room::controller_press(SDL_Event* e) {
 		for (auto& i : instances_sorted_events[E_EVENT::CONTROLLER_PRESS]) {
+			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
+				continue;
+			}
 			i.first->get_object()->update(i.first);
 			i.first->get_object()->controller_press(i.first, e);
 		}
@@ -1043,6 +1083,9 @@ namespace bee {
 	}
 	int Room::controller_release(SDL_Event* e) {
 		for (auto& i : instances_sorted_events[E_EVENT::CONTROLLER_RELEASE]) {
+			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
+				continue;
+			}
 			i.first->get_object()->update(i.first);
 			i.first->get_object()->controller_release(i.first, e);
 		}
@@ -1051,6 +1094,9 @@ namespace bee {
 	}
 	int Room::controller_modify(SDL_Event* e) {
 		for (auto& i : instances_sorted_events[E_EVENT::CONTROLLER_MODIFY]) {
+			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
+				continue;
+			}
 			i.first->get_object()->update(i.first);
 			i.first->get_object()->controller_modify(i.first, e);
 		}
@@ -1059,6 +1105,9 @@ namespace bee {
 	}
 	int Room::commandline_input(const std::string& input) {
 		for (auto& i : instances_sorted_events[E_EVENT::COMMANDLINE_INPUT]) {
+			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
+				continue;
+			}
 			i.first->get_object()->update(i.first);
 			i.first->get_object()->commandline_input(i.first, input);
 		}
@@ -1068,6 +1117,14 @@ namespace bee {
 	int Room::check_paths() {
 		for (auto& i : instances_sorted) {
 			if (i.first->has_path()) {
+				if (
+					(get_is_paused())
+					&&(i.first->get_object()->get_is_pausable())
+					&&(i.first->get_path_pausable())
+				) {
+					continue;
+				}
+
 				if (
 					((i.first->get_path_speed() >= 0)&&(i.first->get_path_node() == (int) i.first->get_path_coords().size()-1))
 					||((i.first->get_path_speed() < 0)&&(i.first->get_path_node() == -1))
@@ -1085,6 +1142,9 @@ namespace bee {
 	}
 	int Room::outside_room() {
 		for (auto& i : instances_sorted_events[E_EVENT::OUTSIDE_ROOM]) {
+			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
+				continue;
+			}
 			if (i.first->get_object()->get_mask() != nullptr) {
 				SDL_Rect a = {(int)i.first->get_corner_x(), (int)i.first->get_corner_y(), i.first->get_width(), i.first->get_height()};
 				SDL_Rect b = {0, 0, get_width(), get_height()};
@@ -1099,6 +1159,9 @@ namespace bee {
 	}
 	int Room::intersect_boundary() {
 		for (auto& i : instances_sorted_events[E_EVENT::INTERSECT_BOUNDARY]) {
+			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
+				continue;
+			}
 			i.first->get_object()->update(i.first);
 			i.first->get_object()->intersect_boundary(i.first);
 		}
@@ -1106,7 +1169,12 @@ namespace bee {
 		return 0;
 	}
 	int Room::collision() {
+		if (get_is_paused()) {
+			return 1;
+		}
+
 		physics_world->step(get_delta());
+
 		return 0;
 	}
 	void Room::collision_internal(btDynamicsWorld* w, btScalar timestep) {
@@ -1131,6 +1199,12 @@ namespace bee {
 					&&(i1->get_object() != nullptr)
 					&&(i2->get_object() != nullptr)
 				) {
+					/*if (get_is_paused()) {
+						if ((i1->get_object()->get_is_pausable())||(i2->get_object()->get_is_pausable())) {
+							continue;
+						}
+					}*/
+
 					i1->get_object()->update(i1);
 					i1->get_object()->collision(i1, i2);
 					i2->get_object()->update(i2);
@@ -1293,6 +1367,9 @@ namespace bee {
 	}
 	int Room::room_start() {
 		for (auto& i : instances_sorted_events[E_EVENT::ROOM_START]) {
+			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
+				continue;
+			}
 			i.first->get_object()->update(i.first);
 			i.first->get_object()->room_start(i.first);
 		}
@@ -1301,6 +1378,9 @@ namespace bee {
 	}
 	int Room::room_end() {
 		for (auto& i : instances_sorted_events[E_EVENT::ROOM_END]) {
+			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
+				continue;
+			}
 			i.first->get_object()->update(i.first);
 			i.first->get_object()->room_end(i.first);
 		}
@@ -1309,6 +1389,9 @@ namespace bee {
 	}
 	int Room::game_start() {
 		for (auto& i : instances_sorted_events[E_EVENT::GAME_START]) {
+			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
+				continue;
+			}
 			i.first->get_object()->update(i.first);
 			i.first->get_object()->game_start(i.first);
 		}
@@ -1317,6 +1400,9 @@ namespace bee {
 	}
 	int Room::game_end() {
 		for (auto& i : instances_sorted_events[E_EVENT::GAME_END]) {
+			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
+				continue;
+			}
 			i.first->get_object()->update(i.first);
 			i.first->get_object()->game_end(i.first);
 		}
@@ -1325,6 +1411,9 @@ namespace bee {
 	}
 	int Room::window(SDL_Event* e) {
 		for (auto& i : instances_sorted_events[E_EVENT::WINDOW]) {
+			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
+				continue;
+			}
 			i.first->get_object()->update(i.first);
 			i.first->get_object()->window(i.first, e);
 		}

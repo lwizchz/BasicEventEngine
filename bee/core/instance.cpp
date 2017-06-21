@@ -79,6 +79,8 @@ namespace bee {
 			is_solid = false;
 		}
 
+		set_computation_type(computation_type);
+
 		for (size_t i=0; i<BEE_ALARM_COUNT; i++) {
 			alarm_end[i] = 0xffffffff;
 		}
@@ -215,6 +217,26 @@ namespace bee {
 		get_current_room()->add_physbody(this, body);
 		return 0;
 	}
+	int Instance::set_computation_type(E_COMPUTATION new_computation_type) {
+		computation_type = new_computation_type;
+
+		switch (computation_type) {
+			case E_COMPUTATION::STATIC:
+			case E_COMPUTATION::SEMISTATIC: {
+				if (get_physbody()->get_mass() != 0.0) { // If a body already has 0 mass, setting it to 0 will segfault
+					get_physbody()->set_mass(0.0);
+				}
+				break;
+			}
+			case E_COMPUTATION::DYNAMIC: {
+				get_physbody()->get_body()->forceActivationState(DISABLE_DEACTIVATION);
+				break;
+			}
+			default: {}
+		}
+
+		return 0;
+	}
 
 	SIDP Instance::get_data(const std::string& field, const SIDP& default_value, bool should_output) const {
 		return object->get_data(id, field, default_value, should_output);
@@ -276,6 +298,9 @@ namespace bee {
 	}
 	double Instance::get_mass() const {
 		return get_physbody()->get_mass();
+	}
+	E_COMPUTATION Instance::get_computation_type() const {
+		return computation_type;
 	}
 
 	int Instance::get_width() const {

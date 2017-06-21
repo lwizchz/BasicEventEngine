@@ -11,7 +11,7 @@
 
 #include "../defines.hpp"
 
-#include <vector>
+#include <vector> // Include the required library headers
 
 #include <glm/glm.hpp> // Include the required OpenGL headers
 
@@ -21,30 +21,31 @@
 #include "../render/rgba.hpp"
 
 namespace bee {
-	class LightData {
-		public:
-			E_LIGHT type = E_LIGHT::AMBIENT;
-			glm::vec4 position;
-			glm::vec4 direction;
-			glm::vec4 attenuation; // The components of attenuation: x=the brightness, y=the cone width, z=the range, all roughly in pixels
-			RGBA color; // The alpha value is treated as the light intensity
-	};
-	class LightableData {
-		public:
-			glm::vec4 position;
-			std::vector<glm::vec4> mask;
+	struct LightData { // The data struct which contains all of the relevant rendering information for the light
+		E_LIGHT type; // The type of lighting to render
+		glm::vec4 position; // The position of the light
+		glm::vec4 direction; // The direction of the light
+		glm::vec4 attenuation; // The components of attenuation: x=the brightness, y=the cone width, z=the range, all roughly in pixels
+		RGBA color; // The light color, where the alpha value is treated as the light intensity
+
+		LightData();
 	};
 
-	class Light: public Resource {
-			// Add new variables to the print() debugging method
-			int id = -1;
-			std::string name;
-			std::string path;
+	struct LightableData { // The data struct which defines an object that can cast shadows
+		glm::vec4 position; // The position of the lightable object
+		std::vector<glm::vec4> mask; // The mask for the object, relative to the position
+	};
 
-			LightData lighting;
+	class Light: public Resource { // The light resource class is used to draw all lighting effects
+			int id; // The id of the resource
+			std::string name; // An arbitrary name for the resource
+			std::string path; // The path of the file to load the light from
 
-			bool has_drawn_sdl = false;
+			LightData lighting; // The properties that define the light
+
+			bool has_drawn_sdl; // Whether the queue() function has been called while in SDL mode, this prevents continuous warning outputs
 		public:
+			// See bee/resources/light.cpp for function comments
 			Light();
 			Light(const std::string&, const std::string&);
 			~Light();
@@ -64,9 +65,9 @@ namespace bee {
 			int set_name(const std::string&);
 			int set_path(const std::string&);
 			int set_type(E_LIGHT);
-			int set_position(glm::vec4);
-			int set_direction(glm::vec4);
-			int set_attenuation(glm::vec4);
+			int set_position(const glm::vec4&);
+			int set_direction(const glm::vec4&);
+			int set_attenuation(const glm::vec4&);
 			int set_color(RGBA);
 
 			int queue();

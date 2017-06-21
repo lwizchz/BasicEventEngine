@@ -14,7 +14,8 @@
 #include <string> // Include the required library headers
 #include <vector>
 #include <list>
-#include <SDL2/SDL.h>
+
+#include <SDL2/SDL.h> // Include the required SDL headers
 
 #include <GL/glew.h> // Include the required OpenGL headers
 #include <SDL2/SDL_opengl.h>
@@ -26,13 +27,17 @@
 
 namespace bee {
 	struct SpriteDrawData { // The data storage struct which is used in instanced drawing
-		int x = 0, y = 0; // The coordinates of the desired draw location
-		Uint32 subimage_time = 0; // The timestamp of the subimage animation
-		int w = 0, h = 0; // The desired width and height of the sprite
-		double angle = 0.0; // The desired rotation angle of the sprite
+		int x, y; // The coordinates of the desired draw location
+		Uint32 subimage_time; // The timestamp of the subimage animation
+		int w, h; // The desired width and height of the sprite
+		double angle; // The desired rotation angle of the sprite
+
+		// See bee/resources/sprite.cpp for function comments
+		SpriteDrawData();
+		SpriteDrawData(int, int, Uint32, int, int, double);
 	};
 
-	class Sprite: public Resource { // The sprite resource class is used to draw all on-screen objects except backgrounds
+	class Sprite: public Resource { // The sprite resource class is used to draw all 2D on-screen objects except backgrounds
 			int id; // The id of the resource
 			std::string name; // An arbitrary name for the resource
 			std::string path; // The path of the image file which is used as the sprite's texture

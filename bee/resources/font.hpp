@@ -11,7 +11,7 @@
 
 #include <map> // Include the required library headers
 
-#include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_ttf.h> // Include the required SDL headers
 
 #include "../resources.hpp"
 

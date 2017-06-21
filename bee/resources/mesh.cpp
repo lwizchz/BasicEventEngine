@@ -11,19 +11,19 @@
 
 #include "../defines.hpp"
 
-#include <sstream>
+#include <sstream> // Include the required library headers
 
-#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_image.h> // Include the required SDL headers
 
 #include <GL/glew.h> // Include the required OpenGL headers
 #include <SDL2/SDL_opengl.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <assimp/cimport.h>
+#include <assimp/cimport.h> // Include the required Assimp headers
 #include <assimp/postprocess.h>
 
-#include "mesh.hpp"
+#include "mesh.hpp" // Include the class resource header
 
 #include "../engine.hpp"
 
@@ -37,56 +37,102 @@
 #include "../render/renderer.hpp"
 
 namespace bee {
-	Mesh::Mesh () {
-		reset();
-	}
-	Mesh::Mesh (const std::string& new_name, const std::string& new_path) {
-		reset();
+	/*
+	* Mesh::Mesh() - Default construct the mesh
+	* ! This constructor should only be directly used for temporary meshes, the other constructor should be used for all other cases
+	*/
+	Mesh::Mesh() :
+		id(-1),
+		name(),
+		path(),
 
-		add_to_resources();
-		if (id < 0) {
+		is_loaded(false),
+		has_draw_failed(false),
+		has_texture(false),
+		vertex_amount(0),
+
+		scene(nullptr),
+		mesh(nullptr),
+		vertices(nullptr),
+		normals(nullptr),
+		uv_array(nullptr),
+		indices(nullptr),
+
+		vao(-1),
+		vbo_vertices(-1),
+		vbo_normals(-1),
+		vbo_texcoords(-1),
+		ibo(-1),
+		gl_texture(-1)
+	{}
+	/*
+	* Mesh::Mesh() - Construct the mesh, add it to the mesh resource list, and set the new name and path
+	*/
+	Mesh::Mesh(const std::string& new_name, const std::string& new_path) :
+		Mesh() // Default initialize all variables
+	{
+		add_to_resources(); // Add the mesh to the appropriate resource list
+		if (id < 0) { // If the mesh could not be added to the resource list, output a warning
 			messenger_send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add mesh resource: \"" + new_name + "\" from " + new_path);
-			throw(-1);
+			throw(-1); // Throw an exception
 		}
 
-		set_name(new_name);
-		set_path(new_path);
+		set_name(new_name); // Set the mesh name
+		set_path(new_path); // Set the mesh object file path
 	}
+	/*
+	* Mesh::~Mesh() - Free the mesh data and remove it from the resource list
+	*/
 	Mesh::~Mesh() {
-		this->free();
-		resource_list->meshes.remove_resource(id);
+		this->free(); // Free all the mesh data
+		resource_list->meshes.remove_resource(id); // Remove the mesh from the resource list
 	}
+	/*
+	* Mesh::add_to_resources() - Add the mesh to the appropriate resource list
+	*/
 	int Mesh::add_to_resources() {
 		if (id < 0) { // If the resource needs to be added to the resource list
 			id = resource_list->meshes.add_resource(this); // Add the resource and get the new id
 		}
 
-		return 0;
+		return 0; // Return 0 on success
 	}
+	/*
+	* Mesh::reset() - Reset all resource variables for reinitialization
+	*/
 	int Mesh::reset() {
-		this->free();
+		this->free(); // Free all memory used by this resource
 
+		// Reset all properties
 		name = "";
 		path = "";
 
+		// Reset mesh data
 		is_loaded = false;
 		has_draw_failed = false;
 		vertex_amount = 0;
 
-		return 0;
+		return 0; // Return 0 on success
 	}
+	/*
+	* Mesh::print() - Print all relevant information about the resource
+	*/
 	int Mesh::print() const {
-		std::stringstream s;
-		s <<
+		std::stringstream s; // Declare the output stream
+		s << // Append all info to the output
 		"Mesh { "
-		"\n	id              " << id <<
-		"\n	name            " << name <<
-		"\n	path            " << path <<
+		"\n	id    " << id <<
+		"\n	name  " << name <<
+		"\n	path  " << path <<
 		"\n}\n";
-		messenger_send({"engine", "resource"}, E_MESSAGE::INFO, s.str());
+		messenger_send({"engine", "resource"}, E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for output
 
-		return 0;
+		return 0; // Return 0 on success
 	}
+
+	/*
+	* Mesh::get_*() - Return the requested resource information
+	*/
 	int Mesh::get_id() const {
 		return id;
 	}
@@ -97,158 +143,226 @@ namespace bee {
 		return path;
 	}
 
+	/*
+	* Mesh::set_name() - Set the resource name
+	* @new_name: the new name to use for the resource
+	*/
 	int Mesh::set_name(const std::string& new_name) {
-		name = new_name;
-		return 0;
+		name = new_name; // Set the name
+		return 0; // Return 0 on success
 	}
+	/*
+	* Mesh::set_path() - Set the resource path
+	*/
 	int Mesh::set_path(const std::string& new_path) {
-		path = "resources/meshes/"+new_path;
-		return 0;
+		path = "resources/meshes/"+new_path; // Append the path to the mesh directory
+		return 0; // Return 0 on success
 	}
 
-	int Mesh::load() {
-		if (!is_loaded) {
-			if (engine->options->renderer_type != E_RENDERER::SDL) {
-				scene = aiImportFile(path.c_str(), aiProcessPreset_TargetRealtime_MaxQuality);
-				if (scene == nullptr) {
-					messenger_send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to load mesh \"" + name + "\": " + aiGetErrorString());
-					return 1;
+	/*
+	* Mesh::load() - Load the desired mesh from its given filename
+	* @mesh_index: the desired mesh index from the imported scene
+	*/
+	int Mesh::load(int mesh_index) {
+		if (is_loaded) { // If the mesh has already been loaded, output a warning
+			messenger_send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to load mesh \"" + name + "\" because it is already loaded");
+			return 1; // Return 1 when already loaded
+		}
+
+		if (engine->options->renderer_type == E_RENDERER::SDL) { // If the SDL rendering mode is enabled, output a warning
+			messenger_send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to load mesh because SDL rendering is currently enabled");
+			return 2; // Return 2 when SDL rendering is enabled
+		}
+
+		// Attempt to import the object file
+		scene = aiImportFile(path.c_str(), aiProcessPreset_TargetRealtime_MaxQuality); // Import it with "MaxQuality"
+		if (scene == nullptr) { // If the file couldn't be imported, output a warning
+			messenger_send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to load mesh \"" + name + "\": " + aiGetErrorString());
+			return 3; // Return 3 on import failure
+		}
+
+		mesh = scene->mMeshes[mesh_index]; // Get the mesh with the desired index
+		vertex_amount = mesh->mNumVertices; // Fetch the number of vertices in the mesh
+
+		// Allocate space for the vertices and other mesh attributes
+		vertices = new float[vertex_amount*3]; // 3 coordinates per vertex
+		normals = new float[vertex_amount*3]; // 3 vector components per vertex normal
+		uv_array = new float[vertex_amount*2]; // 2 texture coordinates per vertex
+		indices = new unsigned int[mesh->mNumFaces*3]; // 3 vertices per face triangle
+
+		for (size_t i=0; i<mesh->mNumFaces; i++) { // Iterate over the faces in the mesh
+			const aiFace& face = mesh->mFaces[i]; // Get a reference to the current face
+			if (face.mNumIndices < 3) { // If the face has less than three vertices, skip it
+				continue;
+			}
+
+			for (size_t e=0; e<3; e++) { // Iterate over the vertices in the face
+				if (mesh->mTextureCoords[0] != nullptr) { // If the vertex has texture coordinates, copy them to the uv_array
+					const aiVector3D& uv = mesh->mTextureCoords[0][face.mIndices[e]];
+					memcpy(uv_array+face.mIndices[e]*2, &uv, sizeof(float)*2);
+				} else { // Otherwise, zero them
+					uv_array[face.mIndices[e]] = 0;
+					uv_array[face.mIndices[e]+1] = 0;
 				}
 
-				mesh = scene->mMeshes[0];
-				vertex_amount = mesh->mNumVertices;
-				vertices = new float[vertex_amount*3];
-				normals = new float[vertex_amount*3];
-				uv_array = new float[vertex_amount*2];
-				indices = new unsigned int[mesh->mNumFaces*3];
+				// Copy the vertex normals to the normals array
+				const aiVector3D& norm = mesh->mNormals[face.mIndices[e]];
+				memcpy(normals+face.mIndices[e]*3, &norm, sizeof(float)*3);
 
-				for (size_t i=0; i<mesh->mNumFaces; i++) {
-					const aiFace &face = mesh->mFaces[i];
-					if (face.mNumIndices < 3) {
-						continue;
-					}
+				// Copy the vertex coordinates to the vertex array
+				const aiVector3D& vert = mesh->mVertices[face.mIndices[e]];
+				memcpy(vertices+face.mIndices[e]*3, &vert, sizeof(float)*3);
+			}
 
-					for (size_t e=0; e<3; e++) {
-						if (mesh->mTextureCoords[0] != nullptr) {
-							aiVector3D uv = mesh->mTextureCoords[0][face.mIndices[e]];
-							memcpy(uv_array+face.mIndices[e]*2, &uv, sizeof(float)*2);
-						} else {
-							uv_array[face.mIndices[e]] = 0;
-							uv_array[face.mIndices[e]+1] = 0;
-						}
+			// Copy the face's vertex indices to the indices array
+			//memcpy(indices+i*3, &face.mIndices, sizeof(unsigned int)*3);
+			indices[i*3] = face.mIndices[0];
+			indices[i*3+1] = face.mIndices[1];
+			indices[i*3+2] = face.mIndices[2];
+		}
 
-						aiVector3D norm = mesh->mNormals[face.mIndices[e]];
-						memcpy(normals+face.mIndices[e]*3, &norm, sizeof(float)*3);
+		// Convert the data into an OpenGL format
+		glGenVertexArrays(1, &vao); // Generate the vertex object array
+		glBindVertexArray(vao);
 
-						aiVector3D vert = mesh->mVertices[face.mIndices[e]];
-						memcpy(vertices+face.mIndices[e]*3, &vert, sizeof(float)*3);
-					}
+		// Bind the vertices for the mesh
+		glGenBuffers(1, &vbo_vertices);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
+		glBufferData(GL_ARRAY_BUFFER, 3 * vertex_amount * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
+		glVertexAttribPointer(engine->renderer->vertex_location, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(engine->renderer->vertex_location);
 
-					//memcpy(indices+i*3, &face.mIndices, sizeof(unsigned int)*3);
-					indices[i*3] = face.mIndices[0];
-					indices[i*3+1] = face.mIndices[1];
-					indices[i*3+2] = face.mIndices[2];
+		// Bind the normals for the mesh
+		glGenBuffers(1, &vbo_normals);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
+		glBufferData(GL_ARRAY_BUFFER, 3 * vertex_amount * sizeof(GLfloat), normals, GL_STATIC_DRAW);
+		glVertexAttribPointer(engine->renderer->normal_location, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(engine->renderer->normal_location);
+
+		// Bind the texture coordinates for the mesh
+		glGenBuffers(1, &vbo_texcoords);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords);
+		glBufferData(GL_ARRAY_BUFFER, 2 * vertex_amount * sizeof(GLfloat), uv_array, GL_STATIC_DRAW);
+		glVertexAttribPointer(engine->renderer->fragment_location, 2, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(engine->renderer->fragment_location);
+
+		// Bind the mesh ibo
+		glGenBuffers(1, &ibo);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * mesh->mNumFaces * sizeof(GLuint), indices, GL_STATIC_DRAW);
+
+		// Unbind the mesh vao
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+
+		if (mesh->HasTextureCoords(0)) { // If the mesh has a texture, load it
+			material = scene->mMaterials[mesh->mMaterialIndex]; // Get the material for the mesh
+			aiString tex_path;
+			if (material->GetTexture(aiTextureType_DIFFUSE, 0, &tex_path, nullptr, nullptr, nullptr, nullptr, nullptr) == AI_SUCCESS) { // Attempt to fetch the texture's path into tex_path
+				std::string fullpath = "resources/meshes/" + std::string(tex_path.C_Str()); // Create the full path for the texture
+
+				// Attempt to load the texure as a temporary surface
+				SDL_Surface* tmp_surface;
+				tmp_surface = IMG_Load(fullpath.c_str());
+				if (tmp_surface == nullptr) { // If the surface could not be loaded, output a warning
+					free_internal();
+					messenger_send({"engine", "sprite"}, E_MESSAGE::WARNING, "Failed to load the texture for mesh \"" + name + "\": " + IMG_GetError());
+					return 4; // Return 4 on texture load failure
 				}
 
-				// Convert the data into an OpenGL format
-				glGenVertexArrays(1, &vao);
-				glBindVertexArray(vao);
+				// Generate the texture from the surface pixels
+				glGenTextures(1, &gl_texture);
+				glBindTexture(GL_TEXTURE_2D, gl_texture);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+				glTexImage2D(
+					GL_TEXTURE_2D,
+					0,
+					GL_RGBA,
+					tmp_surface->w,
+					tmp_surface->h,
+					0,
+					GL_RGBA,
+					GL_UNSIGNED_BYTE,
+					tmp_surface->pixels
+				);
 
-				glGenBuffers(1, &vbo_vertices);
-				glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
-				glBufferData(GL_ARRAY_BUFFER, 3 * vertex_amount * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
-				glVertexAttribPointer(engine->renderer->vertex_location, 3, GL_FLOAT, GL_FALSE, 0, 0);
-				glEnableVertexAttribArray(engine->renderer->vertex_location);
+				SDL_FreeSurface(tmp_surface); // Free the temporary surface
 
-				glGenBuffers(1, &vbo_normals);
-				glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
-				glBufferData(GL_ARRAY_BUFFER, 3 * vertex_amount * sizeof(GLfloat), normals, GL_STATIC_DRAW);
-				glVertexAttribPointer(engine->renderer->normal_location, 3, GL_FLOAT, GL_FALSE, 0, 0);
-				glEnableVertexAttribArray(engine->renderer->normal_location);
-
-				glGenBuffers(1, &vbo_texcoords);
-				glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords);
-				glBufferData(GL_ARRAY_BUFFER, 2 * vertex_amount * sizeof(GLfloat), uv_array, GL_STATIC_DRAW);
-				glVertexAttribPointer(engine->renderer->fragment_location, 2, GL_FLOAT, GL_FALSE, 0, 0);
-				glEnableVertexAttribArray(engine->renderer->fragment_location);
-
-				glGenBuffers(1, &ibo);
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-				glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * mesh->mNumFaces * sizeof(GLuint), indices, GL_STATIC_DRAW);
-
-				glBindBuffer(GL_ARRAY_BUFFER, 0);
-				glBindVertexArray(0);
-
-				// Load mesh texture
-				if (mesh->HasTextureCoords(0)) {
-					const aiMaterial* mat = scene->mMaterials[mesh->mMaterialIndex];
-					aiString tex_path;
-					if (mat->GetTexture(aiTextureType_DIFFUSE, 0, &tex_path, nullptr, nullptr, nullptr, nullptr, nullptr) == AI_SUCCESS) {
-						char* fullpath = new char[strlen("resources/meshes/") + tex_path.length + 1];
-						strcpy(fullpath, "resources/meshes/");
-						strcat(fullpath, tex_path.C_Str());
-
-						SDL_Surface* tmp_surface;
-						tmp_surface = IMG_Load(fullpath);
-						delete[] fullpath;
-						if (tmp_surface == nullptr) { // If the surface could not be loaded
-							messenger_send({"engine", "sprite"}, E_MESSAGE::WARNING, "Failed to load the texture for mesh \"" + name + "\": " + IMG_GetError());
-							return 2; // Return 2 on failure
-						}
-
-						// Generate the texture from the surface pixels
-						glGenTextures(1, &gl_texture);
-						glBindTexture(GL_TEXTURE_2D, gl_texture);
-						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-						glTexImage2D(
-							GL_TEXTURE_2D,
-							0,
-							GL_RGBA,
-							tmp_surface->w,
-							tmp_surface->h,
-							0,
-							GL_RGBA,
-							GL_UNSIGNED_BYTE,
-							tmp_surface->pixels
-						);
-
-						SDL_FreeSurface(tmp_surface); // Free the temporary surface
-
-						has_texture = true;
-					} else {
-						messenger_send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to load the texture for mesh \"" + name + "\", the material did not report any textures");
-					}
-				}
-
-				is_loaded = true;
+				// Set the texture boolean
+				has_texture = true;
 			} else {
-				messenger_send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to load mesh because SDL rendering is currently enabled");
-				return 1;
+				free_internal();
+				messenger_send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to load the texture for mesh \"" + name + "\", the material reported a texture with no file path");
+				return 5; // Return 5 on missing texture file
 			}
 		}
-		return 0;
+
+		// Set the loaded booleans
+		is_loaded = true;
+		has_draw_failed = false;
+
+		return 0; // Return 0 on success
 	}
+	/*
+	* Mesh::load() - Load the first mesh from its given filename
+	*/
+	int Mesh::load() {
+		return load(0); // Return the attempt to load the first mesh in the scene
+	}
+	/*
+	* Mesh::free_internal() - Free the mesh buffers and release the scene
+	* ! This function is only called directly if there was a failure in the middle of a call to load(), for all other cases use free()
+	*/
+	int Mesh::free_internal() {
+		// Delete the vertex array
+		delete[] vertices;
+		delete[] normals;
+		delete[] uv_array;
+		delete[] indices;
+		vertices = nullptr;
+		normals = nullptr;
+		uv_array = nullptr;
+		indices = nullptr;
+
+		// Delete the vertex buffers
+		glDeleteBuffers(1, &vbo_vertices);
+		glDeleteBuffers(1, &vbo_normals);
+		glDeleteBuffers(1, &vbo_texcoords);
+		glDeleteBuffers(1, &ibo);
+
+		// Delete the texture buffer and vao
+		glDeleteTextures(1, &gl_texture);
+		glDeleteVertexArrays(1, &vao);
+
+		// Finally, release the scene import
+		aiReleaseImport(scene);
+		scene = nullptr;
+
+		// Reset the loaded booleans
+		has_texture = false;
+		is_loaded = false;
+
+		return 0; // Return 0 on success
+	}
+	/*
+	* Mesh::free() - Free the mesh buffers if they have already been loaded
+	*/
 	int Mesh::free() {
-		if (is_loaded) {
-			delete[] vertices;
-			delete[] normals;
-			delete[] uv_array;
-			delete[] indices;
-
-			glDeleteBuffers(1, &vbo_vertices);
-			glDeleteBuffers(1, &vbo_normals);
-			glDeleteBuffers(1, &vbo_texcoords);
-			glDeleteBuffers(1, &ibo);
-			glDeleteVertexArrays(1, &vao);
-			glDeleteTextures(1, &gl_texture);
-
-			aiReleaseImport(scene);
-
-			has_texture = false;
-			is_loaded = false;
+		if (!is_loaded) { // Do not attempt to free the buffers if the mesh hasn't been loaded
+			return 0; // Return 0 on success
 		}
-		return 0;
+
+		return free_internal(); // Return the attempt to free the mesh buffers
 	}
+
+	/*
+	* Mesh::draw() - Draw the mesh with the given attributes
+	* @pos: the position to draw the mesh at
+	* @scale: the scale to draw the mesh with
+	* @rotate: the rotation to apply to the mesh
+	* @color: the color to draw the mesh in
+	* @is_wireframe: whether the mesh should be drawn in wireframe or not
+	*/
 	int Mesh::draw(glm::vec3 pos, glm::vec3 scale, glm::vec3 rotate, RGBA color, bool is_wireframe) {
 		if (!is_loaded) {
 			if (!has_draw_failed) {
@@ -258,34 +372,39 @@ namespace bee {
 			return 1;
 		}
 
-		glBindVertexArray(vao);
+		glBindVertexArray(vao); // Bind the vao for the mesh
 
-		if (has_texture) {
+		if (has_texture) { // If necessary, bind the mesh texture
 			glUniform1i(engine->renderer->texture_location, 0);
 			glBindTexture(GL_TEXTURE_2D, gl_texture);
-		} else {
+		} else { // Otherwise, enable primitive drawing mode
 			glUniform1i(engine->renderer->primitive_location, 1);
 		}
 
-		glm::mat4 model = glm::translate(glm::mat4(1.0f), pos);
-		model = glm::scale(model, scale);
-		glUniformMatrix4fv(engine->renderer->model_location, 1, GL_FALSE, glm::value_ptr(model));
+		// Generate the partial transformation matrix (translation and scaling) for the mesh
+		glm::mat4 model = glm::translate(glm::mat4(1.0f), pos); // Translate the mesh the desired amount
+		model = glm::scale(model, scale); // Scale the mesh as desired
+		glUniformMatrix4fv(engine->renderer->model_location, 1, GL_FALSE, glm::value_ptr(model)); // Send the transformation matrix to the shader
+
+		// Generate the rotation matrix for the mesh
+		// This is not included in the above transformation matrix because it is faster to rotate everything in the geometry shader
 		glm::mat4 rotation = glm::mat4(1.0f);
-		if (rotate.x != 0.0) {
+		if (rotate.x != 0.0) { // Rotate around the x-axis if necessary
 			rotation = glm::rotate(rotation, (float)degtorad(rotate.x), glm::vec3(1.0f, 0.0f, 0.0f));
 		}
-		if (rotate.y != 0.0) {
+		if (rotate.y != 0.0) { // Rotate around the y-axis if necessary
 			rotation = glm::rotate(rotation, (float)degtorad(rotate.y), glm::vec3(0.0f, 1.0f, 0.0f));
 		}
-		if (rotate.z != 0.0) {
+		if (rotate.z != 0.0) { // Rotate around the z-axis if necessary
 			rotation = glm::rotate(rotation, (float)degtorad(rotate.z), glm::vec3(0.0f, 0.0f, 1.0f));
 		}
-		glUniformMatrix4fv(engine->renderer->rotation_location, 1, GL_FALSE, glm::value_ptr(rotation));
+		glUniformMatrix4fv(engine->renderer->rotation_location, 1, GL_FALSE, glm::value_ptr(rotation)); // Send the rotation matrix to the shader
 
+		// Colorize the mesh with the given color
 		glm::vec4 c = glm::vec4((float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f, (float)color.a/255.0f);
 		glUniform4fv(engine->renderer->colorize_location, 1, glm::value_ptr(c));
 
-		if (is_wireframe) {
+		if (is_wireframe) { // If the mesh should be drawn in wireframe, set the polygone drawing mode to line
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		}
 
@@ -294,39 +413,42 @@ namespace bee {
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
 		glVertexAttribPointer(engine->renderer->vertex_location, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
+		// Draw the triangles from the ibo
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 		int size;
 		glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
 		glDrawElements(GL_TRIANGLES, size/sizeof(GLuint), GL_UNSIGNED_INT, 0);
 
-		/*for (size_t i=0; i<mesh->mNumFaces; i++) {
-			const aiFace &face = mesh->mFaces[i];
-			if (face.mNumIndices < 3) {
-				continue;
-			}
-
-			aiVector3D vert1 = mesh->mVertices[face.mIndices[0]];
-			aiVector3D vert2 = mesh->mVertices[face.mIndices[1]];
-			aiVector3D vert3 = mesh->mVertices[face.mIndices[2]];
-			draw_triangle(glm::vec3(vert1[0], vert1[1], vert1[2]), glm::vec3(vert2[0], vert2[1], vert2[2]), glm::vec3(vert3[0], vert3[1], vert3[2]), {255, 0, 0, 255}, !is_wireframe);
-		}*/
-
+		// Reset the drawing matrices
 		glUniformMatrix4fv(engine->renderer->model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
 		glUniformMatrix4fv(engine->renderer->rotation_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Reset the polygon drawing mode to fill
 
+		// Unbind the texture
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glUniform1i(engine->renderer->primitive_location, 0);
 
-		glBindVertexArray(0);
+		glBindVertexArray(0); // Unbind the vao
 
-		return 0;
+		return 0; // Return 0 on success
 	}
+	/*
+	* Mesh::draw() - Draw the mesh with the given attributes
+	* ! When the function is called with no color or wireframe status, simply call it with white and filled polygon mode
+	* @pos: the position to draw the mesh at
+	* @scale: the scale to draw the mesh with
+	* @rotate: the rotation to apply to the mesh
+	*/
 	int Mesh::draw(glm::vec3 pos, glm::vec3 scale, glm::vec3 rotate) {
-		return draw(pos, scale, rotate, {255, 255, 255, 255}, false);
+		return draw(pos, scale, rotate, {255, 255, 255, 255}, false); // Return the result of drawing the transformed mesh
 	}
+	/*
+	* Mesh::draw() - Draw the mesh with the given attributes
+	* ! When the function is called with only position, simply call it with sane defaults
+	* @pos: the position to draw the mesh at
+	*/
 	int Mesh::draw(glm::vec3 pos) {
-		return draw(pos, glm::vec3(1.0f), glm::vec3(1.0), {255, 255, 255, 255}, false);
+		return draw(pos, glm::vec3(1.0f), glm::vec3(0.0), {255, 255, 255, 255}, false); // Return the result of drawing the translated mesh
 	}
 }
 

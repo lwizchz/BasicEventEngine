@@ -38,6 +38,7 @@ namespace bee {
 
 			PhysicsBody* body = nullptr;
 			bool is_solid = false;
+			E_COMPUTATION computation_type = E_COMPUTATION::STATIC;
 
 			Path* path = nullptr;
 			double path_speed = 0.0;
@@ -74,6 +75,7 @@ namespace bee {
 			int set_object(Object*);
 			int set_sprite(Sprite*);
 			int add_physbody();
+			int set_computation_type(E_COMPUTATION);
 
 			SIDP get_data(const std::string&, const SIDP&, bool) const;
 			SIDP get_data(const std::string&) const;
@@ -95,6 +97,7 @@ namespace bee {
 			PhysicsBody* get_physbody() const;
 			bool get_is_solid() const;
 			double get_mass() const;
+			E_COMPUTATION get_computation_type() const;
 
 			int get_width() const;
 			int get_height() const;

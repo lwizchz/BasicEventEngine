@@ -663,6 +663,17 @@ namespace bee{
 			}
 		);
 
+		/*
+		* console_pause - Toggle the pause state of the game
+		*/
+		console_add_command(
+			"pause",
+			"Toggle the pause state of the game",
+			[] (std::shared_ptr<MessageContents> msg) {
+				set_is_paused(!get_is_paused());
+			}
+		);
+
 		console_run("exec \"config.cfg\"", true, 0); // Configure default binds
 
 		return 0; // Return 0 on success

@@ -16,13 +16,13 @@ namespace bee {
 	class Background;
 
 	struct BackgroundData { // The data struct which is used to pass data to the Room class in bee/resources/room.hpp
-		Background* background = nullptr; // A pointer to the background to use this data with
-		bool is_visible = false; // Whether to draw the background
-		bool is_foreground = false; // Whether to draw the texture above or below the other sprites
-		int x=0, y=0; // The coordinates of the desired draw location
-		bool is_horizontal_tile=false, is_vertical_tile=false; // Whether the texture should be tiled horizontally and vertically
-		int horizontal_speed=0, vertical_speed=0; // The speed with which the texture should move horizontally and vertically in pixels per second
-		bool is_stretched=false; // Whether the texture should be stretched to the window size, note that stretched textures will not be animated or tiled
+		Background* background; // A pointer to the background to use this data with
+		bool is_visible; // Whether to draw the background
+		bool is_foreground; // Whether to draw the texture above or below the other sprites
+		int x, y; // The coordinates of the desired draw location
+		bool is_horizontal_tile, is_vertical_tile; // Whether the texture should be tiled horizontally and vertically
+		int horizontal_speed, vertical_speed; // The speed with which the texture should move horizontally and vertically in pixels per second
+		bool is_stretched; // Whether the texture should be stretched to the window size, note that stretched textures will not be animated or tiled
 
 		// See bee/resources/background.cpp for function comments
 		BackgroundData();

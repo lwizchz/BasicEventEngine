@@ -9,7 +9,7 @@
 #ifndef BEE_OBJECT_H
 #define BEE_OBJECT_H 1
 
-#include <string>
+#include <string> // Include the required library headers
 #include <map>
 
 #include <SDL2/SDL.h> // Include the required SDL headers
@@ -35,6 +35,7 @@ namespace bee {
 			Object* parent;
 			Sprite* mask;
 			int xoffset, yoffset;
+			bool is_pausable;
 
 			std::map<int,Instance*> instances;
 		protected:
@@ -64,6 +65,7 @@ namespace bee {
 			Sprite* get_mask() const;
 			int get_mask_id() const;
 			std::pair<int,int> get_mask_offset() const;
+			bool get_is_pausable() const;
 
 			int set_name(const std::string&);
 			int set_path(const std::string&);
@@ -79,6 +81,7 @@ namespace bee {
 			int set_mask_id(int);
 			int set_mask_offset(std::pair<int,int>);
 			int set_mask_offset(int, int);
+			int set_is_pausable(bool);
 
 			int add_instance(int, Instance*);
 			int remove_instance(int);
