@@ -26,30 +26,36 @@
 #include "../../core/messenger/messenger.hpp"
 
 #include "particledata.hpp"
+#include "system.hpp"
 
 #include "../../resources/sprite.hpp"
 #include "../../resources/room.hpp"
 
 namespace bee {
-	Particle::Particle(Sprite* new_sprite, double new_scale, Uint32 new_max_time, bool new_should_reanimate) :
+	Particle::Particle(Sprite* new_sprite, double new_scale, Uint32 new_max_time, unsigned int new_deviation) :
 		sprite(new_sprite),
+		has_own_sprite(false),
+
+		deviation(new_deviation),
+
+		on_death_func(nullptr),
+		death_type(nullptr),
+		old_particles(),
 
 		scale(new_scale),
 		velocity(),
 
 		angle(0.0),
 		angle_increase(0.0),
+
 		rotation_cache(),
 
 		color({255, 255, 255, 255}),
 
 		max_time(new_max_time),
-		on_death(nullptr),
-		death_type(nullptr),
 		death_amount(1),
-		old_particles(),
 
-		should_reanimate(new_should_reanimate),
+		should_reanimate(true),
 		is_lightable(true),
 		is_sprite_lightable(false)
 	{
@@ -57,9 +63,11 @@ namespace bee {
 			init();
 		}
 	}
-	Particle::Particle(E_PT_SHAPE new_shape, double new_scale, Uint32 new_max_time, bool new_should_reanimate) :
-		Particle(nullptr, new_scale, new_max_time, new_should_reanimate)
+	Particle::Particle(E_PT_SHAPE new_shape, double new_scale, Uint32 new_max_time, unsigned int new_deviation) :
+		Particle(nullptr, new_scale, new_max_time, new_deviation)
 	{
+		has_own_sprite = true;
+
 		switch (new_shape) {
 			case E_PT_SHAPE::PIXEL: {
 				sprite = add_sprite("pt_sprite_pixel", "particles/00_pixel.png");
@@ -124,6 +132,20 @@ namespace bee {
 
 		init();
 	}
+	Particle::Particle(Sprite* new_sprite, double new_scale, Uint32 new_max_time) :
+		Particle(new_sprite, new_scale, new_max_time, 50)
+	{}
+	Particle::Particle(E_PT_SHAPE new_shape, double new_scale, Uint32 new_max_time) :
+		Particle(new_shape, new_scale, new_max_time, 50)
+	{}
+	Particle::~Particle() {
+		remove_old_particles();
+
+		if (has_own_sprite) {
+			delete sprite;
+		}
+	}
+
 	int Particle::init() {
 		rotation_cache.reserve(360);
 		for (int a=0; a<360; a++) {
@@ -133,9 +155,9 @@ namespace bee {
 			rotation_cache.push_back(r);
 		}
 
-		on_death = [] (ParticleSystem* sys, ParticleData* pd, Particle* p) {
-			for (size_t i = 0; i < pd->particle_type->death_amount; i++) {
-				get_current_room()->add_particle(sys, p, pd->x, pd->y);
+		on_death_func = [] (ParticleSystem* sys, ParticleData* pd, Particle* p) {
+			for (size_t i = 0; i < pd->get_type()->death_amount; i++) {
+				sys->add_particle(p, pd->x, pd->y);
 			}
 		};
 
@@ -147,6 +169,7 @@ namespace bee {
 		"Particle { "
 		"\n	sprite                  " << sprite <<
 		"\n	scale                   " << scale <<
+		"\n	deviation               " << deviation <<
 		"\n	velocity:" <<
 		"\n		magnitude       " << velocity.first <<
 		"\n		direction       " << velocity.second <<
@@ -162,6 +185,52 @@ namespace bee {
 		"\n}\n";
 		messenger_send({"engine", "resource"}, E_MESSAGE::INFO, s.str());
 
+		return 0;
+	}
+
+	Sprite* Particle::get_sprite() {
+		return sprite;
+	}
+	unsigned int Particle::get_deviation() {
+		return deviation;
+	}
+
+	int Particle::set_death_type(Particle* new_death_type) {
+		death_type = new_death_type;
+		return 0;
+	}
+	int Particle::on_death(ParticleSystem* sys, ParticleData* pd) {
+		if ((death_type != nullptr)&&(on_death_func != nullptr)) {
+			on_death_func(sys, pd, death_type);
+		}
+		add_old_particle(pd);
+		return 0;
+	}
+
+	int Particle::add_old_particle(ParticleData* pd) {
+		pd->make_old();
+		old_particles.push_back(pd);
+		return 0;
+	}
+	ParticleData* Particle::reuse_particle(int x, int y, Uint32 timestamp) {
+		if (old_particles.empty()) {
+			return (new ParticleData(this, x, y, timestamp));
+		}
+
+		ParticleData* pd = old_particles.front();
+		old_particles.pop_front();
+		pd->init(x, y, timestamp);
+
+		return pd;
+	}
+	int Particle::remove_old_particles() {
+		old_particles.remove_if(
+			[] (ParticleData* pd) -> bool {
+				delete pd;
+				pd = nullptr;
+				return true;
+			}
+		);
 		return 0;
 	}
 }

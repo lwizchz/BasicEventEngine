@@ -73,7 +73,7 @@ namespace bee {
 		// These contain data about the current window state
 		bool has_mouse, has_focus;
 
-		Uint32 tickstamp, new_tickstamp, fps_ticks, tick_delta;
+		Uint32 tickstamp, fps_ticks, tick_delta;
 
 		NetworkData* net;
 

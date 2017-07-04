@@ -186,25 +186,16 @@ namespace bee {
 	}
 
 	/*
-	* Sound::set_name() - Set the resource name
-	* @new_name: the new name to use for the resource
+	* Sound::set_*() - Set the requested resource data
 	*/
 	int Sound::set_name(const std::string& new_name) {
-		name = new_name; // Set the name
-		return 0; // Return 0 on success
+		name = new_name;
+		return 0;
 	}
-	/*
-	* Sound::set_path() - Set the resource path
-	* @new_path: the new path to use for the resource
-	*/
 	int Sound::set_path(const std::string& new_path) {
-		path = "resources/sounds/"+new_path; // Append the path to the sprite directory
-		return 0; // Return 0 on success
+		path = "resources/sounds/"+new_path; // Append the path to the sound directory
+		return 0;
 	}
-	/*
-	* Sound::set_is_music() - Set whether the sound should be treated as music or as a sound effect
-	* @new_is_music: the new way to treat the music
-	*/
 	int Sound::set_is_music(bool new_is_music) {
 		if (is_loaded) { // If the sound is already loaded, reload it
 			this->free();
@@ -215,22 +206,20 @@ namespace bee {
 		}
 		return 0; // Return 0 on success
 	}
-	/*
-	* Sound::set_volume() - Set the volume of the sound, relative to the global volume level
-	* @new_volume: the new volume to use for the sound
-	*/
 	int Sound::set_volume(double new_volume) {
-		volume = new_volume; // Set the volume
+		volume = new_volume; // Set the local volume
 
-		if (!is_loaded) { // Do not attempt to set the volume if the sound is not loaded
+		if (!is_loaded) {
 			return 1; // Return 1 when the sound is not loaded
 		}
 
+		int v = bee::get_volume()*volume*128; // Get the volume level relative to the global volume
 		if (is_music) { // If the sound is music, set the volume appropriately
-			Mix_VolumeMusic(bee::get_volume()*volume*128);
+			Mix_VolumeMusic(v);
 		} else { // Otherwise set the sound chunk volume
-			Mix_VolumeChunk(chunk, bee::get_volume()*volume*128);
+			Mix_VolumeChunk(chunk, v);
 		}
+
 		return 0; // Return 0 on success
 	}
 	/*
@@ -241,28 +230,7 @@ namespace bee {
 		return set_volume(volume); // Return the attempt to update the volume
 	}
 	/*
-	* Sound::set_pan() - Set the panning of the sound
-	* ! Music cannot be panned in-engine, so if it is necessary then use it as non-music or edit the sound file manually
-	* @new_pan: the new panning to use for the sound
-	*/
-	int Sound::set_pan(double new_pan) {
-		pan = new_pan; // Set the panning
-
-		if (!is_loaded) { // Do not attempt to set the panning if the sound is not loaded
-			return 1; // Return 1 when the sound is not loaded
-		}
-
-		if (is_music) { // If the sound is music, do not attempt to pan it
-			return 2; // Return 2 since music cannot be panned
-		} else { // Otherwise set the desired panning for each currently playing channel
-			for (std::list<int>::iterator i=current_channels.begin(); i != current_channels.end(); ++i) { // Iterate over the currently playing channels
-				set_pan_internal(*i); // Set the channel panning to the desired value
-			}
-		}
-		return 0; // Return 0 on success
-	}
-	/*
-	* Sound::set_pan_internal() - Set the panning of the given channel to the desired value
+	* Sound::set_pan_internal() - Set the panning of the given channel to the sound's pan value
 	* @channel: the channel number to pan
 	*/
 	int Sound::set_pan_internal(int channel) {
@@ -273,6 +241,28 @@ namespace bee {
 		} else { // If the panning is equal to 0.0, pan the channel to the center
 			Mix_SetPanning(channel, 255, 255);
 		}
+		return 0; // Return 0 on success
+	}
+	/*
+	* Sound::set_pan() - Set the panning of the sound
+	* ! Music cannot be panned in-engine, so if it is necessary then use it as non-music or edit the sound file manually
+	* @new_pan: the new panning to use for the sound
+	*/
+	int Sound::set_pan(double new_pan) {
+		pan = new_pan; // Set the panning
+
+		if (!is_loaded) {
+			return 1; // Return 1 when the sound is not loaded
+		}
+
+		if (is_music) { // If the sound is music, do not attempt to pan it
+			return 2; // Return 2 since music cannot be panned
+		} else { // Otherwise set the desired panning for each currently playing channel
+			for (std::list<int>::iterator i=current_channels.begin(); i != current_channels.end(); ++i) { // Iterate over the currently playing channels
+				set_pan_internal(*i); // Set the channel panning to the desired value
+			}
+		}
+
 		return 0; // Return 0 on success
 	}
 

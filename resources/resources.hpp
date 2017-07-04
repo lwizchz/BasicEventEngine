@@ -1,3 +1,14 @@
+/*
+* Copyright (c) 2015-17 Luke Montalvo <lukemontalvo@gmail.com>
+*
+* This file is part of BEE.
+* BEE is free software and comes with ABSOLUTELY NO WARANTY.
+* See LICENSE for more details.
+*/
+
+#ifndef RES_H
+#define RES_H 1
+
 #include "../bee/util.hpp"
 #include "../bee/all.hpp"
 #include "sidp.hpp"
@@ -76,10 +87,10 @@ int bee::init_resources() {
 			mesh_monkey->load();
 
 		// Init lights
-		lt_ambient = new Light();
+		lt_ambient = new Light("lt_ambient", "");
 			//lt_ambient->set_color({255, 255, 255, 192});
 			lt_ambient->set_color({255, 255, 255, 30});
-		lt_bee = new Light();
+		lt_bee = new Light("lt_bee", "");
 			lt_bee->set_type(bee::E_LIGHT::POINT);
 			//lt_bee->set_attenuation({2.0, 100.0, 2000.0, 0.0});
 			lt_bee->set_attenuation({2.0, 100.0, 20000.0, 0.0});
@@ -142,3 +153,6 @@ int bee::close_resources() {
 
 	return 0; // Return 0 on success
 }
+#undef DEL
+
+#endif // RES_H

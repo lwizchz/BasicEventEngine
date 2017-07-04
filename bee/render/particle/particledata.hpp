@@ -9,9 +9,12 @@
 #ifndef BEE_RENDER_PARTICLEDATA_H
 #define BEE_RENDER_PARTICLEDATA_H 1
 
-#include <utility>
+#include <utility> // Include the required library header for std::pair
+#include <list>
 
 #include <SDL2/SDL.h> // Include the required SDL headers
+
+#include "../../enum.hpp"
 
 namespace bee {
 	// Forward declarations
@@ -19,29 +22,46 @@ namespace bee {
 	class SpriteDrawData;
 
 	class ParticleData {
-		public:
 			Particle* particle_type;
-			SpriteDrawData* sprite_data;
 
-			double x, y;
 			unsigned int w, h;
 
 			int depth;
 
-			std::pair<double,double> velocity;
-
 			Uint32 creation_time;
 			bool is_old;
 
-			unsigned int randomness;
+			unsigned int deviation;
+		public:
+			double x, y;
 
-			ParticleData(Particle*, int, int, Uint32);
+			std::pair<double,double> velocity;
+
+			ParticleData(Particle*, double, double, Uint32);
+
 			int init(double, double, Uint32);
-			double get_angle(Uint32);
-			int draw(int, int, Uint32);
-			bool is_dead(Uint32);
-
+			int make_old();
 			bool operator< (const ParticleData&);
+
+			int set_type(Particle*);
+			int move(double);
+			int set_position(std::pair<double,double>);
+			int set_velocity(double, double);
+
+			Particle* get_type();
+			SDL_Rect get_rect();
+			double get_w();
+			double get_h();
+			double get_angle(Uint32);
+			Uint8 get_alpha(Uint32);
+			Uint32 get_creation();
+			bool is_dead(Uint32);
+			bool get_is_old();
+			unsigned int get_deviation();
+			double get_deviation_percent();
+
+			int draw(double, double, Uint32);
+			int draw_debug(double, double, E_RGB);
 	};
 }
 

@@ -62,11 +62,11 @@ namespace bee {
 			int init(int, Object*, double, double, double);
 			int print();
 
+			bool operator< (const Instance& other) const;
+
 			std::string serialize(bool) const;
 			std::string serialize() const;
 			int deserialize(const std::string&);
-
-			bool operator< (const Instance& other) const;
 
 			int remove();
 

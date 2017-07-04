@@ -11,9 +11,7 @@
 
 #include <sstream> // Include the required library headers
 
-#include "object.hpp"
-
-#include "sprite.hpp"
+#include "object.hpp" // Include the class resource header
 
 #include "../debug.hpp"
 #include "../engine.hpp"
@@ -24,67 +22,73 @@
 #include "../core/instance.hpp"
 #include "../core/messenger/messenger.hpp"
 
+#include "sprite.hpp"
+
 namespace bee {
-	Object::Object () {
-		reset();
-	}
-	Object::Object (const std::string& new_name, const std::string& new_path) {
-		reset();
+	/*
+	* Object::Object() - Default construct the object
+	* ! This constructor should only be directly used for temporary objects, the other constructor should be used for all other cases
+	*/
+	Object::Object () :
+		id(-1),
+		name(),
+		path(),
+		sprite(nullptr),
+		is_solid(false),
+		is_visible(true),
+		is_persistent(false),
+		depth(0),
+		parent(nullptr),
+		mask(nullptr),
+		xoffset(0),
+		yoffset(0),
+		is_pausable(true),
 
-		std::vector<E_EVENT> events = {
-			E_EVENT::CREATE,
-			E_EVENT::DESTROY,
-			E_EVENT::ALARM,
-			E_EVENT::STEP_BEGIN,
-			E_EVENT::STEP_MID,
-			E_EVENT::STEP_END,
-			E_EVENT::KEYBOARD_PRESS,
-			E_EVENT::MOUSE_PRESS,
-			E_EVENT::KEYBOARD_INPUT,
-			E_EVENT::MOUSE_INPUT,
-			E_EVENT::KEYBOARD_RELEASE,
-			E_EVENT::MOUSE_RELEASE,
-			E_EVENT::CONTROLLER_AXIS,
-			E_EVENT::CONTROLLER_PRESS,
-			E_EVENT::CONTROLLER_RELEASE,
-			E_EVENT::CONTROLLER_MODIFY,
-			E_EVENT::COMMANDLINE_INPUT,
-			E_EVENT::PATH_END,
-			E_EVENT::OUTSIDE_ROOM,
-			E_EVENT::INTERSECT_BOUNDARY,
-			E_EVENT::COLLISION,
-			E_EVENT::DRAW,
-			E_EVENT::ANIMATION_END,
-			E_EVENT::ROOM_START,
-			E_EVENT::ROOM_END,
-			E_EVENT::GAME_START,
-			E_EVENT::GAME_END,
-			E_EVENT::WINDOW
-		};
-		for (auto& e : events) {
-			implemented_events[e] = false;
-		}
+		instances(),
+		instance_data(),
+		s(nullptr),
+		current_instance(nullptr),
 
-		add_to_resources();
-		if (id < 0) {
+		implemented_events()
+	{}
+	/*
+	* Object::Object() - Construct the object, add it to the object resource list, and set the new name and path
+	* @new_name: the name to use for the object
+	* @new_path: the path of the object's header file
+	*/
+	Object::Object (const std::string& new_name, const std::string& new_path) :
+		Object() // Default initialize all variables
+	{
+		add_to_resources(); // Add the object to the appropriate resource list
+		if (id < 0) { // If it could not be added, output a warning
 			messenger_send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add object resource: \"" + new_name + "\" from " + new_path);
-			throw(-1);
+			throw(-1); // Throw an exception
 		}
 
 		set_name(new_name);
 		set_path(new_path);
 	}
+	/*
+	* Object::~Object() - Remove the object from the resource list
+	*/
 	Object::~Object() {
 		resource_list->objects.remove_resource(id);
 	}
+	/*
+	* Object::add_to_resources() - Add the object to the appropriate resource list
+	*/
 	int Object::add_to_resources() {
 		if (id < 0) { // If the resource needs to be added to the resource list
 			id = resource_list->objects.add_resource(this); // Add the resource and get the new id
 		}
 
-		return 0;
+		return 0; // Return 0 on success
 	}
+	/*
+	* Object::reset() - Reset all resource variables for reinitialization
+	*/
 	int Object::reset() {
+		// Reset all properties
 		name = "";
 		path = "";
 		sprite = nullptr;
@@ -98,16 +102,22 @@ namespace bee {
 		yoffset = 0;
 		is_pausable = true;
 
+		// Clear instance data
 		instances.clear();
+		instance_data.clear();
+		s = nullptr;
 		current_instance = nullptr;
 
-		return 0;
+		return 0; // Return 0 on success
 	}
+	/*
+	* Object::print() - Print all relevant information about the resource
+	*/
 	int Object::print() const {
-		std::string instance_string = get_instance_string();
+		std::string instance_string = get_instance_string(); // Get the list of instances in string form
 
-		std::stringstream ss;
-		ss <<
+		std::stringstream ss; // Declare the output stream
+		ss << // Append all info to the output
 		"Object { "
 		"\n	id            " << id <<
 		"\n	name          " << name <<
@@ -136,11 +146,14 @@ namespace bee {
 		"\n	is_pausable   " << is_pausable <<
 		"\n	instances\n" << debug_indent(instance_string, 2) <<
 		"\n}\n";
-		messenger_send({"engine", "resource"}, E_MESSAGE::INFO, ss.str());
+		messenger_send({"engine", "resource"}, E_MESSAGE::INFO, ss.str()); // Send the info to the messaging system for output
 
-		return 0;
+		return 0; // Return 0 on success
 	}
 
+	/*
+	* Object::get_*() - Return the requested resource information
+	*/
 	int Object::get_id() const {
 		return id;
 	}
@@ -187,17 +200,20 @@ namespace bee {
 		return is_pausable;
 	}
 
+	/*
+	* Object::set_*() - Set the requested resource data
+	*/
 	int Object::set_name(const std::string& new_name) {
 		name = new_name;
 		return 0;
 	}
 	int Object::set_path(const std::string& new_path) {
-		path = "resources/objects/"+new_path;
+		path = "resources/objects/"+new_path; // Append the path to the object directory
 		return 0;
 	}
 	int Object::set_sprite(Sprite* new_sprite) {
 		sprite = new_sprite;
-		if (mask == nullptr) {
+		if (mask == nullptr) { // If there is no mask, set it to the new sprite
 			mask = new_sprite;
 		}
 		return 0;
@@ -217,7 +233,7 @@ namespace bee {
 	int Object::set_depth(int new_depth) {
 		depth = new_depth;
 
-		for (auto i : instances) {
+		for (auto i : instances) { // Iterate over all current instances and adjust their depth
 			i.second->depth = depth;
 		}
 
@@ -245,16 +261,19 @@ namespace bee {
 		return 0;
 	}
 
+	/*
+	* Object::add_instance() - Add an instance of this object to its list
+	*/
 	int Object::add_instance(int index, Instance* new_instance) {
-		if (new_instance->get_object() != this) {
-			return 1;
+		if (new_instance->get_object() != this) { // Do not attempt to add the instance if it's the wrong type
+			return 1; // Return 1 on wrong object type
 		}
 
 		// Overwrite any previous instance with the same id
 		instances.erase(index);
-		instances.emplace(index, new_instance);
+		instances.emplace(index, new_instance); // Emplace the instance in the list
 
-		return 0;
+		return 0; // Return 0 on success
 	}
 	int Object::remove_instance(int index) {
 		instances.erase(index);
@@ -270,77 +289,103 @@ namespace bee {
 	size_t Object::get_instance_amount() const {
 		return instances.size();
 	}
-	Instance* Object::get_instance(int inst_id) const {
+	/*
+	* Object::get_instance() - Return a pointer to the nth instance of this object
+	* @inst_number: the position of the instance in the object's instance list, NOT the instance id
+	*/
+	Instance* Object::get_instance(int inst_number) const {
+		if ((size_t)inst_number >= instances.size()) { // If the desired instance position is greater than the list size, return nullptr
+			return nullptr;
+		}
+
 		int i = 0;
-		for (auto& inst : instances) {
-			if (i == inst_id) {
+		for (auto& inst : instances) { // Iterate over the instance list, counting how many there are
+			if (i == inst_number) { // If the instance position is the desired number, return the instance pointer
 				return inst.second;
 			}
 			i++;
 		}
-		return nullptr;
+
+		return nullptr; // Otherwise return nullptr (this statement should never be reached)
 	}
 	std::string Object::get_instance_string() const {
-		if (instances.size() > 0) {
-			std::vector<std::vector<std::string>> table;
-			table.push_back({"(id", "object", "x", "y", "z)"});
-
-			for (auto& i : instances) {
-				table.push_back({bee_itos(i.second->id), i.second->get_object()->get_name(), bee_itos(i.second->get_position()[0]), bee_itos(i.second->get_position()[1]), bee_itos(i.second->get_position()[2])});
-			}
-
-			return string_tabulate(table);
+		if (instances.empty()) { // If there are no instances in the list, return a none-string
+			return "none\n";
 		}
-		return "none\n";
+
+		std::vector<std::vector<std::string>> table; // Declare a table to hold the instances
+		table.push_back({"(id", "object", "x", "y", "z)"}); // Append the table header
+
+		for (auto& i : instances) { // Iterate over the instances and add each of them to the table
+			table.push_back({bee_itos(i.second->id), i.second->get_object()->get_name(), bee_itos(i.second->get_position()[0]), bee_itos(i.second->get_position()[1]), bee_itos(i.second->get_position()[2])});
+		}
+
+		return string_tabulate(table); // Return the table as a properly spaced string
 	}
 
+	/*
+	* Object::get_data() - Return the requested data field from the given instance
+	* @inst_id: the id of the instance to fetch the data from
+	* @field: the name of the field to fetch
+	* @default_value: the value to return if the field doesn't exist
+	* @should_output: whether a warning should be output if the field doesn't exist
+	*/
 	SIDP Object::get_data(int inst_id, const std::string& field, const SIDP& default_value, bool should_output) const {
-		int error_type = 0;
-
-		if (instance_data.find(inst_id) != instance_data.end()) {
-			if (instance_data.at(inst_id).find(field) != instance_data.at(inst_id).end()) {
-				return instance_data.at(inst_id).at(field);
-			} else {
-				error_type = 1;
+		if (instance_data.find(inst_id) == instance_data.end()) { // If the instance doesn't exist, output a warning
+			if (should_output) {
+				messenger_send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to get data for the instance with id " + bee_itos(inst_id) + " of object \"" + name + "\"");
 			}
-		} else {
-			error_type = 2;
+			return default_value; // Return the default value when there is no instance with the desired id
 		}
 
-		if (should_output) {
-			switch (error_type) {
-				case 1: {
-					messenger_send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to get the data field \"" + field + "\" from the instance of object \"" + name + "\", returning SIDP(0)");
-					break;
-				}
-				case 2: {
-					messenger_send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to get data for the instance with id " + bee_itos(inst_id) + " of object \"" + name + "\"");
-					break;
-				}
-				default: {}
+		const std::map<std::string,SIDP>& data = instance_data.at(inst_id); // Get the instance's data map
+		if (data.find(field) == data.end()) { // If the data field doesn't exist, output a warning and return the default value
+			if (should_output) {
+				messenger_send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to get the data field \"" + field + "\" from the instance of object \"" + name + "\", returning SIDP(0)");
 			}
+			return default_value;
 		}
 
-		return default_value;
+		return data.at(field); // Return the data field value on success
 	}
+	/*
+	* Object::get_data() - Return the requested data field from the given instance
+	* ! When the function is called without a default value, simply call it with a default value of 0 and with warning output enabled
+	* @inst_id: the id of the instance to fetch the data from
+	* @field: the name of the field to fetch
+	*/
 	SIDP Object::get_data(int inst_id, const std::string& field) const {
-		return get_data(inst_id, field, 0, true);
+		return get_data(inst_id, field, 0, true); // Return the attempt to fetch the given data field
 	}
+	/*
+	* Object::set_data() - Set the requested data field value for the given instance
+	* @inst_id: the id of the instance to set the data for
+	* @field: the name of the field to set
+	* @data: the value to set the field to
+	*/
 	int Object::set_data(int inst_id, const std::string& field, SIDP data) {
 		if (instance_data.find(inst_id) == instance_data.end()) {
-			return 1;
+			return 1; // Return 1 if the instance doesn't exist
 		}
-		instance_data.at(inst_id)[field] = data;
-		return 0;
+		instance_data.at(inst_id)[field] = data; // Otherwise set the desired field to the given data
+		return 0; // Return 0 on success
 	}
 
-	void Object::update(Instance* self) {
-		current_instance = self;
-		s = &instance_data[self->id];
-		(*s)["object"] = name;
+	/*
+	* Object::update() - Update the instance and data map pointers to the given instance, usually before a call to one of the instance's events
+	* @inst: the instance to update the pointers for
+	*/
+	void Object::update(Instance* inst) {
+		current_instance = inst; // Set the current instance, i.e. the next instance to be operated on
+		s = &instance_data[inst->id]; // Get the pointer to the instance data map
+		(*s)["object"] = name; // Reset the field to this object's name
 	}
-	void Object::destroy(Instance* self) {
-		instance_data.erase(self->id);
+	/*
+	* Object::destroy() - Remove the instance data for the given instance
+	* @inst: the instance to remove data for
+	*/
+	void Object::destroy(Instance* inst) {
+		instance_data.erase(inst->id);
 	}
 }
 

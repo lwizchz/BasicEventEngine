@@ -412,24 +412,34 @@ namespace bee {
 
 				engine->fps_count++;
 				engine->frame_number++;
-				engine->new_tickstamp = get_ticks();
-				unsigned int fps_desired = engine->fps_max;
+				unsigned int new_tickstamp = get_ticks();
+				unsigned int fps_desired = min<unsigned int>(engine->fps_goal, engine->fps_max);
 				if (!engine->has_focus) {
 					fps_desired = engine->fps_unfocused;
 				}
-				if (engine->new_tickstamp - engine->tickstamp < 1000/fps_desired) {
+				if (
+					(new_tickstamp - engine->tickstamp < 1000/fps_desired)
+					&&(new_tickstamp - engine->tickstamp > 0)
+				) {
 					if ((!engine->options->is_vsync_enabled)||(!engine->has_focus)) {
-						SDL_Delay((1000/fps_desired) - (engine->new_tickstamp - engine->tickstamp));
+						Uint32 delay = (1000/fps_desired) - (new_tickstamp - engine->tickstamp);
+						//messenger_log("FPS delay: " + bee_itos(delay) + "ms, " + bee_itos(100*delay/fps_desired) + "% of the frame");
+						SDL_Delay(delay);
 					}
+				} else if (new_tickstamp - engine->tickstamp > 3*1000/fps_desired) { // If the tick difference is more than 3 frames worth, output a warning
+					Uint32 overtime = (new_tickstamp - engine->tickstamp) - (1000/fps_desired);
+					messenger_send({"engine"}, E_MESSAGE::WARNING, "Engine loop over time by " + bee_itos(overtime) + "ms, " + bee_itos(overtime/(1000/fps_desired)) + " frames lost");
 				}
 				internal::update_delta();
 
+				// Compute the number of frames in the last second, the stable fps
 				if (engine->tickstamp - engine->fps_ticks >= 1000) {
 					engine->fps_stable = engine->fps_count / ((engine->tickstamp-engine->fps_ticks)/1000);
 					engine->fps_count = 0;
 					engine->fps_ticks = engine->tickstamp;
 				}
 
+				// If the single_run flag option is used, exit the game loop after saving a screenshot
 				if (engine->options->single_run) {
 					engine->current_room->draw();
 					save_screenshot("single_run.bmp");
@@ -477,7 +487,6 @@ namespace bee {
 		}
 		messenger_send({"engine"}, E_MESSAGE::END, "gameloop");
 
-		engine->current_room->room_end();
 		engine->current_room->game_end();
 		change_room(nullptr, false);
 		engine->is_ready = false;
@@ -548,11 +557,22 @@ namespace bee {
 
 		free_standard_flags();
 
-		if (engine != nullptr) {
-			delete engine;
-		}
-
 		handle_messages();
+
+		if (engine != nullptr) {
+			if (!engine->messages.empty()) {
+				internal::messenger_send_urgent(std::shared_ptr<MessageContents>(new MessageContents(
+					get_ticks(),
+					{"engine", "close"},
+					E_MESSAGE::WARNING,
+					"Engine closing with "+bee_itos(engine->messages.size())+" messages left in the queue",
+					nullptr
+				)));
+			}
+
+			delete engine;
+			engine = nullptr;
+		}
 
 		return 0;
 	}

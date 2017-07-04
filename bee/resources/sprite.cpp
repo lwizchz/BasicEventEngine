@@ -107,13 +107,13 @@ namespace bee {
 		Sprite() // Default initialize all variables
 	{
 		add_to_resources(); // Add the sprite to the appropriate resource list
-		if (id < 0) { // If the sprite could not be added to the resource list, output a warning
+		if (id < 0) { // If the sprite could not be added, output a warning
 			messenger_send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add sprite resource: \"" + new_name + "\" from " + new_path);
 			throw(-1); // Throw an exception
 		}
 
-		set_name(new_name); // Set the sprite name
-		set_path(new_path); // Set the sprite image path
+		set_name(new_name);
+		set_path(new_path);
 	}
 	/*
 	* Sprite::~Sprite() - Free the sprite data and remove it from the resource list
@@ -245,20 +245,62 @@ namespace bee {
 	}
 
 	/*
-	* Sprite::set_name() - Set the resource name
-	* @new_name: the new name to use for the resource
+	* Sprite::set_*() - Set the requested resource data
 	*/
 	int Sprite::set_name(const std::string& new_name) {
-		name = new_name; // Set the name
-		return 0; // Return 0 on success
+		name = new_name;
+		return 0;
 	}
-	/*
-	* Sprite::set_path() - Set the resource path
-	* @new_path: the new path to use for the resource
-	*/
 	int Sprite::set_path(const std::string& new_path) {
 		path = "resources/sprites/"+new_path; // Append the path to the sprite directory
-		return 0; // Return 0 on success
+		return 0;
+	}
+	int Sprite::set_speed(double new_speed) {
+		speed = new_speed;
+		return 0;
+	}
+	int Sprite::set_origin_xy(int new_origin_x, int new_origin_y) {
+		origin_x = new_origin_x;
+		origin_y = new_origin_y;
+		return 0;
+	}
+	int Sprite::set_origin_x(int new_origin_x) {
+		return set_origin_xy(new_origin_x, get_origin_y());
+	}
+	int Sprite::set_origin_y(int new_origin_y) {
+		return set_origin_xy(get_origin_x(), new_origin_y);
+	}
+	int Sprite::set_origin_center() {
+		return set_origin_xy(subimage_width/2, height/2);
+	}
+	/*
+	* Sprite::set_rotate_xy() - Set both coordinates of the rotation origin
+	* ! Note that all x- and y-coordinates of the rotation origin are given as a percentage of the width and height of the image
+	* @new_rotate_x: the new x-coordinate to rotate the sprite around
+	* @new_rotate_y: the new y-coordinate to rotate the sprite around
+	*/
+	int Sprite::set_rotate_xy(double new_rotate_x, double new_rotate_y) {
+		rotate_x = new_rotate_x;
+		rotate_y = new_rotate_y;
+		return 0;
+	}
+	int Sprite::set_rotate_x(double new_rotate_x) {
+		return set_rotate_xy(new_rotate_x, get_rotate_y());
+	}
+	int Sprite::set_rotate_y(double new_rotate_y) {
+		return set_rotate_xy(get_rotate_x(), new_rotate_y);
+	}
+	int Sprite::set_rotate_center() {
+		return set_rotate_xy(0.5, 0.5);
+	}
+	/*
+	* Sprite::set_is_lightable() - Set whether the rendered fragments should be affected by lighting and shadows
+	* ! Normally this should only be used for specific HUD elements or text
+	* ! See set_is_lightable() in bee/render/render.cpp for more general usage
+	*/
+	int Sprite::set_is_lightable(bool new_is_lightable) {
+		is_lightable = new_is_lightable;
+		return 0;
 	}
 	/*
 	* Sprite::set_subimage_amount() - Set subimage coordinates and generate OpenGL buffers if necessary
@@ -279,8 +321,6 @@ namespace bee {
 		if (engine->options->renderer_type == E_RENDERER::SDL) { // If SDL rendering is being used, exit early
 			return 0; // Return 0 on success
 		}
-
-		// Only generate texcoords for OpenGL rendering mode
 
 		// Destroy all old texcoords
 		if (!vbo_texcoords.empty()) {
@@ -336,8 +376,6 @@ namespace bee {
 			return 0; // Return 0 on success
 		}
 
-		// Only generate texcoords for OpenGL rendering mode
-
 		// Destroy all old texcoords
 		if (!vbo_texcoords.empty()) {
 			for (auto& t : vbo_texcoords) {
@@ -374,7 +412,7 @@ namespace bee {
 	* @new_crop_width: the new width to crop the image to
 	*/
 	int Sprite::crop_image_width(int new_crop_width) {
-		crop.w = new_crop_width; // Set the width
+		crop.w = new_crop_width;
 		return crop_image(crop); // Return the status of the cropping
 	}
 	/*
@@ -382,86 +420,8 @@ namespace bee {
 	* @new_crop_height: the new height to crop the image to
 	*/
 	int Sprite::crop_image_height(int new_crop_height) {
-		crop.h = new_crop_height; // Set the height
+		crop.h = new_crop_height;
 		return crop_image(crop); // Return the status of the cropping
-	}
-	/*
-	* Sprite::set_speed() - Change the speed at which the image animates between subimages
-	* @new_speed: the new speed to animate at
-	*/
-	int Sprite::set_speed(double new_speed) {
-		speed = new_speed; // Set the speed
-		return 0; // Return 0 on success
-	}
-	/*
-	* Sprite::set_origin_xy() - Set both coordinates of the sprite origin
-	* @new_origin_x: the new x-coordinate to draw the sprite from
-	* @new_origin_y: the new y-coordinate to draw the sprite from
-	*/
-	int Sprite::set_origin_xy(int new_origin_x, int new_origin_y) {
-		origin_x = new_origin_x; // Set the x-coordinate of the origin
-		origin_y = new_origin_y; // Set the y-coordinate of the origin
-		return 0; // Return 0 on success
-	}
-	/*
-	* Sprite::set_origin_x() - Set the x-coordinate of the sprite origin
-	* @new_origin_x: the new x-coordinate to draw the sprite from
-	*/
-	int Sprite::set_origin_x(int new_origin_x) {
-		return set_origin_xy(new_origin_x, get_origin_y()); // Set the x-coordinate of the origin
-	}
-	/*
-	* Sprite::set_origin_y() - Set the y-coordinate of the sprite origin
-	* @new_origin_y: the new y-coordinate to draw the sprite from
-	*/
-	int Sprite::set_origin_y(int new_origin_y) {
-		return set_origin_xy(get_origin_x(), new_origin_y); // Set the y-coordinate of the origin
-	}
-	/*
-	* Sprite::set_origin_center() - Set the sprite origin to the center of the image
-	*/
-	int Sprite::set_origin_center() {
-		return set_origin_xy(subimage_width/2, height/2); // Set the coordinates to half of the dimensions
-	}
-	/*
-	* Sprite::set_rotate_xy() - Set both coordinates of the rotation origin
-	* @new_rotate_x: the new x-coordinate to rotate the sprite around
-	* @new_rotate_y: the new y-coordinate to rotate the sprite around
-	*/
-	int Sprite::set_rotate_xy(double new_rotate_x, double new_rotate_y) {
-		rotate_x = new_rotate_x; // Set the x-coordinate
-		rotate_y = new_rotate_y; // Set the y-coordinate
-		return 0; // Return 0 on success
-	}
-	/*
-	* Sprite::set_rotate_x() - Set the x-coordinate of the rotation origin
-	* ! Note that all x- and y-coordinates of the rotation origin are given as a percentage of the width and height of the image
-	* @new_rotate_x: the new x-coordinate to rotate the sprite around
-	*/
-	int Sprite::set_rotate_x(double new_rotate_x) {
-		return set_rotate_xy(new_rotate_x, get_rotate_y()); // Set the x-coordinate
-	}
-	/*
-	* Sprite::set_rotate_y() - Set the y-coordinate of the rotation origin
-	* @new_rotate_y: the new y-coordinate to rotate the sprite around
-	*/
-	int Sprite::set_rotate_y(double new_rotate_y) {
-		return set_rotate_xy(get_rotate_x(), new_rotate_y); // Set the y-coordinate
-	}
-	/*
-	* Sprite::set_rotate_center() - Set the rotation origin to the center of the image
-	*/
-	int Sprite::set_rotate_center() {
-		return set_rotate_xy(0.5, 0.5); // Set the coordinates to be 50% of the image dimensions
-	}
-	/*
-	* Sprite::set_is_lightable() - Set whether the rendered fragments should be affected by lighting and shadows
-	* ! Normally this should only be used for specific HUD elements or text
-	* ! See set_is_lightable() in bee/render/render.cpp for more general usage
-	*/
-	int Sprite::set_is_lightable(bool new_is_lightable) {
-		is_lightable = new_is_lightable; // Set the lightability
-		return 0; // Return 0 on success
 	}
 
 	/*
@@ -477,6 +437,7 @@ namespace bee {
 		// Set the sprite dimensions
 		width = tmp_surface->w;
 		height = tmp_surface->h;
+
 		// Generate the subimage buffers and dimensions
 		if (subimage_amount <= 1) {
 			set_subimage_amount(1, width); // If there are no subimages, treat the entire image as a single subimage
@@ -562,8 +523,8 @@ namespace bee {
 	* Sprite::load() - Load the sprite from its given filename
 	*/
 	int Sprite::load() {
-		if (is_loaded) { // If the sprite has already been loaded, output a warning
-		       messenger_send({"engine", "sprite"}, E_MESSAGE::WARNING, "Failed to load sprite \"" + name + "\" because it has already been loaded");
+		if (is_loaded) { // Do not attempt to load the sprite if it has already been loaded
+		       //messenger_send({"engine", "sprite"}, E_MESSAGE::WARNING, "Failed to load sprite \"" + name + "\" because it has already been loaded");
 		       return 1; // Return 1 when already loaded
 		}
 
@@ -995,6 +956,8 @@ namespace bee {
 
 				glDrawElements(GL_TRIANGLES, size/sizeof(GLushort), GL_UNSIGNED_SHORT, 0); // Draw the triangles which form the rectangular subimage
 			}
+
+			delete lightable_data;
 
 			drawing_end();
 		} else {

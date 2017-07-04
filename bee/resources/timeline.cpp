@@ -158,27 +158,16 @@ namespace bee {
 	}
 
 	/*
-	* Timeline::set_name() - Set the resource name
-	* @new_name: the new name to use for the resource
+	* Timeline::set_*() - Set the requested resource data
 	*/
 	int Timeline::set_name(const std::string& new_name) {
-		name = new_name; // Set the name
-		return 0; // Return 0 on success
+		name = new_name;
+		return 0;
 	}
-	/*
-	* Timeline::set_path() - Set the resource path
-	* @new_path: the new path to use for the resource
-	*/
 	int Timeline::set_path(const std::string& new_path) {
 		path = "resources/timelines/"+new_path; // Append the path to the timeline directory
-		return 0; // Return 0 on success
+		return 0;
 	}
-	/*
-	* Timeline::add_action() - Add the given action to the list
-	* @frame_number: the frame to run the action on
-	* @func_name: the human-readable name for the action
-	* @callback: the function to call when running the action
-	*/
 	int Timeline::add_action(Uint32 frame_number, const std::string& func_name, std::function<void()> callback) {
 		if (get_is_running()) { // If the timeline is already running, output a warning
 			messenger_send({"engine", "timeline"}, E_MESSAGE::WARNING, "Failed to add action to timeline \"" + name + "\" because it is currently running");
@@ -189,19 +178,9 @@ namespace bee {
 
 		return 0; // Return 0 on success
 	}
-	/*
-	* Timeline::add_action() - Add the given action to the list
-	* ! When the function is called without a function name, simply call it with the name set as "anonymous"
-	* @frame_number: the frame to run the action on
-	* @callback: the function to call when running the action
-	*/
 	int Timeline::add_action(Uint32 frame_number, std::function<void()> callback) {
-		return add_action(frame_number, "anonymous", callback); // Return the attempt to add the action
+		return add_action(frame_number, "anonymous", callback); // Return the attempt to add the anonymous action
 	}
-	/*
-	* Timeline::remove_action() - Remove all actions at the given frame
-	* @frame_number: the frame to attempt to remove actions from
-	*/
 	int Timeline::remove_actions(Uint32 frame_number) {
 		int amount_removed = 0;
 
@@ -212,11 +191,6 @@ namespace bee {
 
 		return amount_removed; // Return the amount of actions that were removed
 	}
-	/*
-	* Timeline::remove_actions_range() - Remove all actions between the given inclusive range
-	* @frame_start: the beginning frame to remove actions from
-	* @frame_end: the final frame to remove actions from
-	*/
 	int Timeline::remove_actions_range(Uint32 frame_start, Uint32 frame_end) {
 		int amount_removed = 0;
 
@@ -226,9 +200,6 @@ namespace bee {
 
 		return amount_removed; // Return the amount of actions that were removed
 	}
-	/*
-	* Timeline::remove_actions_all() - Remove all actions from the timeline
-	*/
 	int Timeline::remove_actions_all() {
 		int amount_removed = action_list.size(); // Store the amount of actions in the list
 
@@ -257,23 +228,14 @@ namespace bee {
 
 		return 0; // Return 0 on success
 	}
-	/*
-	* Timeline::set_is_looping() - Set whether the timeline should loop after finishing execution
-	*/
 	int Timeline::set_is_looping(bool new_is_looping) {
 		is_looping = new_is_looping;
 		return 0;
 	}
-	/*
-	* Timeline::set_ending() - Set the function that will be called when the timeline ends
-	*/
 	int Timeline::set_ending(std::function<void()> callback) {
 		end_action = callback;
 		return 0;
 	}
-	/*
-	* Timeline::set_pause() - Set whether the timeline is paused
-	*/
 	int Timeline::set_pause(bool new_is_paused) {
 		if (is_paused == new_is_paused) {
 			return 1; // Return 1 when the requested pause state is already in effect

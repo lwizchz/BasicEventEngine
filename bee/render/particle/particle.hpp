@@ -30,32 +30,51 @@ namespace bee {
 	class ParticleSystem;
 
 	class Particle {
-		public:
 			Sprite* sprite;
+			bool has_own_sprite;
 
+			unsigned int deviation;
+
+			std::function<void (ParticleSystem*, ParticleData*, Particle*)> on_death_func;
+			Particle* death_type;
+			std::list<ParticleData*> old_particles;
+
+			int add_old_particle(ParticleData*);
+		public:
 			double scale;
 			std::pair<double,double> velocity;
 
 			double angle;
 			double angle_increase;
+
 			std::vector<glm::mat4> rotation_cache;
 
 			RGBA color;
 
 			Uint32 max_time;
-			std::function<void (ParticleSystem*, ParticleData*, Particle*)> on_death;
-			Particle* death_type;
 			unsigned int death_amount;
-			std::list<ParticleData*> old_particles;
 
 			bool should_reanimate;
 			bool is_lightable;
 			bool is_sprite_lightable;
 
-			Particle(Sprite*, double, Uint32, bool);
-			Particle(E_PT_SHAPE, double, Uint32, bool);
+			Particle(Sprite*, double, Uint32, unsigned int);
+			Particle(E_PT_SHAPE, double, Uint32, unsigned int);
+			Particle(Sprite*, double, Uint32);
+			Particle(E_PT_SHAPE, double, Uint32);
+			~Particle();
+
 			int init();
 			int print();
+
+			Sprite* get_sprite();
+			unsigned int get_deviation();
+
+			int set_death_type(Particle*);
+			int on_death(ParticleSystem*, ParticleData*);
+
+			ParticleData* reuse_particle(int, int, Uint32);
+			int remove_old_particles();
 	};
 }
 

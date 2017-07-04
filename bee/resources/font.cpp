@@ -207,28 +207,19 @@ namespace bee {
 	}
 
 	/*
-	* Font::set_name() - Set the resource name
-	* @new_name: the new name to use for the resource
+	* Font::set_*() - Set the requested resource data
 	*/
 	int Font::set_name(const std::string& new_name) {
-		name = new_name; // Set the name
-		return 0; // Return 0 on success
+		name = new_name;
+		return 0;
 	}
-	/*
-	* Font::set_path() - Set the resource path
-	* @new_path: the new path to use for the resource
-	*/
 	int Font::set_path(const std::string& new_path) {
-		path = "resources/fonts/"+new_path; // Set the path
-		return 0; // Return 0 on success
+		path = "resources/fonts/"+new_path; // Append the path to the font directory
+		return 0;
 	}
-	/*
-	* Font::set_font_size() - Set the font size to use when loading the font
-	* @new_font_size: the size to use
-	*/
 	int Font::set_font_size(int new_font_size) {
-		font_size = new_font_size; // Set the font size
-		return 0; // Return 0 on success
+		font_size = new_font_size;
+		return 0;
 	}
 	/*
 	* Font::set_style() - Set the font style to use with the font
@@ -244,13 +235,9 @@ namespace bee {
 		TTF_SetFontStyle(font, style); // Set the style of the loaded font
 		return 0; // Return 0 on success
 	}
-	/*
-	* Font::set_lineskip() - Set the lineskip to use with the font
-	* @new_lineskip: the lineskip to use
-	*/
 	int Font::set_lineskip(int new_lineskip) {
-		lineskip = new_lineskip; // Set the lineskip
-		return 0; // Return 0 on success
+		lineskip = new_lineskip;
+		return 0;
 	}
 
 	/*

@@ -63,7 +63,7 @@ namespace bee {
 
 		ViewData* v = get_current_room()->get_current_view(); // Get the current view
 		if ((v == nullptr)&&(get_current_room()->get_views().size() > 0)) { // If this function is called outside of view drawing then simply use the first view
-			v = get_current_room()->get_views().begin()->second;
+			v = get_current_room()->get_views().front();
 		}
 
 		if (v != nullptr) { // If the view exists then adjust the coordinates

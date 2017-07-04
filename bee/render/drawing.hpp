@@ -13,6 +13,8 @@
 
 #include <SDL2/SDL.h> // Include the required SDL headers
 
+#include <glm/glm.hpp> // Include the required OpenGL headers
+
 #include "../enum.hpp"
 
 #include "rgba.hpp"

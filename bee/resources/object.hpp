@@ -11,11 +11,12 @@
 
 #include <string> // Include the required library headers
 #include <map>
+#include <list>
 
 #include <SDL2/SDL.h> // Include the required SDL headers
 
-#include "../resources.hpp"
 #include "../enum.hpp"
+#include "../resources.hpp"
 
 #include "../core/sidp.hpp"
 
@@ -24,28 +25,33 @@ namespace bee {
 	class Instance;
 	class Sprite;
 
-	class Object: public Resource {
-			// Add new variables to the print() debugging method
-			int id = -1;
-			std::string name;
-			std::string path;
-			Sprite* sprite;
-			bool is_solid, is_visible, is_persistent;
-			int depth;
-			Object* parent;
-			Sprite* mask;
-			int xoffset, yoffset;
-			bool is_pausable;
+	class Object: public Resource { // The object resource class is used to handle all events and instance data
+			int id; // The id of the resource
+			std::string name; // An arbitrary name for the resource
+			std::string path; // The path of the object's child header
+			Sprite* sprite; // The sprite to draw for the object
+			bool is_solid; // Whether the object should be solid to collisions
+			bool is_visible; // Whether the object should be visible
+			bool is_persistent; // Whether the object's instances should persist between rooms
+			int depth; // The depth of the object
+			Object* parent; // The parent of the object, all parent events will be called before the child's
+			Sprite* mask; // An alternate sprite to use as the object's collision mask
+			int xoffset, yoffset; // How far the sprite and mask should be offset from the object position
+			bool is_pausable; // Whether the object is pausable or not
 
-			std::map<int,Instance*> instances;
+			std::map<int,Instance*> instances; // A list of all the instances of this object type
 		protected:
-			std::map<int,std::map<std::string,SIDP>> instance_data;
-			std::map<std::string,SIDP>* s;
-			Instance* current_instance;
+			std::map<int,std::map<std::string,SIDP>> instance_data; // A data map for all of this object's instances
+			std::map<std::string,SIDP>* s; // A pointer to the data map for the instance that is currently being processed
+			Instance* current_instance; // A pointer to the instance that is currently being processed
 
+			// See bee/resources/object.cpp for function comments
 			Object();
 			Object(const std::string&, const std::string&);
 		public:
+			std::list<E_EVENT> implemented_events; // A list of all the events that the object implements
+
+			// See bee/resources/object.cpp for function comments
 			virtual ~Object();
 			int add_to_resources();
 			int reset();
@@ -95,10 +101,9 @@ namespace bee {
 			SIDP get_data(int, const std::string&) const;
 			int set_data(int, const std::string&, SIDP);
 
-			std::map<E_EVENT,bool> implemented_events;
-			virtual void update(Instance*) =0;
-			virtual void create(Instance*) {};
-			virtual void destroy(Instance*) =0;
+			virtual void update(Instance*);
+			virtual void create(Instance*) =0;
+			virtual void destroy(Instance*);
 			virtual void alarm(Instance*, size_t) {};
 			virtual void step_begin(Instance*) {};
 			virtual void step_mid(Instance*) {};

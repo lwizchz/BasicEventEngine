@@ -11,6 +11,7 @@
 
 #include <map> // Include the required library headers
 #include <list>
+#include <vector>
 
 #include <btBulletDynamicsCommon.h> // Include the required Bullet headers
 
@@ -33,87 +34,55 @@ namespace bee {
 	class Sprite;
 	class Background;
 
-	template <typename A, typename B>
-	std::pair<B,A> flip_pair(const std::pair<A,B>& p) {
-		return std::pair<B,A>(p.second, p.first);
+	// Declare a function to flip <int,Instance*> to <Instance*,int> for use with instances_sorted
+	namespace internal {
+		std::pair<Instance*,int> flip_instancemap_pair(const std::pair<int,Instance*>&);
 	}
-	template std::pair<Instance*,int> flip_pair<int,Instance*>(const std::pair<int,Instance*>&);
 
-	struct InstanceSort {
+	struct InstanceSort { // This struct is used as the comparator for the instances_sorted member of the Room class
 		bool operator() (Instance* lhs, Instance* rhs) {
-			return (*lhs) < (*rhs);
+			return (*lhs) < (*rhs); // Compare the values instead of the pointers
 		}
 	};
 
-	class Room: public Resource {
-			// Add new variables to the print() debugging method
-			int id = -1;
-			std::string name;
-			std::string path;
-			int width, height;
-			bool is_isometric;
-			bool is_persistent;
+	class Room: public Resource { // The room resource class is used to handle all instance event calls and instantiation
+			int id; // The id of the resource
+			std::string name; // An arbitrary name for the resource
+			std::string path; // The path of the room's child header
+			int width, height; // The width and height of the room
+			bool is_isometric; // Whether the room should be drawn from an isometric perspective
+			bool is_persistent; // Whether the room's instances should persist to the next room
 
-			RGBA background_color;
-			bool is_background_color_enabled;
-			std::map<int,BackgroundData*> backgrounds;
-			bool is_views_enabled;
-			std::map<int,ViewData*> views;
+			RGBA background_color; // The background color of the room
+			bool is_background_color_enabled; // Whether the background color should be drawn
+			std::vector<BackgroundData*> backgrounds; // The list of backgrounds that should be drawn
+			bool is_views_enabled; // Whether drawing should occur inside views
+			std::vector<ViewData*> views; // The list of views that shold be drawn
 
-			std::map<int,Instance*> instances;
-			std::map<Instance*,int,InstanceSort> instances_sorted;
-			std::vector<Instance*> created_instances;
-			std::vector<Instance*> destroyed_instances;
-			bool should_sort = false;
+			int next_instance_id; // The id for the next created instance, always increasing
+			std::map<int,Instance*> instances; // A map of all instances with their associated id
+			std::map<Instance*,int,InstanceSort> instances_sorted; // A map of all instance sorted by depth, then by id
+			std::vector<Instance*> created_instances; // A list of instances that should have their create event called after the room is loaded
+			std::vector<Instance*> destroyed_instances; // A list of instances that should have their destroy event called after the event loop
+			bool should_sort; // Whether the sorted instance list needs to be resorted after the event loop
 
-			std::map<E_EVENT,std::map<Instance*,int,InstanceSort>> instances_sorted_events;
-			std::list<E_EVENT> event_list = {
-				E_EVENT::CREATE,
-				E_EVENT::DESTROY,
-				E_EVENT::ALARM,
-				E_EVENT::STEP_BEGIN,
-				E_EVENT::STEP_MID,
-				E_EVENT::STEP_END,
-				E_EVENT::KEYBOARD_PRESS,
-				E_EVENT::MOUSE_PRESS,
-				E_EVENT::KEYBOARD_INPUT,
-				E_EVENT::MOUSE_INPUT,
-				E_EVENT::KEYBOARD_RELEASE,
-				E_EVENT::MOUSE_RELEASE,
-				E_EVENT::CONTROLLER_AXIS,
-				E_EVENT::CONTROLLER_PRESS,
-				E_EVENT::CONTROLLER_RELEASE,
-				E_EVENT::CONTROLLER_MODIFY,
-				E_EVENT::COMMANDLINE_INPUT,
-				E_EVENT::PATH_END,
-				E_EVENT::OUTSIDE_ROOM,
-				E_EVENT::INTERSECT_BOUNDARY,
-				E_EVENT::COLLISION,
-				E_EVENT::DRAW,
-				E_EVENT::ANIMATION_END,
-				E_EVENT::ROOM_START,
-				E_EVENT::ROOM_END,
-				E_EVENT::GAME_START,
-				E_EVENT::GAME_END,
-				E_EVENT::WINDOW
-			};
+			static const std::list<E_EVENT> event_list; // A list of the available events
+			std::map<E_EVENT,std::map<Instance*,int,InstanceSort>> instances_sorted_events; // A map of all events and the instance which implement those events
 
-			std::map<int,ParticleSystem*> particles;
-			int particle_count = 0;
-			int next_instance_id = 0;
+			std::vector<ParticleSystem*> particle_systems; // A list of the particle systems that the room should run draw
 
-			std::vector<LightData> lights;
-			std::vector<LightableData*> lightables;
-			Sprite* light_map = nullptr;
+			std::vector<LightData> lights; // A list of all the queued lights to be drawn
+			std::vector<LightableData*> lightables; // A list of all the lightables which can cast shadows
+			Sprite* light_map; // A texture used for SDL light rendering
 
-			PhysicsWorld* physics_world = nullptr;
-			std::map<const btRigidBody*,Instance*> physics_instances;
+			PhysicsWorld* physics_world; // The world used to simulate all physics objects in the room
+			std::map<const btRigidBody*,Instance*> physics_instances; // A map of the bodies in the world with their associated instance
 
-			std::string instance_map = "";
+			std::string instance_map; // The path of the instance map file to load instance from when the room starts
 
-			Sprite* view_texture = nullptr;
-			ViewData* view_current = nullptr;
+			ViewData* view_current; // A pointer to the current view that is being drawn
 		public:
+			// See bee/resources/room.cpp for function comments
 			Room();
 			Room(const std::string&, const std::string&);
 			~Room();
@@ -131,10 +100,10 @@ namespace bee {
 			bool get_is_persistent() const;
 			RGBA get_background_color() const;
 			bool get_is_background_color_enabled() const;
-			std::map<int,BackgroundData*> get_backgrounds() const;
+			std::vector<BackgroundData*> get_backgrounds() const;
 			std::string get_background_string() const;
 			bool get_is_views_enabled() const;
-			std::map<int,ViewData*> get_views() const;
+			std::vector<ViewData*> get_views() const;
 			std::string get_view_string() const;
 			const std::map<int,Instance*>& get_instances() const;
 			std::string get_instance_string() const;
@@ -153,7 +122,7 @@ namespace bee {
 			int set_background_color(E_RGB);
 			int set_is_background_color_enabled(bool);
 			int set_background(int, BackgroundData*);
-			int add_background(int, Background*, bool, bool, int, int, bool, bool, int, int, bool);
+			int add_background(Background*, bool, bool, int, int, bool, bool, int, int, bool);
 			int set_is_views_enabled(bool);
 			int set_view(int, ViewData*);
 			int set_instance(int, Instance*);
@@ -165,8 +134,6 @@ namespace bee {
 			int add_physbody(Instance*, PhysicsBody*);
 			int remove_physbody(PhysicsBody*);
 			int add_particle_system(ParticleSystem*);
-			int add_particle(ParticleSystem*, Particle*, int, int);
-			int clear_particles();
 			int add_lightable(LightableData*);
 			int add_light(LightData);
 			int handle_lights();

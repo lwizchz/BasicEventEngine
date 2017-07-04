@@ -174,7 +174,7 @@ namespace bee {
 		return 0;
 	}
 	int Light::set_path(const std::string& new_path) {
-		path = new_path;
+		path = "resources/lights/"+new_path; // Append the path to the light directory
 		return 0;
 	}
 	int Light::set_type(E_LIGHT new_type) {

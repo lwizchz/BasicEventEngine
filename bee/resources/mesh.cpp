@@ -144,19 +144,15 @@ namespace bee {
 	}
 
 	/*
-	* Mesh::set_name() - Set the resource name
-	* @new_name: the new name to use for the resource
+	* Mesh::set_*() - Set the requested resource data
 	*/
 	int Mesh::set_name(const std::string& new_name) {
-		name = new_name; // Set the name
-		return 0; // Return 0 on success
+		name = new_name;
+		return 0;
 	}
-	/*
-	* Mesh::set_path() - Set the resource path
-	*/
 	int Mesh::set_path(const std::string& new_path) {
 		path = "resources/meshes/"+new_path; // Append the path to the mesh directory
-		return 0; // Return 0 on success
+		return 0;
 	}
 
 	/*

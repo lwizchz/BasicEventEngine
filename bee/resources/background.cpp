@@ -192,27 +192,19 @@ namespace bee {
 	}
 
 	/*
-	* Background::set_name() - Set the resource name
-	* @new_name: the new name to use for the resource
+	* Background::set_*() - Set the requested resource data
 	*/
 	int Background::set_name(const std::string& new_name) {
-		name = new_name; // Set the name
-		return 0; // Return 0 on success
+		name = new_name;
+		return 0;
 	}
-	/*
-	* Background::set_path() - Set the resource path
-	* @new_path: the new path to use for the resource
-	*/
 	int Background::set_path(const std::string& new_path) {
 		path = "resources/backgrounds/"+new_path; // Append the path to the background directory
-		return 0; // Return 0 on success
+		return 0;
 	}
-	/*
-	* Background::set_time_update() - Update the starting time for a movement animation
-	*/
 	int Background::set_time_update() {
 		animation_time = get_ticks(); // Update the animation starting time
-		return 0; // Return 0 on success
+		return 0;
 	}
 
 	/*

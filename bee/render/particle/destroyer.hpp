@@ -12,18 +12,29 @@
 #include "../../enum.hpp"
 
 namespace bee {
-	// Forward declaration
+	// Forward declarations
 	class Instance;
+	class ParticleData;
 
 	class ParticleDestroyer {
-		public:
+			Instance* following;
+
 			double x, y;
 			unsigned int w, h;
-			Instance* following;
 
 			E_PS_SHAPE shape;
 
+			double get_following_x(double);
+			double get_following_y(double);
+		public:
 			ParticleDestroyer();
+			ParticleDestroyer(double, double, unsigned int, unsigned int);
+
+			int set_following(Instance*);
+
+			bool handle(ParticleData*, double, double);
+
+			int draw_debug(double, double, E_RGB);
 	};
 }
 

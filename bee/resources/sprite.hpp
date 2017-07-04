@@ -94,10 +94,6 @@ namespace bee {
 
 			int set_name(const std::string&);
 			int set_path(const std::string&);
-			int set_subimage_amount(int, int);
-			int crop_image(SDL_Rect);
-			int crop_image_width(int);
-			int crop_image_height(int);
 			int set_speed(double);
 			int set_origin_xy(int, int);
 			int set_origin_x(int);
@@ -108,6 +104,10 @@ namespace bee {
 			int set_rotate_y(double);
 			int set_rotate_center();
 			int set_is_lightable(bool);
+			int set_subimage_amount(int, int);
+			int crop_image(SDL_Rect);
+			int crop_image_width(int);
+			int crop_image_height(int);
 
 			int load_from_surface(SDL_Surface*);
 			int load();

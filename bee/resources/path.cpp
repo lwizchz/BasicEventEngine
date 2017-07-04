@@ -141,70 +141,36 @@ namespace bee {
 	}
 
 	/*
-	* Path::set_name() - Set the resource name
-	* @new_name: the new name to use for the resource
+	* Path::set_*() - Set the requested resource data
 	*/
 	int Path::set_name(const std::string& new_name) {
-		name = new_name; // Set the name
-		return 0; // Return 0 on success
+		name = new_name;
+		return 0;
 	}
-	/*
-	* Path::set_path() - Set the resource path
-	* @new_path: the new file path to use for the resource
-	*/
 	int Path::set_path(const std::string& new_path) {
 		path = "resources/paths/"+new_path; // Append the filename to the path directory
-		return 0; // Return 0 on success
+		return 0;
 	}
-	/*
-	* Path::set_is_curved() - Set whether the path should curve
-	* @new_is_curved: the new curvature to use
-	*/
 	int Path::set_is_curved(bool new_is_curved) {
-		is_curved = new_is_curved; // Set the curvature
-		return 0; // Return 0 on success
+		is_curved = new_is_curved;
+		return 0;
 	}
-	/*
-	* Path::set_is_closed() - Set whether the path should loop after the end
-	* @new_is_closed: the new closure to use
-	*/
 	int Path::set_is_closed(bool new_is_closed) {
-		is_closed = new_is_closed; // Set the closure
-		return 0; // Return 0 on success
+		is_closed = new_is_closed;
+		return 0;
 	}
-	/*
-	* Path::add_coordinate() - Add a coordinate to the end of the coordinate list
-	* @new_coordinate: the new coordinate to add
-	*/
 	int Path::add_coordinate(path_coord_t new_coordinate) {
-		coordinate_list.push_back(new_coordinate); // Add the coordinate
-		return 0; // Return 0 on success
+		coordinate_list.push_back(new_coordinate);
+		return 0;
 	}
-	/*
-	* Path::add_coordinate() - Add the given coordinate and speed to the coordinate list
-	* @x: the x-coordinate of the desired point
-	* @y: the y-coordinate of the desired point
-	* @z: the z-coordinate of the desired point
-	* @speed: the speed at the desired point
-	*/
 	int Path::add_coordinate(double x, double y, double z, double speed) {
 		return add_coordinate(path_coord_t(x, y, z, speed)); // Construct the path coordinate and return the attempt to add it
 	}
-	/*
-	* Path::add_coordinate() - Add the given coordinate and speed to the coordinate list
-	* ! When the function is called without a z-coordinate, simply call it with z=0.0
-	* @x: the x-coordinate of the desired point
-	* @y: the y-coordinate of the desired point
-	* @speed: the speed at the desired point
-	*/
 	int Path::add_coordinate(double x, double y, double speed) {
-		return add_coordinate(x, y, 0.0, speed);
+		return add_coordinate(x, y, 0.0, speed); // Return the attempt to add a coordinate with z=0.0
 	}
-	/*
-	* Path::remove_last_coordinate() - Remove the last coordinate from the list
-	*/
 	int Path::remove_last_coordinate() {
-		if (coordinate_list.empty()) { // Do not attempt to remove the coordinate if the list is empty
+		if (coordinate_list.empty()) {
 			return 1; // Return 1 when the list is empty
 		}
 
@@ -212,13 +178,9 @@ namespace bee {
 
 		return 0; // Return 0 on success
 	}
-	/*
-	* Path::remove_coordinate() - Remove the coordinate at the given index
-	* @index: the index of the element to remove
-	*/
 	int Path::remove_coordinate(unsigned int index) {
-		if (index >= coordinate_list.size()) { // Do not attempt to remove the coordinate if the index is not in the list
-			return 1;
+		if (index >= coordinate_list.size()) {
+			return 1; // Return 1 if the desired index is not in the list
 		}
 
 		coordinate_list.erase(coordinate_list.begin()+index); // Erase the element at the given index

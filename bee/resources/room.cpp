@@ -19,12 +19,6 @@
 
 #include "room.hpp" // Include the class resource header
 
-#include "sprite.hpp"
-#include "background.hpp"
-#include "timeline.hpp"
-#include "light.hpp"
-#include "object.hpp"
-
 #include "../debug.hpp"
 #include "../engine.hpp"
 
@@ -51,13 +45,90 @@
 #include "../physics/body.hpp"
 #include "../physics/world.hpp"
 
-namespace bee {
-	Room::Room () {
-		reset();
-	}
-	Room::Room (const std::string& new_name, const std::string& new_path) {
-		reset();
+#include "sprite.hpp"
+#include "background.hpp"
+#include "timeline.hpp"
+#include "light.hpp"
+#include "object.hpp"
 
+namespace bee {
+	namespace internal {
+		std::pair<Instance*,int> flip_instancemap_pair(const std::pair<int,Instance*>& p) {
+			return std::pair<Instance*,int>(p.second, p.first);
+		}
+	}
+
+	const std::list<E_EVENT> Room::event_list = {
+		E_EVENT::CREATE,
+		E_EVENT::DESTROY,
+		E_EVENT::ALARM,
+		E_EVENT::STEP_BEGIN,
+		E_EVENT::STEP_MID,
+		E_EVENT::STEP_END,
+		E_EVENT::KEYBOARD_PRESS,
+		E_EVENT::MOUSE_PRESS,
+		E_EVENT::KEYBOARD_INPUT,
+		E_EVENT::MOUSE_INPUT,
+		E_EVENT::KEYBOARD_RELEASE,
+		E_EVENT::MOUSE_RELEASE,
+		E_EVENT::CONTROLLER_AXIS,
+		E_EVENT::CONTROLLER_PRESS,
+		E_EVENT::CONTROLLER_RELEASE,
+		E_EVENT::CONTROLLER_MODIFY,
+		E_EVENT::COMMANDLINE_INPUT,
+		E_EVENT::PATH_END,
+		E_EVENT::OUTSIDE_ROOM,
+		E_EVENT::INTERSECT_BOUNDARY,
+		E_EVENT::COLLISION,
+		E_EVENT::DRAW,
+		E_EVENT::ANIMATION_END,
+		E_EVENT::ROOM_START,
+		E_EVENT::ROOM_END,
+		E_EVENT::GAME_START,
+		E_EVENT::GAME_END,
+		E_EVENT::WINDOW
+	};
+
+	Room::Room () :
+		id(-1),
+		name(),
+		path(),
+		width(DEFAULT_WINDOW_WIDTH),
+		height(DEFAULT_WINDOW_HEIGHT),
+		is_isometric(false),
+		is_persistent(false),
+
+		background_color({255, 255, 255, 255}),
+		is_background_color_enabled(true),
+		backgrounds(),
+		is_views_enabled(false),
+		views(),
+
+		next_instance_id(0),
+		instances(),
+		instances_sorted(),
+		created_instances(),
+		destroyed_instances(),
+		should_sort(false),
+
+		instances_sorted_events(),
+
+		particle_systems(),
+
+		lights(),
+		lightables(),
+		light_map(nullptr),
+
+		physics_world(nullptr),
+		physics_instances(),
+
+		instance_map(),
+
+		view_current(nullptr)
+	{}
+	Room::Room (const std::string& new_name, const std::string& new_path) :
+		Room()
+	{
 		add_to_resources();
 		if (id < 0) {
 			messenger_send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add room resource: \"" + new_name + "\"" + new_path);
@@ -72,7 +143,7 @@ namespace bee {
 		views.clear();
 		instances.clear();
 		instances_sorted.clear();
-		particles.clear();
+		particle_systems.clear();
 		destroyed_instances.clear();
 		instances_sorted_events.clear();
 
@@ -84,12 +155,6 @@ namespace bee {
 		if (physics_world != nullptr) {
 			delete physics_world;
 			physics_world = nullptr;
-		}
-
-		if (view_texture != nullptr) {
-			view_texture->free();
-			delete view_texture;
-			view_texture = nullptr;
 		}
 
 		free_media();
@@ -121,12 +186,13 @@ namespace bee {
 		}
 		instances.clear();
 		instances_sorted.clear();
-		particles.clear();
 		created_instances.clear();
 		destroyed_instances.clear();
-		next_instance_id = 0;
-		should_sort = false;
 		instances_sorted_events.clear();
+		should_sort = false;
+
+		particle_systems.clear();
+		next_instance_id = 0;
 
 		reset_lights();
 		if (light_map != nullptr) {
@@ -137,14 +203,8 @@ namespace bee {
 			delete physics_world;
 			physics_world = nullptr;
 		}
-		//physics_world = new PhysicsWorld();
-
-		if (view_texture != nullptr) {
-			view_texture->free();
-			delete view_texture;
-			view_texture = nullptr;
-		}
-		view_texture = new Sprite();
+		physics_world = new PhysicsWorld();
+		physics_instances.clear();
 
 		return 0;
 	}
@@ -212,7 +272,7 @@ namespace bee {
 	bool Room::get_is_background_color_enabled() const {
 		return is_background_color_enabled;
 	}
-	std::map<int, BackgroundData*> Room::get_backgrounds() const {
+	std::vector<BackgroundData*> Room::get_backgrounds() const {
 		return backgrounds;
 	}
 	std::string Room::get_background_string() const {
@@ -222,9 +282,9 @@ namespace bee {
 
 			for (auto& b : backgrounds) {
 				table.push_back({
-					b.second->background->get_name(), booltostring(b.second->is_visible), booltostring(b.second->is_foreground),
-					bee_itos(b.second->x), bee_itos(b.second->y), booltostring(b.second->is_horizontal_tile), booltostring(b.second->is_vertical_tile),
-					bee_itos(b.second->horizontal_speed), bee_itos(b.second->vertical_speed), booltostring(b.second->is_stretched)
+					b->background->get_name(), booltostring(b->is_visible), booltostring(b->is_foreground),
+					bee_itos(b->x), bee_itos(b->y), booltostring(b->is_horizontal_tile), booltostring(b->is_vertical_tile),
+					bee_itos(b->horizontal_speed), bee_itos(b->vertical_speed), booltostring(b->is_stretched)
 				});
 			}
 
@@ -235,7 +295,7 @@ namespace bee {
 	bool Room::get_is_views_enabled() const {
 		return is_views_enabled;
 	}
-	std::map<int, ViewData*> Room::get_views() const {
+	std::vector<ViewData*> Room::get_views() const {
 		return views;
 	}
 	std::string Room::get_view_string() const {
@@ -245,19 +305,19 @@ namespace bee {
 
 			for (auto& v : views) {
 				std::string follow_name = "none";
-				if (v.second->following != nullptr) {
-					follow_name = v.second->following->get_object()->get_name();
+				if (v->following != nullptr) {
+					follow_name = v->following->get_object()->get_name();
 				}
 
 				table.push_back({
-					booltostring(v.second->is_visible),
-					bee_itos(v.second->view_x), bee_itos(v.second->view_y),
-					bee_itos(v.second->view_width), bee_itos(v.second->view_height),
-					bee_itos(v.second->port_x), bee_itos(v.second->port_y),
-					bee_itos(v.second->port_width), bee_itos(v.second->port_height),
+					booltostring(v->is_visible),
+					bee_itos(v->view_x), bee_itos(v->view_y),
+					bee_itos(v->view_width), bee_itos(v->view_height),
+					bee_itos(v->port_x), bee_itos(v->port_y),
+					bee_itos(v->port_width), bee_itos(v->port_height),
 					follow_name,
-					bee_itos(v.second->horizontal_border), bee_itos(v.second->vertical_border),
-					bee_itos(v.second->horizontal_speed), bee_itos(v.second->vertical_speed)
+					bee_itos(v->horizontal_border), bee_itos(v->vertical_border),
+					bee_itos(v->horizontal_speed), bee_itos(v->vertical_speed)
 				});
 			}
 
@@ -331,28 +391,41 @@ namespace bee {
 		is_background_color_enabled = new_is_background_color_enabled;
 		return 0;
 	}
-	int Room::set_background(int index, BackgroundData* new_background) {
-		// Overwrite any previous background with the same index
-		backgrounds.erase(index);
-		backgrounds.emplace(index, new_background);
-		return 0;
-	}
-	int Room::add_background(int index, Background* new_background, bool new_is_visible, bool new_is_foreground, int new_x, int new_y, bool new_is_horizontal_tile, bool new_is_vertical_tile, int new_horizontal_speed, int new_vertical_speed, bool new_is_stretched) {
-		BackgroundData* background = new BackgroundData(new_background, new_is_visible, new_is_foreground, new_x, new_y, new_is_horizontal_tile, new_is_vertical_tile, new_horizontal_speed, new_vertical_speed, new_is_stretched);
-		if (index < 0) {
-			index = backgrounds.size();
+	int Room::set_background(int desired_index, BackgroundData* new_background) {
+		size_t new_index = desired_index;
+
+		// If the index doesn't exist, append the backgrounds
+		if (new_index >= backgrounds.size()) {
+			new_index = backgrounds.size();
+			backgrounds.push_back(new_background);
+			return new_index;
 		}
-		return set_background(index, background);
+
+		// Otherwise, overwrite any previous background with the same index
+		backgrounds[new_index] = new_background;
+		return new_index;
+	}
+	int Room::add_background(Background* new_background, bool new_is_visible, bool new_is_foreground, int new_x, int new_y, bool new_is_horizontal_tile, bool new_is_vertical_tile, int new_horizontal_speed, int new_vertical_speed, bool new_is_stretched) {
+		BackgroundData* background = new BackgroundData(new_background, new_is_visible, new_is_foreground, new_x, new_y, new_is_horizontal_tile, new_is_vertical_tile, new_horizontal_speed, new_vertical_speed, new_is_stretched);
+		return set_background(-1, background);
 	}
 	int Room::set_is_views_enabled(bool new_is_views_enabled) {
 		is_views_enabled = new_is_views_enabled;
 		return 0;
 	}
-	int Room::set_view(int index, ViewData* new_view) {
-		// Overwrite any previous view with the same index
-		views.erase(index);
-		views.emplace(index, new_view);
-		return 0;
+	int Room::set_view(int desired_index, ViewData* new_view) {
+		size_t new_index = desired_index;
+
+		// If the index doesn't exist, append the view
+		if (new_index >= views.size()) {
+			new_index = views.size();
+			views.push_back(new_view);
+			return new_index;
+		}
+
+		// Otherwise, overwrite any previous view with the same index
+		views[new_index] = new_view;
+		return new_index;
 	}
 	int Room::set_instance(int index, Instance* new_instance) {
 		if (instances.find(index) != instances.end()) { //  if the instance exists, overwrite it
@@ -364,8 +437,6 @@ namespace bee {
 	Instance* Room::add_instance(int index, Object* object, double x, double y, double z) {
 		if (object->get_sprite() != nullptr) {
 			if ((!object->get_sprite()->get_is_loaded())&&(get_is_ready())) {
-				//messenger_send({"engine", "room"}, E_MESSAGE::INFO, "Automatically loading the sprite for object " + object->get_name());
-				//object->get_sprite()->load();
 				messenger_send({"engine", "room"}, E_MESSAGE::WARNING, "An instance of " + object->get_name() + " has been created but its sprite has not been loaded");
 			}
 		}
@@ -379,12 +450,8 @@ namespace bee {
 		sort_instances();
 		object->add_instance(index, new_instance);
 
-		for (E_EVENT e : event_list) {
-			if (new_instance->get_object()->implemented_events.find(e) != new_instance->get_object()->implemented_events.end()) {
-				if (new_instance->get_object()->implemented_events[e]) {
-					instances_sorted_events[e].emplace(new_instance, new_instance->id);
-				}
-			}
+		for (E_EVENT e : object->implemented_events) {
+			instances_sorted_events[e].emplace(new_instance, new_instance->id);
 		}
 
 		if (new_instance->get_physbody() != nullptr) {
@@ -393,8 +460,8 @@ namespace bee {
 		}
 
 		if (get_is_ready()) {
-	        	new_instance->get_object()->update(new_instance);
-			new_instance->get_object()->create(new_instance);
+	        	object->update(new_instance);
+			object->create(new_instance);
 		} else {
 			created_instances.push_back(new_instance);
 		}
@@ -450,7 +517,7 @@ namespace bee {
 		return 1;
 	}
 	int Room::sort_instances() {
-		std::transform(instances.begin(), instances.end(), std::inserter(instances_sorted, instances_sorted.begin()), flip_pair<int,Instance*>);
+		std::transform(instances.begin(), instances.end(), std::inserter(instances_sorted, instances_sorted.begin()), internal::flip_instancemap_pair);
 		return 0;
 	}
 	int Room::request_instance_sort() {
@@ -469,25 +536,7 @@ namespace bee {
 	}
 	int Room::add_particle_system(ParticleSystem* new_system) {
 		new_system->load();
-		new_system->id = particle_count;
-		particles.emplace(particle_count++, new_system);
-		return 0;
-	}
-	int Room::add_particle(ParticleSystem* sys, Particle* pd, int x, int y) {
-		auto it = particles.find(sys->id);
-		if (it != particles.end()) {
-			it->second->add_particle(pd, x, y);
-
-			return 0;
-		}
-		return 1;
-	}
-	int Room::clear_particles() {
-		for (auto& p : particles) {
-			delete p.second;
-		}
-		particles.clear();
-		particle_count = 0;
+		particle_systems.emplace_back(new_system);
 		return 0;
 	}
 	int Room::add_lightable(LightableData* lightable) {
@@ -603,8 +652,8 @@ namespace bee {
 
 		// Load room backgrounds
 		for (auto& b : backgrounds) {
-			if (!b.second->background->get_is_loaded()) {
-				b.second->background->load();
+			if (!b->background->get_is_loaded()) {
+				b->background->load();
 			}
 		}
 
@@ -620,28 +669,22 @@ namespace bee {
 
 		// Free room backgrounds
 		for (auto& b : backgrounds) {
-			b.second->background->free();
+			b->background->free();
 		}
 
 		return 0;
 	}
 	int Room::reset_properties() {
+		should_sort = false;
 		for (auto& i : instances) {
 			destroyed_instances.push_back(i.second);
 		}
-		for (auto& i : destroyed_instances) {
-			if (instances_sorted_events[E_EVENT::DESTROY].find(i) != instances_sorted_events[E_EVENT::DESTROY].end()) {
-				i->get_object()->update(i);
-				i->get_object()->destroy(i);
-			}
-			remove_instance(i->id);
-		}
+		destroy();
+
 		instances.clear();
 		instances_sorted.clear();
 		created_instances.clear();
-		destroyed_instances.clear();
 		next_instance_id = 0;
-		should_sort = false;
 		instances_sorted_events.clear();
 
 		lights.clear();
@@ -659,12 +702,12 @@ namespace bee {
 
 		// Reset background data
 		for (auto& b : backgrounds) {
-			b.second->background->set_time_update();
-			delete b.second;
+			b->background->set_time_update();
+			delete b;
 		}
 		backgrounds.clear();
 
-		clear_particles();
+		particle_systems.clear();
 
 		return 0;
 	}
@@ -705,79 +748,90 @@ namespace bee {
 			}
 
 			std::map<int,std::string> p = split(trim(tmp), '\t');
-			std::string v = p[0];
+			std::map<int,std::string> params;
+			for (auto& e : p) { // Remove empty values
+				if (!e.second.empty()) {
+					params.emplace(params.size(), e.second);
+				}
+			}
+			p.clear();
+			std::string v = params[0];
 
-			if (p[0][0] == '#') {
+			if (params[0][0] == '#') {
 				continue;
-			} else if (p[0][0] == '!') {
+			} else if (params[0][0] == '!') {
 				if (v == "!tilex") {
-					unsigned int tile_amount = std::stoi(p[1]);
-					double grid_x = std::stod(p[2]);
+					unsigned int tile_amount = std::stoi(params[1]);
+					double grid_x = std::stod(params[2]);
 
-					std::string o = p[3];
+					std::string o = params[3];
+					Object* object = get_object_by_name(o);
 
-					if (get_object_by_name(o) == nullptr) {
+					if (object == nullptr) {
 						messenger_send({"engine", "room"}, E_MESSAGE::WARNING, "Error while loading instance map: unknown object " + o);
 						continue;
 					}
 
-					double x = std::stod(p[4]);
-					double y = std::stod(p[5]);
-					double z = std::stod(p[6]);
+					double x = std::stod(params[4]);
+					double y = std::stod(params[5]);
+					double z = std::stod(params[6]);
 
 					for (size_t i=0; i<tile_amount; ++i) {
-						add_instance(-1, get_object_by_name(o), x + i*grid_x, y, z);
+						add_instance(-1, object, x + i*grid_x, y, z);
 					}
 
 					continue;
 				} else if (v == "!tiley") {
-					unsigned int tile_amount = std::stoi(p[1]);
-					double grid_y = std::stod(p[2]);
+					unsigned int tile_amount = std::stoi(params[1]);
+					double grid_y = std::stod(params[2]);
 
-					std::string o = p[3];
+					std::string o = params[3];
+					Object* object = get_object_by_name(o);
 
-					if (get_object_by_name(o) == nullptr) {
+					if (object == nullptr) {
 						messenger_send({"engine", "room"}, E_MESSAGE::WARNING, "Error while loading instance map: unknown object " + o);
 						continue;
 					}
 
-					double x = std::stod(p[4]);
-					double y = std::stod(p[5]);
-					double z = std::stod(p[6]);
+					double x = std::stod(params[4]);
+					double y = std::stod(params[5]);
+					double z = std::stod(params[6]);
 
 					for (size_t i=0; i<tile_amount; ++i) {
-						add_instance(-1, get_object_by_name(o), x, y + i*grid_y, z);
+						add_instance(-1, object, x, y + i*grid_y, z);
 					}
 
 					continue;
 				} else if (v == "!tilez") {
-					unsigned int tile_amount = std::stoi(p[1]);
-					double grid_z = std::stod(p[2]);
+					unsigned int tile_amount = std::stoi(params[1]);
+					double grid_z = std::stod(params[2]);
 
-					std::string o = p[3];
+					std::string o = params[3];
+					Object* object = get_object_by_name(o);
 
-					if (get_object_by_name(o) == nullptr) {
+					if (object == nullptr) {
 						messenger_send({"engine", "room"}, E_MESSAGE::WARNING, "Error while loading instance map: unknown object " + o);
 						continue;
 					}
 
-					double x = std::stod(p[4]);
-					double y = std::stod(p[5]);
-					double z = std::stod(p[6]);
+					double x = std::stod(params[4]);
+					double y = std::stod(params[5]);
+					double z = std::stod(params[6]);
 
 					for (size_t i=0; i<tile_amount; ++i) {
-						add_instance(-1, get_object_by_name(o), x, y, z + i*grid_z);
+						add_instance(-1, object, x, y, z + i*grid_z);
 					}
 
 					continue;
 				} else if (v == "!set") {
-					std::string o = p[1];
+					std::string o = params[1];
+					Object* object = get_object_by_name(o);
 
-					double x = std::stod(p[2]);
-					double y = std::stod(p[3]);
-					double z = std::stod(p[4]);
+					double x = std::stod(params[2]);
+					double y = std::stod(params[3]);
+					double z = std::stod(params[4]);
 
-					Instance* inst = add_instance(-1, get_object_by_name(o), x, y, z);
+					Instance* inst = add_instance(-1, object, x, y, z);
 
 					while (!data_stream.eof()) {
 						std::string tmp_set;
@@ -787,23 +841,23 @@ namespace bee {
 							continue;
 						}
 
-						std::map<int,std::string> pset = split(trim(tmp_set), '\t');
+						std::map<int,std::string> set_params = split(trim(tmp_set), '\t');
 
-						if (pset[0][0] == '@') {
-							if (pset[0] == "@sprite") {
-								inst->set_sprite(get_sprite_by_name(pset[1]));
-							} else if (pset[0] == "@solid") {
-								inst->set_is_solid(SIDP(pset[1], true).i());
-							} else if (pset[0] == "@depth") {
-								inst->depth = SIDP(pset[1], true).i();
+						if (set_params[0][0] == '@') {
+							if (set_params[0] == "@sprite") {
+								inst->set_sprite(get_sprite_by_name(set_params[1]));
+							} else if (set_params[0] == "@solid") {
+								inst->set_is_solid(SIDP(set_params[1], true).i());
+							} else if (set_params[0] == "@depth") {
+								inst->depth = SIDP(set_params[1], true).i();
 							} else {
 								messenger_send({"engine", "room"}, E_MESSAGE::WARNING, "Error while loading instance map: unknown setter \"" + v + "\"");
 								continue;
 							}
-						} else if (pset[0] == "!setend") {
+						} else if (set_params[0] == "!setend") {
 							break;
 						} else {
-							inst->set_data(pset[1], SIDP(pset[2], true));
+							inst->set_data(set_params[1], SIDP(set_params[2], true));
 						}
 					}
 
@@ -816,15 +870,16 @@ namespace bee {
 					continue;
 				}
 			} else {
-				double x = std::stod(p[1]);
-				double y = std::stod(p[2]);
-				double z = std::stod(p[3]);
+				double x = std::stod(params[1]);
+				double y = std::stod(params[2]);
+				double z = std::stod(params[3]);
 
-				if (get_object_by_name(v) == nullptr) {
+				Object* object = get_object_by_name(v);
+				if (object == nullptr) {
 					messenger_send({"engine", "room"}, E_MESSAGE::WARNING, "Error while loading instance map: unknown object " + v);
 					continue;
 				} else {
-					add_instance(-1, get_object_by_name(v), x, y, z);
+					add_instance(-1, object, x, y, z);
 				}
 			}
 		}
@@ -847,10 +902,8 @@ namespace bee {
 
 	int Room::create() {
 		for (auto& i : created_instances) {
-			if (instances_sorted_events[E_EVENT::CREATE].find(i) != instances_sorted_events[E_EVENT::CREATE].end()) {
-				i->get_object()->update(i);
-				i->get_object()->create(i);
-			}
+			i->get_object()->update(i);
+			i->get_object()->create(i);
 		}
 		created_instances.clear();
 
@@ -858,10 +911,9 @@ namespace bee {
 	}
 	int Room::destroy() {
 		for (auto& i : destroyed_instances) {
-			if (instances_sorted_events[E_EVENT::DESTROY].find(i) != instances_sorted_events[E_EVENT::DESTROY].end()) {
-				i->get_object()->update(i);
-				i->get_object()->destroy(i);
-			}
+			i->get_object()->update(i);
+			i->get_object()->destroy(i);
+
 			remove_instance(i->id);
 		}
 		destroyed_instances.clear();
@@ -1239,8 +1291,8 @@ namespace bee {
 			}
 
 			for (auto& v : views) {
-				if (v.second->is_visible) {
-					view_current = v.second;
+				if (v->is_visible) {
+					view_current = v;
 
 					if (view_current->following != nullptr) {
 						Instance* f = view_current->following;
@@ -1300,8 +1352,8 @@ namespace bee {
 	int Room::draw_view() {
 		// Draw backgrounds
 		for (auto& b : backgrounds) {
-			if (b.second->is_visible && !b.second->is_foreground) {
-				b.second->background->draw(b.second->x, b.second->y, b.second);
+			if (b->is_visible && !b->is_foreground) {
+				b->background->draw(b->x, b->y, b);
 			}
 		}
 
@@ -1314,14 +1366,14 @@ namespace bee {
 		}
 
 		// Draw particles
-		for (auto& p : particles) {
-			p.second->draw();
+		for (auto& psys : particle_systems) {
+			psys->draw();
 		}
 
 		// Draw foregrounds
 		for (auto& b : backgrounds) {
-			if (b.second->is_visible && b.second->is_foreground) {
-				b.second->background->draw(b.second->x, b.second->y, b.second);
+			if (b->is_visible && b->is_foreground) {
+				b->background->draw(b->x, b->y, b);
 			}
 		}
 
@@ -1342,8 +1394,8 @@ namespace bee {
 			physics_world->draw_debug();
 
 			// Draw particle system bounding boxes
-			for (auto& p : particles) {
-				p.second->draw_debug();
+			for (auto& psys : particle_systems) {
+				psys->draw_debug();
 			}
 		}
 
@@ -1385,6 +1437,11 @@ namespace bee {
 			i.first->get_object()->room_end(i.first);
 		}
 
+		for (auto& i : instances) {
+			destroyed_instances.push_back(i.second);
+		}
+		destroy();
+
 		return 0;
 	}
 	int Room::game_start() {
@@ -1406,6 +1463,11 @@ namespace bee {
 			i.first->get_object()->update(i.first);
 			i.first->get_object()->game_end(i.first);
 		}
+
+		for (auto& i : instances) {
+			destroyed_instances.push_back(i.second);
+		}
+		destroy();
 
 		return 0;
 	}

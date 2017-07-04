@@ -28,17 +28,9 @@ namespace bee {
 	class ParticleChanger;
 
 	class ParticleSystem {
-		public:
-			int id;
-
-			bool is_oldfirst;
-			int depth;
-
-			double xoffset, yoffset;
 			Instance* following;
 
-			Uint32 time_offset;
-
+			std::list<Particle*> particle_types;
 			std::list<ParticleData*> particles;
 			std::list<ParticleEmitter*> emitters;
 			std::list<ParticleAttractor*> attractors;
@@ -48,12 +40,32 @@ namespace bee {
 
 			std::map<Particle*,std::list<SpriteDrawData*>> draw_data;
 
+			int clear_draw_data();
+		public:
+			bool is_oldfirst;
+			int depth;
+
+			double xoffset, yoffset;
+
+			Uint32 time_offset;
+
 			ParticleSystem();
+			~ParticleSystem();
 			int print();
 			int load();
+
+			int add_particle_type(Particle*);
+			int add_emitter(ParticleEmitter*);
+			int add_attractor(ParticleAttractor*);
+			int add_destroyer(ParticleDestroyer*);
+			int add_deflector(ParticleDeflector*);
+			int add_changer(ParticleChanger*);
+
+			int set_following(Instance*);
+
 			int fast_forward(int);
-			int draw();
 			int draw(Uint32, double, bool);
+			int draw();
 			int draw_debug();
 			int clear();
 

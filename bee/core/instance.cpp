@@ -117,6 +117,13 @@ namespace bee {
 		return 0;
 	}
 
+	bool Instance::operator< (const Instance& other) const {
+		if (depth == other.depth) {
+			return (id < other.id);
+		}
+		return (depth > other.depth);
+	}
+
 	std::string Instance::serialize(bool should_pretty_print) const {
 		std::map<std::string,SIDP> data;
 		data["id"] = id;
@@ -183,13 +190,6 @@ namespace bee {
 		path_pos_start = btVector3(SIDP_cd(m["path_pos_start"], 0), SIDP_cd(m["path_pos_start"], 1), SIDP_cd(m["path_pos_start"], 2));
 
 		return 0;
-	}
-
-	bool Instance::operator< (const Instance& other) const {
-		if (depth == other.depth) {
-			return (id < other.id);
-		}
-		return (depth > other.depth);
 	}
 
 	int Instance::remove() {
@@ -894,9 +894,8 @@ namespace bee {
 			return 1;
 		}
 		int xo=0, yo=0;
-		if (get_sprite() != nullptr) {
-			std::tie(xo, yo) = object->get_mask_offset();
-		}
+		std::tie(xo, yo) = object->get_mask_offset();
+
 		return get_sprite()->draw(get_corner_x()-xo, get_corner_y()-yo, subimage_time, w, h, angle, color, flip);
 	}
 	int Instance::draw(int w, int h, double angle, E_RGB color, SDL_RendererFlip flip) {
@@ -910,9 +909,8 @@ namespace bee {
 			return 1;
 		}
 		int xo=0, yo=0;
-		if (get_sprite() != nullptr) {
-			std::tie(xo, yo) = object->get_mask_offset();
-		}
+		std::tie(xo, yo) = object->get_mask_offset();
+
 		return get_sprite()->draw(get_corner_x()-xo, get_corner_y()-yo, subimage_time);
 	}
 	int Instance::draw(int w, int h) {
@@ -920,9 +918,8 @@ namespace bee {
 			return 1;
 		}
 		int xo=0, yo=0;
-		if (get_sprite() != nullptr) {
-			std::tie(xo, yo) = object->get_mask_offset();
-		}
+		std::tie(xo, yo) = object->get_mask_offset();
+
 		return get_sprite()->draw(get_corner_x()-xo, get_corner_y()-yo, subimage_time, w, h);
 	}
 	int Instance::draw(double angle) {
@@ -930,9 +927,8 @@ namespace bee {
 			return 1;
 		}
 		int xo=0, yo=0;
-		if (get_sprite() != nullptr) {
-			std::tie(xo, yo) = object->get_mask_offset();
-		}
+		std::tie(xo, yo) = object->get_mask_offset();
+
 		return get_sprite()->draw(get_corner_x()-xo, get_corner_y()-yo, subimage_time, angle);
 	}
 	int Instance::draw(RGBA color) {
@@ -940,15 +936,11 @@ namespace bee {
 			return 1;
 		}
 		int xo=0, yo=0;
-		if (get_sprite() != nullptr) {
-			std::tie(xo, yo) = object->get_mask_offset();
-		}
+		std::tie(xo, yo) = object->get_mask_offset();
+
 		return get_sprite()->draw(get_corner_x()-xo, get_corner_y()-yo, subimage_time, color);
 	}
 	int Instance::draw(E_RGB color) {
-		if (get_sprite() == nullptr) {
-			return 1;
-		}
 		return draw(get_enum_color(color));
 	}
 	int Instance::draw(SDL_RendererFlip flip) {
@@ -956,9 +948,8 @@ namespace bee {
 			return 1;
 		}
 		int xo=0, yo=0;
-		if (get_sprite() != nullptr) {
-			std::tie(xo, yo) = object->get_mask_offset();
-		}
+		std::tie(xo, yo) = object->get_mask_offset();
+
 		return get_sprite()->draw(get_corner_x()-xo, get_corner_y()-yo, subimage_time, flip);
 	}
 

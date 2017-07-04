@@ -38,7 +38,7 @@ int RmTest::init() {
 	get_phys_world()->set_scale(100.0);
 
 	// set backgrounds
-	add_background(-1, bk_green, true, false, 0, 0, true, true, 10, 10, false);
+	add_background(bk_green, true, false, 0, 0, true, true, 10, 10, false);
 
 	// set up instances
 	if (get_instance_map().empty()) {

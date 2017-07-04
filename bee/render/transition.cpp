@@ -419,7 +419,7 @@ namespace bee {
 		}
 
 		for (auto& b : engine->current_room->get_backgrounds()) {
-			b.second->background->set_time_update();
+			b->background->set_time_update();
 		}
 
 		return 0;

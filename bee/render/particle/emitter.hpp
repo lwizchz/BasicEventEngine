@@ -15,12 +15,14 @@ namespace bee {
 	// Forward declarations
 	class Instance;
 	class Particle;
+	class ParticleData;
+	class ParticleSystem;
 
 	class ParticleEmitter {
-		public:
+			Instance* following;
+
 			double x, y;
 			unsigned int w, h;
-			Instance* following;
 
 			E_PS_SHAPE shape;
 			E_PS_DISTR distribution;
@@ -30,7 +32,20 @@ namespace bee {
 			int number;
 			int number_count;
 
+			double get_following_x(double);
+			double get_following_y(double);
+
+			int emit(ParticleSystem*, double, double);
+		public:
 			ParticleEmitter();
+			ParticleEmitter(double, double, unsigned int, unsigned int, Particle*);
+
+			int set_following(Instance*);
+			int set_number(int);
+
+			int handle(ParticleSystem*, double, double);
+
+			int draw_debug(double, double, E_RGB);
 	};
 }
 
