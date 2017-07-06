@@ -21,9 +21,10 @@
 #include "../../util/real.hpp"
 #include "../../util/platform.hpp"
 
+#include "../../messenger/messenger.hpp"
+
 #include "../../core/resources.hpp"
 #include "../../core/room.hpp"
-#include "../../core/messenger/messenger.hpp"
 
 #include "particledata.hpp"
 #include "system.hpp"
@@ -126,7 +127,7 @@ namespace bee {
 				break;
 			}
 			default: // This should never happen
-				messenger_send({"engine", "resource"}, E_MESSAGE::WARNING, "Couldn't initialize particle: unknown particle type " + bee_itos((int)new_shape));
+				messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Couldn't initialize particle: unknown particle type " + bee_itos((int)new_shape));
 				return;
 		}
 
@@ -183,7 +184,7 @@ namespace bee {
 		"\n	is_lightable            " << is_lightable <<
 		"\n	is_sprite_lightable	" << is_sprite_lightable <<
 		"\n}\n";
-		messenger_send({"engine", "resource"}, E_MESSAGE::INFO, s.str());
+		messenger::send({"engine", "resource"}, E_MESSAGE::INFO, s.str());
 
 		return 0;
 	}

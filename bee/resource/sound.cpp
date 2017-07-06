@@ -19,8 +19,9 @@
 
 #include "../util/platform.hpp"
 
+#include "../messenger/messenger.hpp"
+
 #include "../core/resources.hpp"
-#include "../core/messenger/messenger.hpp"
 
 namespace bee {
 	std::map<int,Sound*> Sound::list;
@@ -67,7 +68,7 @@ namespace bee {
 	{
 		add_to_resources(); // Add the sound to the appropriate resource list
 		if (id < 0) { // If the sound could not be added to the resource list, output a warning
-			messenger_send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add sound resource: \"" + new_name + "\" from " + new_path);
+			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add sound resource: \"" + new_name + "\" from " + new_path);
 			throw(-1); // Throw an exception
 		}
 
@@ -174,7 +175,7 @@ namespace bee {
 		"\n	has_play_failed " << has_play_failed <<
 		"\n	sound_effects   " << sound_effects <<
 		"\n}\n";
-		messenger_send({"engine", "resource"}, E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for ouptut
+		messenger::send({"engine", "resource"}, E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for ouptut
 
 		return 0; // Return 0 on success
 	}
@@ -296,7 +297,7 @@ namespace bee {
 	*/
 	int Sound::load() {
 		if (is_loaded) { // If the sound has already been loaded, output a warning
-			messenger_send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to load sound \"" + name + "\" because it has already been loaded");
+			messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to load sound \"" + name + "\" because it has already been loaded");
 			return 1; // Return 1 when already loaded
 		}
 
@@ -305,13 +306,13 @@ namespace bee {
 		if (is_music) { // If the sound should be treated as music, load it appropriately
 			music = Mix_LoadMUS(path.c_str()); // Load the sound file as mixer music
 			if (music == nullptr) { // If the music could not be loaded, output a warning
-				messenger_send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to load sound \"" + name + "\" as music: " + Mix_GetError());
+				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to load sound \"" + name + "\" as music: " + Mix_GetError());
 				return 2; // Return 2 on music loading failure
 			}
 		} else { // Otherwise load the sound normally
 			chunk = Mix_LoadWAV(path.c_str()); // Load the sound file as a chunk sound
 			if (chunk == nullptr) { // If the chunk could not be loaded, output a warning
-				messenger_send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to load sound \"" + name + "\" as chunk: " + Mix_GetError());
+				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to load sound \"" + name + "\" as chunk: " + Mix_GetError());
 				return 3; // Return 3 on chunk loading failure
 			}
 
@@ -387,7 +388,7 @@ namespace bee {
 	int Sound::play(int loop_amount) {
 		if (!is_loaded) { // Do not attempt to play the sound if it has not been loaded
 			if (!has_play_failed) { // If the play call hasn't failed before, output a warning
-				messenger_send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to play sound \"" + name + "\" because it is not loaded");
+				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to play sound \"" + name + "\" because it is not loaded");
 				has_play_failed = true; // Set the play failure boolean
 			}
 			return 1; // Return 1 when not loaded
@@ -402,7 +403,7 @@ namespace bee {
 				current_channels.remove(c); // Remove any duplicate channels
 				current_channels.push_back(c); // Add the channel to the end of the currently playing list
 			} else { // If the chunk could not be played, output a warning
-				messenger_send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to play sound \"" + name + "\": " + Mix_GetError());
+				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to play sound \"" + name + "\": " + Mix_GetError());
 				return 2; // Return 2 on play failure
 			}
 
@@ -429,7 +430,7 @@ namespace bee {
 	int Sound::stop() {
 		if (!is_loaded) { // Do not attempt to stop the sound if it hasn't been loaded
 			if (!has_play_failed) { // If the play call hasn't failed before, output a warning
-				messenger_send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to fade out sound \"" + name + "\" because it is not loaded");
+				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to fade out sound \"" + name + "\" because it is not loaded");
 				has_play_failed = true; // Set the play failure boolean
 			}
 			return 1; // Return 1 when not loaded
@@ -458,7 +459,7 @@ namespace bee {
 	int Sound::rewind() {
 		if (!is_loaded) { // Do not attempt to rewind the sound if it has not been loaded
 			if (!has_play_failed) { // If the play call hasn't failed before, output a warning
-				messenger_send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to rewind sound \"" + name + "\" because it is not loaded");
+				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to rewind sound \"" + name + "\" because it is not loaded");
 				has_play_failed = true; // Set the play failure boolean
 			}
 			return 1; // Return 1 when not loaded
@@ -504,7 +505,7 @@ namespace bee {
 	int Sound::pause() {
 		if (!is_loaded) { // Do not attempt to pause the sound if it has not been loaded
 			if (!has_play_failed) { // If the play call hasn't failed before, output a warning
-				messenger_send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to pause sound \"" + name + "\" because it is not loaded");
+				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to pause sound \"" + name + "\" because it is not loaded");
 				has_play_failed = true; // Set the play failure boolean
 			}
 			return 1; // Return 1 when not loaded
@@ -528,7 +529,7 @@ namespace bee {
 	int Sound::resume() {
 		if (!is_loaded) { // Do not attempt to resume the sound if it has not been loaded
 			if (!has_play_failed) { // If the play call hasn't failed before, output a warning
-				messenger_send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to resume sound \"" + name + "\" because it is not loaded");
+				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to resume sound \"" + name + "\" because it is not loaded");
 				has_play_failed = true; // Set the play failure boolean
 			}
 			return 1; // Return 1 when not loaded
@@ -570,7 +571,7 @@ namespace bee {
 	int Sound::fade_in(int ticks) {
 		if (!is_loaded) { // Do not attempt to fade in the sound if it has not been loaded
 			if (!has_play_failed) { // If the play call hasn't failed yet, output a warning
-				messenger_send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to fade in sound \"" + name + "\" because it is not loaded");
+				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to fade in sound \"" + name + "\" because it is not loaded");
 				has_play_failed = true; // Set the play failure boolean
 			}
 			return 1; // Return 1 when not loaded
@@ -585,7 +586,7 @@ namespace bee {
 				current_channels.remove(c); // Remove any duplicate channels
 				current_channels.push_back(c); // Add the channel to the end of the currently playing list
 			} else { // If the chunk could not be played, output a warning
-				messenger_send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to play sound \"" + name + "\": " + Mix_GetError());
+				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to play sound \"" + name + "\": " + Mix_GetError());
 				return 2; // Return 2 on play failure
 			}
 
@@ -606,7 +607,7 @@ namespace bee {
 	int Sound::fade_out(int ticks) {
 		if (!is_loaded) { // Do not attempt to fade out the sound if it hasn't been loaded
 			if (!has_play_failed) { // If the play call hasn't failed before, output a warning
-				messenger_send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to fade out sound \"" + name + "\" because it is not loaded");
+				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to fade out sound \"" + name + "\" because it is not loaded");
 				has_play_failed = true; // Set the play failure boolean
 			}
 			return 1; // Return 1 when not loaded
@@ -635,7 +636,7 @@ namespace bee {
 	int Sound::effect_set(int new_sound_effects) {
 		if (!is_loaded) { // Do not attempt to add any sound effects if the sound has not been loaded
 			if (!has_play_failed) { // If the play call hasn't failed before, output a warning
-				messenger_send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to play sound \"" + name + "\" because it is not loaded");
+				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to play sound \"" + name + "\" because it is not loaded");
 				has_play_failed = true; // Set the play failure boolean
 			}
 			return 1; // Return 1 when not loaded
@@ -681,19 +682,19 @@ namespace bee {
 			}
 			// Output warnings for the gargle, reverb, compressor, and equalizer effects which are currently unimplemented
 			if (se_mask & (int)E_SOUNDEFFECT::GARGLE) { // If the gargle effect is requeted, apply it
-				messenger_send({"engine", "sound"}, E_MESSAGE::WARNING, "The gargle sound effect is currently unimplemented and will have no effect");
+				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "The gargle sound effect is currently unimplemented and will have no effect");
 				Mix_RegisterEffect(channel, sound_effect_gargle, sound_effect_gargle_cleanup, gargle_data);
 			}
 			if (se_mask & (int)E_SOUNDEFFECT::REVERB) { // If the reverb effect is requeted, apply it
-				messenger_send({"engine", "sound"}, E_MESSAGE::WARNING, "The reverb sound effect is currently unimplemented and will have no effect");
+				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "The reverb sound effect is currently unimplemented and will have no effect");
 				Mix_RegisterEffect(channel, sound_effect_reverb, sound_effect_reverb_cleanup, reverb_data);
 			}
 			if (se_mask & (int)E_SOUNDEFFECT::COMPRESSOR) { // If the compressor effect is requeted, apply it
-				messenger_send({"engine", "sound"}, E_MESSAGE::WARNING, "The compressor sound effect is currently unimplemented and will have no effect");
+				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "The compressor sound effect is currently unimplemented and will have no effect");
 				Mix_RegisterEffect(channel, sound_effect_compressor, sound_effect_compressor_cleanup, compressor_data);
 			}
 			if (se_mask & (int)E_SOUNDEFFECT::EQUALIZER) { // If the equalizer effect is requeted, apply it
-				messenger_send({"engine", "sound"}, E_MESSAGE::WARNING, "The equalizer sound effect is currently unimplemented and will have no effect");
+				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "The equalizer sound effect is currently unimplemented and will have no effect");
 				Mix_RegisterEffect(channel, sound_effect_equalizer, sound_effect_equalizer_cleanup, equalizer_data);
 			}
 		}
@@ -721,19 +722,19 @@ namespace bee {
 			}
 			// Output warnings for the gargle, reverb, compressor, and equalizer effects which are currently unimplemented
 			if (se_mask & (int)E_SOUNDEFFECT::GARGLE) { // If the gargle effect is requested, apply it
-				messenger_send({"engine", "sound"}, E_MESSAGE::WARNING, "The gargle sound effect is currently unimplemented and will have no effect");
+				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "The gargle sound effect is currently unimplemented and will have no effect");
 				Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_gargle, sound_effect_gargle_cleanup, gargle_data);
 			}
 			if (se_mask & (int)E_SOUNDEFFECT::REVERB) { // If the reverb effect is requested, apply it
-				messenger_send({"engine", "sound"}, E_MESSAGE::WARNING, "The reverb sound effect is currently unimplemented and will have no effect");
+				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "The reverb sound effect is currently unimplemented and will have no effect");
 				Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_reverb, sound_effect_reverb_cleanup, reverb_data);
 			}
 			if (se_mask & (int)E_SOUNDEFFECT::COMPRESSOR) { // If the compressor effect is requested, apply it
-				messenger_send({"engine", "sound"}, E_MESSAGE::WARNING, "The compressor sound effect is currently unimplemented and will have no effect");
+				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "The compressor sound effect is currently unimplemented and will have no effect");
 				Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_compressor, sound_effect_compressor_cleanup, compressor_data);
 			}
 			if (se_mask & (int)E_SOUNDEFFECT::EQUALIZER) { // If the equalizer effect is requested, apply it
-				messenger_send({"engine", "sound"}, E_MESSAGE::WARNING, "The equalizer sound effect is currently unimplemented and will have no effect");
+				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "The equalizer sound effect is currently unimplemented and will have no effect");
 				Mix_RegisterEffect(MIX_CHANNEL_POST, sound_effect_equalizer, sound_effect_equalizer_cleanup, equalizer_data);
 			}
 		}

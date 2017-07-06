@@ -12,6 +12,10 @@
 #include "init/info.hpp"
 #include "init/programflags.hpp"
 
+#include "messenger/messenger.hpp"
+#include "messenger/messagecontents.hpp"
+#include "messenger/messagerecipient.hpp"
+
 #include "core/console.hpp"
 #include "core/display.hpp"
 #include "core/enginestate.hpp"
@@ -21,12 +25,10 @@
 #include "core/room.hpp"
 #include "core/sidp.hpp"
 #include "core/window.hpp"
-#include "core/messenger/messenger.hpp"
-#include "core/messenger/messagecontents.hpp"
-#include "core/messenger/messagerecipient.hpp"
-#include "core/network/network.hpp"
-#include "core/network/networkdata.hpp"
-#include "core/network/networkclient.hpp"
+
+#include "network/network.hpp"
+#include "network/networkdata.hpp"
+#include "network/networkclient.hpp"
 
 #include "render/camera.hpp"
 #include "render/drawing.hpp"

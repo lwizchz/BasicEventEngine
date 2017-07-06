@@ -14,16 +14,16 @@
 #include "../debug.hpp"
 #include "../engine.hpp"
 
-#include "resources.hpp"
-#include "sidp.hpp"
-
 #include "../util/collision.hpp"
 #include "../util/real.hpp"
 #include "../util/string.hpp"
 #include "../util/template.hpp"
 
+#include "../messenger/messenger.hpp"
+
+#include "resources.hpp"
+#include "sidp.hpp"
 #include "room.hpp"
-#include "messenger/messenger.hpp"
 
 #include "../render/drawing.hpp"
 #include "../render/viewdata.hpp"
@@ -112,7 +112,7 @@ namespace bee {
 		"\n	path_previous_mass " << path_previous_mass <<
 		"\n	path_pos_start     (" << path_pos_start.x() << ", " << path_pos_start.y() << ", " << path_pos_start.z() << ")" <<
 		"\n}\n";
-		messenger_send({"engine", "resource"}, E_MESSAGE::INFO, s.str());
+		messenger::send({"engine", "resource"}, E_MESSAGE::INFO, s.str());
 
 		return 0;
 	}

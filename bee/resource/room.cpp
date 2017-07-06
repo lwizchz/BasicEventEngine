@@ -30,11 +30,12 @@
 
 #include "../init/gameoptions.hpp"
 
+#include "../messenger/messenger.hpp"
+
 #include "../core/console.hpp"
 #include "../core/enginestate.hpp"
 #include "../core/resources.hpp"
 #include "../core/room.hpp"
-#include "../core/messenger/messenger.hpp"
 
 #include "../render/drawing.hpp"
 #include "../render/renderer.hpp"
@@ -136,7 +137,7 @@ namespace bee {
 	{
 		add_to_resources();
 		if (id < 0) {
-			messenger_send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add room resource: \"" + new_name + "\"" + new_path);
+			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add room resource: \"" + new_name + "\"" + new_path);
 			throw(-1);
 		}
 
@@ -234,7 +235,7 @@ namespace bee {
 		return 0;
 	}
 	int Room::print() const {
-		messenger_send({"engine", "resource"}, E_MESSAGE::INFO, get_print());
+		messenger::send({"engine", "resource"}, E_MESSAGE::INFO, get_print());
 		return 0;
 	}
 	std::string Room::get_print() const {
@@ -462,7 +463,7 @@ namespace bee {
 	Instance* Room::add_instance(int index, Object* object, double x, double y, double z) {
 		if (object->get_sprite() != nullptr) {
 			if ((!object->get_sprite()->get_is_loaded())&&(get_is_ready())) {
-				messenger_send({"engine", "room"}, E_MESSAGE::WARNING, "An instance of " + object->get_name() + " has been created but its sprite has not been loaded");
+				messenger::send({"engine", "room"}, E_MESSAGE::WARNING, "An instance of " + object->get_name() + " has been created but its sprite has not been loaded");
 			}
 		}
 
@@ -498,7 +499,7 @@ namespace bee {
 
 		if (object->get_sprite() != nullptr) {
 			if (!object->get_sprite()->get_is_loaded()) {
-				messenger_send({"engine", "room"}, E_MESSAGE::INFO, "Automatically loading the sprite for object " + object->get_name());
+				messenger::send({"engine", "room"}, E_MESSAGE::INFO, "Automatically loading the sprite for object " + object->get_name());
 				object->get_sprite()->load();
 			}
 
@@ -522,7 +523,7 @@ namespace bee {
 			Instance* inst = instances[index];
 
 			if (inst->get_physbody() == nullptr) {
-				messenger_send({"engine", "room"}, E_MESSAGE::WARNING, "Null physbody for " + inst->get_object()->get_name() + ":" + bee_itos(index) + "\n");
+				messenger::send({"engine", "room"}, E_MESSAGE::WARNING, "Null physbody for " + inst->get_object()->get_name() + ":" + bee_itos(index) + "\n");
 			} else {
 				remove_physbody(inst->get_physbody());
 			}
@@ -758,7 +759,7 @@ namespace bee {
 
 		std::string datastr = file_get_contents(fname);
 		if (datastr.empty()) {
-			messenger_send({"engine", "room"}, E_MESSAGE::WARNING, "No instances loaded");
+			messenger::send({"engine", "room"}, E_MESSAGE::WARNING, "No instances loaded");
 			return 1;
 		}
 
@@ -793,7 +794,7 @@ namespace bee {
 					Object* object = get_object_by_name(o);
 
 					if (object == nullptr) {
-						messenger_send({"engine", "room"}, E_MESSAGE::WARNING, "Error while loading instance map: unknown object " + o);
+						messenger::send({"engine", "room"}, E_MESSAGE::WARNING, "Error while loading instance map: unknown object " + o);
 						continue;
 					}
 
@@ -814,7 +815,7 @@ namespace bee {
 					Object* object = get_object_by_name(o);
 
 					if (object == nullptr) {
-						messenger_send({"engine", "room"}, E_MESSAGE::WARNING, "Error while loading instance map: unknown object " + o);
+						messenger::send({"engine", "room"}, E_MESSAGE::WARNING, "Error while loading instance map: unknown object " + o);
 						continue;
 					}
 
@@ -835,7 +836,7 @@ namespace bee {
 					Object* object = get_object_by_name(o);
 
 					if (object == nullptr) {
-						messenger_send({"engine", "room"}, E_MESSAGE::WARNING, "Error while loading instance map: unknown object " + o);
+						messenger::send({"engine", "room"}, E_MESSAGE::WARNING, "Error while loading instance map: unknown object " + o);
 						continue;
 					}
 
@@ -876,7 +877,7 @@ namespace bee {
 							} else if (set_params[0] == "@depth") {
 								inst->depth = SIDP(set_params[1], true).i();
 							} else {
-								messenger_send({"engine", "room"}, E_MESSAGE::WARNING, "Error while loading instance map: unknown setter \"" + v + "\"");
+								messenger::send({"engine", "room"}, E_MESSAGE::WARNING, "Error while loading instance map: unknown setter \"" + v + "\"");
 								continue;
 							}
 						} else if (set_params[0] == "!setend") {
@@ -888,10 +889,10 @@ namespace bee {
 
 					continue;
 				} else if (v == "!setend") {
-					messenger_send({"engine", "room"}, E_MESSAGE::WARNING, "Error while loading instance map: stray !setend");
+					messenger::send({"engine", "room"}, E_MESSAGE::WARNING, "Error while loading instance map: stray !setend");
 					continue;
 				} else {
-					messenger_send({"engine", "room"}, E_MESSAGE::WARNING, "Error while loading instance map: unknown command \"" + v + "\"");
+					messenger::send({"engine", "room"}, E_MESSAGE::WARNING, "Error while loading instance map: unknown command \"" + v + "\"");
 					continue;
 				}
 			} else {
@@ -901,7 +902,7 @@ namespace bee {
 
 				Object* object = get_object_by_name(v);
 				if (object == nullptr) {
-					messenger_send({"engine", "room"}, E_MESSAGE::WARNING, "Error while loading instance map: unknown object " + v);
+					messenger::send({"engine", "room"}, E_MESSAGE::WARNING, "Error while loading instance map: unknown object " + v);
 					continue;
 				} else {
 					add_instance(-1, object, x, y, z);

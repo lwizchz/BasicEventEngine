@@ -259,7 +259,7 @@ void ObjBee::keyboard_press(bee::Instance* self, SDL_Event* e) {
 			break;
 		}
 		case SDLK_b: {
-			bee::messenger_send({"bee"}, bee::E_MESSAGE::INFO, self->serialize(true));
+			bee::messenger::send({"bee"}, bee::E_MESSAGE::INFO, self->serialize(true));
 			(*s)["serialdata"] = self->serialize();
 			break;
 		}

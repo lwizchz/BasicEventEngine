@@ -18,8 +18,9 @@
 
 #include "../util/platform.hpp"
 
+#include "../messenger/messenger.hpp"
+
 #include "../core/room.hpp"
-#include "../core/messenger/messenger.hpp"
 
 #include "../resource/room.hpp"
 
@@ -93,7 +94,7 @@ namespace bee {
 			}
 
 			if (a > 0) {
-				messenger_send({"engine", "physics"}, E_MESSAGE::WARNING, "Scale change occurred with " + bee_itos(a) + " non-removed objects and constraints, they have been deleted\n");
+				messenger::send({"engine", "physics"}, E_MESSAGE::WARNING, "Scale change occurred with " + bee_itos(a) + " non-removed objects and constraints, they have been deleted\n");
 			}
 		}
 
@@ -105,7 +106,7 @@ namespace bee {
 
 	int PhysicsWorld::add_body(PhysicsBody* new_body) {
 		if (scale != new_body->get_scale()) {
-			messenger_send({"engine", "physics"}, E_MESSAGE::WARNING, "Failed to add body to world: scale mismatch: world(" + bee_itos(scale) + "), body(" + bee_itos(new_body->get_scale()) + ")\n");
+			messenger::send({"engine", "physics"}, E_MESSAGE::WARNING, "Failed to add body to world: scale mismatch: world(" + bee_itos(scale) + "), body(" + bee_itos(new_body->get_scale()) + ")\n");
 			return 1;
 		}
 
@@ -203,7 +204,7 @@ namespace bee {
 				break;
 			}
 			default:
-				messenger_send({"engine", "physics"}, E_MESSAGE::WARNING, "Invalid constraint type\n");
+				messenger::send({"engine", "physics"}, E_MESSAGE::WARNING, "Invalid constraint type\n");
 			case E_PHYS_CONSTRAINT::NONE:
 				break;
 		}
@@ -296,7 +297,7 @@ namespace bee {
 				break;
 			}
 			default:
-				messenger_send({"engine", "physics"}, E_MESSAGE::WARNING, "Invalid constraint type\n");
+				messenger::send({"engine", "physics"}, E_MESSAGE::WARNING, "Invalid constraint type\n");
 			case E_PHYS_CONSTRAINT::NONE:
 				break;
 		}

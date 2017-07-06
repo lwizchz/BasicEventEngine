@@ -21,13 +21,15 @@
 #include "init/gameoptions.hpp"
 #include "init/programflags.hpp"
 
+#include "messenger/messenger.hpp"
+
 #include "core/console.hpp"
 #include "core/enginestate.hpp"
 #include "core/input.hpp"
 #include "core/resources.hpp"
 #include "core/room.hpp"
-#include "core/messenger/messenger.hpp"
-#include "core/network/network.hpp"
+
+#include "network/network.hpp"
 
 #include "render/drawing.hpp"
 #include "render/render.hpp"
@@ -42,23 +44,20 @@ namespace bee {
 	bool is_initialized = false;
 
 	int init(int argc, char** argv, const std::list<ProgramFlags*>& new_flags, Room** new_first_room, GameOptions* new_options) {
-		engine = new EngineState();
-		engine->argc = argc;
-		engine->argv = argv;
-		engine->options = new_options;
+		engine = new EngineState(argc, argv, new_options);
 
 		if (handle_flags(new_flags, true) < 0) {
 			return 1; // Return 1 when the flags request to exit
 		}
 
-		messenger_send({"engine", "init"}, E_MESSAGE::INFO,
+		messenger::send({"engine", "init"}, E_MESSAGE::INFO,
 			"Initializing with BasicEventEngine v" +
 			std::to_string(BEE_VERSION_MAJOR) + "." + std::to_string(BEE_VERSION_MINOR) + "." + std::to_string(BEE_VERSION_RELEASE)
 		);
 
 		if (engine->options->should_assert) {
 			if (!verify_assertions(argc, argv)) {
-				messenger_send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't verify assertions");
+				messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't verify assertions");
 				return 2; // Return 2 when assertions could not be verified
 			}
 		}
@@ -66,7 +65,7 @@ namespace bee {
 		net_init();
 
 		if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
-			messenger_send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't init SDL: " + get_sdl_error());
+			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't init SDL: " + get_sdl_error());
 			return 3; // Return 3 when SDL couldn't be initialized
 		}
 
@@ -117,7 +116,7 @@ namespace bee {
 		}
 		engine->renderer->window = SDL_CreateWindow("BasicEventEngine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, engine->width, engine->height, window_flags);
 		if (engine->renderer->window == nullptr) {
-			messenger_send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't create SDL window: " + get_sdl_error());
+			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't create SDL window: " + get_sdl_error());
 			return 4; // Return 4 when the window could not be created
 		}
 		if (engine->options->is_minimized) {
@@ -132,30 +131,30 @@ namespace bee {
 
 		if (engine->options->renderer_type != E_RENDERER::SDL) {
 			if (engine->renderer->opengl_init()) {
-				messenger_send({"engine", "init"}, E_MESSAGE::ERROR, "Could not initialize the OpenGL renderer");
+				messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Could not initialize the OpenGL renderer");
 				return 5; // Return 5 when the renderer could not be initialized
 			}
 		} else { // if not OpenGL, init an SDL renderer
 			if (engine->renderer->sdl_renderer_init()) {
-				messenger_send({"engine", "init"}, E_MESSAGE::ERROR, "Could not initialized the SDL renderer");
+				messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Could not initialized the SDL renderer");
 				return 5; // Return 5 when the renderer could not be initialized
 			}
 		}
 
 		int img_flags = IMG_INIT_PNG | IMG_INIT_JPG;
 		if (!(IMG_Init(img_flags) & img_flags)) {
-			messenger_send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't init SDL_image: " + std::string(IMG_GetError()));
+			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't init SDL_image: " + std::string(IMG_GetError()));
 			return 6; // Return 6 when SDL_image could not be initialized
 		}
 
 		if (TTF_Init() == -1) {
-			messenger_send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't init SDL_ttf: " + std::string(TTF_GetError()));
+			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't init SDL_ttf: " + std::string(TTF_GetError()));
 			return 7; // Return 7 when SDL_ttf could not be initialized
 		}
 
 		Mix_SetSoundFonts(""); // This will disable MIDI but fixes a small error when not including a soundfont
 		if (Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 1024) < 0) {
-			messenger_send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't init SDL_mixer: " + std::string(Mix_GetError()));
+			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't init SDL_mixer: " + std::string(Mix_GetError()));
 			return 8; // Return 8 when SDL_mixer could not be initialized
 		}
 		Mix_ChannelFinished(sound_finished);
@@ -163,7 +162,7 @@ namespace bee {
 
 		if (!is_initialized) {
 			if (init_resources()) {
-				messenger_send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't init resources");
+				messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't init resources");
 				return 9; // Return 9 when the resources could not be initialized
 			}
 		}
@@ -174,14 +173,14 @@ namespace bee {
 		engine->font_default = new Font("font_default", "liberation_mono.ttf", 16, false);
 			engine->font_default->load();
 
-		handle_messages();
+		messenger::handle();
 		engine->console = new Console(); // Initialize the default console commands
 		internal::console_init_commands();
-		handle_messages();
+		messenger::handle();
 
 		if (*new_first_room != nullptr) {
 			if (change_room(*new_first_room, false)) {
-				messenger_send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't load first room");
+				messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't load first room");
 				return 10; // Return 10 when the first room could not be loaded
 			}
 		}
@@ -189,7 +188,7 @@ namespace bee {
 		if (handle_flags(new_flags, false) < 0) {
 			return 1; // Return 1 when the flags request to exit
 		}
-		handle_messages();
+		messenger::handle();
 
 		return 0; // Return 0 on success
 	}
@@ -197,17 +196,17 @@ namespace bee {
 		engine->tickstamp = get_ticks();
 		engine->fps_ticks = get_ticks();
 
-		messenger_send({"engine"}, E_MESSAGE::START, "gameloop");
-		handle_messages();
+		messenger::send({"engine"}, E_MESSAGE::START, "gameloop");
+		messenger::handle();
 
 		// Register the logging system
-		internal::messenger_register_protected("cmdlog", {"engine", "commandline"}, true, [] (std::shared_ptr<MessageContents> msg) {
+		messenger::internal::register_protected("cmdlog", {"engine", "commandline"}, true, [] (std::shared_ptr<MessageContents> msg) {
 			std::cout << "[" << msg->descr << "]\n";
 		});
 
 		while (!engine->quit) {
 			if (engine->current_room == nullptr) {
-				messenger_send({"engine"}, E_MESSAGE::ERROR, "Aborted event loop because current_room == nullptr");
+				messenger::send({"engine"}, E_MESSAGE::ERROR, "Aborted event loop because current_room == nullptr");
 				return 1;
 			}
 
@@ -298,7 +297,7 @@ namespace bee {
 										break;
 								#endif
 								default: {
-									messenger_send({"engine"}, E_MESSAGE::WARNING, "Unknown window event: " + bee_itos(event.window.event));
+									messenger::send({"engine"}, E_MESSAGE::WARNING, "Unknown window event: " + bee_itos(event.window.event));
 									break;
 								}
 							}
@@ -378,7 +377,7 @@ namespace bee {
 							break;
 						}
 						default:
-							messenger_send({"engine"}, E_MESSAGE::WARNING, "Unknown event type: " + bee_itos(event.type));
+							messenger::send({"engine"}, E_MESSAGE::WARNING, "Unknown event type: " + bee_itos(event.type));
 							break;
 					}
 				}
@@ -388,7 +387,7 @@ namespace bee {
 					if (engine->commandline_input[engine->commandline_current] == "") {
 						engine->commandline_input.pop_back();
 					} else {
-						messenger_send({"engine", "commandline"}, E_MESSAGE::INFO, engine->commandline_input[engine->commandline_current]);
+						messenger::send({"engine", "commandline"}, E_MESSAGE::INFO, engine->commandline_input[engine->commandline_current]);
 						engine->current_room->commandline_input(engine->commandline_input[engine->commandline_current++]);
 					}
 				}
@@ -405,7 +404,7 @@ namespace bee {
 				engine->current_room->destroy();
 
 				net_handle_events();
-				handle_messages();
+				messenger::handle();
 
 				engine->fps_count++;
 				engine->frame_number++;
@@ -420,12 +419,12 @@ namespace bee {
 				) {
 					if ((!engine->options->is_vsync_enabled)||(!engine->has_focus)) {
 						Uint32 delay = (1000/fps_desired) - (new_tickstamp - engine->tickstamp);
-						//messenger_log("FPS delay: " + bee_itos(delay) + "ms, " + bee_itos(100*delay/fps_desired) + "% of the frame");
+						//messenger::log("FPS delay: " + bee_itos(delay) + "ms, " + bee_itos(100*delay/fps_desired) + "% of the frame");
 						SDL_Delay(delay);
 					}
 				} else if (new_tickstamp - engine->tickstamp > 3*1000/fps_desired) { // If the tick difference is more than 3 frames worth, output a warning
 					Uint32 overtime = (new_tickstamp - engine->tickstamp) - (1000/fps_desired);
-					messenger_send({"engine"}, E_MESSAGE::WARNING, "Engine loop over time by " + bee_itos(overtime) + "ms, " + bee_itos(overtime/(1000/fps_desired)) + " frames lost");
+					messenger::send({"engine"}, E_MESSAGE::WARNING, "Engine loop over time by " + bee_itos(overtime) + "ms, " + bee_itos(overtime/(1000/fps_desired)) + " frames lost");
 				}
 				internal::update_delta();
 
@@ -445,7 +444,7 @@ namespace bee {
 			} catch (int e) {
 				switch (e) {
 					case -1: { // Resource error
-						messenger_send({"engine"}, E_MESSAGE::ERROR, "Aborting due to resource error");
+						messenger::send({"engine"}, E_MESSAGE::ERROR, "Aborting due to resource error");
 						return 2;
 					}
 					case 0: { // Jump to loop end, e.g. change room
@@ -464,14 +463,14 @@ namespace bee {
 						break;
 					}
 					default: {
-						messenger_send({"engine"}, E_MESSAGE::ERROR, "Unknown error code: " + bee_itos(e));
+						messenger::send({"engine"}, E_MESSAGE::ERROR, "Unknown error code: " + bee_itos(e));
 						return e;
 					}
 				}
 			} catch (...) {
 				close();
 
-				internal::messenger_send_urgent(std::shared_ptr<MessageContents>(new MessageContents(
+				messenger::internal::send_urgent(std::shared_ptr<MessageContents>(new MessageContents(
 					get_ticks(),
 					{"engine"},
 					E_MESSAGE::ERROR,
@@ -482,7 +481,7 @@ namespace bee {
 				std::rethrow_exception(std::current_exception());
 			}
 		}
-		messenger_send({"engine"}, E_MESSAGE::END, "gameloop");
+		messenger::send({"engine"}, E_MESSAGE::END, "gameloop");
 
 		engine->current_room->game_end();
 		change_room(nullptr, false);
@@ -491,7 +490,7 @@ namespace bee {
 		return 0;
 	}
 	int close() {
-		handle_messages();
+		messenger::handle();
 
 		Mix_AllocateChannels(0);
 
@@ -500,67 +499,19 @@ namespace bee {
 			close_resources();
 		}
 
-		if (engine->font_default != nullptr) {
-			delete engine->font_default;
-			engine->font_default = nullptr;
-		}
-
-		if (engine->texture_before != nullptr) {
-			engine->texture_before->free();
-			delete engine->texture_before;
-			engine->texture_before = nullptr;
-		}
-		if (engine->texture_after != nullptr) {
-			engine->texture_after->free();
-			delete engine->texture_after;
-			engine->texture_after = nullptr;
-		}
-
-		if (engine->color != nullptr) {
-			delete engine->color;
-			engine->color = nullptr;
-		}
-
-		if (engine->renderer != nullptr) {
-			delete engine->renderer;
-			engine->renderer = nullptr;
-		}
-		if (engine->cursor != nullptr) {
-			SDL_FreeCursor(engine->cursor);
-			engine->cursor = nullptr;
-		}
-
-		if (engine->console != nullptr) {
-			delete engine->console;
-			engine->console = nullptr;
-		}
+		engine->free();
 
 		Mix_CloseAudio();
 		TTF_Quit();
 		IMG_Quit();
 		SDL_Quit();
 
-		if (engine->net != nullptr) {
-			net_close();
-			delete engine->net;
-			engine->net = nullptr;
-		}
-
 		free_standard_flags();
 
-		handle_messages();
+		messenger::handle();
+		messenger::clear();
 
 		if (engine != nullptr) {
-			if (!engine->messages.empty()) {
-				internal::messenger_send_urgent(std::shared_ptr<MessageContents>(new MessageContents(
-					get_ticks(),
-					{"engine", "close"},
-					E_MESSAGE::WARNING,
-					"Engine closing with "+bee_itos(engine->messages.size())+" messages left in the queue",
-					nullptr
-				)));
-			}
-
 			delete engine;
 			engine = nullptr;
 		}

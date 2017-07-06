@@ -18,9 +18,10 @@
 
 #include "../init/gameoptions.hpp"
 
+#include "../messenger/messenger.hpp"
+
 #include "../core/enginestate.hpp"
 #include "../core/window.hpp"
-#include "../core/messenger/messenger.hpp"
 
 #include "../render/renderer.hpp"
 
@@ -268,22 +269,22 @@ namespace bee {
 			}
 			case E_TRANSITION::INTERLACE_LEFT: { // Interlaced from left
 				// Not yet implemented
-				messenger_send({"engine"}, E_MESSAGE::WARNING, "The interlace transitions are not yet implemented.");
+				messenger::send({"engine"}, E_MESSAGE::WARNING, "The interlace transitions are not yet implemented.");
 				break;
 			}
 			case E_TRANSITION::INTERLACE_RIGHT: { // Interlaced from right
 				// Not yet implemented
-				messenger_send({"engine"}, E_MESSAGE::WARNING, "The interlace transitions are not yet implemented.");
+				messenger::send({"engine"}, E_MESSAGE::WARNING, "The interlace transitions are not yet implemented.");
 				break;
 			}
 			case E_TRANSITION::INTERLACE_TOP: { // Interlaced from top
 				// Not yet implemented
-				messenger_send({"engine"}, E_MESSAGE::WARNING, "The interlace transitions are not yet implemented.");
+				messenger::send({"engine"}, E_MESSAGE::WARNING, "The interlace transitions are not yet implemented.");
 				break;
 			}
 			case E_TRANSITION::INTERLACE_BOTTOM: { // Interlaced from bottom
 				// Not yet implemented
-				messenger_send({"engine"}, E_MESSAGE::WARNING, "The interlace transitions are not yet implemented.");
+				messenger::send({"engine"}, E_MESSAGE::WARNING, "The interlace transitions are not yet implemented.");
 				break;
 			}
 			case E_TRANSITION::PUSH_LEFT: { // Push from left

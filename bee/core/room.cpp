@@ -24,10 +24,11 @@
 
 #include "../init/gameoptions.hpp"
 
+#include "../messenger/messenger.hpp"
+
 #include "enginestate.hpp"
 #include "resources.hpp"
 #include "window.hpp"
-#include "messenger/messenger.hpp"
 
 #include "../render/camera.hpp"
 #include "../render/render.hpp"
@@ -97,13 +98,13 @@ namespace bee {
 		engine->current_room->init(); // Initialize the room
 
 		if (load_media()) { // Attempt to load all resources for the new room
-			messenger_send({"engine", "room"}, E_MESSAGE::WARNING, "Couldn't load room media for " + engine->current_room->get_name());
+			messenger::send({"engine", "room"}, E_MESSAGE::WARNING, "Couldn't load room media for " + engine->current_room->get_name());
 			return 2; // Return 2 on resource loading error
 		}
 
 		set_window_title(engine->current_room->get_name()); // Set the window title to the room's name
-		//messenger_send({"engine", "room"}, E_MESSAGE::INFO, current_room->get_instance_string());
-		messenger_send({"engine", "room"}, E_MESSAGE::INFO, "Changed to room \"" + engine->current_room->get_name() + "\"");
+		//messenger::send({"engine", "room"}, E_MESSAGE::INFO, current_room->get_instance_string());
+		messenger::send({"engine", "room"}, E_MESSAGE::INFO, "Changed to room \"" + engine->current_room->get_name() + "\"");
 
 		if (engine->transition_type != E_TRANSITION::NONE) { // If a transition has been defined then prepare for drawing the new room into the after buffer
 			set_render_target(engine->texture_after);
@@ -113,7 +114,7 @@ namespace bee {
 		engine->renderer->render_clear();
 
 		engine->is_ready = true; // Set the event loop as running
-		handle_messages();
+		messenger::handle();
 		engine->current_room->create(); // Run the create event for the new room
 		if (is_game_start) { // If this is the first room then run the game_start event for the room
 			engine->current_room->game_start();

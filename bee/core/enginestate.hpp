@@ -27,9 +27,8 @@ namespace bee {
 	class ProgramFlags;
 	class GameOptions;
 
+	class Messenger;
 	class Console;
-	class MessageRecipient;
-	class MessageContents;
 	class NetworkData;
 
 	class Renderer;
@@ -95,16 +94,14 @@ namespace bee {
 		std::vector<std::string> commandline_input;
 		unsigned int commandline_current;
 
-		std::unordered_map<std::string,std::unordered_set<std::shared_ptr<MessageRecipient>>> recipients;
-		const std::unordered_set<std::string> protected_tags;
-		std::vector<std::shared_ptr<MessageContents>> messages;
-		E_OUTPUT messenger_output_level;
-
 		Console* console;
 
 		unsigned int fps_stable;
 
-		EngineState();
+		EngineState(int, char**, GameOptions*);
+		~EngineState();
+
+		int free(); // Must be called to free data before closing SDL
 	};
 
 	extern EngineState* engine;

@@ -17,7 +17,7 @@
 
 #include "../util/real.hpp"
 
-#include "../core/messenger/messenger.hpp"
+#include "../messenger/messenger.hpp"
 
 #include "../render/drawing.hpp"
 #include "../render/rgba.hpp"
@@ -71,7 +71,7 @@ namespace bee {
 	}
 
 	void PhysicsDraw::reportErrorWarning(const char* str) {
-		messenger_send({"engine", "physics", "draw"}, E_MESSAGE::WARNING, std::string(str));
+		messenger::send({"engine", "physics", "draw"}, E_MESSAGE::WARNING, std::string(str));
 	}
 
 	void PhysicsDraw::draw3dText(const btVector3& center, const char* str) {

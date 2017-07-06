@@ -17,9 +17,10 @@
 
 #include "../init/gameoptions.hpp"
 
+#include "../messenger/messenger.hpp"
+
 #include "../core/enginestate.hpp"
 #include "../core/room.hpp"
-#include "../core/messenger/messenger.hpp"
 
 #include "room.hpp"
 
@@ -61,7 +62,7 @@ namespace bee {
 	{
 		add_to_resources(); // Add the light to the appropriate resource list
 		if (id < 0) { // If the light could not be added to the resource list, output a warning
-			messenger_send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add light resource: \"" + new_name + "\" from " + new_path);
+			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add light resource: \"" + new_name + "\" from " + new_path);
 			throw(-1); // Throw an exception
 		}
 
@@ -158,7 +159,7 @@ namespace bee {
 		"\n	attenuation (" << lighting.attenuation.x << ", " << lighting.attenuation.y << ", " << lighting.attenuation.z << ")" <<
 		"\n	color       " << (int)lighting.color.r << ", " << (int)lighting.color.g << ", " << (int)lighting.color.b <<
 		"\n}\n";
-		messenger_send({"engine", "resource"}, E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for output
+		messenger::send({"engine", "resource"}, E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for output
 
 		return 0; // Return 0 on success
 	}
@@ -229,7 +230,7 @@ namespace bee {
 	int Light::queue() {
 		if (engine->options->renderer_type == E_RENDERER::SDL) { // If the SDL rendering is being used, output a warning
 			if (!has_drawn_sdl) { // If the SDL draw call hasn't been called before, output a warning
-				messenger_send({"engine", "light"}, E_MESSAGE::WARNING, "Lighting is not fully supported in SDL mode");
+				messenger::send({"engine", "light"}, E_MESSAGE::WARNING, "Lighting is not fully supported in SDL mode");
 				has_drawn_sdl = true; // Set the SDL drawing boolean
 			}
 		}

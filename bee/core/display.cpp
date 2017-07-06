@@ -17,8 +17,9 @@
 
 #include "../init/gameoptions.hpp"
 
+#include "../messenger/messenger.hpp"
+
 #include "enginestate.hpp"
-#include "messenger/messenger.hpp"
 
 #include "../render/renderer.hpp"
 
@@ -30,7 +31,7 @@ namespace bee {
 	SDL_DisplayMode get_display() {
 		SDL_DisplayMode dm;
 		if (SDL_GetDesktopDisplayMode(0, &dm) != 0) { // Attempt to get the desktop display mode
-			messenger_send({"engine"}, E_MESSAGE::WARNING, "Failed to get display mode: " + get_sdl_error());
+			messenger::send({"engine"}, E_MESSAGE::WARNING, "Failed to get display mode: " + get_sdl_error());
 		}
 		return dm; // Return the data, note that if the previous call failed then the structure will be empty
 	}
@@ -70,12 +71,12 @@ namespace bee {
 		if (engine->options->is_fullscreen) { // Only set the display mode when the window is fullscreen
 			SDL_DisplayMode dm = {get_display_format(), w, h, hz, 0}; // Define a new display mode using the current pixel format
 			if (SDL_SetWindowDisplayMode(engine->renderer->window, &dm) != 0) { // Attempt to set the display mode that should be used when the window is visible
-				messenger_send({"engine"}, E_MESSAGE::WARNING, "Failed to set display mode: " + get_sdl_error());
+				messenger::send({"engine"}, E_MESSAGE::WARNING, "Failed to set display mode: " + get_sdl_error());
 				return 1; // Return 1 on display mode fail
 			}
 			return 0; // Return 0 on successful display mode set
 		} else {
-			messenger_send({"engine"}, E_MESSAGE::WARNING, "Failed to set display size because the window is not fullscreen.");
+			messenger::send({"engine"}, E_MESSAGE::WARNING, "Failed to set display size because the window is not fullscreen.");
 			return 2; // Return 2 when the window is not fullscreen
 		}
 	}

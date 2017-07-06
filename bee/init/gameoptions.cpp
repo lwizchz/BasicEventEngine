@@ -23,7 +23,8 @@
 
 #include "../core/enginestate.hpp"
 #include "../core/window.hpp"
-#include "../core/network/network.hpp"
+
+#include "../network/network.hpp"
 
 #include "../render/renderer.hpp"
 

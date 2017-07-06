@@ -19,8 +19,9 @@
 #include "../util/string.hpp"
 #include "../util/platform.hpp"
 
+#include "../messenger/messenger.hpp"
+
 #include "../core/instance.hpp"
-#include "../core/messenger/messenger.hpp"
 
 #include "sprite.hpp"
 
@@ -66,7 +67,7 @@ namespace bee {
 	{
 		add_to_resources(); // Add the object to the appropriate resource list
 		if (id < 0) { // If it could not be added, output a warning
-			messenger_send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add object resource: \"" + new_name + "\" from " + new_path);
+			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add object resource: \"" + new_name + "\" from " + new_path);
 			throw(-1); // Throw an exception
 		}
 
@@ -172,7 +173,7 @@ namespace bee {
 		"\n	is_pausable   " << is_pausable <<
 		"\n	instances\n" << debug_indent(instance_string, 2) <<
 		"\n}\n";
-		messenger_send({"engine", "resource"}, E_MESSAGE::INFO, ss.str()); // Send the info to the messaging system for output
+		messenger::send({"engine", "resource"}, E_MESSAGE::INFO, ss.str()); // Send the info to the messaging system for output
 
 		return 0; // Return 0 on success
 	}
@@ -359,7 +360,7 @@ namespace bee {
 	SIDP Object::get_data(int inst_id, const std::string& field, const SIDP& default_value, bool should_output) const {
 		if (instance_data.find(inst_id) == instance_data.end()) { // If the instance doesn't exist, output a warning
 			if (should_output) {
-				messenger_send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to get data for the instance with id " + bee_itos(inst_id) + " of object \"" + name + "\"");
+				messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to get data for the instance with id " + bee_itos(inst_id) + " of object \"" + name + "\"");
 			}
 			return default_value; // Return the default value when there is no instance with the desired id
 		}
@@ -367,7 +368,7 @@ namespace bee {
 		const std::map<std::string,SIDP>& data = instance_data.at(inst_id); // Get the instance's data map
 		if (data.find(field) == data.end()) { // If the data field doesn't exist, output a warning and return the default value
 			if (should_output) {
-				messenger_send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to get the data field \"" + field + "\" from the instance of object \"" + name + "\", returning SIDP(0)");
+				messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to get the data field \"" + field + "\" from the instance of object \"" + name + "\", returning SIDP(0)");
 			}
 			return default_value;
 		}

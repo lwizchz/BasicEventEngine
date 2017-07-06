@@ -19,7 +19,7 @@
 #include "../util/string.hpp"
 #include "../util/platform.hpp"
 
-#include "../core/messenger/messenger.hpp"
+#include "../messenger/messenger.hpp"
 
 #include "../render/drawing.hpp"
 #include "../render/rgba.hpp"
@@ -52,7 +52,7 @@ namespace bee {
 	{
 		add_to_resources(); // Add the path to the appropriate resource list
 		if (id < 0) { // If the path could not be added to the resource list, output a warning
-			messenger_send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add path resource: \"" + new_name + "\" from " + new_path);
+			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add path resource: \"" + new_name + "\" from " + new_path);
 			throw(-1); // Throw an exception
 		}
 
@@ -124,7 +124,7 @@ namespace bee {
 		"	is_curved	" << is_curved <<
 		"\n	is_closed       " << is_closed <<
 		"\n}\n";
-		messenger_send({"engine", "resource"}, E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for output
+		messenger::send({"engine", "resource"}, E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for output
 
 		return 0; // Return 0 on success
 	}

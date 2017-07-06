@@ -18,10 +18,11 @@
 #include "../util/string.hpp"
 #include "../util/template.hpp"
 
+#include "../messenger/messenger.hpp"
+
 #include "../core/instance.hpp"
 #include "../core/room.hpp"
 #include "../core/sidp.hpp"
-#include "../core/messenger/messenger.hpp"
 
 #include "../resource/room.hpp"
 
@@ -339,7 +340,7 @@ namespace bee {
 			}
 
 			default:
-				messenger_send({"engine", "physics"}, E_MESSAGE::WARNING, "PHYS ERR invalid shape type\n");
+				messenger::send({"engine", "physics"}, E_MESSAGE::WARNING, "PHYS ERR invalid shape type\n");
 				/* FALL THROUGH */
 			case E_PHYS_SHAPE::NONE:
 				shape_param_amount = 0;

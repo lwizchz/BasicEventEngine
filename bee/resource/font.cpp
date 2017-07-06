@@ -21,8 +21,9 @@
 
 #include "../init/gameoptions.hpp"
 
+#include "../messenger/messenger.hpp"
+
 #include "../core/enginestate.hpp"
-#include "../core/messenger/messenger.hpp"
 
 #include "sprite.hpp"
 
@@ -100,7 +101,7 @@ namespace bee {
 	{
 		add_to_resources(); // Add the font to the appropriate resource list
 		if (id < 0) { // If the font could not be added to the resource list, output a warning
-			messenger_send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add font resource: \"" + new_name + "\" from " + new_path);
+			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add font resource: \"" + new_name + "\" from " + new_path);
 			throw(-1); // Throw an exception
 		}
 
@@ -189,7 +190,7 @@ namespace bee {
 		"\n	is_sprite       " << is_sprite <<
 		"\n	sprite_font     " << sprite_font <<
 		"\n}\n";
-		messenger_send({"engine", "resource"}, E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for output
+		messenger::send({"engine", "resource"}, E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for output
 
 		return 0; // Return 0 on success
 	}
@@ -217,7 +218,7 @@ namespace bee {
 	}
 	int Font::get_lineskip_default() {
 		if (!is_loaded) { // If the font is not loaded, output a warning
-			messenger_send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to get the default lineskip for \"" + name + "\" becuase it is not loaded");
+			messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to get the default lineskip for \"" + name + "\" becuase it is not loaded");
 			return -1; // Return -1 on failure
 		}
 
@@ -252,7 +253,7 @@ namespace bee {
 	*/
 	int Font::set_style(int new_style) {
 		if (!is_loaded) { // Do not attempt to set the style if the font has not been loaded
-			messenger_send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to set the font style for \"" + name + "\" because it is not loaded");
+			messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to set the font style for \"" + name + "\" because it is not loaded");
 			return 1; // Return 1 on error
 		}
 
@@ -270,14 +271,14 @@ namespace bee {
 	*/
 	int Font::load() {
 		if (is_loaded) { // If the font has already been loaded, output a warning
-			messenger_send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to load font \"" + name + "\" from because it has already been loaded");
+			messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to load font \"" + name + "\" from because it has already been loaded");
 			return 1; // Return 1 when already loaded
 		}
 
 		if (is_sprite) { // If the font is a sprite font, load it appropriately
 			sprite_font = new Sprite("spr_"+get_name(), path); // Create and load a sprite for the font
 			if (!sprite_font->load()) { // If the sprite fails to load, output a warning
-				messenger_send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to load the font \"" + path + "\": " + get_sdl_error());
+				messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to load the font \"" + path + "\": " + get_sdl_error());
 				has_draw_failed = true;
 				return 2; // Return 2 on loading failure
 			}
@@ -287,12 +288,12 @@ namespace bee {
 			has_draw_failed = false;
 		} else { // Otherwise load the sprite's TTF file
 			if (engine->options->renderer_type != E_RENDERER::SDL) { // If the engine is rendering in OpenGL mode, output a warning about fast font drawing
-				messenger_send({"engine", "font"}, E_MESSAGE::WARNING, "Please note that TTF fast font rendering is currently broken in OpenGL mode\nThe current behavior is to draw slowly and discard the texture data");
+				messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Please note that TTF fast font rendering is currently broken in OpenGL mode\nThe current behavior is to draw slowly and discard the texture data");
 			}
 
 			font = TTF_OpenFont(path.c_str(), font_size); // Open the TTF file with the desired font size
 			if (font == nullptr) { // If the font failed to load, output a warning
-				messenger_send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to load font \"" + path + "\": " + TTF_GetError());
+				messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to load font \"" + path + "\": " + TTF_GetError());
 				has_draw_failed = true;
 				return 2; // Return 2 on loading failure
 			}
@@ -337,7 +338,7 @@ namespace bee {
 	TextData* Font::draw_internal(int x, int y, const std::string& text, RGBA color) {
 		if (!is_loaded) { // Do not attempt to draw the text if the font has not been loaded
 			if (!has_draw_failed) { // If the draw call hasn't failed before, output a warning
-				messenger_send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to draw text with \"" + name + "\" because it is not loaded");
+				messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to draw text with \"" + name + "\" because it is not loaded");
 				has_draw_failed = true; // Set the draw failure boolean
 			}
 			return nullptr; // Return nullptr when not loaded
@@ -352,7 +353,7 @@ namespace bee {
 		// Render the text to a temporary surface
 		SDL_Surface* tmp_surface = TTF_RenderUTF8_Blended(font, t.c_str(), {color.r, color.g, color.b, color.a}); // Use the slow but pretty TTF rendering mode
 		if (tmp_surface == nullptr) { // If the text failed to render, output a warning
-			messenger_send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to draw with font \"" + name + "\": " + TTF_GetError());
+			messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to draw with font \"" + name + "\": " + TTF_GetError());
 			return nullptr; // Return nullptr when rendering failed
 		}
 
@@ -378,7 +379,7 @@ namespace bee {
 	TextData* Font::draw(int x, int y, const std::string& text, RGBA color) {
 		if (!is_loaded) { // Do not attempt to draw the text if the font has not been loaded
 			if (!has_draw_failed) { // If the draw call hasn't failed before, output a warning
-				messenger_send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to draw text with \"" + name + "\" because it is not loaded");
+				messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to draw text with \"" + name + "\" because it is not loaded");
 				has_draw_failed = true; // Set the draw failure boolean
 			}
 			return nullptr; // Return nullptr when not loaded
@@ -428,7 +429,7 @@ namespace bee {
 	TextData* Font::draw(TextData* textdata, int x, int y, const std::string& text, RGBA color) {
 		if (!is_loaded) { // Do not attempt to draw the text if the font has not been loaded
 			if (!has_draw_failed) { // If the draw call hasn't failed before, output a warning
-				messenger_send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to draw text with \"" + name + "\" because it is not loaded");
+				messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to draw text with \"" + name + "\" because it is not loaded");
 				has_draw_failed = true; // Set the draw failure boolean
 			}
 			return nullptr; // Return nullptr when not loaded
@@ -473,7 +474,7 @@ namespace bee {
 	int Font::draw_fast_internal(int x, int y, const std::string& text, RGBA color) {
 		if (!is_loaded) { // Do not attempt to draw the text if the font has not been loaded
 			if (!has_draw_failed) { // If the draw call hasn't failed before, output a warning
-				messenger_send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to draw text with \"" + name + "\" because it is not loaded");
+				messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to draw text with \"" + name + "\" because it is not loaded");
 				has_draw_failed = true; // Set the draw failure boolean
 			}
 			return 1; // Return 1 when not loaded
@@ -501,7 +502,7 @@ namespace bee {
 				tmp_surface = TTF_RenderUTF8_Solid(font, t.c_str(), {color.r, color.g, color.b, color.a}); // Use the fast but ugly TTF rendering mode
 			}
 			if (tmp_surface == nullptr) { // If the text failed to render, output a warning
-				messenger_send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to draw with font \"" + name + "\": " + TTF_GetError());
+				messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to draw with font \"" + name + "\": " + TTF_GetError());
 				return 2; // Return 2 on rendering error
 			}
 
@@ -528,7 +529,7 @@ namespace bee {
 	int Font::draw_fast(int x, int y, const std::string& text, RGBA color) {
 		if (!is_loaded) { // Do not attempt to draw the text if the font has not been loaded
 			if (!has_draw_failed) { // If the draw call hasn't failed before, output a warning
-				messenger_send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to draw text with \"" + name + "\" because it is not loaded");
+				messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to draw text with \"" + name + "\" because it is not loaded");
 				has_draw_failed = true; // Set the draw failure boolean
 			}
 			return 1; // Return 1 when not loaded

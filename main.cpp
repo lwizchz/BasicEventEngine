@@ -24,12 +24,12 @@ int main(int argc, char* argv[]) {
 
 	// Initialize the game engine
 	if (bee::init(argc, argv, bee::get_standard_flags(), &rm_test, &options)) {
-		bee::handle_messages();
+		bee::messenger::handle();
 		return 1; // Return 1 on initialization failure
 	}
 
 	// Output initialization message
-	bee::messenger_send({"engine", "init"}, bee::E_MESSAGE::INFO,
+	bee::messenger::send({"engine", "init"}, bee::E_MESSAGE::INFO,
 		std::string("Initialized ") + MACRO_TO_STR(GAME_NAME) + " v" +
 		std::to_string(GAME_VERSION_MAJOR) + "." + std::to_string(GAME_VERSION_MINOR) + "." + std::to_string(GAME_VERSION_RELEASE)
 	);

@@ -31,8 +31,9 @@
 
 #include "../init/gameoptions.hpp"
 
+#include "../messenger/messenger.hpp"
+
 #include "../core/enginestate.hpp"
-#include "../core/messenger/messenger.hpp"
 
 #include "../render/renderer.hpp"
 
@@ -78,7 +79,7 @@ namespace bee {
 	{
 		add_to_resources(); // Add the mesh to the appropriate resource list
 		if (id < 0) { // If the mesh could not be added to the resource list, output a warning
-			messenger_send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add mesh resource: \"" + new_name + "\" from " + new_path);
+			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add mesh resource: \"" + new_name + "\" from " + new_path);
 			throw(-1); // Throw an exception
 		}
 
@@ -149,7 +150,7 @@ namespace bee {
 		"\n	name  " << name <<
 		"\n	path  " << path <<
 		"\n}\n";
-		messenger_send({"engine", "resource"}, E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for output
+		messenger::send({"engine", "resource"}, E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for output
 
 		return 0; // Return 0 on success
 	}
@@ -185,19 +186,19 @@ namespace bee {
 	*/
 	int Mesh::load(int mesh_index) {
 		if (is_loaded) { // If the mesh has already been loaded, output a warning
-			messenger_send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to load mesh \"" + name + "\" because it is already loaded");
+			messenger::send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to load mesh \"" + name + "\" because it is already loaded");
 			return 1; // Return 1 when already loaded
 		}
 
 		if (engine->options->renderer_type == E_RENDERER::SDL) { // If the SDL rendering mode is enabled, output a warning
-			messenger_send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to load mesh because SDL rendering is currently enabled");
+			messenger::send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to load mesh because SDL rendering is currently enabled");
 			return 2; // Return 2 when SDL rendering is enabled
 		}
 
 		// Attempt to import the object file
 		scene = aiImportFile(path.c_str(), aiProcessPreset_TargetRealtime_MaxQuality); // Import it with "MaxQuality"
 		if (scene == nullptr) { // If the file couldn't be imported, output a warning
-			messenger_send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to load mesh \"" + name + "\": " + aiGetErrorString());
+			messenger::send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to load mesh \"" + name + "\": " + aiGetErrorString());
 			return 3; // Return 3 on import failure
 		}
 
@@ -286,7 +287,7 @@ namespace bee {
 				tmp_surface = IMG_Load(fullpath.c_str());
 				if (tmp_surface == nullptr) { // If the surface could not be loaded, output a warning
 					free_internal();
-					messenger_send({"engine", "sprite"}, E_MESSAGE::WARNING, "Failed to load the texture for mesh \"" + name + "\": " + IMG_GetError());
+					messenger::send({"engine", "sprite"}, E_MESSAGE::WARNING, "Failed to load the texture for mesh \"" + name + "\": " + IMG_GetError());
 					return 4; // Return 4 on texture load failure
 				}
 
@@ -312,7 +313,7 @@ namespace bee {
 				has_texture = true;
 			} else {
 				free_internal();
-				messenger_send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to load the texture for mesh \"" + name + "\", the material reported a texture with no file path");
+				messenger::send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to load the texture for mesh \"" + name + "\", the material reported a texture with no file path");
 				return 5; // Return 5 on missing texture file
 			}
 		}
@@ -386,7 +387,7 @@ namespace bee {
 	int Mesh::draw(glm::vec3 pos, glm::vec3 scale, glm::vec3 rotate, RGBA color, bool is_wireframe) {
 		if (!is_loaded) {
 			if (!has_draw_failed) {
-				messenger_send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to draw mesh \"" + name + "\" because it is not loaded");
+				messenger::send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to draw mesh \"" + name + "\" because it is not loaded");
 				has_draw_failed = true;
 			}
 			return 1;

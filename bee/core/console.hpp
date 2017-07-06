@@ -14,9 +14,9 @@
 #include <functional>
 #include <memory>
 
-#include "sidp.hpp"
+#include "../messenger/messagecontents.hpp"
 
-#include "messenger/messagecontents.hpp"
+#include "sidp.hpp"
 
 namespace bee{
 	// Forward declaration

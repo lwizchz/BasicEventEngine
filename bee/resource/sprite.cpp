@@ -27,10 +27,11 @@
 
 #include "../init/gameoptions.hpp"
 
+#include "../messenger/messenger.hpp"
+
 #include "../core/enginestate.hpp"
 #include "../core/room.hpp"
 #include "../core/window.hpp"
-#include "../core/messenger/messenger.hpp"
 
 #include "../render/drawing.hpp"
 #include "../render/renderer.hpp"
@@ -113,7 +114,7 @@ namespace bee {
 	{
 		add_to_resources(); // Add the sprite to the appropriate resource list
 		if (id < 0) { // If the sprite could not be added, output a warning
-			messenger_send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add sprite resource: \"" + new_name + "\" from " + new_path);
+			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add sprite resource: \"" + new_name + "\" from " + new_path);
 			throw(-1); // Throw an exception
 		}
 
@@ -212,7 +213,7 @@ namespace bee {
 		"\n	has_draw_failed " << has_draw_failed <<
 		"\n	is_lightable    " << is_lightable <<
 		"\n}\n";
-		messenger_send({"engine", "resource"}, E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for output
+		messenger::send({"engine", "resource"}, E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for output
 
 		return 0; // Return 0 on success
 	}
@@ -455,7 +456,7 @@ namespace bee {
 	*/
 	int Sprite::load_from_surface(SDL_Surface* tmp_surface) {
 		if (is_loaded) { // If the sprite has already been loaded, output a warning
-			messenger_send({"engine", "sprite"}, E_MESSAGE::WARNING, "Failed to load sprite \"" + name + "\" from surface because it has already been loaded");
+			messenger::send({"engine", "sprite"}, E_MESSAGE::WARNING, "Failed to load sprite \"" + name + "\" from surface because it has already been loaded");
 			return 1; // Return 1 when not loaded
 		}
 
@@ -529,7 +530,7 @@ namespace bee {
 			// Generate an SDL texture from the surface pixels
 			texture = SDL_CreateTextureFromSurface(engine->renderer->sdl_renderer, tmp_surface);
 			if (texture == nullptr) { // If the texture could not be generated, output a warning
-				messenger_send({"engine", "sprite"}, E_MESSAGE::WARNING, "Failed to create texture from surface for \"" + name + "\": " + get_sdl_error());
+				messenger::send({"engine", "sprite"}, E_MESSAGE::WARNING, "Failed to create texture from surface for \"" + name + "\": " + get_sdl_error());
 				return 2; // Return 2 on failure to create the texture
 			}
 
@@ -549,7 +550,7 @@ namespace bee {
 	*/
 	int Sprite::load() {
 		if (is_loaded) { // Do not attempt to load the sprite if it has already been loaded
-		       //messenger_send({"engine", "sprite"}, E_MESSAGE::WARNING, "Failed to load sprite \"" + name + "\" because it has already been loaded");
+		       //messenger::send({"engine", "sprite"}, E_MESSAGE::WARNING, "Failed to load sprite \"" + name + "\" because it has already been loaded");
 		       return 1; // Return 1 when already loaded
 		}
 
@@ -557,7 +558,7 @@ namespace bee {
 		SDL_Surface* tmp_surface;
 		tmp_surface = IMG_Load(path.c_str());
 		if (tmp_surface == nullptr) { // If the surface could not be loaded, output a warning
-			messenger_send({"engine", "sprite"}, E_MESSAGE::WARNING, "Failed to load sprite \"" + name + "\": " + IMG_GetError());
+			messenger::send({"engine", "sprite"}, E_MESSAGE::WARNING, "Failed to load sprite \"" + name + "\": " + IMG_GetError());
 			return 2; // Return 2 on loding failure
 		}
 
@@ -652,7 +653,7 @@ namespace bee {
 	int Sprite::draw_subimage(int x, int y, unsigned int current_subimage, int w, int h, double angle, RGBA new_color, SDL_RendererFlip flip) {
 		if (!is_loaded) { // Do not attempt to draw the subimage if it has not been loaded
 			if (!has_draw_failed) { // If the draw call hasn't failed before, output a warning
-				messenger_send({"engine", "sprite"}, E_MESSAGE::WARNING, "Failed to draw sprite \"" + name + "\" because it is not loaded");
+				messenger::send({"engine", "sprite"}, E_MESSAGE::WARNING, "Failed to draw sprite \"" + name + "\" because it is not loaded");
 				has_draw_failed = true; // Set the draw failure boolean
 			}
 			return 1; // Return 1 when not loaded
@@ -877,7 +878,7 @@ namespace bee {
 	int Sprite::draw_array(const std::list<SpriteDrawData*>& draw_list, const std::vector<glm::mat4>& rotation_cache, RGBA new_color, SDL_RendererFlip flip) {
 		if (!is_loaded) { // Do not attempt to draw the instances if the sprite is not loaded
 			if (!has_draw_failed) { // If the draw call hasn't failed yet, output a warning
-				messenger_send({"engine", "sprite"}, E_MESSAGE::WARNING, "Failed to draw sprite instances for \"" + name + "\" because it is not loaded");
+				messenger::send({"engine", "sprite"}, E_MESSAGE::WARNING, "Failed to draw sprite instances for \"" + name + "\" because it is not loaded");
 				has_draw_failed = true; // Set the draw failure boolean
 			}
 			return 1; // Return 1 when not loaded
@@ -1099,7 +1100,7 @@ namespace bee {
 
 			// Check whether the framebuffer has been successfully initialized
 			if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) { // If not, reset the state
-				messenger_send({"engine", "sprite"}, E_MESSAGE::WARNING, "Failed to create a new framebuffer.");
+				messenger::send({"engine", "sprite"}, E_MESSAGE::WARNING, "Failed to create a new framebuffer.");
 				glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind the frame buffer to switch back to the default
 				this->free(); // Free the old data
 				return 0; // Return 0 on failure to initialize the framebuffer
@@ -1115,7 +1116,7 @@ namespace bee {
 		} else {
 			texture = SDL_CreateTexture(engine->renderer->sdl_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w, h); // Create an empty texture
 			if (texture == nullptr) { // If the texture could not be created, output a warning
-				messenger_send({"engine", "sprite"}, E_MESSAGE::WARNING, "Failed to create a blank texture: " + get_sdl_error());
+				messenger::send({"engine", "sprite"}, E_MESSAGE::WARNING, "Failed to create a blank texture: " + get_sdl_error());
 				return 0; // Return 0 on failure to create a blank texture
 			}
 

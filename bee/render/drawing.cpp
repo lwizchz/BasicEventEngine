@@ -22,8 +22,9 @@
 
 #include "../init/gameoptions.hpp"
 
+#include "../messenger/messenger.hpp"
+
 #include "../core/enginestate.hpp"
-#include "../core/messenger/messenger.hpp"
 
 #include "renderer.hpp"
 #include "rgba.hpp"
@@ -401,7 +402,7 @@ namespace bee {
 		if (file_exists(fn)) { // If the file already exists, append a timestamp
 			fn = file_plainname(fn) + "-" + bee_itos(time(nullptr)) + file_extname(fn);
 			if (file_exists(fn)) { // If the appended file already exists, abort
-				messenger_send({"engine"}, E_MESSAGE::WARNING, "Failed to save screenshot: files already exist: \"" + filename + "\" and \"" + fn + "\"");
+				messenger::send({"engine"}, E_MESSAGE::WARNING, "Failed to save screenshot: files already exist: \"" + filename + "\" and \"" + fn + "\"");
 				return -1; // Return -1 on filename error
 			}
 		}

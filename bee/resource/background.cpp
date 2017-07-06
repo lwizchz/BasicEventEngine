@@ -27,9 +27,10 @@
 
 #include "../init/gameoptions.hpp"
 
+#include "../messenger/messenger.hpp"
+
 #include "../core/enginestate.hpp"
 #include "../core/room.hpp"
-#include "../core/messenger/messenger.hpp"
 
 #include "../render/renderer.hpp"
 
@@ -106,7 +107,7 @@ namespace bee {
 	{
 		add_to_resources(); // Add the background to the appropriate resource list
 		if (id < 0) { // If the background could not be addedto the resource list, output a warning
-			messenger_send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add background resource: \"" + new_name + "\" from " + new_path);
+			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add background resource: \"" + new_name + "\" from " + new_path);
 			throw(-1); // Throw an exception
 		}
 
@@ -187,7 +188,7 @@ namespace bee {
 		"\n	is_loaded       " << is_loaded <<
 		"\n	has_draw_failed " << has_draw_failed <<
 		"\n}\n";
-		messenger_send({"engine", "resource"}, E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for output
+		messenger::send({"engine", "resource"}, E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for output
 
 		return 0; // Return 0 on success
 	}
@@ -315,7 +316,7 @@ namespace bee {
 				// Generate an SDL texture from the surface pixels
 				texture = SDL_CreateTextureFromSurface(engine->renderer->sdl_renderer, tmp_surface);
 				if (texture == nullptr) { // If the texture could not be generated, output a warning
-					messenger_send({"engine", "background"}, E_MESSAGE::WARNING, "Failed to create texture from surface for \"" + name + "\": " + get_sdl_error());
+					messenger::send({"engine", "background"}, E_MESSAGE::WARNING, "Failed to create texture from surface for \"" + name + "\": " + get_sdl_error());
 					return 2; // Return 2 on failure to load
 				}
 
@@ -324,7 +325,7 @@ namespace bee {
 				has_draw_failed = false;
 			}
 		} else { // If the sprite has already been loaded, output a warning
-			messenger_send({"engine", "background"}, E_MESSAGE::WARNING, "Failed to load background \"" + name + "\" from surface because it has already been loaded");
+			messenger::send({"engine", "background"}, E_MESSAGE::WARNING, "Failed to load background \"" + name + "\" from surface because it has already been loaded");
 			return 1; // Return 1 on failure
 		}
 
@@ -339,14 +340,14 @@ namespace bee {
 			SDL_Surface* tmp_surface;
 			tmp_surface = IMG_Load(path.c_str());
 			if (tmp_surface == nullptr) { // If the surface could not be loaded, output a warning
-				messenger_send({"engine", "background"}, E_MESSAGE::WARNING, "Failed to load background " + name + ": " + IMG_GetError());
+				messenger::send({"engine", "background"}, E_MESSAGE::WARNING, "Failed to load background " + name + ": " + IMG_GetError());
 				return 1; // Return 1 on load failure
 			}
 
 			load_from_surface(tmp_surface); // Load the surface into a texture
 			SDL_FreeSurface(tmp_surface); // Free the temporary surface
 		} else { // If the background has already been loaded, output a warning
-			messenger_send({"engine", "background"}, E_MESSAGE::WARNING, "Failed to load background \"" + name + "\" because it has already been loaded");
+			messenger::send({"engine", "background"}, E_MESSAGE::WARNING, "Failed to load background \"" + name + "\" because it has already been loaded");
 			return 1; // Return 1 on failure
 		}
 
@@ -532,7 +533,7 @@ namespace bee {
 	int Background::draw(int x, int y, BackgroundData* b) {
 		if (!is_loaded) { // Do not attempt to draw the background if it has not been loaded
 			if (!has_draw_failed) { // If the draw call hasn't failed before, output a warning
-			messenger_send({"engine", "background"}, E_MESSAGE::WARNING, "Failed to draw background \"" + name + "\" because it is not loaded");
+			messenger::send({"engine", "background"}, E_MESSAGE::WARNING, "Failed to draw background \"" + name + "\" because it is not loaded");
 			has_draw_failed = true; // Set the draw failure boolean
 			}
 			return 1; // Return 1 on failure
@@ -654,7 +655,7 @@ namespace bee {
 
 			// Check whether the framebuffer has been successfully initialized
 			if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) { // If not, reset the state
-				messenger_send({"engine", "background"}, E_MESSAGE::WARNING, "Failed to create a new framebuffer.");
+				messenger::send({"engine", "background"}, E_MESSAGE::WARNING, "Failed to create a new framebuffer.");
 				glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind the frame buffer to switch back to the default
 				this->free(); // Free the old data
 				return 0; // Return 0 on failure
@@ -666,7 +667,7 @@ namespace bee {
 		} else {
 			texture = SDL_CreateTexture(engine->renderer->sdl_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w, h); // Create an empty texture
 			if (texture == nullptr) { // If the texture could not be created, output a warning
-				messenger_send({"engine", "background"}, E_MESSAGE::WARNING, "Failed to create a blank texture: " + get_sdl_error());
+				messenger::send({"engine", "background"}, E_MESSAGE::WARNING, "Failed to create a blank texture: " + get_sdl_error());
 				return 0; // Return 0 on failure
 			}
 

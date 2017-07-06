@@ -24,7 +24,9 @@
 #include "../init/gameoptions.hpp"
 
 #include "console.hpp"
-#include "network/networkdata.hpp"
+
+#include "../network/network.hpp"
+#include "../network/networkdata.hpp"
 
 #include "../render/renderer.hpp"
 #include "../render/rgba.hpp"
@@ -34,11 +36,11 @@
 #include "../resource/room.hpp"
 
 namespace bee {
-	EngineState::EngineState() :
-		argc(0),
-		argv(nullptr),
+	EngineState::EngineState(int new_argc, char** new_argv, GameOptions* new_options) :
+		argc(new_argc),
+		argv(new_argv),
 		flags(),
-		options(nullptr),
+		options(new_options),
 
 		quit(false),
 		is_ready(false),
@@ -85,15 +87,56 @@ namespace bee {
 		commandline_input(),
 		commandline_current(0),
 
-		recipients(),
-		protected_tags({"engine", "console"}),
-		messages(),
-		messenger_output_level(E_OUTPUT::NORMAL),
-
 		console(nullptr),
 
 		fps_stable(0)
 	{}
+	EngineState::~EngineState() {
+		if (net != nullptr) {
+			net_close();
+			delete net;
+			net = nullptr;
+		}
+	}
+
+	int EngineState::free() {
+		if (font_default != nullptr) {
+			delete font_default;
+			font_default = nullptr;
+		}
+
+		if (texture_before != nullptr) {
+			texture_before->free();
+			delete texture_before;
+			texture_before = nullptr;
+		}
+		if (texture_after != nullptr) {
+			texture_after->free();
+			delete texture_after;
+			texture_after = nullptr;
+		}
+
+		if (color != nullptr) {
+			delete color;
+			color = nullptr;
+		}
+
+		if (renderer != nullptr) {
+			delete renderer;
+			renderer = nullptr;
+		}
+		if (cursor != nullptr) {
+			SDL_FreeCursor(cursor);
+			cursor = nullptr;
+		}
+
+		if (console != nullptr) {
+			delete console;
+			console = nullptr;
+		}
+
+		return 0;
+	}
 }
 
 #endif // BEE_CORE_ENGINESTATE

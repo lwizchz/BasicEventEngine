@@ -13,20 +13,22 @@
 
 #include "network.hpp"
 
-#include "../../debug.hpp"
-#include "../../engine.hpp"
+#include "../debug.hpp"
+#include "../engine.hpp"
 
-#include "../../util/real.hpp"
-#include "../../util/string.hpp"
-#include "../../util/network.hpp"
-#include "../../util/template.hpp"
-#include "../../util/platform.hpp"
+#include "../util/real.hpp"
+#include "../util/string.hpp"
+#include "../util/network.hpp"
+#include "../util/template.hpp"
+#include "../util/platform.hpp"
 
-#include "../../init/gameoptions.hpp"
+#include "../init/gameoptions.hpp"
 
-#include "../instance.hpp"
-#include "../enginestate.hpp"
 #include "../messenger/messenger.hpp"
+
+#include "../core/instance.hpp"
+#include "../core/enginestate.hpp"
+
 #include "networkdata.hpp"
 #include "networkclient.hpp"
 
@@ -62,7 +64,7 @@ namespace bee {
 		}
 
 		if (network_init()) { // Attempt to initialize networking
-			messenger_send({"engine", "network"}, E_MESSAGE::WARNING, "Error initializing network functionality: " + get_sdl_error());
+			messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Error initializing network functionality: " + get_sdl_error());
 			return 2; // Return 2 on failure to init
 		}
 		engine->net->is_initialized = true; // Mark the network as ready
@@ -121,7 +123,7 @@ namespace bee {
 							NetworkClient c;
 							c.sock = network_udp_open_range(engine->net->id, engine->net->max_players);
 							if (c.sock == nullptr) {
-								messenger_send({"engine", "network"}, E_MESSAGE::WARNING, "Could not accept client");
+								messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not accept client");
 								break;
 							}
 
@@ -129,21 +131,21 @@ namespace bee {
 							if (c.channel == -1) {
 								network_udp_close(&c.sock);
 
-								messenger_send({"engine", "network"}, E_MESSAGE::WARNING, "Could not accept client");
+								messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not accept client");
 								break;
 							}
 
 							if (network_udp_send(c.sock, c.channel, engine->net->self_id, 1, id) == 0) { // Send the client their id
 								network_udp_close(&c.sock);
 
-								messenger_send({"engine", "network"}, E_MESSAGE::WARNING, "Could not accept client");
+								messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not accept client");
 								break;
 							}
 							c.last_recv = get_ticks();
 
 							engine->net->players.emplace(id, c); // Add the client to the list of clients
 
-							messenger_send({"engine", "network"}, E_MESSAGE::INFO, "Client accepted");
+							messenger::send({"engine", "network"}, E_MESSAGE::INFO, "Client accepted");
 						}
 						break;
 					}
@@ -154,7 +156,7 @@ namespace bee {
 
 						engine->net->players.erase(engine->net->udp_data->data[1]); // Remove them from the list of clients
 
-						messenger_send({"engine", "network"}, E_MESSAGE::INFO, "Client disconnected");
+						messenger::send({"engine", "network"}, E_MESSAGE::INFO, "Client disconnected");
 
 						break;
 					}
@@ -178,14 +180,14 @@ namespace bee {
 
 								UDPsocket sock = network_udp_open_range(engine->net->id, engine->net->max_players+1);
 								if (sock == nullptr) {
-									messenger_send({"engine", "network"}, E_MESSAGE::WARNING, "Could not open socket");
+									messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not open socket");
 									break;
 								}
 
 								if (network_udp_send(sock, -1, data) == 0) { // Send the entire message
 									network_udp_close(&sock);
 
-									messenger_send({"engine", "network"}, E_MESSAGE::WARNING, "Could not send server info");
+									messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not send server info");
 									break;
 								}
 
@@ -221,7 +223,7 @@ namespace bee {
 									network_udp_close(&c.sock);
 									engine->net->players.erase(engine->net->udp_data->data[1]);
 
-									messenger_send({"engine", "network"}, E_MESSAGE::WARNING, "Could not send player map");
+									messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not send player map");
 									break;
 								}
 								c.last_recv = get_ticks();
@@ -247,7 +249,7 @@ namespace bee {
 									network_udp_close(&c.sock);
 									engine->net->players.erase(engine->net->udp_data->data[1]);
 
-									messenger_send({"engine", "network"}, E_MESSAGE::WARNING, "Could not send data map");
+									messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not send data map");
 									break;
 								}
 								c.last_recv = get_ticks();
@@ -267,19 +269,19 @@ namespace bee {
 					case 1: { // Connection accepted
 						engine->net->self_id = engine->net->udp_data->data[3]; // Read the id that the server assigned to us
 						engine->net->is_connected = true; // Mark our networking as connected
-						messenger_send({"engine", "network"}, E_MESSAGE::INFO, "Connected to server with id " + bee_itos(engine->net->self_id));
+						messenger::send({"engine", "network"}, E_MESSAGE::INFO, "Connected to server with id " + bee_itos(engine->net->self_id));
 						break;
 					}
 					case 2: { // Disconnected by host
 						net_session_end(); // Reset session
-						messenger_send({"engine", "network"}, E_MESSAGE::INFO, "Disconnected by server");
+						messenger::send({"engine", "network"}, E_MESSAGE::INFO, "Disconnected by server");
 						break;
 					}
 					case 3: { // Server info received
 						switch (engine->net->udp_data->data[3]) {
 							case 0: {
 								if (network_udp_send(engine->net->udp_sock, engine->net->channel, engine->net->self_id, 3, 0) == 0) { // Send the keep alive
-									messenger_send({"engine", "network"}, E_MESSAGE::WARNING, "Could not send keep alive to server");
+									messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not send keep alive to server");
 									break;
 								}
 								break;
@@ -356,7 +358,7 @@ namespace bee {
 						engine->net->players.erase(p.first); // Remove the client from the map
 					} else if (now - p.second.last_recv > engine->net->timeout/2) { // Send a keep alive to clients that might be timing out
 						if (network_udp_send(p.second.sock, p.second.channel, engine->net->self_id, 3, 0) == 0) { // Send the keep alive
-							messenger_send({"engine", "network"}, E_MESSAGE::WARNING, "Could not send keep alive to client");
+							messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not send keep alive to client");
 						}
 					}
 				}
@@ -389,11 +391,11 @@ namespace bee {
 
 		engine->net->udp_sock = network_udp_open(engine->net->id); // Open a UDP listening socket to receive from all clients
 		if (engine->net->udp_sock == nullptr) {
-			messenger_send({"engine", "network"}, E_MESSAGE::WARNING, "Failed to start new session \"" + session_name + "\"");
+			messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Failed to start new session \"" + session_name + "\"");
 			return 1; // Return 1 if the socket failed to open
 		}
 
-		messenger_send({"engine", "network"}, E_MESSAGE::INFO, "Started new session \"" + session_name + "\" with " + bee_itos(max_players) + " max players");
+		messenger::send({"engine", "network"}, E_MESSAGE::INFO, "Started new session \"" + session_name + "\" with " + bee_itos(max_players) + " max players");
 
 		// Set the session info
 		engine->net->name = session_name;
@@ -414,7 +416,7 @@ namespace bee {
 		engine->net->servers.clear(); // Clear the previously available servers
 
 		if (engine->net->is_connected) {
-			messenger_send({"engine", "network"}, E_MESSAGE::WARNING, "net_session_find() : Failed to find sessions, already connected");
+			messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "net_session_find() : Failed to find sessions, already connected");
 			return engine->net->servers; // Return 1 if we are already connected
 		} else {
 			net_session_end(); // Reset session
@@ -423,14 +425,14 @@ namespace bee {
 		engine->net->udp_sock = network_udp_open(engine->net->id);
 		engine->net->channel = network_udp_bind(&engine->net->udp_sock, -1, "192.168.1.255", engine->net->id); // Bind a sending socket to the broadcast IP 192.168.1.255
 		if (engine->net->channel == -1) {
-			messenger_send({"engine", "network"}, E_MESSAGE::WARNING, "net_session_find() : UDP broadcast socket failed to bind");
+			messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "net_session_find() : UDP broadcast socket failed to bind");
 			return engine->net->servers; // Return an empty map if the sending socket failed to bind
 		}
 
 		if (network_udp_send(engine->net->udp_sock, engine->net->channel, engine->net->self_id, 3, 1) == 0) { // Send a server name info request
 			network_udp_close(&engine->net->udp_sock);
 
-			messenger_send({"engine", "network"}, E_MESSAGE::WARNING, "net_session_find() : Failed to send request on port " + bee_itos(engine->net->id));
+			messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "net_session_find() : Failed to send request on port " + bee_itos(engine->net->id));
 			return engine->net->servers; // Return an empty map if the message failed to send
 		}
 
@@ -438,7 +440,7 @@ namespace bee {
 		if (engine->net->udp_data == nullptr) { // Attempt to allocate space to receive data
 			network_udp_close(&engine->net->udp_sock); // Close the socket
 
-			messenger_send({"engine", "network"}, E_MESSAGE::WARNING, "net_session_find() : Failed to allocate space to receive data");
+			messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "net_session_find() : Failed to allocate space to receive data");
 			return engine->net->servers; // Return an empty map if the allocation failed
 		}
 
@@ -467,7 +469,7 @@ namespace bee {
 	*/
 	int net_session_join(const std::string& ip, const std::string& player_name) {
 		if (engine->net->is_connected) {
-			messenger_send({"engine", "network"}, E_MESSAGE::WARNING, "net_session_join() : Failed to join session, already connected");
+			messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "net_session_join() : Failed to join session, already connected");
 			return 1; // Return 1 if we are already connected
 		} else {
 			net_session_end(); // Reset session
@@ -478,14 +480,14 @@ namespace bee {
 		engine->net->udp_sock = network_udp_open(engine->net->id);
 		engine->net->channel = network_udp_bind(&engine->net->udp_sock, -1, ip, engine->net->id); // Bind a sending socket to the given server IP address
 		if (engine->net->channel == -1) {
-			messenger_send({"engine", "network"}, E_MESSAGE::WARNING, "net_session_join() : Failed to bind to " + ip + " on port " + bee_itos(engine->net->id));
+			messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "net_session_join() : Failed to bind to " + ip + " on port " + bee_itos(engine->net->id));
 			return 2; // Return 2 if the socket failed to bind
 		}
 
 		if (network_udp_send(engine->net->udp_sock, engine->net->channel, 0, 1, 0) == 0) { // Send a server connection request
 			network_udp_close(&engine->net->udp_sock); // Close the socket
 
-			messenger_send({"engine", "network"}, E_MESSAGE::WARNING, "net_session_join() : Failed to send request to " + ip + " on port " + bee_itos(engine->net->id));
+			messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "net_session_join() : Failed to send request to " + ip + " on port " + bee_itos(engine->net->id));
 			return 3; // Return 3 if the messsage failed to send
 		}
 
@@ -503,7 +505,7 @@ namespace bee {
 	int net_session_end() {
 		if (engine->net->is_connected) {
 			if (engine->net->is_host) { // If we are the host
-				messenger_send({"engine", "network"}, E_MESSAGE::INFO, "Disconnecting " + bee_itos(engine->net->players.size()-1) + " clients...");
+				messenger::send({"engine", "network"}, E_MESSAGE::INFO, "Disconnecting " + bee_itos(engine->net->players.size()-1) + " clients...");
 				for (auto& p : engine->net->players) { // Iterate over the clients to disconnect them
 					if (p.first != 0) { // Only disconnect clients that aren't us
 						network_udp_send(p.second.sock, p.second.channel, engine->net->self_id, 2, 0); // Send a disconnection signal

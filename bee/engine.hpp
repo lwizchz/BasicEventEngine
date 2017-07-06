@@ -31,8 +31,6 @@ namespace bee { // The engine namespace
 	struct EngineState; // The struct which holds the main game state
 
 	class Resource;
-	class ResourceList;
-	class MetaResourceList;
 
 	class Sprite; class Sound; class Background; class Font; class Path; class Timeline; class Mesh; class Object; class Room; // The main resource types
 	class Particle; class ParticleData; class ParticleEmitter; class ParticleAttractor; class ParticleDestroyer; class ParticleDeflector; class ParticleChanger; class ParticleSystem; // The particle system components
@@ -44,7 +42,7 @@ namespace bee { // The engine namespace
 
 	struct ViewData; struct BackgroundData; // The configurational structs
 	struct NetworkData; struct NetworkClient; // The networking subsystem structs
-	struct MessageContents; struct MessageRecipient; // The messaging subsystem structs
+	class Messenger; struct MessageContents; struct MessageRecipient; // The messaging subsystem structs
 	struct SIDP; // The utility structs
 	struct Console; // The console subsystem structs
 

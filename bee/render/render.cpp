@@ -21,9 +21,10 @@
 
 #include "../init/gameoptions.hpp"
 
+#include "../messenger/messenger.hpp"
+
 #include "../core/enginestate.hpp"
 #include "../core/window.hpp"
-#include "../core/messenger/messenger.hpp"
 
 #include "camera.hpp"
 #include "renderer.hpp"
@@ -52,7 +53,7 @@ namespace bee {
 	*/
 	int render_set_3d(bool new_is_3d) {
 		if (engine->options->renderer_type == E_RENDERER::SDL) {
-			messenger_send({"engine", "renderer"}, E_MESSAGE::WARNING, "Cannot enable 3D rendering in SDL mode");
+			messenger::send({"engine", "renderer"}, E_MESSAGE::WARNING, "Cannot enable 3D rendering in SDL mode");
 			return 1;
 		}
 

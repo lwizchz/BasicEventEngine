@@ -19,7 +19,7 @@
 #include "../util/string.hpp"
 #include "../util/platform.hpp"
 
-#include "../core/messenger/messenger.hpp"
+#include "../messenger/messenger.hpp"
 
 namespace bee {
 	std::map<int,Timeline*> Timeline::list;
@@ -56,7 +56,7 @@ namespace bee {
 	{
 		add_to_resources(); // Add the timeline to the appropriate resource list
 		if (id < 0) { // If the timeline could not be added to the resource list, output a warning
-			messenger_send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add timeline resource: \"" + new_name + "\" from " + new_path);
+			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add timeline resource: \"" + new_name + "\" from " + new_path);
 			throw(-1); // Throw an exception
 		}
 
@@ -133,7 +133,7 @@ namespace bee {
 		"\n	is_looping     " << is_looping <<
 		"\n	action_list\n" << debug_indent(action_string, 2) <<
 		"\n}\n";
-		messenger_send({"engine", "resource"}, E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for output
+		messenger::send({"engine", "resource"}, E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for output
 
 		return 0; // Return 0 on success
 	}
@@ -195,7 +195,7 @@ namespace bee {
 	}
 	int Timeline::add_action(Uint32 frame_number, const std::string& func_name, std::function<void()> callback) {
 		if (get_is_running()) { // If the timeline is already running, output a warning
-			messenger_send({"engine", "timeline"}, E_MESSAGE::WARNING, "Failed to add action to timeline \"" + name + "\" because it is currently running");
+			messenger::send({"engine", "timeline"}, E_MESSAGE::WARNING, "Failed to add action to timeline \"" + name + "\" because it is currently running");
 			return 1; // Return 1 when the timeline is already running
 		}
 
