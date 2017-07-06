@@ -37,7 +37,7 @@ namespace bee {
 
 			std::function<void (ParticleSystem*, ParticleData*, Particle*)> on_death_func;
 			Particle* death_type;
-			std::list<ParticleData*> old_particles;
+			std::vector<ParticleData*> old_particles;
 
 			int add_old_particle(ParticleData*);
 		public:

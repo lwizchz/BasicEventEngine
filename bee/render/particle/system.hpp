@@ -10,6 +10,7 @@
 #define BEE_RENDER_PARTICLE_SYSTEM_H 1
 
 #include <list>
+#include <vector>
 #include <map>
 
 #include <SDL2/SDL.h> // Include the required SDL headers
@@ -30,13 +31,13 @@ namespace bee {
 	class ParticleSystem {
 			Instance* following;
 
-			std::list<Particle*> particle_types;
-			std::list<ParticleData*> particles;
-			std::list<ParticleEmitter*> emitters;
-			std::list<ParticleAttractor*> attractors;
-			std::list<ParticleDestroyer*> destroyers;
-			std::list<ParticleDeflector*> deflectors;
-			std::list<ParticleChanger*> changers;
+			std::vector<Particle*> particle_types;
+			std::vector<ParticleData*> particles;
+			std::vector<ParticleEmitter*> emitters;
+			std::vector<ParticleAttractor*> attractors;
+			std::vector<ParticleDestroyer*> destroyers;
+			std::vector<ParticleDeflector*> deflectors;
+			std::vector<ParticleChanger*> changers;
 
 			std::map<Particle*,std::list<SpriteDrawData*>> draw_data;
 

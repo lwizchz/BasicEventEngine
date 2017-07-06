@@ -218,20 +218,17 @@ namespace bee {
 			return (new ParticleData(this, x, y, timestamp));
 		}
 
-		ParticleData* pd = old_particles.front();
-		old_particles.pop_front();
+		ParticleData* pd = old_particles.back();
+		old_particles.pop_back();
 		pd->init(x, y, timestamp);
 
 		return pd;
 	}
 	int Particle::remove_old_particles() {
-		old_particles.remove_if(
-			[] (ParticleData* pd) -> bool {
-				delete pd;
-				pd = nullptr;
-				return true;
-			}
-		);
+		for (auto& pd : old_particles) {
+			delete pd;
+		}
+		old_particles.clear();
 		return 0;
 	}
 }

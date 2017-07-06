@@ -165,8 +165,11 @@ namespace bee {
 			system_y += following->get_y();
 		}
 
-		for (auto& pd : particles) {
+		for (auto it=particles.begin(); it!=particles.end(); ) {
+			ParticleData* pd = *it;
+
 			if (pd->get_is_old()){
+				it = particles.erase(it);
 				continue;
 			}
 
@@ -176,7 +179,8 @@ namespace bee {
 					break;
 				}
 			}
-			if (pd->get_is_old()){
+			if (pd->get_is_old()) {
+				it = particles.erase(it);
 				continue;
 			}
 
@@ -194,6 +198,8 @@ namespace bee {
 			for (auto& d : deflectors) {
 				d->handle(pd, old_px, old_py, system_x, system_y);
 			}
+
+			++it;
 		}
 
 		for (auto& e : emitters) {
@@ -202,34 +208,39 @@ namespace bee {
 
 		if (should_draw) {
 			clear_draw_data();
-			particles.remove_if(
-				[this, &now] (ParticleData* p) -> bool {
-					if (p->get_is_old()) {
-						return true;
-					}
+			particles.erase(
+				std::remove_if(
+					particles.begin(),
+					particles.end(),
+					[this, &now] (ParticleData* p) -> bool {
+						if (p->get_is_old()) {
+							return true;
+						}
 
-					Uint32 ticks = now - p->get_creation();
-					if (now < p->get_creation()) {
-						ticks = 0;
-					}
+						Uint32 ticks = now - p->get_creation();
+						if (now < p->get_creation()) {
+							ticks = 0;
+						}
 
-					int x = xoffset + p->x - p->get_w()/2;
-					int y = yoffset + p->y - p->get_h()/2;
-					if (following != nullptr) {
-						x += following->get_x();
-						y += following->get_y();
-					}
+						int x = xoffset + p->x - p->get_w()/2;
+						int y = yoffset + p->y - p->get_h()/2;
+						if (following != nullptr) {
+							x += following->get_x();
+							y += following->get_y();
+						}
 
-					SpriteDrawData* sdd = new SpriteDrawData(x, y, p->get_creation(), p->get_w(), p->get_h(), absolute_angle(p->get_angle(ticks)));
-					draw_data[p->get_type()].push_back(sdd);
-					//p->draw(system_x, system_y, ticks);
+						SpriteDrawData* sdd = new SpriteDrawData(x, y, p->get_creation(), p->get_w(), p->get_h(), absolute_angle(p->get_angle(ticks)));
+						draw_data[p->get_type()].push_back(sdd);
+						//p->draw(system_x, system_y, ticks);
 
-					if (p->is_dead(ticks)) {
-						p->get_type()->on_death(this, p);
-						return true;
+						if (p->is_dead(ticks)) {
+							p->get_type()->on_death(this, p);
+							return true;
+						}
+						return false;
 					}
-					return false;
-				}
+				),
+				particles.end()
 			);
 			for (auto& s : draw_data) {
 				if (!s.first->is_lightable) {
