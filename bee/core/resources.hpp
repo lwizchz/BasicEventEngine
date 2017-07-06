@@ -45,17 +45,6 @@ namespace bee { // The engine namespace
 	Object* add_object(const std::string&, const std::string&);
 	Room* add_room(const std::string&, const std::string&);
 
-	Sprite* get_sprite(int);
-	Sound* get_sound(int);
-	Background* get_background(int);
-	Font* get_font(int);
-	Path* get_path(int);
-	Timeline* get_timeline(int);
-	Mesh* get_mesh(int);
-	Light* get_light(int);
-	Object* get_object(int);
-	Room* get_room(int);
-
 	Sprite* get_sprite_by_name(const std::string&);
 	Sound* get_sound_by_name(const std::string&);
 	Background* get_background_by_name(const std::string&);

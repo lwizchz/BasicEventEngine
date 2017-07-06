@@ -9,16 +9,21 @@
 #ifndef BEE_SOUND_H
 #define BEE_SOUND_H 1
 
-#include <list> // Include the required library headers
+#include <string> // Include the required library headers
+#include <map>
+#include <list>
 
 #include <SDL2/SDL_mixer.h> // Include the SDL2_mixer headers for the audio data types
 
-#include "../resources.hpp"
+#include "resource.hpp"
 
 #include "../util/sound.hpp"
 
 namespace bee {
 	class Sound: public Resource { // The sound resource class is used to play all audio
+			static std::map<int,Sound*> list;
+			static int next_id;
+
 			int id; // The id of the resource
 			std::string name; // An arbitrary name for the resource
 			std::string path; // The path of the sound file
@@ -56,7 +61,10 @@ namespace bee {
 			Sound();
 			Sound(const std::string&, const std::string&, bool);
 			~Sound();
+
 			int add_to_resources();
+			static size_t get_amount();
+			static Sound* get(int);
 			int reset();
 			int print() const;
 

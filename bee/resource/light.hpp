@@ -11,11 +11,14 @@
 
 #include "../defines.hpp"
 
-#include <vector> // Include the required library headers
+#include <string> // Include the required library headers
+#include <map>
+#include <vector>
 
 #include <glm/glm.hpp> // Include the required OpenGL headers
 
-#include "../resources.hpp"
+#include "resource.hpp"
+
 #include "../enum.hpp"
 
 #include "../render/rgba.hpp"
@@ -37,6 +40,9 @@ namespace bee {
 	};
 
 	class Light: public Resource { // The light resource class is used to draw all lighting effects
+			static std::map<int,Light*> list;
+			static int next_id;
+
 			int id; // The id of the resource
 			std::string name; // An arbitrary name for the resource
 			std::string path; // The path of the file to load the light from
@@ -49,7 +55,10 @@ namespace bee {
 			Light();
 			Light(const std::string&, const std::string&);
 			~Light();
+
 			int add_to_resources();
+			static size_t get_amount();
+			static Light* get(int);
 			int reset();
 			int print() const;
 

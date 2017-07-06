@@ -9,17 +9,21 @@
 #ifndef BEE_TIMELINE_H
 #define BEE_TIMELINE_H 1
 
-#include <map> // Include the required library headers
+#include <string> // Include the required library headers
+#include <map>
 #include <functional>
 
 #include <SDL2/SDL.h> // Include the required SDL headers
 
-#include "../resources.hpp"
+#include "resource.hpp"
 
 namespace bee {
 	typedef std::multimap<Uint32, std::pair<std::string,std::function<void()>>> timeline_list_t;
 
 	class Timeline: public Resource { // The timeline resource class is used to execute specific actions at a given time offset
+			static std::map<int,Timeline*> list;
+			static int next_id;
+
 			int id; // The id of resource
 			std::string name; // An arbitrary name for the resource
 			std::string path; // The path of the file to load the timeline from
@@ -38,7 +42,10 @@ namespace bee {
 			Timeline();
 			Timeline(const std::string&, const std::string&);
 			~Timeline();
+
 			int add_to_resources();
+			static size_t get_amount();
+			static Timeline* get(int);
 			int reset();
 			int print() const;
 

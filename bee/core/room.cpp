@@ -35,7 +35,7 @@
 #include "../render/transition.hpp"
 #include "../render/viewdata.hpp"
 
-#include "../resources/room.hpp"
+#include "../resource/room.hpp"
 
 namespace bee {
 	/*
@@ -146,8 +146,8 @@ namespace bee {
 	* @id: the id of the room to change to
 	*/
 	int room_goto(int id) {
-		if (get_room(id) != nullptr) { // If the room exists, change to it
-			return change_room(get_room(id));
+		if (Room::get(id) != nullptr) { // If the room exists, change to it
+			return change_room(Room::get(id));
 		}
 		return 3; // Return 3 on non-existent room
 	}

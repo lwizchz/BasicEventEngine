@@ -15,8 +15,9 @@
 
 #include <SDL2/SDL.h> // Include the required SDL headers
 
+#include "resource.hpp"
+
 #include "../enum.hpp"
-#include "../resources.hpp"
 
 #include "../core/sidp.hpp"
 
@@ -26,6 +27,9 @@ namespace bee {
 	class Sprite;
 
 	class Object: public Resource { // The object resource class is used to handle all events and instance data
+			static std::map<int,Object*> list;
+			static int next_id;
+
 			int id; // The id of the resource
 			std::string name; // An arbitrary name for the resource
 			std::string path; // The path of the object's child header
@@ -53,7 +57,10 @@ namespace bee {
 
 			// See bee/resources/object.cpp for function comments
 			virtual ~Object();
+
 			int add_to_resources();
+			static size_t get_amount();
+			static Object* get(int);
 			int reset();
 			int print() const;
 

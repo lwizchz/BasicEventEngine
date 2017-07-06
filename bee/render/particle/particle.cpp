@@ -28,8 +28,8 @@
 #include "particledata.hpp"
 #include "system.hpp"
 
-#include "../../resources/sprite.hpp"
-#include "../../resources/room.hpp"
+#include "../../resource/sprite.hpp"
+#include "../../resource/room.hpp"
 
 namespace bee {
 	Particle::Particle(Sprite* new_sprite, double new_scale, Uint32 new_max_time, unsigned int new_deviation) :

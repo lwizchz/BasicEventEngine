@@ -9,13 +9,14 @@
 #ifndef BEE_ROOM_H
 #define BEE_ROOM_H 1
 
-#include <map> // Include the required library headers
+#include <string> // Include the required library headers
+#include <map>
 #include <list>
 #include <vector>
 
 #include <btBulletDynamicsCommon.h> // Include the required Bullet headers
 
-#include "../resources.hpp"
+#include "resource.hpp"
 
 #include "../core/instance.hpp"
 
@@ -46,6 +47,9 @@ namespace bee {
 	};
 
 	class Room: public Resource { // The room resource class is used to handle all instance event calls and instantiation
+			static std::map<int,Room*> list;
+			static int next_id;
+
 			int id; // The id of the resource
 			std::string name; // An arbitrary name for the resource
 			std::string path; // The path of the room's child header
@@ -86,7 +90,10 @@ namespace bee {
 			Room();
 			Room(const std::string&, const std::string&);
 			~Room();
+
 			int add_to_resources();
+			static size_t get_amount();
+			static Room* get(int);
 			int reset();
 			int print() const;
 			std::string get_print() const;

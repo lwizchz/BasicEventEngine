@@ -12,6 +12,7 @@
 #include "../defines.hpp"
 
 #include <string> // Include the required library headers
+#include <map>
 #include <vector>
 #include <list>
 
@@ -21,7 +22,7 @@
 #include <SDL2/SDL_opengl.h>
 #include <glm/glm.hpp>
 
-#include "../resources.hpp"
+#include "resource.hpp"
 
 #include "../render/rgba.hpp"
 
@@ -38,6 +39,9 @@ namespace bee {
 	};
 
 	class Sprite: public Resource { // The sprite resource class is used to draw all 2D on-screen objects except backgrounds
+			static std::map<int,Sprite*> list;
+			static int next_id;
+
 			int id; // The id of the resource
 			std::string name; // An arbitrary name for the resource
 			std::string path; // The path of the image file which is used as the sprite's texture
@@ -71,7 +75,10 @@ namespace bee {
 			Sprite();
 			Sprite(const std::string&, const std::string&);
 			~Sprite();
+
 			int add_to_resources();
+			static size_t get_amount();
+			static Sprite* get(int);
 			int reset();
 			int print() const;
 

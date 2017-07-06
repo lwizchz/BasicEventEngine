@@ -35,8 +35,8 @@
 #include "../render/drawing.hpp"
 #include "../render/renderer.hpp"
 
-#include "../resources/light.hpp"
-#include "../resources/room.hpp"
+#include "../resource/light.hpp"
+#include "../resource/room.hpp"
 
 namespace bee {
 	/*
@@ -64,11 +64,16 @@ namespace bee {
 		angle(new_angle)
 	{}
 
+	std::map<int,Sprite*> Sprite::list;
+	int Sprite::next_id = 0;
+
 	/*
 	* Sprite::Sprite() - Default construct the sprite
 	* ! This constructor should only be directly used for temporary sprites (e.g. framebuffers), the other constructor should be used for all other cases
 	*/
 	Sprite::Sprite() :
+		Resource(),
+
 		id(-1),
 		name(),
 		path(),
@@ -120,17 +125,37 @@ namespace bee {
 	*/
 	Sprite::~Sprite() {
 		this->free(); // Free all sprite data
-		resource_list->sprites.remove_resource(id); // Remove the sprite from the resource list
+		if (list.find(id) != list.end()) { // Remove the sprite from the resource list
+			list.erase(id);
+		}
 	}
+
 	/*
 	* Sprite::add_to_resources() - Add the sprite to the appropriate resource list
 	*/
 	int Sprite::add_to_resources() {
 		if (id < 0) { // If the resource needs to be added to the resource list
-			id = resource_list->sprites.add_resource(this); // Add the resource and get the new id
+			id = next_id++;
+			list.emplace(id, this); // Add the resource and with the new id
 		}
 
 		return 0; // Return 0 on success
+	}
+	/*
+	* Sprite::get_amount() - Return the amount of sprite resources
+	*/
+	size_t Sprite::get_amount() {
+		return list.size();
+	}
+	/*
+	* Sprite::get() - Return the resource with the given id
+	* @id: the resource to get
+	*/
+	Sprite* Sprite::get(int id) {
+		if (list.find(id) != list.end()) {
+			return list[id];
+		}
+		return nullptr;
 	}
 	/*
 	* Sprite::reset() - Reset all resource variables for reinitialization

@@ -9,11 +9,12 @@
 #ifndef BEE_FONT_H
 #define BEE_FONT_H 1
 
-#include <map> // Include the required library headers
+#include <string> // Include the required library headers
+#include <map>
 
 #include <SDL2/SDL_ttf.h> // Include the required SDL headers
 
-#include "../resources.hpp"
+#include "resource.hpp"
 
 #include "../render/rgba.hpp"
 
@@ -34,6 +35,9 @@ namespace bee {
 	};
 
 	class Font: public Resource { // The font class is used to render all text as sprites
+			static std::map<int,Font*> list;
+			static int next_id;
+
 			int id; // The id of the resource
 			std::string name; // An arbitrary name for the resource
 			std::string path; // The path of the TrueType font file or the sprite font image to be used for rendering
@@ -52,7 +56,10 @@ namespace bee {
 			Font();
 			Font(const std::string&, const std::string&, int, bool);
 			~Font();
+
 			int add_to_resources();
+			static size_t get_amount();
+			static Font* get(int);
 			int reset();
 			int print() const;
 

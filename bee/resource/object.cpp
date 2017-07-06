@@ -25,11 +25,16 @@
 #include "sprite.hpp"
 
 namespace bee {
+	std::map<int,Object*> Object::list;
+	int Object::next_id = 0;
+
 	/*
 	* Object::Object() - Default construct the object
 	* ! This constructor should only be directly used for temporary objects, the other constructor should be used for all other cases
 	*/
 	Object::Object () :
+		Resource(),
+
 		id(-1),
 		name(),
 		path(),
@@ -72,17 +77,38 @@ namespace bee {
 	* Object::~Object() - Remove the object from the resource list
 	*/
 	Object::~Object() {
-		resource_list->objects.remove_resource(id);
+		if (list.find(id) != list.end()) { // Remove the object from the resource list
+			list.erase(id);
+		}
 	}
+
+
 	/*
 	* Object::add_to_resources() - Add the object to the appropriate resource list
 	*/
 	int Object::add_to_resources() {
 		if (id < 0) { // If the resource needs to be added to the resource list
-			id = resource_list->objects.add_resource(this); // Add the resource and get the new id
+			id = next_id++;
+			list.emplace(id, this); // Add the resource and with the new id
 		}
 
 		return 0; // Return 0 on success
+	}
+	/*
+	* Object::get_amount() - Return the amount of object resources
+	*/
+	size_t Object::get_amount() {
+		return list.size();
+	}
+	/*
+	* Object::get() - Return the resource with the given id
+	* @id: the resource to get
+	*/
+	Object* Object::get(int id) {
+		if (list.find(id) != list.end()) {
+			return list[id];
+		}
+		return nullptr;
 	}
 	/*
 	* Object::reset() - Reset all resource variables for reinitialization

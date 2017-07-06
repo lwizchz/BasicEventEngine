@@ -21,7 +21,7 @@
 #include "../core/room.hpp"
 #include "../core/messenger/messenger.hpp"
 
-#include "../resources/room.hpp"
+#include "../resource/room.hpp"
 
 namespace bee {
 	PhysicsWorld::PhysicsWorld() {

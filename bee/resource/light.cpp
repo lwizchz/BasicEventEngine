@@ -35,11 +35,16 @@ namespace bee {
 		color({255, 255, 255, 255})
 	{}
 
+	std::map<int,Light*> Light::list;
+	int Light::next_id = 0;
+
 	/*
 	* Light::Light() - Default construct the light
 	* ! This constructor should only be directly used for temporary lights, the other constructor should be used for all other cases
 	*/
 	Light::Light () :
+		Resource(),
+
 		id(-1),
 		name(),
 		path(),
@@ -67,17 +72,37 @@ namespace bee {
 	* Light::~Light() - Remove the light from the resouce list
 	*/
 	Light::~Light() {
-		resource_list->lights.remove_resource(id);
+		if (list.find(id) != list.end()) { // Remove the light from the resource list
+			list.erase(id);
+		}
 	}
+
 	/*
 	* Light::add_to_resources() - Add the sprite to the appropriate resource list
 	*/
 	int Light::add_to_resources() {
 		if (id < 0) { // If the resource needs to be added to the resource list
-			id = resource_list->lights.add_resource(this); // Add the resource and get the new id
+			id = next_id++;
+			list.emplace(id, this); // Add the resource and with the new id
 		}
 
 		return 0; // Return 0 on success
+	}
+	/*
+	* Light::get_amount() - Return the amount of light resources
+	*/
+	size_t Light::get_amount() {
+		return list.size();
+	}
+	/*
+	* Light::get() - Return the resource with the given id
+	* @id: the resource to get
+	*/
+	Light* Light::get(int id) {
+		if (list.find(id) != list.end()) {
+			return list[id];
+		}
+		return nullptr;
 	}
 	/*
 	* Light::reset() - Reset all resource variables for reinitialization

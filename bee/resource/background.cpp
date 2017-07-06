@@ -67,11 +67,16 @@ namespace bee {
 		is_stretched(new_is_stretched)
 	{}
 
+	std::map<int,Background*> Background::list;
+	int Background::next_id = 0;
+
 	/*
 	* Background::Background() - Default construct the background
 	* ! This constructor should only be directly used for temporary backgrounds (e.g. framebuffers), the other constructor should be used for all other cases
 	*/
 	Background::Background() :
+		Resource(),
+
 		id(-1),
 		name(),
 		path(),
@@ -113,17 +118,37 @@ namespace bee {
 	*/
 	Background::~Background() {
 		this->free(); // Free all background data
-		resource_list->backgrounds.remove_resource(id); // Remove the background from the resource list
+		if (list.find(id) != list.end()) { // Remove the background from the resource list
+			list.erase(id);
+		}
 	}
+
 	/*
 	* Background::add_to_resources() - Add the background to the appropriate resource list
 	*/
 	int Background::add_to_resources() {
 		if (id < 0) { // If the resource needs to be added to the resource list
-			id = resource_list->backgrounds.add_resource(this); // Add the resource and get the new id
+			id = next_id++;
+			list.emplace(id, this); // Add the resource and with the new id
 		}
 
 		return 0; // Return 0 on success
+	}
+	/*
+	* Background::get_amount() - Return the amount of background resources
+	*/
+	size_t Background::get_amount() {
+		return list.size();
+	}
+	/*
+	* Background::get() - Return the resource with the given id
+	* @id: the resource to get
+	*/
+	Background* Background::get(int id) {
+		if (list.find(id) != list.end()) {
+			return list[id];
+		}
+		return nullptr;
 	}
 	/*
 	* Background::reset() - Reset all resource variables for reinitialization

@@ -9,7 +9,10 @@
 #ifndef BEE_BACKGROUND_H
 #define BEE_BACKGROUND_H 1
 
-#include "../resources.hpp"
+#include <string> // Include the required library headers
+#include <map>
+
+#include "resource.hpp"
 
 namespace bee {
 	// Forward declaration
@@ -30,6 +33,9 @@ namespace bee {
 	};
 
 	class Background: public Resource { // The background class is used to draw tiled textures behind or in front of all other on-screen objects
+			static std::map<int,Background*> list;
+			static int next_id;
+
 			int id; // The id of the resource
 			std::string name; // An arbitrary name for the resource
 			std::string path; // The path of the image file which is used as the background's texture
@@ -61,7 +67,10 @@ namespace bee {
 			Background();
 			Background(const std::string&, const std::string&);
 			~Background();
+
 			int add_to_resources();
+			static size_t get_amount();
+			static Background* get(int);
 			int reset();
 			int print() const;
 

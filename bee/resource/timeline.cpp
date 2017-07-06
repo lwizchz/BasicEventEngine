@@ -22,11 +22,16 @@
 #include "../core/messenger/messenger.hpp"
 
 namespace bee {
+	std::map<int,Timeline*> Timeline::list;
+	int Timeline::next_id = 0;
+
 	/*
 	* Timeline::Timeline() - Default construct the timeline
 	* ! This constructor should only be directly used for temporary timelines, the other constructor should be used for all other cases
 	*/
 	Timeline::Timeline() :
+		Resource(),
+
 		id(-1),
 		name(),
 		path(),
@@ -62,17 +67,37 @@ namespace bee {
 	* Timeline::~Timeline() - Remove the timeline from the resource list
 	*/
 	Timeline::~Timeline() {
-		resource_list->timelines.remove_resource(id);
+		if (list.find(id) != list.end()) { // Remove the timeline from the resource list
+			list.erase(id);
+		}
 	}
+
 	/*
 	* Timeline::add_to_resources() - Add the timeline to the appropriate resource list
 	*/
 	int Timeline::add_to_resources() {
 		if (id < 0) { // If the resource needs to be added to the resource list
-			id = resource_list->timelines.add_resource(this); // Add the resource and get the new id
+			id = next_id++;
+			list.emplace(id, this); // Add the resource and with the new id
 		}
 
 		return 0; // Return 0 on success
+	}
+	/*
+	* Timeline::get_amount() - Return the amount of timeline resources
+	*/
+	size_t Timeline::get_amount() {
+		return list.size();
+	}
+	/*
+	* Timeline::get() - Return the resource with the given id
+	* @id: the resource to get
+	*/
+	Timeline* Timeline::get(int id) {
+		if (list.find(id) != list.end()) {
+			return list[id];
+		}
+		return nullptr;
 	}
 	/*
 	* Timeline::reset() - Reset all resource variables for reinitialization

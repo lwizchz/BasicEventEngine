@@ -22,7 +22,7 @@
 
 #include "../render/rgba.hpp"
 
-#include "../resources/path.hpp"
+#include "../resource/path.hpp"
 
 namespace bee {
 	// Forward declarations

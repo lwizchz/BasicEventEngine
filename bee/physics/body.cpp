@@ -23,7 +23,7 @@
 #include "../core/sidp.hpp"
 #include "../core/messenger/messenger.hpp"
 
-#include "../resources/room.hpp"
+#include "../resource/room.hpp"
 
 namespace bee {
 	PhysicsBody::PhysicsBody(PhysicsWorld* new_world, Instance* new_inst, E_PHYS_SHAPE new_type, double new_mass, double x, double y, double z, double* p) {

@@ -31,8 +31,8 @@
 #include "drawing.hpp"
 #include "rgba.hpp"
 
-#include "../resources/sprite.hpp"
-#include "../resources/background.hpp"
+#include "../resource/sprite.hpp"
+#include "../resource/background.hpp"
 
 namespace bee {
 	Renderer::Renderer() :
@@ -467,9 +467,9 @@ namespace bee {
 
 		// Reload sprite and background textures
 		Sprite* s;
-		for (size_t i=0; i<resource_list->sprites.get_amount(); i++) {
-			if (get_sprite(i) != nullptr) {
-				s = get_sprite(i);
+		for (size_t i=0; i<Sprite::get_amount(); i++) {
+			s = Sprite::get(i);
+			if (s != nullptr) {
 				if (s->get_is_loaded()) {
 					s->free();
 					s->load();
@@ -477,9 +477,9 @@ namespace bee {
 			}
 		}
 		Background* b;
-		for (size_t i=0; i<resource_list->backgrounds.get_amount(); i++) {
-			if (get_background(i) != nullptr) {
-				b = get_background(i);
+		for (size_t i=0; i<Background::get_amount(); i++) {
+			b = Background::get(i);
+			if (b != nullptr) {
 				if (b->get_is_loaded()) {
 					b->free();
 					b->load();

@@ -30,7 +30,7 @@
 #include "deflector.hpp"
 #include "changer.hpp"
 
-#include "../../resources/sprite.hpp"
+#include "../../resource/sprite.hpp"
 
 namespace bee {
 	ParticleSystem::ParticleSystem() :

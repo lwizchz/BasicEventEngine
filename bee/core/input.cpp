@@ -24,9 +24,9 @@
 #include "../render/renderer.hpp"
 #include "../render/viewdata.hpp"
 
-#include "../resources/sprite.hpp"
-#include "../resources/object.hpp"
-#include "../resources/room.hpp"
+#include "../resource/sprite.hpp"
+#include "../resource/object.hpp"
+#include "../resource/room.hpp"
 
 namespace bee {
 	/*

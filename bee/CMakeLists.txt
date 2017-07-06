@@ -1,4 +1,4 @@
-set(deps_bee debug.cpp resources.cpp util.cpp engine.cpp enum.hpp)
+set(deps_bee debug.cpp util.cpp engine.cpp enum.hpp)
 set(deps_bee_util util/platform.cpp util/real.cpp util/string.cpp util/dates.cpp util/collision.cpp util/sound.cpp util/messagebox.cpp util/files.cpp util/network.cpp)
 
 set(deps_bee_init init/info.cpp init/gameoptions.cpp init/programflags.cpp)
@@ -12,9 +12,9 @@ set(deps_bee_render render/camera.cpp render/drawing.cpp render/render.cpp rende
 
 set(deps_bee_physics physics/body.cpp physics/draw.cpp physics/world.cpp)
 
-set(deps_bee_resources resources/sprite.cpp resources/sound.cpp resources/background.cpp resources/font.cpp resources/path.cpp resources/timeline.cpp resources/mesh.cpp resources/light.cpp resources/object.cpp resources/room.cpp)
+set(deps_bee_resource resource/sprite.cpp resource/sound.cpp resource/background.cpp resource/font.cpp resource/path.cpp resource/timeline.cpp resource/mesh.cpp resource/light.cpp resource/object.cpp resource/room.cpp)
 
-set(deps ${deps_bee} ${deps_bee_util} ${deps_bee_init} ${deps_bee_core} ${deps_bee_render} ${deps_bee_physics} ${deps_bee_resources})
+set(deps ${deps_bee} ${deps_bee_util} ${deps_bee_init} ${deps_bee_core} ${deps_bee_render} ${deps_bee_physics} ${deps_bee_resource})
 
 if (WIN32)
 	set(SRC ${${PROJECT_NAME}_SOURCE_DIR})

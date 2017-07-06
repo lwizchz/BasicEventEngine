@@ -37,8 +37,8 @@
 #include "../render/transition.hpp"
 #include "../render/viewdata.hpp"
 
-#include "../resources/font.hpp"
-#include "../resources/room.hpp"
+#include "../resource/font.hpp"
+#include "../resource/room.hpp"
 
 namespace bee{
 	/*

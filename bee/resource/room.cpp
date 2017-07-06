@@ -89,7 +89,12 @@ namespace bee {
 		E_EVENT::WINDOW
 	};
 
+	std::map<int,Room*> Room::list;
+	int Room::next_id = 0;
+
 	Room::Room () :
+		Resource(),
+
 		id(-1),
 		name(),
 		path(),
@@ -158,14 +163,34 @@ namespace bee {
 		}
 
 		free_media();
-		resource_list->rooms.remove_resource(id);
+		if (list.find(id) != list.end()) { // Remove the room from the resource list
+			list.erase(id);
+		}
 	}
+
 	int Room::add_to_resources() {
 		if (id < 0) { // If the resource needs to be added to the resource list
-			id = resource_list->rooms.add_resource(this); // Add the resource and get the new id
+			id = next_id++;
+			list.emplace(id, this); // Add the resource and with the new id
 		}
 
 		return 0;
+	}
+	/*
+	* Room::get_amount() - Return the amount of room resources
+	*/
+	size_t Room::get_amount() {
+		return list.size();
+	}
+	/*
+	* Room::get() - Return the resource with the given id
+	* @id: the resource to get
+	*/
+	Room* Room::get(int id) {
+		if (list.find(id) != list.end()) {
+			return list[id];
+		}
+		return nullptr;
 	}
 	int Room::reset() {
 		name = "";
@@ -506,7 +531,7 @@ namespace bee {
 			instances.erase(index);
 			instances_sorted.erase(inst);
 
-			for (E_EVENT e : event_list) {
+			for (E_EVENT e : inst->get_object()->implemented_events) {
 				instances_sorted_events[e].erase(inst);
 			}
 
@@ -1020,8 +1045,8 @@ namespace bee {
 		}
 
 		// Run timelines
-		for (auto& t : resource_list->timelines.resources) {
-			Timeline* tt = static_cast<Timeline*>(t.second);
+		for (size_t i=0; i<Timeline::get_amount(); ++i) {
+			Timeline* tt = Timeline::get(i);
 			if (tt->get_is_running()) {
 				int r = tt->step_to(get_frame());
 				if (r == 2) {

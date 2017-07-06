@@ -9,15 +9,21 @@
 #ifndef BEE_MESH_H
 #define BEE_MESH_H 1
 
+#include <string> // Include the required library headers
+#include <map>
+
 #include <assimp/scene.h> // Include the required Assimp headers
 #include <assimp/mesh.h>
 
-#include "../resources.hpp"
+#include "resource.hpp"
 
 #include "../render/rgba.hpp"
 
 namespace bee {
 	class Mesh: public Resource { // The mesh resource class is used to draw all 3D on-screen objects
+			static std::map<int,Mesh*> list;
+			static int next_id;
+
 			int id; // The id of the resource
 			std::string name; // An arbitrary name for the resource
 			std::string path; // The path of the object mesh file
@@ -49,7 +55,10 @@ namespace bee {
 			Mesh();
 			Mesh(const std::string&, const std::string&);
 			~Mesh();
+
 			int add_to_resources();
+			static size_t get_amount();
+			static Mesh* get(int);
 			int reset();
 			int print() const;
 
@@ -63,7 +72,7 @@ namespace bee {
 			int load(int);
 			int load();
 			int free();
-			
+
 			int draw(glm::vec3, glm::vec3, glm::vec3, RGBA, bool);
 			int draw(glm::vec3, glm::vec3, glm::vec3);
 			int draw(glm::vec3);

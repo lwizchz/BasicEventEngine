@@ -23,11 +23,16 @@
 #include "../core/messenger/messenger.hpp"
 
 namespace bee {
+	std::map<int,Sound*> Sound::list;
+	int Sound::next_id = 0;
+
 	/*
 	* Sound::Sound() - Default construct the sound
 	* ! This constructor should only be used for temporary sounds, the other constructor should be used for all other cases
 	*/
 	Sound::Sound() :
+		Resource(),
+
 		id(-1),
 		name(),
 		path(),
@@ -75,17 +80,37 @@ namespace bee {
 	*/
 	Sound::~Sound() {
 		this->free(); // Free all sound data
-		resource_list->sounds.remove_resource(id); // Remove the sound from the resource list
+		if (list.find(id) != list.end()) { // Remove the sound from the resource list
+			list.erase(id);
+		}
 	}
+
 	/*
 	* Sound::add_to_resources() - Add the sound to the appropriate resource list
 	*/
 	int Sound::add_to_resources() {
 		if (id < 0) { // If the resource needs to be added to the resource list
-			id = resource_list->sounds.add_resource(this); // Add the resource and get the new id
+			id = next_id++;
+			list.emplace(id, this); // Add the resource and with the new id
 		}
 
 		return 0; // Return 0 on success
+	}
+	/*
+	* Sound::get_amount() - Return the amount of sound resources
+	*/
+	size_t Sound::get_amount() {
+		return list.size();
+	}
+	/*
+	* Sound::get() - Return the resource with the given id
+	* @id: the resource to get
+	*/
+	Sound* Sound::get(int id) {
+		if (list.find(id) != list.end()) {
+			return list[id];
+		}
+		return nullptr;
 	}
 	/*
 	* Sound::reset() - Reset all resource variables for reinitialization

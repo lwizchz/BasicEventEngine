@@ -15,9 +15,9 @@
 
 #include "../../util/real.hpp"
 
-#include "../../resources/sprite.hpp"
-
 #include "../drawing.hpp"
+
+#include "../../resource/sprite.hpp"
 
 namespace bee {
 	ParticleData::ParticleData(Particle* new_particle_type, double new_x, double new_y, Uint32 now) :

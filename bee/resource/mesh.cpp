@@ -37,11 +37,16 @@
 #include "../render/renderer.hpp"
 
 namespace bee {
+	std::map<int,Mesh*> Mesh::list;
+	int Mesh::next_id = 0;
+
 	/*
 	* Mesh::Mesh() - Default construct the mesh
 	* ! This constructor should only be directly used for temporary meshes, the other constructor should be used for all other cases
 	*/
 	Mesh::Mesh() :
+		Resource(),
+
 		id(-1),
 		name(),
 		path(),
@@ -85,17 +90,36 @@ namespace bee {
 	*/
 	Mesh::~Mesh() {
 		this->free(); // Free all the mesh data
-		resource_list->meshes.remove_resource(id); // Remove the mesh from the resource list
+		if (list.find(id) != list.end()) { // Remove the mesh from the resource list
+			list.erase(id);
+		}
 	}
 	/*
 	* Mesh::add_to_resources() - Add the mesh to the appropriate resource list
 	*/
 	int Mesh::add_to_resources() {
 		if (id < 0) { // If the resource needs to be added to the resource list
-			id = resource_list->meshes.add_resource(this); // Add the resource and get the new id
+			id = next_id++;
+			list.emplace(id, this); // Add the resource and with the new id
 		}
 
 		return 0; // Return 0 on success
+	}
+	/*
+	* Mesh::get_amount() - Return the amount of mesh resources
+	*/
+	size_t Mesh::get_amount() {
+		return list.size();
+	}
+	/*
+	* Mesh::get() - Return the resource with the given id
+	* @id: the resource to get
+	*/
+	Mesh* Mesh::get(int id) {
+		if (list.find(id) != list.end()) {
+			return list[id];
+		}
+		return nullptr;
 	}
 	/*
 	* Mesh::reset() - Reset all resource variables for reinitialization

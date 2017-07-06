@@ -17,7 +17,6 @@
 #include "debug.hpp"
 #include "util.hpp"
 #include "enum.hpp"
-#include "resources.hpp"
 
 #include "init/gameoptions.hpp"
 #include "init/programflags.hpp"
@@ -34,13 +33,12 @@
 #include "render/render.hpp"
 #include "render/renderer.hpp"
 
-#include "resources/sprite.hpp"
-#include "resources/font.hpp"
-#include "resources/room.hpp"
+#include "resource/sprite.hpp"
+#include "resource/font.hpp"
+#include "resource/room.hpp"
 
 namespace bee {
 	EngineState* engine = nullptr;
-	MetaResourceList* resource_list = nullptr;
 	bool is_initialized = false;
 
 	int init(int argc, char** argv, const std::list<ProgramFlags*>& new_flags, Room** new_first_room, GameOptions* new_options) {
@@ -164,7 +162,6 @@ namespace bee {
 		Mix_AllocateChannels(128); // Probably overkill
 
 		if (!is_initialized) {
-			resource_list = new MetaResourceList();
 			if (init_resources()) {
 				messenger_send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't init resources");
 				return 9; // Return 9 when the resources could not be initialized
@@ -547,12 +544,6 @@ namespace bee {
 			net_close();
 			delete engine->net;
 			engine->net = nullptr;
-		}
-
-		if (resource_list != nullptr) {
-			resource_list->reset();
-			delete resource_list;
-			resource_list = nullptr;
 		}
 
 		free_standard_flags();

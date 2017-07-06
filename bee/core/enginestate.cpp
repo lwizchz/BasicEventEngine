@@ -29,9 +29,9 @@
 #include "../render/renderer.hpp"
 #include "../render/rgba.hpp"
 
-#include "../resources/sprite.hpp"
-#include "../resources/font.hpp"
-#include "../resources/room.hpp"
+#include "../resource/sprite.hpp"
+#include "../resource/font.hpp"
+#include "../resource/room.hpp"
 
 namespace bee {
 	EngineState::EngineState() :

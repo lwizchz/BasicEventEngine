@@ -25,11 +25,16 @@
 #include "../render/rgba.hpp"
 
 namespace bee {
+	std::map<int,Path*> Path::list;
+	int Path::next_id = 0;
+
 	/*
 	* Path::Path() - Default construct the path
 	* ! This constructor should only be directly used for temporary paths, the other constructor should be used for all other cases
 	*/
 	Path::Path () :
+		Resource(),
+
 		id(-1),
 		name(),
 		path(),
@@ -58,17 +63,37 @@ namespace bee {
 	* Path::~Path() - Remove the path from the resource list
 	*/
 	Path::~Path() {
-		resource_list->paths.remove_resource(id);
+		if (list.find(id) != list.end()) { // Remove the path from the resource list
+			list.erase(id);
+		}
 	}
+
 	/*
 	* Path::add_to_resources() - Add the path to the appropriate resource list
 	*/
 	int Path::add_to_resources() {
 		if (id < 0) { // If the resource needs to be added to the resource list
-			id = resource_list->paths.add_resource(this); // Add the resource and get the new id
+			id = next_id++;
+			list.emplace(id, this); // Add the resource and with the new id
 		}
 
 		return 0; // Return 0 on success
+	}
+	/*
+	* Path::get_amount() - Return the amount of path resources
+	*/
+	size_t Path::get_amount() {
+		return list.size();
+	}
+	/*
+	* Path::get() - Return the resource with the given id
+	* @id: the resource to get
+	*/
+	Path* Path::get(int id) {
+		if (list.find(id) != list.end()) {
+			return list[id];
+		}
+		return nullptr;
 	}
 	/*
 	* Path::reset() - Reset all resource variables for reinitialization

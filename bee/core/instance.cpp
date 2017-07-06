@@ -31,10 +31,10 @@
 #include "../physics/body.hpp"
 #include "../physics/world.hpp"
 
-#include "../resources/sprite.hpp"
-#include "../resources/path.hpp"
-#include "../resources/object.hpp"
-#include "../resources/room.hpp"
+#include "../resource/sprite.hpp"
+#include "../resource/path.hpp"
+#include "../resource/object.hpp"
+#include "../resource/room.hpp"
 
 namespace bee {
 	Instance::Instance() {
@@ -570,7 +570,7 @@ namespace bee {
 		return false;
 	}
 	bool Instance::is_place_meeting(int new_x, int new_y, int other_id) const {
-		return is_place_meeting(new_x, new_y, bee::get_object(other_id));
+		return is_place_meeting(new_x, new_y, Object::get(other_id));
 	}
 	bool Instance::is_place_meeting(int new_x, int new_y, Object* other, std::function<void(Instance*,Instance*)> func) {
 		SDL_Rect mask = get_aabb();

@@ -64,11 +64,16 @@ namespace bee {
 		return s; // Return the sprite
 	}
 
+	std::map<int,Font*> Font::list;
+	int Font::next_id = 0;
+
 	/*
 	* Font::Font() - Construct the font and set its engine pointer
 	* ! This constructor should only be directly used for temporary fonts, the other constructor should be used for all other cases
 	*/
 	Font::Font() :
+		Resource(),
+
 		id(-1),
 		name(),
 		path(),
@@ -109,17 +114,37 @@ namespace bee {
 	*/
 	Font::~Font() {
 		this->free(); // Free all font data
-		resource_list->fonts.remove_resource(id); // Remove the font from the resource list
+		if (list.find(id) != list.end()) { // Remove the font from the resource list
+			list.erase(id);
+		}
 	}
+
 	/*
 	* Font::add_to_resources() - Add the font to the appropriate resource list
 	*/
 	int Font::add_to_resources() {
 		if (id < 0) { // If the resource needs to be added to the resource list
-			id = resource_list->fonts.add_resource(this); // Add the resource and get the new id
+			id = next_id++;
+			list.emplace(id, this); // Add the resource and with the new id
 		}
 
 		return 0; // Return 0 on success
+	}
+	/*
+	* Font::get_amount() - Return the amount of font resources
+	*/
+	size_t Font::get_amount() {
+		return list.size();
+	}
+	/*
+	* Font::get() - Return the resource with the given id
+	* @id: the resource to get
+	*/
+	Font* Font::get(int id) {
+		if (list.find(id) != list.end()) {
+			return list[id];
+		}
+		return nullptr;
 	}
 	/*
 	* Font::reset() - Reset all resource variables for reinitialization

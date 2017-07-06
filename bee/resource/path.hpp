@@ -9,14 +9,19 @@
 #ifndef BEE_PATH_H
 #define BEE_PATH_H 1
 
-#include <vector> // Include the required library headers
+#include <string> // Include the required library headers
+#include <map>
+#include <vector>
 
-#include "../resources.hpp"
+#include "resource.hpp"
 
 namespace bee {
 	typedef std::tuple<double, double, double, double> path_coord_t; // {x, y, z, speed}
 
 	class Path: public Resource { // The path resource class is used to repeatedly move instances in complex, predefined patterns
+			static std::map<int,Path*> list;
+			static int next_id;
+
 			int id; // The id of the resource
 			std::string name; // An arbitrary name for the resource
 			std::string path; // The path of the config file which is used to populate the coordinate list
@@ -28,7 +33,10 @@ namespace bee {
 			Path();
 			Path(const std::string&, const std::string&);
 			~Path();
+
 			int add_to_resources();
+			static size_t get_amount();
+			static Path* get(int);
 			int reset();
 			int print() const;
 

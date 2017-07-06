@@ -49,7 +49,6 @@ namespace bee { // The engine namespace
 	struct Console; // The console subsystem structs
 
 	extern EngineState* engine;
-	extern MetaResourceList* resource_list;
 	extern bool is_initialized;
 
 	namespace internal {
