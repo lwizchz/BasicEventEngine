@@ -18,11 +18,11 @@ class RmTest: public bee::Room {
 		};
 
 		RmTest();
-		int init() override final;
+		void init();
 };
 RmTest::RmTest() : Room("RmTest", "test.hpp") {}
 
-int RmTest::init() {
+void RmTest::init() {
 	// set room properties
 	/*set_width(3000);
 	set_height(500);
@@ -45,6 +45,4 @@ int RmTest::init() {
 		set_instance_map("resources/rooms/test.csv");
 	}
 	load_instance_map();
-
-	return 0;
 }

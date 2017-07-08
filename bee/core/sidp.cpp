@@ -24,7 +24,7 @@
 namespace bee {
 	SIDP::SIDP() :
 		type(-1), // Possible types: 0=string, 1=int, 2=double, 3=pointer
-		container_type(0), // Possible containers: 0=plain, 1=vector, 2=map
+		container_type(0), // Possible containers: 0=plain, 1=vector, 2=map, 3=function
 		str(),
 		integer(0),
 		floating(0.0),
@@ -42,6 +42,8 @@ namespace bee {
 			pointer = new std::vector<SIDP>(*static_cast<std::vector<SIDP>*>(sidp.pointer));
 		} else if (container_type == 2) {
 			pointer = new std::map<SIDP,SIDP>(*static_cast<std::map<SIDP,SIDP>*>(sidp.pointer));
+		} else if (container_type == 3) {
+			pointer = new std::function<void (SIDP*)>(*static_cast<std::function<void (SIDP*)>*>(sidp.pointer));
 		} else {
 			pointer = sidp.pointer;
 		}
@@ -95,6 +97,8 @@ namespace bee {
 				delete static_cast<std::vector<SIDP>*>(pointer);
 			} else if (container_type == 2) {
 				delete static_cast<std::map<SIDP,SIDP>*>(pointer);
+			} else if (container_type == 3) {
+				//delete static_cast<std::function<void (SIDP*)>*>(pointer);
 			}
 		}
 
@@ -154,6 +158,13 @@ namespace bee {
 		type = 3;
 		container_type = 2;
 		pointer = m;
+		return 0;
+	}
+	int SIDP::function(std::function<void (SIDP)>& f) {
+		reset();
+		type = 3;
+		container_type = 3;
+		pointer = &f;
 		return 0;
 	}
 	std::string SIDP::to_str() {
@@ -485,6 +496,8 @@ namespace bee {
 					}
 
 					os << "}";
+				} else if (sidp.container_type == 3) {
+					os << "std::function<void (SIDP)>";
 				} else {
 					os << sidp.pointer;
 				}

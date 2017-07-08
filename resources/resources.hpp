@@ -11,7 +11,6 @@
 
 #include "../bee/util.hpp"
 #include "../bee/all.hpp"
-#include "sidp.hpp"
 
 // Define sprites
 bee::Sprite* spr_bee = nullptr;

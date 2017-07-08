@@ -316,7 +316,7 @@ namespace bee {
 		return object->get_mask()->get_height();
 	}
 	SDL_Rect Instance::get_aabb() const {
-		return {(int)get_x(), (int)get_y(), get_width(), get_height()};
+		return {(int)get_corner_x(), (int)get_corner_y(), get_width(), get_height()};
 	}
 
 	int Instance::set_position(btVector3 p) {
@@ -333,6 +333,12 @@ namespace bee {
 	}
 	int Instance::set_to_start() {
 		return set_position(pos_start);
+	}
+	int Instance::set_corner_x(double new_x) {
+		return set_position(new_x + get_width()/2.0, get_y(), get_z());
+	}
+	int Instance::set_corner_y(double new_y) {
+		return set_position(get_x(), new_y + get_height()/2.0, get_z());
 	}
 	int Instance::set_mass(double new_mass) {
 		btVector3 pos = get_position(); // Store the position since setting the mass to 0.0 resets it

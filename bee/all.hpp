@@ -61,3 +61,5 @@
 #include "resource/light.hpp"
 #include "resource/object.hpp"
 #include "resource/room.hpp"
+
+#include "ui/ui.hpp"

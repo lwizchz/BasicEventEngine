@@ -106,6 +106,8 @@ namespace bee {
 			int set_position(btVector3);
 			int set_position(double, double, double);
 			int set_to_start();
+			int set_corner_x(double);
+			int set_corner_y(double);
 			int set_mass(double);
 			int move(btVector3);
 			int move(double, btVector3);

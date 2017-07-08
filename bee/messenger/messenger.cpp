@@ -436,11 +436,18 @@ namespace bee { namespace messenger{
 		// Process messages with recipient functions
 		std::exception_ptr ep = nullptr; // Store any thrown values
 		for (auto& msg : internal::messages) { // Iterate over the messages
+			if (msg == nullptr) {
+				continue;
+			}
+
 			if (t < msg->tickstamp) { // If the message should be processed in the future, skip it
 				continue;
 			}
 
-			ep = internal::call_recipients(msg);
+			std::exception_ptr e = internal::call_recipients(msg);
+			if (e != nullptr) {
+				ep = e;
+			}
 		}
 
 		// Remove processed messages

@@ -13,6 +13,7 @@
 #include <unordered_set>
 #include <functional>
 #include <memory>
+#include <sstream>
 
 #include "../messenger/messagecontents.hpp"
 

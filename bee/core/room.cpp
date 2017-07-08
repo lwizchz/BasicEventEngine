@@ -103,7 +103,6 @@ namespace bee {
 		}
 
 		set_window_title(engine->current_room->get_name()); // Set the window title to the room's name
-		//messenger::send({"engine", "room"}, E_MESSAGE::INFO, current_room->get_instance_string());
 		messenger::send({"engine", "room"}, E_MESSAGE::INFO, "Changed to room \"" + engine->current_room->get_name() + "\"");
 
 		if (engine->transition_type != E_TRANSITION::NONE) { // If a transition has been defined then prepare for drawing the new room into the after buffer

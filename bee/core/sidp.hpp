@@ -11,6 +11,7 @@
 
 #include <map>
 #include <vector>
+#include <functional>
 
 namespace bee {
 	struct SIDP { // This class can hold a string, integer, double, or pointer and is meant to allow multiple types in the same container
@@ -36,6 +37,7 @@ namespace bee {
 		int interpret(const std::string&);
 		int vector(std::vector<SIDP>*);
 		int map(std::map<SIDP,SIDP>*);
+		int function(std::function<void (SIDP)>&);
 		std::string to_str();
 
 		// Return the requested type
@@ -75,6 +77,7 @@ namespace bee {
 	std::istream& operator>>(std::istream&, SIDP&);
 }
 
+// Shorthand for easier SIDP debugging
 #define SIDP_s(x) x.s(__FILE__, __LINE__)
 #define SIDP_i(x) x.i(__FILE__, __LINE__)
 #define SIDP_d(x) x.d(__FILE__, __LINE__)
@@ -84,5 +87,17 @@ namespace bee {
 #define SIDP_ci(x,i) x.p(i, __FILE__, __LINE__).i(__FILE__, __LINE__)
 #define SIDP_cd(x,i) x.p(i, __FILE__, __LINE__).d(__FILE__, __LINE__)
 #define SIDP_cp(x,i) x.p(i, __FILE__, __LINE__).p(__FILE__, __LINE__)
+
+// Shorthand for easier Instance data debugging
+#define _a(x) (*s)[x]
+#define _s(x) (*s)[x].s(__FILE__, __LINE__)
+#define _i(x) (*s)[x].i(__FILE__, __LINE__)
+#define _d(x) (*s)[x].d(__FILE__, __LINE__)
+#define _p(x) (*s)[x].p(__FILE__, __LINE__)
+#define _c(x,i) (*s)[x].p(i, __FILE__, __LINE__)
+#define _cs(x,i) (*s)[x].p(i, __FILE__, __LINE__).s(__FILE__, __LINE__)
+#define _ci(x,i) (*s)[x].p(i, __FILE__, __LINE__).i(__FILE__, __LINE__)
+#define _cd(x,i) (*s)[x].p(i, __FILE__, __LINE__).d(__FILE__, __LINE__)
+#define _cp(x,i) (*s)[x].p(i, __FILE__, __LINE__).p(__FILE__, __LINE__)
 
 #endif // BEE_CORE_SIDP_H

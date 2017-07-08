@@ -190,7 +190,9 @@ namespace bee {
 			int game_end();
 			int window(SDL_Event*);
 
-			virtual int init() =0;
+			virtual void init() =0;
+			virtual void start() {};
+			virtual void end() {};
 	};
 }
 

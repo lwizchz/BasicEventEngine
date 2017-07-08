@@ -1444,6 +1444,8 @@ namespace bee {
 		return 0;
 	}
 	int Room::room_start() {
+		this->start();
+
 		for (auto& i : instances_sorted_events[E_EVENT::ROOM_START]) {
 			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
 				continue;
@@ -1467,6 +1469,8 @@ namespace bee {
 			destroyed_instances.push_back(i.second);
 		}
 		destroy();
+
+		this->end();
 
 		return 0;
 	}
