@@ -93,12 +93,28 @@ namespace bee {
 		return 0; // Return 0 on success
 	}
 	/*
-	* sound_stop_all() - Immediately stop all sound output
+	* sound_stop_loops() - Immediately stop all looping sounds
+	*/
+	int sound_stop_loops() {
+		Sound* s;
+		for (size_t i=0; i<Sound::get_amount(); ++i) { // Iterate over the sounds and stop them individually
+			s = Sound::get(i);
+			if ((s != nullptr)&&(s->get_is_looping())) {
+				s->stop();
+			}
+		}
+
+		return 0; // Return 0 on success
+	}
+	/*
+	* sound_stop_all() - Immediately stop all sounds
 	*/
 	int sound_stop_all() {
+		Sound* s;
 		for (size_t i=0; i<Sound::get_amount(); ++i) { // Iterate over the sounds and stop them individually
-			if (Sound::get(i) != nullptr) {
-				Sound::get(i)->stop();
+			s = Sound::get(i);
+			if (s != nullptr) {
+				s->stop();
 			}
 		}
 

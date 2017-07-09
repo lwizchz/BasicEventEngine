@@ -33,8 +33,11 @@ namespace bee { namespace messenger{
 		E_OUTPUT output_level = E_OUTPUT::NORMAL;
 	}
 
+	/*
+	* clear() - Clear all recipients and messages for when the game ends
+	*/
 	int clear() {
-		if (!internal::messages.empty()) {
+		if (!internal::messages.empty()) { // If there are messages that haven't been processed, output a warning
 			internal::send_urgent(std::shared_ptr<MessageContents>(new MessageContents(
 				get_ticks(),
 				{"engine", "close"},
@@ -47,7 +50,7 @@ namespace bee { namespace messenger{
 		internal::recipients.clear();
 		internal::messages.clear();
 
-		return 0;
+		return 0; // Return 0 on success
 	}
 
 	/*
@@ -227,6 +230,19 @@ namespace bee { namespace messenger{
 
 		return 0; // Return 0 on success
 	}
+	/*
+	* internal::remove_messages() - Remove messages from processing based on the given criterion function
+	* @func: the callback which determines whether to remove a message
+	*/
+	int internal::remove_messages(std::function<bool (std::shared_ptr<MessageContents>)> func) {
+		size_t amount = messages.size();
+
+		messages.erase(std::remove_if(messages.begin(), messages.end(), func), messages.end());
+
+		amount -= messages.size();
+
+		return amount;
+	}
 
 	/*
 	* register() - Register the given recipient within the messaging system
@@ -321,6 +337,10 @@ namespace bee { namespace messenger{
 			if (recv != nullptr) { // If the recipient has been found, break out
 				break;
 			}
+		}
+
+		if (recv == nullptr) {
+			return 2; // Return 2 when the recipient does not exist
 		}
 
 		return unregister(recv); // Return the attempt to remove the recipient

@@ -27,8 +27,8 @@
 #include "core/window.hpp"
 
 #include "network/network.hpp"
-#include "network/networkdata.hpp"
-#include "network/networkclient.hpp"
+#include "network/connection.hpp"
+#include "network/client.hpp"
 
 #include "render/camera.hpp"
 #include "render/drawing.hpp"

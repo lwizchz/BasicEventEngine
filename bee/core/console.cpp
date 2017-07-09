@@ -533,10 +533,9 @@ namespace bee{
 			"Useful for breaking endless loops",
 			[] (std::shared_ptr<MessageContents> msg) {
 				const std::vector<std::string> wait_tags = {"engine", "console", "wait"};
-				std::vector<std::shared_ptr<MessageContents>>& messages = messenger::internal::messages;
-				messages.erase(std::remove_if(messages.begin(), messages.end(), [&wait_tags] (std::shared_ptr<MessageContents> m) {
+				messenger::internal::remove_messages([&wait_tags] (std::shared_ptr<MessageContents> m) {
 					return (m->tags == wait_tags);
-				}), messages.end());
+				});
 			}
 		);
 		/*

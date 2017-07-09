@@ -32,6 +32,7 @@ namespace bee { // The engine namespace
 
 	double get_volume();
 	int set_volume(double);
+	int sound_stop_loops();
 	int sound_stop_all();
 
 	Sprite* add_sprite(const std::string&, const std::string&);

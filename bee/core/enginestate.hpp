@@ -29,7 +29,7 @@ namespace bee {
 
 	class Messenger;
 	class Console;
-	class NetworkData;
+	class NetworkConnection;
 
 	class Renderer;
 	class RGBA;
@@ -74,8 +74,6 @@ namespace bee {
 
 		Uint32 tickstamp, fps_ticks, tick_delta;
 
-		NetworkData* net;
-
 		double volume;
 
 		unsigned int fps_goal, fps_max, fps_unfocused;
@@ -99,7 +97,6 @@ namespace bee {
 		unsigned int fps_stable;
 
 		EngineState(int, char**, GameOptions*);
-		~EngineState();
 
 		int free(); // Must be called to free data before closing SDL
 	};

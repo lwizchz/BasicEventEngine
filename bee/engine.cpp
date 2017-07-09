@@ -62,7 +62,9 @@ namespace bee {
 			}
 		}
 
-		net_init();
+		if (engine->options->is_network_enabled) {
+			net::init();
+		}
 
 		if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
 			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't init SDL: " + get_sdl_error());
@@ -403,7 +405,7 @@ namespace bee {
 				engine->current_room->animation_end();
 				engine->current_room->destroy();
 
-				net_handle_events();
+				net::handle_events();
 				messenger::handle();
 
 				engine->fps_count++;
@@ -468,8 +470,6 @@ namespace bee {
 					}
 				}
 			} catch (...) {
-				close();
-
 				messenger::internal::send_urgent(std::shared_ptr<MessageContents>(new MessageContents(
 					get_ticks(),
 					{"engine"},
@@ -477,6 +477,8 @@ namespace bee {
 					"Unknown error",
 					nullptr
 				)));
+
+				close();
 
 				std::rethrow_exception(std::current_exception());
 			}
@@ -497,6 +499,10 @@ namespace bee {
 		if (is_initialized) {
 			free_media();
 			close_resources();
+		}
+
+		if (net::get_is_initialized()) {
+			net::close();
 		}
 
 		engine->free();

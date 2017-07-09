@@ -26,7 +26,7 @@
 #include "console.hpp"
 
 #include "../network/network.hpp"
-#include "../network/networkdata.hpp"
+#include "../network/connection.hpp"
 
 #include "../render/renderer.hpp"
 #include "../render/rgba.hpp"
@@ -65,8 +65,6 @@ namespace bee {
 		fps_ticks(0),
 		tick_delta(0),
 
-		net(new NetworkData()),
-
 		volume(1.0),
 
 		fps_goal(DEFAULT_GAME_FPS),
@@ -91,13 +89,6 @@ namespace bee {
 
 		fps_stable(0)
 	{}
-	EngineState::~EngineState() {
-		if (net != nullptr) {
-			net_close();
-			delete net;
-			net = nullptr;
-		}
-	}
 
 	int EngineState::free() {
 		if (font_default != nullptr) {

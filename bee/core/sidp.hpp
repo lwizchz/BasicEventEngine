@@ -11,7 +11,6 @@
 
 #include <map>
 #include <vector>
-#include <functional>
 
 namespace bee {
 	struct SIDP { // This class can hold a string, integer, double, or pointer and is meant to allow multiple types in the same container
@@ -37,7 +36,6 @@ namespace bee {
 		int interpret(const std::string&);
 		int vector(std::vector<SIDP>*);
 		int map(std::map<SIDP,SIDP>*);
-		int function(std::function<void (SIDP)>&);
 		std::string to_str();
 
 		// Return the requested type
@@ -47,6 +45,7 @@ namespace bee {
 		void* p(std::string, int);
 		SIDP p(size_t, std::string, int);
 		SIDP p(SIDP, std::string, int);
+
 		std::string s();
 		int i();
 		double d();

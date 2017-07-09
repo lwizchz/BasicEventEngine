@@ -77,7 +77,7 @@ namespace bee {
 			engine->first_room = new_room; // Set the new room as the first room
 		}
 
-		sound_stop_all(); // Stop all sounds from the previous room
+		sound_stop_loops(); // Stop all looping sounds from the previous room
 		free_media(); // Free all resources from the previous room
 
 		if (new_room == nullptr) { // If we're transitioning to a null room, i.e. the game is ending

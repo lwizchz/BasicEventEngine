@@ -331,12 +331,6 @@ namespace bee {
 	* Sound::free() - Free the sound data and delete all of its effect buffers
 	*/
 	int Sound::free() {
-		if (!is_loaded) { // Do not attempt to free the data if the sound has not been loaded
-			return 0; // Return 0 on success
-		}
-
-		stop(); // Stop playing the sound before freeing its data
-
 		// Delete all of the sound's effect buffers
 		delete chorus_data;
 		chorus_data = nullptr;
@@ -352,6 +346,12 @@ namespace bee {
 		compressor_data = nullptr;
 		delete equalizer_data;
 		equalizer_data = nullptr;
+
+		if (!is_loaded) { // Do not attempt to free more data if the sound has not been loaded
+			return 0; // Return 0 on success
+		}
+
+		stop(); // Stop playing the sound before freeing its data
 
 		// Free the sound data
 		if (is_music) { // If the sound is music, free it appropriately
@@ -561,14 +561,17 @@ namespace bee {
 	* Sound::loop() - Play the sound in a continuous loop
 	*/
 	int Sound::loop() {
-		return play(-1); // Return the attempt to play the sound until it is stopped
+		int r = play(-1); // Loop the sound
+		is_looping = true; // Set the loop boolean
+		return r; // Return the attempt to play the sound
 	}
 	/*
 	* Sound::fade_in() - Fade in the sound over a given amount of time
 	* ! This function might be able to be combined with play()
 	* @ticks: the amount of ticks over which to fade in
+	* @should_loop: whether the sound should loop after fading in
 	*/
-	int Sound::fade_in(int ticks) {
+	int Sound::fade_in(int ticks, bool should_loop) {
 		if (!is_loaded) { // Do not attempt to fade in the sound if it has not been loaded
 			if (!has_play_failed) { // If the play call hasn't failed yet, output a warning
 				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to fade in sound \"" + name + "\" because it is not loaded");
@@ -577,11 +580,16 @@ namespace bee {
 			return 1; // Return 1 when not loaded
 		}
 
+		int loop_amount = 0;
+		if (should_loop) { // Set the amount of times to play the sound
+			loop_amount = -1;
+		}
+
 		if (is_music) { // If the sound is music, fade it in appropriately
-			Mix_FadeInMusic(music, 1, ticks); // Fade in the music
+			Mix_FadeInMusic(music, loop_amount, ticks); // Fade in the music
 			effect_add_post(sound_effects); // Apply the desired sound effects
 		} else { // Otherwise fade it in normally
-			int c = Mix_FadeInChannel(-1, chunk, 0, ticks); // Fade in the chunk on the first available channel
+			int c = Mix_FadeInChannel(-1, chunk, loop_amount, ticks); // Fade in the chunk on the first available channel
 			if (c >= 0) { // If the chunk was played successfully, add its channel to the list
 				current_channels.remove(c); // Remove any duplicate channels
 				current_channels.push_back(c); // Add the channel to the end of the currently playing list
@@ -596,9 +604,16 @@ namespace bee {
 
 		// Set the playing booleans
 		is_playing = true;
-		is_looping = false;
+		is_looping = should_loop;
 
 		return 0; // Return 0 on success
+	}
+	/*
+	* Sound::fade_in() - Fade in the sound over a given amount of time
+	* @ticks: the amount of ticks over which to fade in
+	*/
+	int Sound::fade_in(int ticks) {
+		return fade_in(ticks, true);
 	}
 	/*
 	* Sound::fade_out() - Fade out the sound over a given amount of time
@@ -628,7 +643,6 @@ namespace bee {
 
 		return 0; // Return 0 on success
 	}
-
 	/*
 	* Sound::effect_set() - Add the given sound effects to the sound
 	* @new_sound_effects - a bitmask containing the desired sound effects

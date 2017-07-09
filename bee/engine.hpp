@@ -28,23 +28,12 @@
 #include "enum.hpp" // Include the required engine enumerations
 
 namespace bee { // The engine namespace
+	// Forward declarations
+	struct ProgramFlags;
+	struct GameOptions;
+	class Room;
+
 	struct EngineState; // The struct which holds the main game state
-
-	class Resource;
-
-	class Sprite; class Sound; class Background; class Font; class Path; class Timeline; class Mesh; class Object; class Room; // The main resource types
-	class Particle; class ParticleData; class ParticleEmitter; class ParticleAttractor; class ParticleDestroyer; class ParticleDeflector; class ParticleChanger; class ParticleSystem; // The particle system components
-	class Renderer; class Light; class Camera; // The OpenGL-only resources (poor SDL implementations may exist)
-	class ProgramFlags; class GameOptions; struct RGBA; // The engine related data
-	class Instance; // The additional resource data types
-	class PhysicsWorld; class PhysicsDraw; class PhysicsBody; // The classes which interface with the external Physics library
-	struct SpriteDrawData; struct TextData; struct LightData; struct LightableData; // Additional resource-related data structs
-
-	struct ViewData; struct BackgroundData; // The configurational structs
-	struct NetworkData; struct NetworkClient; // The networking subsystem structs
-	class Messenger; struct MessageContents; struct MessageRecipient; // The messaging subsystem structs
-	struct SIDP; // The utility structs
-	struct Console; // The console subsystem structs
 
 	extern EngineState* engine;
 	extern bool is_initialized;

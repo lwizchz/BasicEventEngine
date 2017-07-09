@@ -115,8 +115,8 @@ void ObjBee::destroy(bee::Instance* self) {
 		if (_p("part_system") != nullptr) {
 			delete (bee::ParticleSystem*) _p("part_system");
 		}
-		if (bee::net_get_is_connected()) {
-			bee::net_session_end();
+		if (bee::net::get_is_connected()) {
+			bee::net::session_end();
 		}
 		delete (bee::TextData*) _p("text_fps");
 	}
@@ -211,16 +211,16 @@ void ObjBee::keyboard_press(bee::Instance* self, SDL_Event* e) {
 		}
 
 		case SDLK_z: {
-			bee::net_session_start("test_session", 4, "hostplayer");
+			bee::net::session_start("test_session", 4, "hostplayer");
 			break;
 		}
 		case SDLK_x: {
-			//net_session_join("127.0.0.1", "clientplayer");
-			bee::net_session_join("192.168.1.155", "clientplayer");
+			//bee::net::session_join("127.0.0.1", "clientplayer");
+			bee::net::session_join("192.168.1.155", "clientplayer");
 			break;
 		}
 		case SDLK_c: {
-			std::map<std::string,std::string> servers = bee::net_session_find();
+			const std::map<std::string,std::string>& servers = bee::net::session_find();
 			if (!servers.empty()) {
 				std::cerr << "Available servers:\n";
 				for (auto& srv : servers) {

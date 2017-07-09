@@ -19,23 +19,21 @@
 namespace bee {
 	// Forward declarations
 	class Instance;
-	class Sprite;
+	class Sound;
 	class Font;
-	class Object;
 
 namespace ui {
 	namespace internal {
-		// Declare sprites
-		extern Sprite* spr_button;
-
-		// Declare objects
-		extern Object* obj_button;
+		// Declare sounds
+		extern Sound* snd_button_press;
+		extern Sound* snd_button_release;
 	}
 
 	int load();
 	int free();
 
 	Instance* create_button(int, int, Font*, const std::string&, RGBA, std::function<void (SIDP)>);
+	int button_callback(Instance*);
 }}
 
 #endif // BEE_UI_H

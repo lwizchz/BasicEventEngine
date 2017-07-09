@@ -65,7 +65,7 @@ void ObjUIButton::mouse_press(bee::Instance* self, SDL_Event* e) {
 			a.h = _i("h");
 			SDL_Rect b = {e->button.x-10, e->button.y-10, 20, 20};
 			if (check_collision(a, b)) {
-				//snd_hurt->play();
+				bee::ui::internal::snd_button_press->play();
 				(*s)["is_pressed"] = true;
 			}
 			break;
@@ -85,11 +85,8 @@ void ObjUIButton::mouse_release(bee::Instance* self, SDL_Event* e) {
 			SDL_Rect b = {e->button.x-10, e->button.y-10, 20, 20};
 			if (check_collision(a, b)) {
 				if (_i("is_pressed")) {
-					//snd_death->play();
-					if (_p("press_func") != nullptr) {
-						std::function<void (bee::SIDP)> f = (*((std::function<void (bee::SIDP)>*) _p("press_func")));
-						f((void*)self);
-					}
+					bee::ui::internal::snd_button_release->play();
+					bee::ui::button_callback(self);
 				}
 			}
 			break;

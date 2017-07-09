@@ -19,11 +19,6 @@ namespace bee { namespace messenger {
 	int clear();
 
 	namespace internal {
-		extern std::unordered_map<std::string,std::unordered_set<std::shared_ptr<MessageRecipient>>> recipients;
-		extern const std::unordered_set<std::string> protected_tags;
-		extern std::vector<std::shared_ptr<MessageContents>> messages;
-		extern E_OUTPUT messenger_output_level;
-
 		int print_msg(std::shared_ptr<MessageContents>);
 		std::exception_ptr call_recipients(std::shared_ptr<MessageContents>);
 
@@ -31,6 +26,8 @@ namespace bee { namespace messenger {
 		std::shared_ptr<MessageRecipient> register_protected(std::string, const std::vector<std::string>&, bool, std::function<void (std::shared_ptr<MessageContents>)>);
 		int unregister_protected(std::shared_ptr<MessageRecipient>);
 		int send_urgent(std::shared_ptr<MessageContents>);
+
+		int remove_messages(std::function<bool (std::shared_ptr<MessageContents>)>);
 	}
 
 	int register_recipient(std::shared_ptr<MessageRecipient>);

@@ -97,6 +97,7 @@ namespace bee {
 			int resume();
 			int toggle();
 			int loop();
+			int fade_in(int, bool);
 			int fade_in(int);
 			int fade_out(int);
 

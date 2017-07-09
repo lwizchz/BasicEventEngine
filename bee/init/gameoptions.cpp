@@ -167,9 +167,9 @@ namespace bee {
 			engine->options->is_network_enabled = new_options.is_network_enabled;
 
 			if (engine->options->is_network_enabled) {
-				net_init();
+				net::init();
 			} else {
-				net_close();
+				net::close();
 			}
 		}
 		if (engine->options->is_debug_enabled != new_options.is_debug_enabled) {
