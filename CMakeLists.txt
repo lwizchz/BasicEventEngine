@@ -7,9 +7,9 @@ set(ENGINE_VERSION_RELEASE "3")
 if (GAME_NAME)
 	project("${GAME_NAME}" CXX C)
 
-	set(GAME_VERSION_MAJOR "0")
-	set(GAME_VERSION_MINOR "1")
-	set(GAME_VERSION_RELEASE "1")
+	set(GAME_VERSION_MAJOR "${GAME_VERSION_MAJOR}")
+	set(GAME_VERSION_MINOR "${GAME_VERSION_MINOR}")
+	set(GAME_VERSION_RELEASE "${GAME_VERSION_RELEASE}")
 else()
 	project("BasicEventEngine" CXX C)
 
@@ -35,8 +35,9 @@ set(engine_defines "-DBEE_VERSION_MAJOR=${ENGINE_VERSION_MAJOR} -DBEE_VERSION_MI
 set(game_defines "-DBEE_BUILD_ID=${BEE_BUILD_ID} -DBEE_GAME_ID=${BEE_GAME_ID}")
 set(game_defines "${game_defines} -DGAME_NAME=${PROJECT_NAME} -DGAME_VERSION_MAJOR=${GAME_VERSION_MAJOR} -DGAME_VERSION_MINOR=${GAME_VERSION_MINOR} -DGAME_VERSION_RELEASE=${GAME_VERSION_RELEASE}")
 
-set(CMAKE_CXX_FLAGS_DEBUG "-g -pg -pipe -std=c++14 ${warns} -D_REENTRANT ${engine_defines}")
-set(CMAKE_CXX_FLAGS_RELEASE "-O2 -pipe -std=c++14 ${warns} -D_REENTRANT -DNDEBUG ${engine_defines}")
+set(packaged_lib_dir "-Wl,-rpath='\$ORIGIN/lib/'") # ./lib (relative to the executable) will be search for dynamic library loading
+set(CMAKE_CXX_FLAGS_DEBUG "${packaged_lib_dir} -g -pg -pipe -std=c++14 ${warns} -D_REENTRANT ${engine_defines}")
+set(CMAKE_CXX_FLAGS_RELEASE "${packaged_lib_dir} -O2 -pipe -std=c++14 ${warns} -D_REENTRANT -DNDEBUG ${engine_defines}")
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_DEBUG}")
 else()

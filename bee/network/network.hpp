@@ -11,8 +11,10 @@
 
 #include <string>
 #include <map>
+#include <memory>
 
-#include "connection.hpp"
+#include "client.hpp"
+#include "packet.hpp"
 
 namespace bee {
 	// Forward declaration
@@ -21,6 +23,10 @@ namespace net {
 	int init();
 	bool get_is_initialized();
 	int close();
+
+	int send_packet(const NetworkClient&, std::unique_ptr<NetworkPacket> const &);
+	std::unique_ptr<NetworkPacket> recv_packet();
+
 	int handle_events();
 
 	int session_start(const std::string&, int, const std::string&);

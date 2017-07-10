@@ -18,29 +18,27 @@
 
 /*
 * network_map_encode() - Return an array of Uint8's which represent a map
-* ! Note that the first element in the array is the size of the array, thus the maximum length is 255
 * @m: the map to encode
 */
 template <typename A, typename B>
-Uint8* network_map_encode(std::map<A,B> m) {
-	std::stringstream s ("1"); // Create a string stream for temporary encoding
+std::pair<size_t,Uint8*> network_map_encode(std::map<A,B> m) {
+	std::stringstream s; // Create a string stream for temporary encoding
 	for (auto& e : m) { // Iterate over the map and put the keys and values into the newline-separated stream
 		s << e.first << " = " << e.second << "\n";
 	}
 
-	Uint8* d = orda(s.str()); // Convert the string into an array of Uint8's
-	d[0] = s.str().length(); // Set the first element of the array to the array size
-	return d; // Return the array on success
+	return orda(s.str()); // Return the string after converting it into an array of Uint8's
 }
 /*
 * network_map_decode() - Decode the given array of Uint8's into the given map
+* @size: the size of the data array
 * @data: the array to decode
 * @mv: the map to store the values in
 */
 template <typename A, typename B>
-int network_map_decode(Uint8* data, std::map<A,B>* mv) {
+int network_map_decode(size_t size, Uint8* data, std::map<A,B>* mv) {
 	std::map<A,B> m; // Declare a temporary map
-	std::string datastr = chra(data); // Convert the array to a string
+	std::string datastr = chra(size, data); // Convert the array to a string
 	if (!datastr.empty()) { // If the string is not empty
 		std::istringstream data_stream (datastr); // Create a stream from the string
 
@@ -69,6 +67,15 @@ int network_map_decode(Uint8* data, std::map<A,B>* mv) {
 	}
 	*mv = m; // Set the given map to the temporary map on success
 	return 0; // Return 0 on success
+}
+/*
+* network_map_decode() - Decode the given array of Uint8's into the given map
+* @data: the array to decode
+* @mv: the map to store the values in
+*/
+template <typename A, typename B>
+int network_map_decode(std::pair<size_t,Uint8*> data, std::map<A,B>* mv) {
+	return network_map_decode(data.first, data.second, mv);
 }
 
 #endif // BEE_UTIL_TEMPLATE_NETWORK_H

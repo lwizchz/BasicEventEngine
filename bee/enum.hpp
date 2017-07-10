@@ -111,8 +111,7 @@ namespace bee {
 		ROTATE_RIGHT,
 		BLEND,
 		FADE,
-		CUSTOM,
-		MAX
+		CUSTOM
 	};
 
 	enum class E_MESSAGE {

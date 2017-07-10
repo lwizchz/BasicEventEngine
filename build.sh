@@ -1,7 +1,7 @@
 #!/bin/bash
 # Builds BEE with CMake
 
-game="BEE_Example"
+source config.sh
 
 clean()
 {
@@ -62,7 +62,15 @@ debug()
         echo -n "debug" > "$1/last_build_type.txt"
 
         if [ ! -f "$1/Makefile" ]; then
-                cmake -DCMAKE_BUILD_TYPE=Debug -DGAME_NAME="$game" -DBEE_BUILD_ID=$build_id -DBEE_GAME_ID=$game_id ..
+                cmake \
+                        -DCMAKE_BUILD_TYPE=Debug \
+                        -DGAME_NAME="$game" \
+                        -DBEE_BUILD_ID=$build_id \
+                        -DBEE_GAME_ID=$game_id \
+                        -DGAME_VERSION_MAJOR=$version_major \
+                        -DGAME_VERSION_MINOR=$version_minor \
+                        -DGAME_VERSION_RELEASE=$version_release \
+                        ..
         fi
 
         make -j5
@@ -98,7 +106,15 @@ release()
         echo -n "release" > "$1/last_build_type.txt"
 
         if [ ! -f "$1/Makefile" ]; then
-                cmake -DCMAKE_BUILD_TYPE=Release -DGAME_NAME="$game" -DBEE_BUILD_ID=$build_id -DBEE_GAME_ID=$game_id ..
+                cmake \
+                        -DCMAKE_BUILD_TYPE=Release \
+                        -DGAME_NAME="$game" \
+                        -DBEE_BUILD_ID=$build_id \
+                        -DBEE_GAME_ID=$game_id \
+                        -DGAME_VERSION_MAJOR=$version_major \
+                        -DGAME_VERSION_MINOR=$version_minor \
+                        -DGAME_VERSION_RELEASE=$version_release \
+                        ..
         fi
 
         make -j5
@@ -106,6 +122,8 @@ release()
                 echo "Release build failed!"
                 exit 2
         fi
+
+        strip "$game"
 
         cd ..
         if [ "$2" == "norun" ]; then

@@ -18,6 +18,7 @@ namespace bee {
 		Uint32 last_recv;
 
 		NetworkClient();
+		NetworkClient(UDPsocket, int);
 	};
 }
 

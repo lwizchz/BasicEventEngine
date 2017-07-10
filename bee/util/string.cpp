@@ -41,15 +41,22 @@ int ord(const std::string& s) {
 }
 /*
 * chra() - Convert the given array of character data into a string
-* ! Note that the first element must be the total length of the array
+* @size: the size of the array
 * @carray: the array to convert
 */
-std::string chra(Uint8* carray) {
+std::string chra(size_t size, Uint8* carray) {
 	std::string str = ""; // Initialize an empty string to store the data in
-	for (unsigned int i=0; i<carray[0]; i++) { // Iterate over the array and append each element as a character
-		str.append(chr(carray[i+1]));
+	for (size_t i=0; i<size; i++) { // Iterate over the array and append each element as a character
+		str.append(chr(carray[i]));
 	}
 	return str; // Return the string on success
+}
+/*
+* chra() - Convert the given array of character data into a string
+* @array: the array to convert
+*/
+std::string chra(std::pair<size_t,Uint8*> array) {
+	return chra(array.first, array.second); // Return the converted array
 }
 /*
 * orda() - Convert the given string into an array of character data
@@ -57,13 +64,12 @@ std::string chra(Uint8* carray) {
 * ! Be sure to free the character array when you are done using it
 * @s: the string to convert
 */
-Uint8* orda(const std::string& s) {
-	Uint8* carray = new Uint8[s.length()+1]; // Allocate space for the string and the metadata
-	carray[0] = s.length(); // Prepend the length of the string
-	for (unsigned int i=0; i<s.length(); i++) { // Iterate over the string and add each character to the array
-		carray[i+1] = s[i];
+std::pair<size_t,Uint8*> orda(const std::string& s) {
+	Uint8* carray = new Uint8[s.length()]; // Allocate space for the string and the metadata
+	for (size_t i=0; i<s.length(); i++) { // Iterate over the string and add each character to the array
+		carray[i] = s[i];
 	}
-	return carray; // Return the array on success
+	return std::make_pair(s.length(), carray); // Return the array on success
 }
 
 /*

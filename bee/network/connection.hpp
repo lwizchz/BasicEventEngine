@@ -11,8 +11,10 @@
 
 #include <string>
 #include <map>
+#include <memory>
 
 #include "client.hpp"
+#include "packet.hpp"
 
 namespace bee {
 	struct NetworkConnection {
@@ -30,7 +32,7 @@ namespace bee {
 		int self_id;
 		std::map<int,NetworkClient> players;
 
-		Uint8* tmp_data_buffer;
+		std::unique_ptr<NetworkPacket> tmp_data_buffer;
 		std::map<std::string,std::string> data;
 
 		NetworkConnection();

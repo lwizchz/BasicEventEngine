@@ -17,6 +17,11 @@ namespace bee {
 		channel(-1),
 		last_recv(0)
 	{}
+	NetworkClient::NetworkClient(UDPsocket new_sock, int new_channel) :
+		sock(new_sock),
+		channel(new_channel),
+		last_recv(0)
+	{}
 }
 
 #endif // BEE_NETWORK_CLIENT

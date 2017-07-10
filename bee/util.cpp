@@ -89,11 +89,11 @@ TEST_CASE("string/charcode") {
 	REQUIRE(chr(65) == "A");
 	REQUIRE(ord('A') == 65);
 	REQUIRE(ord("ABC") == 65);
-	Uint8 ca1[] = {3, 65, 66, 67};
-	REQUIRE(chra(ca1) == std::string("ABC"));
-	Uint8* ca2 = orda("ABC");
-	REQUIRE(chra(ca2) == chra(ca1));
-	delete[] ca2;
+	Uint8 ca1[] = {65, 66, 67};
+	REQUIRE(chra(3, ca1) == std::string("ABC"));
+	std::pair<size_t,Uint8*> ca2 = orda("ABC");
+	REQUIRE(chra(ca2.first, ca2.second) == chra(ca2.first, ca1));
+	delete[] ca2.second;
 }
 TEST_CASE("string/alteration") {
 	REQUIRE(string_lower("ABC") == "abc");
@@ -343,10 +343,10 @@ TEST_CASE("template") {
 	REQUIRE(map_deserialize(map_serialize(m, true), &n2) == 0);
 	REQUIRE(std::equal(m.begin(), m.end(), n2.begin()));
 
-	Uint8* a = network_map_encode(m);
-	REQUIRE(a[0] == 24);
-	REQUIRE((network_map_decode(a, &n3) == 0));
-	delete[] a;
+	std::pair<size_t,Uint8*> a = network_map_encode(m);
+	REQUIRE(a.first == 24);
+	REQUIRE((network_map_decode(a.first, a.second, &n3) == 0));
+	delete[] a.second;
 	REQUIRE(std::equal(m.begin(), m.end(), n3.begin()));
 }
 

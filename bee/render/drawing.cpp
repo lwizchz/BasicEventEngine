@@ -38,14 +38,17 @@ namespace bee {
 	RGBA get_enum_color(E_RGB c, Uint8 a) {
 		// Return a RGBA value with the given alpha value
 		switch (c) {
-			case E_RGB::CYAN:           return {0, 255, 255, a};
+			//case E_RGB::CYAN:
+			case E_RGB::AQUA:           return {0, 255, 255, a};
 			case E_RGB::BLUE:           return {0, 0, 255, a};
 			case E_RGB::DKGRAY:         return {64, 64, 64, a};
-			case E_RGB::MAGENTA:        return {255, 0, 255, a};
+			//case E_RGB::MAGENTA:
+			case E_RGB::FUCHSIA:        return {255, 0, 255, a};
 			case E_RGB::GRAY:           return {128, 128, 128, a};
 			case E_RGB::GREEN:          return {0, 128, 0, a}; // Even though green is technically g=255, that color is called lime because it is quite bright
 			case E_RGB::LIME:           return {0, 255, 0, a};
-			case E_RGB::LTGRAY:         return {192, 192, 192, a};
+			//case E_RGB::LTGRAY:
+			case E_RGB::SILVER:         return {192, 192, 192, a};
 			case E_RGB::MAROON:         return {128, 0, 0, a};
 			case E_RGB::NAVY:           return {0, 0, 128, a};
 			case E_RGB::OLIVE:          return {128, 128, 0, a};

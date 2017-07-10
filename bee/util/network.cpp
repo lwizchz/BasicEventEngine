@@ -271,39 +271,19 @@ int network_udp_send(UDPsocket udp, int channel, UDPpacket* packet) {
 * ! When the function is called without a packet, simply call it with a temporary one
 * @udp: the socket to send the data through
 * @channel: the channel to use
+* @data_size: the size of the data
 * @data: the data to send as a packet
 */
-int network_udp_send(UDPsocket udp, int channel, Uint8* data) {
-	UDPpacket* d = network_packet_alloc(data[0]); // Allocate space for the data packet
-	memcpy(d->data, data, data[0]); // Set the packet data
-	d->len = data[0];
+int network_udp_send(UDPsocket udp, int channel, size_t data_size, Uint8* data) {
+	UDPpacket* d = network_packet_alloc(data_size); // Allocate space for the data packet
+	memcpy(d->data, data, data_size); // Set the packet data
+	d->len = data_size;
 
 	int r = network_udp_send(udp, channel, d); // Send the packet
 
 	network_packet_free(d); // Free the packet
 
 	return r; // Return the amount of destinations the data was sent to on success, or -1 on failure
-}
-/*
-* network_udp_send() - Send formatted data via UDP over the given channel
-* ! When the function is called with specific data, simply call it after properly formatting the data
-* ! See bee/game/network.cpp for formatting details
-* @udp: the socket to send the data through
-* @channel: the channel to use
-* @id: the sender's id number
-* @signal: the primary message signal
-* @data: the extra data to send
-*/
-int network_udp_send(UDPsocket udp, int channel, Uint8 id, Uint8 signal, Uint8 data) {
-	Uint8* d = new Uint8[4]; // Construct a temporary data array
-	d[0] = 4; // Format the data according to bee/game/network.cpp
-	d[1] = id;
-	d[2] = signal;
-	d[3] = data;
-
-	int r = network_udp_send(udp, channel, d); // Send the data and store the sent return value
-	delete[] d; // Delete the temporary data
-	return r; // Return the number of destinations on success or -1 on failure
 }
 /*
 * network_udp_recv() - Receive packet data via UDP from the given socket
