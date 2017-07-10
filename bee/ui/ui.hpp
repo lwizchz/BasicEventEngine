@@ -12,8 +12,6 @@
 #include <string> // Include required library headers
 #include <functional>
 
-#include "../core/sidp.hpp"
-
 #include "../render/rgba.hpp"
 
 namespace bee {
@@ -32,7 +30,7 @@ namespace ui {
 	int load();
 	int free();
 
-	Instance* create_button(int, int, Font*, const std::string&, RGBA, std::function<void (SIDP)>);
+	Instance* create_button(int, int, Font*, const std::string&, RGBA, std::function<void (Instance*)>);
 	int button_callback(Instance*);
 }}
 

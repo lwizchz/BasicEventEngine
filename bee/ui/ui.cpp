@@ -80,7 +80,7 @@ namespace bee { namespace ui {
 	}
 	#undef DEL
 
-	Instance* create_button(int x, int y, bee::Font* font, const std::string& str, bee::RGBA color, std::function<void (bee::SIDP)> func) {
+	Instance* create_button(int x, int y, bee::Font* font, const std::string& str, bee::RGBA color, std::function<void (bee::Instance*)> func) {
 		internal::spr_button->load();
 
 		bee::Instance* button = bee::get_current_room()->add_instance(-1, internal::obj_button, x, y, 0.0);
@@ -93,8 +93,6 @@ namespace bee { namespace ui {
 		button->set_data("color_b", color.b);
 		button->set_data("color_a", color.a);
 
-		//SIDP f (std::move(func));
-		//button->set_data("press_func", f);
 		internal::callbacks.emplace(button, func);
 
 		return button;
