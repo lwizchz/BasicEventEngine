@@ -81,7 +81,9 @@ namespace bee { namespace ui {
 	#undef DEL
 
 	Instance* create_button(int x, int y, bee::Font* font, const std::string& str, bee::RGBA color, std::function<void (bee::Instance*)> func) {
-		internal::spr_button->load();
+		if (!internal::spr_button->get_is_loaded()) {
+			internal::spr_button->load();
+		}
 
 		bee::Instance* button = bee::get_current_room()->add_instance(-1, internal::obj_button, x, y, 0.0);
 		button->set_data("font", (void*)font);

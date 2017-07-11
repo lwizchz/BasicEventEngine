@@ -334,6 +334,10 @@ namespace bee {
 	* @new_subimage_width: the width of each subimage
 	*/
 	int Sprite::set_subimage_amount(int new_subimage_amount, int new_subimage_width) {
+		if (get_options().is_headless) {
+			return 1; // Return 1 when in headless mode
+		}
+
 		// Reset the subimage properties
 		subimages.clear();
 		subimage_amount = new_subimage_amount;
@@ -385,6 +389,10 @@ namespace bee {
 	* @new_crop: the rectangle to crop the image to
 	*/
 	int Sprite::crop_image(SDL_Rect new_crop) {
+		if (get_options().is_headless) {
+			return 1; // Return 1 when in headless mode
+		}
+
 		crop = new_crop; // Set the crop properties
 
 		// Reset the subimage properties if the image is being uncropped
@@ -550,8 +558,12 @@ namespace bee {
 	*/
 	int Sprite::load() {
 		if (is_loaded) { // Do not attempt to load the sprite if it has already been loaded
-		       //messenger::send({"engine", "sprite"}, E_MESSAGE::WARNING, "Failed to load sprite \"" + name + "\" because it has already been loaded");
+		       messenger::send({"engine", "sprite"}, E_MESSAGE::WARNING, "Failed to load sprite \"" + name + "\" because it has already been loaded");
 		       return 1; // Return 1 when already loaded
+		}
+
+		if (get_options().is_headless) {
+			return 2; // Return 2 when in headless mode
 		}
 
 		// Load the sprite into a temporary surface
@@ -559,7 +571,7 @@ namespace bee {
 		tmp_surface = IMG_Load(path.c_str());
 		if (tmp_surface == nullptr) { // If the surface could not be loaded, output a warning
 			messenger::send({"engine", "sprite"}, E_MESSAGE::WARNING, "Failed to load sprite \"" + name + "\": " + IMG_GetError());
-			return 2; // Return 2 on loding failure
+			return 3; // Return 3 on loding failure
 		}
 
 		load_from_surface(tmp_surface); // Load the surface into a texture
@@ -1028,6 +1040,10 @@ namespace bee {
 	int Sprite::set_as_target(int w, int h) {
 		if (is_loaded) { // If the sprite is already loaded, free the old data
 			this->free();
+		}
+
+		if (get_options().is_headless) {
+			return -1; // Return -1 when in headless mode
 		}
 
 		// Set the sprite dimensions and remove all cropping

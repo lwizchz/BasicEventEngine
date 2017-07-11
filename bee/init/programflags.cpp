@@ -22,7 +22,10 @@
 #include "info.hpp"
 #include "gameoptions.hpp"
 
+#include "../util/string.hpp"
 #include "../util/platform.hpp"
+
+#include "../messenger/messenger.hpp"
 
 #include "../core/enginestate.hpp"
 
@@ -89,6 +92,8 @@ namespace bee {
 		int amount = 0;
 		try {
 			while ((c = getopt_long(engine->argc, engine->argv, optstring.c_str(), long_options, &index)) != -1) {
+				bool has_flag = false;
+
 				for (auto& f : engine->flags) {
 					if (((c != 0)&&(c == f->shortopt))||((c == 0)&&(strcmp(long_options[index].name, f->longopt.c_str()) == 0))) {
 						if (f->pre_init == pre_init) {
@@ -101,8 +106,13 @@ namespace bee {
 							}
 							amount++;
 						}
+						has_flag = true;
 						break;
 					}
+				}
+
+				if (!has_flag) {
+					messenger::send({"engine", "programflags"}, E_MESSAGE::WARNING, "Unknown flag: \"" + std::string(engine->argv[amount+1]) + "\"");
 				}
 			}
 		} catch(std::string e) {
@@ -170,8 +180,13 @@ namespace bee {
 					engine->options->is_fullscreen = false;
 				}
 			);
+			ProgramFlags* f_headless = new ProgramFlags(
+				"headless", '\0', true, no_argument, [] (char* arg) -> void {
+					engine->options->is_headless = true;
+				}
+			);
 
-			flag_list = {f_help, f_debug, f_dimensions, f_fullscreen, f_opengl, f_noassert, f_sdl, f_singlerun, f_windowed};
+			flag_list = {f_help, f_debug, f_dimensions, f_fullscreen, f_opengl, f_noassert, f_sdl, f_singlerun, f_windowed, f_headless};
 		}
 		return flag_list;
 	}

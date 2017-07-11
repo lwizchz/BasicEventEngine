@@ -275,12 +275,16 @@ namespace bee {
 			return 1; // Return 1 when already loaded
 		}
 
+		if (get_options().is_headless) {
+			return 2; // Return 2 when in headless mode
+		}
+
 		if (is_sprite) { // If the font is a sprite font, load it appropriately
 			sprite_font = new Sprite("spr_"+get_name(), path); // Create and load a sprite for the font
 			if (!sprite_font->load()) { // If the sprite fails to load, output a warning
 				messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to load the font \"" + path + "\": " + get_sdl_error());
 				has_draw_failed = true;
-				return 2; // Return 2 on loading failure
+				return 3; // Return 3 on loading failure
 			}
 
 			// Set the loaded booleans
@@ -295,7 +299,7 @@ namespace bee {
 			if (font == nullptr) { // If the font failed to load, output a warning
 				messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to load font \"" + path + "\": " + TTF_GetError());
 				has_draw_failed = true;
-				return 2; // Return 2 on loading failure
+				return 4; // Return 4 on loading failure
 			}
 
 			// Set the loaded booleans

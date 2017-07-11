@@ -35,6 +35,8 @@ namespace bee {
 	class Sprite;
 	class Background;
 
+	class NetworkEvent;
+
 	// Declare a function to flip <int,Instance*> to <Instance*,int> for use with instances_sorted
 	namespace internal {
 		std::pair<Instance*,int> flip_instancemap_pair(const std::pair<int,Instance*>&);
@@ -189,6 +191,7 @@ namespace bee {
 			int game_start();
 			int game_end();
 			int window(SDL_Event*);
+			int network(const NetworkEvent&);
 
 			virtual void init() =0;
 			virtual void start() {};

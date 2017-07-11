@@ -19,6 +19,8 @@
 
 #include "../util/platform.hpp"
 
+#include "../init/gameoptions.hpp"
+
 #include "../messenger/messenger.hpp"
 
 #include "../core/resources.hpp"
@@ -301,19 +303,24 @@ namespace bee {
 			return 1; // Return 1 when already loaded
 		}
 
+		if (get_options().is_headless) {
+			has_play_failed = true;
+			return 2; // Return 2 when in headless mode
+		}
+
 		effect_reset_data(); // Reset the effect data structs
 
 		if (is_music) { // If the sound should be treated as music, load it appropriately
 			music = Mix_LoadMUS(path.c_str()); // Load the sound file as mixer music
 			if (music == nullptr) { // If the music could not be loaded, output a warning
 				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to load sound \"" + name + "\" as music: " + Mix_GetError());
-				return 2; // Return 2 on music loading failure
+				return 3; // Return 3 on music loading failure
 			}
 		} else { // Otherwise load the sound normally
 			chunk = Mix_LoadWAV(path.c_str()); // Load the sound file as a chunk sound
 			if (chunk == nullptr) { // If the chunk could not be loaded, output a warning
 				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to load sound \"" + name + "\" as chunk: " + Mix_GetError());
-				return 3; // Return 3 on chunk loading failure
+				return 4; // Return 4 on chunk loading failure
 			}
 
 		}
@@ -430,7 +437,7 @@ namespace bee {
 	int Sound::stop() {
 		if (!is_loaded) { // Do not attempt to stop the sound if it hasn't been loaded
 			if (!has_play_failed) { // If the play call hasn't failed before, output a warning
-				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to fade out sound \"" + name + "\" because it is not loaded");
+				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to stop sound \"" + name + "\" because it is not loaded");
 				has_play_failed = true; // Set the play failure boolean
 			}
 			return 1; // Return 1 when not loaded
@@ -650,7 +657,7 @@ namespace bee {
 	int Sound::effect_set(int new_sound_effects) {
 		if (!is_loaded) { // Do not attempt to add any sound effects if the sound has not been loaded
 			if (!has_play_failed) { // If the play call hasn't failed before, output a warning
-				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to play sound \"" + name + "\" because it is not loaded");
+				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to set sound effects for \"" + name + "\" because it is not loaded");
 				has_play_failed = true; // Set the play failure boolean
 			}
 			return 1; // Return 1 when not loaded

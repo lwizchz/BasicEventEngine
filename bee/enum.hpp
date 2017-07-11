@@ -78,7 +78,8 @@ namespace bee {
 		ROOM_END,
 		GAME_START,
 		GAME_END,
-		WINDOW
+		WINDOW,
+		NETWORK
 	};
 
 	enum class E_LIGHT : int {
@@ -163,6 +164,15 @@ namespace bee {
 		RESTART,
 		CONTINUE,
 		REVERSE
+	};
+
+	enum class E_NETEVENT {
+		NONE,
+		CONNECT,
+		DISCONNECT,
+		KEYFRAME,
+		INST_UPDATE,
+		DATA_UPDATE
 	};
 
 	// Particles

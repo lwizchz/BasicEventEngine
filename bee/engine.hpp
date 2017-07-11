@@ -39,6 +39,11 @@ namespace bee { // The engine namespace
 	extern bool is_initialized;
 
 	namespace internal {
+		int init_sdl();
+		int handle_sdl_events();
+		int handle_drawing();
+		int close_sdl();
+
 		int update_delta();
 	}
 

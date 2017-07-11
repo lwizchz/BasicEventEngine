@@ -19,7 +19,8 @@ namespace bee { namespace messenger {
 	int clear();
 
 	namespace internal {
-		int print_msg(std::shared_ptr<MessageContents>);
+		int output_msg(std::shared_ptr<MessageContents>);
+		int print_msg(const std::string&, std::shared_ptr<MessageContents>);
 		std::exception_ptr call_recipients(std::shared_ptr<MessageContents>);
 
 		int register_protected(std::shared_ptr<MessageRecipient>);

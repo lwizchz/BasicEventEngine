@@ -747,7 +747,9 @@ namespace bee{
 					engine->console->history.push_back(command);
 				}
 			}
-			messenger::send({"engine", "console"}, E_MESSAGE::INFO, "> " + trim(command)); // Output the command to the messenger log
+			if (!get_options().is_headless) {
+				messenger::send({"engine", "console"}, E_MESSAGE::INFO, "> " + trim(command)); // Output the command to the messenger log
+			}
 		}
 		engine->console->history_index = -1; // Reset the history index
 

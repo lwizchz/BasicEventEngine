@@ -228,6 +228,10 @@ namespace bee {
 	* Light::queue() - Queue the light for drawing in the Room rendering loop
 	*/
 	int Light::queue() {
+		if (get_options().is_headless) {
+			return 1; // Return 1 when in headless mode
+		}
+
 		if (engine->options->renderer_type == E_RENDERER::SDL) { // If the SDL rendering is being used, output a warning
 			if (!has_drawn_sdl) { // If the SDL draw call hasn't been called before, output a warning
 				messenger::send({"engine", "light"}, E_MESSAGE::WARNING, "Lighting is not fully supported in SDL mode");

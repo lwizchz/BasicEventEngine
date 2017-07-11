@@ -110,7 +110,9 @@ namespace bee {
 		} else { // Otherwise reset the render target just to be sure
 			reset_render_target();
 		}
-		engine->renderer->render_clear();
+		if (!get_options().is_headless) {
+			engine->renderer->render_clear();
+		}
 
 		engine->is_ready = true; // Set the event loop as running
 		messenger::handle();
@@ -119,9 +121,12 @@ namespace bee {
 			engine->current_room->game_start();
 		}
 		engine->current_room->room_start(); // Run the room_start event for the new room
-		engine->current_room->draw(); // Run the draw event for the new room
 
-		if (engine->transition_type != E_TRANSITION::NONE) { // If a transition has been defined then finish drawing the new room into the after buffer
+		if (!get_options().is_headless) {
+			engine->current_room->draw(); // Run the draw event for the new room
+		}
+
+		if ((engine->transition_type != E_TRANSITION::NONE)&&(!get_options().is_headless)) { // If a transition has been defined then finish drawing the new room into the after buffer
 			engine->renderer->render();
 			reset_render_target();
 			draw_transition(); // Animate the defined transition from the before and after buffers

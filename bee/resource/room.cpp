@@ -87,7 +87,8 @@ namespace bee {
 		E_EVENT::ROOM_END,
 		E_EVENT::GAME_START,
 		E_EVENT::GAME_END,
-		E_EVENT::WINDOW
+		E_EVENT::WINDOW,
+		E_EVENT::NETWORK
 	};
 
 	std::map<int,Room*> Room::list;
@@ -462,7 +463,11 @@ namespace bee {
 	}
 	Instance* Room::add_instance(int index, Object* object, double x, double y, double z) {
 		if (object->get_sprite() != nullptr) {
-			if ((!object->get_sprite()->get_is_loaded())&&(get_is_ready())) {
+			if (
+				(!object->get_sprite()->get_is_loaded())
+				&&(get_is_ready())
+				&&(!get_options().is_headless)
+			) {
 				messenger::send({"engine", "room"}, E_MESSAGE::WARNING, "An instance of " + object->get_name() + " has been created but its sprite has not been loaded");
 			}
 		}
@@ -1508,6 +1513,17 @@ namespace bee {
 			}
 			i.first->get_object()->update(i.first);
 			i.first->get_object()->window(i.first, e);
+		}
+
+		return 0;
+	}
+	int Room::network(const NetworkEvent& e) {
+		for (auto& i :instances_sorted_events[E_EVENT::NETWORK]) {
+			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
+				continue;
+			}
+			i.first->get_object()->update(i.first);
+			i.first->get_object()->network(i.first, e);
 		}
 
 		return 0;

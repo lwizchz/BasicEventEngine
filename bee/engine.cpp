@@ -55,112 +55,23 @@ namespace bee {
 			std::to_string(BEE_VERSION_MAJOR) + "." + std::to_string(BEE_VERSION_MINOR) + "." + std::to_string(BEE_VERSION_RELEASE)
 		);
 
-		if (engine->options->should_assert) {
+		if (get_options().should_assert) {
 			if (!verify_assertions(argc, argv)) {
 				messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't verify assertions");
 				return 2; // Return 2 when assertions could not be verified
 			}
 		}
 
-		if (engine->options->is_network_enabled) {
+		if (get_options().is_network_enabled) {
 			net::init();
 		}
 
-		if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
-			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't init SDL: " + get_sdl_error());
-			return 3; // Return 3 when SDL couldn't be initialized
-		}
-
-		// Use the highest version of OpenGL available
-		switch (engine->options->renderer_type) {
-			case E_RENDERER::OPENGL4: {
-				if (GL_VERSION_4_1) { // FIXME: Properly test for opengl support
-					SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-					SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-					SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-					SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
-					break;
-				}
-			}
-			case E_RENDERER::OPENGL3: {
-				if (GL_VERSION_3_3) {
-					SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-					SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-					SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-					SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
-					break;
-				}
-			}
-			case E_RENDERER::SDL:
-			default: {
-				engine->options->renderer_type = E_RENDERER::SDL;
+		if (!get_options().is_headless) {
+			int r = internal::init_sdl(); // Initialize SDL
+			if (r) {
+				return r; // Return any nonzero values from SDL init
 			}
 		}
-
-		int window_flags = SDL_WINDOW_OPENGL;
-		if (engine->options->is_fullscreen) {
-			window_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
-		}
-		if (engine->options->is_borderless) {
-			window_flags |= SDL_WINDOW_BORDERLESS;
-		}
-		if (engine->options->is_resizable) {
-			window_flags |= SDL_WINDOW_RESIZABLE;
-		}
-		if (engine->options->is_maximized) {
-			window_flags |= SDL_WINDOW_MAXIMIZED;
-		}
-		if (engine->options->is_highdpi) {
-			window_flags |= SDL_WINDOW_ALLOW_HIGHDPI;
-		}
-		if (engine->options->is_visible) {
-			window_flags |= SDL_WINDOW_SHOWN;
-		}
-		engine->renderer->window = SDL_CreateWindow("BasicEventEngine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, engine->width, engine->height, window_flags);
-		if (engine->renderer->window == nullptr) {
-			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't create SDL window: " + get_sdl_error());
-			return 4; // Return 4 when the window could not be created
-		}
-		if (engine->options->is_minimized) {
-			SDL_MinimizeWindow(engine->renderer->window);
-		}
-
-		engine->cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
-		SDL_SetCursor(engine->cursor);
-
-		engine->keystate = SDL_GetKeyboardState(nullptr);
-		keystrings_populate();
-
-		if (engine->options->renderer_type != E_RENDERER::SDL) {
-			if (engine->renderer->opengl_init()) {
-				messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Could not initialize the OpenGL renderer");
-				return 5; // Return 5 when the renderer could not be initialized
-			}
-		} else { // if not OpenGL, init an SDL renderer
-			if (engine->renderer->sdl_renderer_init()) {
-				messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Could not initialized the SDL renderer");
-				return 5; // Return 5 when the renderer could not be initialized
-			}
-		}
-
-		int img_flags = IMG_INIT_PNG | IMG_INIT_JPG;
-		if (!(IMG_Init(img_flags) & img_flags)) {
-			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't init SDL_image: " + std::string(IMG_GetError()));
-			return 6; // Return 6 when SDL_image could not be initialized
-		}
-
-		if (TTF_Init() == -1) {
-			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't init SDL_ttf: " + std::string(TTF_GetError()));
-			return 7; // Return 7 when SDL_ttf could not be initialized
-		}
-
-		Mix_SetSoundFonts(""); // This will disable MIDI but fixes a small error when not including a soundfont
-		if (Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 1024) < 0) {
-			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't init SDL_mixer: " + std::string(Mix_GetError()));
-			return 8; // Return 8 when SDL_mixer could not be initialized
-		}
-		Mix_ChannelFinished(sound_finished);
-		Mix_AllocateChannels(128); // Probably overkill
 
 		if (!is_initialized) {
 			if (init_resources()) {
@@ -202,9 +113,15 @@ namespace bee {
 		messenger::handle();
 
 		// Register the logging system
-		messenger::internal::register_protected("cmdlog", {"engine", "commandline"}, true, [] (std::shared_ptr<MessageContents> msg) {
-			std::cout << "[" << msg->descr << "]\n";
-		});
+		if (get_options().is_headless) {
+			messenger::internal::register_protected("cmdconsole", {"engine", "commandline"}, true, [] (std::shared_ptr<MessageContents> msg) {
+				bee::console_run(msg->descr);
+			});
+		} else {
+			messenger::internal::register_protected("cmdlog", {"engine", "commandline"}, true, [] (std::shared_ptr<MessageContents> msg) {
+				std::cout << "[" << msg->descr << "]\n";
+			});
+		}
 
 		while (!engine->quit) {
 			if (engine->current_room == nullptr) {
@@ -216,180 +133,17 @@ namespace bee {
 				engine->current_room->step_begin();
 				engine->current_room->check_alarms();
 
-				SDL_Event event;
-				while (SDL_PollEvent(&event)) {
-					switch (event.type) {
-						case SDL_QUIT: {
-							engine->quit = true;
-							break;
-						}
-						case SDL_WINDOWEVENT: {
-							switch (event.window.event) {
-								case SDL_WINDOWEVENT_SHOWN: {
-									render_set_camera(nullptr);
-									engine->renderer->render();
-									engine->has_focus = true;
-									break;
-								}
-								case SDL_WINDOWEVENT_HIDDEN: {
-									engine->has_focus = false;
-									break;
-								}
-								case SDL_WINDOWEVENT_EXPOSED: {
-									engine->renderer->render();
-									break;
-								}
-								case SDL_WINDOWEVENT_MOVED: {
-									break;
-								}
-								case SDL_WINDOWEVENT_RESIZED: {
-									engine->width = event.window.data1;
-									engine->height = event.window.data2;
-									render_set_camera(nullptr);
-									engine->renderer->render();
-									break;
-								}
-								case SDL_WINDOWEVENT_SIZE_CHANGED: {
-									engine->renderer->render();
-									break;
-								}
-								case SDL_WINDOWEVENT_MINIMIZED: {
-									engine->options->is_minimized = true;
-									engine->has_mouse = false;
-									engine->has_focus = false;
-									break;
-								}
-								case SDL_WINDOWEVENT_MAXIMIZED: {
-									engine->options->is_minimized = false;
-									engine->has_focus = true;
-									break;
-								}
-								case SDL_WINDOWEVENT_RESTORED: {
-									engine->options->is_minimized = false;
-									engine->has_focus = true;
-									break;
-								}
-								case SDL_WINDOWEVENT_ENTER: {
-									engine->has_mouse = true;
-									break;
-								}
-								case SDL_WINDOWEVENT_LEAVE: {
-									engine->has_mouse = false;
-									break;
-								}
-								case SDL_WINDOWEVENT_FOCUS_GAINED: {
-									engine->has_focus = true;
-									break;
-								}
-								case SDL_WINDOWEVENT_FOCUS_LOST: {
-									engine->has_focus = false;
-									break;
-								}
-								case SDL_WINDOWEVENT_CLOSE: {
-									SDL_Event qe;
-									qe.type = SDL_QUIT;
-									SDL_PushEvent(&qe);
-									break;
-								}
-								#if SDL_VERSION_ATLEAST(2, 0, 5)
-									case SDL_WINDOWEVENT_TAKE_FOCUS:
-										SDL_SetWindowInputFocus(engine->renderer->window);
-										break;
-									case SDL_WINDOWEVENT_HIT_TEST:
-										break;
-								#endif
-								default: {
-									messenger::send({"engine"}, E_MESSAGE::WARNING, "Unknown window event: " + bee_itos(event.window.event));
-									break;
-								}
-							}
-							engine->current_room->window(&event);
-							break;
-						}
-
-						case SDL_KEYDOWN: {
-							internal::console_handle_input(&event);
-
-							if (event.key.repeat == 0) {
-								engine->current_room->keyboard_press(&event);
-							}
-							engine->current_room->keyboard_input(&event);
-
-							break;
-						}
-						case SDL_KEYUP: {
-							engine->current_room->keyboard_release(&event);
-							break;
-						}
-						case SDL_MOUSEMOTION:
-						case SDL_MOUSEWHEEL: {
-							engine->current_room->mouse_input(&event);
-							break;
-						}
-						case SDL_MOUSEBUTTONDOWN: {
-							engine->current_room->mouse_press(&event);
-							break;
-						}
-						case SDL_MOUSEBUTTONUP: {
-							engine->current_room->mouse_release(&event);
-							break;
-						}
-						case SDL_CONTROLLERAXISMOTION: {
-							engine->current_room->controller_axis(&event);
-							break;
-						}
-						case SDL_CONTROLLERBUTTONDOWN: {
-							engine->current_room->controller_press(&event);
-							break;
-						}
-						case SDL_CONTROLLERBUTTONUP: {
-							engine->current_room->controller_release(&event);
-							break;
-						}
-						case SDL_CONTROLLERDEVICEADDED:
-						case SDL_CONTROLLERDEVICEREMOVED:
-						case SDL_CONTROLLERDEVICEREMAPPED: {
-							engine->current_room->controller_modify(&event);
-							break;
-						}
-
-						#if SDL_VERSION_ATLEAST(2, 0, 4)
-							case SDL_AUDIODEVICEADDED:
-							case SDL_AUDIODEVICEREMOVED:
-						#endif
-						case SDL_DOLLARGESTURE:
-						case SDL_DOLLARRECORD:
-						case SDL_DROPFILE:
-						case SDL_FINGERMOTION:
-						case SDL_FINGERDOWN:
-						case SDL_FINGERUP:
-						case SDL_JOYAXISMOTION:
-						case SDL_JOYBALLMOTION:
-						case SDL_JOYHATMOTION:
-						case SDL_JOYBUTTONDOWN:
-						case SDL_JOYBUTTONUP:
-						case SDL_JOYDEVICEADDED:
-						case SDL_JOYDEVICEREMOVED:
-						case SDL_MULTIGESTURE:
-						case SDL_SYSWMEVENT:
-						case SDL_TEXTEDITING:
-						case SDL_TEXTINPUT:
-						case SDL_USEREVENT: {
-							// For events which we don't care about or currently support
-							break;
-						}
-						default:
-							messenger::send({"engine"}, E_MESSAGE::WARNING, "Unknown event type: " + bee_itos(event.type));
-							break;
-					}
+				if (!get_options().is_headless) {
+					internal::handle_sdl_events();
 				}
+
 				if (bee_has_commandline_input()) {
 					engine->commandline_input.push_back("");
 					std::getline(std::cin, engine->commandline_input[engine->commandline_current]);
 					if (engine->commandline_input[engine->commandline_current] == "") {
 						engine->commandline_input.pop_back();
 					} else {
-						messenger::send({"engine", "commandline"}, E_MESSAGE::INFO, engine->commandline_input[engine->commandline_current]);
+						messenger::send({"engine", "commandline"}, E_MESSAGE::INTERNAL, engine->commandline_input[engine->commandline_current]);
 						engine->current_room->commandline_input(engine->commandline_input[engine->commandline_current++]);
 					}
 				}
@@ -401,8 +155,9 @@ namespace bee {
 				engine->current_room->collision();
 
 				engine->current_room->step_end();
-				engine->current_room->draw();
-				engine->current_room->animation_end();
+				if (!get_options().is_headless) {
+					internal::handle_drawing();
+				}
 				engine->current_room->destroy();
 
 				net::handle_events();
@@ -419,7 +174,7 @@ namespace bee {
 					(new_tickstamp - engine->tickstamp < 1000/fps_desired)
 					&&(new_tickstamp - engine->tickstamp > 0)
 				) {
-					if ((!engine->options->is_vsync_enabled)||(!engine->has_focus)) {
+					if ((!get_options().is_vsync_enabled)||(!engine->has_focus)) {
 						Uint32 delay = (1000/fps_desired) - (new_tickstamp - engine->tickstamp);
 						//messenger::log("FPS delay: " + bee_itos(delay) + "ms, " + bee_itos(100*delay/fps_desired) + "% of the frame");
 						SDL_Delay(delay);
@@ -438,9 +193,11 @@ namespace bee {
 				}
 
 				// If the single_run flag option is used, exit the game loop after saving a screenshot
-				if (engine->options->single_run) {
-					engine->current_room->draw();
-					save_screenshot("single_run.bmp");
+				if (get_options().single_run) {
+					if (!get_options().is_headless) {
+						engine->current_room->draw();
+						save_screenshot("single_run.bmp");
+					}
 					engine->quit = true;
 				}
 			} catch (int e) {
@@ -494,8 +251,6 @@ namespace bee {
 	int close() {
 		messenger::handle();
 
-		Mix_AllocateChannels(0);
-
 		if (is_initialized) {
 			free_media();
 			close_resources();
@@ -507,10 +262,9 @@ namespace bee {
 
 		engine->free();
 
-		Mix_CloseAudio();
-		TTF_Quit();
-		IMG_Quit();
-		SDL_Quit();
+		if (!get_options().is_headless) {
+			internal::close_sdl();
+		}
 
 		free_standard_flags();
 
@@ -521,6 +275,292 @@ namespace bee {
 			delete engine;
 			engine = nullptr;
 		}
+
+		return 0;
+	}
+
+	int internal::init_sdl() {
+		if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
+			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't init SDL: " + get_sdl_error());
+			return 3; // Return 3 when SDL couldn't be initialized
+		}
+
+		// Use the highest version of OpenGL available
+		switch (get_options().renderer_type) {
+			case E_RENDERER::OPENGL4: {
+				if (GL_VERSION_4_1) { // FIXME: Properly test for opengl support
+					SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+					SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+					SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+					SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+					break;
+				}
+			}
+			case E_RENDERER::OPENGL3: {
+				if (GL_VERSION_3_3) {
+					SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+					SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+					SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+					SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+					break;
+				}
+			}
+			case E_RENDERER::SDL:
+			default: {
+				engine->options->renderer_type = E_RENDERER::SDL;
+			}
+		}
+
+		int window_flags = SDL_WINDOW_OPENGL;
+		if (get_options().is_fullscreen) {
+			window_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+		}
+		if (get_options().is_borderless) {
+			window_flags |= SDL_WINDOW_BORDERLESS;
+		}
+		if (get_options().is_resizable) {
+			window_flags |= SDL_WINDOW_RESIZABLE;
+		}
+		if (get_options().is_maximized) {
+			window_flags |= SDL_WINDOW_MAXIMIZED;
+		}
+		if (get_options().is_highdpi) {
+			window_flags |= SDL_WINDOW_ALLOW_HIGHDPI;
+		}
+		if (get_options().is_visible) {
+			window_flags |= SDL_WINDOW_SHOWN;
+		}
+		engine->renderer->window = SDL_CreateWindow("BasicEventEngine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, engine->width, engine->height, window_flags);
+		if (engine->renderer->window == nullptr) {
+			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't create SDL window: " + get_sdl_error());
+			return 4; // Return 4 when the window could not be created
+		}
+		if (get_options().is_minimized) {
+			SDL_MinimizeWindow(engine->renderer->window);
+		}
+
+		engine->cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
+		SDL_SetCursor(engine->cursor);
+
+		engine->keystate = SDL_GetKeyboardState(nullptr);
+		keystrings_populate();
+
+		if (get_options().renderer_type != E_RENDERER::SDL) {
+			if (engine->renderer->opengl_init()) {
+				messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Could not initialize the OpenGL renderer");
+				return 5; // Return 5 when the renderer could not be initialized
+			}
+		} else { // if not OpenGL, init an SDL renderer
+			if (engine->renderer->sdl_renderer_init()) {
+				messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Could not initialized the SDL renderer");
+				return 5; // Return 5 when the renderer could not be initialized
+			}
+		}
+
+		int img_flags = IMG_INIT_PNG | IMG_INIT_JPG;
+		if (!(IMG_Init(img_flags) & img_flags)) {
+			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't init SDL_image: " + std::string(IMG_GetError()));
+			return 6; // Return 6 when SDL_image could not be initialized
+		}
+
+		if (TTF_Init() == -1) {
+			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't init SDL_ttf: " + std::string(TTF_GetError()));
+			return 7; // Return 7 when SDL_ttf could not be initialized
+		}
+
+		Mix_SetSoundFonts(""); // This will disable MIDI but fixes a small error when not including a soundfont
+		if (Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 1024) < 0) {
+			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't init SDL_mixer: " + std::string(Mix_GetError()));
+			return 8; // Return 8 when SDL_mixer could not be initialized
+		}
+		Mix_ChannelFinished(sound_finished);
+		Mix_AllocateChannels(128); // Probably overkill
+
+		return 0;
+	}
+	int internal::handle_sdl_events() {
+		SDL_Event event;
+		while (SDL_PollEvent(&event)) {
+			switch (event.type) {
+				case SDL_QUIT: {
+					engine->quit = true;
+					break;
+				}
+				case SDL_WINDOWEVENT: {
+					switch (event.window.event) {
+						case SDL_WINDOWEVENT_SHOWN: {
+							render_set_camera(nullptr);
+							engine->renderer->render();
+							engine->has_focus = true;
+							break;
+						}
+						case SDL_WINDOWEVENT_HIDDEN: {
+							engine->has_focus = false;
+							break;
+						}
+						case SDL_WINDOWEVENT_EXPOSED: {
+							engine->renderer->render();
+							break;
+						}
+						case SDL_WINDOWEVENT_MOVED: {
+							break;
+						}
+						case SDL_WINDOWEVENT_RESIZED: {
+							engine->width = event.window.data1;
+							engine->height = event.window.data2;
+							render_set_camera(nullptr);
+							engine->renderer->render();
+							break;
+						}
+						case SDL_WINDOWEVENT_SIZE_CHANGED: {
+							engine->renderer->render();
+							break;
+						}
+						case SDL_WINDOWEVENT_MINIMIZED: {
+							engine->options->is_minimized = true;
+							engine->has_mouse = false;
+							engine->has_focus = false;
+							break;
+						}
+						case SDL_WINDOWEVENT_MAXIMIZED: {
+							engine->options->is_minimized = false;
+							engine->has_focus = true;
+							break;
+						}
+						case SDL_WINDOWEVENT_RESTORED: {
+							engine->options->is_minimized = false;
+							engine->has_focus = true;
+							break;
+						}
+						case SDL_WINDOWEVENT_ENTER: {
+							engine->has_mouse = true;
+							break;
+						}
+						case SDL_WINDOWEVENT_LEAVE: {
+							engine->has_mouse = false;
+							break;
+						}
+						case SDL_WINDOWEVENT_FOCUS_GAINED: {
+							engine->has_focus = true;
+							break;
+						}
+						case SDL_WINDOWEVENT_FOCUS_LOST: {
+							engine->has_focus = false;
+							break;
+						}
+						case SDL_WINDOWEVENT_CLOSE: {
+							SDL_Event qe;
+							qe.type = SDL_QUIT;
+							SDL_PushEvent(&qe);
+							break;
+						}
+						#if SDL_VERSION_ATLEAST(2, 0, 5)
+							case SDL_WINDOWEVENT_TAKE_FOCUS:
+								SDL_SetWindowInputFocus(engine->renderer->window);
+								break;
+							case SDL_WINDOWEVENT_HIT_TEST:
+								break;
+						#endif
+						default: {
+							messenger::send({"engine"}, E_MESSAGE::WARNING, "Unknown window event: " + bee_itos(event.window.event));
+							break;
+						}
+					}
+					engine->current_room->window(&event);
+					break;
+				}
+
+				case SDL_KEYDOWN: {
+					internal::console_handle_input(&event);
+
+					if (event.key.repeat == 0) {
+						engine->current_room->keyboard_press(&event);
+					}
+					engine->current_room->keyboard_input(&event);
+
+					break;
+				}
+				case SDL_KEYUP: {
+					engine->current_room->keyboard_release(&event);
+					break;
+				}
+				case SDL_MOUSEMOTION:
+				case SDL_MOUSEWHEEL: {
+					engine->current_room->mouse_input(&event);
+					break;
+				}
+				case SDL_MOUSEBUTTONDOWN: {
+					engine->current_room->mouse_press(&event);
+					break;
+				}
+				case SDL_MOUSEBUTTONUP: {
+					engine->current_room->mouse_release(&event);
+					break;
+				}
+				case SDL_CONTROLLERAXISMOTION: {
+					engine->current_room->controller_axis(&event);
+					break;
+				}
+				case SDL_CONTROLLERBUTTONDOWN: {
+					engine->current_room->controller_press(&event);
+					break;
+				}
+				case SDL_CONTROLLERBUTTONUP: {
+					engine->current_room->controller_release(&event);
+					break;
+				}
+				case SDL_CONTROLLERDEVICEADDED:
+				case SDL_CONTROLLERDEVICEREMOVED:
+				case SDL_CONTROLLERDEVICEREMAPPED: {
+					engine->current_room->controller_modify(&event);
+					break;
+				}
+
+				#if SDL_VERSION_ATLEAST(2, 0, 4)
+					case SDL_AUDIODEVICEADDED:
+					case SDL_AUDIODEVICEREMOVED:
+				#endif
+				case SDL_DOLLARGESTURE:
+				case SDL_DOLLARRECORD:
+				case SDL_DROPFILE:
+				case SDL_FINGERMOTION:
+				case SDL_FINGERDOWN:
+				case SDL_FINGERUP:
+				case SDL_JOYAXISMOTION:
+				case SDL_JOYBALLMOTION:
+				case SDL_JOYHATMOTION:
+				case SDL_JOYBUTTONDOWN:
+				case SDL_JOYBUTTONUP:
+				case SDL_JOYDEVICEADDED:
+				case SDL_JOYDEVICEREMOVED:
+				case SDL_MULTIGESTURE:
+				case SDL_SYSWMEVENT:
+				case SDL_TEXTEDITING:
+				case SDL_TEXTINPUT:
+				case SDL_USEREVENT: {
+					// For events which we don't care about or currently support
+					break;
+				}
+				default:
+					messenger::send({"engine"}, E_MESSAGE::WARNING, "Unknown event type: " + bee_itos(event.type));
+					break;
+			}
+		}
+
+		return 0;
+	}
+	int internal::handle_drawing() {
+		engine->current_room->draw();
+		engine->current_room->animation_end();
+		return 0;
+	}
+	int internal::close_sdl() {
+		Mix_AllocateChannels(0);
+
+		Mix_CloseAudio();
+		TTF_Quit();
+		IMG_Quit();
+		SDL_Quit();
 
 		return 0;
 	}

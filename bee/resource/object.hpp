@@ -26,6 +26,8 @@ namespace bee {
 	class Instance;
 	class Sprite;
 
+	class NetworkEvent;
+
 	class Object: public Resource { // The object resource class is used to handle all events and instance data
 			static std::map<int,Object*> list;
 			static int next_id;
@@ -138,6 +140,7 @@ namespace bee {
 			virtual void game_start(Instance*) {};
 			virtual void game_end(Instance*) {};
 			virtual void window(Instance*, SDL_Event*) {};
+			virtual void network(Instance*, const NetworkEvent&) {};
 	};
 }
 

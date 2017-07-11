@@ -238,95 +238,95 @@ namespace bee {
 	* @tmp_surface: the temporary surface to load from
 	*/
 	int Background::load_from_surface(SDL_Surface* tmp_surface) {
-		if (!is_loaded) { // Only attempt to load the background if it has not already been loaded
-			// Set the background dimensions
-			width = tmp_surface->w;
-			height = tmp_surface->h;
-
-			if (engine->options->renderer_type != E_RENDERER::SDL) {
-				// Generate the vertex array object for the background
-				glGenVertexArrays(1, &vao);
-				glBindVertexArray(vao);
-
-				// Generate the four corner texcoords for the background
-				GLfloat texcoords[] = {
-					0.0, 0.0,
-					1.0, 0.0,
-					1.0, 1.0,
-					0.0, 1.0,
-				};
-				glGenBuffers(1, &vbo_texcoords);
-				glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords);
-				glBufferData(GL_ARRAY_BUFFER, sizeof(texcoords), texcoords, GL_STATIC_DRAW);
-
-				// Generate the four corner vertices of the rectangular background
-				GLfloat vertices[] = {
-					0.0,            0.0,
-					(GLfloat)width, 0.0,
-					(GLfloat)width, (GLfloat)height,
-					0.0,            (GLfloat)height,
-				};
-				glGenBuffers(1, &vbo_vertices);
-				glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
-				glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-				// Generate the indices of the two triangle which form the rectangular background
-				GLushort elements[] = {
-					0, 1, 2,
-					2, 3, 0,
-				};
-				glGenBuffers(1, &ibo);
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-				glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
-
-				// Bind the vertices to the VAO's vertex buffer
-				glEnableVertexAttribArray(engine->renderer->vertex_location);
-				glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
-				glVertexAttribPointer(
-					engine->renderer->vertex_location,
-					2,
-					GL_FLOAT,
-					GL_FALSE,
-					0,
-					0
-				);
-
-				// Generate the texture from the surface pixels
-				glGenTextures(1, &gl_texture);
-				glBindTexture(GL_TEXTURE_2D, gl_texture);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-				glTexImage2D(
-					GL_TEXTURE_2D,
-					0,
-					GL_RGBA,
-					width,
-					height,
-					0,
-					GL_RGBA,
-					GL_UNSIGNED_BYTE,
-					tmp_surface->pixels
-				);
-
-				glBindVertexArray(0); // Unbind the VAO when done loading
-
-				// Set the loaded booleans
-				is_loaded = true;
-				has_draw_failed = false;
-			} else {
-				// Generate an SDL texture from the surface pixels
-				texture = SDL_CreateTextureFromSurface(engine->renderer->sdl_renderer, tmp_surface);
-				if (texture == nullptr) { // If the texture could not be generated, output a warning
-					messenger::send({"engine", "background"}, E_MESSAGE::WARNING, "Failed to create texture from surface for \"" + name + "\": " + get_sdl_error());
-					return 2; // Return 2 on failure to load
-				}
-
-				// Set the loaded booleans
-				is_loaded = true;
-				has_draw_failed = false;
-			}
-		} else { // If the sprite has already been loaded, output a warning
+		if (is_loaded) { // If the sprite has already been loaded, output a warning
 			messenger::send({"engine", "background"}, E_MESSAGE::WARNING, "Failed to load background \"" + name + "\" from surface because it has already been loaded");
 			return 1; // Return 1 on failure
+		}
+
+		// Set the background dimensions
+		width = tmp_surface->w;
+		height = tmp_surface->h;
+
+		if (engine->options->renderer_type != E_RENDERER::SDL) {
+			// Generate the vertex array object for the background
+			glGenVertexArrays(1, &vao);
+			glBindVertexArray(vao);
+
+			// Generate the four corner texcoords for the background
+			GLfloat texcoords[] = {
+				0.0, 0.0,
+				1.0, 0.0,
+				1.0, 1.0,
+				0.0, 1.0,
+			};
+			glGenBuffers(1, &vbo_texcoords);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(texcoords), texcoords, GL_STATIC_DRAW);
+
+			// Generate the four corner vertices of the rectangular background
+			GLfloat vertices[] = {
+				0.0,            0.0,
+				(GLfloat)width, 0.0,
+				(GLfloat)width, (GLfloat)height,
+				0.0,            (GLfloat)height,
+			};
+			glGenBuffers(1, &vbo_vertices);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+			// Generate the indices of the two triangle which form the rectangular background
+			GLushort elements[] = {
+				0, 1, 2,
+				2, 3, 0,
+			};
+			glGenBuffers(1, &ibo);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
+
+			// Bind the vertices to the VAO's vertex buffer
+			glEnableVertexAttribArray(engine->renderer->vertex_location);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
+			glVertexAttribPointer(
+				engine->renderer->vertex_location,
+				2,
+				GL_FLOAT,
+				GL_FALSE,
+				0,
+				0
+			);
+
+			// Generate the texture from the surface pixels
+			glGenTextures(1, &gl_texture);
+			glBindTexture(GL_TEXTURE_2D, gl_texture);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexImage2D(
+				GL_TEXTURE_2D,
+				0,
+				GL_RGBA,
+				width,
+				height,
+				0,
+				GL_RGBA,
+				GL_UNSIGNED_BYTE,
+				tmp_surface->pixels
+			);
+
+			glBindVertexArray(0); // Unbind the VAO when done loading
+
+			// Set the loaded booleans
+			is_loaded = true;
+			has_draw_failed = false;
+		} else {
+			// Generate an SDL texture from the surface pixels
+			texture = SDL_CreateTextureFromSurface(engine->renderer->sdl_renderer, tmp_surface);
+			if (texture == nullptr) { // If the texture could not be generated, output a warning
+				messenger::send({"engine", "background"}, E_MESSAGE::WARNING, "Failed to create texture from surface for \"" + name + "\": " + get_sdl_error());
+				return 2; // Return 2 on failure to load
+			}
+
+			// Set the loaded booleans
+			is_loaded = true;
+			has_draw_failed = false;
 		}
 
 		return 0; // Return 0 on success
@@ -335,21 +335,25 @@ namespace bee {
 	* Background::load() - Load the background from its given filename
 	*/
 	int Background::load() {
-		if (!is_loaded) { // Only attempt to load the background if it has not already been loaded
-			// Load the image into a temporary surface
-			SDL_Surface* tmp_surface;
-			tmp_surface = IMG_Load(path.c_str());
-			if (tmp_surface == nullptr) { // If the surface could not be loaded, output a warning
-				messenger::send({"engine", "background"}, E_MESSAGE::WARNING, "Failed to load background " + name + ": " + IMG_GetError());
-				return 1; // Return 1 on load failure
-			}
-
-			load_from_surface(tmp_surface); // Load the surface into a texture
-			SDL_FreeSurface(tmp_surface); // Free the temporary surface
-		} else { // If the background has already been loaded, output a warning
+		if (is_loaded) { // Do not attempt to load the background is t has already been loaded
 			messenger::send({"engine", "background"}, E_MESSAGE::WARNING, "Failed to load background \"" + name + "\" because it has already been loaded");
-			return 1; // Return 1 on failure
+			return 1; // Return 1 when already loaded
 		}
+
+		if (get_options().is_headless) {
+			return 2; // Return 2 when in headless mode
+		}
+
+		// Load the image into a temporary surface
+		SDL_Surface* tmp_surface;
+		tmp_surface = IMG_Load(path.c_str());
+		if (tmp_surface == nullptr) { // If the surface could not be loaded, output a warning
+			messenger::send({"engine", "background"}, E_MESSAGE::WARNING, "Failed to load background " + name + ": " + IMG_GetError());
+			return 3; // Return 3 on loading failure
+		}
+
+		load_from_surface(tmp_surface); // Load the surface into a texture
+		SDL_FreeSurface(tmp_surface); // Free the temporary surface
 
 		return 0; // Return 0 on success
 	}
@@ -357,26 +361,28 @@ namespace bee {
 	* Background::free() - Free the background texture and delete all of its buffers
 	*/
 	int Background::free() {
-		if (is_loaded) { // Do not attempt to free the texture if it has not been loaded
-			if (engine->options->renderer_type != E_RENDERER::SDL) {
-				// Delete the vertex and index buffer
-				glDeleteBuffers(1, &vbo_vertices);
-				glDeleteBuffers(1, &ibo);
-
-				// Delete the texture, the texture coordinates, and the optional framebuffer
-				glDeleteTextures(1, &gl_texture);
-				glDeleteBuffers(1, &vbo_texcoords);
-				glDeleteFramebuffers(1, &framebuffer);
-
-				// Finally delete the VAO
-				glDeleteVertexArrays(1, &vao);
-			} else {
-				// Delete the SDL texture
-				SDL_DestroyTexture(texture);
-				texture = nullptr;
-			}
-			is_loaded = false; // Set the loaded boolean
+		if (!is_loaded) { // Do not attempt to free the texture if it has not been loaded
+			return 0;
 		}
+		if (engine->options->renderer_type != E_RENDERER::SDL) {
+			// Delete the vertex and index buffer
+			glDeleteBuffers(1, &vbo_vertices);
+			glDeleteBuffers(1, &ibo);
+
+			// Delete the texture, the texture coordinates, and the optional framebuffer
+			glDeleteTextures(1, &gl_texture);
+			glDeleteBuffers(1, &vbo_texcoords);
+			glDeleteFramebuffers(1, &framebuffer);
+
+			// Finally delete the VAO
+			glDeleteVertexArrays(1, &vao);
+		} else {
+			// Delete the SDL texture
+			SDL_DestroyTexture(texture);
+			texture = nullptr;
+		}
+		
+		is_loaded = false; // Set the loaded boolean
 
 		return 0; // Return 0 on success
 	}

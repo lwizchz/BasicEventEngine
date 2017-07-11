@@ -31,12 +31,13 @@ namespace bee {
 		// Commandline flags
 		bool should_assert;
 		bool single_run;
+		bool is_headless;
 
 		GameOptions();
 		GameOptions(bool, bool, bool, bool, bool, bool, bee::E_RENDERER, bool, bool, bool, bool);
 	};
 
-	GameOptions get_options();
+	const GameOptions& get_options();
 	int set_options(const GameOptions&);
 }
 

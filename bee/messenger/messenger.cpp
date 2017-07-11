@@ -20,6 +20,8 @@
 #include "../util/string.hpp"
 #include "../util/platform.hpp"
 
+#include "../init/gameoptions.hpp"
+
 #include "messagerecipient.hpp"
 #include "messagecontents.hpp"
 
@@ -54,10 +56,10 @@ namespace bee { namespace messenger{
 	}
 
 	/*
-	* internal::print_msg() - Output the given message if the verbosity level is high enough
+	* internal::output_msg() - Output the given message if the verbosity level is high enough
 	* @msg: the message to process
 	*/
-	int internal::print_msg(std::shared_ptr<MessageContents> msg) {
+	int internal::output_msg(std::shared_ptr<MessageContents> msg) {
 		switch (get_level()) { // Skip certain messages depending on the verbosity level
 			case E_OUTPUT::NONE: { // When the verbosity is NONE, skip all message types
 				return 1; // Return 1 when the message should not be printed
@@ -83,9 +85,31 @@ namespace bee { namespace messenger{
 			}
 		}
 
+		if (get_options().is_headless) {
+			std::stringstream h; // Combine the message metadata
+			h << msg->tickstamp << "ms> ";
+
+			print_msg(h.str(), msg);
+
+			return 2; // Return 2 when in headless mode
+		}
+
 		// Create a string of the message's tags
 		std::string tags = joinv(msg->tags, ',');
 
+		std::stringstream h; // Combine the message metadata
+		h << "MSG (" << msg->tickstamp << "ms)[" << get_type_string(msg->type) << "]<" << tags << ">: ";
+
+		print_msg(h.str(), msg);
+
+		return 0; // Return 0 on success
+	}
+	/*
+	* internal::print_msg() - Print the given message description with the given header
+	* @header: the metadata to print before the message description
+	* @msg: the message whose description should be printed
+	*/
+	int internal::print_msg(const std::string& header, std::shared_ptr<MessageContents> msg) {
 		// Change the output color depending on the message type
 		if (msg->type == E_MESSAGE::WARNING) {
 			bee_commandline_color(11); // Yellow
@@ -101,8 +125,7 @@ namespace bee { namespace messenger{
 		}
 
 		// Output the message metadata
-		*o << "MSG (" << msg->tickstamp << "ms)[" << get_type_string(msg->type) << "]<" << tags << ">: ";
-		//*o << "MSG (" << t << "ms)[" << get_type_string(msg->type) << "]<" << tags << ">: ";
+		*o << header;
 
 		// Output the message description
 		if (msg->descr.find("\n") != std::string::npos) { // If the description is multiple liness, indent it as necessary
@@ -116,7 +139,7 @@ namespace bee { namespace messenger{
 
 		std::flush(std::cout); // Flush the output buffer after printing
 
-		return 0; // Return 0 on success
+		return 0;
 	}
 	/*
 	* internal::call_recipients() - Call the recipients who are registered for the given message's tags
@@ -218,7 +241,7 @@ namespace bee { namespace messenger{
 	int internal::send_urgent(std::shared_ptr<MessageContents> msg) {
 		msg->descr = trim(msg->descr); // Trim the message description
 
-		print_msg(msg);
+		output_msg(msg);
 
 		msg->has_processed = false;
 		std::exception_ptr ep = call_recipients(msg);
@@ -450,7 +473,7 @@ namespace bee { namespace messenger{
 				continue;
 			}
 
-			internal::print_msg(msg);
+			internal::output_msg(msg);
 		}
 
 		// Process messages with recipient functions

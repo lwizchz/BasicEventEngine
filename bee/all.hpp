@@ -29,6 +29,8 @@
 #include "network/network.hpp"
 #include "network/connection.hpp"
 #include "network/client.hpp"
+#include "network/packet.hpp"
+#include "network/event.hpp"
 
 #include "render/camera.hpp"
 #include "render/drawing.hpp"

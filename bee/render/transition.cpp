@@ -35,12 +35,17 @@ namespace bee {
 	* ! See https://wiki.libsdl.org/SDL_SetRenderTarget for details
 	*/
 	int reset_render_target() {
+		if (get_options().is_headless) {
+			return 1; // Return 1 when in headless mode
+		}
+
 		if (engine->options->renderer_type != E_RENDERER::SDL) {
 			glBindFramebuffer(GL_FRAMEBUFFER, 0); // Reset the bound framebuffer
 			engine->renderer->target = 0; // Reset the target
 		} else {
 			SDL_SetRenderTarget(engine->renderer->sdl_renderer, nullptr); // Reset the SDL render target
 		}
+
 		return 0;
 	}
 	/*
@@ -50,6 +55,10 @@ namespace bee {
 	* @h: the height to use
 	*/
 	int set_render_target(Sprite* sprite_target, int w, int h) {
+		if (get_options().is_headless) {
+			return 1; // Return 1 when in headless mode
+		}
+
 		if (sprite_target == nullptr) { // If the given target is nullptr then reset the render target
 			reset_render_target();
 		} else {
@@ -73,6 +82,10 @@ namespace bee {
 	* @h: the height to use
 	*/
 	int set_render_target(Background* background_target, int w, int h) {
+		if (get_options().is_headless) {
+			return 1; // Return 1 when in headless mode
+		}
+
 		if (background_target == nullptr) { // If the given target is nullptr then reset the render target
 			reset_render_target();
 		} else {
@@ -130,6 +143,10 @@ namespace bee {
 	* draw_transition() - Draw the defined transition type
 	*/
 	int draw_transition() {
+		if (get_options().is_headless) {
+			return 1; // Return 1 when in headless mode
+		}
+
 		SDL_RendererFlip f = SDL_FLIP_NONE;
 		if (engine->options->renderer_type != E_RENDERER::SDL) {
 			f = SDL_FLIP_VERTICAL;

@@ -401,12 +401,16 @@ namespace bee {
 	* @filename: the location at which to save the bitmap
 	*/
 	int save_screenshot(const std::string& filename) {
+		if (get_options().is_headless) {
+			return -1; // Return -1 when in headless mode
+		}
+
 		std::string fn (filename);
 		if (file_exists(fn)) { // If the file already exists, append a timestamp
 			fn = file_plainname(fn) + "-" + bee_itos(time(nullptr)) + file_extname(fn);
 			if (file_exists(fn)) { // If the appended file already exists, abort
 				messenger::send({"engine"}, E_MESSAGE::WARNING, "Failed to save screenshot: files already exist: \"" + filename + "\" and \"" + fn + "\"");
-				return -1; // Return -1 on filename error
+				return -2; // Return -2 on filename error
 			}
 		}
 
