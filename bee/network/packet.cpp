@@ -88,7 +88,10 @@ namespace bee {
 	int NetworkPacket::load_net(Uint8* new_data) {
 		size_t new_size = new_data[0] << 8;
 		new_size += new_data[1];
-		set_size(new_size);
+		if (set_size(new_size)) {
+			messenger::send({"engine", "network"}, E_MESSAGE::ERROR, "Failed to load net data: allocation error");
+			return 1;
+		}
 
 		id = new_data[2];
 		signals = new_data[3];
@@ -102,7 +105,10 @@ namespace bee {
 		return 0;
 	}
 	int NetworkPacket::load_data(size_t data_size, Uint8* new_data) {
-		set_size(data_size+4);
+		if (set_size(data_size+4)) {
+			messenger::send({"engine", "network"}, E_MESSAGE::ERROR, "Failed to append net data: allocation error");
+			return 1;
+		}
 
 		data.clear();
 		data.reserve(data_size);
@@ -112,8 +118,14 @@ namespace bee {
 
 		return 0;
 	}
+	int NetworkPacket::load_data(std::pair<size_t,Uint8*> new_data) {
+		return load_data(new_data.first, new_data.second);
+	}
 	int NetworkPacket::append_data(size_t data_size, Uint8* new_data) {
-		set_size(size+data_size);
+		if (set_size(size+data_size)) {
+			messenger::send({"engine", "network"}, E_MESSAGE::ERROR, "Failed to append data: allocation error");
+			return 1;
+		}
 
 		data.reserve(size-4);
 		for (size_t i=0; i<data_size; ++i) {
@@ -122,13 +134,19 @@ namespace bee {
 
 		return 0;
 	}
+	int NetworkPacket::append_data(std::pair<size_t,Uint8*> new_data) {
+		return append_data(new_data.first, new_data.second);
+	}
 	int NetworkPacket::append_net(UDPpacket* udp_data) {
 		Uint8* new_data = udp_data->data;
 
 		size_t data_size = new_data[0] << 8;
 		data_size += new_data[1];
 		data_size -= 4;
-		set_size(size+data_size);
+		if (set_size(size+data_size)) {
+			messenger::send({"engine", "network"}, E_MESSAGE::ERROR, "Failed to append net data: allocation error");
+			return 1;
+		}
 
 		id = new_data[2];
 		signals = new_data[3];

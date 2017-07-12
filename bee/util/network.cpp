@@ -173,12 +173,13 @@ UDPsocket network_udp_open(int port) {
 * @port: the port to start with
 * @range: the range to try
 */
-UDPsocket network_udp_open_range(int port, size_t range) {
+std::pair<int,UDPsocket> network_udp_open_range(int port, size_t range) {
 	UDPsocket udp = nullptr;
-	for (size_t i=0; (udp == nullptr) && i<range; ++i) {
+	size_t i;
+	for (i=0; (udp == nullptr) && i<range; ++i) {
 		udp = network_udp_open(port+i);
 	}
-	return udp;
+	return std::make_pair(port+i, udp);
 }
 /*
 * network_udp_close() - Close the given UDP socket

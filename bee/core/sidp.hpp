@@ -36,22 +36,22 @@ namespace bee {
 		int interpret(const std::string&);
 		int vector(std::vector<SIDP>*);
 		int map(std::map<SIDP,SIDP>*);
-		std::string to_str();
+		std::string to_str() const;
 
 		// Return the requested type
-		std::string s(std::string, int);
-		int i(std::string, int);
-		double d(std::string, int);
-		void* p(std::string, int);
-		SIDP p(size_t, std::string, int);
-		SIDP p(SIDP, std::string, int);
+		std::string s(std::string, int) const;
+		int i(std::string, int) const;
+		double d(std::string, int) const;
+		void* p(std::string, int) const;
+		SIDP p(size_t, std::string, int) const;
+		SIDP p(SIDP, std::string, int) const;
 
-		std::string s();
-		int i();
-		double d();
-		void* p();
-		SIDP p(size_t);
-		SIDP p(SIDP);
+		std::string s() const;
+		int i() const;
+		double d() const;
+		void* p() const;
+		SIDP p(size_t) const;
+		SIDP p(SIDP) const;
 
 		SIDP& operator=(const SIDP&);
 		SIDP& operator=(const std::string&);

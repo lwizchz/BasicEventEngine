@@ -36,7 +36,9 @@ namespace bee {
 
 		int load_net(Uint8*);
 		int load_data(size_t, Uint8*);
+		int load_data(std::pair<size_t,Uint8*>);
 		int append_data(size_t, Uint8*);
+		int append_data(std::pair<size_t,Uint8*>);
 		int append_net(UDPpacket*);
 
 		Uint8* get();

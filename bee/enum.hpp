@@ -171,8 +171,10 @@ namespace bee {
 		CONNECT,
 		DISCONNECT,
 		KEYFRAME,
+		PLAYER_UPDATE,
 		INST_UPDATE,
-		DATA_UPDATE
+		DATA_UPDATE,
+		OTHER
 	};
 
 	// Particles

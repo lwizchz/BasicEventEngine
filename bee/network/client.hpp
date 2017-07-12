@@ -9,6 +9,8 @@
 #ifndef BEE_NETWORK_CLIENT_H
 #define BEE_NETWORK_CLIENT_H 1
 
+#include <string>
+
 #include <SDL2/SDL_net.h>
 
 namespace bee {
@@ -16,6 +18,8 @@ namespace bee {
 		UDPsocket sock;
 		int channel;
 		Uint32 last_recv;
+		int id;
+		std::string name;
 
 		NetworkClient();
 		NetworkClient(UDPsocket, int);

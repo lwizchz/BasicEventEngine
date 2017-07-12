@@ -37,6 +37,10 @@ namespace net {
 
 	int session_sync_data(const std::string&, const std::string&);
 	int session_sync_instance(Instance*);
+	int session_sync_player(int, Instance*);
+
+	std::string get_print();
+	const std::map<int,NetworkClient>& get_players();
 }}
 
 #endif // BEE_NETWORK_H

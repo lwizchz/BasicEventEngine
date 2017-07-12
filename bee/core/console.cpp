@@ -32,6 +32,8 @@
 #include "resources.hpp"
 #include "room.hpp"
 
+#include "../network/network.hpp"
+
 #include "../render/drawing.hpp"
 #include "../render/renderer.hpp"
 #include "../render/rgba.hpp"
@@ -672,6 +674,17 @@ namespace bee{
 			"Toggle the pause state of the game",
 			[] (std::shared_ptr<MessageContents> msg) {
 				set_is_paused(!get_is_paused());
+			}
+		);
+
+		/*
+		* console_netstatus - List information about the network session
+		*/
+		console_add_command(
+			"netstatus",
+			"List information about the network session",
+			[] (std::shared_ptr<MessageContents> msg) {
+				messenger::send({"engine", "console"}, E_MESSAGE::INFO, net::get_print());
 			}
 		);
 

@@ -9,13 +9,19 @@
 #ifndef BEE_NETWORK_EVENT_H
 #define BEE_NETWORK_EVENT_H 1
 
+#include <map>
+
 #include "../enum.hpp"
+
+#include "../core/sidp.hpp"
 
 namespace bee {
 	struct NetworkEvent {
 		E_NETEVENT type;
+		std::map<std::string,SIDP> data;
 
 		NetworkEvent();
+		NetworkEvent(E_NETEVENT);
 	};
 }
 

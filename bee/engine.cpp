@@ -226,18 +226,6 @@ namespace bee {
 						return e;
 					}
 				}
-			} catch (...) {
-				messenger::internal::send_urgent(std::shared_ptr<MessageContents>(new MessageContents(
-					get_ticks(),
-					{"engine"},
-					E_MESSAGE::ERROR,
-					"Unknown error",
-					nullptr
-				)));
-
-				close();
-
-				std::rethrow_exception(std::current_exception());
 			}
 		}
 		messenger::send({"engine"}, E_MESSAGE::END, "gameloop");

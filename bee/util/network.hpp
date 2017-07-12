@@ -27,7 +27,7 @@ int network_tcp_send(TCPsocket*, const std::string&);
 int network_tcp_recv(TCPsocket*, void*, int);
 std::string network_tcp_recv(TCPsocket*, int);
 UDPsocket network_udp_open(int);
-UDPsocket network_udp_open_range(int, size_t);
+std::pair<int,UDPsocket> network_udp_open_range(int, size_t);
 int network_udp_close(UDPsocket*);
 int network_udp_reopen(UDPsocket*, int);
 int network_udp_bind(UDPsocket*, int, IPaddress*);

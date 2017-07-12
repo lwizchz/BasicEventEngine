@@ -6,6 +6,9 @@
 * See LICENSE for more details.
 */
 
+#ifndef RES_ROOM_TEST_H
+#define RES_ROOM_TEST_H 1
+
 class RmTest: public bee::Room {
 	public:
 		bee::ViewData vw_main = {
@@ -46,3 +49,5 @@ void RmTest::init() {
 	}
 	load_instance_map();
 }
+
+#endif // RES_ROOM_TEST_H

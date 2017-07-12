@@ -13,6 +13,8 @@
 #include <map>
 #include <memory>
 
+#include "../core/sidp.hpp"
+
 #include "client.hpp"
 #include "packet.hpp"
 
@@ -33,7 +35,7 @@ namespace bee {
 		std::map<int,NetworkClient> players;
 
 		std::unique_ptr<NetworkPacket> tmp_data_buffer;
-		std::map<std::string,std::string> data;
+		std::map<std::string,SIDP> data;
 
 		NetworkConnection();
 	};
