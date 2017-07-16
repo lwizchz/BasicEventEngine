@@ -291,7 +291,7 @@ namespace bee {
 			is_loaded = true;
 			has_draw_failed = false;
 		} else { // Otherwise load the sprite's TTF file
-			if (engine->options->renderer_type != E_RENDERER::SDL) { // If the engine is rendering in OpenGL mode, output a warning about fast font drawing
+			if (get_options().renderer_type != E_RENDERER::SDL) { // If the engine is rendering in OpenGL mode, output a warning about fast font drawing
 				messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Please note that TTF fast font rendering is currently broken in OpenGL mode\nThe current behavior is to draw slowly and discard the texture data");
 			}
 
@@ -500,7 +500,7 @@ namespace bee {
 		} else { // Otherwise, draw the font normally
 			// Render the text to a temporary surface
 			SDL_Surface* tmp_surface;
-			if (engine->options->renderer_type != E_RENDERER::SDL) { // Since fast font rendering is currently broken in OpenGL, fallback to the slower rendering
+			if (get_options().renderer_type != E_RENDERER::SDL) { // Since fast font rendering is currently broken in OpenGL, fallback to the slower rendering
 				tmp_surface = TTF_RenderUTF8_Blended(font, t.c_str(), {color.r, color.g, color.b, color.a}); // Use the slow but pretty TTF rendering mode
 			} else {
 				tmp_surface = TTF_RenderUTF8_Solid(font, t.c_str(), {color.r, color.g, color.b, color.a}); // Use the fast but ugly TTF rendering mode

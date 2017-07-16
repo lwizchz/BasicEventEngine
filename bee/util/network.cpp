@@ -12,6 +12,7 @@
 // Networking functions
 
 #include <iostream>
+#include <string.h> // Required for Windows memcpy()
 
 #include "network.hpp" // Include the function definitions
 

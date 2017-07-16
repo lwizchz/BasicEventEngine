@@ -26,6 +26,7 @@ unsigned int random_get_seed();
 unsigned int random_set_seed(unsigned int);
 unsigned int random_reset_seed();
 unsigned int randomize();
+
 template <typename T>
 extern int sign(T);
 template <typename T>
@@ -35,6 +36,7 @@ double degtorad(double);
 double radtodeg(double);
 double opposite_angle(double);
 double absolute_angle(double);
+
 double direction_of(double, double, double, double);
 btVector3 direction_of(double, double, double, double, double, double);
 double dist_sqr(double, double, double, double, double, double);
@@ -46,10 +48,12 @@ double distance(double, double);
 std::pair<double,double> coord_approach(double, double, double, double, double, double);
 glm::vec3 bt_to_glm3(const btVector3&);
 btVector3 glm_to_bt3(const glm::vec3&);
+
 template <typename T>
 extern T dot_product(T, T, T, T);
 template <typename T>
 extern T dot_product(const std::pair<T,T>&, const std::pair<T,T>&);
+
 template <typename T>
 extern bool is_between(T, T, T);
 template <typename T>

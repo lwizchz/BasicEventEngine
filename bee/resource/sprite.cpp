@@ -348,7 +348,7 @@ namespace bee {
 			subimages.push_back({(int)(i*subimage_width), 0, (int)subimage_width, (int)height});
 		}
 
-		if (engine->options->renderer_type == E_RENDERER::SDL) { // If SDL rendering is being used, exit early
+		if (get_options().renderer_type == E_RENDERER::SDL) { // If SDL rendering is being used, exit early
 			return 0; // Return 0 on success
 		}
 
@@ -406,7 +406,7 @@ namespace bee {
 		set_subimage_amount(1, crop.w);
 		subimages[0] = crop;
 
-		if (engine->options->renderer_type == E_RENDERER::SDL) { // If SDL rendering is being used, exit early
+		if (get_options().renderer_type == E_RENDERER::SDL) { // If SDL rendering is being used, exit early
 			return 0; // Return 0 on success
 		}
 
@@ -480,7 +480,7 @@ namespace bee {
 		}
 		crop = {0, 0, (int)width, (int)height}; // Set the default crop to be the entire image
 
-		if (engine->options->renderer_type != E_RENDERER::SDL) {
+		if (get_options().renderer_type != E_RENDERER::SDL) {
 			// Generate the vertex array object for the sprite
 			glGenVertexArrays(1, &vao);
 			glBindVertexArray(vao);
@@ -587,7 +587,7 @@ namespace bee {
 			return 0; // Return 0 on success
 		}
 
-		if (engine->options->renderer_type != E_RENDERER::SDL) {
+		if (get_options().renderer_type != E_RENDERER::SDL) {
 			// Delete the vertex and index buffer
 			glDeleteBuffers(1, &vbo_vertices);
 			glDeleteBuffers(1, &ibo);
@@ -620,7 +620,7 @@ namespace bee {
 	* Sprite::drawing_begin() - Enable all required buffers
 	*/
 	int Sprite::drawing_begin() {
-		if (engine->options->renderer_type == E_RENDERER::SDL) {
+		if (get_options().renderer_type == E_RENDERER::SDL) {
 			return 0; // Return 0 since nothing needs to be done for SDL mode
 		}
 
@@ -638,7 +638,7 @@ namespace bee {
 	* Sprite::drawing_end() - Disable all required buffers
 	*/
 	int Sprite::drawing_end() {
-		if (engine->options->renderer_type == E_RENDERER::SDL) {
+		if (get_options().renderer_type == E_RENDERER::SDL) {
 			return 0; // Return 0 since nothing needs to be done for SDL mode
 		}
 
@@ -685,7 +685,7 @@ namespace bee {
 			}
 		}
 
-		if (engine->options->renderer_type != E_RENDERER::SDL) {
+		if (get_options().renderer_type != E_RENDERER::SDL) {
 			// Get the full width of the sprite to be used for scaling
 			int rect_width = width;
 			if (subimage_amount > 1) {
@@ -873,7 +873,7 @@ namespace bee {
 		if (!is_loaded) { // If the sprite is not loaded, exit
 			return 1; // Return 1 when not loaded
 		}
-		if (engine->options->renderer_type != E_RENDERER::SDL) { // If the rendering mode is not SDL, exit
+		if (get_options().renderer_type != E_RENDERER::SDL) { // If the rendering mode is not SDL, exit
 			return 2; // Return 2 when not in SDL rendering more
 		}
 
@@ -896,7 +896,7 @@ namespace bee {
 			return 1; // Return 1 when not loaded
 		}
 
-		if (engine->options->renderer_type != E_RENDERER::SDL) {
+		if (get_options().renderer_type != E_RENDERER::SDL) {
 			drawing_begin();
 
 			// Colorize the sprite with the given color
@@ -1052,7 +1052,7 @@ namespace bee {
 		set_subimage_amount(1, width);
 		crop = {0, 0, (int)width, (int)height};
 
-		if (engine->options->renderer_type != E_RENDERER::SDL) {
+		if (get_options().renderer_type != E_RENDERER::SDL) {
 			// Generate the vertex array object for the sprite
 			glGenVertexArrays(1, &vao);
 			glBindVertexArray(vao);

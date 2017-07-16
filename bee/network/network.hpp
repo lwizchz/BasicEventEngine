@@ -20,6 +20,11 @@ namespace bee {
 	// Forward declaration
 	class Instance;
 namespace net {
+	namespace internal {
+		int host_send_players(int);
+		int host_send_data(int);
+	}
+
 	int init();
 	bool get_is_initialized();
 	int close();

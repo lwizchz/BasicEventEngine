@@ -27,6 +27,8 @@
 
 #include "../core/enginestate.hpp"
 
+#include "../util/windefine.hpp"
+
 namespace bee { namespace messenger{
 	namespace internal {
 		std::unordered_map<std::string,std::unordered_set<std::shared_ptr<MessageRecipient>>> recipients;
@@ -85,7 +87,7 @@ namespace bee { namespace messenger{
 			}
 		}
 
-		if (get_options().is_headless) {
+		if ((get_options().is_headless)&&(!get_options().is_debug_enabled)) {
 			std::stringstream h; // Combine the message metadata
 			h << msg->tickstamp << "ms> ";
 

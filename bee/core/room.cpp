@@ -214,7 +214,7 @@ namespace bee {
 	* @viewport: the rectangle defining the desired viewport
 	*/
 	int set_viewport(ViewData* viewport) {
-		if (engine->options->renderer_type != E_RENDERER::SDL) {
+		if (get_options().renderer_type != E_RENDERER::SDL) {
 			glm::mat4 view, projection;
 			glm::vec4 port;
 

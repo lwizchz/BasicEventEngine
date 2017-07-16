@@ -22,6 +22,7 @@
 #include "../util/real.hpp"
 #include "../util/string.hpp"
 #include "../util/files.hpp"
+#include "../util/platform.hpp"
 
 #include "../init/gameoptions.hpp"
 
@@ -340,6 +341,10 @@ namespace bee{
 				engine->console->log.str(std::string());
 				engine->console->log.clear();
 				engine->console->page_index = 0;
+
+				if (get_options().is_headless) {
+					bee_commandline_clear();
+				}
 			}
 		);
 		/*

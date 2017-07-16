@@ -77,30 +77,30 @@ namespace bee {
 	}
 	int set_options(const GameOptions& new_options) {
 		// Change fullscreen state
-		if (engine->options->is_fullscreen != new_options.is_fullscreen) {
+		if (get_options().is_fullscreen != new_options.is_fullscreen) {
 			engine->options->is_fullscreen = new_options.is_fullscreen;
 
 			Uint32 f = 0;
-			if (engine->options->is_fullscreen) {
+			if (get_options().is_fullscreen) {
 				f = SDL_WINDOW_FULLSCREEN_DESKTOP;
 			}
 			SDL_SetWindowFullscreen(engine->renderer->window, f);
 		}
 		// Change borderless state
-		if (engine->options->is_borderless != new_options.is_borderless) {
+		if (get_options().is_borderless != new_options.is_borderless) {
 			engine->options->is_borderless = new_options.is_borderless;
 
 			SDL_bool b = SDL_TRUE;
-			if (engine->options->is_borderless) {
+			if (get_options().is_borderless) {
 				b = SDL_FALSE;
 			}
 			SDL_SetWindowBordered(engine->renderer->window, b);
 		}
 		// Change resizable state
-		if (engine->options->is_resizable != new_options.is_resizable) {
+		if (get_options().is_resizable != new_options.is_resizable) {
 			engine->options->is_resizable = new_options.is_resizable;
 
-			if (engine->options->is_resizable) {
+			if (get_options().is_resizable) {
 				SDL_SetWindowMaximumSize(engine->renderer->window, 16384, 16384);
 				SDL_SetWindowMinimumSize(engine->renderer->window, 128, 128);
 			} else {
@@ -109,13 +109,13 @@ namespace bee {
 			}
 		}
 		// Change maximized state
-		if (engine->options->is_maximized != new_options.is_maximized) {
+		if (get_options().is_maximized != new_options.is_maximized) {
 			engine->options->is_maximized = new_options.is_maximized;
 
-			if (engine->options->is_maximized) {
+			if (get_options().is_maximized) {
 				SDL_MaximizeWindow(engine->renderer->window);
 			} else {
-				if (engine->options->is_resizable) {
+				if (get_options().is_resizable) {
 					SDL_RestoreWindow(engine->renderer->window);
 				} else {
 					SDL_MinimizeWindow(engine->renderer->window);
@@ -123,36 +123,36 @@ namespace bee {
 			}
 		}
 		// Change highdpi state
-		if (engine->options->is_highdpi != new_options.is_highdpi) {
+		if (get_options().is_highdpi != new_options.is_highdpi) {
 			engine->options->is_highdpi = new_options.is_highdpi;
 
 			// I currently have no way to test highdpi functionality
 		}
 		// Change visible state
-		if (engine->options->is_visible != new_options.is_visible) {
+		if (get_options().is_visible != new_options.is_visible) {
 			engine->options->is_visible = new_options.is_visible;
 
-			if (engine->options->is_visible) {
+			if (get_options().is_visible) {
 				SDL_ShowWindow(engine->renderer->window);
 			} else {
 				SDL_HideWindow(engine->renderer->window);
 			}
 		}
 		// Change minimization state
-		if (engine->options->is_minimized != new_options.is_minimized) {
+		if (get_options().is_minimized != new_options.is_minimized) {
 			engine->options->is_minimized = new_options.is_minimized;
 
-			if (engine->options->is_minimized) {
+			if (get_options().is_minimized) {
 				SDL_MinimizeWindow(engine->renderer->window);
 			} else {
 				SDL_RestoreWindow(engine->renderer->window);
 			}
 		}
 		// Change OpenGL state
-		if (engine->options->renderer_type != new_options.renderer_type) {
+		if (get_options().renderer_type != new_options.renderer_type) {
 			engine->options->renderer_type = new_options.renderer_type;
 
-			if (engine->options->renderer_type != E_RENDERER::SDL) { // Enter OpenGL mode
+			if (get_options().renderer_type != E_RENDERER::SDL) { // Enter OpenGL mode
 				engine->renderer->sdl_renderer_close();
 				engine->renderer->render_reset();
 			} else { // Enter SDL rendering mode
@@ -161,36 +161,36 @@ namespace bee {
 			}
 		}
 		// Change vsync state
-		if (engine->options->is_vsync_enabled != new_options.is_vsync_enabled) {
+		if (get_options().is_vsync_enabled != new_options.is_vsync_enabled) {
 			engine->options->is_vsync_enabled = new_options.is_vsync_enabled;
 
 			engine->renderer->render_reset();
 		}
 		// Change networking state
-		if (engine->options->is_network_enabled != new_options.is_network_enabled) {
+		if (get_options().is_network_enabled != new_options.is_network_enabled) {
 			engine->options->is_network_enabled = new_options.is_network_enabled;
 
-			if (engine->options->is_network_enabled) {
+			if (get_options().is_network_enabled) {
 				net::init();
 			} else {
 				net::close();
 			}
 		}
 		// Change debugging state
-		if (engine->options->is_debug_enabled != new_options.is_debug_enabled) {
+		if (get_options().is_debug_enabled != new_options.is_debug_enabled) {
 			engine->options->is_debug_enabled = new_options.is_debug_enabled;
 		}
 
 		// Refuse to modify should_assert
-		if (engine->options->should_assert != new_options.should_assert) {
+		if (get_options().should_assert != new_options.should_assert) {
 			messenger::send({"engine", "options"}, E_MESSAGE::WARNING, "Cannot modify should_assert GameOption after initialization");
 		}
 		// Refuse to modify single_run
-		if (engine->options->single_run != new_options.single_run) {
+		if (get_options().single_run != new_options.single_run) {
 			messenger::send({"engine", "options"}, E_MESSAGE::WARNING, "Cannot modify single_run GameOption after initialization");
 		}
 		// Refuse to modify is_headless
-		if (engine->options->is_headless != new_options.is_headless) {
+		if (get_options().is_headless != new_options.is_headless) {
 			messenger::send({"engine", "options"}, E_MESSAGE::WARNING, "Cannot modify is_headless GameOption after initialization");
 		}
 

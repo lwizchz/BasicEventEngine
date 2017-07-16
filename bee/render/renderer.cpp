@@ -82,7 +82,7 @@ namespace bee {
 			return 2; // Return 2 when GLEW could not be initialized
 		}
 
-		if (engine->options->is_vsync_enabled) {
+		if (get_options().is_vsync_enabled) {
 			SDL_GL_SetSwapInterval(1);
 		} else {
 			SDL_GL_SetSwapInterval(0);
@@ -108,7 +108,7 @@ namespace bee {
 		const std::string fs_fn_basic_default = "bee/render/shader/basic.fragment.glsl";
 		const std::string fs_fn_basic_user = "resources/basic.fragment.glsl";
 		std::string fs_fn (fs_fn_default);
-		if (engine->options->is_basic_shaders_enabled == true) {
+		if (get_options().is_basic_shaders_enabled == true) {
 			if (file_exists(fs_fn_basic_user)) {
 				fs_fn = fs_fn_basic_user;
 			}
@@ -261,7 +261,7 @@ namespace bee {
 		}
 
 		texture_location = glGetUniformLocation(program, "f_texture");
-		if ((texture_location == -1)&&(!engine->options->is_basic_shaders_enabled)) {
+		if ((texture_location == -1)&&(!get_options().is_basic_shaders_enabled)) {
 			glDeleteShader(vertex_shader);
 			glDeleteShader(geometry_shader);
 			glDeleteShader(fragment_shader);
@@ -269,7 +269,7 @@ namespace bee {
 			return 7; // Return 7 when a uniform location could not be found
 		}
 		colorize_location = glGetUniformLocation(program, "colorize");
-		if ((colorize_location == -1)&&(!engine->options->is_basic_shaders_enabled)) {
+		if ((colorize_location == -1)&&(!get_options().is_basic_shaders_enabled)) {
 			glDeleteShader(vertex_shader);
 			glDeleteShader(geometry_shader);
 			glDeleteShader(fragment_shader);
@@ -277,7 +277,7 @@ namespace bee {
 			return 7; // Return 7 when a uniform location could not be found
 		}
 		primitive_location = glGetUniformLocation(program, "is_primitive");
-		if ((primitive_location == -1)&&(!engine->options->is_basic_shaders_enabled)) {
+		if ((primitive_location == -1)&&(!get_options().is_basic_shaders_enabled)) {
 			glDeleteShader(vertex_shader);
 			glDeleteShader(geometry_shader);
 			glDeleteShader(fragment_shader);
@@ -285,7 +285,7 @@ namespace bee {
 			return 7; // Return 7 when a uniform location could not be found
 		}
 		flip_location = glGetUniformLocation(program, "flip");
-		if ((flip_location == -1)&&(!engine->options->is_basic_shaders_enabled)) {
+		if ((flip_location == -1)&&(!get_options().is_basic_shaders_enabled)) {
 			glDeleteShader(vertex_shader);
 			glDeleteShader(geometry_shader);
 			glDeleteShader(fragment_shader);
@@ -294,7 +294,7 @@ namespace bee {
 		}
 
 		is_lightable_location = glGetUniformLocation(program, "is_lightable");
-		if ((is_lightable_location == -1)&&(!engine->options->is_basic_shaders_enabled)) {
+		if ((is_lightable_location == -1)&&(!get_options().is_basic_shaders_enabled)) {
 			glDeleteShader(vertex_shader);
 			glDeleteShader(geometry_shader);
 			glDeleteShader(fragment_shader);
@@ -302,7 +302,7 @@ namespace bee {
 			return 7; // Return 7 when a uniform location could not be found
 		}
 		light_amount_location = glGetUniformLocation(program, "light_amount");
-		if ((light_amount_location == -1)&&(!engine->options->is_basic_shaders_enabled)) {
+		if ((light_amount_location == -1)&&(!get_options().is_basic_shaders_enabled)) {
 			glDeleteShader(vertex_shader);
 			glDeleteShader(geometry_shader);
 			glDeleteShader(fragment_shader);
@@ -318,7 +318,7 @@ namespace bee {
 		}
 
 		lightable_amount_location = glGetUniformLocation(program, "lightable_amount");
-		if ((lightable_amount_location == -1)&&(!engine->options->is_basic_shaders_enabled)) {
+		if ((lightable_amount_location == -1)&&(!get_options().is_basic_shaders_enabled)) {
 			glDeleteShader(vertex_shader);
 			glDeleteShader(geometry_shader);
 			glDeleteShader(fragment_shader);
@@ -343,9 +343,9 @@ namespace bee {
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
 
-		if (engine->options->renderer_type == E_RENDERER::OPENGL4) {
+		if (get_options().renderer_type == E_RENDERER::OPENGL4) {
 			messenger::send({"engine", "renderer"}, E_MESSAGE::INFO, "Now rendering with OpenGL 4.1");
-		} else if (engine->options->renderer_type == E_RENDERER::OPENGL3) {
+		} else if (get_options().renderer_type == E_RENDERER::OPENGL3) {
 			messenger::send({"engine", "renderer"}, E_MESSAGE::INFO, "Now rendering with OpenGL 3.3");
 		}
 
@@ -389,7 +389,7 @@ namespace bee {
 		return 0;
 	}
 	std::string Renderer::opengl_prepend_version(const std::string& shader) {
-		switch (engine->options->renderer_type) {
+		switch (get_options().renderer_type) {
 			case E_RENDERER::OPENGL4: {
 				if (GL_VERSION_4_1) {
 					return "#version 410 core\n" + shader;
@@ -409,7 +409,7 @@ namespace bee {
 	}
 	int Renderer::sdl_renderer_init() {
 		int renderer_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE;
-		if (engine->options->is_vsync_enabled) {
+		if (get_options().is_vsync_enabled) {
 			renderer_flags |= SDL_RENDERER_PRESENTVSYNC;
 		}
 
@@ -437,7 +437,7 @@ namespace bee {
 
 	int Renderer::render_clear() {
 		draw_set_color(*(engine->color));
-		if (engine->options->renderer_type != E_RENDERER::SDL) {
+		if (get_options().renderer_type != E_RENDERER::SDL) {
 			if (target > 0) {
 				glBindFramebuffer(GL_FRAMEBUFFER, target);
 			}
@@ -450,7 +450,7 @@ namespace bee {
 		return 0;
 	}
 	int Renderer::render() const {
-		if (engine->options->renderer_type != E_RENDERER::SDL) {
+		if (get_options().renderer_type != E_RENDERER::SDL) {
 			SDL_GL_SwapWindow(window);
 		} else {
 			SDL_RenderPresent(sdl_renderer);
@@ -458,7 +458,7 @@ namespace bee {
 		return 0;
 	}
 	int Renderer::render_reset() {
-		if (engine->options->renderer_type != E_RENDERER::SDL) {
+		if (get_options().renderer_type != E_RENDERER::SDL) {
 			opengl_close();
 			opengl_init();
 		} else {

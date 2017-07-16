@@ -194,7 +194,7 @@ namespace bee {
 			return 2; // Return 2 when in headless mode
 		}
 
-		if (engine->options->renderer_type == E_RENDERER::SDL) { // If the SDL rendering mode is enabled, output a warning
+		if (get_options().renderer_type == E_RENDERER::SDL) { // If the SDL rendering mode is enabled, output a warning
 			messenger::send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to load mesh because SDL rendering is currently enabled");
 			return 3; // Return 3 when SDL rendering is enabled
 		}

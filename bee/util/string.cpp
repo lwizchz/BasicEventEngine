@@ -413,4 +413,62 @@ int clipboard_set_text(const std::string& str) {
 	return SDL_SetClipboardText(str.c_str());
 }
 
+/*
+* is_str_floating() - Return whether the string is a floating point number
+* @str: the string to evaluate
+*/
+bool is_str_floating(const std::string& str) {
+	std::string ns = str;
+	if (ns.empty()) {
+		return false;
+	}
+
+	// Remove the number's sign if it has one
+	if ((ns[0] == '-')||(ns[0] == '+')) {
+		ns = ns.substr(1);
+	}
+
+	// Remove a single decimal point
+	if (ns.find(".") != std::string::npos) {
+		ns.erase(ns.find("."));
+	}
+
+	// Remove all digits
+	std::vector<std::string> digits = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
+	for (auto& d : digits) {
+		ns = string_replace(ns, d, "");
+	}
+
+	if (!ns.empty()) {
+		return false;
+	}
+	return true;
+}
+/*
+* is_str_integer() - Return whether the string is an integer
+* @str: the string to evaluate
+*/
+bool is_str_integer(const std::string& str) {
+	std::string ns = str;
+	if (ns.empty()) {
+		return false;
+	}
+
+	// Remove the number's sign if it has one
+	if ((ns[0] == '-')||(ns[0] == '+')) {
+		ns = ns.substr(1);
+	}
+
+	// Remove all digits
+	std::vector<std::string> digits = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
+	for (auto& d : digits) {
+		ns = string_replace(ns, d, "");
+	}
+
+	if (!ns.empty()) {
+		return false;
+	}
+	return true;
+}
+
 #endif // BEE_UTIL_STRING

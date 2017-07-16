@@ -76,7 +76,7 @@ namespace bee { namespace net {
 	* init() - Initialize the networking utilities
 	*/
 	int init() {
-		if (!engine->options->is_network_enabled) {
+		if (!get_options().is_network_enabled) {
 			return 1; // Return 1 if networking is disabled
 		}
 
@@ -99,7 +99,7 @@ namespace bee { namespace net {
 	* close() - Close and clean up the networking utilities
 	*/
 	int close() {
-		if (!engine->options->is_network_enabled) {
+		if (!get_options().is_network_enabled) {
 			return 1; // Return 1 if networking is disabled
 		}
 
@@ -119,6 +119,15 @@ namespace bee { namespace net {
 	* send_packet() - Send the given packet to the given client
 	*/
 	int send_packet(const NetworkClient& client, std::unique_ptr<NetworkPacket> const &packet) {
+		if ((packet->get_signal2() == 4)&&(packet->get_size() > NetworkPacket::MAX_SIZE)) {
+			const std::vector<std::pair<size_t,Uint8*>>& packets = packet->get_multi();
+			for (auto& p : packets) {
+				network_udp_send(client.sock, client.channel, p.first, p.second);
+			}
+			packet->free_multi();
+			return packets.size();
+		}
+
 		return network_udp_send(client.sock, client.channel, packet->get_size(), packet->get());
 	}
 	/*
@@ -129,7 +138,8 @@ namespace bee { namespace net {
 			return nullptr;
 		}
 
-		internal::connection->udp_data = network_packet_realloc(internal::connection->udp_data, 512); // Attempt to allocate space to receive data
+		//internal::connection->udp_data = network_packet_realloc(internal::connection->udp_data, 512); // Attempt to allocate space to receive data
+		internal::connection->udp_data = network_packet_realloc(internal::connection->udp_data, 65536); // Attempt to allocate more space to receive data
 		if (internal::connection->udp_data == nullptr) {
 			return nullptr; // Return nullptr when failed to allocate
 		}
@@ -140,12 +150,12 @@ namespace bee { namespace net {
 		}
 
 		if (r == -1) { // If receiving failed, attempt to allocate more space for the packet
-			internal::connection->udp_data = network_packet_realloc(internal::connection->udp_data, 65536); // Attempt to allocate more space to receive data
+			/*internal::connection->udp_data = network_packet_realloc(internal::connection->udp_data, 65536); // Attempt to allocate more space to receive data
 			if (internal::connection->udp_data == nullptr) {
 				return nullptr; // Return nullptr when failed to allocate
 			}
 
-			r = network_udp_recv(internal::connection->udp_sock, internal::connection->udp_data); // Attempt to receive data over the UDP socket
+			r = network_udp_recv(internal::connection->udp_sock, internal::connection->udp_data); // Attempt to receive data over the UDP socket*/
 			if (r != 1) {
 				return nullptr; // Return nullptr when the message still could not be received
 			}
@@ -161,7 +171,7 @@ namespace bee { namespace net {
 	*/
 	int handle_events() {
 		if (
-			(!engine->options->is_network_enabled)
+			(!get_options().is_network_enabled)
 			||(!internal::is_initialized)
 			||(internal::connection == nullptr)
 		) {
@@ -230,6 +240,31 @@ namespace bee { namespace net {
 							get_current_room()->network(e);
 
 							messenger::send({"engine", "network"}, E_MESSAGE::INFO, "Client accepted");
+
+							// Send player update to clients
+							internal::host_send_players(-1);
+						} else {
+							NetworkClient c;
+
+							int port = -1;
+							std::tie(port, c.sock) = network_udp_open_range(internal::port, internal::connection->max_players);
+							if (c.sock == nullptr) {
+								messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not accept client");
+								break;
+							}
+
+							auto p = std::unique_ptr<NetworkPacket>(new NetworkPacket(
+								internal::connection->self_id,
+								2, // Disconnect signal
+								0
+							));
+							p->append_data(orda("Server full"));
+
+							send_packet(c, p);
+
+							network_udp_close(&c.sock);
+
+							messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not accept client: server full");
 						}
 						break;
 					}
@@ -246,6 +281,9 @@ namespace bee { namespace net {
 						get_current_room()->network(e);
 
 						messenger::send({"engine", "network"}, E_MESSAGE::INFO, "Client disconnected");
+
+						// Send player update to clients
+						internal::host_send_players(-1);
 
 						break;
 					}
@@ -290,65 +328,11 @@ namespace bee { namespace net {
 								break;
 							}
 							case 2: { // Client requesting player map
-								// Convert our player socket map into a map of player names
-								std::map <int,std::string> t;
-								for (auto& p : internal::connection->players) { // Iterate over the connected players and insert their id and name into the new map
-									t.emplace(p.first, p.second.name);
-								}
-
-								std::pair<size_t,Uint8*> player_map = network_map_encode(t); // Encode the player map as a series of Uint8's
-
-								NetworkClient& c = internal::connection->players[packet->id];
-
-								// See Network Message Format at the top of this file for details
-								auto p = std::unique_ptr<NetworkPacket>(new NetworkPacket(
-									internal::connection->self_id,
-									3, // Info request signal
-									2, // Info type 2: player map
-									player_map.first, // Data size
-									player_map.second // Data
-								));
-
-								if (send_packet(c, p) == 0) { // Send the entire message
-									network_udp_close(&c.sock);
-									internal::connection->players.erase(packet->id);
-									free(player_map.second);
-
-									messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not send player map");
-									break;
-								}
-								c.last_recv = get_ticks();
-
-								free(player_map.second); // Free the allocated space
-
+								internal::host_send_players(packet->id);
 								break;
 							}
 							case 3: { // Client requesting data map
-								std::pair<size_t,Uint8*> data_map = network_map_encode(internal::connection->data); // Encode the data map as a series of Uint8's
-
-								NetworkClient& c = internal::connection->players[packet->id];
-
-								// See Network Message Format at the top of this file for details
-								auto p = std::unique_ptr<NetworkPacket>(new NetworkPacket(
-									internal::connection->self_id,
-									3, // Info request signal
-									3, // Info type 3: data map
-									data_map.first, // Data size
-									data_map.second // Data
-								));
-
-								if (send_packet(c, p) == 0) { // Send the entire message
-									network_udp_close(&c.sock);
-									internal::connection->players.erase(packet->id);
-									free(data_map.second);
-
-									messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not send data map");
-									break;
-								}
-								c.last_recv = get_ticks();
-
-								free(data_map.second); // Free the allocated space
-
+								internal::host_send_data(packet->id);
 								break;
 							}
 							default: {
@@ -381,6 +365,8 @@ namespace bee { namespace net {
 								internal::connection->tmp_data_buffer.reset();
 								internal::connection->tmp_data_buffer = nullptr;
 
+								internal::has_data_update = true;
+
 								NetworkEvent e (E_NETEVENT::DATA_UPDATE);
 								e.data = std::map<std::string,SIDP>(internal::connection->data);
 								get_current_room()->network(e);
@@ -409,7 +395,7 @@ namespace bee { namespace net {
 						get_current_room()->network(e);
 
 						// Request an initial player map
-						NetworkClient c (internal::connection->udp_sock, internal::connection->channel);
+						/*NetworkClient c (internal::connection->udp_sock, internal::connection->channel);
 						auto p = std::unique_ptr<NetworkPacket>(new NetworkPacket(
 							internal::connection->self_id,
 							3, // Info request signal
@@ -418,7 +404,7 @@ namespace bee { namespace net {
 						if (send_packet(c, p) == 0) { // Send the keep alive
 							messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not request player map from server");
 							break;
-						}
+						}*/
 
 						messenger::send({"engine", "network"}, E_MESSAGE::INFO, "Connected to server with id " + bee_itos(internal::connection->self_id));
 						break;
@@ -520,31 +506,7 @@ namespace bee { namespace net {
 
 		if (internal::has_data_update) {
 			if (internal::connection->is_host) {
-				std::pair<size_t,Uint8*> data_map = network_map_encode(internal::connection->data); // Encode the data map as a series of Uint8's
-
-				// See Network Message Format at the top of this file for details
-				auto p = std::unique_ptr<NetworkPacket>(new NetworkPacket(
-					internal::connection->self_id,
-					3, // Info request signal
-					4, // Info type 4: data map
-					data_map.first, // Data size
-					data_map.second // Data
-				));
-
-				for (auto& player : internal::connection->players) {
-					NetworkClient& c = player.second;
-
-					if (send_packet(c, p) == 0) { // Send the entire message
-						network_udp_close(&c.sock);
-						internal::connection->players.erase(packet->id);
-
-						messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not send data map to player with id " + bee_itos(player.first));
-						continue;
-					}
-					c.last_recv = get_ticks();
-				}
-
-				free(data_map.second); // Free the allocated space
+				internal::host_send_data(-1);
 			} else {
 				std::pair<size_t,Uint8*> data_map = network_map_encode(internal::connection->data); // Encode the data map as a series of Uint8's
 
@@ -901,6 +863,105 @@ namespace bee { namespace net {
 	*/
 	const std::map<int,NetworkClient>& get_players() {
 		return internal::connection->players;
+	}
+
+	/*
+	* internal::host_send_players() - Send the player map to the given client
+	* @id: the id of the given client, -1 will send to all clients
+	*/
+	int internal::host_send_players(int id) {
+		// Convert our player socket map into a map of player names
+		std::map <int,std::string> t;
+		for (auto& p : internal::connection->players) { // Iterate over the connected players and insert their id and name into the new map
+			t.emplace(p.first, p.second.name);
+		}
+
+		std::pair<size_t,Uint8*> player_map = network_map_encode(t); // Encode the player map as a series of Uint8's
+
+		// See Network Message Format at the top of this file for details
+		auto p = std::unique_ptr<NetworkPacket>(new NetworkPacket(
+			internal::connection->self_id,
+			3, // Info request signal
+			2, // Info type 2: player map
+			player_map.first, // Data size
+			player_map.second // Data
+		));
+
+		std::vector<int> ids;
+		if (id < 1) {
+			for (auto& player : internal::connection->players) {
+				if (player.first != 0) {
+					ids.push_back(player.first);
+				}
+			}
+		} else {
+			ids.push_back(id);
+		}
+
+		bool has_failed = false;
+		for (auto& i : ids) {
+			NetworkClient& c = internal::connection->players[i];
+
+			if (send_packet(c, p) == 0) { // Send the entire message
+				network_udp_close(&c.sock);
+				internal::connection->players.erase(i);
+				has_failed = true;
+
+				messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not send player map");
+				continue;
+			}
+			c.last_recv = get_ticks();
+		}
+
+		free(player_map.second); // Free the allocated space
+
+		return (int)has_failed;
+	}
+	/*
+	* internal::host_send_data() - Send the data map to the given client
+	* @id: the id of the given client, -1 will send to all clients
+	*/
+	int internal::host_send_data(int id) {
+		std::pair<size_t,Uint8*> data_map = network_map_encode(internal::connection->data); // Encode the data map as a series of Uint8's
+
+		// See Network Message Format at the top of this file for details
+		auto p = std::unique_ptr<NetworkPacket>(new NetworkPacket(
+			internal::connection->self_id,
+			3, // Info request signal
+			4, // Info type 3: data map
+			data_map.first, // Data size
+			data_map.second // Data
+		));
+
+		std::vector<int> ids;
+		if (id < 1) {
+			for (auto& player : internal::connection->players) {
+				if (player.first != 0) {
+					ids.push_back(player.first);
+				}
+			}
+		} else {
+			ids.push_back(id);
+		}
+
+		bool has_failed = false;
+		for (auto& i : ids) {
+			NetworkClient& c = internal::connection->players[i];
+
+			if (send_packet(c, p) == 0) { // Send the entire message
+				network_udp_close(&c.sock);
+				internal::connection->players.erase(i);
+				has_failed = true;
+
+				messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not send data map");
+				continue;
+			}
+			c.last_recv = get_ticks();
+		}
+
+		free(data_map.second); // Free the allocated space
+
+		return (int)has_failed;
 	}
 }}
 

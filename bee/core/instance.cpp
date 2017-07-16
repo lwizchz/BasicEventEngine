@@ -174,7 +174,7 @@ namespace bee {
 		subimage_time = SIDP_i(m["subimage_time"]);
 		std::string b = SIDP_s(m["body"]);
 		b.substr(1, b.length()-2);
-		body->deserialize(string_unescape(b));
+		body->deserialize(string_unescape(b), this);
 		is_solid = SIDP_i(m["is_solid"]);
 		depth = SIDP_i(m["depth"]);
 		pos_start = btVector3(SIDP_cd(m["pos_start"], 0), SIDP_cd(m["pos_start"], 1), SIDP_cd(m["pos_start"], 2));
@@ -204,9 +204,14 @@ namespace bee {
 	}
 
 	int Instance::set_object(Object* new_object) {
+		std::map<std::string,SIDP> data = object->get_data(id);
+
 		object->remove_instance(id);
 		object = new_object;
 		object->add_instance(id, this);
+
+		object->set_data(id, data);
+
 		return 0;
 	}
 	int Instance::set_sprite(Sprite* new_sprite) {

@@ -122,12 +122,12 @@ namespace bee {
 					nv->push_back(SIDP(s, true));
 				}
 				vector(nv);
-			} else if (std::regex_match(ns, std::regex("^-?\\d*\\.\\d+"))) { // Double
-				floating = std::stod(ns);
-				type = 2;
-			} else if (std::regex_match(ns, std::regex("^-?\\d+"))) { // Integer
+			} else if (is_str_integer(ns)) { // Integer
 				integer = std::stoi(ns);
 				type = 1;
+			} else if (is_str_floating(ns)) { // Double
+				floating = std::stod(ns);
+				type = 2;
 			} else { // Probably a string
 				str = ns;
 				type = 0;

@@ -15,9 +15,11 @@
 
 int network_init();
 int network_close();
+
 IPaddress* network_resolve_host(const std::string&, int);
 std::string network_get_address(Uint32);
 int network_get_port(Uint16);
+
 TCPsocket network_tcp_open(const std::string&, int);
 int network_tcp_close(TCPsocket*);
 TCPsocket network_tcp_accept(TCPsocket*);
@@ -26,6 +28,7 @@ int network_tcp_send(TCPsocket*, const void*, int);
 int network_tcp_send(TCPsocket*, const std::string&);
 int network_tcp_recv(TCPsocket*, void*, int);
 std::string network_tcp_recv(TCPsocket*, int);
+
 UDPsocket network_udp_open(int);
 std::pair<int,UDPsocket> network_udp_open_range(int, size_t);
 int network_udp_close(UDPsocket*);
@@ -40,6 +43,7 @@ int network_udp_send(UDPsocket, int, size_t, Uint8*);
 int network_udp_recv(UDPsocket, UDPpacket*);
 int network_udp_send_vector(UDPsocket, UDPpacket**, int);
 int network_udp_recv_vector(UDPsocket, UDPpacket**);
+
 UDPpacket* network_packet_alloc(int);
 UDPpacket* network_packet_resize(UDPpacket*, int);
 int network_packet_free(UDPpacket*);

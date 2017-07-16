@@ -45,6 +45,7 @@ namespace bee {
 
 			std::string serialize(bool) const;
 			std::string serialize() const;
+			int deserialize(const std::string&, Instance*);
 			int deserialize(const std::string&);
 
 			int attach(PhysicsWorld*);

@@ -38,7 +38,7 @@ namespace bee {
 	* @new_is_lightable: whether to enable lighting
 	*/
 	int set_is_lightable(bool new_is_lightable) {
-		if (engine->options->renderer_type == E_RENDERER::SDL) {
+		if (get_options().renderer_type == E_RENDERER::SDL) {
 			return 1;
 		}
 
@@ -52,7 +52,7 @@ namespace bee {
 	* @new_is_3d: whether to enable 3D mode
 	*/
 	int render_set_3d(bool new_is_3d) {
-		if (engine->options->renderer_type == E_RENDERER::SDL) {
+		if (get_options().renderer_type == E_RENDERER::SDL) {
 			messenger::send({"engine", "renderer"}, E_MESSAGE::WARNING, "Cannot enable 3D rendering in SDL mode");
 			return 1;
 		}

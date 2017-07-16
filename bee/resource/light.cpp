@@ -232,7 +232,7 @@ namespace bee {
 			return 1; // Return 1 when in headless mode
 		}
 
-		if (engine->options->renderer_type == E_RENDERER::SDL) { // If the SDL rendering is being used, output a warning
+		if (get_options().renderer_type == E_RENDERER::SDL) { // If the SDL rendering is being used, output a warning
 			if (!has_drawn_sdl) { // If the SDL draw call hasn't been called before, output a warning
 				messenger::send({"engine", "light"}, E_MESSAGE::WARNING, "Lighting is not fully supported in SDL mode");
 				has_drawn_sdl = true; // Set the SDL drawing boolean

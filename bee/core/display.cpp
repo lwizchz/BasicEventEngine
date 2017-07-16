@@ -68,7 +68,7 @@ namespace bee {
 	* ! See https://wiki.libsdl.org/SDL_SetWindowDisplayMode for details
 	*/
 	int set_display(int w, int h, int hz) {
-		if (engine->options->is_fullscreen) { // Only set the display mode when the window is fullscreen
+		if (get_options().is_fullscreen) { // Only set the display mode when the window is fullscreen
 			SDL_DisplayMode dm = {get_display_format(), w, h, hz, 0}; // Define a new display mode using the current pixel format
 			if (SDL_SetWindowDisplayMode(engine->renderer->window, &dm) != 0) { // Attempt to set the display mode that should be used when the window is visible
 				messenger::send({"engine"}, E_MESSAGE::WARNING, "Failed to set display mode: " + get_sdl_error());

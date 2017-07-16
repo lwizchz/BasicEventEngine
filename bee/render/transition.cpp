@@ -39,7 +39,7 @@ namespace bee {
 			return 1; // Return 1 when in headless mode
 		}
 
-		if (engine->options->renderer_type != E_RENDERER::SDL) {
+		if (get_options().renderer_type != E_RENDERER::SDL) {
 			glBindFramebuffer(GL_FRAMEBUFFER, 0); // Reset the bound framebuffer
 			engine->renderer->target = 0; // Reset the target
 		} else {
@@ -148,7 +148,7 @@ namespace bee {
 		}
 
 		SDL_RendererFlip f = SDL_FLIP_NONE;
-		if (engine->options->renderer_type != E_RENDERER::SDL) {
+		if (get_options().renderer_type != E_RENDERER::SDL) {
 			f = SDL_FLIP_VERTICAL;
 		}
 

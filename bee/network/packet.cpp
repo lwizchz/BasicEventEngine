@@ -78,10 +78,19 @@ namespace bee {
 		delete[] packet;
 	}
 	int NetworkPacket::reset() {
+		free_multi();
+
 		size = 1;
 		packet = new Uint8[1];
 		packet[0] = 1;
 
+		return 0;
+	}
+	int NetworkPacket::free_multi() {
+		for (auto& p : multi_packet) {
+			delete[] p.second;
+		}
+		multi_packet.clear();
 		return 0;
 	}
 
@@ -207,6 +216,42 @@ namespace bee {
 		}
 
 		return std::make_pair(size-4, packet);
+	}
+	const std::vector<std::pair<size_t,Uint8*>>& NetworkPacket::get_multi() {
+		free_multi();
+		
+		if (data.size()+4 != size) {
+			reset();
+			messenger::send({"engine", "network"}, E_MESSAGE::ERROR, "Failed to construct packet: invalid data size, the packet is now empty");
+			return multi_packet;
+		}
+
+		Uint8 sig = get_signal1() << 4;
+		sig += 3 << 4 >> 4;
+
+		size_t remaining_size = size;
+		while (remaining_size > 0) {
+			size_t s = remaining_size;
+			if (s > MAX_SIZE) {
+				s = MAX_SIZE;
+				remaining_size -= MAX_SIZE;
+			}
+
+			std::pair<size_t,Uint8*> p (s, new Uint8[s]);
+			p.second[0] = size >> 8;
+			p.second[1] = size;
+
+			p.second[2] = id;
+			p.second[3] = sig;
+
+			for (size_t i=4; i<s; ++i) {
+				p.second[i] = data[i-4 + multi_packet.size()*MAX_SIZE];
+			}
+
+			multi_packet.push_back(p);
+		}
+
+		return multi_packet;
 	}
 
 	size_t NetworkPacket::get_size() const {

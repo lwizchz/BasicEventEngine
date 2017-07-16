@@ -9,6 +9,8 @@
 #ifndef BEE_ENUM_H
 #define BEE_ENUM_H 1
 
+#include "util/windefine.hpp"
+
 namespace bee {
 	enum class E_SOUNDEFFECT : int {
 		NONE       = (1u << 0),

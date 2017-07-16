@@ -300,13 +300,17 @@ namespace bee {
 		instances.erase(index);
 		instances.emplace(index, new_instance); // Emplace the instance in the list
 
+		instance_data[index]; // Construct the instance data map
+
 		return 0; // Return 0 on success
 	}
 	int Object::remove_instance(int index) {
+		instance_data.erase(index);
 		instances.erase(index);
 		return 0;
 	}
 	int Object::clear_instances() {
+		instance_data.clear();
 		instances.clear();
 		return 0;
 	}
@@ -351,6 +355,17 @@ namespace bee {
 	}
 
 	/*
+	* Object::get_data() - Return the data map for the given instance
+	* @inst_id: the id of ht einstance to fetch the data for
+	*/
+	std::map<std::string,SIDP> Object::get_data(int inst_id) const {
+		if (instance_data.find(inst_id) == instance_data.end()) {
+			return std::map<std::string,SIDP>(); // Return an empty map if the instance doesn't exist
+		}
+
+		return instance_data.at(inst_id); // Return the instance data on success
+	}
+	/*
 	* Object::get_data() - Return the requested data field from the given instance
 	* @inst_id: the id of the instance to fetch the data from
 	* @field: the name of the field to fetch
@@ -383,6 +398,18 @@ namespace bee {
 	*/
 	SIDP Object::get_data(int inst_id, const std::string& field) const {
 		return get_data(inst_id, field, 0, true); // Return the attempt to fetch the given data field
+	}
+	/*
+	* Object::set_data() - Set the data map for the given instance
+	* @inst_id: the id of the instance to set the data for
+	* @data: the data map to use
+	*/
+	int Object::set_data(int inst_id, const std::map<std::string,SIDP>& data) {
+		if (instance_data.find(inst_id) == instance_data.end()) {
+			return 1; // Return 1 if the instance doesn't exist
+		}
+		instance_data.at(inst_id) = data; // Otherwise set the desired field to the given data
+		return 0; // Return 0 on success
 	}
 	/*
 	* Object::set_data() - Set the requested data field value for the given instance

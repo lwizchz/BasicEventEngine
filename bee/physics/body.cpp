@@ -113,7 +113,7 @@ namespace bee {
 	std::string PhysicsBody::serialize() const {
 		return serialize(false);
 	}
-	int PhysicsBody::deserialize(const std::string& data) {
+	int PhysicsBody::deserialize(const std::string& data, Instance* inst) {
 		std::map<std::string,SIDP> m;
 		map_deserialize(data, &m);
 
@@ -137,7 +137,7 @@ namespace bee {
 			}
 		}
 
-		attached_instance = get_current_room()->get_instances().at(SIDP_i(m["attached_instance"]));
+		attached_instance = inst;
 		body->setCollisionFlags(SIDP_i(m["collision_flags"]));
 
 		set_shape(type, shape_params);
@@ -162,6 +162,18 @@ namespace bee {
 		body->setAngularVelocity(velocity_ang);
 
 		return 0;
+	}
+	int PhysicsBody::deserialize(const std::string& data) {
+		std::map<std::string,SIDP> m;
+		map_deserialize(data, &m);
+
+		auto instances = get_current_room()->get_instances();
+		Instance* inst = nullptr;
+		if (instances.find(SIDP_i(m["attached_instance"])) != instances.end()) {
+			inst = instances.at(SIDP_i(m["attached_instance"]));
+		}
+		
+		return deserialize(data, inst);
 	}
 
 	int PhysicsBody::attach(PhysicsWorld* new_world) {

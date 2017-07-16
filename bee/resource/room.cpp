@@ -582,7 +582,7 @@ namespace bee {
 		return 0;
 	}
 	int Room::handle_lights() {
-		if (engine->options->renderer_type != E_RENDERER::SDL) {
+		if (get_options().renderer_type != E_RENDERER::SDL) {
 			int i = 0;
 			for (auto& l : lightables) {
 				if (i >= BEE_MAX_LIGHTABLES) {
@@ -994,7 +994,7 @@ namespace bee {
 			i.first->get_object()->step_begin(i.first);
 		}
 
-		if (engine->options->is_debug_enabled) {
+		if ((get_options().is_debug_enabled)&&(!get_options().is_headless)) {
 			if (is_background_color_enabled) {
 				draw_set_color(background_color);
 			} else {
@@ -1317,7 +1317,7 @@ namespace bee {
 		}
 
 		if (is_views_enabled) { // Render different viewports
-			if (!engine->options->is_debug_enabled) {
+			if (!get_options().is_debug_enabled) {
 				engine->renderer->render_clear();
 			}
 
@@ -1365,7 +1365,7 @@ namespace bee {
 			view_current = nullptr;
 			set_viewport(nullptr);
 		} else {
-			if (!engine->options->is_debug_enabled) {
+			if (!get_options().is_debug_enabled) {
 				engine->renderer->render_clear();
 			}
 
@@ -1411,13 +1411,13 @@ namespace bee {
 		// Draw instance paths
 		for (auto& i : instances_sorted) {
 			if (i.first->has_path()) {
-				if ((engine->options->is_debug_enabled)||(i.first->get_path_drawn())) {
+				if ((get_options().is_debug_enabled)||(i.first->get_path_drawn())) {
 					i.first->draw_path();
 				}
 			}
 		}
 
-		if (engine->options->is_debug_enabled) {
+		if (get_options().is_debug_enabled) {
 			// Draw room outline
 			draw_rectangle(0, 0, get_width(), get_height(), false, E_RGB::RED);
 

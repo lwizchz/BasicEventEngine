@@ -39,6 +39,8 @@
 #include "resource/font.hpp"
 #include "resource/room.hpp"
 
+#include "util/windefine.hpp"
+
 namespace bee {
 	EngineState* engine = nullptr;
 	bool is_initialized = false;

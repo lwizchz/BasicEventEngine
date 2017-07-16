@@ -19,6 +19,8 @@ namespace bee {
 		size_t size;
 		std::vector<Uint8> data;
 
+		std::vector<std::pair<size_t,Uint8*>> multi_packet;
+
 		Uint8 signals;
 
 		int set_size(size_t);
@@ -33,6 +35,7 @@ namespace bee {
 		NetworkPacket(UDPpacket*);
 		~NetworkPacket();
 		int reset();
+		int free_multi();
 
 		int load_net(Uint8*);
 		int load_data(size_t, Uint8*);
@@ -43,6 +46,7 @@ namespace bee {
 
 		Uint8* get();
 		std::pair<size_t,Uint8*> get_raw();
+		const std::vector<std::pair<size_t,Uint8*>>& get_multi();
 
 		size_t get_size() const;
 		Uint8 get_signal1() const;

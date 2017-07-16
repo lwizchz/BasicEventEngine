@@ -72,18 +72,6 @@ time_t bee_inc_dst(time_t t) {
 }
 
 /*
-* bee_has_commandline_input() - Return whether there is input in the commandline without blocking
-*/
-bool bee_has_commandline_input() {
-	struct timeval tv = {0, 0}; // Wait 0 seconds and 0 microseconds for input
-	fd_set rfds; // Declare a new set of input streams
-	FD_ZERO(&rfds); // Clear the set
-	FD_SET(0, &rfds); // Add standard input to the set
-
-	return (select(1, &rfds, 0, 0, &tv) > 0); // Return true when the given input is waiting to be read
-}
-
-/*
 * bee_remove() - Delete the given file and return the status
 * @fname: the name of the file to delete
 */
@@ -137,6 +125,17 @@ std::string bee_inet_ntop(const void* src) {
 	return std::string(dest); // Return a the address as a string on success
 }
 
+/*
+* bee_has_commandline_input() - Return whether there is input in the commandline without blocking
+*/
+bool bee_has_commandline_input() {
+	struct timeval tv = {0, 0}; // Wait 0 seconds and 0 microseconds for input
+	fd_set rfds; // Declare a new set of input streams
+	FD_ZERO(&rfds); // Clear the set
+	FD_SET(0, &rfds); // Add standard input to the set
+
+	return (select(1, &rfds, 0, 0, &tv) > 0); // Return true when the given input is waiting to be read
+}
 /*
 * bee_commandline_color() - Change the color that commandline output will appear in
 * ! See http://www.tldp.org/HOWTO/Bash-Prompt-HOWTO/x329.html for information on the color codes
@@ -223,6 +222,13 @@ int bee_commandline_color_reset() {
 	std::cout << "\033[0m";
 	return 0;
 }
+/*
+* bee_commandline_clear() - Clear the commandline
+*/
+int bee_commandline_clear() {
+	printf("\033[2J\033[1;1H\n");
+	return 0;
+}
 
 #elif _WIN32
 
@@ -231,6 +237,7 @@ int bee_commandline_color_reset() {
 #include <windows.h>
 #include <direct.h>
 #include <conio.h> // Include the required functions for non-blocking commandline input
+#include <sstream>
 
 /*
 * bee_get_platform() - Return the platform id
@@ -281,14 +288,6 @@ time_t bee_inc_dst(time_t t) {
 	return t + 3600;
 }
 
-
-/*
-* bee_has_commandline_input() - Return whether there is input in the commandline without blocking
-*/
-bool bee_has_commandline_input() {
-	return _kbhit();
-}
-
 /*
 * bee_remove() - Delete the given file and return the status
 * @fname: the name of the file to delete
@@ -296,13 +295,13 @@ bool bee_has_commandline_input() {
 int bee_remove(const std::string& fname) {
 	DWORD dwAttr = GetFileAttributes(fname.c_str()); // Get the file attributes
 	if (dwAttr == 0xffffffff) { // If the file does not exist, return false
-        return -1; // Return -1 when the file does not exist
+        	return -1; // Return -1 when the file does not exist
 	}
-    if (dwAttr & FILE_ATTRIBUTE_DIRECTORY) { // If the file is a directory, delete it appropriately
-        return (RemoveDirectory(fname.c_str())) ? 0 : 1; // Return whether the directory could be deleted
-    } else { // Otherwise delete it normally
-        return remove(fname.c_str()); // Return whether the file could be deleted
-    }
+	if (dwAttr & FILE_ATTRIBUTE_DIRECTORY) { // If the file is a directory, delete it appropriately
+		return (RemoveDirectory(fname.c_str())) ? 0 : 1; // Return whether the directory could be deleted
+	} else { // Otherwise delete it normally
+		return remove(fname.c_str()); // Return whether the file could be deleted
+	}
 }
 /*
 * bee_dir_exists() - Return whether the given directory exists
@@ -311,7 +310,7 @@ int bee_remove(const std::string& fname) {
 bool bee_dir_exists(const std::string& fname) {
 	DWORD dwAttr = GetFileAttributes(fname.c_str()); // Get the file attributes
 	if (dwAttr == 0xffffffff) { // If the file does not exist, return false
-        return false;
+        	return false;
 	}
 	return (dwAttr & FILE_ATTRIBUTE_DIRECTORY); // Return whether the file is a directory or not
 }
@@ -339,12 +338,13 @@ std::string bee_mkdtemp(const std::string& t) {
 	}
 	bee_mkdir(path, 0755);
 	return path; // Return the path*/
+
 	static std::string path; // Declare the path as static so that subsequent calls will return the same directory
 	if (path[0] == '\0') { // Check whether the path has been requested yet
-        char p[MAX_PATH];
+        	char p[MAX_PATH];
 		GetTempPath(MAX_PATH, p); // Request a unique temporary directory path
-        path = p;
-        path += "bee-" + std::to_string(GetCurrentProcessId());
+        	path = p;
+        	path += "bee-" + std::to_string(GetCurrentProcessId());
 	}
 	bee_mkdir(path.c_str(), 0755);
 	return path; // Return the path
@@ -355,16 +355,22 @@ std::string bee_mkdtemp(const std::string& t) {
 * @src: the address data in Network Byte Order
 */
 std::string bee_inet_ntop(const void* src) {
-    //InetNtop(AF_INET, src, dest, INET_ADDRSTRLEN); // FIXME: it won't let me include the Winsock2 library, ws2_32.lib, so I rewrote the below functionality
+	//InetNtop(AF_INET, src, dest, INET_ADDRSTRLEN); // FIXME: it won't let me include the Winsock2 library, ws2_32.lib, so I rewrote the below functionality
 
-    const unsigned char* addr = (unsigned char*) src; // Cast the address data into unsigned chars
+	const unsigned char* addr = (unsigned char*) src; // Cast the address data into unsigned chars
 	char dest[INET_ADDRSTRLEN]; // Declare a char array to put the address into
 
-    sprintf(dest, "%u.%u.%u.%u", addr[0], addr[1], addr[2], addr[3]); // Convert each byte into an unsigned integer, separated by '.'
+	sprintf(dest, "%u.%u.%u.%u", addr[0], addr[1], addr[2], addr[3]); // Convert each byte into an unsigned integer, separated by '.'
 
 	return std::string(dest); // Return the address as a string
 }
 
+/*
+* bee_has_commandline_input() - Return whether there is input in the commandline without blocking
+*/
+bool bee_has_commandline_input() {
+	return _kbhit();
+}
 /*
 * bee_commandline_color() - Change the color that commandline output will appear in
 * ! See http://www.tldp.org/HOWTO/Bash-Prompt-HOWTO/x329.html for information on the color codes
@@ -449,6 +455,54 @@ int bee_commandline_color_reset() {
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
 	return 0;
 }
+/*
+* bee_commandline_clear() - Clear the commandline
+*/
+int bee_commandline_clear() {
+	HANDLE h_stdout;
+	CONSOLE_SCREEN_BUFFER_INFO csbi;
+	DWORD count;
+	DWORD cell_count;
+	COORD homecoords = {0, 0};
+
+	h_stdout = GetStdHandle(STD_OUTPUT_HANDLE);
+	if (h_stdout == INVALID_HANDLE_VALUE) {
+		return 1;
+	}
+
+	if (!GetConsoleScreenBufferInfo(h_stdout, &csbi)) {
+		return 2;
+	}
+
+	cell_count = csbi.dwSize.X * csbi.dwSize.Y;
+
+	if (!FillConsoleOutputCharacter(
+		h_stdout,
+		(TCHAR) ' ',
+		cell_count,
+		homecoords,
+		&count
+	)) {
+		return 3;
+	}
+
+	if (!FillConsoleOutputCharacter(
+		h_stdout,
+		csbi.wAttributes,
+		cell_count,
+		homecoords,
+		&count
+	)) {
+		return 4;
+	}
+
+	SetConsoleCursorPosition(h_stdout, homecoords);
+
+	return 0;
+}
+
+// Undefine windows.h macros
+#include "windefine.hpp"
 
 #endif // _WIN32
 

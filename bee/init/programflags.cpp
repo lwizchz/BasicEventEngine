@@ -14,6 +14,7 @@
 #include <map>
 #include <vector>
 #include <functional>
+#include <string.h> // Required for Windows strcmp()
 
 #include <SDL2/SDL.h> // Include the required SDL headers
 

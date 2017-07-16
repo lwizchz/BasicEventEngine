@@ -11,6 +11,8 @@
 
 #include "../defines.hpp"
 
+#include <time.h> // Required for Windows time()
+
 #include <GL/glew.h> // Include the required OpenGL headers
 #include <SDL2/SDL_opengl.h>
 #include <glm/gtc/type_ptr.hpp>
@@ -81,7 +83,7 @@ namespace bee {
 	int draw_triangle(glm::vec3 v1, glm::vec3 v2, glm::vec3 v3, const RGBA& c, bool is_filled) {
 		draw_set_color(c); // Set the desired color
 
-		if (engine->options->renderer_type != E_RENDERER::SDL) {
+		if (get_options().renderer_type != E_RENDERER::SDL) {
 			// Bind the engine vao
 			glBindVertexArray(engine->renderer->triangle_vao);
 
@@ -140,7 +142,7 @@ namespace bee {
 	int draw_line(glm::vec3 v1, glm::vec3 v2, const RGBA& c) {
 		draw_set_color(c); // Set the desired color
 
-		if (engine->options->renderer_type != E_RENDERER::SDL) {
+		if (get_options().renderer_type != E_RENDERER::SDL) {
 			return draw_triangle(v1, v2, v2, c, false); // Draw the line as a set of triangles
 		} else {
 			return SDL_RenderDrawLine(engine->renderer->sdl_renderer, v1.x, v1.y, v2.x, v2.y); // Draw the given line in the given color
@@ -191,7 +193,7 @@ namespace bee {
 	int draw_quad(glm::vec3 position, glm::vec3 dimensions, bool is_filled, const RGBA& c) {
 		draw_set_color(c); // Set the desired color
 
-		if (engine->options->renderer_type != E_RENDERER::SDL) {
+		if (get_options().renderer_type != E_RENDERER::SDL) {
 			// Get the width, height, and depth into separate vectors for easy addition
 			glm::vec3 w = glm::vec3(dimensions.x, 0.0f, 0.0f);
 			glm::vec3 h = glm::vec3(0.0f, dimensions.y, 0.0f);
@@ -308,7 +310,7 @@ namespace bee {
 		engine->color->b = new_color.b;
 		engine->color->a = new_color.a;
 
-		if (engine->options->renderer_type != E_RENDERER::SDL) {
+		if (get_options().renderer_type != E_RENDERER::SDL) {
 			glClearColor(new_color.r/255.0f, new_color.g/255.0f, new_color.b/255.0f, new_color.a/255.0f); // Set the OpenGL clear and draw colors as floats from [0.0, 1.0]
 			glm::vec4 uc = glm::vec4((float)new_color.r/255.0f, (float)new_color.g/255.0f, (float)new_color.b/255.0f, (float)new_color.a/255.0f); // Change the fragment to the given color
 			glUniform4fv(engine->renderer->colorize_location, 1, glm::value_ptr(uc));
@@ -331,7 +333,7 @@ namespace bee {
 	RGBA draw_get_color() {
 		RGBA c = {0, 0, 0, 0};
 
-		if (engine->options->renderer_type != E_RENDERER::SDL) {
+		if (get_options().renderer_type != E_RENDERER::SDL) {
 			glClearColor(engine->color->r/255.0f, engine->color->g/255.0f, engine->color->b/255.0f, engine->color->a/255.0f); // Set the OpenGL clear and draw colors as floats from [0.0, 1.0]
 			glm::vec4 uc = glm::vec4((float)engine->color->r/255.0f, (float)engine->color->g/255.0f, (float)engine->color->b/255.0f, (float)engine->color->a/255.0f); // Change the fragment to the given color
 			glUniform4fv(engine->renderer->colorize_location, 1, glm::value_ptr(uc));
@@ -351,7 +353,7 @@ namespace bee {
 	* @blend: the new blend mode to use
 	*/
 	int draw_set_blend(SDL_BlendMode blend) {
-		if (engine->options->renderer_type == E_RENDERER::SDL) {
+		if (get_options().renderer_type == E_RENDERER::SDL) {
 			SDL_SetRenderDrawBlendMode(engine->renderer->sdl_renderer, blend);
 		}
 		return 0;
@@ -361,7 +363,7 @@ namespace bee {
 	*/
 	SDL_BlendMode draw_get_blend() {
 		SDL_BlendMode blend = SDL_BLENDMODE_BLEND;
-		if (engine->options->renderer_type == E_RENDERER::SDL) {
+		if (get_options().renderer_type == E_RENDERER::SDL) {
 			SDL_GetRenderDrawBlendMode(engine->renderer->sdl_renderer, &blend);
 		}
 		return blend;
@@ -374,7 +376,7 @@ namespace bee {
 	* @y: the y-coordinate of the pixel
 	*/
 	RGBA get_pixel_color(int x, int y) {
-		if (engine->options->renderer_type != E_RENDERER::SDL) {
+		if (get_options().renderer_type != E_RENDERER::SDL) {
 			unsigned char* pixel = new unsigned char[4]; // Allocate 4 bytes per pixel for RGBA
 			glReadPixels(x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel); // Read the screen pixel into the array
 
@@ -414,7 +416,7 @@ namespace bee {
 			}
 		}
 
-		if (engine->options->renderer_type != E_RENDERER::SDL) {
+		if (get_options().renderer_type != E_RENDERER::SDL) {
 			unsigned char* upsidedown_pixels = new unsigned char[engine->width*engine->height*4]; // Allocate 4 bytes per pixel for RGBA
 			glReadPixels(0, 0, engine->width, engine->height, GL_RGBA, GL_UNSIGNED_BYTE, upsidedown_pixels); // Read the screen pixels into the array
 

@@ -17,9 +17,11 @@ int file_rename(const std::string&, const std::string&);
 int file_copy(const std::string&, const std::string&);
 std::string file_get_contents(const std::string&);
 size_t file_put_contents(const std::string&, const std::string&);
+
 bool directory_exists(const std::string&);
 int directory_create(const std::string&);
 std::string directory_get_temp();
+
 std::string file_basename(const std::string&);
 std::string file_dirname(const std::string&);
 std::string file_plainname(const std::string&);

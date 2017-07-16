@@ -6,11 +6,19 @@
 * See LICENSE for more details.
 */
 
-#ifndef BEE_UTIL_TEMPLATE_H
-#define BEE_UTIL_TEMPLATE_H 1
+#ifdef _WIN32
 
-#include "template/network.hpp"
-#include "template/real.hpp"
-#include "template/string.hpp"
+// Undefine windows.h macros
+#ifdef DELETE
+	#undef DELETE
+#endif
 
-#endif // BEE_UTIL_TEMPLATE_H
+#ifdef WARNING
+	#undef WARNING
+#endif
+
+#ifdef ERROR
+	#undef ERROR
+#endif
+
+#endif // _WIN32

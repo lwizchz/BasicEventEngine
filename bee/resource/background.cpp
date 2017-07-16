@@ -247,7 +247,7 @@ namespace bee {
 		width = tmp_surface->w;
 		height = tmp_surface->h;
 
-		if (engine->options->renderer_type != E_RENDERER::SDL) {
+		if (get_options().renderer_type != E_RENDERER::SDL) {
 			// Generate the vertex array object for the background
 			glGenVertexArrays(1, &vao);
 			glBindVertexArray(vao);
@@ -364,7 +364,7 @@ namespace bee {
 		if (!is_loaded) { // Do not attempt to free the texture if it has not been loaded
 			return 0;
 		}
-		if (engine->options->renderer_type != E_RENDERER::SDL) {
+		if (get_options().renderer_type != E_RENDERER::SDL) {
 			// Delete the vertex and index buffer
 			glDeleteBuffers(1, &vbo_vertices);
 			glDeleteBuffers(1, &ibo);
@@ -381,7 +381,7 @@ namespace bee {
 			SDL_DestroyTexture(texture);
 			texture = nullptr;
 		}
-		
+
 		is_loaded = false; // Set the loaded boolean
 
 		return 0; // Return 0 on success
@@ -393,7 +393,7 @@ namespace bee {
 	* @model: the precalculated scale matrix
 	*/
 	int Background::draw_internal(const SDL_Rect* src, const SDL_Rect* dest, const glm::mat4& model) const {
-		if (engine->options->renderer_type != E_RENDERER::SDL) {
+		if (get_options().renderer_type != E_RENDERER::SDL) {
 			// Generate the partial transformation matrix (translation) for the subimage
 			// Note that the scaling matrix has been precalculated by the caller function
 			glm::mat4 m = glm::translate(model, glm::vec3((float)dest->x, (float)dest->y, 0.0f)); // Translate the texture the desired amount in the x- and y-planes
@@ -489,7 +489,7 @@ namespace bee {
 	* Background::drawing_begin() - Enable all required buffers
 	*/
 	int Background::drawing_begin() {
-		if (engine->options->renderer_type == E_RENDERER::SDL) {
+		if (get_options().renderer_type == E_RENDERER::SDL) {
 			return 0; // Return 0 since nothing needs to be done for SDL mode
 		}
 
@@ -519,7 +519,7 @@ namespace bee {
 	* Background::drawing_end() - Disable all required buffers
 	*/
 	int Background::drawing_end() {
-		if (engine->options->renderer_type == E_RENDERER::SDL) {
+		if (get_options().renderer_type == E_RENDERER::SDL) {
 			return 0; // Return 0 since nothing needs to be done for SDL mode
 		}
 
@@ -597,7 +597,7 @@ namespace bee {
 		width = w;
 		height = h;
 
-		if (engine->options->renderer_type != E_RENDERER::SDL) {
+		if (get_options().renderer_type != E_RENDERER::SDL) {
 			// Generate the vertex array object for the background
 			glGenVertexArrays(1, &vao);
 			glBindVertexArray(vao);
