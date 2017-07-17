@@ -190,7 +190,7 @@ namespace bee {
 			messenger::send({"engine", "sidp"}, E_MESSAGE::WARNING, "Type is " + bee_itos(type) + ", not an integer but the integer was requested, called from " + file + ":" + bee_itos(line));
 		}
 		if (type == 2) {
-			return (int)floating;
+			return static_cast<int>(floating);
 		}
 		return integer;
 	}
@@ -199,7 +199,7 @@ namespace bee {
 			messenger::send({"engine", "sidp"}, E_MESSAGE::WARNING, "Type is " + bee_itos(type) + ", not a double but the double was requested, called from " + file + ":" + bee_itos(line));
 		}
 		if (type == 1) {
-			return (double)integer;
+			return static_cast<double>(integer);
 		}
 		return floating;
 	}
@@ -233,7 +233,7 @@ namespace bee {
 			messenger::send({"engine", "sidp"}, E_MESSAGE::WARNING, "Type not an integer but the integer was requested");
 		}
 		if (type == 2) {
-			return (int)floating;
+			return static_cast<int>(floating);
 		}
 		return integer;
 	}
@@ -242,7 +242,7 @@ namespace bee {
 			messenger::send({"engine", "sidp"}, E_MESSAGE::WARNING, "Type not a double but the double was requested");
 		}
 		if (type == 1) {
-			return (double)integer;
+			return static_cast<double>(integer);
 		}
 		return floating;
 	}

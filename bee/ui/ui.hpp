@@ -30,8 +30,13 @@ namespace ui {
 	int load();
 	int free();
 
+	int destroy_parent(Instance*);
+
 	Instance* create_button(int, int, Font*, const std::string&, RGBA, std::function<void (Instance*)>);
 	int button_callback(Instance*);
+
+	Instance* create_handle(int, int, int, int, RGBA, Instance*);
+	int destroy_handle(Instance*);
 }}
 
 #endif // BEE_UI_H

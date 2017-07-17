@@ -495,7 +495,7 @@ namespace bee {
 			int w = sprite_font->get_subimage_width();
 			int h = sprite_font->get_height();
 			for (char& c : t) {
-				sprite_font->draw_subimage(x+(i++), y, (int)c, w, h, 0.0, {color.r, color.g, color.b, color.a}, SDL_FLIP_NONE);
+				sprite_font->draw_subimage(x+(i++), y, static_cast<int>(c), w, h, 0.0, {color.r, color.g, color.b, color.a}, SDL_FLIP_NONE);
 			}
 		} else { // Otherwise, draw the font normally
 			// Render the text to a temporary surface

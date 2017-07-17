@@ -18,11 +18,11 @@
 
 // Real number function assertions
 TEST_CASE("real/random") {
-	REQUIRE(random(20) < (unsigned int)20);
-	REQUIRE(is_between((int)random_range(20, 40), 20, 40));
-	REQUIRE(random_set_seed(5) == (unsigned int)5);
-	REQUIRE(random_reset_seed() != (unsigned int)DEFAULT_RANDOM_SEED);
-	REQUIRE(randomize() != (unsigned int)DEFAULT_RANDOM_SEED);
+	REQUIRE(random(20) < static_cast<unsigned int>(20));
+	REQUIRE(is_between(static_cast<int>(random_range(20, 40)), 20, 40));
+	REQUIRE(random_set_seed(5) == static_cast<unsigned int>(5));
+	REQUIRE(random_reset_seed() != static_cast<unsigned int>(DEFAULT_RANDOM_SEED));
+	REQUIRE(randomize() != static_cast<unsigned int>(DEFAULT_RANDOM_SEED));
 }
 TEST_CASE("real/math") {
 	REQUIRE(sign(5) == 1);
@@ -276,16 +276,16 @@ TEST_CASE("network") {
 	delete ipa;
 
 	TCPsocket tcp = network_tcp_open("", port);
-	REQUIRE(tcp != (TCPsocket)nullptr);
+	REQUIRE(tcp != static_cast<TCPsocket>(nullptr));
 	REQUIRE(network_tcp_close(&tcp) == 0);
-	REQUIRE(tcp == (TCPsocket)nullptr);
+	REQUIRE(tcp == static_cast<TCPsocket>(nullptr));
 
 	UDPsocket udp = network_udp_open(port);
-	REQUIRE(udp != (UDPsocket)nullptr);
+	REQUIRE(udp != static_cast<UDPsocket>(nullptr));
 	REQUIRE(network_udp_bind(&udp, -1, "127.0.0.1", port) != -1);
 	REQUIRE(network_udp_unbind(&udp, -1) == 0);
 	REQUIRE(network_udp_close(&udp) == 0);
-	REQUIRE(udp == (UDPsocket)nullptr);
+	REQUIRE(udp == static_cast<UDPsocket>(nullptr));
 
 	REQUIRE(network_close() == 0);
 }
@@ -356,7 +356,7 @@ TEST_CASE("template") {
 * @argv: the argv from main()
 */
 bool verify_assertions(int argc, char** argv) {
-	return !(bool)doctest::Context(argc, argv).run();
+	return !static_cast<bool>(doctest::Context(argc, argv).run());
 }
 
 #else // NDEBUG
@@ -375,7 +375,7 @@ bool verify_assertions(int argc, char** argv) {
 * ! When the main() arguments are not provided, simply call the function with an empty set
 */
 bool verify_assertions() {
-	return verify_assertions(0, (char**)nullptr);
+	return verify_assertions(0, static_cast<char**>(nullptr));
 }
 
 #endif // BEE_UTIL

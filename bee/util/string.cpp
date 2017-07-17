@@ -30,7 +30,7 @@ std::string chr(int c) {
 * @c: the character to convert
 */
 int ord(char c) {
-	return (int)c;
+	return static_cast<int>(c);
 }
 /*
 * ord() - Convert the given string's first character into a character code

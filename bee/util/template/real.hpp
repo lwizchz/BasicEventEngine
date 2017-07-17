@@ -95,7 +95,8 @@ T median(Args&&... args) {
 
 	std::sort(arguments.begin(), arguments.end());
 	if (size % 2 == 1) { // If there is an odd number of elements
-		return arguments[(int)(size/2)]; // Return the middle element on success
+		//return arguments[static_cast<int>(size/2)]; // Return the middle element on success
+		return arguments[size/2]; // Return the middle element on success
 	} else {
 		return (arguments[size/2-1] + arguments[size/2])/2; // Return the mean of the two middle elements on success
 	}

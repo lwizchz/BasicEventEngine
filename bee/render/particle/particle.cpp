@@ -127,7 +127,7 @@ namespace bee {
 				break;
 			}
 			default: // This should never happen
-				messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Couldn't initialize particle: unknown particle type " + bee_itos((int)new_shape));
+				messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Couldn't initialize particle: unknown particle type " + bee_itos(static_cast<int>(new_shape)));
 				return;
 		}
 
@@ -150,9 +150,9 @@ namespace bee {
 	int Particle::init() {
 		rotation_cache.reserve(360);
 		for (int a=0; a<360; a++) {
-			glm::mat4 r = glm::translate(glm::mat4(1.0f), glm::vec3((float)sprite->get_subimage_width()/2.0f, (float)sprite->get_height()/2.0f, 0.0f));
-			r = glm::rotate(r, (float)degtorad(a), glm::vec3(0.0f, 0.0f, 1.0f));
-			r = glm::translate(r, glm::vec3(-(float)sprite->get_subimage_width()/2.0f, -(float)sprite->get_height()/2.0f, 0.0f));
+			glm::mat4 r = glm::translate(glm::mat4(1.0f), glm::vec3(static_cast<float>(sprite->get_subimage_width())/2.0f, static_cast<float>(sprite->get_height())/2.0f, 0.0f));
+			r = glm::rotate(r, static_cast<float>(degtorad(a)), glm::vec3(0.0f, 0.0f, 1.0f));
+			r = glm::translate(r, glm::vec3(-static_cast<float>(sprite->get_subimage_width())/2.0f, -static_cast<float>(sprite->get_height())/2.0f, 0.0f));
 			rotation_cache.push_back(r);
 		}
 
@@ -176,7 +176,7 @@ namespace bee {
 		"\n		direction       " << velocity.second <<
 		"\n	angle                   " << angle <<
 		"\n	angle_increase          " << angle_increase <<
-		"\n	color (rgba)            " << (int)color.r << ", " << (int)color.g << ", " << (int)color.b << ", " << (int)color.a <<
+		"\n	color (rgba)            " << static_cast<int>(color.r) << ", " << static_cast<int>(color.g) << ", " << static_cast<int>(color.b) << ", " << static_cast<int>(color.a) <<
 		"\n	max_time                " << max_time <<
 		"\n	death_type              " << death_type <<
 		"\n	death_amount            " << death_amount <<

@@ -265,10 +265,10 @@ namespace bee {
 
 			// Generate the four corner vertices of the rectangular background
 			GLfloat vertices[] = {
-				0.0,            0.0,
-				(GLfloat)width, 0.0,
-				(GLfloat)width, (GLfloat)height,
-				0.0,            (GLfloat)height,
+				0.0,                         0.0,
+				static_cast<GLfloat>(width), 0.0,
+				static_cast<GLfloat>(width), static_cast<GLfloat>(height),
+				0.0,                         static_cast<GLfloat>(height),
 			};
 			glGenBuffers(1, &vbo_vertices);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
@@ -396,7 +396,7 @@ namespace bee {
 		if (get_options().renderer_type != E_RENDERER::SDL) {
 			// Generate the partial transformation matrix (translation) for the subimage
 			// Note that the scaling matrix has been precalculated by the caller function
-			glm::mat4 m = glm::translate(model, glm::vec3((float)dest->x, (float)dest->y, 0.0f)); // Translate the texture the desired amount in the x- and y-planes
+			glm::mat4 m = glm::translate(model, glm::vec3(dest->x, dest->y, 0.0f)); // Translate the texture the desired amount in the x- and y-planes
 			glUniformMatrix4fv(engine->renderer->model_location, 1, GL_FALSE, glm::value_ptr(m)); // Send the transformation matrix to the shader
 
 			// Draw the triangles which form the rectangular background
@@ -415,7 +415,7 @@ namespace bee {
 	* @dest: the rectangle of the window to draw to
 	*/
 	int Background::draw_internal(const SDL_Rect* src, const SDL_Rect* dest) const {
-		const glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3((float)dest->w/width, (float)dest->h/height, 1.0f));
+		const glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(static_cast<float>(dest->w)/width, static_cast<float>(dest->h)/height, 1.0f));
 		return draw_internal(src, dest, model); // Return the result of drawing the background
 	}
 	/*
@@ -430,7 +430,7 @@ namespace bee {
 		// Declare the initial drawing rectangles
 		SDL_Rect src = {0, 0, r->w, r->h};
 		SDL_Rect dest = {r->x, r->y, r->w, r->h};
-		const glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3((float)dest.w/width, (float)dest.h/height, 1.0f));
+		const glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(static_cast<float>(dest.w)/width, static_cast<float>(dest.h)/height, 1.0f));
 
 		const int rw = get_room_width();
 		int i=0; // Store the amount of times that the background is drawn
@@ -463,7 +463,7 @@ namespace bee {
 		// Declare the initial drawing rectangles
 		SDL_Rect src = {0, 0, r->w, r->h};
 		SDL_Rect dest = {r->x, r->y, r->w, r->h};
-		const glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3((float)dest.w/width, (float)dest.h/height, 1.0f));
+		const glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(static_cast<float>(dest.w)/width, static_cast<float>(dest.h)/height, 1.0f));
 
 		const int rh = get_room_height();
 		int i=0; // Store the amount of times that the background is drawn
@@ -556,7 +556,7 @@ namespace bee {
 			int dx = b->horizontal_speed*dt_fps;
 			int dy = b->vertical_speed*dt_fps;
 
-			SDL_Rect rect = {x+dx, y+dy, (int)width, (int)height}; // Declare the drawing rectangle with the moved coordinates
+			SDL_Rect rect = {x+dx, y+dy, static_cast<int>(width), static_cast<int>(height)}; // Declare the drawing rectangle with the moved coordinates
 
 			if ((rect.w > 0)&&(rect.h > 0)) { // Only attempt to draw the background if it's dimensions are positive
 				drawing_begin();
@@ -604,10 +604,10 @@ namespace bee {
 
 			// Generate the four corner vertices of the rectangular background
 			GLfloat vertices[] = {
-				0.0,            0.0,
-				(GLfloat)width, 0.0,
-				(GLfloat)width, (GLfloat)height,
-				0.0,            (GLfloat)height,
+				0.0,                         0.0,
+				static_cast<GLfloat>(width), 0.0,
+				static_cast<GLfloat>(width), static_cast<GLfloat>(height),
+				0.0,                         static_cast<GLfloat>(height),
 			};
 			glGenBuffers(1, &vbo_vertices);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
@@ -669,7 +669,7 @@ namespace bee {
 
 			glBindVertexArray(0); // Unbind VAO when done loading
 
-			return (int)framebuffer; // Return the framebuffer index on success
+			return static_cast<int>(framebuffer); // Return the framebuffer index on success
 		} else {
 			texture = SDL_CreateTexture(engine->renderer->sdl_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w, h); // Create an empty texture
 			if (texture == nullptr) { // If the texture could not be created, output a warning

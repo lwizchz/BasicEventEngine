@@ -113,7 +113,7 @@ namespace bee{
 			case SDLK_UP: { // The up arrow cycles through completion commands or reverse history
 				if (engine->console->completion_commands.size() > 1) { // If a command is being completed
 					if (engine->console->completion_index > 0) { // If a completion command is already selected, lower the index and set the input line to the given command
-						engine->console->completion_index = fit_bounds(engine->console->completion_index-1, 0, (int)engine->console->completion_commands.size()-1);
+						engine->console->completion_index = fit_bounds(engine->console->completion_index-1, 0, static_cast<int>(engine->console->completion_commands.size())-1);
 						engine->console->input = (*(engine->console->completion_commands.begin()+engine->console->completion_index));
 					} else { // If the first completion command is selected, reset the input line to the previous user input
 						engine->console->completion_index = -1;
@@ -121,7 +121,7 @@ namespace bee{
 					}
 				} else { // If a command is not being completed, cycle through history
 					if (engine->console->history.size() > 0) { // If there is a history to look up
-						engine->console->history_index = fit_bounds(engine->console->history_index+1, 0, (int)engine->console->history.size()-1); // Prevent the index from going past the end
+						engine->console->history_index = fit_bounds(engine->console->history_index+1, 0, static_cast<int>(engine->console->history.size())-1); // Prevent the index from going past the end
 						// Replace the command line with the history item
 						engine->console->input.clear();
 						engine->console->input = (*(engine->console->history.rbegin()+engine->console->history_index));
@@ -135,11 +135,11 @@ namespace bee{
 						engine->console->input_tmp = engine->console->input;
 					}
 					// Raise the index and set the input line to the given command
-					engine->console->completion_index = fit_bounds(engine->console->completion_index+1, 0, (int)engine->console->completion_commands.size()-1);
+					engine->console->completion_index = fit_bounds(engine->console->completion_index+1, 0, static_cast<int>(engine->console->completion_commands.size())-1);
 					engine->console->input = (*(engine->console->completion_commands.begin()+engine->console->completion_index));
 				} else { // If a commandis not being completed, cycle through history
 					if (engine->console->history_index > 0) { // If the index is in previous history
-						engine->console->history_index = fit_bounds(engine->console->history_index-1, 0, (int)engine->console->history.size()-1); // Prevent the index from going past the front
+						engine->console->history_index = fit_bounds(engine->console->history_index-1, 0, static_cast<int>(engine->console->history.size())-1); // Prevent the index from going past the front
 						// Replace the command line with the history item
 						engine->console->input.clear();
 						engine->console->input = (*(engine->console->history.rbegin()+engine->console->history_index));
@@ -880,7 +880,7 @@ namespace bee{
 
 		// Split lines if they are wider than the console window
 		for (auto it=lines.begin(); it!=lines.end(); ++it) {
-			if ((unsigned int)engine->font_default->get_string_width(*it) > engine->console->w) {
+			if (static_cast<unsigned int>(engine->font_default->get_string_width(*it)) > engine->console->w) {
 				int c = 1.5*engine->console->w/engine->font_default->get_font_size()-1;
 
 				lines.emplace(it+1, (*it).substr(c));
@@ -939,7 +939,7 @@ namespace bee{
 			draw_rectangle(cx, cy + engine->console->h, engine->console->w, engine->console->completion_commands.size()*engine->console->line_height, true, c_back); // Draw a box to contain the commands
 			for (size_t i=0; i<engine->console->completion_commands.size(); ++i) { // Iterate over the completion commands
 				std::string cmd = " " + engine->console->completion_commands[i]; // Prepend each command with a space
-				if (i == (size_t)engine->console->completion_index) { // If the command is selected, replace the space with a cursor
+				if (i == static_cast<size_t>(engine->console->completion_index)) { // If the command is selected, replace the space with a cursor
 					cmd[0] = '>';
 				}
 				engine->font_default->draw_fast(cx, cy + engine->console->h + engine->console->line_height*i, cmd, c_text); // Draw the console completion command

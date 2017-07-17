@@ -55,6 +55,8 @@ bee::Room* rm_test = nullptr;
 */
 int bee::init_resources() {
 	try { // Catch any exceptions so that the engine can properly clean up
+		bee::ui::load();
+
 		// Init sprites
 		spr_bee = new Sprite("spr_bee", "bee.png");
 			spr_bee->set_subimage_amount(2, 100);
@@ -147,6 +149,8 @@ int bee::close_resources() {
 
 	// Destroy rooms
 	DEL(rm_test);
+
+	bee::ui::free();
 
 	is_initialized = false; // Unset the engine initialization flag
 

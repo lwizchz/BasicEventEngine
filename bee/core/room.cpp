@@ -65,7 +65,9 @@ namespace bee {
 				engine->current_room->draw();
 				engine->renderer->render();
 			}
-			engine->current_room->room_end(); // Run the room_end event for the current room
+			if (new_room != nullptr) {
+				engine->current_room->room_end(); // Run the room_end event for the current room
+			}
 			engine->current_room->reset_properties(); // Reset the current room's properties
 		} else { // if we are not in a room
 			if (engine->transition_type != E_TRANSITION::NONE) { // If a transition has been defined then draw nothing into the before buffer
@@ -220,12 +222,12 @@ namespace bee {
 
 			if (viewport == nullptr) { // If the viewport is not defined then set the drawing area to the entire screen
 				view = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-				port = glm::vec4(0.0f, 0.0f, (float)get_room_width(), (float)get_room_height());
+				port = glm::vec4(0.0f, 0.0f, get_room_width(), get_room_height());
 				projection = render_get_projection();
 			} else { // If the viewport is defined then use it
-				view = glm::translate(glm::mat4(1.0f), glm::vec3((float)viewport->view_x, (float)viewport->view_y, 0.0f));
-				port = glm::vec4((float)viewport->port_x, (float)viewport->port_y, (float)viewport->port_width, (float)viewport->port_height);
-				render_set_camera(new Camera((float)viewport->view_width, (float)viewport->view_height));
+				view = glm::translate(glm::mat4(1.0f), glm::vec3(viewport->view_x, viewport->view_y, 0.0f));
+				port = glm::vec4(viewport->port_x, viewport->port_y, viewport->port_width, viewport->port_height);
+				render_set_camera(new Camera(viewport->view_width, viewport->view_height));
 				projection = render_get_projection();
 			}
 

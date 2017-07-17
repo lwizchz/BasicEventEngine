@@ -341,7 +341,7 @@ bool is_angle_between(T x, T a, T b) {
 	if (a < b) { // If the bounds are normal
 		return is_between(x, a, b);
 	} else { // If the bounds are at the top of the unit circle e.g. from 315 to 45
-		return is_between(x, a, (T)360) || is_between(x, (T)0, b);
+		return is_between(x, a, static_cast<T>(360)) || is_between(x, static_cast<T>(0), b);
 	}
 }
 template bool is_angle_between<int>(int, int, int);

@@ -102,7 +102,7 @@ namespace bee {
 								if ((f->has_arg != no_argument)&&(optarg)) {
 									f->func(optarg);
 								} else {
-									f->func((char*)nullptr);
+									f->func(static_cast<char*>(nullptr));
 								}
 							}
 							amount++;

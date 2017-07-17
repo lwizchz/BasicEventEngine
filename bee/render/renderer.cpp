@@ -78,7 +78,7 @@ namespace bee {
 		glewExperimental = GL_TRUE;
 		GLenum glew_error = glewInit();
 		if (glew_error != GLEW_OK) {
-			messenger::send({"engine", "renderer"}, E_MESSAGE::ERROR, "Couldn't initialize GLEW: " + std::string((const char*)glewGetErrorString(glew_error)) + "\n");
+			messenger::send({"engine", "renderer"}, E_MESSAGE::ERROR, "Couldn't initialize GLEW: " + std::string(reinterpret_cast<const char*>(glewGetErrorString(glew_error))) + "\n");
 			return 2; // Return 2 when GLEW could not be initialized
 		}
 

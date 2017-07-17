@@ -19,7 +19,6 @@ class ObjBee : public bee::Object {
 		void step_mid(bee::Instance*);
 		void keyboard_press(bee::Instance*, SDL_Event*);
 		void mouse_press(bee::Instance*, SDL_Event*);
-		void mouse_input(bee::Instance*, SDL_Event*);
 		void commandline_input(bee::Instance*, const std::string&);
 		void outside_room(bee::Instance*);
 		void collision(bee::Instance*, bee::Instance*);
@@ -33,7 +32,6 @@ ObjBee::ObjBee() : Object("obj_bee", "bee.hpp") {
 		bee::E_EVENT::STEP_MID,
 		bee::E_EVENT::KEYBOARD_PRESS,
 		bee::E_EVENT::MOUSE_PRESS,
-		bee::E_EVENT::MOUSE_INPUT,
 		bee::E_EVENT::COMMANDLINE_INPUT,
 		bee::E_EVENT::OUTSIDE_ROOM,
 		bee::E_EVENT::COLLISION,
@@ -47,13 +45,15 @@ void ObjBee::create(bee::Instance* self) {
 
 	// create event
 	std::cout << "u r a b " << self->id << "\n";
-	(*s)["text_id"] = (void*)nullptr;
-	(*s)["text_fps"] = (void*)nullptr;
+	(*s)["text_id"] = static_cast<void*>(nullptr);
+	(*s)["text_fps"] = static_cast<void*>(nullptr);
 
 	//self->set_alarm(0, 2000);
 	//spr_bee->set_alpha(0.5);
 	//self->set_gravity(7.0);
 	//show_message(font_liberation->get_fontname());
+
+	(*s)["ui_handle"] = bee::ui::create_handle(self->get_corner_x(), self->get_corner_y(), 100, 100, {255, 255, 255, 128}, self);
 
 	if (self->id == 0) {
 		(*s)["camx"] = 0.0;
@@ -109,16 +109,18 @@ void ObjBee::create(bee::Instance* self) {
 	}
 }
 void ObjBee::destroy(bee::Instance* self) {
-	delete (bee::TextData*) _p("text_id");
+	delete static_cast<bee::TextData*>(_p("text_id"));
+
+	bee::ui::destroy_parent(self);
 
 	if (self->id == 0) {
 		if (_p("part_system") != nullptr) {
-			delete (bee::ParticleSystem*) _p("part_system");
+			delete static_cast<bee::ParticleSystem*>(_p("part_system"));
 		}
 		if (bee::net::get_is_connected()) {
 			bee::net::session_end();
 		}
-		delete (bee::TextData*) _p("text_fps");
+		delete static_cast<bee::TextData*>(_p("text_fps"));
 	}
 
 	Object::destroy(self);
@@ -161,7 +163,7 @@ void ObjBee::keyboard_press(bee::Instance* self, SDL_Event* e) {
 
 	switch (e->key.keysym.sym) {
 		case SDLK_RETURN: {
-			bee::set_transition_type((bee::E_TRANSITION)((int)bee::get_transition_type()+1));
+			bee::set_transition_type(static_cast<bee::E_TRANSITION>(static_cast<int>(bee::get_transition_type())+1));
 			bee::restart_room();
 			break;
 		}
@@ -234,7 +236,7 @@ void ObjBee::keyboard_press(bee::Instance* self, SDL_Event* e) {
 
 		case SDLK_1: {
 			//snd_chirp->stop();
-			snd_chirp->effect_set((int)bee::E_SOUNDEFFECT::NONE);
+			snd_chirp->effect_set(static_cast<int>(bee::E_SOUNDEFFECT::NONE));
 
 			if (snd_chirp->get_is_playing()) {
 				snd_chirp->rewind();
@@ -245,7 +247,7 @@ void ObjBee::keyboard_press(bee::Instance* self, SDL_Event* e) {
 		}
 		case SDLK_2: {
 			snd_chirp->stop();
-			snd_chirp->effect_set((int)bee::E_SOUNDEFFECT::ECHO);
+			snd_chirp->effect_set(static_cast<int>(bee::E_SOUNDEFFECT::ECHO));
 			snd_chirp->play();
 			break;
 		}
@@ -276,7 +278,7 @@ void ObjBee::mouse_press(bee::Instance* self, SDL_Event* e) {
 
 	switch (e->button.button) {
 		case SDL_BUTTON_LEFT: {
-			SDL_Rect a = {(int)self->get_corner_x(), (int)self->get_corner_y(), get_mask()->get_subimage_width(), get_mask()->get_height()};
+			SDL_Rect a = self->get_aabb();
 			SDL_Rect b = {e->button.x-10, e->button.y-10, 20, 20};
 			if ((self->id == 0)&&(!check_collision(a, b))) {
 				if (self->is_place_empty(e->button.x, e->button.y)) {
@@ -285,22 +287,6 @@ void ObjBee::mouse_press(bee::Instance* self, SDL_Event* e) {
 				}
 			}
 			break;
-		}
-	}
-}
-void ObjBee::mouse_input(bee::Instance* self, SDL_Event* e) {
-	if (bee::console_get_is_open()) {
-		return;
-	}
-
-	if (e->type == SDL_MOUSEMOTION) {
-		//spr_bee->set_alpha(0.25);
-	}
-	if (e->motion.state & SDL_BUTTON_LMASK) {
-		SDL_Rect a = {(int)self->get_corner_x(), (int)self->get_corner_y(), get_mask()->get_subimage_width(), get_mask()->get_height()};
-		SDL_Rect b = {e->button.x-10, e->button.y-10, 20, 20};
-		if (check_collision(a, b)) {
-			self->set_position(e->button.x, e->button.y, 0.0);
 		}
 	}
 }
@@ -319,20 +305,20 @@ void ObjBee::draw(bee::Instance* self) {
 	double r = radtodeg(self->get_physbody()->get_rotation_z());
 	self->draw(size, size, r, bee::E_RGB::WHITE, SDL_FLIP_NONE);
 
-	(*s)["text_id"] = (void*)font_liberation->draw((bee::TextData*) _p("text_id"), self->get_corner_x(), self->get_corner_y(), bee_itos(self->id));
+	(*s)["text_id"] = static_cast<void*>(font_liberation->draw(static_cast<bee::TextData*>(_p("text_id")), self->get_corner_x(), self->get_corner_y(), bee_itos(self->id)));
 
 	lt_bee->set_position(glm::vec4(self->get_x(), self->get_y(), 0.0, 1.0));
-	lt_bee->set_color({(Uint8)(self->id*50), (Uint8)(self->id*20), 255, 255});
+	lt_bee->set_color({static_cast<Uint8>(self->id*50), static_cast<Uint8>(self->id*20), 255, 255});
 	lt_bee->queue();
 
 	if (self->id == 0) {
 		lt_ambient->queue();
 
-		float t = (float)bee::get_ticks()/1000.0f;
+		float t = static_cast<float>(bee::get_ticks())/1000.0f;
 		float a = 180.0f + radtodeg(sin(t));
 		mesh_monkey->draw(glm::vec3(1000.0f+500.0f*cos(t), 500.0f+300.0f*sin(t), 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, a, 180.0f), {255, 255, 0, 255}, false);
 
-		(*s)["text_fps"] = (void*)font_liberation->draw((bee::TextData*) _p("text_fps"), 0, 0, "FPS: " + bee_itos(bee::engine->fps_stable));
+		(*s)["text_fps"] = static_cast<void*>(font_liberation->draw(static_cast<bee::TextData*>(_p("text_fps")), 0, 0, "FPS: " + bee_itos(bee::engine->fps_stable)));
 	}
 }
 

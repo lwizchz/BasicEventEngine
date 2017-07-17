@@ -97,7 +97,7 @@ namespace bee {
 		return particle_type;
 	}
 	SDL_Rect ParticleData::get_rect() {
-		return {(int)x, (int)y, (int)w, (int)h};
+		return {static_cast<int>(x), static_cast<int>(y), static_cast<int>(w), static_cast<int>(h)};
 	}
 	double ParticleData::get_w() {
 		return w;
@@ -144,7 +144,7 @@ namespace bee {
 		return deviation;
 	}
 	double ParticleData::get_deviation_percent() {
-		return (double)deviation / particle_type->get_deviation();
+		return static_cast<double>(deviation) / particle_type->get_deviation();
 	}
 
 	int ParticleData::draw(double system_x, double system_y, Uint32 ticks) {

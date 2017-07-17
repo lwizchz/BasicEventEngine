@@ -56,14 +56,7 @@ namespace bee {
 
 		if (body == nullptr) {
 			PhysicsWorld* w = get_current_room()->get_phys_world();
-
-			double* p = new double[3] {(double)get_width(), (double)get_height(), w->get_scale()};
-			if ((p[0] != 0.0)&&(p[1] != 0.0)) {
-				body = new PhysicsBody(w, this, E_PHYS_SHAPE::BOX, 0.0, new_x, new_y, new_z, p); // PhysicsBody assumes ownership of any shape parameters passed to it
-			} else {
-				body = new PhysicsBody(w, this, E_PHYS_SHAPE::NONE, 0.0, new_x, new_y, new_z, nullptr);
-				delete[] p;
-			}
+			body = new PhysicsBody(w, this, E_PHYS_SHAPE::NONE, 0.0, new_x, new_y, new_z, nullptr);
 		} else {
 			set_position(new_x, new_y, new_z);
 		}
@@ -182,7 +175,7 @@ namespace bee {
 
 		path = get_path_by_name(SIDP_s(m["path"]));
 		path_speed = SIDP_d(m["path_speed"]);
-		path_end_action = (E_PATH_END)SIDP_i(m["path_end_action"]);
+		path_end_action = static_cast<E_PATH_END>(SIDP_i(m["path_end_action"]));
 		path_current_node = SIDP_i(m["path_current_node"]);
 		path_is_drawn = SIDP_i(m["path_is_drawn"]);
 		path_is_pausable = SIDP_i(m["path_is_pausable"]);
@@ -321,7 +314,7 @@ namespace bee {
 		return object->get_mask()->get_height();
 	}
 	SDL_Rect Instance::get_aabb() const {
-		return {(int)get_corner_x(), (int)get_corner_y(), get_width(), get_height()};
+		return {static_cast<int>(get_corner_x()), static_cast<int>(get_corner_y()), get_width(), get_height()};
 	}
 
 	int Instance::set_position(btVector3 p) {
@@ -611,7 +604,7 @@ namespace bee {
 		return is_place_free(get_x()+dx, get_y()+dy);
 	}
 	bool Instance::is_snapped(int hsnap, int vsnap) const {
-		if (((int)get_x() % hsnap == 0)&&((int)get_y() % vsnap == 0)) {
+		if ((static_cast<int>(get_x()) % hsnap == 0)&&(static_cast<int>(get_y()) % vsnap == 0)) {
 			return true;
 		}
 		return false;
@@ -625,8 +618,8 @@ namespace bee {
 			vsnap = 1;
 		}
 
-		int xsnap = (int)get_x();
-		int ysnap = (int)get_y();
+		int xsnap = get_x();
+		int ysnap = get_y();
 
 		int dx = xsnap % hsnap;
 		int dy = ysnap % vsnap;
@@ -644,7 +637,7 @@ namespace bee {
 	}
 	std::pair<int,int> Instance::get_snapped() const {
 		if (get_sprite() == nullptr) {
-			return std::make_pair((int)get_x(), (int)get_y());
+			return std::make_pair(get_x(), get_y());
 		}
 		return get_snapped(get_sprite()->get_width(), get_sprite()->get_height());
 	}
@@ -804,7 +797,7 @@ namespace bee {
 	int Instance::path_update_node() {
 		if (has_path()) {
 			if (path_speed >= 0) {
-				if (path_current_node+1 < (int) path->get_coordinate_list().size()) {
+				if (path_current_node+1 < static_cast<int>(path->get_coordinate_list().size())) {
 					path_coord_t c = path->get_coordinate_list().at(path_current_node+1);
 					if (
 						distance(

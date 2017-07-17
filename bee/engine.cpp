@@ -232,6 +232,7 @@ namespace bee {
 		}
 		messenger::send({"engine"}, E_MESSAGE::END, "gameloop");
 
+		engine->current_room->room_end();
 		engine->current_room->game_end();
 		change_room(nullptr, false);
 		engine->is_ready = false;
@@ -570,7 +571,7 @@ namespace bee {
 		return engine->frame_number;
 	}
 	double get_delta() {
-		return max<double>((double)get_tick_delta(), 1.0) / 1000.0;
+		return max<double>(static_cast<double>(get_tick_delta()), 1.0) / 1000.0;
 	}
 	Uint32 get_tick_delta() {
 		return engine->tick_delta;

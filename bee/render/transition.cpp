@@ -158,7 +158,7 @@ namespace bee {
 			}
 			case E_TRANSITION::CREATE_LEFT: { // Create from left
 				for (double i=0; i<get_width(); i+=engine->transition_speed*get_delta()) {
-					if (((int)i%10 == 0)&&(compute_check_quit())) {
+					if ((static_cast<int>(i)%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
@@ -172,7 +172,7 @@ namespace bee {
 			}
 			case E_TRANSITION::CREATE_RIGHT: { // Create from right
 				for (double i=get_width(); i>=0; i-=engine->transition_speed*get_delta()) {
-					if (((int)i%10 == 0)&&(compute_check_quit())) {
+					if ((static_cast<int>(i)%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
@@ -186,7 +186,7 @@ namespace bee {
 			}
 			case E_TRANSITION::CREATE_TOP: { // Create from top
 				for (double i=0; i<get_height(); i+=engine->transition_speed*get_delta()) {
-					if (((int)i%10 == 0)&&(compute_check_quit())) {
+					if ((static_cast<int>(i)%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
@@ -200,7 +200,7 @@ namespace bee {
 			}
 			case E_TRANSITION::CREATE_BOTTOM: { // Create from bottom
 				for (double i=get_height(); i>=0; i-=engine->transition_speed*get_delta()) {
-					if (((int)i%10 == 0)&&(compute_check_quit())) {
+					if ((static_cast<int>(i)%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
@@ -215,7 +215,7 @@ namespace bee {
 			case E_TRANSITION::CREATE_CENTER: { // Create from center
 				const int w = get_width(), h = get_height();
 				for (double i=0; i<w; i+=engine->transition_speed*get_delta()) {
-					if (((int)i%10 == 0)&&(compute_check_quit())) {
+					if ((static_cast<int>(i)%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
@@ -225,7 +225,7 @@ namespace bee {
 					double ih = i/w * h;
 					int x = (w - i)/2;
 					int y = (h - ih)/2;
-					engine->texture_after->crop_image({x, y, (int)i, (int)ih});
+					engine->texture_after->crop_image({x, y, static_cast<int>(i), static_cast<int>(ih)});
 					engine->texture_after->draw(x, y, 0, i, ih, 0.0, {255, 255, 255, 255}, f);
 
 					engine->renderer->render();
@@ -234,7 +234,7 @@ namespace bee {
 			}
 			case E_TRANSITION::SHIFT_LEFT: { // Shift from left
 				for (double i=-get_width(); i<0; i+=engine->transition_speed*get_delta()) {
-					if (((int)i%10 == 0)&&(compute_check_quit())) {
+					if ((static_cast<int>(i)%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
@@ -247,7 +247,7 @@ namespace bee {
 			}
 			case E_TRANSITION::SHIFT_RIGHT: { // Shift from right
 				for (double i=get_width(); i>=0; i-=engine->transition_speed*get_delta()) {
-					if (((int)i%10 == 0)&&(compute_check_quit())) {
+					if ((static_cast<int>(i)%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
@@ -260,7 +260,7 @@ namespace bee {
 			}
 			case E_TRANSITION::SHIFT_TOP: { // Shift from top
 				for (double i=-get_height(); i<0; i+=engine->transition_speed*get_delta()) {
-					if (((int)i%10 == 0)&&(compute_check_quit())) {
+					if ((static_cast<int>(i)%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
@@ -273,7 +273,7 @@ namespace bee {
 			}
 			case E_TRANSITION::SHIFT_BOTTOM: { // Shift from bottom
 				for (double i=get_height(); i>=0; i-=engine->transition_speed*get_delta()) {
-					if (((int)i%10 == 0)&&(compute_check_quit())) {
+					if ((static_cast<int>(i)%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
@@ -307,7 +307,7 @@ namespace bee {
 			case E_TRANSITION::PUSH_LEFT: { // Push from left
 				const int w = get_width();
 				for (double i=-w; i<0; i+=engine->transition_speed*get_delta()) {
-					if (((int)i%10 == 0)&&(compute_check_quit())) {
+					if ((static_cast<int>(i)%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
@@ -321,7 +321,7 @@ namespace bee {
 			case E_TRANSITION::PUSH_RIGHT: { // Push from right
 				const int w = get_width();
 				for (double i=w; i>=0; i-=engine->transition_speed*get_delta()) {
-					if (((int)i%10 == 0)&&(compute_check_quit())) {
+					if ((static_cast<int>(i)%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
@@ -335,7 +335,7 @@ namespace bee {
 			case E_TRANSITION::PUSH_TOP: { // Push from top
 				const int h = get_height();
 				for (double i=-h; i<0; i+=engine->transition_speed*get_delta()) {
-					if (((int)i%10 == 0)&&(compute_check_quit())) {
+					if ((static_cast<int>(i)%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
@@ -349,7 +349,7 @@ namespace bee {
 			case E_TRANSITION::PUSH_BOTTOM: { // Push from bottom
 				const int h = get_height();
 				for (double i=h; i>=0; i-=engine->transition_speed*get_delta()) {
-					if (((int)i%10 == 0)&&(compute_check_quit())) {
+					if ((static_cast<int>(i)%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
@@ -364,7 +364,7 @@ namespace bee {
 				engine->texture_before->set_rotate_xy(0.0, 1.0);
 				engine->texture_after->set_rotate_xy(0.0, 1.0);
 				for (double a=0.0; a<90.0; a+=engine->transition_speed*get_delta()/20.0) {
-					if (((int)a%10 == 0)&&(compute_check_quit())) {
+					if ((static_cast<int>(a)%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
@@ -379,7 +379,7 @@ namespace bee {
 				engine->texture_before->set_rotate_xy(1.0, 1.0);
 				engine->texture_after->set_rotate_xy(1.0, 1.0);
 				for (double a=0.0; a<90.0; a+=engine->transition_speed*get_delta()/20.0) {
-					if (((int)a%10 == 0)&&(compute_check_quit())) {
+					if ((static_cast<int>(a)%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
@@ -392,34 +392,34 @@ namespace bee {
 			}
 			case E_TRANSITION::BLEND: { // Blend (crossfade)
 				for (double a=0.0; a<255.0; a+=engine->transition_speed*get_delta()/5.0) {
-					if (((int)a%10 == 0)&&(compute_check_quit())) {
+					if ((static_cast<int>(a)%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
 					engine->renderer->render_clear();
-					engine->texture_before->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, (Uint8)(255.0-a)}, f);
-					engine->texture_after->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, (Uint8)a}, f);
+					engine->texture_before->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, static_cast<Uint8>(255.0-a)}, f);
+					engine->texture_after->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, static_cast<Uint8>(a)}, f);
 					engine->renderer->render();
 				}
 				break;
 			}
 			case E_TRANSITION::FADE: { // Fade out and in
 				for (double a=0.0; a<255.0; a+=engine->transition_speed*get_delta()/5.0) {
-					if (((int)a%10 == 0)&&(compute_check_quit())) {
+					if ((static_cast<int>(a)%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
 					engine->renderer->render_clear();
-					engine->texture_before->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, (Uint8)(255.0-a)}, f);
+					engine->texture_before->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, static_cast<Uint8>(255.0-a)}, f);
 					engine->renderer->render();
 				}
 				for (double a=0.0; a<255.0; a+=engine->transition_speed*get_delta()/5.0) {
-					if (((int)a%10 == 0)&&(compute_check_quit())) {
+					if ((static_cast<int>(a)%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
 					engine->renderer->render_clear();
-					engine->texture_after->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, (Uint8)a}, f);
+					engine->texture_after->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, static_cast<Uint8>(a)}, f);
 					engine->renderer->render();
 				}
 				break;

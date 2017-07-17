@@ -415,18 +415,19 @@ namespace bee {
 		// This is not included in the above transformation matrix because it is faster to rotate everything in the geometry shader
 		glm::mat4 rotation = glm::mat4(1.0f);
 		if (rotate.x != 0.0) { // Rotate around the x-axis if necessary
-			rotation = glm::rotate(rotation, (float)degtorad(rotate.x), glm::vec3(1.0f, 0.0f, 0.0f));
+			rotation = glm::rotate(rotation, static_cast<float>(degtorad(rotate.x)), glm::vec3(1.0f, 0.0f, 0.0f));
 		}
 		if (rotate.y != 0.0) { // Rotate around the y-axis if necessary
-			rotation = glm::rotate(rotation, (float)degtorad(rotate.y), glm::vec3(0.0f, 1.0f, 0.0f));
+			rotation = glm::rotate(rotation, static_cast<float>(degtorad(rotate.y)), glm::vec3(0.0f, 1.0f, 0.0f));
 		}
 		if (rotate.z != 0.0) { // Rotate around the z-axis if necessary
-			rotation = glm::rotate(rotation, (float)degtorad(rotate.z), glm::vec3(0.0f, 0.0f, 1.0f));
+			rotation = glm::rotate(rotation, static_cast<float>(degtorad(rotate.z)), glm::vec3(0.0f, 0.0f, 1.0f));
 		}
 		glUniformMatrix4fv(engine->renderer->rotation_location, 1, GL_FALSE, glm::value_ptr(rotation)); // Send the rotation matrix to the shader
 
 		// Colorize the mesh with the given color
-		glm::vec4 c = glm::vec4((float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f, (float)color.a/255.0f);
+		glm::vec4 c (color.r, color.g, color.b, color.a);
+		c /= 255.0f;
 		glUniform4fv(engine->renderer->colorize_location, 1, glm::value_ptr(c));
 
 		if (is_wireframe) { // If the mesh should be drawn in wireframe, set the polygone drawing mode to line

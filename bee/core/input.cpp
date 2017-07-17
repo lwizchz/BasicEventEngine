@@ -120,7 +120,7 @@ namespace bee {
 			return false;
 		}
 
-		SDL_Rect inst = {(int)instance.get_x(), (int)instance.get_y(), (int)m->get_width(), (int)m->get_height()}; // Create a bounding box based on the instance's mask
+		SDL_Rect inst = {static_cast<int>(instance.get_x()), static_cast<int>(instance.get_y()), m->get_width(), m->get_height()}; // Create a bounding box based on the instance's mask
 		SDL_Rect mouse = {get_mouse_x(), get_mouse_y(), 0, 0};
 		return check_collision(inst, mouse); // Return whether the instance collides with the mouse
 	}
@@ -130,7 +130,7 @@ namespace bee {
 	* @k: the scancode to check
 	*/
 	bool get_key_state(SDL_Scancode k) {
-		return (bool)engine->keystate[k]; // Return the keystate of the given key as a boolean value
+		return static_cast<bool>(engine->keystate[k]); // Return the keystate of the given key as a boolean value
 	}
 	/*
 	* get_key_state() - Return whether the given keycode is pressed

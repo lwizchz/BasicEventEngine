@@ -34,9 +34,9 @@ ObjUIButton::ObjUIButton() : Object("obj_ui_button", "/ui/objects/button.hpp") {
 	};
 }
 void ObjUIButton::create(bee::Instance* self) {
-	(*s)["font"] = (void*)nullptr;
+	(*s)["font"] = static_cast<void*>(nullptr);
 	(*s)["text"] = "";
-	(*s)["textdata"] = (void*)nullptr;
+	(*s)["textdata"] = static_cast<void*>(nullptr);
 
 	(*s)["color_r"] = 255;
 	(*s)["color_g"] = 255;
@@ -47,10 +47,10 @@ void ObjUIButton::create(bee::Instance* self) {
 	(*s)["h"] = self->get_sprite()->get_height();
 
 	(*s)["is_pressed"] = false;
-	(*s)["press_func"] = (void*)nullptr;
+	(*s)["press_func"] = static_cast<void*>(nullptr);
 }
 void ObjUIButton::destroy(bee::Instance* self) {
-	delete (bee::TextData*) _p("textdata");
+	delete static_cast<bee::TextData*>(_p("textdata"));
 	Object::destroy(self);
 }
 void ObjUIButton::mouse_press(bee::Instance* self, SDL_Event* e) {
@@ -104,12 +104,14 @@ void ObjUIButton::draw(bee::Instance* self) {
 	int b = _i("color_b");
 	int a = _i("color_a");
 
+	bee::set_is_lightable(false);
+
 	self->draw(w, h, 0.0, bee::RGBA(r, g, b, a), SDL_FLIP_NONE);
 
 	std::string text = _s("text");
 	if (!text.empty()) {
-		bee::Font* font = (bee::Font*) _p("font");
-		bee::TextData* textdata = (bee::TextData*) _p("textdata");
+		bee::Font* font = static_cast<bee::Font*>(_p("font"));
+		bee::TextData* textdata = static_cast<bee::TextData*>(_p("textdata"));
 		if (font == nullptr) {
 			font = bee::engine->font_default;
 		}
@@ -121,19 +123,21 @@ void ObjUIButton::draw(bee::Instance* self) {
 			oy = v->view_y;
 		}
 
-		(*s)["textdata"] = (void*)font->draw(
+		(*s)["textdata"] = static_cast<void*>(font->draw(
 			textdata,
 			self->get_corner_x() + (w-font->get_string_width(_s("text")))/2 - ox,
 			self->get_corner_y() + (h-h/1.25)/2 - oy,
 			text
-		);
+		));
 	} else {
 		bee::messenger::log("empty button");
 	}
+
+	bee::set_is_lightable(true);
 }
 
 void ObjUIButton::center_width(bee::Instance* self) {
-	bee::Font* font = (bee::Font*) _p("font");
+	bee::Font* font = static_cast<bee::Font*>(_p("font"));
 	if (font == nullptr) {
 		font = bee::engine->font_default;
 	}

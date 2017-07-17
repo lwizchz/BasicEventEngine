@@ -14,6 +14,7 @@
 #include <sstream> // Include the required library headers
 #include <fstream>
 #include <algorithm>
+#include <set>
 
 #include <glm/gtc/type_ptr.hpp> // Include the required OpenGL headers
 
@@ -260,7 +261,7 @@ namespace bee {
 		"\n	is_persistent               " << is_persistent <<
 		"\n	is_background_color_enabled " << is_background_color_enabled;
 		if (is_background_color_enabled) {
-			s << "\n	background_color            " << (int)background_color.r << ", " << (int)background_color.g << ", " << (int)background_color.b;
+			s << "\n	background_color            " << static_cast<int>(background_color.r) << ", " << static_cast<int>(background_color.g) << ", " << static_cast<int>(background_color.b);
 		}
 		s <<
 		"\n	backgrounds\n" << debug_indent(background_string, 2) <<
@@ -612,7 +613,8 @@ namespace bee {
 					break;
 				}
 
-				glm::vec4 c = glm::vec4((float)l.color.r/255.0f, (float)l.color.g/255.0f, (float)l.color.b/255.0f, (float)l.color.a/255.0f);
+				glm::vec4 c (l.color.r, l.color.g, l.color.b, l.color.a);
+				c /= 255.0f;
 
 				glUniform1i(engine->renderer->lighting_location[i].type, static_cast<int>(l.type));
 				glUniform4fv(engine->renderer->lighting_location[i].position, 1, glm::value_ptr(l.position));
@@ -941,13 +943,19 @@ namespace bee {
 		return 0;
 	}
 	int Room::destroy() {
-		for (auto& i : destroyed_instances) {
-			i->get_object()->update(i);
-			i->get_object()->destroy(i);
+		std::set<Instance*> destroyed;
 
-			remove_instance(i->id);
+		while (!destroyed_instances.empty()) {
+			Instance* inst = destroyed_instances.back();
+			destroyed_instances.pop_back();
+
+			if (destroyed.find(inst) == destroyed.end()) {
+				destroyed.insert(inst);
+				inst->get_object()->update(inst);
+				inst->get_object()->destroy(inst);
+				remove_instance(inst->id);
+			}
 		}
-		destroyed_instances.clear();
 
 		if (should_sort) {
 			sort_instances();
@@ -1030,7 +1038,7 @@ namespace bee {
 
 				path_coord_t c (0.0, 0.0, 0.0, 0.0);
 				if (i.first->get_path_speed() >= 0) {
-					if (i.first->get_path_node()+1 < (int)i.first->get_path_coords().size()) {
+					if (i.first->get_path_node()+1 < static_cast<int>(i.first->get_path_coords().size())) {
 						c = i.first->get_path_coords().at(i.first->get_path_node()+1);
 					} else {
 						break;
@@ -1209,7 +1217,7 @@ namespace bee {
 				}
 
 				if (
-					((i.first->get_path_speed() >= 0)&&(i.first->get_path_node() == (int) i.first->get_path_coords().size()-1))
+					((i.first->get_path_speed() >= 0)&&(i.first->get_path_node() == static_cast<int>(i.first->get_path_coords().size())-1))
 					||((i.first->get_path_speed() < 0)&&(i.first->get_path_node() == -1))
 				) {
 					if (instances_sorted_events[E_EVENT::PATH_END].find(i.first) != instances_sorted_events[E_EVENT::PATH_END].end()) {
@@ -1229,7 +1237,7 @@ namespace bee {
 				continue;
 			}
 			if (i.first->get_object()->get_mask() != nullptr) {
-				SDL_Rect a = {(int)i.first->get_corner_x(), (int)i.first->get_corner_y(), i.first->get_width(), i.first->get_height()};
+				SDL_Rect a = i.first->get_aabb();
 				SDL_Rect b = {0, 0, get_width(), get_height()};
 				if (!check_collision(a, b)) {
 					i.first->get_object()->update(i.first);
@@ -1328,7 +1336,7 @@ namespace bee {
 					if (view_current->following != nullptr) {
 						Instance* f = view_current->following;
 						if (instances_sorted.find(f) != instances_sorted.end()) {
-							SDL_Rect a = {(int)f->get_corner_x(), (int)f->get_corner_y(), f->get_width(), f->get_height()};
+							SDL_Rect a = f->get_aabb();
 							SDL_Rect b = {
 								view_current->view_x,
 								view_current->view_y,
@@ -1471,7 +1479,7 @@ namespace bee {
 		}
 
 		for (auto& i : instances) {
-			destroyed_instances.push_back(i.second);
+			destroy(i.second);
 		}
 		destroy();
 
@@ -1500,7 +1508,7 @@ namespace bee {
 		}
 
 		for (auto& i : instances) {
-			destroyed_instances.push_back(i.second);
+			destroy(i.second);
 		}
 		destroy();
 

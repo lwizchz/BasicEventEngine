@@ -222,7 +222,7 @@ int date_get_month(time_t date) {
 */
 int date_get_week(time_t date) {
 	struct tm* timeinfo = localtime(&date); // Convert the timestamp into an info struct and return the requested value
-	return (int)(timeinfo->tm_yday / 7) + 1;
+	return static_cast<int>(timeinfo->tm_yday / 7) + 1;
 }
 /*
 * date_get_day() - Return the day value of the given timestamp
@@ -304,7 +304,7 @@ int date_get_second_of_year(time_t date) {
 * @date2: the other timestamp
 */
 double date_year_span(time_t date1, time_t date2) {
-	return (double)abs(difftime(date1, date2)) / (60*60*24*365);
+	return static_cast<double>(abs(difftime(date1, date2))) / (60*60*24*365);
 }
 /*
 * date_month_span() - Return the difference in months between the two timestamps
@@ -312,7 +312,7 @@ double date_year_span(time_t date1, time_t date2) {
 * @date2: the other timestamp
 */
 double date_month_span(time_t date1, time_t date2) {
-	return (double)abs(difftime(date1, date2)) / (60*60*24*30);
+	return static_cast<double>(abs(difftime(date1, date2))) / (60*60*24*30);
 }
 /*
 * date_week_span() - Return the difference in weeks between the two timestamps
@@ -320,7 +320,7 @@ double date_month_span(time_t date1, time_t date2) {
 * @date2: the other timestamp
 */
 double date_week_span(time_t date1, time_t date2) {
-	return (double)abs(difftime(date1, date2)) / (60*60*24*7);
+	return static_cast<double>(abs(difftime(date1, date2))) / (60*60*24*7);
 }
 /*
 * date_day_span() - Return the difference in days between the two timestamps
@@ -328,7 +328,7 @@ double date_week_span(time_t date1, time_t date2) {
 * @date2: the other timestamp
 */
 double date_day_span(time_t date1, time_t date2) {
-	return (double)abs(difftime(date1, date2)) / (60*60*24);
+	return static_cast<double>(abs(difftime(date1, date2))) / (60*60*24);
 }
 /*
 * date_hour_span() - Return the difference in hours between the two timestamps
@@ -336,7 +336,7 @@ double date_day_span(time_t date1, time_t date2) {
 * @date2: the other timestamp
 */
 double date_hour_span(time_t date1, time_t date2) {
-	return (double)abs(difftime(date1, date2)) / (60*60);
+	return static_cast<double>(abs(difftime(date1, date2))) / (60*60);
 }
 /*
 * date_minute_span() - Return the difference in minutes between the two timestamps
@@ -344,7 +344,7 @@ double date_hour_span(time_t date1, time_t date2) {
 * @date2: the other timestamp
 */
 double date_minute_span(time_t date1, time_t date2) {
-	return (double)abs(difftime(date1, date2)) / (60);
+	return static_cast<double>(abs(difftime(date1, date2))) / 60;
 }
 /*
 * date_seconds_span() - Return the difference in seconds between the two timestamps
@@ -352,7 +352,7 @@ double date_minute_span(time_t date1, time_t date2) {
 * @date2: the other timestamp
 */
 double date_second_span(time_t date1, time_t date2) {
-	return (double)abs(difftime(date1, date2));
+	return static_cast<double>(abs(difftime(date1, date2)));
 }
 
 /*

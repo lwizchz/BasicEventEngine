@@ -29,11 +29,11 @@
 * @udata: the effect data struct
 */
 void sound_effect_chorus(int channel, void* stream, int len, void* udata) {
-	Sint16* newstream = (Sint16*) stream; // Cast the stream into the correct data format
+	Sint16* newstream = static_cast<Sint16*>(stream); // Cast the stream into the correct data format
 	se_chorus_data* data = static_cast<se_chorus_data*>(udata); // Cast the effect struct into the correct format
 
 	unsigned int length = len;
-	Sint16* oldstream = (Sint16*)malloc(length); // Make a copy of the data stream in order to operate on the dry signal
+	Sint16* oldstream = static_cast<Sint16*>(malloc(length)); // Make a copy of the data stream in order to operate on the dry signal
 	memcpy(oldstream, newstream, length);
 
 	for (size_t i=0, e=0; i<length-1; i+=sizeof(Sint16)*2, e+=2, data->ticks+=2) { // Iterate over the ticks of the data stream
@@ -70,11 +70,11 @@ void sound_effect_chorus_cleanup(int channel, void* udata) {
 * @udata: the effect data struct
 */
 void sound_effect_echo(int channel, void* stream, int len, void* udata) {
-	Sint16* newstream = (Sint16*) stream; // Cast the stream into the correct data format
+	Sint16* newstream = static_cast<Sint16*>(stream); // Cast the stream into the correct data format
 	se_echo_data* data = static_cast<se_echo_data*>(udata); // Cast the effect struct into the correct format
 
 	unsigned int length = len;
-	Sint16* oldstream = (Sint16*)malloc(length); // Make a copy of the data stream in order to operate on the dry signal
+	Sint16* oldstream = static_cast<Sint16*>(malloc(length)); // Make a copy of the data stream in order to operate on the dry signal
 	memcpy(oldstream, newstream, length);
 
 	int offset = 44.1 * data->delay; // Calculate the offset based on the effect struct
@@ -111,11 +111,11 @@ void sound_effect_echo_cleanup(int channel, void* udata) {
 * @udata: the effect data struct
 */
 void sound_effect_flanger(int channel, void* stream, int len, void* udata) {
-	Sint16* newstream = (Sint16*) stream; // Cast the stream into the correct data format
+	Sint16* newstream = static_cast<Sint16*>(stream); // Cast the stream into the correct data format
 	se_flanger_data* data = static_cast<se_flanger_data*>(udata); // Cast the effect struct into the correct format
 
 	unsigned int length = len;
-	Sint16* oldstream = (Sint16*)malloc(length); // Make a copy of the data stream in order to operate on the dry signal
+	Sint16* oldstream = static_cast<Sint16*>(malloc(length)); // Make a copy of the data stream in order to operate on the dry signal
 	memcpy(oldstream, newstream, length);
 
 	double d = 0.5*data->delay; // Calculate the offset based on the effect struct

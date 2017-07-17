@@ -82,7 +82,7 @@ namespace bee {
 		double cy = get_following_y(system_y);
 
 		SDL_Rect a = pd->get_rect();
-		SDL_Rect b = {(int)(cx+x), (int)(cy+y), (int)w, (int)h};
+		SDL_Rect b = {static_cast<int>(cx+x), static_cast<int>(cy+y), static_cast<int>(w), static_cast<int>(h)};
 		if (check_collision(a, b)) {
 			if (pd->get_type() == get_part_before()) {
 				pd->set_type(get_part_after());

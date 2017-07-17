@@ -915,7 +915,7 @@ namespace bee { namespace net {
 
 		free(player_map.second); // Free the allocated space
 
-		return (int)has_failed;
+		return (has_failed) ? 1 : 0;
 	}
 	/*
 	* internal::host_send_data() - Send the data map to the given client
@@ -961,7 +961,7 @@ namespace bee { namespace net {
 
 		free(data_map.second); // Free the allocated space
 
-		return (int)has_failed;
+		return (has_failed) ? 1 : 0;
 	}
 }}
 

@@ -242,7 +242,7 @@ namespace bee {
 
 			return 0;
 		} else {
-			SDL_Rect r = {(int)position.x, (int)position.y, (int)dimensions.x, (int)dimensions.y};
+			SDL_Rect r = {static_cast<int>(position.x), static_cast<int>(position.y), static_cast<int>(dimensions.x), static_cast<int>(dimensions.y)};
 			if (is_filled) {
 				return SDL_RenderFillRect(engine->renderer->sdl_renderer, &r); // Fill the given rectangle with the given color
 			} else {
@@ -311,13 +311,15 @@ namespace bee {
 		engine->color->a = new_color.a;
 
 		if (get_options().renderer_type != E_RENDERER::SDL) {
-			glClearColor(new_color.r/255.0f, new_color.g/255.0f, new_color.b/255.0f, new_color.a/255.0f); // Set the OpenGL clear and draw colors as floats from [0.0, 1.0]
-			glm::vec4 uc = glm::vec4((float)new_color.r/255.0f, (float)new_color.g/255.0f, (float)new_color.b/255.0f, (float)new_color.a/255.0f); // Change the fragment to the given color
-			glUniform4fv(engine->renderer->colorize_location, 1, glm::value_ptr(uc));
-			return 0;
+			glm::vec4 uc = glm::vec4(engine->color->r, engine->color->g, engine->color->b, engine->color->a);
+			uc /= 255.0f;
+			glClearColor(uc.r, uc.g, uc.b, uc.a); // Set the OpenGL clear and draw colors as floats from [0.0, 1.0]
+			glUniform4fv(engine->renderer->colorize_location, 1, glm::value_ptr(uc)); // Change the fragment to the given color
 		} else {
 			return SDL_SetRenderDrawColor(engine->renderer->sdl_renderer, new_color.r, new_color.g, new_color.b, new_color.a); // Set the SDL draw color as Uint8's from [0, 255]
 		}
+
+		return 0;
 	}
 	/*
 	* draw_set_color() - Set the current drawing color to the given value
@@ -334,9 +336,10 @@ namespace bee {
 		RGBA c = {0, 0, 0, 0};
 
 		if (get_options().renderer_type != E_RENDERER::SDL) {
-			glClearColor(engine->color->r/255.0f, engine->color->g/255.0f, engine->color->b/255.0f, engine->color->a/255.0f); // Set the OpenGL clear and draw colors as floats from [0.0, 1.0]
-			glm::vec4 uc = glm::vec4((float)engine->color->r/255.0f, (float)engine->color->g/255.0f, (float)engine->color->b/255.0f, (float)engine->color->a/255.0f); // Change the fragment to the given color
-			glUniform4fv(engine->renderer->colorize_location, 1, glm::value_ptr(uc));
+			glm::vec4 uc = glm::vec4(engine->color->r, engine->color->g, engine->color->b, engine->color->a);
+			uc /= 255.0f;
+			glClearColor(uc.r, uc.g, uc.b, uc.a); // Set the OpenGL clear and draw colors as floats from [0.0, 1.0]
+			glUniform4fv(engine->renderer->colorize_location, 1, glm::value_ptr(uc)); // Change the fragment to the given color
 		} else {
 			SDL_GetRenderDrawColor(engine->renderer->sdl_renderer, &c.r, &c.g, &c.b, &c.a); // Get the current SDL renderer color
 
@@ -390,7 +393,7 @@ namespace bee {
 			SDL_RenderReadPixels(engine->renderer->sdl_renderer, nullptr, SDL_PIXELFORMAT_ARGB8888, screenshot->pixels, screenshot->pitch);
 
 			RGBA c;
-			SDL_GetRGBA(((Uint32*)screenshot->pixels)[x+y*engine->height], screenshot->format, &c.r, &c.g, &c.b, &c.a); // Fetch the pixel data from the surface into an RGBA
+			SDL_GetRGBA(static_cast<Uint32*>(screenshot->pixels)[x+y*engine->height], screenshot->format, &c.r, &c.g, &c.b, &c.a); // Fetch the pixel data from the surface into an RGBA
 
 			SDL_FreeSurface(screenshot); // Free the surface
 

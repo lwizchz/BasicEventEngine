@@ -345,7 +345,7 @@ namespace bee {
 
 		// Generate the subimage coordinates (mainly used for SDL rendering)
 		for (size_t i=0; i<subimage_amount; i++) {
-			subimages.push_back({(int)(i*subimage_width), 0, (int)subimage_width, (int)height});
+			subimages.push_back({static_cast<int>(i*subimage_width), 0, static_cast<int>(subimage_width), static_cast<int>(height)});
 		}
 
 		if (get_options().renderer_type == E_RENDERER::SDL) { // If SDL rendering is being used, exit early
@@ -398,7 +398,7 @@ namespace bee {
 		// Reset the subimage properties if the image is being uncropped
 		if ((crop.w == -1)&&(crop.h == -1)) {
 			set_subimage_amount(1, width);
-			crop = {0, 0, (int)width, (int)height};
+			crop = {0, 0, static_cast<int>(width), static_cast<int>(height)};
 			return 0;
 		}
 
@@ -478,7 +478,7 @@ namespace bee {
 		} else {
 			set_subimage_amount(subimage_amount, width/subimage_amount);
 		}
-		crop = {0, 0, (int)width, (int)height}; // Set the default crop to be the entire image
+		crop = {0, 0, static_cast<int>(width), static_cast<int>(height)}; // Set the default crop to be the entire image
 
 		if (get_options().renderer_type != E_RENDERER::SDL) {
 			// Generate the vertex array object for the sprite
@@ -487,10 +487,10 @@ namespace bee {
 
 			// Generate the four corner vertices of the rectangular sprite
 			GLfloat vertices[] = {
-				0.0,                     0.0,
-				(GLfloat)subimage_width, 0.0,
-				(GLfloat)subimage_width, (GLfloat)height,
-				0.0,                     (GLfloat)height,
+				0.0,                                  0.0,
+				static_cast<GLfloat>(subimage_width), 0.0,
+				static_cast<GLfloat>(subimage_width), static_cast<GLfloat>(height),
+				0.0,                                  static_cast<GLfloat>(height),
 			};
 			glGenBuffers(1, &vbo_vertices);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
@@ -703,21 +703,22 @@ namespace bee {
 			drawing_begin();
 
 			// Generate the partial transformation matrix (translation and scaling) for the subimage
-			glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3((float)drect.x, (float)drect.y, -0.5f)); // Translate the subimage the desired amount in the x- and y-planes, note that the z-coordinate is nonzero so that there is no z-fighting with backgrounds in 3D mode
-			model = glm::scale(model, glm::vec3((float)w/rect_width, (float)h/height, 1.0f)); // Scale the subimage in the x- and y-planes
+			glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(drect.x, drect.y, -0.5f)); // Translate the subimage the desired amount in the x- and y-planes, note that the z-coordinate is nonzero so that there is no z-fighting with backgrounds in 3D mode
+			model = glm::scale(model, glm::vec3(static_cast<float>(w)/rect_width, static_cast<float>(h)/height, 1.0f)); // Scale the subimage in the x- and y-planes
 			glUniformMatrix4fv(engine->renderer->model_location, 1, GL_FALSE, glm::value_ptr(model)); // Send the transformation matrix to the shader
 
 			// Generate the rotation matrix for the subimage
 			// This is not included in the above transformation matrix because it is faster to rotate everything in the geometry shader
 			if (angle != 0.0) {
-				glm::mat4 rotation = glm::translate(glm::mat4(1.0f), glm::vec3((float)rect_width*rotate_x, (float)height*rotate_y, 0.0f));
-				rotation = glm::rotate(rotation, (float)degtorad(angle), glm::vec3(0.0f, 0.0f, 1.0f)); // Rotate the subimage on the z-axis around the sprite's rotation origin at (rotate_x, rotate_y)
-				rotation = glm::translate(rotation, glm::vec3(-(float)rect_width*rotate_x, -(float)height*rotate_y, 0.0f));
+				glm::mat4 rotation = glm::translate(glm::mat4(1.0f), glm::vec3(rect_width*rotate_x, height*rotate_y, 0.0f));
+				rotation = glm::rotate(rotation, static_cast<float>(degtorad(angle)), glm::vec3(0.0f, 0.0f, 1.0f)); // Rotate the subimage on the z-axis around the sprite's rotation origin at (rotate_x, rotate_y)
+				rotation = glm::translate(rotation, glm::vec3(-rect_width*rotate_x, -height*rotate_y, 0.0f));
 				glUniformMatrix4fv(engine->renderer->rotation_location, 1, GL_FALSE, glm::value_ptr(rotation)); // Send the rotation matrix to the shader
 			}
 
 			// Colorize the sprite with the given color
-			glm::vec4 color = glm::vec4((float)new_color.r/255.0f, (float)new_color.g/255.0f, (float)new_color.b/255.0f, (float)new_color.a/255.0f); // Normalize the color values from 0.0 to 1.0
+			glm::vec4 color = glm::vec4(new_color.r, new_color.g, new_color.b, new_color.a); // Normalize the color values from 0.0 to 1.0
+			color /= 255.0f;
 			glUniform4fv(engine->renderer->colorize_location, 1, glm::value_ptr(color)); // Send the color to the shader
 
 			// Determine the desired flip type
@@ -734,12 +735,12 @@ namespace bee {
 			if (is_lightable) { // If the sprite is set as lightable
 				// Fill a lightable data struct with the position and vertices of the subimage
 				LightableData* l = new LightableData();
-				l->position = glm::vec4((float)drect.x, (float)drect.y, 0.0f, 0.0f);
+				l->position = glm::vec4(drect.x, drect.y, 0.0f, 0.0f);
 				l->mask.reserve(4);
 				l->mask.push_back(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
-				l->mask.push_back(glm::vec4((float)rect_width, 0.0f, 0.0f, 0.0f));
-				l->mask.push_back(glm::vec4((float)rect_width, (float)height, 0.0f, 0.0f));
-				l->mask.push_back(glm::vec4(0.0f, (float)height, 0.0f, 0.0f));
+				l->mask.push_back(glm::vec4(rect_width, 0.0f, 0.0f, 0.0f));
+				l->mask.push_back(glm::vec4(rect_width, height, 0.0f, 0.0f));
+				l->mask.push_back(glm::vec4(0.0f, height, 0.0f, 0.0f));
 
 				get_current_room()->add_lightable(l); // Add the struct to the room's list of lightables
 			}
@@ -771,7 +772,7 @@ namespace bee {
 				// Reset the sprite's blend mode to the global mode
 				SDL_SetTextureBlendMode(texture, draw_get_blend());
 
-				SDL_Point r = {(int)(rotate_x*subimage_width), (int)(rotate_y*height)}; // Create a point to use as the rotation origin
+				SDL_Point r = {static_cast<int>(rotate_x*subimage_width), static_cast<int>(rotate_y*height)}; // Create a point to use as the rotation origin
 				// Render the subimage
 				if (!subimages.empty()) { // If the sprite has multiple subimages, render without further cropping
 					SDL_RenderCopyEx(engine->renderer->sdl_renderer, texture, &subimages[current_subimage], &drect, angle, &r, flip);
@@ -801,7 +802,7 @@ namespace bee {
 	*/
 	int Sprite::draw(int x, int y, Uint32 subimage_time, int w, int h, double angle, RGBA new_color, SDL_RendererFlip flip) {
 		// Calculate the current subimage to draw from the given animation frame
-		unsigned int current_subimage = (unsigned int)round(speed*(get_ticks()-subimage_time)/engine->fps_goal) % subimage_amount;
+		unsigned int current_subimage = static_cast<unsigned int>(round(speed*(get_ticks()-subimage_time)/engine->fps_goal)) % subimage_amount;
 		if (current_subimage == 0) { // If the first frame is being drawn, set the animation boolean
 			is_animated = true;
 		}
@@ -900,7 +901,8 @@ namespace bee {
 			drawing_begin();
 
 			// Colorize the sprite with the given color
-			glm::vec4 color = glm::vec4((float)new_color.r/255.0f, (float)new_color.g/255.0f, (float)new_color.b/255.0f, (float)new_color.a/255.0f); // Normalize the color values from 0.0 to 1.0
+			glm::vec4 color = glm::vec4(new_color.r, new_color.g, new_color.b, new_color.a); // Normalize the color values from 0.0 to 1.0
+			color /= 255.0f;
 			glUniform4fv(engine->renderer->colorize_location, 1, glm::value_ptr(color)); // Send the color to the shader
 
 			// Determine the desired flip type
@@ -919,14 +921,14 @@ namespace bee {
 
 			LightableData* lightable_data = new LightableData();
 			lightable_data->mask.reserve(4);
-			lightable_data->mask.push_back(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
-			lightable_data->mask.push_back(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
-			lightable_data->mask.push_back(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
-			lightable_data->mask.push_back(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+			lightable_data->mask.push_back(glm::vec4());
+			lightable_data->mask.push_back(glm::vec4());
+			lightable_data->mask.push_back(glm::vec4());
+			lightable_data->mask.push_back(glm::vec4());
 
 			Uint32 t = get_ticks(); // Calculate the current time to be used when finding the subimage to draw
 			for (auto& s : draw_list) { // Loop over the list and draw each instance
-				int current_subimage = (int)round(speed*(t-s->subimage_time)/get_fps_goal()) % subimage_amount; // Calculate the current subimage of each instace from the given animation frame
+				int current_subimage = static_cast<int>(round(speed*(t-s->subimage_time)/get_fps_goal())) % subimage_amount; // Calculate the current subimage of each instace from the given animation frame
 
 				SDL_Rect drect = {s->x, s->y, 0, 0}; // Create a rectangle to define the position and dimensions of the destination render
 
@@ -957,8 +959,8 @@ namespace bee {
 				}
 
 				// Generate the partial transformation matrix (translation and scaling) for the instance
-				glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3((float)drect.x, (float)drect.y, -1.0f)); // Translate the instance the desired amount in the x- and y-planes, note that the z-coordinate is nonzero so that there is no z-fighting with non-particle sprites in 3D mode
-				model = glm::scale(model, glm::vec3((float)s->w/rect_width, (float)s->h/height, 1.0)); // Scale the instance in the x- and y-planes
+				glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(drect.x, drect.y, -1.0f)); // Translate the instance the desired amount in the x- and y-planes, note that the z-coordinate is nonzero so that there is no z-fighting with non-particle sprites in 3D mode
+				model = glm::scale(model, glm::vec3(static_cast<float>(s->w)/rect_width, static_cast<float>(s->h)/height, 1.0)); // Scale the instance in the x- and y-planes
 				glUniformMatrix4fv(engine->renderer->model_location, 1, GL_FALSE, glm::value_ptr(model)); // Send the transformation matrix to the shader
 
 				// Send the cached rotation matrix to the shader
@@ -971,11 +973,11 @@ namespace bee {
 				if (is_lightable) { // If the sprite is set as lightable
 					// Fill a lightable data struct with the position and vertices of the subimage
 					LightableData* l = new LightableData(*lightable_data);
-					l->position = glm::vec4((float)drect.x, (float)drect.y, 0.0f, 0.0f);
-					l->mask[1].x = (float)rect_width;
-					l->mask[2].x = (float)rect_width;
-					l->mask[2].y = (float)height;
-					l->mask[3].y = (float)height;
+					l->position = glm::vec4(drect.x, drect.y, 0.0f, 0.0f);
+					l->mask[1].x = rect_width;
+					l->mask[2].x = rect_width;
+					l->mask[2].y = height;
+					l->mask[3].y = height;
 
 					get_current_room()->add_lightable(l); // Add the struct to the room's list of lightables
 				}
@@ -1005,7 +1007,7 @@ namespace bee {
 
 			Uint32 t = get_ticks(); // Calculate the current time to be used when finding the subimage to draw
 			for (auto& s : draw_list) { // Loop over the list and draw each instance
-				int current_subimage = (int)round(speed*(t-s->subimage_time)/get_fps_goal()) % subimage_amount; // Calculate the current subimage of each instace from the given animation frame
+				int current_subimage = static_cast<int>(round(speed*(t-s->subimage_time)/get_fps_goal())) % subimage_amount; // Calculate the current subimage of each instace from the given animation frame
 
 				SDL_Rect drect = {s->x, s->y, 0, 0}; // Create a rectangle to define the position and dimensions of the destination render
 
@@ -1050,7 +1052,7 @@ namespace bee {
 		width = w;
 		height = h;
 		set_subimage_amount(1, width);
-		crop = {0, 0, (int)width, (int)height};
+		crop = {0, 0, static_cast<int>(width), static_cast<int>(height)};
 
 		if (get_options().renderer_type != E_RENDERER::SDL) {
 			// Generate the vertex array object for the sprite
@@ -1059,10 +1061,10 @@ namespace bee {
 
 			// Generate the four corner vertices of the rectangular sprite
 			GLfloat vertices[] = {
-				0.0,            0.0,
-				(GLfloat)width, 0.0,
-				(GLfloat)width, (GLfloat)height,
-				0.0,            (GLfloat)height,
+				0.0,                         0.0,
+				static_cast<GLfloat>(width), 0.0,
+				static_cast<GLfloat>(width), static_cast<GLfloat>(height),
+				0.0,                         static_cast<GLfloat>(height),
 			};
 			glGenBuffers(1, &vbo_vertices);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
@@ -1128,7 +1130,7 @@ namespace bee {
 			is_loaded = true;
 			has_draw_failed = false;
 
-			return (int)framebuffer; // Return the framebuffer index on success
+			return static_cast<int>(framebuffer); // Return the framebuffer index on success
 		} else {
 			texture = SDL_CreateTexture(engine->renderer->sdl_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w, h); // Create an empty texture
 			if (texture == nullptr) { // If the texture could not be created, output a warning
