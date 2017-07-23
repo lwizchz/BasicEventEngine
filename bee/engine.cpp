@@ -39,6 +39,8 @@
 #include "resource/font.hpp"
 #include "resource/room.hpp"
 
+#include "ui/ui.hpp"
+
 #include "util/windefine.hpp"
 
 namespace bee {
@@ -89,9 +91,10 @@ namespace bee {
 			engine->font_default->load();
 
 		messenger::handle();
-		engine->console = new Console(); // Initialize the default console commands
-		internal::console_init_commands();
+		console::internal::init(); // Initialize the default console commands
 		messenger::handle();
+
+		ui::load();
 
 		if (*new_first_room != nullptr) {
 			if (change_room(*new_first_room, false)) {
@@ -99,6 +102,8 @@ namespace bee {
 				return 10; // Return 10 when the first room could not be loaded
 			}
 		}
+
+		console::internal::init_ui();
 
 		if (handle_flags(new_flags, false) < 0) {
 			return 1; // Return 1 when the flags request to exit
@@ -117,7 +122,7 @@ namespace bee {
 		// Register the logging system
 		if (get_options().is_headless) {
 			messenger::internal::register_protected("cmdconsole", {"engine", "commandline"}, true, [] (std::shared_ptr<MessageContents> msg) {
-				bee::console_run(msg->descr);
+				bee::console::run(msg->descr);
 			});
 		} else {
 			messenger::internal::register_protected("cmdlog", {"engine", "commandline"}, true, [] (std::shared_ptr<MessageContents> msg) {
@@ -246,6 +251,9 @@ namespace bee {
 			free_media();
 			close_resources();
 		}
+
+		console::internal::close();
+		ui::free();
 
 		if (net::get_is_initialized()) {
 			net::close();
@@ -462,7 +470,7 @@ namespace bee {
 				}
 
 				case SDL_KEYDOWN: {
-					internal::console_handle_input(&event);
+					console::internal::handle_input(&event);
 
 					if (event.key.repeat == 0) {
 						engine->current_room->keyboard_press(&event);

@@ -6,5 +6,7 @@
 * See LICENSE for more details.
 */
 
+#include "objects/element.hpp"
 #include "objects/button.hpp"
 #include "objects/handle.hpp"
+#include "objects/text_entry.hpp"

@@ -85,6 +85,16 @@ namespace bee {
 		floating(0.0),
 		pointer(np)
 	{}
+	SIDP::SIDP(std::vector<SIDP>* nv) :
+		SIDP()
+	{
+		vector(nv);
+	}
+	SIDP::SIDP(std::map<SIDP,SIDP>* nm) :
+		SIDP()
+	{
+		map(nm);
+	}
 	SIDP::~SIDP() {
 		reset();
 	}
@@ -316,6 +326,20 @@ namespace bee {
 		reset();
 		type = 3;
 		pointer = rhs;
+		return *this;
+	}
+	SIDP& SIDP::operator=(const std::vector<SIDP>& rhs) {
+		reset();
+		type = 3;
+		container_type = 1;
+		pointer = new std::vector<SIDP>(rhs);
+		return *this;
+	}
+	SIDP& SIDP::operator=(const std::map<SIDP,SIDP>& rhs) {
+		reset();
+		type = 3;
+		container_type = 2;
+		pointer = new std::map<SIDP,SIDP>(rhs);
 		return *this;
 	}
 

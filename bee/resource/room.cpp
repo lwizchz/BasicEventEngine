@@ -476,6 +476,9 @@ namespace bee {
 		if (index < 0) {
 			index = next_instance_id++;
 		}
+		while (instances.find(index) != instances.end()) {
+			index = next_instance_id++;
+		}
 
 		Instance* new_instance = new Instance(index, object, x, y, z);
 		set_instance(index, new_instance);
@@ -714,11 +717,32 @@ namespace bee {
 		}
 		destroy();
 
-		instances.clear();
-		instances_sorted.clear();
+		// Remove all instances except persistent instances
+		for (auto it=instances.begin(); it!=instances.end(); ) {
+			if (!it->second->get_is_persistent()) {
+				it = instances.erase(it);
+			} else {
+				++it;
+			}
+		}
+		for (auto it=instances_sorted.begin(); it!=instances_sorted.end(); ) {
+			if (!it->first->get_is_persistent()) {
+				it = instances_sorted.erase(it);
+			} else {
+				++it;
+			}
+		}
 		created_instances.clear();
 		next_instance_id = 0;
-		instances_sorted_events.clear();
+		for (auto& event_map : instances_sorted_events) {
+			for (auto it=event_map.second.begin(); it!=event_map.second.end(); ) {
+				if (!it->first->get_is_persistent()) {
+					it = event_map.second.erase(it);
+				} else {
+					++it;
+				}
+			}
+		}
 
 		lights.clear();
 		if (light_map != nullptr) {
@@ -951,9 +975,12 @@ namespace bee {
 
 			if (destroyed.find(inst) == destroyed.end()) {
 				destroyed.insert(inst);
-				inst->get_object()->update(inst);
-				inst->get_object()->destroy(inst);
-				remove_instance(inst->id);
+
+				if (!inst->get_is_persistent()) {
+					inst->get_object()->update(inst);
+					inst->get_object()->destroy(inst);
+					remove_instance(inst->id);
+				}
 			}
 		}
 
@@ -1438,8 +1465,8 @@ namespace bee {
 			}
 		}
 
-		if (console_get_is_open()) {
-			internal::console_draw();
+		if (console::get_is_open()) {
+			console::internal::draw();
 		}
 
 		return 0;
@@ -1508,6 +1535,7 @@ namespace bee {
 		}
 
 		for (auto& i : instances) {
+			i.second->set_is_persistent(false);
 			destroy(i.second);
 		}
 		destroy();

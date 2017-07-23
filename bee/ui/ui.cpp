@@ -10,16 +10,21 @@
 #define BEE_UI
 
 #include <set>
+#include <vector>
 
 #include "ui.hpp"
-#include "widgets.hpp"
+#include "elements.hpp"
+
+#include "../messenger/messenger.hpp"
 
 #include "../core/instance.hpp"
+#include "../core/room.hpp"
 
 #include "../resource/sprite.hpp"
 #include "../resource/sound.hpp"
 #include "../resource/font.hpp"
 #include "../resource/object.hpp"
+#include "../resource/room.hpp"
 
 namespace bee { namespace ui {
 	namespace internal {
@@ -36,9 +41,13 @@ namespace bee { namespace ui {
 		// Declare objects
 		Object* obj_button = nullptr;
 		Object* obj_handle = nullptr;
+		Object* obj_text_entry = nullptr;
 
 		std::map<Instance*,std::set<Instance*>> parents;
 		std::map<Instance*,std::function<void (Instance*)>> button_callbacks;
+		std::map<Instance*,std::function<void (Instance*, const std::string&)>> text_entry_callbacks;
+		std::map<Instance*,std::function<std::vector<SIDP> (Instance*, const std::string&)>> text_entry_completors;
+		std::map<Instance*,std::function<void (Instance*, const std::string&, const SDL_Event*)>> text_entry_handlers;
 	}
 
 	int load() {
@@ -61,6 +70,7 @@ namespace bee { namespace ui {
 			internal::obj_button->set_sprite(internal::spr_button);
 		internal::obj_handle = new ObjUIHandle();
 			internal::obj_handle->set_sprite(internal::spr_handle);
+		internal::obj_text_entry = new ObjUITextEntry();
 
 		internal::is_loaded = true;
 
@@ -83,6 +93,7 @@ namespace bee { namespace ui {
 		// Free objects
 		DEL(internal::obj_button);
 		DEL(internal::obj_handle);
+		DEL(internal::obj_text_entry);
 
 		internal::is_loaded = false;
 
@@ -132,22 +143,22 @@ namespace bee { namespace ui {
 
 		return button;
 	}
-	int button_callback(Instance* inst) {
+	int button_callback(Instance* button) {
 		if (!internal::is_loaded) {
 			messenger::send({"engine", "ui"}, E_MESSAGE::WARNING, "UI not initialized: button callback not run");
 			return 1;
 		}
 
-		if (internal::button_callbacks.find(inst) == internal::button_callbacks.end()) {
+		if (internal::button_callbacks.find(button) == internal::button_callbacks.end()) {
 			return 2;
 		}
 
-		std::function<void (Instance*)> func = internal::button_callbacks[inst];
+		std::function<void (Instance*)> func = internal::button_callbacks[button];
 		if (func == nullptr) {
 			return 3;
 		}
 
-		internal::button_callbacks[inst](inst);
+		func(button);
 
 		return 0;
 	}
@@ -189,6 +200,102 @@ namespace bee { namespace ui {
 				internal::parents.at(parent).erase(handle);
 			}
 		}
+		return 0;
+	}
+
+	Instance* create_text_entry(int x, int y, int rows, int cols, std::function<void (Instance*, const std::string&)> func) {
+		if (!internal::is_loaded) {
+			messenger::send({"engine", "ui"}, E_MESSAGE::WARNING, "UI not initialized: text entry not created");
+			return nullptr;
+		}
+
+		bee::Instance* text_entry = bee::get_current_room()->add_instance(-1, internal::obj_text_entry, x, y, 0.0);
+		text_entry->set_corner_x(x);
+		text_entry->set_corner_y(y);
+
+		ObjUITextEntry* obj_text_entry = dynamic_cast<ObjUITextEntry*>(internal::obj_text_entry);
+		obj_text_entry->update(text_entry);
+		obj_text_entry->set_size(text_entry, rows, cols);
+
+		internal::text_entry_callbacks.emplace(text_entry, func);
+
+		return text_entry;
+	}
+	int add_text_entry_completor(Instance* text_entry, std::function<std::vector<SIDP> (Instance*, const std::string&)> func) {
+		if (!internal::is_loaded) {
+			messenger::send({"engine", "ui"}, E_MESSAGE::WARNING, "UI not initialized: text entry completor not added");
+			return 1;
+		}
+
+		internal::text_entry_completors.emplace(text_entry, func);
+
+		return 0;
+	}
+	int add_text_entry_handler(Instance* text_entry, std::function<void (Instance*, const std::string&, const SDL_Event*)> func) {
+		if (!internal::is_loaded) {
+			messenger::send({"engine", "ui"}, E_MESSAGE::WARNING, "UI not initialized: text entry handler not added");
+			return 1;
+		}
+
+		internal::text_entry_handlers.emplace(text_entry, func);
+
+		return 0;
+	}
+	int text_entry_callback(Instance* text_entry, const std::string& input) {
+		if (!internal::is_loaded) {
+			messenger::send({"engine", "ui"}, E_MESSAGE::WARNING, "UI not initialized: text entry callback not run");
+			return 1;
+		}
+
+		if (internal::text_entry_callbacks.find(text_entry) == internal::text_entry_callbacks.end()) {
+			return 2;
+		}
+
+		std::function<void (Instance*, const std::string&)> func = internal::text_entry_callbacks[text_entry];
+		if (func == nullptr) {
+			return 3;
+		}
+
+		func(text_entry, input);
+
+		return 0;
+	}
+	std::vector<SIDP> text_entry_completor(Instance* text_entry, const std::string& input) {
+		std::vector<SIDP> uncomplete = {input};
+
+		if (!internal::is_loaded) {
+			messenger::send({"engine", "ui"}, E_MESSAGE::WARNING, "UI not initialized: text entry completor not run");
+			return uncomplete;
+		}
+
+		if (internal::text_entry_completors.find(text_entry) == internal::text_entry_completors.end()) {
+			return uncomplete;
+		}
+
+		std::function<std::vector<SIDP> (Instance*, const std::string&)> func = internal::text_entry_completors[text_entry];
+		if (func == nullptr) {
+			return uncomplete;
+		}
+
+		return func(text_entry, input);
+	}
+	int text_entry_handler(Instance* text_entry, const std::string& input, const SDL_Event* e) {
+		if (!internal::is_loaded) {
+			messenger::send({"engine", "ui"}, E_MESSAGE::WARNING, "UI not initialized: text entry handler not run");
+			return 1;
+		}
+
+		if (internal::text_entry_handlers.find(text_entry) == internal::text_entry_handlers.end()) {
+			return 2;
+		}
+
+		std::function<void (Instance*, const std::string&, const SDL_Event*)> func = internal::text_entry_handlers[text_entry];
+		if (func == nullptr) {
+			return 3;
+		}
+
+		func(text_entry, input, e);
+
 		return 0;
 	}
 }}

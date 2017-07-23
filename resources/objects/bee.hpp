@@ -157,7 +157,7 @@ void ObjBee::keyboard_press(bee::Instance* self, SDL_Event* e) {
 		return;
 	}
 
-	if (bee::console_get_is_open()) {
+	if (bee::console::get_is_open()) {
 		return;
 	}
 
@@ -272,7 +272,7 @@ void ObjBee::keyboard_press(bee::Instance* self, SDL_Event* e) {
 	}
 }
 void ObjBee::mouse_press(bee::Instance* self, SDL_Event* e) {
-	if (bee::console_get_is_open()) {
+	if (bee::console::get_is_open()) {
 		return;
 	}
 

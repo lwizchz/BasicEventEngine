@@ -85,8 +85,6 @@ namespace bee {
 		commandline_input(),
 		commandline_current(0),
 
-		console(nullptr),
-
 		fps_stable(0)
 	{}
 
@@ -119,11 +117,6 @@ namespace bee {
 		if (cursor != nullptr) {
 			SDL_FreeCursor(cursor);
 			cursor = nullptr;
-		}
-
-		if (console != nullptr) {
-			delete console;
-			console = nullptr;
 		}
 
 		return 0;

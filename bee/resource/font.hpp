@@ -93,6 +93,7 @@ namespace bee {
 
 			int get_string_width(const std::string&, int) const;
 			int get_string_width(const std::string&) const;
+			int get_string_width() const;
 			int get_string_height(const std::string&, int) const;
 			int get_string_height(const std::string&) const;
 			int get_string_height() const;

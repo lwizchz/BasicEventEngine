@@ -16,6 +16,7 @@
 
 namespace bee {
 	// Forward declarations
+	class SIDP;
 	class Instance;
 	class Sound;
 	class Font;
@@ -37,6 +38,13 @@ namespace ui {
 
 	Instance* create_handle(int, int, int, int, RGBA, Instance*);
 	int destroy_handle(Instance*);
+
+	Instance* create_text_entry(int, int, int, int, std::function<void (Instance*, const std::string&)>);
+	int add_text_entry_completor(Instance*, std::function<std::vector<SIDP> (Instance*, const std::string&)>);
+	int add_text_entry_handler(Instance*, std::function<void (Instance*, const std::string&, const SDL_Event*)>);
+	int text_entry_callback(Instance*, const std::string&);
+	std::vector<SIDP> text_entry_completor(Instance*, const std::string&);
+	int text_entry_handler(Instance*, const std::string&, const SDL_Event*);
 }}
 
 #endif // BEE_UI_H

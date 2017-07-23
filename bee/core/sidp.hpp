@@ -30,6 +30,8 @@ namespace bee {
 		SIDP(int);
 		SIDP(double);
 		SIDP(void*);
+		SIDP(std::vector<SIDP>*);
+		SIDP(std::map<SIDP,SIDP>*);
 		~SIDP();
 		int reset();
 
@@ -58,6 +60,8 @@ namespace bee {
 		SIDP& operator=(int);
 		SIDP& operator=(double);
 		SIDP& operator=(void*);
+		SIDP& operator=(const std::vector<SIDP>&);
+		SIDP& operator=(const std::map<SIDP,SIDP>&);
 
 		SIDP& operator+=(const SIDP&);
 		SIDP& operator+=(int);

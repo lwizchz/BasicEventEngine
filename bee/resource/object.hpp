@@ -107,10 +107,10 @@ namespace bee {
 			std::string get_instance_string() const;
 
 			std::map<std::string,SIDP> get_data(int) const;
-			SIDP get_data(int, const std::string&, const SIDP&, bool) const;
-			SIDP get_data(int, const std::string&) const;
+			const SIDP& get_data(int, const std::string&, const SIDP&, bool) const;
+			const SIDP& get_data(int, const std::string&) const;
 			int set_data(int, const std::map<std::string,SIDP>&);
-			int set_data(int, const std::string&, SIDP);
+			int set_data(int, const std::string&, const SIDP&);
 
 			virtual void update(Instance*);
 			virtual void create(Instance*) =0;

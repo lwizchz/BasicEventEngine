@@ -90,6 +90,7 @@ namespace bee {
 				reset_render_target();
 				draw_transition(); // Animate the defined transition from the before and after buffers
 			}
+			engine->current_room = nullptr;
 			engine->quit = true; // Set the quit flag just in case this was called in the main loop
 			return 0;
 		}

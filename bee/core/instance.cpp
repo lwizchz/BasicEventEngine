@@ -37,12 +37,40 @@
 #include "../resource/room.hpp"
 
 namespace bee {
-	Instance::Instance() {
+	Instance::Instance() :
+		pos_start(),
+
+		object(nullptr),
+		sprite(nullptr),
+
+		body(nullptr),
+		is_solid(false),
+		computation_type(E_COMPUTATION::STATIC),
+		is_persistent(false),
+
+		path(nullptr),
+		path_speed(0.0),
+		path_end_action(E_PATH_END::STOP),
+		path_current_node(0),
+		path_is_drawn(false),
+		path_is_pausable(false),
+		path_previous_mass(0.0),
+
+		id(-1),
+		subimage_time(0),
+		alarm_end(),
+		depth(0),
+
+		pos_previous(),
+		path_pos_start()
+	{
 		for (size_t i=0; i<BEE_ALARM_COUNT; i++) {
 			alarm_end[i] = 0xffffffff;
 		}
 	}
-	Instance::Instance(int new_id, Object* new_object, double new_x, double new_y, double new_z) {
+	Instance::Instance(int new_id, Object* new_object, double new_x, double new_y, double new_z) :
+		Instance()
+	{
 		init(new_id, new_object, new_x, new_y, new_z);
 	}
 	Instance::~Instance() {
@@ -73,6 +101,7 @@ namespace bee {
 		}
 
 		set_computation_type(computation_type);
+		is_persistent = object->get_is_persistent();
 
 		for (size_t i=0; i<BEE_ALARM_COUNT; i++) {
 			alarm_end[i] = 0xffffffff;
@@ -235,14 +264,18 @@ namespace bee {
 
 		return 0;
 	}
+	int Instance::set_is_persistent(bool new_is_persistent) {
+		is_persistent = new_is_persistent;
+		return 0;
+	}
 
-	SIDP Instance::get_data(const std::string& field, const SIDP& default_value, bool should_output) const {
+	const SIDP& Instance::get_data(const std::string& field, const SIDP& default_value, bool should_output) const {
 		return object->get_data(id, field, default_value, should_output);
 	}
-	SIDP Instance::get_data(const std::string& field) const {
+	const SIDP& Instance::get_data(const std::string& field) const {
 		return object->get_data(id, field);
 	}
-	int Instance::set_data(const std::string& field, SIDP data) {
+	int Instance::set_data(const std::string& field, const SIDP& data) {
 		return object->set_data(id, field, data);
 	}
 
@@ -299,6 +332,9 @@ namespace bee {
 	}
 	E_COMPUTATION Instance::get_computation_type() const {
 		return computation_type;
+	}
+	bool Instance::get_is_persistent() const {
+		return is_persistent;
 	}
 
 	int Instance::get_width() const {

@@ -222,7 +222,11 @@ namespace bee {
 				break;
 			}
 			case SDLK_TAB: {
-				s = "	";
+				s = "\t";
+				break;
+			}
+			case SDLK_RETURN: {
+				s = "\n";
 				break;
 			}
 

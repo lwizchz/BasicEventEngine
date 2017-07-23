@@ -92,8 +92,6 @@ namespace bee {
 		std::vector<std::string> commandline_input;
 		unsigned int commandline_current;
 
-		Console* console;
-
 		unsigned int fps_stable;
 
 		EngineState(int, char**, GameOptions*);

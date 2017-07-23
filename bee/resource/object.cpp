@@ -372,7 +372,7 @@ namespace bee {
 	* @default_value: the value to return if the field doesn't exist
 	* @should_output: whether a warning should be output if the field doesn't exist
 	*/
-	SIDP Object::get_data(int inst_id, const std::string& field, const SIDP& default_value, bool should_output) const {
+	const SIDP& Object::get_data(int inst_id, const std::string& field, const SIDP& default_value, bool should_output) const {
 		if (instance_data.find(inst_id) == instance_data.end()) { // If the instance doesn't exist, output a warning
 			if (should_output) {
 				messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to get data for the instance with id " + bee_itos(inst_id) + " of object \"" + name + "\"");
@@ -396,7 +396,7 @@ namespace bee {
 	* @inst_id: the id of the instance to fetch the data from
 	* @field: the name of the field to fetch
 	*/
-	SIDP Object::get_data(int inst_id, const std::string& field) const {
+	const SIDP& Object::get_data(int inst_id, const std::string& field) const {
 		return get_data(inst_id, field, 0, true); // Return the attempt to fetch the given data field
 	}
 	/*
@@ -417,7 +417,7 @@ namespace bee {
 	* @field: the name of the field to set
 	* @data: the value to set the field to
 	*/
-	int Object::set_data(int inst_id, const std::string& field, SIDP data) {
+	int Object::set_data(int inst_id, const std::string& field, const SIDP& data) {
 		if (instance_data.find(inst_id) == instance_data.end()) {
 			return 1; // Return 1 if the instance doesn't exist
 		}

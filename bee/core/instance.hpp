@@ -33,32 +33,33 @@ namespace bee {
 	class Instance {
 			btVector3 pos_start;
 
-			Object* object = nullptr;
-			Sprite* sprite = nullptr;
+			Object* object;
+			Sprite* sprite;
 
-			PhysicsBody* body = nullptr;
-			bool is_solid = false;
-			E_COMPUTATION computation_type = E_COMPUTATION::STATIC;
+			PhysicsBody* body;
+			bool is_solid;
+			E_COMPUTATION computation_type;
+			bool is_persistent;
 
-			Path* path = nullptr;
-			double path_speed = 0.0;
-			E_PATH_END path_end_action = E_PATH_END::STOP;
-			int path_current_node = 0;
-			bool path_is_drawn = false;
-			bool path_is_pausable = false;
-			double path_previous_mass = 0.0;
+			Path* path;
+			double path_speed;
+			E_PATH_END path_end_action;
+			int path_current_node;
+			bool path_is_drawn;
+			bool path_is_pausable;
+			double path_previous_mass;
 		public:
-			int id = -1;
-			Uint32 subimage_time = 0;
+			int id;
+			Uint32 subimage_time;
 			Uint32 alarm_end[BEE_ALARM_COUNT];
-			int depth = 0;
+			int depth;
 
 			btVector3 pos_previous;
 			btVector3 path_pos_start;
 
 			Instance();
 			Instance(int, Object*, double, double, double);
-			~Instance();
+			virtual ~Instance();
 			int init(int, Object*, double, double, double);
 			int print();
 
@@ -76,10 +77,11 @@ namespace bee {
 			int set_sprite(Sprite*);
 			int add_physbody();
 			int set_computation_type(E_COMPUTATION);
+			int set_is_persistent(bool);
 
-			SIDP get_data(const std::string&, const SIDP&, bool) const;
-			SIDP get_data(const std::string&) const;
-			int set_data(const std::string&, SIDP);
+			const SIDP& get_data(const std::string&, const SIDP&, bool) const;
+			const SIDP& get_data(const std::string&) const;
+			int set_data(const std::string&, const SIDP&);
 
 			btVector3 get_position() const;
 			double get_x() const;
@@ -98,6 +100,7 @@ namespace bee {
 			bool get_is_solid() const;
 			double get_mass() const;
 			E_COMPUTATION get_computation_type() const;
+			bool get_is_persistent() const;
 
 			int get_width() const;
 			int get_height() const;

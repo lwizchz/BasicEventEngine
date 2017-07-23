@@ -603,6 +603,13 @@ namespace bee {
 		return get_string_width(text, font_size); // Return the width in the current font size
 	}
 	/*
+	* Font::get_string_width() - Return the width of a character
+	* ! When the function is called without any arguments, simply call it with the conventionally largest character
+	*/
+	int Font::get_string_width() const {
+		return get_string_width("W"); // Return the width of a large character in the current font size
+	}
+	/*
 	* Font::get_string_height() - Return the height of the given text in the given font size
 	* @text: the string to get the height of
 	* @size: the font size to use when getting the string height
