@@ -12,15 +12,17 @@
 #include "util/windefine.hpp"
 
 namespace bee {
+	#define BIT(x) (1u << x)
+
 	enum class E_SOUNDEFFECT : int {
-		NONE       = (1u << 0),
-		CHORUS     = (1u << 1),
-		ECHO       = (1u << 2),
-		FLANGER    = (1u << 3),
-		GARGLE     = (1u << 4),
-		REVERB     = (1u << 5),
-		COMPRESSOR = (1u << 6),
-		EQUALIZER  = (1u << 7)
+		NONE       = BIT(0),
+		CHORUS     = BIT(1),
+		ECHO       = BIT(2),
+		FLANGER    = BIT(3),
+		GARGLE     = BIT(4),
+		REVERB     = BIT(5),
+		COMPRESSOR = BIT(6),
+		EQUALIZER  = BIT(7)
 	};
 
 	enum class E_RGB {
@@ -216,6 +218,8 @@ namespace bee {
 		LOOK,
 		ALL
 	};
+
+	#undef BIT
 }
 
 #endif // BEE_ENUM_H

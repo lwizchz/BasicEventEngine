@@ -710,9 +710,9 @@ namespace bee {
 			// Generate the rotation matrix for the subimage
 			// This is not included in the above transformation matrix because it is faster to rotate everything in the geometry shader
 			if (angle != 0.0) {
-				glm::mat4 rotation = glm::translate(glm::mat4(1.0f), glm::vec3(rect_width*rotate_x, height*rotate_y, 0.0f));
+				glm::mat4 rotation = glm::translate(glm::mat4(1.0f), glm::vec3(rotate_x*rect_width, rotate_y*height, 0.0f));
 				rotation = glm::rotate(rotation, static_cast<float>(degtorad(angle)), glm::vec3(0.0f, 0.0f, 1.0f)); // Rotate the subimage on the z-axis around the sprite's rotation origin at (rotate_x, rotate_y)
-				rotation = glm::translate(rotation, glm::vec3(-rect_width*rotate_x, -height*rotate_y, 0.0f));
+				rotation = glm::translate(rotation, glm::vec3(-rotate_x*rect_width, -rotate_y*height, 0.0f));
 				glUniformMatrix4fv(engine->renderer->rotation_location, 1, GL_FALSE, glm::value_ptr(rotation)); // Send the rotation matrix to the shader
 			}
 

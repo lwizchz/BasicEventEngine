@@ -182,7 +182,7 @@ namespace bee {
 			int intersect_boundary();
 			int collision();
 			static void collision_internal(btDynamicsWorld*, btScalar);
-			static void check_collision_lists(btBroadphasePair&, btCollisionDispatcher&, const btDispatcherInfo&);
+			static bool check_collision_filter(btBroadphaseProxy*, btBroadphaseProxy*);
 			int draw();
 			int draw_view();
 			int animation_end();

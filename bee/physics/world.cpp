@@ -11,6 +11,7 @@
 
 #include "world.hpp"
 
+#include "filter.hpp"
 #include "draw.hpp"
 #include "body.hpp"
 
@@ -25,25 +26,29 @@
 #include "../resource/room.hpp"
 
 namespace bee {
-	PhysicsWorld::PhysicsWorld() {
-		collision_configuration = new btDefaultCollisionConfiguration();
-		dispatcher = new btCollisionDispatcher(collision_configuration);
-		broadphase = new btDbvtBroadphase();
-		solver = new btSequentialImpulseConstraintSolver();
-		world = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collision_configuration);
+	PhysicsWorld::PhysicsWorld() :
+		collision_configuration(new btDefaultCollisionConfiguration()),
+		dispatcher(new btCollisionDispatcher(collision_configuration)),
+		broadphase(new btDbvtBroadphase()),
+		solver(new btSequentialImpulseConstraintSolver()),
+		world(new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collision_configuration)),
 
-		debug_draw = new PhysicsDraw();
+		filter_callback(new PhysicsFilter()),
+
+		debug_draw(new PhysicsDraw(this)),
+
+		gravity({0.0, -10.0, 0.0}),
+		scale(10.0)
+	{
 		debug_draw->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
 		world->setDebugDrawer(debug_draw);
-		debug_draw->attach(this);
 
 		set_gravity(gravity);
 		set_scale(scale);
 
-		//world->setInternalTickCallback(Room::collision_internal, static_cast<void*>(this), true);
 		world->setInternalTickCallback(Room::collision_internal, static_cast<void*>(this));
 
-		//dispatcher->setNearCallback(Room::check_collision_lists);
+		world->getPairCache()->setOverlapFilterCallback(filter_callback);
 	}
 	PhysicsWorld::~PhysicsWorld() {
 		delete debug_draw;

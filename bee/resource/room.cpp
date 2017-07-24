@@ -1338,11 +1338,38 @@ namespace bee {
 			}
 		}
 	}
-	void Room::check_collision_lists(btBroadphasePair& collision_pair, btCollisionDispatcher& dispatcher, const btDispatcherInfo& dispatch_info) {
-		//btRigidBody* body1 = static_cast<btRigidBody*>collision_pair.m_pProxy0->m_clientObject;
-		//btRigidBody* body2 = static_cast<btRigidBody*>collision_pair.m_pProxy1->m_clientObject;
+	bool Room::check_collision_filter(btBroadphaseProxy* proxy0, btBroadphaseProxy* proxy1) {
+		bool should_collide = false;
+		std::map<const btRigidBody*,Instance*> physics_instances = get_current_room()->get_phys_instances();
 
-		dispatcher.defaultNearCallback(collision_pair, dispatcher, dispatch_info);
+		btRigidBody* body1 = static_cast<btRigidBody*>(proxy0->m_clientObject);
+		btRigidBody* body2 = static_cast<btRigidBody*>(proxy1->m_clientObject);
+
+		if ((physics_instances.find(body1) != physics_instances.end())&&(physics_instances.find(body2) != physics_instances.end())) {
+			Instance* i1 = physics_instances[body1];
+			Instance* i2 = physics_instances[body2];
+
+			if (
+				(i1 != nullptr)
+				&&(i2 != nullptr)
+				&&(i1->get_object() != nullptr)
+				&&(i2->get_object() != nullptr)
+			) {
+				i1->get_object()->update(i1);
+				should_collide = i1->get_object()->check_collision_filter(i1, i2);
+				i2->get_object()->update(i2);
+				should_collide = should_collide && i2->get_object()->check_collision_filter(i2, i1);
+			} else {
+				if ((i1 == nullptr)||(i1->get_object() == nullptr)) {
+					physics_instances.erase(body1);
+				}
+				if ((i2 == nullptr)||(i2->get_object() == nullptr)) {
+					physics_instances.erase(body2);
+				}
+			}
+		}
+
+		return should_collide;
 	}
 	int Room::draw() {
 		if (is_background_color_enabled) {

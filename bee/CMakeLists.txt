@@ -12,7 +12,7 @@ set(deps_bee_network network/network.cpp network/client.cpp network/connection.c
 set(deps_bee_render_particle render/particle/attractor.cpp render/particle/changer.cpp render/particle/deflector.cpp render/particle/destroyer.cpp render/particle/emitter.cpp render/particle/particle.cpp render/particle/particledata.cpp render/particle/system.cpp)
 set(deps_bee_render render/camera.cpp render/drawing.cpp render/render.cpp render/renderer.cpp render/rgba.cpp render/transition.cpp render/viewdata.cpp ${deps_bee_render_particle})
 
-set(deps_bee_physics physics/body.cpp physics/draw.cpp physics/world.cpp)
+set(deps_bee_physics physics/body.cpp physics/filter.cpp physics/draw.cpp physics/world.cpp)
 
 set(deps_bee_resource resource/sprite.cpp resource/sound.cpp resource/background.cpp resource/font.cpp resource/path.cpp resource/timeline.cpp resource/mesh.cpp resource/light.cpp resource/object.cpp resource/room.cpp)
 

@@ -25,20 +25,20 @@ namespace bee {
 	class PhysicsBody {
 		private:
 			E_PHYS_SHAPE type;
-			btCollisionShape* shape = nullptr;
-			size_t shape_param_amount = 0;
-			double* shape_params = nullptr;
+			btCollisionShape* shape;
+			size_t shape_param_amount;
+			double* shape_params;
 
-			btDefaultMotionState* motion_state = nullptr;
-			btRigidBody* body = nullptr;
+			btDefaultMotionState* motion_state;
+			btRigidBody* body;
 
-			PhysicsWorld* attached_world = nullptr;
-			Instance* attached_instance = nullptr;
+			PhysicsWorld* attached_world;
+			Instance* attached_instance;
 			std::vector<std::tuple<E_PHYS_CONSTRAINT,double*,btTypedConstraint*>> constraints;
 
-			double scale = 1.0;
-			double mass = 0.0;
-			double friction  = 0.5;
+			double scale;
+			double mass;
+			double friction;
 		public:
 			PhysicsBody(PhysicsWorld*, Instance*, E_PHYS_SHAPE, double, double, double, double, double*);
 			~PhysicsBody();

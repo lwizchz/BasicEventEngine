@@ -15,21 +15,24 @@
 
 namespace bee {
 	// Forward declarations
+	class PhysicsFilter;
 	class PhysicsDraw;
 	class PhysicsBody;
 
 	class PhysicsWorld {
 		private:
-			btDefaultCollisionConfiguration* collision_configuration = nullptr;
-			btCollisionDispatcher* dispatcher = nullptr;
-			btBroadphaseInterface* broadphase = nullptr;
-			btSequentialImpulseConstraintSolver* solver = nullptr;
-			btDiscreteDynamicsWorld* world = nullptr;
+			btDefaultCollisionConfiguration* collision_configuration;
+			btCollisionDispatcher* dispatcher;
+			btBroadphaseInterface* broadphase;
+			btSequentialImpulseConstraintSolver* solver;
+			btDiscreteDynamicsWorld* world;
 
-			PhysicsDraw* debug_draw = nullptr;
+			PhysicsFilter* filter_callback;
 
-			btVector3 gravity = {0.0, -10.0, 0.0};
-			double scale = 1.0;
+			PhysicsDraw* debug_draw;
+
+			btVector3 gravity;
+			double scale;
 		public:
 			PhysicsWorld();
 			~PhysicsWorld();

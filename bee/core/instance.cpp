@@ -560,8 +560,8 @@ namespace bee {
 
 			if (i.second->object->get_is_solid()) {
 				if (check_collision(mask, other)) {
-					if (object->check_collision_list(*this, *i.second)) {
-						if (i.second->object->check_collision_list(*i.second, *this)) {
+					if (object->check_collision_filter(this, i.second)) {
+						if (i.second->object->check_collision_filter(i.second, this)) {
 							return false;
 						}
 					}

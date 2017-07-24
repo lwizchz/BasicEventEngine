@@ -20,11 +20,10 @@ namespace bee {
 		private:
 			int debug_mode;
 
-			PhysicsWorld* attached_world = nullptr;
+			PhysicsWorld* attached_world;
 		public:
-			PhysicsDraw();
+			PhysicsDraw(PhysicsWorld*);
 			virtual ~PhysicsDraw();
-			int attach(PhysicsWorld*);
 
 			virtual void drawLine(const btVector3&, const btVector3&, const btVector3&, const btVector3&);
 			virtual void drawLine(const btVector3&, const btVector3&, const btVector3&);

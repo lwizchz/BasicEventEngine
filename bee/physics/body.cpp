@@ -27,22 +27,23 @@
 #include "../resource/room.hpp"
 
 namespace bee {
-	PhysicsBody::PhysicsBody(PhysicsWorld* new_world, Instance* new_inst, E_PHYS_SHAPE new_type, double new_mass, double x, double y, double z, double* p) {
-		attached_world = new_world;
-		attached_instance = new_inst;
+	PhysicsBody::PhysicsBody(PhysicsWorld* new_world, Instance* new_inst, E_PHYS_SHAPE new_type, double new_mass, double x, double y, double z, double* p) :
+		type(new_type),
+		shape(nullptr),
+		shape_param_amount(0),
+		shape_params(nullptr),
 
-		type = new_type;
-		mass = new_mass;
+		motion_state(nullptr),
+		body(nullptr),
 
-		if (motion_state != nullptr) {
-			delete motion_state;
-			motion_state = nullptr;
-		}
-		if (body != nullptr) {
-			delete body;
-			body = nullptr;
-		}
+		attached_world(new_world),
+		attached_instance(new_inst),
+		constraints(),
 
+		scale(1.0),
+		mass(new_mass),
+		friction(0.5)
+	{
 		set_shape(new_type, p);
 
 		btTransform transform;
@@ -172,7 +173,7 @@ namespace bee {
 		if (instances.find(SIDP_i(m["attached_instance"])) != instances.end()) {
 			inst = instances.at(SIDP_i(m["attached_instance"]));
 		}
-		
+
 		return deserialize(data, inst);
 	}
 

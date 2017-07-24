@@ -23,14 +23,12 @@
 #include "../render/rgba.hpp"
 
 namespace bee {
-	PhysicsDraw::PhysicsDraw() {
-		debug_mode = 0;
-	}
+	PhysicsDraw::PhysicsDraw(PhysicsWorld* new_world) :
+		debug_mode(0),
+
+		attached_world(new_world)
+	{}
 	PhysicsDraw::~PhysicsDraw() {}
-	int PhysicsDraw::attach(PhysicsWorld* new_world) {
-		attached_world = new_world;
-		return 0;
-	}
 
 	void PhysicsDraw::drawLine(const btVector3& v1, const btVector3& v2, const btVector3& color1, const btVector3& color2) {
 		if (attached_world != nullptr) {

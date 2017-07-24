@@ -134,7 +134,7 @@ namespace bee {
 			virtual void outside_room(Instance*) {};
 			virtual void intersect_boundary(Instance*) {};
 			virtual void collision(Instance*, Instance*) {};
-			virtual bool check_collision_list(const Instance&, const Instance&) const {return true;};
+			virtual bool check_collision_filter(const Instance*, const Instance*) const {return true;};
 			virtual void draw(Instance*) {};
 			virtual void animation_end(Instance*) {};
 			virtual void room_start(Instance*) {};
