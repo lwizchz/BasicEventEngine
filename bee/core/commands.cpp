@@ -13,9 +13,12 @@
 
 #include "../engine.hpp"
 
-#include "../util/string.hpp"
+#include "../util/files.hpp"
+#include "../util/platform.hpp"
 
 #include "../messenger/messenger.hpp"
+
+#include "../network/network.hpp"
 
 #include "../render/transition.hpp"
 

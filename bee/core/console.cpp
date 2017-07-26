@@ -20,8 +20,7 @@
 #include "../engine.hpp"
 
 #include "../util/real.hpp"
-#include "../util/files.hpp"
-#include "../util/platform.hpp"
+#include "../util/string.hpp"
 
 #include "../init/gameoptions.hpp"
 
@@ -31,8 +30,6 @@
 #include "input.hpp"
 #include "resources.hpp"
 #include "room.hpp"
-
-#include "../network/network.hpp"
 
 #include "../render/drawing.hpp"
 #include "../render/renderer.hpp"
