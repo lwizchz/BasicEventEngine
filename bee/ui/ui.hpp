@@ -33,10 +33,10 @@ namespace ui {
 
 	int destroy_parent(Instance*);
 
-	Instance* create_button(int, int, Font*, const std::string&, RGBA, std::function<void (Instance*)>);
+	Instance* create_button(int, int, Font*, const std::string&, std::function<void (Instance*)>);
 	int button_callback(Instance*);
 
-	Instance* create_handle(int, int, int, int, RGBA, Instance*);
+	Instance* create_handle(int, int, int, int, Instance*);
 	int destroy_handle(Instance*);
 
 	Instance* create_text_entry(int, int, int, int, std::function<void (Instance*, const std::string&)>);

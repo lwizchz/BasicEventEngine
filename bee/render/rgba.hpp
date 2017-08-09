@@ -16,7 +16,7 @@ namespace bee {
 		Uint8 r, g, b, a;
 
 		RGBA();
-		RGBA(Uint8, Uint8, Uint8, Uint8);
+		RGBA(int, int, int, int);
 	};
 }
 

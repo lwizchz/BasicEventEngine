@@ -151,6 +151,7 @@ namespace bee {
 			int load_media();
 			int free_media();
 			int reset_properties();
+			int transfer_instances(const Room*);
 
 			int save_instance_map(std::string);
 			int load_instance_map(std::string);
@@ -193,7 +194,7 @@ namespace bee {
 			int window(SDL_Event*);
 			int network(const NetworkEvent&);
 
-			virtual void init() =0;
+			virtual void init();
 			virtual void start() {};
 			virtual void end() {};
 	};

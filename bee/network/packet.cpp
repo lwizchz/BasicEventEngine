@@ -12,8 +12,12 @@
 #include "packet.hpp"
 
 #include "../util/platform.hpp"
+#include "../util/network.hpp"
 
 #include "../messenger/messenger.hpp"
+
+#include "client.hpp"
+#include "connection.hpp"
 
 namespace bee {
 	size_t NetworkPacket::MAX_SIZE = 65536;
@@ -141,6 +145,8 @@ namespace bee {
 			data.push_back(new_data[i]);
 		}
 
+		delete[] new_data;
+
 		return 0;
 	}
 	int NetworkPacket::append_data(std::pair<size_t,Uint8*> new_data) {
@@ -219,7 +225,7 @@ namespace bee {
 	}
 	const std::vector<std::pair<size_t,Uint8*>>& NetworkPacket::get_multi() {
 		free_multi();
-		
+
 		if (data.size()+4 != size) {
 			reset();
 			messenger::send({"engine", "network"}, E_MESSAGE::ERROR, "Failed to construct packet: invalid data size, the packet is now empty");
@@ -262,6 +268,57 @@ namespace bee {
 	}
 	Uint8 NetworkPacket::get_signal2() const {
 		return signals - (signals >> 4 << 4);
+	}
+
+	/*
+	* send_packet() - Send the given packet to the given client
+	*/
+	int send_packet(const NetworkClient& client, std::unique_ptr<NetworkPacket> const & packet) {
+		if ((packet->get_signal2() == 4)&&(packet->get_size() > NetworkPacket::MAX_SIZE)) {
+			const std::vector<std::pair<size_t,Uint8*>>& packets = packet->get_multi();
+			for (auto& p : packets) {
+				network_udp_send(client.sock, client.channel, p.first, p.second);
+			}
+			packet->free_multi();
+			return packets.size();
+		}
+
+		return network_udp_send(client.sock, client.channel, packet->get_size(), packet->get());
+	}
+	/*
+	* recv_packet() - Attempt to receive a packet from the UDP socket
+	*/
+	std::unique_ptr<NetworkPacket> recv_packet(NetworkConnection* connection) {
+		if (connection == nullptr) {
+			return nullptr;
+		}
+
+		//connection->udp_data = network_packet_realloc(connection->udp_data, 512); // Attempt to allocate space to receive data
+		connection->udp_data = network_packet_realloc(connection->udp_data, 65536); // Attempt to allocate more space to receive data
+		if (connection->udp_data == nullptr) {
+			return nullptr; // Return nullptr when failed to allocate
+		}
+
+		int r = network_udp_recv(connection->udp_sock, connection->udp_data); // Attempt to receive data over the UDP socket
+		if (r == 0) {
+			return nullptr; // Return nullptr when there is no message to receive
+		}
+
+		if (r == -1) { // If receiving failed, attempt to allocate more space for the packet
+			/*connection->udp_data = network_packet_realloc(connection->udp_data, 65536); // Attempt to allocate more space to receive data
+			if (connection->udp_data == nullptr) {
+				return nullptr; // Return nullptr when failed to allocate
+			}
+
+			r = network_udp_recv(connection->udp_sock, connection->udp_data); // Attempt to receive data over the UDP socket*/
+			if (r != 1) {
+				return nullptr; // Return nullptr when the message still could not be received
+			}
+		}
+
+		return std::make_unique<NetworkPacket>(
+			connection->udp_data
+		);
 	}
 }
 

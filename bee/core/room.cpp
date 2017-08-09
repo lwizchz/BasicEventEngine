@@ -67,8 +67,8 @@ namespace bee {
 			}
 			if (new_room != nullptr) {
 				engine->current_room->room_end(); // Run the room_end event for the current room
+				engine->current_room->reset_properties(); // Reset the current room's properties
 			}
-			engine->current_room->reset_properties(); // Reset the current room's properties
 		} else { // if we are not in a room
 			if (engine->transition_type != E_TRANSITION::NONE) { // If a transition has been defined then draw nothing into the before buffer
 				set_render_target(engine->texture_before);
@@ -90,14 +90,17 @@ namespace bee {
 				reset_render_target();
 				draw_transition(); // Animate the defined transition from the before and after buffers
 			}
+			engine->current_room->reset_properties(); // Reset the current room's properties
 			engine->current_room = nullptr;
 			engine->quit = true; // Set the quit flag just in case this was called in the main loop
 			return 0;
 		}
 
+		const Room* old_room = engine->current_room;
 		engine->current_room = new_room; // Set the new room as the current room
 		engine->is_ready = false; // Set the event loop as not running
 		engine->current_room->reset_properties(); // Reset the new room's properties
+		engine->current_room->transfer_instances(old_room); // Transfer the persistent instance from the previous room
 		engine->current_room->init(); // Initialize the room
 
 		if (load_media()) { // Attempt to load all resources for the new room

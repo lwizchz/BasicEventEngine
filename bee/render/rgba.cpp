@@ -18,7 +18,7 @@ namespace bee {
 		b(0),
 		a(0)
 	{}
-	RGBA::RGBA(Uint8 nr, Uint8 ng, Uint8 nb, Uint8 na) :
+	RGBA::RGBA(int nr, int ng, int nb, int na) :
 		r(nr),
 		g(ng),
 		b(nb),

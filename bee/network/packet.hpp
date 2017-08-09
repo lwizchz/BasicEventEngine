@@ -10,10 +10,15 @@
 #define BEE_NETWORK_PACKET_H 1
 
 #include <vector>
+#include <memory>
 
 #include <SDL2/SDL_net.h>
 
 namespace bee {
+	// Forward declarations
+	class NetworkClient;
+	class NetworkConnection;
+
 	class NetworkPacket {
 		Uint8* packet;
 		size_t size;
@@ -52,6 +57,9 @@ namespace bee {
 		Uint8 get_signal1() const;
 		Uint8 get_signal2() const;
 	};
+
+	int send_packet(const NetworkClient&, std::unique_ptr<NetworkPacket> const &);
+	std::unique_ptr<NetworkPacket> recv_packet(NetworkConnection*);
 }
 
 #endif // BEE_NETWORK_PACKET_H

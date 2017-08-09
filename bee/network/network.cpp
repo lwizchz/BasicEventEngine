@@ -116,57 +116,6 @@ namespace bee { namespace net {
 	}
 
 	/*
-	* send_packet() - Send the given packet to the given client
-	*/
-	int send_packet(const NetworkClient& client, std::unique_ptr<NetworkPacket> const &packet) {
-		if ((packet->get_signal2() == 4)&&(packet->get_size() > NetworkPacket::MAX_SIZE)) {
-			const std::vector<std::pair<size_t,Uint8*>>& packets = packet->get_multi();
-			for (auto& p : packets) {
-				network_udp_send(client.sock, client.channel, p.first, p.second);
-			}
-			packet->free_multi();
-			return packets.size();
-		}
-
-		return network_udp_send(client.sock, client.channel, packet->get_size(), packet->get());
-	}
-	/*
-	* recv_packet() - Attempt to receive a packet from the UDP socket
-	*/
-	std::unique_ptr<NetworkPacket> recv_packet() {
-		if (internal::connection == nullptr) {
-			return nullptr;
-		}
-
-		//internal::connection->udp_data = network_packet_realloc(internal::connection->udp_data, 512); // Attempt to allocate space to receive data
-		internal::connection->udp_data = network_packet_realloc(internal::connection->udp_data, 65536); // Attempt to allocate more space to receive data
-		if (internal::connection->udp_data == nullptr) {
-			return nullptr; // Return nullptr when failed to allocate
-		}
-
-		int r = network_udp_recv(internal::connection->udp_sock, internal::connection->udp_data); // Attempt to receive data over the UDP socket
-		if (r == 0) {
-			return nullptr; // Return nullptr when there is no message to receive
-		}
-
-		if (r == -1) { // If receiving failed, attempt to allocate more space for the packet
-			/*internal::connection->udp_data = network_packet_realloc(internal::connection->udp_data, 65536); // Attempt to allocate more space to receive data
-			if (internal::connection->udp_data == nullptr) {
-				return nullptr; // Return nullptr when failed to allocate
-			}
-
-			r = network_udp_recv(internal::connection->udp_sock, internal::connection->udp_data); // Attempt to receive data over the UDP socket*/
-			if (r != 1) {
-				return nullptr; // Return nullptr when the message still could not be received
-			}
-		}
-
-		return std::unique_ptr<NetworkPacket>(new NetworkPacket(
-			internal::connection->udp_data
-		));
-	}
-
-	/*
 	* handle_events() - Handle network sending and receiving during the event loop
 	*/
 	int handle_events() {
@@ -178,393 +127,34 @@ namespace bee { namespace net {
 			return 1; // Return 1 if networking is disabled or if it has not been initialized
 		}
 
-		auto packet = recv_packet();
+		std::unique_ptr<NetworkPacket> packet = recv_packet(internal::connection);
 		while (packet != nullptr) { // Iterate over the received packets
 			if (internal::connection->udp_data->len < 3) {
-				packet = recv_packet();
+				packet = recv_packet(internal::connection);
 				continue; // Continue when the data doesn't contain a signal
 			}
 
 			if (internal::connection->is_host) { // Handle session hosting signals
-				switch (packet->get_signal1()) {
-					case 1: { // Connection requested
-						if (internal::connection->players.size() < internal::connection->max_players) { // If there is still room for clients then allow the current one to connect
-							NetworkClient c;
-							c.id = internal::connection->players.size(); // Get an id for the client
-
-							int port = -1;
-							std::tie(port, c.sock) = network_udp_open_range(internal::port, internal::connection->max_players);
-							if (c.sock == nullptr) {
-								messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not accept client");
-								break;
-							}
-
-							IPaddress ipa = internal::connection->udp_data->address;
-							//ipa.port = port;
-							c.channel = network_udp_bind(&c.sock, c.id, &ipa); // Bind a sending socket to the client who is requesting a connection
-							if (c.channel == -1) {
-								network_udp_close(&c.sock);
-
-								messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not accept client");
-								break;
-							}
-
-							c.name = chra(packet->get_raw());
-
-							Uint8* data = new Uint8[1];
-							data[0] = c.id;
-							auto p = std::unique_ptr<NetworkPacket>(new NetworkPacket(
-								internal::connection->self_id,
-								1, // Connection request signal
-								0,
-								1, // Data size
-								data
-							));
-
-							if (send_packet(c, p) == 0) { // Send the client their id
-								network_udp_close(&c.sock);
-								delete[] data;
-
-								messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not accept client");
-								break;
-							}
-							c.last_recv = get_ticks();
-
-							internal::connection->players.emplace(c.id, c); // Add the client to the list of clients
-
-							delete[] data;
-
-							NetworkEvent e (E_NETEVENT::CONNECT);
-							e.data.emplace("id", c.id);
-							e.data.emplace("username", c.name);
-							get_current_room()->network(e);
-
-							messenger::send({"engine", "network"}, E_MESSAGE::INFO, "Client accepted");
-
-							// Send player update to clients
-							internal::host_send_players(-1);
-						} else {
-							NetworkClient c;
-
-							int port = -1;
-							std::tie(port, c.sock) = network_udp_open_range(internal::port, internal::connection->max_players);
-							if (c.sock == nullptr) {
-								messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not accept client");
-								break;
-							}
-
-							auto p = std::unique_ptr<NetworkPacket>(new NetworkPacket(
-								internal::connection->self_id,
-								2, // Disconnect signal
-								0
-							));
-							p->append_data(orda("Server full"));
-
-							send_packet(c, p);
-
-							network_udp_close(&c.sock);
-
-							messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not accept client: server full");
-						}
-						break;
-					}
-					case 2: { // Client disconnected
-						NetworkClient& c = internal::connection->players[packet->id];
-						network_udp_unbind(&c.sock, c.channel); // Unbind the socket to the client who has disconnected
-						network_udp_close(&c.sock); // Close the socket
-
-						internal::connection->players.erase(c.id); // Remove them from the list of clients
-
-						NetworkEvent e (E_NETEVENT::DISCONNECT);
-						e.data.emplace("id", c.id);
-						e.data.emplace("username", c.name);
-						get_current_room()->network(e);
-
-						messenger::send({"engine", "network"}, E_MESSAGE::INFO, "Client disconnected");
-
-						// Send player update to clients
-						internal::host_send_players(-1);
-
-						break;
-					}
-					case 3: { // Server info request
-						switch (packet->get_signal2()) {
-							case 0: {
-								NetworkClient& c = internal::connection->players[packet->id];
-								c.last_recv = get_ticks();
-								break;
-							}
-							case 1: { // Client requesting server name
-								NetworkClient c;
-								std::tie(std::ignore, c.sock) = network_udp_open_range(internal::port, internal::connection->max_players+1);
-								if (c.sock == nullptr) {
-									messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not open socket");
-									break;
-								}
-
-								std::pair<size_t,Uint8*> name = orda(internal::connection->name); // Convert the server name to Uint8's
-
-								// See Network Message Format at the top of this file for details
-								auto p = std::unique_ptr<NetworkPacket>(new NetworkPacket(
-									internal::connection->self_id,
-									3, // Info request signal
-									1, // Info type 1: server name
-									name.first, // Data size
-									name.second // Data
-								));
-
-								if (send_packet(c, p) == 0) { // Send the entire message
-									network_udp_close(&c.sock);
-									free(name.second);
-
-									messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not send server info");
-									break;
-								}
-
-								network_udp_close(&c.sock);
-
-								free(name.second); // Free the allocated space
-
-								break;
-							}
-							case 2: { // Client requesting player map
-								internal::host_send_players(packet->id);
-								break;
-							}
-							case 3: { // Client requesting data map
-								internal::host_send_data(packet->id);
-								break;
-							}
-							default: {
-								messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Unknown network signal: 3." + bee_itos(packet->get_signal2()));
-							}
-						}
-						break; // Break from signal1: 3, server info request
-					}
-					case 4: { // Client info update
-						switch (packet->get_signal2()) {
-							case 3:
-							case 4: {
-								// Buffer the received data if necessary
-								if (internal::connection->tmp_data_buffer == nullptr) {
-									internal::connection->tmp_data_buffer = std::unique_ptr<NetworkPacket>(new NetworkPacket(
-										internal::connection->udp_data
-									));
-								} else {
-									internal::connection->tmp_data_buffer->append_net(internal::connection->udp_data);
-								}
-
-								if (internal::connection->tmp_data_buffer->get_signal2() == 3) { // Break when only a partial map has been received
-									break;
-								}
-
-								std::map<std::string,SIDP> new_data;
-								network_map_decode(internal::connection->tmp_data_buffer->get_raw(), &new_data); // Decode the data map into a temporary map
-								internal::connection->data.insert(new_data.begin(), new_data.end()); // Insert the new data into the connection data map
-
-								internal::connection->tmp_data_buffer.reset();
-								internal::connection->tmp_data_buffer = nullptr;
-
-								internal::has_data_update = true;
-
-								NetworkEvent e (E_NETEVENT::DATA_UPDATE);
-								e.data = std::map<std::string,SIDP>(internal::connection->data);
-								get_current_room()->network(e);
-
-								break;
-							}
-							default: {
-								messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Unknown network signal: 3." + bee_itos(packet->get_signal2()));
-							}
-						}
-						break; // Break from signal1: 4, client info update
-					}
-					default: {
-						messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Unknown network signal: " + bee_itos(packet->get_signal1()) + ".x");
-					}
-				}
+				internal::host_handle_packet(packet);
 			} else { // Handle client signals
-				internal::connection->last_recv = get_ticks();
-				switch (packet->get_signal1()) {
-					case 1: { // Connection accepted
-						internal::connection->self_id = packet->get_raw().second[0]; // Read the id that the server assigned to us
-						internal::connection->is_connected = true; // Mark our networking as connected
-
-						NetworkEvent e (E_NETEVENT::CONNECT);
-						e.data.emplace("id", internal::connection->self_id);
-						get_current_room()->network(e);
-
-						// Request an initial player map
-						/*NetworkClient c (internal::connection->udp_sock, internal::connection->channel);
-						auto p = std::unique_ptr<NetworkPacket>(new NetworkPacket(
-							internal::connection->self_id,
-							3, // Info request signal
-							2 // Info type 2: player map
-						));
-						if (send_packet(c, p) == 0) { // Send the keep alive
-							messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not request player map from server");
-							break;
-						}*/
-
-						messenger::send({"engine", "network"}, E_MESSAGE::INFO, "Connected to server with id " + bee_itos(internal::connection->self_id));
-						break;
-					}
-					case 2: { // Disconnected by host
-						session_end(); // Reset session
-
-						NetworkEvent e (E_NETEVENT::DISCONNECT);
-						e.data.emplace("reason", chra(packet->get_raw()));
-						get_current_room()->network(e);
-
-						messenger::send({"engine", "network"}, E_MESSAGE::INFO, "Disconnected by server");
-						return 2; // Return 2 when disconnected in the middle of the event loop
-					}
-					case 3: { // Server info received
-						switch (packet->get_signal2()) {
-							case 0: {
-								NetworkClient c (internal::connection->udp_sock, internal::connection->channel);
-
-								// See Network Message Format at the top of this file for details
-								auto p = std::unique_ptr<NetworkPacket>(new NetworkPacket(
-									internal::connection->self_id,
-									3, // Info request signal
-									0 // Info type 0: keepalive
-								));
-								if (send_packet(c, p) == 0) { // Send the keep alive
-									messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not send keep alive to server");
-									break;
-								}
-
-								break;
-							}
-							case 1: { // Received server name (along with IP address)
-								std::string ip = network_get_address(internal::connection->udp_data->address.host); // Get the server IP
-								std::string name = chra(packet->get_raw()); // Get the server name from the data
-
-								internal::servers.emplace(ip, name); // Add the server to the list of available servers
-
-								break;
-							}
-							case 2: { // Received player map
-								std::map <std::string,std::string> t; // Temp map to store player names in
-								internal::connection->players.clear(); // Clear out old player data
-								NetworkEvent e (E_NETEVENT::PLAYER_UPDATE);
-
-								network_map_decode(packet->get_raw(), &t); // Decode the player map from the data into t
-								for (auto& p : t) { // Iterate over the players in the temp map in order to generate sockets for each of them
-									NetworkClient c;
-									c.name = p.second;
-
-									internal::connection->players.emplace(bee_stoi(p.first), c); // Insert the player's id and IP address into our copy of the player map
-									e.data.emplace(p.first, p.second);
-								}
-
-								get_current_room()->network(e);
-
-								break;
-							}
-							case 3: // Received partial data map
-							case 4: { // Received end of data map
-								// Buffer the received data if necessary
-								if (internal::connection->tmp_data_buffer == nullptr) {
-									internal::connection->tmp_data_buffer = std::unique_ptr<NetworkPacket>(new NetworkPacket(
-										internal::connection->udp_data
-									));
-								} else {
-									internal::connection->tmp_data_buffer->append_net(internal::connection->udp_data);
-								}
-
-								if (internal::connection->tmp_data_buffer->get_signal2() == 3) { // Break when only a partial map has been received
-									break;
-								}
-
-								network_map_decode(internal::connection->tmp_data_buffer->get_raw(), &internal::connection->data); // Decode the data map directly into net->data in order to immediately replace all old data
-
-								internal::connection->tmp_data_buffer.reset();
-								internal::connection->tmp_data_buffer = nullptr;
-
-								NetworkEvent e (E_NETEVENT::DATA_UPDATE);
-								e.data = std::map<std::string,SIDP>(internal::connection->data);
-								get_current_room()->network(e);
-
-								break;
-							}
-							default: {
-								messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Unknown network signal: 3." + bee_itos(packet->get_signal2()));
-							}
-						}
-						break; // Break from signal1: 3 info received
-					}
-					default: {
-						messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Unknown network signal: " + bee_itos(packet->get_signal1()) + ".x");
-					}
-				}
+				internal::client_handle_packet(packet);
 			}
 
-			packet = recv_packet();
+			packet = recv_packet(internal::connection);
 		}
 
 		if (internal::has_data_update) {
 			if (internal::connection->is_host) {
 				internal::host_send_data(-1);
 			} else {
-				std::pair<size_t,Uint8*> data_map = network_map_encode(internal::connection->data); // Encode the data map as a series of Uint8's
-
-				// See Network Message Format at the top of this file for details
-				auto p = std::unique_ptr<NetworkPacket>(new NetworkPacket(
-					internal::connection->self_id,
-					4, // Info update signal
-					4, // Info type 3: data map
-					data_map.first, // Data size
-					data_map.second // Data
-				));
-
-				NetworkClient c (internal::connection->udp_sock, internal::connection->channel);
-
-				if (send_packet(c, p) == 0) { // Send the entire message
-					messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not send data map to server");
-				}
-
-				free(data_map.second); // Free the allocated space
+				internal::client_send_data();
 			}
 		}
 
-		const Uint32 now = get_ticks();
 		if (internal::connection->is_host) { // If we are the host
-			auto p_disconnect = std::unique_ptr<NetworkPacket>(new NetworkPacket(
-				internal::connection->self_id,
-				2, // Disconnect signal
-				0
-			));
-			p_disconnect->append_data(orda("Timed out after " + bee_itos(internal::timeout) + "ms"));
-			auto p_keepalive = std::unique_ptr<NetworkPacket>(new NetworkPacket(
-				internal::connection->self_id,
-				3, // Keepalive signal
-				0
-			));
-
-			for (auto& player : internal::connection->players) { // Iterate over the clients to ensure they are still connected
-				if (player.first != 0) { // Don't disconnect ourselves
-					if (now - player.second.last_recv > internal::timeout) { // Only disconnect clients that have timed out
-						send_packet(player.second, p_disconnect); // Send a disconnection signal
-						network_udp_unbind(&player.second.sock, player.second.channel); // Unbind the socket
-						network_udp_close(&player.second.sock); // Close the socket
-
-						internal::connection->players.erase(player.first); // Remove the client from the map
-						messenger::send({"engine", "network"}, E_MESSAGE::INFO, "Client timed out");
-					} else if (now - player.second.last_recv > internal::timeout/2) { // Send a keep alive to clients that might be timing out
-						if (send_packet(player.second, p_keepalive) == 0) { // Send the keep alive
-							messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not send keep alive to client");
-						}
-					}
-				}
-			}
+			internal::host_send_keepalive();
 		} else {
-			if (now - internal::connection->last_recv > internal::timeout) {
-				session_end();
-			} else if (now - internal::connection->last_recv > internal::timeout/2) {
-				// Wait for server to send keep alive?
-			}
+			internal::client_send_keepalive();
 		}
 
 		return 0; // Return 0 on success
@@ -624,11 +214,11 @@ namespace bee { namespace net {
 		}
 
 		NetworkClient c (internal::connection->udp_sock, internal::connection->channel);
-		auto p = std::unique_ptr<NetworkPacket>(new NetworkPacket(
+		auto p = std::make_unique<NetworkPacket>(
 			internal::connection->self_id,
 			3, // Info request signal
 			1 // Info type 1: server name
-		));
+		);
 
 		if (send_packet(c, p) == 0) { // Send a server name info request
 			network_udp_close(&internal::connection->udp_sock);
@@ -650,9 +240,9 @@ namespace bee { namespace net {
 		int r = network_udp_recv(internal::connection->udp_sock, internal::connection->udp_data); // Attempt to receive data
 		while (get_ticks() - t < internal::timeout) { // Continue receiving until we timeout
 			if ((r == 1)&&(internal::connection->udp_data->len > 4)) {
-				p = std::unique_ptr<NetworkPacket>(new NetworkPacket(
+				p = std::make_unique<NetworkPacket>(
 					internal::connection->udp_data
-				));
+				);
 
 				if (
 					(p->get_size() > 4)
@@ -695,11 +285,11 @@ namespace bee { namespace net {
 		}
 
 		NetworkClient c (internal::connection->udp_sock, internal::connection->channel);
-		auto p = std::unique_ptr<NetworkPacket>(new NetworkPacket(
+		auto p = std::make_unique<NetworkPacket>(
 			0,
 			1,
 			0
-		));
+		);
 		p->append_data(orda(player_name));
 
 		if (send_packet(c, p) == 0) { // Send a server connection request
@@ -734,11 +324,11 @@ namespace bee { namespace net {
 			if (internal::connection->is_host) { // If we are the host
 				messenger::send({"engine", "network"}, E_MESSAGE::INFO, "Disconnecting " + bee_itos(internal::connection->players.size()-1) + " clients...");
 
-				auto packet = std::unique_ptr<NetworkPacket>(new NetworkPacket(
+				auto packet = std::make_unique<NetworkPacket>(
 					internal::connection->self_id,
 					2, // Disconnect signal
 					0
-				));
+				);
 				packet->append_data(orda("Server shutting down"));
 
 				for (auto& player : internal::connection->players) { // Iterate over the clients to disconnect them
@@ -753,11 +343,11 @@ namespace bee { namespace net {
 				internal::connection->is_host = false;
 			} else {
 				NetworkClient c (internal::connection->udp_sock, internal::connection->channel);
-				auto p = std::unique_ptr<NetworkPacket>(new NetworkPacket(
+				auto p = std::make_unique<NetworkPacket>(
 					internal::connection->self_id,
 					2, // Disconnect signal
 					0
-				));
+				);
 				send_packet(c, p); // Send a disconnection signal to the server
 			}
 		}
@@ -866,6 +456,210 @@ namespace bee { namespace net {
 	}
 
 	/*
+	* internal::host_handle_packet() - Handle clients and data syncing
+	* @packet: the packet to handle
+	*/
+	int internal::host_handle_packet(std::unique_ptr<NetworkPacket> const & packet) {
+		switch (packet->get_signal1()) {
+			case 1: { // Connection requested
+				if (internal::connection->players.size() < internal::connection->max_players) { // If there is still room for clients then allow the current one to connect
+					NetworkClient c;
+					c.id = internal::connection->players.size(); // Get an id for the client
+
+					int port = -1;
+					std::tie(port, c.sock) = network_udp_open_range(internal::port, internal::connection->max_players);
+					if (c.sock == nullptr) {
+						messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not accept client");
+						break;
+					}
+
+					IPaddress ipa = internal::connection->udp_data->address;
+					//ipa.port = port;
+					c.channel = network_udp_bind(&c.sock, c.id, &ipa); // Bind a sending socket to the client who is requesting a connection
+					if (c.channel == -1) {
+						network_udp_close(&c.sock);
+
+						messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not accept client");
+						break;
+					}
+
+					c.name = chra(packet->get_raw());
+
+					Uint8* data = new Uint8[1];
+					data[0] = c.id;
+					auto p = std::make_unique<NetworkPacket>(
+						internal::connection->self_id,
+						1, // Connection request signal
+						0,
+						1, // Data size
+						data
+					);
+
+					if (send_packet(c, p) == 0) { // Send the client their id
+						network_udp_close(&c.sock);
+						delete[] data;
+
+						messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not accept client");
+						break;
+					}
+					c.last_recv = get_ticks();
+
+					internal::connection->players.emplace(c.id, c); // Add the client to the list of clients
+
+					delete[] data;
+
+					NetworkEvent e (E_NETEVENT::CONNECT);
+					e.id = c.id;
+					e.data.emplace("username", c.name);
+					get_current_room()->network(e);
+
+					messenger::send({"engine", "network"}, E_MESSAGE::INFO, "Client accepted");
+
+					// Send player update to clients
+					internal::host_send_players(-1);
+				} else {
+					NetworkClient c;
+
+					int port = -1;
+					std::tie(port, c.sock) = network_udp_open_range(internal::port, internal::connection->max_players);
+					if (c.sock == nullptr) {
+						messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not accept client");
+						break;
+					}
+
+					auto p = std::make_unique<NetworkPacket>(
+						internal::connection->self_id,
+						2, // Disconnect signal
+						0
+					);
+					p->append_data(orda("Server full"));
+
+					send_packet(c, p);
+
+					network_udp_close(&c.sock);
+
+					messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not accept client: server full");
+				}
+				break;
+			}
+			case 2: { // Client disconnected
+				NetworkClient c = internal::connection->players[packet->id];
+				network_udp_unbind(&c.sock, c.channel); // Unbind the socket to the client who has disconnected
+				network_udp_close(&c.sock); // Close the socket
+
+				internal::connection->players.erase(c.id); // Remove them from the list of clients
+
+				NetworkEvent e (E_NETEVENT::DISCONNECT);
+				e.id = c.id;
+				e.data.emplace("username", c.name);
+				get_current_room()->network(e);
+
+				messenger::send({"engine", "network"}, E_MESSAGE::INFO, "Client disconnected");
+
+				// Send player update to clients
+				internal::host_send_players(-1);
+
+				break;
+			}
+			case 3: { // Server info request
+				switch (packet->get_signal2()) {
+					case 0: {
+						NetworkClient& c = internal::connection->players[packet->id];
+						c.last_recv = get_ticks();
+						break;
+					}
+					case 1: { // Client requesting server name
+						NetworkClient c;
+						std::tie(std::ignore, c.sock) = network_udp_open_range(internal::port, internal::connection->max_players+1);
+						if (c.sock == nullptr) {
+							messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not open socket");
+							break;
+						}
+
+						std::pair<size_t,Uint8*> name = orda(internal::connection->name); // Convert the server name to Uint8's
+
+						// See Network Message Format at the top of this file for details
+						auto p = std::make_unique<NetworkPacket>(
+							internal::connection->self_id,
+							3, // Info request signal
+							1, // Info type 1: server name
+							name.first, // Data size
+							name.second // Data
+						);
+
+						if (send_packet(c, p) == 0) { // Send the entire message
+							network_udp_close(&c.sock);
+							delete[] name.second;
+
+							messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not send server info");
+							break;
+						}
+
+						network_udp_close(&c.sock);
+
+						delete[] name.second; // Free the allocated space
+
+						break;
+					}
+					case 2: { // Client requesting player map
+						internal::host_send_players(packet->id);
+						break;
+					}
+					case 3: { // Client requesting data map
+						internal::host_send_data(packet->id);
+						break;
+					}
+					default: {
+						messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Unknown network signal: 3." + bee_itos(packet->get_signal2()));
+					}
+				}
+				break; // Break from signal1: 3, server info request
+			}
+			case 4: { // Client info update
+				switch (packet->get_signal2()) {
+					case 3:
+					case 4: {
+						// Buffer the received data if necessary
+						if (internal::connection->tmp_data_buffer == nullptr) {
+							internal::connection->tmp_data_buffer = std::make_unique<NetworkPacket>(
+								internal::connection->udp_data
+							);
+						} else {
+							internal::connection->tmp_data_buffer->append_net(internal::connection->udp_data);
+						}
+
+						if (internal::connection->tmp_data_buffer->get_signal2() == 3) { // Break when only a partial map has been received
+							break;
+						}
+
+						network_map_decode(internal::connection->tmp_data_buffer->get_raw(), &internal::connection->data); // Decode the data map directly
+
+						internal::connection->tmp_data_buffer.reset();
+						internal::connection->tmp_data_buffer = nullptr;
+
+						internal::has_data_update = true;
+
+						NetworkEvent e (E_NETEVENT::DATA_UPDATE);
+						e.id = packet->id;
+						e.data = std::map<std::string,SIDP>(internal::connection->data);
+						get_current_room()->network(e);
+
+						break;
+					}
+					default: {
+						messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Unknown network signal: 3." + bee_itos(packet->get_signal2()));
+					}
+				}
+				break; // Break from signal1: 4, client info update
+			}
+			default: {
+				messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Unknown network signal: " + bee_itos(packet->get_signal1()) + ".x");
+			}
+		}
+
+		return 0;
+	}
+	/*
 	* internal::host_send_players() - Send the player map to the given client
 	* @id: the id of the given client, -1 will send to all clients
 	*/
@@ -879,13 +673,13 @@ namespace bee { namespace net {
 		std::pair<size_t,Uint8*> player_map = network_map_encode(t); // Encode the player map as a series of Uint8's
 
 		// See Network Message Format at the top of this file for details
-		auto p = std::unique_ptr<NetworkPacket>(new NetworkPacket(
+		auto p = std::make_unique<NetworkPacket>(
 			internal::connection->self_id,
 			3, // Info request signal
 			2, // Info type 2: player map
 			player_map.first, // Data size
 			player_map.second // Data
-		));
+		);
 
 		std::vector<int> ids;
 		if (id < 1) {
@@ -913,7 +707,7 @@ namespace bee { namespace net {
 			c.last_recv = get_ticks();
 		}
 
-		free(player_map.second); // Free the allocated space
+		delete[] player_map.second; // Free the allocated space
 
 		return (has_failed) ? 1 : 0;
 	}
@@ -925,13 +719,13 @@ namespace bee { namespace net {
 		std::pair<size_t,Uint8*> data_map = network_map_encode(internal::connection->data); // Encode the data map as a series of Uint8's
 
 		// See Network Message Format at the top of this file for details
-		auto p = std::unique_ptr<NetworkPacket>(new NetworkPacket(
+		auto p = std::make_unique<NetworkPacket>(
 			internal::connection->self_id,
 			3, // Info request signal
 			4, // Info type 3: data map
 			data_map.first, // Data size
 			data_map.second // Data
-		));
+		);
 
 		std::vector<int> ids;
 		if (id < 1) {
@@ -959,9 +753,212 @@ namespace bee { namespace net {
 			c.last_recv = get_ticks();
 		}
 
-		free(data_map.second); // Free the allocated space
+		delete[] data_map.second; // Free the allocated space
 
 		return (has_failed) ? 1 : 0;
+	}
+	/*
+	* internal::host_send_keepalive() - Send keepalives to clients that need it
+	*/
+	int internal::host_send_keepalive() {
+		auto p_disconnect = std::make_unique<NetworkPacket>(
+			internal::connection->self_id,
+			2, // Disconnect signal
+			0
+		);
+		p_disconnect->append_data(orda("Timed out after " + bee_itos(internal::timeout) + "ms"));
+		auto p_keepalive = std::make_unique<NetworkPacket>(
+			internal::connection->self_id,
+			3, // Keepalive signal
+			0
+		);
+
+		const Uint32 now = get_ticks();
+		for (auto& player : internal::connection->players) { // Iterate over the clients to ensure they are still connected
+			if (player.first != 0) { // Don't disconnect ourselves
+				if (now - player.second.last_recv > internal::timeout) { // Only disconnect clients that have timed out
+					send_packet(player.second, p_disconnect); // Send a disconnection signal
+					network_udp_unbind(&player.second.sock, player.second.channel); // Unbind the socket
+					network_udp_close(&player.second.sock); // Close the socket
+
+					internal::connection->players.erase(player.first); // Remove the client from the map
+					messenger::send({"engine", "network"}, E_MESSAGE::INFO, "Client timed out");
+				} else if (now - player.second.last_recv > internal::timeout/2) { // Send a keep alive to clients that might be timing out
+					if (send_packet(player.second, p_keepalive) == 0) { // Send the keep alive
+						messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not send keep alive to client");
+					}
+				}
+			}
+		}
+
+		return 0;
+	}
+
+	/*
+	* internal::client_handle_packet() - Handle the connection to the host and data syncing
+	* @packet: the packet to handle
+	*/
+	int internal::client_handle_packet(std::unique_ptr<NetworkPacket> const & packet) {
+		internal::connection->last_recv = get_ticks();
+		switch (packet->get_signal1()) {
+			case 1: { // Connection accepted
+				internal::connection->self_id = packet->get_raw().second[0]; // Read the id that the server assigned to us
+				internal::connection->is_connected = true; // Mark our networking as connected
+
+				NetworkEvent e (E_NETEVENT::CONNECT);
+				e.id = packet->id;
+				e.data.emplace("self_id", internal::connection->self_id);
+				get_current_room()->network(e);
+
+				// Request an initial player map
+				/*NetworkClient c (internal::connection->udp_sock, internal::connection->channel);
+				auto p = std::make_unique<NetworkPacket>(
+					internal::connection->self_id,
+					3, // Info request signal
+					2 // Info type 2: player map
+				);
+				if (send_packet(c, p) == 0) { // Send the keep alive
+					messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not request player map from server");
+					break;
+				}*/
+
+				messenger::send({"engine", "network"}, E_MESSAGE::INFO, "Connected to server with id " + bee_itos(internal::connection->self_id));
+				break;
+			}
+			case 2: { // Disconnected by host
+				session_end(); // Reset session
+
+				NetworkEvent e (E_NETEVENT::DISCONNECT);
+				e.data.emplace("reason", chra(packet->get_raw()));
+				get_current_room()->network(e);
+
+				messenger::send({"engine", "network"}, E_MESSAGE::INFO, "Disconnected by server");
+				return 2; // Return 2 when disconnected in the middle of the event loop
+			}
+			case 3: { // Server info received
+				switch (packet->get_signal2()) {
+					case 0: {
+						NetworkClient c (internal::connection->udp_sock, internal::connection->channel);
+
+						// See Network Message Format at the top of this file for details
+						auto p = std::make_unique<NetworkPacket>(
+							internal::connection->self_id,
+							3, // Info request signal
+							0 // Info type 0: keepalive
+						);
+						if (send_packet(c, p) == 0) { // Send the keep alive
+							messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not send keep alive to server");
+							break;
+						}
+
+						break;
+					}
+					case 1: { // Received server name (along with IP address)
+						std::string ip = network_get_address(internal::connection->udp_data->address.host); // Get the server IP
+						std::string name = chra(packet->get_raw()); // Get the server name from the data
+
+						internal::servers.emplace(ip, name); // Add the server to the list of available servers
+
+						break;
+					}
+					case 2: { // Received player map
+						std::map <std::string,std::string> t; // Temp map to store player names in
+						internal::connection->players.clear(); // Clear out old player data
+						NetworkEvent e (E_NETEVENT::PLAYER_UPDATE);
+
+						network_map_decode(packet->get_raw(), &t); // Decode the player map from the data into t
+						for (auto& p : t) { // Iterate over the players in the temp map in order to generate sockets for each of them
+							NetworkClient c;
+							c.name = p.second;
+
+							internal::connection->players.emplace(bee_stoi(p.first), c); // Insert the player's id and IP address into our copy of the player map
+							e.data.emplace(p.first, p.second);
+						}
+
+						get_current_room()->network(e);
+
+						break;
+					}
+					case 3: // Received partial data map
+					case 4: { // Received end of data map
+						// Buffer the received data if necessary
+						if (internal::connection->tmp_data_buffer == nullptr) {
+							internal::connection->tmp_data_buffer = std::make_unique<NetworkPacket>(
+								internal::connection->udp_data
+							);
+						} else {
+							internal::connection->tmp_data_buffer->append_net(internal::connection->udp_data);
+						}
+
+						if (internal::connection->tmp_data_buffer->get_signal2() == 3) { // Break when only a partial map has been received
+							break;
+						}
+
+						internal::connection->data.clear();
+						network_map_decode(internal::connection->tmp_data_buffer->get_raw(), &internal::connection->data); // Decode the data map directly in order to immediately replace all old data
+
+						internal::connection->tmp_data_buffer.reset();
+						internal::connection->tmp_data_buffer = nullptr;
+
+						messenger::send({"engine", "network"}, E_MESSAGE::INTERNAL, "Received data map:\n" + map_serialize(internal::connection->data, true));
+
+						NetworkEvent e (E_NETEVENT::DATA_UPDATE);
+						e.data = std::map<std::string,SIDP>(internal::connection->data);
+						get_current_room()->network(e);
+
+						break;
+					}
+					default: {
+						messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Unknown network signal: 3." + bee_itos(packet->get_signal2()));
+					}
+				}
+				break; // Break from signal1: 3 info received
+			}
+			default: {
+				messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Unknown network signal: " + bee_itos(packet->get_signal1()) + ".x");
+			}
+		}
+
+		return 0;
+	}
+	/*
+	* internal::client_send_data() - Send the client data map to the server
+	*/
+	int internal::client_send_data() {
+		std::pair<size_t,Uint8*> data_map = network_map_encode(internal::connection->data); // Encode the data map as a series of Uint8's
+
+		// See Network Message Format at the top of this file for details
+		auto p = std::make_unique<NetworkPacket>(
+			internal::connection->self_id,
+			4, // Info update signal
+			4, // Info type 3: data map
+			data_map.first, // Data size
+			data_map.second // Data
+		);
+
+		NetworkClient c (internal::connection->udp_sock, internal::connection->channel);
+
+		if (send_packet(c, p) == 0) { // Send the entire message
+			messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not send data map to server");
+		}
+
+		delete[] data_map.second; // Free the allocated space
+
+		return 0;
+	}
+	/*
+	* internal::client_send_keepalive() - Respond to the server's keepalive
+	*/
+	int internal::client_send_keepalive() {
+		const Uint32 now = get_ticks();
+
+		if (now - internal::connection->last_recv > internal::timeout) {
+			session_end();
+		} else if (now - internal::connection->last_recv > internal::timeout/2) {
+			// Wait for server to send keep alive?
+		}
+
+		return 0;
 	}
 }}
 

@@ -14,10 +14,12 @@
 namespace bee {
 	NetworkEvent::NetworkEvent() :
 		type(E_NETEVENT::NONE),
+		id(-1),
 		data()
 	{}
 	NetworkEvent::NetworkEvent(E_NETEVENT new_type) :
 		type(new_type),
+		id(-1),
 		data()
 	{}
 }

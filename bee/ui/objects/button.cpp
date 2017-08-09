@@ -55,7 +55,7 @@ void ObjUIButton::draw(bee::Instance* self) {
 	if (!_i("is_visible")) {
 		return;
 	}
-	
+
 	int w = _i("w");
 	int h = _i("h");
 
@@ -82,7 +82,7 @@ void ObjUIButton::draw(bee::Instance* self) {
 			oy = v->view_y;
 		}
 
-		(*s)["textdata"] = static_cast<void*>(font->draw(
+		(*s)["text_td"] = static_cast<void*>(font->draw(
 			static_cast<bee::TextData*>(_p("text_td")),
 			self->get_corner_x() + (w-font->get_string_width(_s("text")))/2 - ox,
 			self->get_corner_y() + (h-h/1.25)/2 - oy,

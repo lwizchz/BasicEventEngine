@@ -157,10 +157,13 @@ namespace bee {
 		TILE
 	};
 
-	enum class E_COMPUTATION {
-		STATIC,
-		SEMISTATIC,
-		DYNAMIC
+	enum class E_COMPUTATION : int {
+		NOTHING    = BIT(0),
+		STATIC     = BIT(1),
+		SEMISTATIC = BIT(2),
+		SEMIPLAYER = BIT(3),
+		PLAYER     = BIT(4),
+		DYNAMIC    = BIT(5)
 	};
 
 	enum class E_PATH_END {

@@ -25,6 +25,7 @@ class ObjUIElement : public bee::Object {
 		virtual void reset(bee::Instance*);
 		virtual void set_focus(bee::Instance*, bool);
 		virtual void set_is_visible(bee::Instance*, bool);
+		virtual void set_color(bee::Instance*, const bee::RGBA&);
 };
 
 #endif // BEE_UI_OBJ_ELEMENT_H

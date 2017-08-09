@@ -53,7 +53,7 @@ namespace bee{ namespace console {
 				std::vector<SIDP> params = parse_parameters(msg->descr); // Parse the parameters from the given command
 
 				if (params.size() > 1) { // If a specific command was specified, output its entire help text
-					messenger::send({"engine", "console"}, E_MESSAGE::INFO, "Command help for \"" + params[1].s() + "\":\n" + get_help(params[1].s()));
+					messenger::send({"engine", "console"}, E_MESSAGE::INFO, "Command help for \"" + SIDP_s(params[1]) + "\":\n" + get_help(SIDP_s(params[1])));
 				} else { // If the command was called without any arguments, output the first line of help text for every registered command
 					std::string help = "Available commands are:\n"; // Initialize a help string to be used as output
 
@@ -80,7 +80,7 @@ namespace bee{ namespace console {
 					};
 					for (auto& c : commands) { // Iterate over the commands
 						std::vector<SIDP> p = parse_parameters(c); // Get the list of command parameters in order to remove the usage string parts
-						std::string h = get_help(p[0].s()); // Get the command help text
+						std::string h = get_help(SIDP_s(p[0])); // Get the command help text
 
 						if (!h.empty()) { // If the help text exists, output the command and its text
 							help += c + "\n\t" + handle_newlines(h)[0] + "\n";
@@ -101,7 +101,7 @@ namespace bee{ namespace console {
 				std::vector<SIDP> params = parse_parameters(msg->descr); // Parse the parameters from the given command
 
 				std::string commands = "";
-				std::string search = params[1].s();
+				std::string search = SIDP_s(params[1]);
 				for (auto& c : internal::commands) {
 					std::string h = get_help(c.first);
 					if (c.first.find(search) != std::string::npos) {
@@ -205,13 +205,13 @@ namespace bee{ namespace console {
 				std::vector<SIDP> params = parse_parameters(msg->descr); // Parse the parameters from the given command
 
 				if (params.size() > 2) {
-					alias(params[1].s(), string_unescape(params[2].s()));
+					alias(SIDP_s(params[1]), string_unescape(SIDP_s(params[2])));
 				} else if (params.size() > 1) {
 					auto a = get_aliases();
-					if (a.find(params[1].s()) != a.end()) {
-						messenger::send({"engine", "console"}, E_MESSAGE::INFO, a[params[1].s()]);
+					if (a.find(SIDP_s(params[1])) != a.end()) {
+						messenger::send({"engine", "console"}, E_MESSAGE::INFO, a[SIDP_s(params[1])]);
 					} else {
-						messenger::send({"engine", "console"}, E_MESSAGE::INFO, "No alias set for \"" + params[1].s() + "\"");
+						messenger::send({"engine", "console"}, E_MESSAGE::INFO, "No alias set for \"" + SIDP_s(params[1]) + "\"");
 					}
 				} else {
 					auto amap = get_aliases();
@@ -237,9 +237,9 @@ namespace bee{ namespace console {
 				std::vector<SIDP> params = parse_parameters(msg->descr); // Parse the parameters from the given command
 
 				if (params.size() > 2) { // If both a key and command are provided, bind the command to the key
-					bind(keystrings_get_key(params[1].s()), string_unescape(params[2].s()));
+					bind(keystrings_get_key(SIDP_s(params[1])), string_unescape(SIDP_s(params[2])));
 				} else if (params.size() > 1) { // If only a command is provided, output the command that is bound to it
-					messenger::send({"engine", "console"}, E_MESSAGE::INFO, bind(keystrings_get_key(params[1].s())));
+					messenger::send({"engine", "console"}, E_MESSAGE::INFO, bind(keystrings_get_key(SIDP_s(params[1]))));
 				} else { // If no key is provided, output a warning
 					messenger::send({"engine", "console"}, E_MESSAGE::WARNING, "No key specified for binding");
 				}
@@ -257,10 +257,10 @@ namespace bee{ namespace console {
 				std::vector<SIDP> params = parse_parameters(msg->descr); // Parse the parameters from the given command
 
 				if (params.size() > 1) { // If a key is provided, unbind it from any commands
-					if (params[1].s() == "all") {
+					if (SIDP_s(params[1]) == "all") {
 						unbind_all();
 					} else {
-						unbind(keystrings_get_key(params[1].s()));
+						unbind(keystrings_get_key(SIDP_s(params[1])));
 					}
 				} else { // If no key is provided, output a warning
 					messenger::send({"engine", "console"}, E_MESSAGE::WARNING, "No key specified for unbinding");
@@ -311,7 +311,7 @@ namespace bee{ namespace console {
 				std::vector<SIDP> params = parse_parameters(msg->descr); // Parse the parameters from the given command
 
 				if (params.size() > 2) { // If both required arguments were provided, execute the command
-					run(string_unescape(params[2].s()), true, params[1].i());
+					run(string_unescape(SIDP_s(params[2])), true, SIDP_i(params[1]));
 				} else if (params.size() > 1) { // If no command was provided, output a warning
 					messenger::send({"engine", "console"}, E_MESSAGE::WARNING, "No command specified for wait");
 				} else { // If no arguments were provided, output a warning
@@ -345,7 +345,7 @@ namespace bee{ namespace console {
 				std::vector<SIDP> params = parse_parameters(msg->descr); // Parse the parameters from the given command
 
 				if (params.size() > 2) {
-					set_var(params[1].s(), params[2]);
+					set_var(SIDP_s(params[1]), params[2]);
 				} else {
 					messenger::send({"engine", "console"}, E_MESSAGE::WARNING, "Not enough arguments specified for set");
 				}
@@ -362,7 +362,7 @@ namespace bee{ namespace console {
 				std::vector<SIDP> params = parse_parameters(msg->descr); // Parse the parameters from the given command
 
 				if (params.size() > 1) {
-					messenger::send({"engine", "console"}, E_MESSAGE::INFO, get_var(params[1].s()).to_str());
+					messenger::send({"engine", "console"}, E_MESSAGE::INFO, get_var(SIDP_s(params[1])).to_str());
 				} else {
 					messenger::send({"engine", "console"}, E_MESSAGE::WARNING, "Not enough arguments specified for get");
 				}
@@ -400,10 +400,28 @@ namespace bee{ namespace console {
 
 				if (params.size() > 1) {
 					GameOptions o = get_options();
-					o.is_debug_enabled = params[1].i();
+					o.is_debug_enabled = SIDP_i(params[1]);
 					set_options(o);
 				} else {
 					messenger::send({"engine", "console"}, E_MESSAGE::INFO, std::to_string(get_options().is_debug_enabled));
+				}
+			}
+		);
+		/*
+		* console_verbosity [value] - Set the verbosity level of the messenger
+		* ! When the value is omitted, the current verbosity level is output
+		* @value: from 0-3 corresponding to E_OUTPUT::NONE, QUIET, NORMAL, and VERBOSE
+		*/
+		add_command(
+			"verbosity",
+			"Set the verbosity level of the messenger",
+			[] (std::shared_ptr<MessageContents> msg) {
+				std::vector<SIDP> params = parse_parameters(msg->descr); // Parse the parameters from the given command
+
+				if (params.size() > 1) {
+					messenger::set_level(static_cast<E_OUTPUT>(SIDP_i(params[1])));
+				} else {
+					messenger::send({"engine", "console"}, E_MESSAGE::INFO, bee_itos(static_cast<int>(messenger::get_level())));
 				}
 			}
 		);
@@ -420,7 +438,7 @@ namespace bee{ namespace console {
 				std::vector<SIDP> params = parse_parameters(msg->descr); // Parse the parameters from the given command
 
 				if (params.size() > 1) {
-					set_volume(params[1].d());
+					set_volume(SIDP_d(params[1]));
 				} else {
 					messenger::send({"engine", "console"}, E_MESSAGE::INFO, std::to_string(get_volume()));
 				}

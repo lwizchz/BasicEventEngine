@@ -95,5 +95,11 @@ void ObjUIElement::set_focus(bee::Instance* self, bool new_has_focus) {
 void ObjUIElement::set_is_visible(bee::Instance* self, bool new_is_visibile) {
 	(*s)["is_visible"] = new_is_visibile;
 }
+void ObjUIElement::set_color(bee::Instance* self, const bee::RGBA& new_color) {
+	(*s)["color_r"] = new_color.r;
+	(*s)["color_g"] = new_color.g;
+	(*s)["color_b"] = new_color.b;
+	(*s)["color_a"] = new_color.a;
+}
 
 #endif // BEE_UI_OBJ_ELEMENT

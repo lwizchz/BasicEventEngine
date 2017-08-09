@@ -67,6 +67,8 @@ namespace bee {
 
 			std::string serialize(bool) const;
 			std::string serialize() const;
+			int deserialize(std::map<SIDP,SIDP>&, Object*);
+			int deserialize(const std::string&, Object*);
 			int deserialize(const std::string&);
 
 			int remove();

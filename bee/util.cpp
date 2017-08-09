@@ -34,7 +34,7 @@ TEST_CASE("real/math") {
 	REQUIRE(sqr(5) == 25);
 	REQUIRE(sqr(5.0) == 25.0);
 	REQUIRE(logn(5.0, 1.0) == 0.0);
-	REQUIRE(logn(5.0, 5.0) == 1.0);
+	REQUIRE(logn(5.0, 5.0) == doctest::Approx(1.0));
 	REQUIRE(logn(5.0, 10.0) == doctest::Approx(1.431).epsilon(0.001));
 	REQUIRE(degtorad(90.0) == doctest::Approx(PI/2.0));
 	REQUIRE(degtorad(360.0) == doctest::Approx(2.0*PI));
@@ -344,7 +344,7 @@ TEST_CASE("template") {
 	REQUIRE(std::equal(m.begin(), m.end(), n2.begin()));
 
 	std::pair<size_t,Uint8*> a = network_map_encode(m);
-	REQUIRE(a.first == 24);
+	REQUIRE(a.first == 17);
 	REQUIRE((network_map_decode(a.first, a.second, &n3) == 0));
 	delete[] a.second;
 	REQUIRE(std::equal(m.begin(), m.end(), n3.begin()));

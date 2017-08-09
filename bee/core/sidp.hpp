@@ -13,7 +13,7 @@
 #include <vector>
 
 namespace bee {
-	struct SIDP { // This class can hold a string, integer, double, or pointer and is meant to allow multiple types in the same container
+	class SIDP { // This class can hold a string, integer, double, or pointer and is meant to allow multiple types in the same container
 		int type; // Possible types: 0=string, 1=int, 2=double, 3=pointer
 		int container_type;
 
@@ -22,11 +22,12 @@ namespace bee {
 		double floating;
 		void* pointer;
 
-		// Initialize the variable
+	public:
 		SIDP();
 		SIDP(const SIDP&);
-		SIDP(const std::string&);
 		SIDP(const std::string&, bool);
+		SIDP(const std::string&);
+		SIDP(const char*);
 		SIDP(int);
 		SIDP(double);
 		SIDP(void*);
@@ -47,16 +48,12 @@ namespace bee {
 		void* p(std::string, int) const;
 		SIDP p(size_t, std::string, int) const;
 		SIDP p(SIDP, std::string, int) const;
-
-		std::string s() const;
-		int i() const;
-		double d() const;
-		void* p() const;
-		SIDP p(size_t) const;
-		SIDP p(SIDP) const;
+		std::vector<SIDP>& v(std::string, int) const;
+		std::map<SIDP,SIDP>& m(std::string, int) const;
 
 		SIDP& operator=(const SIDP&);
 		SIDP& operator=(const std::string&);
+		SIDP& operator=(const char*);
 		SIDP& operator=(int);
 		SIDP& operator=(double);
 		SIDP& operator=(void*);
@@ -90,6 +87,8 @@ namespace bee {
 #define SIDP_ci(x,i) x.p(i, __FILE__, __LINE__).i(__FILE__, __LINE__)
 #define SIDP_cd(x,i) x.p(i, __FILE__, __LINE__).d(__FILE__, __LINE__)
 #define SIDP_cp(x,i) x.p(i, __FILE__, __LINE__).p(__FILE__, __LINE__)
+#define SIDP_v(x) x.v(__FILE__, __LINE__)
+#define SIDP_m(x) x.m(__FILE__, __LINE__)
 
 // Shorthand for easier Instance data debugging
 #define _a(x) (*s)[x]

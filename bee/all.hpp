@@ -65,3 +65,4 @@
 #include "resource/room.hpp"
 
 #include "ui/ui.hpp"
+#include "ui/elements.hpp"

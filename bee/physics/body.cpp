@@ -76,7 +76,7 @@ namespace bee {
 	std::string PhysicsBody::serialize(bool should_pretty_print) const {
 		std::vector<SIDP>* sp = new std::vector<SIDP>();
 		for (size_t i=0; i<shape_param_amount; ++i) {
-			(*sp).push_back(shape_params[i]);
+			sp->push_back(shape_params[i]);
 		}
 
 		std::vector<SIDP>* cons = new std::vector<SIDP>();
@@ -85,10 +85,10 @@ namespace bee {
 			std::vector<SIDP>* con = new std::vector<SIDP>();
 
 			for (size_t i=0; i<constraint_param_amount; ++i) {
-				(*con).push_back(std::get<1>(c)[i]);
+				con->push_back(std::get<1>(c)[i]);
 			}
 
-			(*cons).push_back(SIDP().vector(con));
+			cons->push_back(SIDP(con));
 		}
 
 		std::map<std::string,SIDP> data;
@@ -114,34 +114,35 @@ namespace bee {
 	std::string PhysicsBody::serialize() const {
 		return serialize(false);
 	}
-	int PhysicsBody::deserialize(const std::string& data, Instance* inst) {
-		std::map<std::string,SIDP> m;
-		map_deserialize(data, &m);
-
-		type = static_cast<E_PHYS_SHAPE>(SIDP_i(m["type"]));
+	int PhysicsBody::deserialize(std::map<SIDP,SIDP>& m, Instance* inst) {
 		mass = SIDP_d(m["mass"]);
 		scale = SIDP_d(m["scale"]);
 		friction = SIDP_d(m["friction"]);
-		shape_param_amount = get_shape_param_amount(type);
-		if ((type == E_PHYS_SHAPE::MULTISPHERE)||(type == E_PHYS_SHAPE::CONVEX_HULL)) {
-			shape_param_amount = get_shape_param_amount(type, SIDP_cd(m["shape_params"], 0));
-		}
 
-		if (shape_params != nullptr) {
-			delete[] shape_params;
-			shape_params = nullptr;
-		}
-		if (shape_param_amount > 0) {
-			shape_params = new double[shape_param_amount];
-			for (size_t i=0; i<shape_param_amount; ++i) {
-				shape_params[i] = SIDP_cd(m["shape_params"], i);
+		E_PHYS_SHAPE previous_type = type;
+		type = static_cast<E_PHYS_SHAPE>(SIDP_i(m["type"]));
+		if (type != previous_type) {
+			shape_param_amount = get_shape_param_amount(type);
+			if ((type == E_PHYS_SHAPE::MULTISPHERE)||(type == E_PHYS_SHAPE::CONVEX_HULL)) {
+				shape_param_amount = get_shape_param_amount(type, SIDP_cd(m["shape_params"], 0));
 			}
+
+			if (shape_params != nullptr) {
+				delete[] shape_params;
+				shape_params = nullptr;
+			}
+			if (shape_param_amount > 0) {
+				shape_params = new double[shape_param_amount];
+				for (size_t i=0; i<shape_param_amount; ++i) {
+					shape_params[i] = SIDP_cd(m["shape_params"], i);
+				}
+			}
+
+			set_shape(type, shape_params);
 		}
 
 		attached_instance = inst;
 		body->setCollisionFlags(SIDP_i(m["collision_flags"]));
-
-		set_shape(type, shape_params);
 
 		btVector3 position = btVector3(SIDP_cd(m["position"], 0), SIDP_cd(m["position"], 1), SIDP_cd(m["position"], 2));
 		btVector3 rotation = btVector3(SIDP_cd(m["rotation"], 0), SIDP_cd(m["rotation"], 1), SIDP_cd(m["rotation"], 2));
@@ -163,6 +164,15 @@ namespace bee {
 		body->setAngularVelocity(velocity_ang);
 
 		return 0;
+	}
+	int PhysicsBody::deserialize(const std::string& data, Instance* inst) {
+		std::map<SIDP,SIDP> m;
+		if (map_deserialize(data, &m)) {
+			messenger::send({"engine", "physics"}, E_MESSAGE::WARNING, "Failed to deserialize physics body");
+			return 1;
+		}
+
+		return deserialize(m, inst);
 	}
 	int PhysicsBody::deserialize(const std::string& data) {
 		std::map<std::string,SIDP> m;

@@ -24,8 +24,9 @@ class RmTest: public bee::Room {
 		void init();
 };
 RmTest::RmTest() : Room("RmTest", "test.hpp") {}
-
 void RmTest::init() {
+	Room::init();
+
 	// set room properties
 	/*set_width(3000);
 	set_height(500);

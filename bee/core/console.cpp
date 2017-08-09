@@ -171,11 +171,12 @@ namespace bee{ namespace console {
 	* internal::init_ui() - Init the console ui
 	*/
 	int internal::init_ui() {
-		ui_handle = bee::ui::create_handle(rect.x, rect.y, rect.w, 10, {255, 255, 255, 255}, nullptr);
+		ui_handle = bee::ui::create_handle(rect.x, rect.y, rect.w, 10, nullptr);
 
 		ui_handle->set_is_persistent(true);
 		ObjUIHandle* obj_handle = dynamic_cast<ObjUIHandle*>(ui_handle->get_object());
 		obj_handle->set_is_visible(ui_handle, is_open);
+		obj_handle->set_color(ui_handle, {0, 0, 0, 255});
 
 		ui_text_entry = bee::ui::create_text_entry(rect.x, rect.y+rect.h, 1, 80, [] (Instance* text_entry, const std::string& input) {
 			bee::console::run(input); // Run the command
@@ -193,11 +194,12 @@ namespace bee{ namespace console {
 
 		ObjUITextEntry* obj_text_entry = dynamic_cast<ObjUITextEntry*>(ui_text_entry->get_object());
 		obj_text_entry->set_is_visible(ui_text_entry, is_open);
+		obj_text_entry->set_color(ui_text_entry, {127, 127, 127, 127});
 
 		bee::ui::add_text_entry_completor(ui_text_entry, [] (Instance* text_entry, const std::string& input) -> std::vector<SIDP> {
 			std::vector<SIDP> params = parse_parameters(input); // Parse the current parameters from the input line
 			if (params.size() == 1) { // Complete the command if it's the only parameter
-				return complete(text_entry, params[0].s()); // Find new completion comands
+				return complete(text_entry, SIDP_s(params[0])); // Find new completion comands
 			} else { // TODO: Complete command arguments
 				return std::vector<SIDP>();
 			}
@@ -266,11 +268,14 @@ namespace bee{ namespace console {
 	int internal::close() {
 		Room* room = get_current_room();
 		if (room != nullptr) {
+			ui_handle->set_is_persistent(false);
 			ui_text_entry->set_is_persistent(false);
 			room->destroy(ui_text_entry);
 			room->destroy();
+			ui_handle = nullptr;
 			ui_text_entry = nullptr;
 		} else {
+			ui_handle = nullptr;
 			ui_text_entry = nullptr;
 		}
 		return 0;
@@ -312,19 +317,19 @@ namespace bee{ namespace console {
 			return 1; // Return 1 on an empty command
 		}
 
-		if (commands.find(params[0].s()) == commands.end()) { // If the command or alias does not exist, then output a warning
-			if (aliases.find(params[0].s()) == aliases.end()) {
-				messenger::send({"engine", "console"}, E_MESSAGE::WARNING, "Failed to run command \"" + params[0].s() + "\", the command does not exist.");
+		if (commands.find(SIDP_s(params[0])) == commands.end()) { // If the command or alias does not exist, then output a warning
+			if (aliases.find(SIDP_s(params[0])) == aliases.end()) {
+				messenger::send({"engine", "console"}, E_MESSAGE::WARNING, "Failed to run command \"" + SIDP_s(params[0]) + "\", the command does not exist.");
 				return 2; // Return 2 on non-existent command
 			} else { // Otherwise if the alias exists, run it
-				return run(aliases[params[0].s()], true, delay);
+				return run(aliases[SIDP_s(params[0])], true, delay);
 			}
 		}
 
 		if (is_urgent) { // If the command is urgent, send it immediately
 			messenger::internal::send_urgent(std::shared_ptr<MessageContents>(new MessageContents(
 				get_ticks()+delay,
-				{"engine", "console", params[0].s()},
+				{"engine", "console", SIDP_s(params[0])},
 				E_MESSAGE::GENERAL,
 				c,
 				nullptr
@@ -332,7 +337,7 @@ namespace bee{ namespace console {
 		} else { // Otherwise, send it normally
 			messenger::send(std::shared_ptr<MessageContents>(new MessageContents(
 				get_ticks()+delay,
-				{"engine", "console", params[0].s()},
+				{"engine", "console", SIDP_s(params[0])},
 				E_MESSAGE::GENERAL,
 				c,
 				nullptr
@@ -414,7 +419,7 @@ namespace bee{ namespace console {
 
 		std::vector<SIDP> param_list; // Create a vector to store each parameter instead of the map from split()
 		for (auto& p : params) { // Iterate over each parameter and store it as a SIDP interpreted type
-			param_list.push_back(SIDP(p.second, true));
+			param_list.push_back(SIDP(p.second));
 		}
 
 		return param_list; // Return the vector of parameters on success

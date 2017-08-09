@@ -231,7 +231,6 @@ namespace bee {
 			delete physics_world;
 			physics_world = nullptr;
 		}
-		physics_world = new PhysicsWorld();
 		physics_instances.clear();
 
 		return 0;
@@ -754,7 +753,6 @@ namespace bee {
 			delete physics_world;
 			physics_world = nullptr;
 		}
-		physics_world = new PhysicsWorld();
 		physics_instances.clear();
 
 		// Reset background data
@@ -765,6 +763,42 @@ namespace bee {
 		backgrounds.clear();
 
 		particle_systems.clear();
+
+		return 0;
+	}
+	int Room::transfer_instances(const Room* old_room) {
+		if (old_room == nullptr) {
+			return 1;
+		}
+
+		std::map<int,std::map<std::string,SIDP>> old_instance_data;
+
+		for (auto& inst : instances) {
+			old_instance_data.emplace(inst.first, inst.second->get_object()->get_data(inst.first));
+			inst.second->get_object()->remove_instance(inst.first);
+		}
+		instances.clear();
+		instances_sorted.clear();
+		instances_sorted_events.clear();
+
+		for (auto& inst : old_room->get_instances()) {
+			set_instance(inst.first, inst.second);
+			inst.second->get_object()->add_instance(inst.first, inst.second);
+			if (old_instance_data.find(inst.first) != old_instance_data.end()) {
+				inst.second->get_object()->set_data(inst.first, old_instance_data.at(inst.first));
+			}
+
+			if (inst.second->get_physbody() != nullptr) {
+				PhysicsBody* b = inst.second->get_physbody();
+				this->add_physbody(inst.second, b);
+				b->attach(this->get_phys_world());
+			}
+
+			for (E_EVENT e : inst.second->get_object()->implemented_events) {
+				instances_sorted_events[e].emplace(inst.second, inst.first);
+			}
+		}
+		sort_instances();
 
 		return 0;
 	}
@@ -904,9 +938,9 @@ namespace bee {
 							if (set_params[0] == "@sprite") {
 								inst->set_sprite(get_sprite_by_name(set_params[1]));
 							} else if (set_params[0] == "@solid") {
-								inst->set_is_solid(SIDP(set_params[1], true).i());
+								inst->set_is_solid(SIDP_i(SIDP(set_params[1])));
 							} else if (set_params[0] == "@depth") {
-								inst->depth = SIDP(set_params[1], true).i();
+								inst->depth = SIDP_i(SIDP(set_params[1]));
 							} else {
 								messenger::send({"engine", "room"}, E_MESSAGE::WARNING, "Error while loading instance map: unknown setter \"" + v + "\"");
 								continue;
@@ -914,7 +948,7 @@ namespace bee {
 						} else if (set_params[0] == "!setend") {
 							break;
 						} else {
-							inst->set_data(set_params[1], SIDP(set_params[2], true));
+							inst->set_data(set_params[1], SIDP(set_params[2]));
 						}
 					}
 
@@ -1297,7 +1331,7 @@ namespace bee {
 	}
 	void Room::collision_internal(btDynamicsWorld* w, btScalar timestep) {
 		PhysicsWorld* world = static_cast<PhysicsWorld*>(w->getWorldUserInfo());
-		std::map<const btRigidBody*,Instance*> physics_instances = get_current_room()->get_phys_instances();
+		const std::map<const btRigidBody*,Instance*>& physics_instances = get_current_room()->get_phys_instances();
 
 		//w->clearForces();
 
@@ -1308,8 +1342,8 @@ namespace bee {
 			const btRigidBody* body2 = btRigidBody::upcast(manifold->getBody1());
 
 			if ((physics_instances.find(body1) != physics_instances.end())&&(physics_instances.find(body2) != physics_instances.end())) {
-				Instance* i1 = physics_instances[body1];
-				Instance* i2 = physics_instances[body2];
+				Instance* i1 = physics_instances.at(body1);
+				Instance* i2 = physics_instances.at(body2);
 
 				if (
 					(i1 != nullptr)
@@ -1328,26 +1362,26 @@ namespace bee {
 					i2->get_object()->update(i2);
 					i2->get_object()->collision(i2, i1);
 				} else {
-					if ((i1 == nullptr)||(i1->get_object() == nullptr)) {
+					/*if ((i1 == nullptr)||(i1->get_object() == nullptr)) {
 						physics_instances.erase(body1);
 					}
 					if ((i2 == nullptr)||(i2->get_object() == nullptr)) {
 						physics_instances.erase(body2);
-					}
+					}*/
 				}
 			}
 		}
 	}
 	bool Room::check_collision_filter(btBroadphaseProxy* proxy0, btBroadphaseProxy* proxy1) {
 		bool should_collide = false;
-		std::map<const btRigidBody*,Instance*> physics_instances = get_current_room()->get_phys_instances();
+		const std::map<const btRigidBody*,Instance*>& physics_instances = get_current_room()->get_phys_instances();
 
 		btRigidBody* body1 = static_cast<btRigidBody*>(proxy0->m_clientObject);
 		btRigidBody* body2 = static_cast<btRigidBody*>(proxy1->m_clientObject);
 
 		if ((physics_instances.find(body1) != physics_instances.end())&&(physics_instances.find(body2) != physics_instances.end())) {
-			Instance* i1 = physics_instances[body1];
-			Instance* i2 = physics_instances[body2];
+			Instance* i1 = physics_instances.at(body1);
+			Instance* i2 = physics_instances.at(body2);
 
 			if (
 				(i1 != nullptr)
@@ -1360,12 +1394,12 @@ namespace bee {
 				i2->get_object()->update(i2);
 				should_collide = should_collide && i2->get_object()->check_collision_filter(i2, i1);
 			} else {
-				if ((i1 == nullptr)||(i1->get_object() == nullptr)) {
+				/*if ((i1 == nullptr)||(i1->get_object() == nullptr)) {
 					physics_instances.erase(body1);
 				}
 				if ((i2 == nullptr)||(i2->get_object() == nullptr)) {
 					physics_instances.erase(body2);
-				}
+				}*/
 			}
 		}
 
@@ -1590,6 +1624,10 @@ namespace bee {
 		}
 
 		return 0;
+	}
+
+	void Room::init() {
+		physics_world = new PhysicsWorld();
 	}
 }
 

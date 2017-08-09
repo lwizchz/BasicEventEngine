@@ -53,7 +53,10 @@ void ObjBee::create(bee::Instance* self) {
 	//self->set_gravity(7.0);
 	//show_message(font_liberation->get_fontname());
 
-	(*s)["ui_handle"] = bee::ui::create_handle(self->get_corner_x(), self->get_corner_y(), 100, 100, {255, 255, 255, 128}, self);
+	bee::Instance* ui_handle = bee::ui::create_handle(self->get_corner_x(), self->get_corner_y(), 100, 100, self);
+	ObjUIHandle* obj_ui_handle = dynamic_cast<ObjUIHandle*>(ui_handle->get_object());
+	obj_ui_handle->set_color(ui_handle, {255, 255, 255, 96});
+	(*s)["ui_handle"] = static_cast<void*>(ui_handle);
 
 	if (self->id == 0) {
 		(*s)["camx"] = 0.0;
@@ -63,7 +66,7 @@ void ObjBee::create(bee::Instance* self) {
 
 		(*s)["serialdata"] = self->serialize();
 
-		(*s)["part_system"] = nullptr;
+		(*s)["part_system"] = static_cast<void*>(nullptr);
 		bool enable_partsys = true;
 		//bool enable_partsys = false;
 		if (enable_partsys) {

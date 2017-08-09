@@ -99,17 +99,20 @@ void ObjUIHandle::draw(bee::Instance* self) {
 		return;
 	}
 
-	int w = _i("w");
-	int h = _i("h");
+	bee::RGBA c_back = {_i("color_r"), _i("color_g"), _i("color_b"), _i("color_a")};
 
-	int r = _i("color_r");
-	int g = _i("color_g");
-	int b = _i("color_b");
-	int a = _i("color_a");
+	/*bee::set_is_lightable(false);
+	self->draw(_i("w"), _i("h"), 0.0, c_back, SDL_FLIP_NONE);
+	bee::set_is_lightable(true);*/
 
-	bee::set_is_lightable(false);
-	self->draw(w, h, 0.0, bee::RGBA(r, g, b, a), SDL_FLIP_NONE);
-	bee::set_is_lightable(true);
+	int ox = 0, oy = 0;
+	bee::ViewData* v = bee::get_current_room()->get_current_view();
+	if (v != nullptr) {
+		ox = v->view_x;
+		oy = v->view_y;
+	}
+
+	draw_rectangle(self->get_corner_x() - ox, self->get_corner_y() - oy, _i("w"), _i("h"), true, c_back); // Draw a box to contain the completions
 }
 
 void ObjUIHandle::bind(bee::Instance* self, bee::Instance* parent_inst) {

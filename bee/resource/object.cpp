@@ -405,10 +405,7 @@ namespace bee {
 	* @data: the data map to use
 	*/
 	int Object::set_data(int inst_id, const std::map<std::string,SIDP>& data) {
-		if (instance_data.find(inst_id) == instance_data.end()) {
-			return 1; // Return 1 if the instance doesn't exist
-		}
-		instance_data.at(inst_id) = data; // Otherwise set the desired field to the given data
+		instance_data[inst_id] = data; // Set the map to the desired data
 		return 0; // Return 0 on success
 	}
 	/*

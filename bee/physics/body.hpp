@@ -11,6 +11,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 #include <btBulletDynamicsCommon.h>
 
@@ -18,6 +19,7 @@
 
 namespace bee {
 	// Forward declarations
+	class SIDP;
 	class Instance;
 	class PhysicsWorld;
 	class PhysicsDraw;
@@ -45,6 +47,7 @@ namespace bee {
 
 			std::string serialize(bool) const;
 			std::string serialize() const;
+			int deserialize(std::map<SIDP,SIDP>&, Instance*);
 			int deserialize(const std::string&, Instance*);
 			int deserialize(const std::string&);
 

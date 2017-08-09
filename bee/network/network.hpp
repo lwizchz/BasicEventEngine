@@ -20,17 +20,9 @@ namespace bee {
 	// Forward declaration
 	class Instance;
 namespace net {
-	namespace internal {
-		int host_send_players(int);
-		int host_send_data(int);
-	}
-
 	int init();
 	bool get_is_initialized();
 	int close();
-
-	int send_packet(const NetworkClient&, std::unique_ptr<NetworkPacket> const &);
-	std::unique_ptr<NetworkPacket> recv_packet();
 
 	int handle_events();
 
@@ -46,6 +38,17 @@ namespace net {
 
 	std::string get_print();
 	const std::map<int,NetworkClient>& get_players();
+
+	namespace internal {
+		int host_handle_packet(std::unique_ptr<NetworkPacket> const &);
+		int host_send_players(int);
+		int host_send_data(int);
+		int host_send_keepalive();
+
+		int client_handle_packet(std::unique_ptr<NetworkPacket> const &);
+		int client_send_data();
+		int client_send_keepalive();
+	}
 }}
 
 #endif // BEE_NETWORK_H

@@ -134,7 +134,7 @@ namespace bee {
 		"\n	path_previous_mass " << path_previous_mass <<
 		"\n	path_pos_start     (" << path_pos_start.x() << ", " << path_pos_start.y() << ", " << path_pos_start.z() << ")" <<
 		"\n}\n";
-		messenger::send({"engine", "resource"}, E_MESSAGE::INFO, s.str());
+		messenger::send({"engine", "instance"}, E_MESSAGE::INFO, s.str());
 
 		return 0;
 	}
@@ -159,9 +159,8 @@ namespace bee {
 		std::string b = body->serialize(should_pretty_print);
 		if (should_pretty_print) {
 			b = debug_indent(b, 1);
-			b = b.substr(1, b.length()-2);
 		}
-		data["body"] = "\"" + string_escape(b) + "\"";
+		data["body"] = b;
 
 		data["is_solid"] = is_solid;
 		data["depth"] = depth;
@@ -185,18 +184,17 @@ namespace bee {
 	std::string Instance::serialize() const {
 		return serialize(false);
 	}
-	int Instance::deserialize(const std::string& data) {
-		std::map<std::string,SIDP> m;
-		map_deserialize(data, &m);
-
+	int Instance::deserialize(std::map<SIDP,SIDP>& m, Object* new_object) {
 		id = SIDP_i(m["id"]);
-		object = get_object_by_name(SIDP_s(m["object"]));
+		if (new_object == nullptr) {
+			object = get_object_by_name(SIDP_s(m["object"]));
+		} else {
+			object = new_object;
+		}
 		sprite = get_sprite_by_name(SIDP_s(m["sprite"]));
 
 		subimage_time = SIDP_i(m["subimage_time"]);
-		std::string b = SIDP_s(m["body"]);
-		b.substr(1, b.length()-2);
-		body->deserialize(string_unescape(b), this);
+		body->deserialize(SIDP_m(m["body"]), this);
 		is_solid = SIDP_i(m["is_solid"]);
 		depth = SIDP_i(m["depth"]);
 		pos_start = btVector3(SIDP_cd(m["pos_start"], 0), SIDP_cd(m["pos_start"], 1), SIDP_cd(m["pos_start"], 2));
@@ -212,6 +210,18 @@ namespace bee {
 		path_pos_start = btVector3(SIDP_cd(m["path_pos_start"], 0), SIDP_cd(m["path_pos_start"], 1), SIDP_cd(m["path_pos_start"], 2));
 
 		return 0;
+	}
+	int Instance::deserialize(const std::string& data, Object* new_object) {
+		std::map<SIDP,SIDP> m;
+		if (map_deserialize(data, &m)) {
+			messenger::send({"engine", "instance"}, E_MESSAGE::WARNING, "Failed to deserialize instance");
+			return 1;
+		}
+
+		return deserialize(m, new_object);
+	}
+	int Instance::deserialize(const std::string& data) {
+		return deserialize(data, nullptr);
 	}
 
 	int Instance::remove() {

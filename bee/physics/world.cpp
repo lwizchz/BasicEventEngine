@@ -53,6 +53,8 @@ namespace bee {
 	PhysicsWorld::~PhysicsWorld() {
 		delete debug_draw;
 
+		delete filter_callback;
+
 		delete world;
 		delete solver;
 		delete broadphase;

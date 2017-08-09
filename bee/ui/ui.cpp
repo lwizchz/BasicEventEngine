@@ -113,7 +113,7 @@ namespace bee { namespace ui {
 		return 0;
 	}
 
-	Instance* create_button(int x, int y, Font* font, const std::string& str, RGBA color, std::function<void (bee::Instance*)> func) {
+	Instance* create_button(int x, int y, Font* font, const std::string& str, std::function<void (bee::Instance*)> func) {
 		if (!internal::is_loaded) {
 			messenger::send({"engine", "ui"}, E_MESSAGE::WARNING, "UI not initialized: button not created");
 			return nullptr;
@@ -133,11 +133,6 @@ namespace bee { namespace ui {
 		ObjUIButton* obj_button = dynamic_cast<ObjUIButton*>(internal::obj_button);
 		obj_button->update(button);
 		obj_button->center_width(button);
-
-		button->set_data("color_r", color.r);
-		button->set_data("color_g", color.g);
-		button->set_data("color_b", color.b);
-		button->set_data("color_a", color.a);
 
 		internal::button_callbacks.emplace(button, func);
 
@@ -163,7 +158,7 @@ namespace bee { namespace ui {
 		return 0;
 	}
 
-	Instance* create_handle(int x, int y, int w, int h, RGBA color, Instance* parent) {
+	Instance* create_handle(int x, int y, int w, int h, Instance* parent) {
 		if (!internal::is_loaded) {
 			messenger::send({"engine", "ui"}, E_MESSAGE::WARNING, "UI not initialized: handle not created");
 			return nullptr;
@@ -179,11 +174,6 @@ namespace bee { namespace ui {
 
 		handle->set_data("w", w);
 		handle->set_data("h", h);
-
-		handle->set_data("color_r", color.r);
-		handle->set_data("color_g", color.g);
-		handle->set_data("color_b", color.b);
-		handle->set_data("color_a", color.a);
 
 		ObjUIHandle* obj_handle = dynamic_cast<ObjUIHandle*>(internal::obj_handle);
 		obj_handle->update(handle);

@@ -171,13 +171,13 @@ std::map<int,std::string> handle_newlines(const std::string& input) {
 * splitv() - Split a string by a given delimiter and return the data as a vector
 * @input: the string to operate on
 * @delimiter: the character to use to split the string
-* @should_respect_quotes: whether quotes should split the string
+* @should_respect_containers: whether quotes should split the string
 */
-std::vector<std::string> splitv(const std::string& input, char delimiter, bool should_respect_quotes) {
+std::vector<std::string> splitv(const std::string& input, char delimiter, bool should_respect_containers) {
 	std::vector<std::string> output; // Declare a map to store the split strings
 	std::string cont_start = "\"[{";
 	std::string cont_end = "\"]}";
-	size_t current_container = std::string::npos;
+	std::vector<size_t> containers;
 
 	size_t token_start = 0; // Store the position of the beginning of each token
 	for (size_t i=0; i<input.length(); ++i) { // Iterate over each character in the string
@@ -186,23 +186,26 @@ std::vector<std::string> splitv(const std::string& input, char delimiter, bool s
 		if (c == delimiter) { // If the character is a delimiter, store a substring in the map
 			output.emplace_back(input.substr(token_start, i-token_start));
 			token_start = i+1; // Begin the next token after the delimiter
-		} else if ((cont_start.find(c) != std::string::npos)&&(should_respect_quotes)) { // If the character is a containr, handle it separately
+		} else if ((cont_start.find(c) != std::string::npos)&&(should_respect_containers)) { // If the character is a containr, handle it separately
 			if ((i>0)&&(input[i-1] == '\\')) {
 				continue;
 			}
 
-			current_container = cont_start.find(c);
+			containers.push_back(cont_start.find(c));
 
 			++i; // Increment past the first container
 			while (i<input.length()) { // Iterate over the string until the container or string end is reached
-				if ((cont_end.find(input[i]) == current_container)&&(input[i-1] != '\\')) {
-					break;
+				if ((cont_end.find(input[i]) == containers.back())&&(input[i-1] != '\\')) {
+					containers.pop_back();
+					if (containers.empty()) {
+						break;
+					}
+				} else if (cont_start.find(input[i]) != std::string::npos) { // Nest the containers if another is found
+					containers.push_back(cont_start.find(input[i]));
 				}
 
 				++i;
 			}
-
-			current_container = std::string::npos;
 		}
 	}
 	if (token_start < input.length()) {  // Add the last token to the map if it exists
@@ -428,13 +431,27 @@ bool is_str_floating(const std::string& str) {
 		ns = ns.substr(1);
 	}
 
+	// Remove any scientific notation
+	static const std::vector<std::string> exps = {"e", "E"};
+	for (auto& e : exps) {
+		if (ns.find(e) != std::string::npos) {
+			size_t exponent = ns.find(e);
+			if (!is_str_integer(ns.substr(exponent+1))) { // If the exponent is not an integer, it is not valid scientific notation
+				return false;
+			}
+
+			ns.erase(exponent);
+			break; // After removing the notation, continue below
+		}
+	}
+
 	// Remove a single decimal point
 	if (ns.find(".") != std::string::npos) {
 		ns.erase(ns.find("."));
 	}
 
 	// Remove all digits
-	std::vector<std::string> digits = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
+	static const std::vector<std::string> digits = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
 	for (auto& d : digits) {
 		ns = string_replace(ns, d, "");
 	}
@@ -460,7 +477,7 @@ bool is_str_integer(const std::string& str) {
 	}
 
 	// Remove all digits
-	std::vector<std::string> digits = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
+	static const std::vector<std::string> digits = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
 	for (auto& d : digits) {
 		ns = string_replace(ns, d, "");
 	}

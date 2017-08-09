@@ -18,6 +18,7 @@
 namespace bee {
 	struct NetworkEvent {
 		E_NETEVENT type;
+		int id;
 		std::map<std::string,SIDP> data;
 
 		NetworkEvent();
