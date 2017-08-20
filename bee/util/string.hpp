@@ -18,9 +18,9 @@
 std::string chr(int);
 int ord(char);
 int ord(const std::string&);
+std::string chra(std::vector<Uint8>);
 std::string chra(size_t, Uint8*);
-std::string chra(std::pair<size_t,Uint8*>);
-std::pair<size_t,Uint8*> orda(const std::string&);
+std::vector<Uint8> orda(const std::string&);
 
 std::string string_lower(const std::string&);
 std::string string_upper(const std::string&);

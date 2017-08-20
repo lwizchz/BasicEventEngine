@@ -11,6 +11,8 @@
 
 #include <map>
 
+#include <SDL2/SDL.h> // Include the SDL2 headers for the Uint8 type
+
 #include "../enum.hpp"
 
 #include "../core/sidp.hpp"
@@ -20,6 +22,7 @@ namespace bee {
 		E_NETEVENT type;
 		int id;
 		std::map<std::string,SIDP> data;
+		std::map<std::string,std::vector<Uint8>> instances;
 
 		NetworkEvent();
 		NetworkEvent(E_NETEVENT);

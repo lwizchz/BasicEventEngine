@@ -13,277 +13,374 @@
 
 #include "../util/platform.hpp"
 #include "../util/network.hpp"
+#include "../util/real.hpp"
 
 #include "../messenger/messenger.hpp"
 
+#include "network.hpp"
 #include "client.hpp"
 #include "connection.hpp"
+#include "data.hpp"
+
+/*
+	Network packet format {
+		total message length,
+		sequence data, // 10b for packet id, 3b for multipacket amount, 3b for multipacket index
+		timestamp (in network time),
+		sender id,
+		signals,
+		data
+	}
+*/
 
 namespace bee {
-	size_t NetworkPacket::MAX_SIZE = 65536;
+	Uint16 NetworkPacket::next_id = 0;
+	//const size_t NetworkPacket::MAX_SIZE = 65536;
+	const size_t NetworkPacket::MAX_SIZE = 1024;
+	const size_t NetworkPacket::META_SIZE = 14;
 
 	NetworkPacket::NetworkPacket() :
-		packet(new Uint8[1]),
-		size(0),
-		data(),
-		signals(0),
+		packet(),
+
+		data(nullptr),
+		multi_packet(),
+
+		sequence(0),
+		timestamp(0),
+
 		id(0)
+	{}
+	NetworkPacket::NetworkPacket(Uint8 new_id) :
+		NetworkPacket()
 	{
-		set_size(4);
+		id = new_id;
 	}
-	NetworkPacket::NetworkPacket(Uint8 new_id, Uint8 signal1, Uint8 signal2) :
-		packet(new Uint8[1]),
-		size(0),
-		data(),
-		signals(0),
-		id(new_id)
+	NetworkPacket::NetworkPacket(Uint8 new_id, NetworkData* new_data) :
+		NetworkPacket()
 	{
-		set_size(4);
-
-		if ((signal1 >= 16)||(signal2 >= 16)) {
-			messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Invalid network signal");
-		}
-		signals = signal1 << 4;
-		signals += signal2 << 4 >> 4;
+		id = new_id;
+		data = new_data;
 	}
-	NetworkPacket::NetworkPacket(Uint8 new_id, Uint8 signal1, Uint8 signal2, size_t new_size, Uint8* new_data) :
-		packet(new Uint8[1]),
-		size(0),
-		data(),
-		signals(0),
-		id(new_id)
+	NetworkPacket::NetworkPacket(Uint8 new_id, E_NETSIG1 signal1, E_NETSIG2 signal2) :
+		NetworkPacket()
 	{
-		set_size(4);
-
-		if ((signal1 >= 16)||(signal2 >= 16)) {
-			messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Invalid network signal");
-		}
-		signals = signal1 << 4;
-		signals += signal2 << 4 >> 4;
-
-		load_data(new_size, new_data);
+		id = new_id;
+		data = new NetworkData(signal1, signal2);
+	}
+	NetworkPacket::NetworkPacket(Uint8 new_id, E_NETSIG1 signal1, E_NETSIG2 signal2, std::vector<Uint8> new_data) :
+		NetworkPacket()
+	{
+		id = new_id;
+		data = new NetworkData(signal1, signal2, new_data);
 	}
 	NetworkPacket::NetworkPacket(UDPpacket* udp_data) :
-		packet(new Uint8[1]),
-		size(0),
-		data(),
-		signals(0),
-		id(0)
+		NetworkPacket()
 	{
-		if (udp_data->len < 4) {
+		if (static_cast<size_t>(udp_data->len) < META_SIZE) {
 			reset();
 			messenger::send({"engine", "network"}, E_MESSAGE::ERROR, "Malformed UDP packet, the packet is now empty");
 			return;
 		}
 
-		load_net(udp_data->data);
+		load_net(udp_data);
 	}
 	NetworkPacket::~NetworkPacket() {
-		delete[] packet;
+		reset();
 	}
 	int NetworkPacket::reset() {
-		free_multi();
+		packet.clear();
 
-		size = 1;
-		packet = new Uint8[1];
-		packet[0] = 1;
+		free_multi();
 
 		return 0;
 	}
 	int NetworkPacket::free_multi() {
 		for (auto& p : multi_packet) {
-			delete[] p.second;
+			p.clear();
 		}
 		multi_packet.clear();
 		return 0;
 	}
 
-	int NetworkPacket::load_net(Uint8* new_data) {
-		size_t new_size = new_data[0] << 8;
-		new_size += new_data[1];
-		if (set_size(new_size)) {
-			messenger::send({"engine", "network"}, E_MESSAGE::ERROR, "Failed to load net data: allocation error");
-			return 1;
-		}
+	int NetworkPacket::load_net(UDPpacket* udp_data) {
+		Uint8* new_data = udp_data->data;
 
-		id = new_data[2];
-		signals = new_data[3];
+		sequence = new_data[6] << 8;
+		sequence += new_data[7];
 
-		data.clear();
-		data.reserve(size-4);
-		for (size_t i=4; i<size; ++i) {
-			data.push_back(new_data[i]);
-		}
+		timestamp = new_data[8] << 24;
+		timestamp += new_data[9] << 16;
+		timestamp += new_data[10] << 8;
+		timestamp += new_data[11];
 
-		return 0;
-	}
-	int NetworkPacket::load_data(size_t data_size, Uint8* new_data) {
-		if (set_size(data_size+4)) {
-			messenger::send({"engine", "network"}, E_MESSAGE::ERROR, "Failed to append net data: allocation error");
-			return 1;
-		}
+		id = new_data[12];
 
-		data.clear();
-		data.reserve(data_size);
-		for (size_t i=4; i<size; ++i) {
-			data.push_back(new_data[i-4]);
-		}
+		data = new NetworkData(new_data[13]);
+
+		append_net(udp_data);
 
 		return 0;
-	}
-	int NetworkPacket::load_data(std::pair<size_t,Uint8*> new_data) {
-		return load_data(new_data.first, new_data.second);
-	}
-	int NetworkPacket::append_data(size_t data_size, Uint8* new_data) {
-		if (set_size(size+data_size)) {
-			messenger::send({"engine", "network"}, E_MESSAGE::ERROR, "Failed to append data: allocation error");
-			return 1;
-		}
-
-		data.reserve(size-4);
-		for (size_t i=0; i<data_size; ++i) {
-			data.push_back(new_data[i]);
-		}
-
-		delete[] new_data;
-
-		return 0;
-	}
-	int NetworkPacket::append_data(std::pair<size_t,Uint8*> new_data) {
-		return append_data(new_data.first, new_data.second);
 	}
 	int NetworkPacket::append_net(UDPpacket* udp_data) {
 		Uint8* new_data = udp_data->data;
 
-		size_t data_size = new_data[0] << 8;
-		data_size += new_data[1];
-		data_size -= 4;
-		if (set_size(size+data_size)) {
-			messenger::send({"engine", "network"}, E_MESSAGE::ERROR, "Failed to append net data: allocation error");
-			return 1;
-		}
+		size_t data_size = new_data[4] << 8;
+		data_size += new_data[5];
 
-		id = new_data[2];
-		signals = new_data[3];
-
-		data.reserve(size-4);
+		std::vector<Uint8> p;
+		p.reserve(data_size);
 		for (size_t i=0; i<data_size; ++i) {
-			data.push_back(new_data[i+4]);
+			p.push_back(new_data[i]);
 		}
 
-		return 0;
-	}
-
-	int NetworkPacket::set_size(size_t new_size) {
-		delete[] packet;
-
-		size = new_size;
-		if (size > MAX_SIZE) {
-			reset();
-			messenger::send({"engine", "network"}, E_MESSAGE::ERROR, "Requested packet size is larger than MAX_SIZE: " + bee_itos(MAX_SIZE) + ", the packet is now empty");
+		if (!verify_data(p)) {
+			messenger::send({"engine", "network"}, E_MESSAGE::ERROR, "Failed to append net data: packet checksum failed");
 			return 1;
 		}
 
-		packet = new Uint8[size];
-		packet[0] = size >> 8;
-		packet[1] = size;
+		multi_packet.push_back(p);
+
+		if (get_is_sequence_complete()) {
+			get_data();
+		}
 
 		return 0;
 	}
+	int NetworkPacket::load_data(NetworkData* new_data) {
+		data = new_data;
+		return 0;
+	}
+	int NetworkPacket::append_data(NetworkData* new_data) {
+		data->append_data(new_data->get());
+		return 0;
+	}
 
-	Uint8* NetworkPacket::get() {
-		if (data.size()+4 != size) {
-			reset();
-			messenger::send({"engine", "network"}, E_MESSAGE::ERROR, "Failed to construct packet: invalid data size, the packet is now empty");
-			return packet;
+	bool NetworkPacket::get_is_sequence_complete() {
+		Uint8 amount = (sequence - (sequence >> 6 << 6)) >> 3;
+		if (multi_packet.size() == amount) {
+			return true;
+		}
+		return false;
+	}
+
+	Uint16 NetworkPacket::get_next_id() {
+		int id = next_id++;
+		if (next_id >= 1024) {
+			next_id = 0;
+		}
+		return id;
+	}
+	bool NetworkPacket::verify_data(std::vector<Uint8>& data) {
+		Uint32 checksum = data[0] << 24;
+		checksum += data[1] << 16;
+		checksum += data[2] << 8;
+		checksum += data[3];
+
+		data[0] = -1;
+		data[1] = -1;
+		data[2] = -1;
+		data[3] = -1;
+
+		bool r = verify_checksum(data, checksum);
+
+		data[0] = checksum >> 24;
+		data[1] = checksum >> 16;
+		data[2] = checksum >> 8;
+		data[3] = checksum;
+
+		return r;
+	}
+
+	std::vector<Uint8> NetworkPacket::get() {
+		std::vector<Uint8> d = data->get();
+		size_t size = META_SIZE + d.size();
+
+		packet.clear();
+		packet.resize(META_SIZE);
+
+		packet[0] = -1;
+		packet[1] = -1;
+		packet[2] = -1;
+		packet[3] = -1;
+
+		packet[4] = size >> 8;
+		packet[5] = size;
+
+		sequence = get_next_id() << 6;
+		sequence += 1 << 3;
+		packet[6] = sequence >> 8;
+		packet[7] = sequence;
+
+		timestamp = net::get_time();
+		packet[8] = timestamp >> 24;
+		packet[9] = timestamp >> 16;
+		packet[10] = timestamp >> 8;
+		packet[11] = timestamp;
+
+		packet[12] = id;
+		packet[13] = data->get_signals();
+
+		for (auto& e : d) {
+			packet.push_back(e);
 		}
 
-		packet[2] = id;
-		packet[3] = signals;
-
-		for (size_t i=4; i<size; ++i) {
-			packet[i] = data[i-4];
-		}
+		Uint32 checksum = get_checksum(packet);
+		packet[0] = checksum >> 24;
+		packet[1] = checksum >> 16;
+		packet[2] = checksum >> 8;
+		packet[3] = checksum;
 
 		return packet;
 	}
-	std::pair<size_t,Uint8*> NetworkPacket::get_raw() {
-		if (data.size()+4 != size) {
-			reset();
-			messenger::send({"engine", "network"}, E_MESSAGE::ERROR, "Failed to construct packet: invalid data size, the packet is now empty");
-			return std::make_pair(0, packet);
-		}
-
-		for (size_t i=0; i<size-4; ++i) {
-			packet[i] = data[i-0];
-		}
-		for (size_t i=size-4; i<size; ++i) {
-			packet[i] = 0;
-		}
-
-		return std::make_pair(size-4, packet);
-	}
-	const std::vector<std::pair<size_t,Uint8*>>& NetworkPacket::get_multi() {
+	const std::vector<std::vector<Uint8>>& NetworkPacket::get_multi() {
 		free_multi();
 
-		if (data.size()+4 != size) {
-			reset();
-			messenger::send({"engine", "network"}, E_MESSAGE::ERROR, "Failed to construct packet: invalid data size, the packet is now empty");
-			return multi_packet;
-		}
+		std::vector<Uint8> d = data->get();
 
-		Uint8 sig = get_signal1() << 4;
-		sig += 3 << 4 >> 4;
+		size_t size = d.size() + META_SIZE;
+		int amount = size/MAX_SIZE;
+		if (size % MAX_SIZE != 0) {
+			++amount;
+		}
+		sequence = get_next_id() << 6;
+		sequence += amount << 3;
+
+		Uint8 sig = data->get_signals();
+
+		timestamp = net::get_time();
 
 		size_t remaining_size = size;
 		while (remaining_size > 0) {
 			size_t s = remaining_size;
 			if (s > MAX_SIZE) {
 				s = MAX_SIZE;
-				remaining_size -= MAX_SIZE;
+			}
+			remaining_size -= s;
+
+			std::vector<Uint8> p;
+			p.resize(META_SIZE);
+
+			p[0] = -1;
+			p[1] = -1;
+			p[2] = -1;
+			p[3] = -1;
+
+			p[4] = s >> 8;
+			p[5] = s;
+
+			p[6] = sequence >> 8;
+			p[7] = sequence + multi_packet.size();
+
+			p[8] = timestamp >> 24;
+			p[9] = timestamp >> 16;
+			p[10] = timestamp >> 8;
+			p[11] = timestamp;
+
+			p[12] = id;
+			p[13] = sig;
+
+			for (size_t i=META_SIZE; i<s; ++i) {
+				p.push_back(d[i-META_SIZE + multi_packet.size()*MAX_SIZE]);
 			}
 
-			std::pair<size_t,Uint8*> p (s, new Uint8[s]);
-			p.second[0] = size >> 8;
-			p.second[1] = size;
-
-			p.second[2] = id;
-			p.second[3] = sig;
-
-			for (size_t i=4; i<s; ++i) {
-				p.second[i] = data[i-4 + multi_packet.size()*MAX_SIZE];
-			}
+			Uint32 checksum = get_checksum(p);
+			p[0] = checksum >> 24;
+			p[1] = checksum >> 16;
+			p[2] = checksum >> 8;
+			p[3] = checksum;
 
 			multi_packet.push_back(p);
 		}
 
 		return multi_packet;
 	}
+	NetworkData* NetworkPacket::get_data() {
+		if (!get_is_sequence_complete()) {
+			messenger::send({"engine", "network"}, E_MESSAGE::ERROR, "Failed to construct net data: incomplete sequence");
+			return nullptr;
+		}
 
+		Uint8 sig = 0;
+		if (data != nullptr) {
+			sig = data->get_signals();
+			delete data;
+			data = nullptr;
+		}
+		data = new NetworkData(sig);
+
+		Uint8 amount = (sequence - (sequence >> 6 << 6)) >> 3;
+		for (size_t i=0; i<amount; ++i) {
+			bool has_found_data = false;
+			for (auto& p : multi_packet) {
+				Uint8 pid = p[7] - (p[7] >> 3 << 3);
+				if (pid == i) {
+					data->append_data(p, META_SIZE); // Append only the raw data
+
+					has_found_data = true;
+					break;
+				}
+			}
+
+			if (!has_found_data) {
+				messenger::send({"engine", "network"}, E_MESSAGE::ERROR, "Failed to assemble packet sequence: missing piece " + bee_itos(i) + " of " + bee_itos(amount));
+				return nullptr;
+			}
+		}
+
+		return data;
+	}
+	std::vector<Uint8> NetworkPacket::get_raw() const {
+		if (data == nullptr) {
+			return std::vector<Uint8>();
+		}
+
+		return data->get();
+	}
+
+	Uint16 NetworkPacket::get_packet_id() const {
+		return sequence >> 6;
+	}
+	Uint32 NetworkPacket::get_time() const {
+		return timestamp;
+	}
+
+	E_NETSIG1 NetworkPacket::get_signal1() const {
+		if (data == nullptr) {
+			return E_NETSIG1::INVALID;
+		}
+
+		return data->get_signal1();
+	}
+	E_NETSIG2 NetworkPacket::get_signal2() const {
+		if (data == nullptr) {
+			return E_NETSIG2::INVALID;
+		}
+
+		return data->get_signal2();
+	}
 	size_t NetworkPacket::get_size() const {
-		return size;
-	}
-	Uint8 NetworkPacket::get_signal1() const {
-		return signals >> 4;
-	}
-	Uint8 NetworkPacket::get_signal2() const {
-		return signals - (signals >> 4 << 4);
+		if (data == nullptr) {
+			return -1;
+		}
+
+		return data->get().size() + META_SIZE;
 	}
 
 	/*
 	* send_packet() - Send the given packet to the given client
 	*/
 	int send_packet(const NetworkClient& client, std::unique_ptr<NetworkPacket> const & packet) {
-		if ((packet->get_signal2() == 4)&&(packet->get_size() > NetworkPacket::MAX_SIZE)) {
-			const std::vector<std::pair<size_t,Uint8*>>& packets = packet->get_multi();
+		if (packet->get_size() > NetworkPacket::MAX_SIZE) {
+			const std::vector<std::vector<Uint8>>& packets = packet->get_multi();
 			for (auto& p : packets) {
-				network_udp_send(client.sock, client.channel, p.first, p.second);
+				network_udp_send(client.sock, client.channel, p.size(), p.data());
 			}
+			int r = packets.size();
 			packet->free_multi();
-			return packets.size();
+			return r;
 		}
 
-		return network_udp_send(client.sock, client.channel, packet->get_size(), packet->get());
+		return network_udp_send(client.sock, client.channel, packet->get_size(), packet->get().data());
 	}
 	/*
 	* recv_packet() - Attempt to receive a packet from the UDP socket
@@ -293,8 +390,7 @@ namespace bee {
 			return nullptr;
 		}
 
-		//connection->udp_data = network_packet_realloc(connection->udp_data, 512); // Attempt to allocate space to receive data
-		connection->udp_data = network_packet_realloc(connection->udp_data, 65536); // Attempt to allocate more space to receive data
+		connection->udp_data = network_packet_realloc(connection->udp_data, NetworkPacket::MAX_SIZE); // Attempt to allocate more space to receive data
 		if (connection->udp_data == nullptr) {
 			return nullptr; // Return nullptr when failed to allocate
 		}
@@ -305,15 +401,8 @@ namespace bee {
 		}
 
 		if (r == -1) { // If receiving failed, attempt to allocate more space for the packet
-			/*connection->udp_data = network_packet_realloc(connection->udp_data, 65536); // Attempt to allocate more space to receive data
-			if (connection->udp_data == nullptr) {
-				return nullptr; // Return nullptr when failed to allocate
-			}
-
-			r = network_udp_recv(connection->udp_sock, connection->udp_data); // Attempt to receive data over the UDP socket*/
-			if (r != 1) {
-				return nullptr; // Return nullptr when the message still could not be received
-			}
+			messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Failed to receive packet");
+			return nullptr; // Return nullptr when the message still could not be received
 		}
 
 		return std::make_unique<NetworkPacket>(

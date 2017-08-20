@@ -16,13 +16,14 @@
 #include "../engine.hpp"
 
 #include "../util/string.hpp"
-#include "../util/template.hpp"
+#include "../util/template/string.hpp"
 
 #include "../messenger/messenger.hpp"
 
 #include "../core/instance.hpp"
 #include "../core/room.hpp"
 #include "../core/sidp.hpp"
+#include "../core/serialdata.hpp"
 
 #include "../resource/room.hpp"
 
@@ -185,6 +186,78 @@ namespace bee {
 		}
 
 		return deserialize(data, inst);
+	}
+
+	std::vector<Uint8> PhysicsBody::serialize_net() {
+		SerialData data (128);
+
+		data.store_double(mass);
+		data.store_double(friction);
+
+		std::vector<double> pos = {get_position().x(), get_position().y(), get_position().z()};
+		std::vector<double> rot = {get_rotation_x(), get_rotation_y(), get_rotation_z()};
+		data.store_vector(pos);
+		data.store_vector(rot);
+
+		std::vector<double> vel = {body->getLinearVelocity().x(), body->getLinearVelocity().y(), body->getLinearVelocity().z()};
+		std::vector<double> vel_ang = {body->getAngularVelocity().x(), body->getAngularVelocity().y(), body->getAngularVelocity().z()};
+		data.store_vector(vel);
+		data.store_vector(vel_ang);
+
+		return data.get();
+	}
+	int PhysicsBody::deserialize_net(std::vector<Uint8> d) {
+		if (d.empty()) {
+			return 1;
+		}
+
+		SerialData data (d);
+
+		data.store_double(mass);
+		data.store_double(friction);
+
+		std::vector<double> pos;
+		std::vector<double> rot;
+		data.store_vector(pos);
+		data.store_vector(rot);
+		btVector3 position = {
+			static_cast<float>(pos[0]),
+			static_cast<float>(pos[1]),
+			static_cast<float>(pos[2])
+		};
+		btVector3 rotation = {
+			static_cast<float>(rot[0]),
+			static_cast<float>(rot[1]),
+			static_cast<float>(rot[2])
+		};
+
+		btTransform transform;
+		transform.setIdentity();
+		transform.setOrigin(position/scale);
+		btQuaternion qt;
+		qt.setEuler(rotation.y(), rotation.x(), rotation.z());
+		transform.setRotation(qt);
+		body->setCenterOfMassTransform(transform);
+
+		std::vector<double> vel;
+		std::vector<double> vel_ang;
+		data.store_vector(vel);
+		data.store_vector(vel_ang);
+		btVector3 velocity = {
+			static_cast<float>(vel[0]),
+			static_cast<float>(vel[1]),
+			static_cast<float>(vel[2])
+		};
+		btVector3 velocity_ang = {
+			static_cast<float>(vel_ang[0]),
+			static_cast<float>(vel_ang[1]),
+			static_cast<float>(vel_ang[2])
+		};
+
+		body->setLinearVelocity(velocity);
+		body->setAngularVelocity(velocity_ang);
+
+		return 0;
 	}
 
 	int PhysicsBody::attach(PhysicsWorld* new_world) {

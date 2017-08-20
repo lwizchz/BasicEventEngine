@@ -41,6 +41,17 @@ int ord(const std::string& s) {
 }
 /*
 * chra() - Convert the given array of character data into a string
+* @array: the array to convert
+*/
+std::string chra(std::vector<Uint8> array) {
+	std::string str = ""; // Initialize an empty string to store the data in
+	for (auto& e : array) { // Iterate over the array and append each element as a character
+		str.append(chr(e));
+	}
+	return str; // Return the string on success
+}
+/*
+* chra() - Convert the given array of character data into a string
 * @size: the size of the array
 * @carray: the array to convert
 */
@@ -52,24 +63,15 @@ std::string chra(size_t size, Uint8* carray) {
 	return str; // Return the string on success
 }
 /*
-* chra() - Convert the given array of character data into a string
-* @array: the array to convert
-*/
-std::string chra(std::pair<size_t,Uint8*> array) {
-	return chra(array.first, array.second); // Return the converted array
-}
-/*
 * orda() - Convert the given string into an array of character data
-* ! The array format is the same as accepted by chra()
-* ! Be sure to free the character array when you are done using it
 * @s: the string to convert
 */
-std::pair<size_t,Uint8*> orda(const std::string& s) {
-	Uint8* carray = new Uint8[s.length()]; // Allocate space for the string and the metadata
+std::vector<Uint8> orda(const std::string& s) {
+	std::vector<Uint8> v;
 	for (size_t i=0; i<s.length(); i++) { // Iterate over the string and add each character to the array
-		carray[i] = s[i];
+		v.push_back(s[i]);
 	}
-	return std::make_pair(s.length(), carray); // Return the array on success
+	return v; // Return the array on success
 }
 
 /*
@@ -186,15 +188,14 @@ std::vector<std::string> splitv(const std::string& input, char delimiter, bool s
 		if (c == delimiter) { // If the character is a delimiter, store a substring in the map
 			output.emplace_back(input.substr(token_start, i-token_start));
 			token_start = i+1; // Begin the next token after the delimiter
-		} else if ((cont_start.find(c) != std::string::npos)&&(should_respect_containers)) { // If the character is a containr, handle it separately
-			if ((i>0)&&(input[i-1] == '\\')) {
+		} else if ((cont_start.find(c) != std::string::npos)&&(should_respect_containers)) { // If the character is a container, handle it separately
+			if ((i>0)&&(input[i-1] == '\\')) { // Skip escaped containers
 				continue;
 			}
 
-			containers.push_back(cont_start.find(c));
+			containers.push_back(cont_start.find(c)); // Store the container index
 
-			++i; // Increment past the first container
-			while (i<input.length()) { // Iterate over the string until the container or string end is reached
+			while (++i < input.length()) { // Iterate over the string until the container or string end is reached
 				if ((cont_end.find(input[i]) == containers.back())&&(input[i-1] != '\\')) {
 					containers.pop_back();
 					if (containers.empty()) {
@@ -203,8 +204,6 @@ std::vector<std::string> splitv(const std::string& input, char delimiter, bool s
 				} else if (cont_start.find(input[i]) != std::string::npos) { // Nest the containers if another is found
 					containers.push_back(cont_start.find(input[i]));
 				}
-
-				++i;
 			}
 		}
 	}

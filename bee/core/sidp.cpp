@@ -143,6 +143,13 @@ namespace bee {
 			} else if (is_str_floating(ns)) { // Double
 				floating = std::stod(ns);
 				type = 2;
+			} else if ((ns == "true")||(ns == "false")) { // Boolean
+				type = 1;
+				if (ns == "true") {
+					integer = 1;
+				} else {
+					integer = 0;
+				}
 			} else { // Probably a string
 				str = ns;
 				type = 0;
@@ -233,6 +240,7 @@ namespace bee {
 	SIDP SIDP::p(size_t index, std::string file, int line) const {
 		if (type != 3) {
 			messenger::send({"engine", "sidp"}, E_MESSAGE::WARNING, "Type is " + bee_itos(type) + ", not a pointer but the pointer array was requested, called from " + file + ":" + bee_itos(line));
+			return SIDP();
 		}
 
 		std::vector<SIDP>* v = static_cast<std::vector<SIDP>*>(pointer);
@@ -246,6 +254,7 @@ namespace bee {
 	SIDP SIDP::p(SIDP key, std::string file, int line) const {
 		if (type != 3) {
 			messenger::send({"engine", "sidp"}, E_MESSAGE::WARNING, "Type is " + bee_itos(type) + ", not a pointer but the pointer array was requested, called from " + file + ":" + bee_itos(line));
+			return SIDP();
 		}
 
 		std::map<SIDP,SIDP>* m = static_cast<std::map<SIDP,SIDP>*>(pointer);

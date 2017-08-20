@@ -13,12 +13,16 @@
 #include <map>
 #include <memory>
 
+#include <SDL2/SDL_net.h>
+
 #include "../core/sidp.hpp"
 
-#include "client.hpp"
-#include "packet.hpp"
-
 namespace bee {
+	// Forward declarations
+	class NetworkClient;
+	class NetworkPacket;
+	class Instance;
+
 	struct NetworkConnection {
 		UDPsocket udp_sock;
 		UDPpacket* udp_data;
@@ -34,10 +38,13 @@ namespace bee {
 		int self_id;
 		std::map<int,NetworkClient> players;
 
-		std::unique_ptr<NetworkPacket> tmp_data_buffer;
+		std::map<Uint16,std::unique_ptr<NetworkPacket>> buffer;
 		std::map<std::string,SIDP> data;
+		std::map<std::string,Instance*> instances;
 
 		NetworkConnection();
+
+		int get_new_player_id() const;
 	};
 }
 

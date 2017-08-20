@@ -23,6 +23,8 @@
 
 #include "../core/instance.hpp"
 
+#include "../network/network.hpp"
+
 #include "sprite.hpp"
 
 namespace bee {
@@ -436,7 +438,15 @@ namespace bee {
 	* @inst: the instance to remove data for
 	*/
 	void Object::destroy(Instance* inst) {
+		net::internal::destroy_instance(inst);
 		instance_data.erase(inst->id);
+	}
+	/*
+	* Object::step_begin() - Update the instance every step
+	* @inst: the instance to update
+	*/
+	void Object::step_begin(Instance* inst) {
+		inst->pos_previous = inst->get_position();
 	}
 }
 

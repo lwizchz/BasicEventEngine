@@ -373,4 +373,74 @@ template long fit_bounds<long>(long, long, long);
 template float fit_bounds<float>(float, float, float);
 template double fit_bounds<double>(double, double, double);
 
+/*
+* checksum_internal_table() - Return a value from the CRC lookup table
+* @index: the index of the value to return
+*/
+unsigned int checksum_internal_table(size_t index) {
+	static std::vector<unsigned int> table;
+
+	static bool is_initialized = false;
+	if (!is_initialized) {
+		unsigned int polynomial = 0x04C11DB7; // Use the official polynomial used by most implementations
+
+		table.resize(256);
+		for (unsigned int i=0; i<256; ++i) {
+			table[i] = checksum_internal_reflect(i, 8) << 24;
+
+			for (unsigned int j=0; j<8; ++j) {
+				table[i] =
+					(table[i] << 1)
+					^ (
+						(table[i] & (1 << 31)) ? polynomial : 0
+					);
+			}
+
+			table[i] = checksum_internal_reflect(table[i], 32);
+		}
+
+		is_initialized = true;
+	}
+
+	return table[index];
+}
+/*
+* checksum_internal_reflect() - Reflect the CRC table value to conform to the CRC standard
+* @reflect: the value to be reflected
+* @bits: the number of bits to reflect
+*/
+unsigned int checksum_internal_reflect(unsigned int reflect, const char bits) {
+	unsigned int value = 0;
+
+	for (int i=0; i<(bits+1); ++i) { // Swap bits
+		if (reflect & 1) {
+			value |= (1 << (bits-i));
+		}
+		reflect >>= 1;
+	}
+
+	return value;
+}
+/*
+* get_checksum() - Return the CRC32 checksum for the given data
+* @data: the data vector to generate a checksum for
+*/
+unsigned int get_checksum(const std::vector<unsigned char>& data) {
+	unsigned int crc = 0xffffffff; // Initialize the checksum
+
+	for (auto& d : data) {
+		crc = (crc >> 8) ^ checksum_internal_table((crc & 0xff) ^ d);
+	}
+
+	return (crc ^ 0xffffffff); // Finalize and return the checksum
+}
+/*
+* verify_checksum() - Return whether the data matches the checksum
+* @data: the data to check
+* @crc: the checksum to verify against
+*/
+bool verify_checksum(const std::vector<unsigned char>& data, unsigned int crc) {
+	return (get_checksum(data) == crc);
+}
+
 #endif // BEE_UTIL_REAL

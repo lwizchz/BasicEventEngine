@@ -13,6 +13,8 @@
 #include <vector>
 #include <map>
 
+#include <SDL2/SDL.h> // Include the SDL2 headers for the Uint8 type
+
 #include <btBulletDynamicsCommon.h>
 
 #include "../enum.hpp"
@@ -50,6 +52,9 @@ namespace bee {
 			int deserialize(std::map<SIDP,SIDP>&, Instance*);
 			int deserialize(const std::string&, Instance*);
 			int deserialize(const std::string&);
+
+			std::vector<Uint8> serialize_net();
+			int deserialize_net(std::vector<Uint8>);
 
 			int attach(PhysicsWorld*);
 			int remove();

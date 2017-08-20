@@ -22,6 +22,7 @@ namespace bee {
 namespace net {
 	int init();
 	bool get_is_initialized();
+	Uint32 get_time();
 	int close();
 
 	int handle_events();
@@ -48,6 +49,8 @@ namespace net {
 		int client_handle_packet(std::unique_ptr<NetworkPacket> const &);
 		int client_send_data();
 		int client_send_keepalive();
+
+		int destroy_instance(Instance*);
 	}
 }}
 

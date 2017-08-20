@@ -183,6 +183,33 @@ namespace bee {
 		DATA_UPDATE,
 		OTHER
 	};
+	enum class E_NETSIG1 : unsigned char {
+		INVALID = 255,
+		CONNECT = 1,
+		DISCONNECT,
+		SERVER_INFO,
+		CLIENT_INFO
+	};
+	enum class E_NETSIG2 : unsigned char {
+		INVALID = 255,
+		NONE = 0,
+		KEEPALIVE = 0,
+		NAME,
+		PLAYERS,
+		KEYFRAME,
+		DELTA
+	};
+
+	enum class E_DATA_TYPE : unsigned int {
+		CHAR = 0,
+		INT,
+		FLOAT,
+		DOUBLE,
+		STRING,
+		VECTOR,
+		MAP,
+		SERIAL
+	};
 
 	// Particles
 	enum class E_PT_SHAPE {

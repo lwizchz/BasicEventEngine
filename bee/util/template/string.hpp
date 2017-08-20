@@ -141,19 +141,26 @@ int map_deserialize(const std::string& s, std::map<A,B>* m) {
 		B value;
 		v >> value;
 
-		(*m)[key] = value; // Add the pair to the map
+		if (m->find(key) != m->end()) {
+			m->erase(key);
+		}
+		m->emplace(key, value); // Add the pair to the map
 	}
 
 	return 0;
 }
-/*
-* print_map() - Format and print a map's key-value pairs on standard output
-* @m: the map to print
-*/
+
+template <typename A>
+std::ostream& operator<<(std::ostream& os, const std::vector<A>& v)
+{
+	os << vector_serialize(v, true);
+	return os;
+}
 template <typename A, typename B>
-int print_map(const std::map<A,B>& m) {
-	std::cout << map_serialize(m, true);
-	return 0; // Return 0 on success
+std::ostream& operator<<(std::ostream& os, const std::map<A,B>& m)
+{
+	os << map_serialize(m, true);
+	return os;
 }
 
 #endif // BEE_UTIL_TEMPLATE_STRING_H

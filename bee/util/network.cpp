@@ -276,7 +276,7 @@ int network_udp_send(UDPsocket udp, int channel, UDPpacket* packet) {
 * @data_size: the size of the data
 * @data: the data to send as a packet
 */
-int network_udp_send(UDPsocket udp, int channel, size_t data_size, Uint8* data) {
+int network_udp_send(UDPsocket udp, int channel, size_t data_size, const Uint8* data) {
 	UDPpacket* d = network_packet_alloc(data_size); // Allocate space for the data packet
 	memcpy(d->data, data, data_size); // Set the packet data
 	d->len = data_size;

@@ -39,7 +39,7 @@ int network_udp_bind(UDPsocket*, int, const std::string&);
 int network_udp_unbind(UDPsocket*, int);
 IPaddress* network_get_peer_address(UDPsocket, int);
 int network_udp_send(UDPsocket, int, UDPpacket*);
-int network_udp_send(UDPsocket, int, size_t, Uint8*);
+int network_udp_send(UDPsocket, int, size_t, const Uint8*);
 int network_udp_recv(UDPsocket, UDPpacket*);
 int network_udp_send_vector(UDPsocket, UDPpacket**, int);
 int network_udp_recv_vector(UDPsocket, UDPpacket**);

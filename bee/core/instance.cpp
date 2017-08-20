@@ -17,13 +17,14 @@
 #include "../util/collision.hpp"
 #include "../util/real.hpp"
 #include "../util/string.hpp"
-#include "../util/template.hpp"
+#include "../util/template/string.hpp"
 
 #include "../messenger/messenger.hpp"
 
 #include "resources.hpp"
 #include "sidp.hpp"
 #include "room.hpp"
+#include "serialdata.hpp"
 
 #include "../render/drawing.hpp"
 #include "../render/viewdata.hpp"
@@ -224,6 +225,51 @@ namespace bee {
 		return deserialize(data, nullptr);
 	}
 
+	std::vector<Uint8> Instance::serialize_net() {
+		SerialData data (256);
+
+		std::string sprite_name = get_sprite()->get_name();
+		data.store_string(sprite_name);
+		int s = subimage_time;
+		data.store_int(s);
+
+		std::vector<Uint8> body_data = body->serialize_net();
+		data.store_serial_v(body_data);
+
+		std::vector<double> ppos = {pos_previous.x(), pos_previous.y(), pos_previous.z()};
+		data.store_vector(ppos);
+
+		return data.get();
+	}
+	int Instance::deserialize_net(std::vector<Uint8> d) {
+		if (d.empty()) {
+			return 1;
+		}
+
+		SerialData data (d);
+
+		std::string sprite_name;
+		data.store_string(sprite_name);
+		sprite = get_sprite_by_name(sprite_name);
+		int s;
+		data.store_int(s);
+		subimage_time = s;
+
+		std::vector<Uint8> body_data;
+		data.store_serial_v(body_data);
+		body->deserialize_net(body_data);
+
+		std::vector<double> ppos;
+		data.store_vector(ppos);
+		pos_previous = {
+			static_cast<float>(ppos[0]),
+			static_cast<float>(ppos[1]),
+			static_cast<float>(ppos[2])
+		};
+
+		return 0;
+	}
+
 	int Instance::remove() {
 		object->destroy(this);
 		get_current_room()->remove_instance(id);
@@ -258,6 +304,7 @@ namespace bee {
 		computation_type = new_computation_type;
 
 		switch (computation_type) {
+			case E_COMPUTATION::NOTHING:
 			case E_COMPUTATION::STATIC:
 			case E_COMPUTATION::SEMISTATIC: {
 				if (get_physbody()->get_mass() != 0.0) { // If a body already has 0 mass, setting it to 0 will segfault
@@ -265,10 +312,12 @@ namespace bee {
 				}
 				break;
 			}
-			case E_COMPUTATION::DYNAMIC: {
+			case E_COMPUTATION::SEMIPLAYER:
+			case E_COMPUTATION::PLAYER: {
 				get_physbody()->get_body()->forceActivationState(DISABLE_DEACTIVATION);
 				break;
 			}
+			case E_COMPUTATION::DYNAMIC:
 			default: {}
 		}
 

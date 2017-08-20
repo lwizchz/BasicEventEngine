@@ -83,6 +83,24 @@ TEST_CASE("real/bounds") {
 	REQUIRE(fit_bounds(5, 6, 3) == 5);
 	REQUIRE(fit_bounds(5.0, 3.0, 6.0) == 5.0);
 }
+TEST_CASE("real/checksum") {
+	REQUIRE(checksum_internal_table(0) == 0);
+	REQUIRE(checksum_internal_table(2) == 3993919788);
+	REQUIRE(checksum_internal_reflect(0, 8) == 0);
+	REQUIRE(checksum_internal_reflect(2, 8) == 128);
+	REQUIRE(checksum_internal_reflect(0, 32) == 0);
+	REQUIRE(checksum_internal_reflect(2, 32) == 2147483648);
+
+	std::vector<unsigned char> v1 = {65, 66, 67};
+	Uint32 crc1 = get_checksum(v1);
+	REQUIRE(crc1 == 1625830473);
+	REQUIRE(verify_checksum(v1, crc1) == true);
+
+	std::vector<unsigned char> v2 = {120, 121, 122};
+	Uint32 crc2 = get_checksum(v2);
+	REQUIRE(crc2 == 1178330758);
+	REQUIRE(verify_checksum(v2, crc2) == true);
+}
 
 // String handling function assertions
 TEST_CASE("string/charcode") {
@@ -91,9 +109,8 @@ TEST_CASE("string/charcode") {
 	REQUIRE(ord("ABC") == 65);
 	Uint8 ca1[] = {65, 66, 67};
 	REQUIRE(chra(3, ca1) == std::string("ABC"));
-	std::pair<size_t,Uint8*> ca2 = orda("ABC");
-	REQUIRE(chra(ca2.first, ca2.second) == chra(ca2.first, ca1));
-	delete[] ca2.second;
+	std::vector<Uint8> ca2 = orda("ABC");
+	REQUIRE(chra(ca2) == chra(ca2.size(), ca1));
 }
 TEST_CASE("string/alteration") {
 	REQUIRE(string_lower("ABC") == "abc");
@@ -342,12 +359,6 @@ TEST_CASE("template") {
 	REQUIRE(std::equal(m.begin(), m.end(), n1.begin()));
 	REQUIRE(map_deserialize(map_serialize(m, true), &n2) == 0);
 	REQUIRE(std::equal(m.begin(), m.end(), n2.begin()));
-
-	std::pair<size_t,Uint8*> a = network_map_encode(m);
-	REQUIRE(a.first == 17);
-	REQUIRE((network_map_decode(a.first, a.second, &n3) == 0));
-	delete[] a.second;
-	REQUIRE(std::equal(m.begin(), m.end(), n3.begin()));
 }
 
 /*

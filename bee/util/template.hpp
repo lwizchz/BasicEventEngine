@@ -9,7 +9,6 @@
 #ifndef BEE_UTIL_TEMPLATE_H
 #define BEE_UTIL_TEMPLATE_H 1
 
-#include "template/network.hpp"
 #include "template/real.hpp"
 #include "template/string.hpp"
 

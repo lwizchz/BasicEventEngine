@@ -116,7 +116,7 @@ namespace bee {
 			virtual void create(Instance*) =0;
 			virtual void destroy(Instance*);
 			virtual void alarm(Instance*, size_t) {};
-			virtual void step_begin(Instance*) {};
+			virtual void step_begin(Instance*);
 			virtual void step_mid(Instance*) {};
 			virtual void step_end(Instance*) {};
 			virtual void keyboard_press(Instance*, SDL_Event*) {};

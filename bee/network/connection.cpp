@@ -11,6 +11,9 @@
 
 #include "connection.hpp"
 
+#include "client.hpp"
+#include "packet.hpp"
+
 namespace bee {
 	NetworkConnection::NetworkConnection() :
 		udp_sock(nullptr),
@@ -27,9 +30,19 @@ namespace bee {
 		self_id(-1),
 		players(),
 
-		tmp_data_buffer(nullptr),
-		data()
+		buffer(),
+		data(),
+		instances()
 	{}
+
+	int NetworkConnection::get_new_player_id() const {
+		for (size_t i=1; i<max_players; ++i) {
+			if (players.find(i) == players.end()) {
+				return i;
+			}
+		}
+		return -1;
+	}
 }
 
 #endif // BEE_NETWORK_CONNECTION

@@ -71,6 +71,9 @@ namespace bee {
 			int deserialize(const std::string&, Object*);
 			int deserialize(const std::string&);
 
+			std::vector<Uint8> serialize_net();
+			int deserialize_net(std::vector<Uint8>);
+
 			int remove();
 
 			int set_alarm(size_t, Uint32);

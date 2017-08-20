@@ -12,6 +12,7 @@
 #define GLM_FORCE_RADIANS
 
 #include <string> // Include the required library headers
+#include <vector>
 
 #include <glm/glm.hpp> // Include the required headers for vector handling
 #include <btBulletDynamicsCommon.h>
@@ -60,5 +61,10 @@ template <typename T>
 extern bool is_angle_between(T, T, T);
 template <typename T>
 extern T fit_bounds(T, T, T);
+
+unsigned int checksum_internal_table(size_t);
+unsigned int checksum_internal_reflect(unsigned int, const char);
+unsigned int get_checksum(const std::vector<unsigned char>&);
+bool verify_checksum(const std::vector<unsigned char>&, unsigned int);
 
 #endif // BEE_UTIL_REAL_H
