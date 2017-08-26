@@ -71,8 +71,9 @@ namespace bee {
 		size_t get_size() const;
 	};
 
+namespace net {
 	int send_packet(const NetworkClient&, std::unique_ptr<NetworkPacket> const &);
 	std::unique_ptr<NetworkPacket> recv_packet(NetworkConnection*);
-}
+}}
 
 #endif // BEE_NETWORK_PACKET_H

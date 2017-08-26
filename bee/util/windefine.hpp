@@ -21,4 +21,16 @@
 	#undef ERROR
 #endif
 
+#ifdef OPTIONAL
+	#undef OPTIONAL
+#endif
+
+#define NOMINMAX
+#ifdef max
+	#undef max
+#endif
+#ifdef min
+	#undef min
+#endif
+
 #endif // _WIN32

@@ -29,7 +29,7 @@
 
 namespace bee { // The engine namespace
 	// Forward declarations
-	struct ProgramFlags;
+	struct ProgramFlag;
 	struct GameOptions;
 	class Room;
 
@@ -52,7 +52,7 @@ namespace bee { // The engine namespace
 	int close_resources();
 
 	// bee/engine.cpp
-	int init(int, char**, const std::list<ProgramFlags*>&, Room**, GameOptions*);
+	int init(int, char**, const std::list<ProgramFlag*>&, Room**, GameOptions*);
 	int loop();
 	int close();
 

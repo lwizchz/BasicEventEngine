@@ -12,6 +12,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "../util/windefine.hpp"
+
 #include "messagecontents.hpp"
 #include "messagerecipient.hpp"
 

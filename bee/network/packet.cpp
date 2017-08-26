@@ -366,6 +366,7 @@ namespace bee {
 		return data->get().size() + META_SIZE;
 	}
 
+namespace net {
 	/*
 	* send_packet() - Send the given packet to the given client
 	*/
@@ -409,6 +410,6 @@ namespace bee {
 			connection->udp_data
 		);
 	}
-}
+}}
 
 #endif // BEE_NETWORK_PACKET

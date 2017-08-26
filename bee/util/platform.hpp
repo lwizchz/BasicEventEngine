@@ -11,6 +11,10 @@
 
 #include <string>
 
+#ifdef _WIN32
+	typedef int mode_t;
+#endif
+
 int bee_get_platform();
 
 std::string bee_get_path();

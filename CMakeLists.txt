@@ -26,36 +26,14 @@ if (NOT BEE_GAME_ID)
 	set(BEE_GAME_ID "11111111")
 endif()
 
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-	set(warns "-Wall -Wextra -Wpedantic -Wshadow -Wno-unused-parameter")
-else()
-	set(warns "")
-endif()
 set(engine_defines "-DBEE_VERSION_MAJOR=${ENGINE_VERSION_MAJOR} -DBEE_VERSION_MINOR=${ENGINE_VERSION_MINOR} -DBEE_VERSION_RELEASE=${ENGINE_VERSION_RELEASE}")
 set(game_defines "-DBEE_BUILD_ID=${BEE_BUILD_ID} -DBEE_GAME_ID=${BEE_GAME_ID}")
 set(game_defines "${game_defines} -DGAME_NAME=${PROJECT_NAME} -DGAME_VERSION_MAJOR=${GAME_VERSION_MAJOR} -DGAME_VERSION_MINOR=${GAME_VERSION_MINOR} -DGAME_VERSION_RELEASE=${GAME_VERSION_RELEASE}")
 
-set(packaged_lib_dir "-Wl,-rpath='\$ORIGIN/lib/'") # ./lib (relative to the executable) will be search for dynamic library loading
-set(CMAKE_CXX_FLAGS_DEBUG "${packaged_lib_dir} -g -pg -pipe -std=c++14 ${warns} -D_REENTRANT ${engine_defines}")
-set(CMAKE_CXX_FLAGS_RELEASE "${packaged_lib_dir} -O2 -pipe -std=c++14 ${warns} -D_REENTRANT -DNDEBUG ${engine_defines}")
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_DEBUG}")
-else()
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_RELEASE}")
-endif()
+set(warns "")
 
 include_directories("lib/doctest/doctest/" "lib/bullet3/src")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/lib/")
-
-# Enable link time optimization if it is supported
-if(GXX_HAS_LTO_FLAG)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto")
-endif()
-
-option(SHOULD_BUILD_BULLET "Whether Bullet should be built instead of the packaged version" ON)
-if (SHOULD_BUILD_BULLET)
-	add_subdirectory(lib/bullet3/)
-endif()
 
 add_subdirectory(bee)
 
@@ -64,7 +42,8 @@ if (WIN32) # Include Windows libraries manually
 	include_directories(${CMAKE_CURRENT_SOURCE_DIR} "${SRC}/win/include")
 
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${game_defines}")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-shadow \"-L${SRC}/win/lib\" \"-I${SRC}/win/include\" \"-I${SRC}/lib/doctest/doctest\"")
+	#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-shadow \"-L${SRC}/win/lib\" \"-I${SRC}/win/include\" \"-I${SRC}/lib/doctest/doctest\"")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \"-I${SRC}/win/include\" \"-I${SRC}/lib/doctest/doctest\"")
 	add_executable(${PROJECT_NAME} main.cpp resources/resources.hpp)
 	target_link_libraries(${PROJECT_NAME} BEE)
 
@@ -83,13 +62,12 @@ if (WIN32) # Include Windows libraries manually
 	set(ASSIMP_LIBRARIES ${SRC}/win/lib/libassimp.dll.a)
 
 	set(BULLET_SRC ${${PROJECT_NAME}_SOURCE_DIR}/lib/bullet3/src)
-	set(BULLET_INCLUDE_DIRS ${BULLET_SRC})
 	set(
 		BULLET_LIBRARIES
 
-		${BULLET_SRC}/BulletDynamics/libBulletDynamics.a
-		${BULLET_SRC}/BulletCollision/libBulletCollision.a
-		${BULLET_SRC}/LinearMath/libLinearMath.a
+		lib/Release/BulletDynamics
+		lib/Release/BulletCollision
+		lib/Release/LinearMath
 	)
 
 	find_package(GLEW REQUIRED)
@@ -99,6 +77,24 @@ if (WIN32) # Include Windows libraries manually
 	include_directories(${GLEW_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRECTORIES} ${OPENGL_INCLUDE_DIRECTORIES} ${ASSIMP_INCLUDE_DIRECTORIES} ${BULLET_INCLUDE_DIRECTORIES})
 	target_link_libraries(${PROJECT_NAME} ${GLEW_LIBRARIES} ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES} ${ASSIMP_LIBRARIES} ${BULLET_LIBRARIES})
 else() # Include Unix libraries automatically
+	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+		set(warns "-Wall -Wextra -Wpedantic -Wshadow -Wno-unused-parameter")
+	endif()
+
+	set(packaged_lib_dir "-Wl,-rpath='\$ORIGIN/lib/'") # ./lib (relative to the executable) will be search for dynamic library loading
+	set(CMAKE_CXX_FLAGS_DEBUG "${packaged_lib_dir} -g -pg -pipe -std=c++14 ${warns} -D_REENTRANT ${engine_defines}")
+	set(CMAKE_CXX_FLAGS_RELEASE "${packaged_lib_dir} -O2 -pipe -std=c++14 ${warns} -D_REENTRANT -DNDEBUG ${engine_defines}")
+	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_DEBUG}")
+	else()
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_RELEASE}")
+	endif()
+
+	# Enable link time optimization if it is supported
+	if(GXX_HAS_LTO_FLAG)
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto")
+	endif()
+
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${game_defines}")
 
 	add_executable(${PROJECT_NAME} main.cpp resources/resources.hpp)
@@ -122,20 +118,16 @@ else() # Include Unix libraries automatically
 	find_package(OpenGL REQUIRED)
 	find_package(ASSIMP REQUIRED)
 
-	if (SHOULD_BUILD_BULLET)
-		set(BULLET_SRC ${${PROJECT_NAME}_SOURCE_DIR}/lib/bullet3/src)
+	set(BULLET_SRC ${${PROJECT_NAME}_SOURCE_DIR}/lib/bullet3/src)
 
-		set(BULLET_INCLUDE_DIRS ${BULLET_SRC})
-		set(
-			BULLET_LIBRARIES
+	set(BULLET_INCLUDE_DIRS ${BULLET_SRC})
+	set(
+		BULLET_LIBRARIES
 
-			${BULLET_SRC}/BulletDynamics/libBulletDynamics.a
-			${BULLET_SRC}/BulletCollision/libBulletCollision.a
-			${BULLET_SRC}/LinearMath/libLinearMath.a
-		)
-	else()
-		find_package(Bullet REQUIRED)
-	endif()
+		${BULLET_SRC}/BulletDynamics/libBulletDynamics.a
+		${BULLET_SRC}/BulletCollision/libBulletCollision.a
+		${BULLET_SRC}/LinearMath/libLinearMath.a
+	)
 
 	include_directories(${GLEW_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRECTORIES} ${OPENGL_INCLUDE_DIRECTORIES} ${ASSIMP_INCLUDE_DIRECTORIES} ${BULLET_INCLUDE_DIRS})
 	target_link_libraries(${PROJECT_NAME} ${GLEW_LIBRARIES} ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES} ${ASSIMP_LIBRARIES} ${BULLET_LIBRARIES})

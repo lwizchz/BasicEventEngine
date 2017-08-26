@@ -732,7 +732,7 @@ namespace bee {
 	}
 	std::pair<int,int> Instance::get_snapped() const {
 		if (get_sprite() == nullptr) {
-			return std::make_pair(get_x(), get_y());
+			return std::make_pair(static_cast<int>(get_x()), static_cast<int>(get_y()));
 		}
 		return get_snapped(get_sprite()->get_width(), get_sprite()->get_height());
 	}

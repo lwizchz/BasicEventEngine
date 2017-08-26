@@ -232,6 +232,8 @@ int bee_commandline_clear() {
 
 #elif _WIN32
 
+#define NOMINMAX
+
 #include <ws2tcpip.h> // Include the required Windows headers
 #include <winsock2.h>
 #include <windows.h>
@@ -251,7 +253,7 @@ int bee_get_platform() {
 * bee_get_path() - Return the path of the executable
 */
 std::string bee_get_path() {
-	char buffer[PATH_MAX];
+	char buffer[MAX_PATH];
 	int len = GetModuleFileName(nullptr, buffer, sizeof(buffer)-1);
 	if (len > 0) {
 		buffer[len] = '\0';

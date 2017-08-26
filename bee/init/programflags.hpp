@@ -11,25 +11,30 @@
 
 #include <list>
 
+#include "../enum.hpp"
+
 namespace bee {
-	struct ProgramFlags {
+	struct ProgramFlag {
 		std::string longopt;
 		char shortopt;
 		bool pre_init;
-		int has_arg;
-		std::function<void (char*)> func;
+		E_FLAGARG arg_type;
+		std::function<void (const std::string&)> func;
 
-		ProgramFlags();
-		ProgramFlags(std::string, char, bool, int, std::function<void (char*)>);
+		ProgramFlag();
+		ProgramFlag(std::string, char, bool, E_FLAGARG, std::function<void (const std::string&)>);
 	};
 
 	namespace internal {
-		std::list<ProgramFlags*>& get_standard_flags();
+		std::list<ProgramFlag*>& get_standard_flags();
+
+		ProgramFlag* get_long_flag(const std::list<ProgramFlag*>&, const std::string&);
+		ProgramFlag* get_short_flag(const std::list<ProgramFlag*>&, char);
 	}
 
-	int handle_flags(const std::list<ProgramFlags*>&, bool);
+	int handle_flags(const std::list<ProgramFlag*>&, bool);
 
-	std::list<ProgramFlags*> get_standard_flags();
+	std::list<ProgramFlag*> get_standard_flags();
 	int free_standard_flags();
 }
 

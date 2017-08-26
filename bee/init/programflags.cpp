@@ -10,11 +10,9 @@
 #define BEE_INIT_PROGRAMFLAGS 1
 
 #include <iostream>
-#include <getopt.h>
 #include <map>
 #include <vector>
 #include <functional>
-#include <string.h> // Required for Windows strcmp()
 
 #include <SDL2/SDL.h> // Include the required SDL headers
 
@@ -31,27 +29,53 @@
 #include "../core/enginestate.hpp"
 
 namespace bee {
-	ProgramFlags::ProgramFlags() :
+	ProgramFlag::ProgramFlag() :
 		longopt(),
 		shortopt('\0'),
 		pre_init(true),
-		has_arg(no_argument),
+		arg_type(E_FLAGARG::NONE),
 		func(nullptr)
 	{}
-	ProgramFlags::ProgramFlags(std::string l, char s, bool p, int a, std::function<void (char*)> f) :
+	ProgramFlag::ProgramFlag(std::string l, char s, bool p, E_FLAGARG a, std::function<void (const std::string&)> f) :
 		longopt(l),
 		shortopt(s),
 		pre_init(p),
-		has_arg(a),
+		arg_type(a),
 		func(f)
 	{}
 
 	/*
 	* internal::get_standard_flags() - Return the static list of the default ProgramFlags
 	*/
-	std::list<ProgramFlags*>& internal::get_standard_flags() {
-		static std::list<ProgramFlags*> flag_list;
+	std::list<ProgramFlag*>& internal::get_standard_flags() {
+		static std::list<ProgramFlag*> flag_list;
 		return flag_list;
+	}
+	/*
+	* internal::get_long_flag() - Return the flag from the list which matches the given longopt
+	* @flags: the list of flags to search
+	* @longopt: the longopt to search for
+	*/
+	ProgramFlag* internal::get_long_flag(const std::list<ProgramFlag*>& flags, const std::string& longopt) {
+		for (auto& flag : flags) {
+			if (flag->longopt == longopt) {
+				return flag;
+			}
+		}
+		return nullptr;
+	}
+	/*
+	* internal::get_short_flag() - Return the flag from the list which matches the given shortopt
+	* @flags: the list of flags to search
+	* @shortopt: the shortopt to search for
+	*/
+	ProgramFlag* internal::get_short_flag(const std::list<ProgramFlag*>& flags, char shortopt) {
+		for (auto& flag : flags) {
+			if (flag->shortopt == shortopt) {
+				return flag;
+			}
+		}
+		return nullptr;
 	}
 
 	/*
@@ -59,69 +83,56 @@ namespace bee {
 	* @new_flags: the new flags to use
 	* @pre_init: whether this function is being called before or after engine initialization
 	*/
-	int handle_flags(const std::list<ProgramFlags*>& new_flags, bool pre_init) {
+	int handle_flags(const std::list<ProgramFlag*>& new_flags, bool pre_init) {
 		engine->flags = new_flags;
 
 		if (engine->flags.empty()) {
 			return 0;
 		}
 
-		int l = 0;
-		struct option* long_options = new struct option[engine->flags.size()+1];
-		std::string optstring = "";
-		for (auto& f : engine->flags) {
-			if (f->shortopt > 0) {
-				optstring += f->shortopt;
-				if (f->has_arg == optional_argument) {
-					optstring += "::";
-				} else if (f->has_arg == required_argument) {
-					optstring += ":";
-				}
-			}
-
-			long_options[l].name = f->longopt.c_str();
-			long_options[l].has_arg = f->has_arg;
-			long_options[l].flag = nullptr;
-			long_options[l].val = f->shortopt;
-			l++;
-		}
-		long_options[l++] = {0, 0, 0, 0};
-
-		optind = 1;
-		int index = -1;
-		int c = -1;
 		int amount = 0;
 		try {
-			while ((c = getopt_long(engine->argc, engine->argv, optstring.c_str(), long_options, &index)) != -1) {
-				bool has_flag = false;
+			for (size_t i=1; i<engine->argc; ++i) {
+				if (engine->argv[i][0] == '-') { // If the argument is a flag
+					std::string arg (engine->argv[i]);
+					ProgramFlag* flag = nullptr;
+					if (arg[1] == '-') { // If the argument is a long flag
+						flag = internal::get_long_flag(engine->flags, arg.substr(2));
+					} else if (arg[2] == '\0') { // If the argument is a short flag
+						flag = internal::get_short_flag(engine->flags, arg[1]);
+					}
 
-				for (auto& f : engine->flags) {
-					if (((c != 0)&&(c == f->shortopt))||((c == 0)&&(strcmp(long_options[index].name, f->longopt.c_str()) == 0))) {
-						if (f->pre_init == pre_init) {
-							if (f->func != nullptr) {
-								if ((f->has_arg != no_argument)&&(optarg)) {
-									f->func(optarg);
+					if (flag != nullptr) {
+						std::string optarg;
+						if (flag->arg_type != E_FLAGARG::NONE) {
+							if ((i+1 < engine->argc)&&(engine->argv[i+1][0] != '-')) {
+								++i;
+								optarg = std::string(engine->argv[i]);
+							}
+						}
+
+						if (flag->pre_init == pre_init) {
+							if (flag->func != nullptr) {
+								if (flag->arg_type != E_FLAGARG::NONE) {
+									if ((flag->arg_type == E_FLAGARG::REQUIRED)&&(optarg.empty())) {
+										throw std::string("Missing required flag for " + arg);
+									}
+
+									flag->func(optarg);
 								} else {
-									f->func(static_cast<char*>(nullptr));
+									flag->func(std::string());
 								}
 							}
 							amount++;
 						}
-						has_flag = true;
-						break;
+					} else {
+						messenger::send({"engine", "programflags"}, E_MESSAGE::WARNING, "Unknown flag: \"" + arg + "\"");
 					}
 				}
-
-				if (!has_flag) {
-					messenger::send({"engine", "programflags"}, E_MESSAGE::WARNING, "Unknown flag: \"" + std::string(engine->argv[amount+1]) + "\"");
-				}
 			}
-		} catch(std::string e) {
-			delete[] long_options;
+		} catch (const std::string& e) {
 			return -(amount+1);
 		}
-
-		delete[] long_options;
 
 		return amount;
 	}
@@ -129,60 +140,59 @@ namespace bee {
 	/*
 	* get_standard_flags() - Return a list of the default ProgramFlags which can be appended by the user
 	*/
-	std::list<ProgramFlags*> get_standard_flags() {
-		std::list<ProgramFlags*>& flag_list = internal::get_standard_flags();
+	std::list<ProgramFlag*> get_standard_flags() {
+		std::list<ProgramFlag*>& flag_list = internal::get_standard_flags();
 		if (flag_list.empty()) {
-			ProgramFlags* f_help = new ProgramFlags(
-				"help", 'h', true, no_argument, [] (char* arg) -> void {
+			ProgramFlag* f_help = new ProgramFlag(
+				"help", 'h', true, E_FLAGARG::NONE, [] (const std::string& arg) -> void {
 					std::cerr << get_usage_text();
 					throw std::string("help quit");
 				}
 			);
-			ProgramFlags* f_debug = new ProgramFlags(
-				"debug", 'd', true, no_argument, [] (char* arg) -> void {
+			ProgramFlag* f_debug = new ProgramFlag(
+				"debug", 'd', true, E_FLAGARG::NONE, [] (const std::string& arg) -> void {
 					engine->options->is_debug_enabled = true;
 				}
 			);
-			ProgramFlags* f_dimensions = new ProgramFlags(
-				"dimensions", '\0', true, required_argument, [] (char* arg) -> void {
-					std::string d (arg);
-					engine->width = bee_stoi(d.substr(0, d.find("x")));
-					engine->height = bee_stoi(d.substr(d.find("x")+1));
+			ProgramFlag* f_dimensions = new ProgramFlag(
+				"dimensions", '\0', true, E_FLAGARG::REQUIRED, [] (const std::string& arg) -> void {
+					engine->width = bee_stoi(arg.substr(0, arg.find("x")));
+					engine->height = bee_stoi(arg.substr(arg.find("x")+1));
 					engine->options->is_resizable = false;
 				}
 			);
-			ProgramFlags* f_fullscreen = new ProgramFlags(
-				"fullscreen", 'f', true, no_argument, [] (char* arg) -> void {
+			ProgramFlag* f_fullscreen = new ProgramFlag(
+				"fullscreen", 'f', true, E_FLAGARG::NONE, [] (const std::string& arg) -> void {
 					engine->options->is_fullscreen = true;
 				}
 			);
-			ProgramFlags* f_opengl = new ProgramFlags(
-				"opengl", '\0', true, no_argument, [] (char* arg) -> void {
+			ProgramFlag* f_opengl = new ProgramFlag(
+				"opengl", '\0', true, E_FLAGARG::NONE, [] (const std::string& arg) -> void {
 					engine->options->renderer_type = E_RENDERER::OPENGL4;
 				}
 			);
-			ProgramFlags* f_noassert = new ProgramFlags(
-				"no-assert", '\0', true, no_argument, [] (char* arg) -> void {
+			ProgramFlag* f_noassert = new ProgramFlag(
+				"no-assert", '\0', true, E_FLAGARG::NONE, [] (const std::string& arg) -> void {
 					engine->options->should_assert = false;
 				}
 			);
-			ProgramFlags* f_sdl = new ProgramFlags(
-				"sdl", '\0', true, no_argument, [] (char* arg) -> void {
+			ProgramFlag* f_sdl = new ProgramFlag(
+				"sdl", '\0', true, E_FLAGARG::NONE, [] (const std::string& arg) -> void {
 					engine->options->renderer_type = E_RENDERER::SDL;
 				}
 			);
-			ProgramFlags* f_singlerun = new ProgramFlags(
-				"single-run", '\0', true, no_argument, [] (char* arg) -> void {
+			ProgramFlag* f_singlerun = new ProgramFlag(
+				"single-run", '\0', true, E_FLAGARG::NONE, [] (const std::string& arg) -> void {
 					engine->options->single_run = true;
 				}
 			);
-			ProgramFlags* f_windowed = new ProgramFlags(
-				"windowed", 'w', true, no_argument, [] (char* arg) -> void {
+			ProgramFlag* f_windowed = new ProgramFlag(
+				"windowed", 'w', true, E_FLAGARG::NONE, [] (const std::string& arg) -> void {
 					engine->options->is_fullscreen = false;
 				}
 			);
-			ProgramFlags* f_headless = new ProgramFlags(
-				"headless", '\0', true, no_argument, [] (char* arg) -> void {
+			ProgramFlag* f_headless = new ProgramFlag(
+				"headless", '\0', true, E_FLAGARG::NONE, [] (const std::string& arg) -> void {
 					engine->options->is_headless = true;
 				}
 			);
@@ -195,7 +205,7 @@ namespace bee {
 	* free_standard_flags() - Return a list of the default ProgramFlags which can be appended by the user
 	*/
 	int free_standard_flags() {
-		std::list<ProgramFlags*>& flag_list = internal::get_standard_flags();
+		std::list<ProgramFlag*>& flag_list = internal::get_standard_flags();
 		if (!flag_list.empty()) {
 			for (auto& flag : flag_list) {
 				delete flag;

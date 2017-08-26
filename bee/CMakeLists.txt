@@ -22,7 +22,8 @@ set(deps ${deps_bee} ${deps_bee_util} ${deps_bee_init} ${deps_bee_messenger} ${d
 
 if (WIN32)
 	set(SRC ${${PROJECT_NAME}_SOURCE_DIR})
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-shadow \"-L${SRC}/win/lib\" \"-I${SRC}/win/include\" \"-I${SRC}/lib/doctest/doctest\"")
+	#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-shadow \"-L${SRC}/win/lib\" \"-I${SRC}/win/include\" \"-I${SRC}/lib/doctest/doctest\"")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \"-I${SRC}/win/include\" \"-I${SRC}/lib/doctest/doctest\"")
 endif()
 
 add_library(BEE ${deps})

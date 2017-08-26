@@ -14,6 +14,12 @@
 namespace bee {
 	#define BIT(x) (1u << x)
 
+	enum class E_FLAGARG {
+		NONE,
+		OPTIONAL,
+		REQUIRED
+	};
+
 	enum class E_SOUNDEFFECT : int {
 		NONE       = BIT(0),
 		CHORUS     = BIT(1),

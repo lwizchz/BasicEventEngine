@@ -24,7 +24,7 @@
 
 namespace bee {
 	// Forward declarations
-	class ProgramFlags;
+	class ProgramFlag;
 	class GameOptions;
 
 	class Messenger;
@@ -42,7 +42,7 @@ namespace bee {
 		// These contain data about the engine initialization
 		int argc;
 		char** argv; // The provided commandline flags
-		std::list<ProgramFlags*> flags; // The available commandline flags
+		std::list<ProgramFlag*> flags; // The available commandline flags
 		GameOptions* options; // The engine options
 
 		// These contain data about the event loop

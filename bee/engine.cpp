@@ -47,7 +47,7 @@ namespace bee {
 	EngineState* engine = nullptr;
 	bool is_initialized = false;
 
-	int init(int argc, char** argv, const std::list<ProgramFlags*>& new_flags, Room** new_first_room, GameOptions* new_options) {
+	int init(int argc, char** argv, const std::list<ProgramFlag*>& new_flags, Room** new_first_room, GameOptions* new_options) {
 		engine = new EngineState(argc, argv, new_options);
 
 		if (handle_flags(new_flags, true) < 0) {

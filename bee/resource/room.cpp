@@ -15,6 +15,7 @@
 #include <fstream>
 #include <algorithm>
 #include <set>
+#include <iterator>
 
 #include <glm/gtc/type_ptr.hpp> // Include the required OpenGL headers
 

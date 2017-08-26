@@ -3,6 +3,34 @@
 
 source config.sh
 
+download_dependencies()
+{
+        git submodule update --init --recursive
+}
+build_dependencies()
+{
+        download_dependencies
+
+        # Build Bullet
+        cd lib/bullet3
+        cp ../bullet.CMakeLists.txt ./CMakeLists.txt
+        cmake .
+        make -j5
+
+        cd ../..
+}
+clean_dependencies()
+{
+        echo "cleaning dependencies..."
+
+        # Clean Bullet
+        cd lib/bullet3
+        git clean -fd
+        git reset HEAD --hard
+
+        cd ../..
+}
+
 clean()
 {
         echo "cleaning dir: $1"
@@ -140,20 +168,24 @@ fi
 build_dir="$(readlink -f ${build_dir})"
 
 if [ -z "$1" ] || [ "$1" == "release" ]; then
+        build_dependencies
         release "$build_dir"
 elif [ "$1" == "norun" ]; then
+        build_dependencies
         if [ -f "${build_dir}/last_build_type.txt" ]; then
                 $(cat "${build_dir}/last_build_type.txt") "$build_dir" "norun"
         else
                 release "$build_dir" "norun"
         fi
 elif [ "$1" == "debug" ]; then
+        build_dependencies
         if [ -n "$3" ]; then
                 debug "$build_dir" "$3"
         else
                 debug "$build_dir"
         fi
 elif [ "$1" == "clean" ]; then
+        clean_dependencies
         clean "$build_dir"
 else
         echo "Invalid argument: \"$1\""

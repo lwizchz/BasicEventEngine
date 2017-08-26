@@ -43,7 +43,7 @@ namespace bee {
 	}
 
 	struct InstanceSort { // This struct is used as the comparator for the instances_sorted member of the Room class
-		bool operator() (Instance* lhs, Instance* rhs) {
+		bool operator() (Instance* lhs, Instance* rhs) const {
 			return (*lhs) < (*rhs); // Compare the values instead of the pointers
 		}
 	};
