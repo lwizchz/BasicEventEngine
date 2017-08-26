@@ -27,7 +27,7 @@ RmTest::RmTest() : Room("RmTest", "test.hpp") {}
 void RmTest::init() {
 	Room::init();
 
-	// set room properties
+	// Set room properties
 	/*set_width(3000);
 	set_height(500);
 
@@ -41,14 +41,23 @@ void RmTest::init() {
 	get_phys_world()->set_gravity(btVector3(0.0, 10.0, 0.0));
 	get_phys_world()->set_scale(100.0);
 
-	// set backgrounds
+	// Set backgrounds
 	add_background(bk_green, true, false, 0, 0, true, true, 10, 10, false);
 
-	// set up instances
+	// Set up instances
 	if (get_instance_map().empty()) {
 		set_instance_map("resources/rooms/test.csv");
 	}
 	load_instance_map();
+
+	// Load required resources for this room
+	bee::loader::queue(spr_bee);
+	bee::loader::queue(snd_chirp);
+	bee::loader::queue(bk_green);
+	bee::loader::queue(font_liberation);
+	bee::loader::queue(mesh_monkey);
+
+	bee::loader::load();
 }
 
 #endif // RES_ROOM_TEST_H

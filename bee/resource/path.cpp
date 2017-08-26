@@ -32,7 +32,7 @@ namespace bee {
 	* Path::Path() - Default construct the path
 	* ! This constructor should only be directly used for temporary paths, the other constructor should be used for all other cases
 	*/
-	Path::Path () :
+	Path::Path() :
 		Resource(),
 
 		id(-1),
@@ -47,7 +47,7 @@ namespace bee {
 	* @new_name: the name of the path to use
 	* @new_path: the path filename of the path's config file
 	*/
-	Path::Path (const std::string& new_name, const std::string& new_path) :
+	Path::Path(const std::string& new_name, const std::string& new_path) :
 		Path() // Default initialize all variables
 	{
 		add_to_resources(); // Add the path to the appropriate resource list

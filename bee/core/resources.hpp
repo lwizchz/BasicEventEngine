@@ -25,9 +25,6 @@ namespace bee { // The engine namespace
 	class Object;
 	class Room;
 
-	int load_media();
-	int free_media();
-
 	void sound_finished(int);
 
 	double get_volume();

@@ -276,10 +276,6 @@ namespace bee {
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * mesh->mNumFaces * sizeof(GLuint), indices, GL_STATIC_DRAW);
 
-		// Unbind the mesh vao
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindVertexArray(0);
-
 		if (mesh->HasTextureCoords(0)) { // If the mesh has a texture, load it
 			material = scene->mMaterials[mesh->mMaterialIndex]; // Get the material for the mesh
 			aiString tex_path;
@@ -316,11 +312,15 @@ namespace bee {
 				// Set the texture boolean
 				has_texture = true;
 			} else {
+				glBindVertexArray(0); // Unbind the mesh vao
+
 				free_internal();
 				messenger::send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to load the texture for mesh \"" + name + "\", the material reported a texture with no file path");
 				return 6; // Return 6 on missing texture file
 			}
 		}
+
+		glBindVertexArray(0); // Unbind the mesh vao
 
 		// Set the loaded booleans
 		is_loaded = true;

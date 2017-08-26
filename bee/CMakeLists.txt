@@ -5,7 +5,7 @@ set(deps_bee_init init/info.cpp init/gameoptions.cpp init/programflags.cpp)
 
 set(deps_bee_messenger messenger/messenger.cpp messenger/messagecontents.cpp messenger/messagerecipient.cpp)
 
-set(deps_bee_core core/console.cpp core/display.cpp core/enginestate.cpp core/input.cpp core/instance.cpp core/resources.cpp core/room.cpp core/sidp.cpp core/serialdata.cpp core/window.cpp ${deps_bee_core_network})
+set(deps_bee_core core/console.cpp core/display.cpp core/enginestate.cpp core/input.cpp core/instance.cpp core/loader.cpp core/resources.cpp core/room.cpp core/sidp.cpp core/serialdata.cpp core/window.cpp)
 
 set(deps_bee_network network/network.cpp network/client.cpp network/connection.cpp network/packet.cpp network/data.cpp network/event.cpp)
 

@@ -34,27 +34,6 @@
 
 namespace bee {
 	/*
-	* load_media() - Load the media (i.e. sprites and backgrounds) for the current room
-	*/
-	int load_media() {
-		if (engine->current_room != nullptr) { // If we are currently in a room, load its media
-			engine->current_room->load_media();
-		}
-
-		return 0; // Return 0 on success
-	}
-	/*
-	* free_media() - Free the media (i.e. sprites and backgrounds) for the current room
-	*/
-	int free_media() {
-		if (engine->current_room != nullptr) { // If we are currently in a room, free its media
-			engine->current_room->free_media();
-		}
-
-		return 0; // Return 0 on success
-	}
-
-	/*
 	* sound_finished() - Called by Mix_ChannelFinished() whenever a channel finishes playback
 	* ! See https://www.libsdl.org/projects/SDL_mixer/docs/SDL_mixer_37.html for details
 	* @channel: the channel which has finished playback

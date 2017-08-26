@@ -80,7 +80,6 @@ namespace bee {
 		}
 
 		sound_stop_loops(); // Stop all looping sounds from the previous room
-		free_media(); // Free all resources from the previous room
 
 		if (new_room == nullptr) { // If we're transitioning to a null room, i.e. the game is ending
 			if (engine->transition_type != E_TRANSITION::NONE) { // If a transition has been defined then prepare for drawing an empty room into the after buffer
@@ -102,11 +101,6 @@ namespace bee {
 		engine->current_room->reset_properties(); // Reset the new room's properties
 		engine->current_room->transfer_instances(old_room); // Transfer the persistent instance from the previous room
 		engine->current_room->init(); // Initialize the room
-
-		if (load_media()) { // Attempt to load all resources for the new room
-			messenger::send({"engine", "room"}, E_MESSAGE::WARNING, "Couldn't load room media for " + engine->current_room->get_name());
-			return 2; // Return 2 on resource loading error
-		}
 
 		set_window_title(engine->current_room->get_name()); // Set the window title to the room's name
 		messenger::send({"engine", "room"}, E_MESSAGE::INFO, "Changed to room \"" + engine->current_room->get_name() + "\"");

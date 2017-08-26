@@ -248,7 +248,6 @@ namespace bee {
 		messenger::handle();
 
 		if (is_initialized) {
-			free_media();
 			close_resources();
 		}
 

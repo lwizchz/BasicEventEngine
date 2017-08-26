@@ -148,8 +148,6 @@ namespace bee {
 			int handle_lights();
 			int reset_lights();
 
-			int load_media();
-			int free_media();
 			int reset_properties();
 			int transfer_instances(const Room*);
 

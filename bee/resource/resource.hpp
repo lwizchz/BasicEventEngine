@@ -16,6 +16,8 @@ namespace bee {
 			virtual int reset() =0;
 			virtual int print() const =0;
 			virtual int get_id() const =0;
+			virtual int load() {return 0;};
+			virtual int free() {return 0;};
 	};
 }
 

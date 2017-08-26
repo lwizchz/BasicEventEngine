@@ -96,7 +96,7 @@ namespace bee {
 	std::map<int,Room*> Room::list;
 	int Room::next_id = 0;
 
-	Room::Room () :
+	Room::Room() :
 		Resource(),
 
 		id(-1),
@@ -135,7 +135,7 @@ namespace bee {
 
 		view_current(nullptr)
 	{}
-	Room::Room (const std::string& new_name, const std::string& new_path) :
+	Room::Room(const std::string& new_name, const std::string& new_path) :
 		Room()
 	{
 		add_to_resources();
@@ -166,7 +166,6 @@ namespace bee {
 			physics_world = nullptr;
 		}
 
-		free_media();
 		if (list.find(id) != list.end()) { // Remove the room from the resource list
 			list.erase(id);
 		}
@@ -676,40 +675,6 @@ namespace bee {
 		return 0;
 	}
 
-	int Room::load_media() {
-		// Load room sprites
-		for (auto& i : instances) {
-			if (i.second->get_object()->get_sprite() != nullptr) {
-				if (!i.second->get_object()->get_sprite()->get_is_loaded()) {
-					i.second->get_object()->get_sprite()->load();
-				}
-			}
-		}
-
-		// Load room backgrounds
-		for (auto& b : backgrounds) {
-			if (!b->background->get_is_loaded()) {
-				b->background->load();
-			}
-		}
-
-		return 0;
-	}
-	int Room::free_media() {
-		// Free room sprites
-		for (auto& i : instances) {
-			if (i.second->get_object()->get_sprite() != nullptr) {
-				i.second->get_object()->get_sprite()->free();
-			}
-		}
-
-		// Free room backgrounds
-		for (auto& b : backgrounds) {
-			b->background->free();
-		}
-
-		return 0;
-	}
 	int Room::reset_properties() {
 		should_sort = false;
 		for (auto& i : instances) {

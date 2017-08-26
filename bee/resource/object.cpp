@@ -35,7 +35,7 @@ namespace bee {
 	* Object::Object() - Default construct the object
 	* ! This constructor should only be directly used for temporary objects, the other constructor should be used for all other cases
 	*/
-	Object::Object () :
+	Object::Object() :
 		Resource(),
 
 		id(-1),
@@ -64,7 +64,7 @@ namespace bee {
 	* @new_name: the name to use for the object
 	* @new_path: the path of the object's header file
 	*/
-	Object::Object (const std::string& new_name, const std::string& new_path) :
+	Object::Object(const std::string& new_name, const std::string& new_path) :
 		Object() // Default initialize all variables
 	{
 		add_to_resources(); // Add the object to the appropriate resource list

@@ -13,6 +13,7 @@
 #include "../bee/all.hpp"
 
 // Define sprites
+bee::Sprite* spr_none = nullptr;
 bee::Sprite* spr_bee = nullptr;
 bee::Sprite* spr_dot = nullptr;
 
@@ -51,11 +52,13 @@ bee::Room* rm_test = nullptr;
 
 /*
 * bee::init_resources() - Initialize all game resources
-* ! Note that loading is note required at this stage, just initialization
+* ! Note that loading is not required at this stage, just initialization
 */
 int bee::init_resources() {
 	try { // Catch any exceptions so that the engine can properly clean up
 		// Init sprites
+		spr_none = new Sprite("spr_none", "none.png");
+			spr_none->load();
 		spr_bee = new Sprite("spr_bee", "bee.png");
 			spr_bee->set_subimage_amount(2, 100);
 			spr_bee->set_speed(1.0);
@@ -63,14 +66,12 @@ int bee::init_resources() {
 
 		// Init sounds
 		snd_chirp = new Sound("snd_chirp", "chirp.wav", false);
-			snd_chirp->load();
 
 		// Init backgrounds
 		bk_green = new Background("bk_green", "green.png");
 
 		// Init fonts
 		font_liberation = new Font("font_liberation", "liberation_mono.ttf", 24, false);
-			font_liberation->load();
 
 		// Init paths
 		path_bee = new Path("path_bee", "");
@@ -83,7 +84,6 @@ int bee::init_resources() {
 
 		// Init meshes
 		mesh_monkey = new Mesh("mesh_monkey", "monkey2.obj");
-			mesh_monkey->load();
 
 		// Init lights
 		lt_ambient = new Light("lt_ambient", "");

@@ -43,7 +43,7 @@ namespace bee {
 	* Light::Light() - Default construct the light
 	* ! This constructor should only be directly used for temporary lights, the other constructor should be used for all other cases
 	*/
-	Light::Light () :
+	Light::Light() :
 		Resource(),
 
 		id(-1),
@@ -57,7 +57,7 @@ namespace bee {
 	/*
 	* Light::Light() - Construct the light, add it to the light resource list, and set the new name and path
 	*/
-	Light::Light (const std::string& new_name, const std::string& new_path) :
+	Light::Light(const std::string& new_name, const std::string& new_path) :
 		Light() // Default initialize all variables
 	{
 		add_to_resources(); // Add the light to the appropriate resource list
