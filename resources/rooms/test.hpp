@@ -58,6 +58,7 @@ void RmTest::init() {
 	bee::loader::queue(mesh_monkey);
 
 	bee::loader::load();
+	bee::loader::clear();
 }
 
 #endif // RES_ROOM_TEST_H

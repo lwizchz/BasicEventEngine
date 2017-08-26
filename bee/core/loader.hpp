@@ -19,6 +19,7 @@ namespace loader {
 	}
 
 	int queue(Resource*);
+	int clear();
 
 	int load();
 	int load_lazy(int);

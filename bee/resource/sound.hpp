@@ -71,12 +71,13 @@ namespace bee {
 			int get_id() const;
 			std::string get_name() const;
 			std::string get_path() const;
-			bool get_is_music();
-			double get_volume();
-			double get_pan();
-			bool get_is_playing();
-			bool get_is_looping();
-			int get_effects();
+			bool get_is_loaded() const;
+			bool get_is_music() const;
+			double get_volume() const;
+			double get_pan() const;
+			bool get_is_playing() const;
+			bool get_is_looping() const;
+			int get_effects() const;
 
 			int set_name(const std::string&);
 			int set_path(const std::string&);

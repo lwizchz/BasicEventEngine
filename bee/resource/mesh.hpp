@@ -65,6 +65,7 @@ namespace bee {
 			int get_id() const;
 			std::string get_name() const;
 			std::string get_path() const;
+			bool get_is_loaded() const;
 
 			int set_name(const std::string&);
 			int set_path(const std::string&);

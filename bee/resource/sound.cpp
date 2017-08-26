@@ -194,22 +194,25 @@ namespace bee {
 	std::string Sound::get_path() const {
 		return path;
 	}
-	bool Sound::get_is_music() {
+	bool Sound::get_is_loaded() const {
+		return is_loaded;
+	}
+	bool Sound::get_is_music() const {
 		return is_music;
 	}
-	double Sound::get_volume() {
+	double Sound::get_volume() const {
 		return volume;
 	}
-	double Sound::get_pan() {
+	double Sound::get_pan() const {
 		return pan;
 	}
-	bool Sound::get_is_playing() {
+	bool Sound::get_is_playing() const {
 		return is_playing;
 	}
-	bool Sound::get_is_looping() {
+	bool Sound::get_is_looping() const {
 		return is_looping;
 	}
-	int Sound::get_effects() {
+	int Sound::get_effects() const {
 		return sound_effects;
 	}
 

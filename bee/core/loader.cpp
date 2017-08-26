@@ -70,6 +70,18 @@ namespace bee { namespace loader {
 		++internal::total_amount;
 		return 0;
 	}
+	/*
+	* clear() - Clear the queue
+	*/
+	int clear() {
+		internal::resources.clear();
+		internal::next_resource = internal::resources.end();
+
+		internal::amount_loaded = 0;
+		internal::total_amount = 0;
+
+		return 0;
+	}
 
 	/*
 	* load() - Immediately load the entire queue

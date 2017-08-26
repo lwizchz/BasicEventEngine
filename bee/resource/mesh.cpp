@@ -167,6 +167,9 @@ namespace bee {
 	std::string Mesh::get_path() const {
 		return path;
 	}
+	bool Mesh::get_is_loaded() const {
+		return is_loaded;
+	}
 
 	/*
 	* Mesh::set_*() - Set the requested resource data
