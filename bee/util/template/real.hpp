@@ -15,6 +15,7 @@
 #include <vector>
 #include <algorithm>
 #include <sstream>
+#include <tuple>
 
 #include "../real.hpp"
 

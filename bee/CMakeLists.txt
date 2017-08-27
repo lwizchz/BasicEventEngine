@@ -16,7 +16,7 @@ set(deps_bee_physics physics/body.cpp physics/filter.cpp physics/draw.cpp physic
 
 set(deps_bee_resource resource/sprite.cpp resource/sound.cpp resource/background.cpp resource/font.cpp resource/path.cpp resource/timeline.cpp resource/mesh.cpp resource/light.cpp resource/object.cpp resource/room.cpp)
 
-set(deps_bee_ui ui/ui.cpp ui/objects/element.cpp ui/objects/button.cpp ui/objects/handle.cpp ui/objects/text_entry.cpp)
+set(deps_bee_ui ui/ui.cpp ui/objects/element.cpp ui/objects/button.cpp ui/objects/handle.cpp ui/objects/text_entry.cpp ui/objects/gauge.cpp)
 
 set(deps ${deps_bee} ${deps_bee_util} ${deps_bee_init} ${deps_bee_messenger} ${deps_bee_core} ${deps_bee_network} ${deps_bee_render} ${deps_bee_physics} ${deps_bee_resource} ${deps_bee_ui})
 

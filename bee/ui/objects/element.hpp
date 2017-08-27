@@ -19,6 +19,7 @@ class ObjUIElement : public bee::Object {
 		virtual void create(bee::Instance*);
 		virtual void destroy(bee::Instance*);
 		virtual void mouse_press(bee::Instance*, SDL_Event*);
+		virtual void mouse_input(bee::Instance*, SDL_Event*);
 		virtual void mouse_release(bee::Instance*, SDL_Event*);
 		virtual void draw(bee::Instance*) =0;
 

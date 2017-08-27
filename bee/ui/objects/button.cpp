@@ -19,6 +19,7 @@ ObjUIButton::ObjUIButton() : ObjUIElement("obj_ui_button", "/ui/objects/button.c
 		bee::E_EVENT::CREATE,
 		bee::E_EVENT::DESTROY,
 		bee::E_EVENT::MOUSE_PRESS,
+		bee::E_EVENT::MOUSE_INPUT,
 		bee::E_EVENT::MOUSE_RELEASE,
 		bee::E_EVENT::DRAW
 	};
@@ -56,17 +57,31 @@ void ObjUIButton::draw(bee::Instance* self) {
 		return;
 	}
 
+	bee::set_is_lightable(false);
+
 	int w = _i("w");
 	int h = _i("h");
 
-	int r = _i("color_r");
-	int g = _i("color_g");
-	int b = _i("color_b");
-	int a = _i("color_a");
+	bee::RGBA c_border = {0, 0, 0, 255};
+	bee::RGBA c_back = {_i("color_r"), _i("color_g"), _i("color_b"), _i("color_a")};
+	if (_i("has_hover")) {
+		c_back.add_value(-20);
+	}
 
-	bee::set_is_lightable(false);
+	int press_offset = 0;
+	if (_i("is_pressed")) {
+		press_offset = 4;
+	}
 
-	self->draw(w, h, 0.0, bee::RGBA(r, g, b, a), SDL_FLIP_NONE);
+	int ox = 0, oy = 0;
+	bee::ViewData* v = bee::get_current_room()->get_current_view();
+	if (v != nullptr) {
+		ox = v->view_x;
+		oy = v->view_y;
+	}
+
+	bee::draw_rectangle(self->get_corner_x() - ox, self->get_corner_y()+press_offset - oy, w, h, -1, c_back);
+	bee::draw_rectangle(self->get_corner_x() - ox, self->get_corner_y()+press_offset - oy, w, h, 6, c_border);
 
 	std::string text = _s("text");
 	if (!text.empty()) {
@@ -75,17 +90,10 @@ void ObjUIButton::draw(bee::Instance* self) {
 			font = bee::engine->font_default;
 		}
 
-		int ox = 0, oy = 0;
-		bee::ViewData* v = bee::get_current_room()->get_current_view();
-		if (v != nullptr) {
-			ox = v->view_x;
-			oy = v->view_y;
-		}
-
 		(*s)["text_td"] = static_cast<void*>(font->draw(
 			static_cast<bee::TextData*>(_p("text_td")),
 			self->get_corner_x() + (w-font->get_string_width(_s("text")))/2 - ox,
-			self->get_corner_y() + (h-h/1.25)/2 - oy,
+			self->get_corner_y()+press_offset + (h-h/1.25)/2 - oy,
 			text
 		));
 	} else {

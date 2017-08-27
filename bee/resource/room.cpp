@@ -640,7 +640,7 @@ namespace bee {
 				for (auto& l : lights) {
 					switch (l.type) {
 						case E_LIGHT::AMBIENT: {
-							draw_rectangle(0, 0, w, h, true, l.color);
+							draw_rectangle(0, 0, w, h, -1, l.color);
 							break;
 						}
 						case E_LIGHT::DIFFUSE: {
@@ -1033,7 +1033,7 @@ namespace bee {
 			if (is_background_color_enabled) {
 				draw_set_color(background_color);
 			} else {
-				draw_set_color(E_RGB::WHITE);
+				draw_set_color(get_enum_color(E_RGB::WHITE));
 			}
 
 			engine->renderer->render_clear();
@@ -1375,7 +1375,7 @@ namespace bee {
 		if (is_background_color_enabled) {
 			draw_set_color(background_color);
 		} else {
-			draw_set_color(E_RGB::WHITE);
+			draw_set_color(get_enum_color(E_RGB::WHITE));
 		}
 
 		if (is_views_enabled) { // Render different viewports
@@ -1481,7 +1481,7 @@ namespace bee {
 
 		if (get_options().is_debug_enabled) {
 			// Draw room outline
-			draw_rectangle(0, 0, get_width(), get_height(), false, E_RGB::RED);
+			draw_rectangle(0, 0, get_width(), get_height(), 1, get_enum_color(E_RGB::RED));
 
 			// Draw physics engine debug shapes
 			physics_world->draw_debug();

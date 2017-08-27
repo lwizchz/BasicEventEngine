@@ -45,6 +45,8 @@ namespace ui {
 	int text_entry_callback(Instance*, const std::string&);
 	std::vector<SIDP> text_entry_completor(Instance*, const std::string&);
 	int text_entry_handler(Instance*, const std::string&, const SDL_Event*);
+
+	Instance* create_gauge(int, int, int, int, int);
 }}
 
 #endif // BEE_UI_H

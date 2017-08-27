@@ -153,7 +153,7 @@ namespace bee {
 		return particle_type->get_sprite()->draw((system_x+x) - w/2, (system_y+y) - h/2, creation_time, w, h, get_angle(ticks), c, SDL_FLIP_NONE);
 	}
 	int ParticleData::draw_debug(double system_x, double system_y, E_RGB color) {
-		return draw_rectangle((system_x+x) - w/2, (system_y+y) - h/2, w, h, false, color);
+		return draw_rectangle((system_x+x) - w/2, (system_y+y) - h/2, w, h, 1, get_enum_color(color));
 	}
 }
 

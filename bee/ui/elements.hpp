@@ -10,3 +10,4 @@
 #include "objects/button.hpp"
 #include "objects/handle.hpp"
 #include "objects/text_entry.hpp"
+#include "objects/gauge.hpp"

@@ -97,7 +97,7 @@ void ObjUITextEntry::draw(bee::Instance* self) {
 		oy = v->view_y;
 	}
 
-	draw_rectangle(self->get_corner_x() - ox, self->get_corner_y() - oy, _i("w"), _i("h"), true, c_back); // Draw a box to contain the completions
+	bee::draw_rectangle(self->get_corner_x() - ox, self->get_corner_y() - oy, _i("w"), _i("h"), -1, c_back); // Draw a box to contain the completions
 
 	std::string input = _s("input");
 	if (!input.empty()) {
@@ -123,7 +123,7 @@ void ObjUITextEntry::draw(bee::Instance* self) {
 		// Draw any completions in a box below the input line
 		std::vector<bee::SIDP>* completions = static_cast<std::vector<bee::SIDP>*>(_p("completions"));
 		if (completions->size() > 1) { // If completions exist, draw them
-			draw_rectangle(self->get_corner_x(), self->get_corner_y() + _i("h"), _i("w"), completions->size()*_i("h"), true, c_back); // Draw a box to contain the completions
+			bee::draw_rectangle(self->get_corner_x(), self->get_corner_y() + _i("h"), _i("w"), completions->size()*_i("h"), -1, c_back); // Draw a box to contain the completions
 			for (size_t i=0; i<completions->size(); ++i) { // Iterate over the completions
 				std::string cmd = " " + SIDP_s(completions->at(i)); // Prepend each completion with a space
 				if (static_cast<int>(i) == _i("completion_index")) { // If the completion is selected, replace the space with a cursor

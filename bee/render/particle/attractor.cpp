@@ -99,7 +99,7 @@ namespace bee {
 		int ax = get_following_x(system_x);
 		int ay = get_following_y(system_y);
 
-		return draw_rectangle(ax+x, ay+y, w, h, false, color);
+		return draw_rectangle(ax+x, ay+y, w, h, 1, get_enum_color(color));
 	}
 }
 

@@ -190,16 +190,16 @@ namespace bee {
 	* @is_filled: whether the quad should be filled or simply an outline
 	* @c: the color with which to draw the quad
 	*/
-	int draw_quad(glm::vec3 position, glm::vec3 dimensions, bool is_filled, const RGBA& c) {
+	int draw_quad(glm::vec3 position, glm::vec3 dimensions, int border_width, const RGBA& c) {
 		draw_set_color(c); // Set the desired color
 
 		if (get_options().renderer_type != E_RENDERER::SDL) {
 			// Get the width, height, and depth into separate vectors for easy addition
-			glm::vec3 w = glm::vec3(dimensions.x, 0.0f, 0.0f);
-			glm::vec3 h = glm::vec3(0.0f, dimensions.y, 0.0f);
-			glm::vec3 d = glm::vec3(0.0f, 0.0f, -dimensions.z);
+			glm::vec3 w (dimensions.x, 0.0f, 0.0f);
+			glm::vec3 h (0.0f, dimensions.y, 0.0f);
+			glm::vec3 d (0.0f, 0.0f, -dimensions.z);
 
-			if (is_filled) { // If filling is disabled, only draw a wireframe
+			if (border_width < 1) { // If a border is not desired, draw the entire quad
 				// Draw the front face of the quad
 				draw_triangle(position, position+w, position+w+h, c, true);
 				draw_triangle(position, position+w+h, position+h, c, true);
@@ -222,28 +222,32 @@ namespace bee {
 				}
 			} else {
 				// Draw the edges of the front face of the quad
-				draw_line(position, position+w, c);
-				draw_line(position+w, position+w+h, c);
-				draw_line(position+w+h, position+h, c);
-				draw_line(position+h, position, c);
+				glm::vec3 bx (border_width, 0.0, 0.0);
+				glm::vec3 by (0.0, border_width, 0.0);
+				glm::vec3 bz (0.0, 0.0, border_width);
+
+				draw_quad(position, w+by+bz, -1, c);
+				draw_quad(position, h+bx+bz, -1, c);
+				draw_quad(position+h-by, w+by+bz, -1, c);
+				draw_quad(position+w-bx, h+bx+bz, -1, c);
 
 				if (dimensions.z != 0) { // Only draw the other edges if the quad has depth
-					draw_line(position+d, position+w+d, c);
-					draw_line(position+w+d, position+w+h+d, c);
-					draw_line(position+w+h+d, position+h+d, c);
-					draw_line(position+h+d, position+d, c);
+					draw_quad(position+d, w+d+by+bz, -1, c);
+					draw_quad(position+d, h+d+bx+bz, -1, c);
+					draw_quad(position+h+d-by, w+d+by+bz, -1, c);
+					draw_quad(position+w+d-bx, h+d+bx+bz, -1, c);
 
-					draw_line(position, position+d, c);
-					draw_line(position+w, position+w+d, c);
-					draw_line(position+w+h, position+w+h+d, c);
-					draw_line(position+h, position+h+d, c);
+					draw_quad(position, w+d+by+bz, -1, c);
+					draw_quad(position, h+d+bx+bz, -1, c);
+					draw_quad(position+h-by, w+d+by+bz, -1, c);
+					draw_quad(position+w-bx, h+d+bx+bz, -1, c);
 				}
 			}
 
 			return 0;
 		} else {
 			SDL_Rect r = {static_cast<int>(position.x), static_cast<int>(position.y), static_cast<int>(dimensions.x), static_cast<int>(dimensions.y)};
-			if (is_filled) {
+			if (border_width < 1) {
 				return SDL_RenderFillRect(engine->renderer->sdl_renderer, &r); // Fill the given rectangle with the given color
 			} else {
 				return SDL_RenderDrawRect(engine->renderer->sdl_renderer, &r); // Draw the given rectangle in the given color
@@ -259,44 +263,8 @@ namespace bee {
 	* @is_filled: whether the rectangle should be filled or simply an outline
 	* @c: the color with which to draw the rectangle
 	*/
-	int draw_rectangle(int x, int y, int w, int h, bool is_filled, const RGBA& c) {
-		return draw_quad(glm::vec3(x, y, 0.0f), glm::vec3(w, h, 0.0f), is_filled, c);
-	}
-	/*
-	* draw_rectangle() - Draw a rectangle at the given coordinates
-	* ! When the function is called without a color, simply call it with the current drawing color
-	* @x: the x-coordinate of the top left of the rectangle
-	* @y: the y-coordinate of the top left of the rectangle
-	* @w: the width of the rectangle
-	* @h: the height of the rectangle
-	* @is_filled: whether the rectangle should be filled or simply an outline
-	*/
-	int draw_rectangle(int x, int y, int w, int h, bool is_filled) {
-		RGBA c = draw_get_color();
-		return draw_rectangle(x, y, w, h, is_filled, c);
-	}
-	/*
-	* draw_rectangle() - Draw a rectangle at the given coordinates
-	* ! When the function is called with an E_RGB, simply convert it to an RGBA and call the function again
-	* @x: the x-coordinate of the top left of the rectangle
-	* @y: the y-coordinate of the top left of the rectangle
-	* @w: the width of the rectangle
-	* @h: the height of the rectangle
-	* @is_filled: whether the rectangle should be filled or simply an outline
-	* @c: the color with which to draw the rectangle
-	*/
-	int draw_rectangle(int x, int y, int w, int h, bool is_filled, E_RGB c) {
-		return draw_rectangle(x, y, w, h, is_filled, get_enum_color(c));
-	}
-	/*
-	* draw_rectangle() - Draw a rectangle at the given coordinates
-	* ! When the function is called with an SDL_Rect, simply call it with the SDL_Rect's values
-	* @r: the SDL_Rect data of the rectangle
-	* @is_filled: whether the rectangle should be filled or simply an outline
-	* @c: the color with which to draw the rectangle
-	*/
-	int draw_rectangle(const SDL_Rect& r, bool is_filled, const RGBA& c) {
-		return draw_rectangle(r.x, r.y, r.w, r.h, is_filled, c);
+	int draw_rectangle(int x, int y, int w, int h, int border_width, const RGBA& c) {
+		return draw_quad(glm::vec3(x, y, 0.0f), glm::vec3(w, h, 0.0f), border_width, c);
 	}
 
 	/*
@@ -320,14 +288,6 @@ namespace bee {
 		}
 
 		return 0;
-	}
-	/*
-	* draw_set_color() - Set the current drawing color to the given value
-	* ! When the function is called with an E_RGB, simply convert it and call the function again
-	* @new_color: the new color with which to draw and clear the screen
-	*/
-	int draw_set_color(E_RGB new_color) {
-		return draw_set_color(get_enum_color(new_color));
 	}
 	/*
 	* draw_get_color() - Return the current color and set the drawing color to ensure consistency

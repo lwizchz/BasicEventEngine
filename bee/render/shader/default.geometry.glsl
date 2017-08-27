@@ -25,10 +25,11 @@ uniform mat4 projection;
 uniform mat4 rotation;
 
 void main() {
-	mat4 vmr = view * model * rotation;
+	mat4 mr = model * rotation;
+	mat4 pvmr = projection * view * mr;
 	for(int i=0; i<3; i++) {
-		gl_Position = projection * vmr * gl_in[i].gl_Position;
-		f_position = vmr * g_position[i];
+		gl_Position = pvmr * gl_in[i].gl_Position;
+		f_position = mr * g_position[i];
 		f_texcoord = g_texcoord[i];
 
 		EmitVertex();

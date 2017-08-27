@@ -19,7 +19,6 @@ uniform vec4 port;
 
 void main() {
 	gl_Position = vec4(v_position.xy + port.xy, v_position.z, 1.0);
-	//gl_Position = vec4(v_position, 1.0);
 
 	g_position = vec4(v_position, 1.0);
 	g_texcoord = v_texcoord;

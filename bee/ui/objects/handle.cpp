@@ -62,6 +62,8 @@ void ObjUIHandle::mouse_press(bee::Instance* self, SDL_Event* e) {
 	}
 }
 void ObjUIHandle::mouse_input(bee::Instance* self, SDL_Event* e) {
+	ObjUIElement::mouse_input(self, e);
+
 	if (!_i("is_pressed")) {
 		return;
 	}
@@ -99,11 +101,13 @@ void ObjUIHandle::draw(bee::Instance* self) {
 		return;
 	}
 
-	bee::RGBA c_back = {_i("color_r"), _i("color_g"), _i("color_b"), _i("color_a")};
+	bee::set_is_lightable(false);
 
-	/*bee::set_is_lightable(false);
-	self->draw(_i("w"), _i("h"), 0.0, c_back, SDL_FLIP_NONE);
-	bee::set_is_lightable(true);*/
+	bee::RGBA c_back = {_i("color_r"), _i("color_g"), _i("color_b"), _i("color_a")};
+	bee::RGBA c_stripe = {255, 255, 255, 255};
+	if ((c_back.r+c_back.g+c_back.b)/3 > 127) {
+		c_stripe = {0, 0, 0, 255};
+	}
 
 	int ox = 0, oy = 0;
 	bee::ViewData* v = bee::get_current_room()->get_current_view();
@@ -112,7 +116,21 @@ void ObjUIHandle::draw(bee::Instance* self) {
 		oy = v->view_y;
 	}
 
-	draw_rectangle(self->get_corner_x() - ox, self->get_corner_y() - oy, _i("w"), _i("h"), true, c_back); // Draw a box to contain the completions
+	bee::draw_rectangle(self->get_corner_x() - ox, self->get_corner_y() - oy, _i("w"), _i("h"), -1, c_back); // Draw a box to contain the completions
+
+	int stripe_width = 10;
+	size_t stripe_amount = _i("w") / stripe_width;
+	for (size_t i=0; i<stripe_amount; ++i) {
+		bee::draw_line(
+			self->get_corner_x() + i*stripe_width - ox,
+			self->get_corner_y() + _i("h") - oy,
+			self->get_corner_x() + (i+1)*stripe_width - ox,
+			self->get_corner_y() - oy,
+			c_stripe
+		);
+	}
+
+	bee::set_is_lightable(true);
 }
 
 void ObjUIHandle::bind(bee::Instance* self, bee::Instance* parent_inst) {

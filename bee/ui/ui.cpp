@@ -30,10 +30,6 @@ namespace bee { namespace ui {
 	namespace internal {
 		bool is_loaded = false;
 
-		// Declare sprites
-		Sprite* spr_button = nullptr;
-		Sprite* spr_handle = nullptr;
-
 		// Declare sounds
 		Sound* snd_button_press = nullptr;
 		Sound* snd_button_release = nullptr;
@@ -42,6 +38,7 @@ namespace bee { namespace ui {
 		Object* obj_button = nullptr;
 		Object* obj_handle = nullptr;
 		Object* obj_text_entry = nullptr;
+		Object* obj_gauge = nullptr;
 
 		std::map<Instance*,std::set<Instance*>> parents;
 		std::map<Instance*,std::function<void (Instance*)>> button_callbacks;
@@ -55,10 +52,6 @@ namespace bee { namespace ui {
 			return 1;
 		}
 
-		// Load sprites
-		internal::spr_button = new Sprite("spr_ui_button", "ui/button.png");
-		internal::spr_handle = new Sprite("spr_ui_handle", "ui/handle.png");
-
 		// Load sounds
 		internal::snd_button_press = new Sound("snd_ui_button_press", "ui/button_press.wav", false);
 			internal::snd_button_press->load();
@@ -67,10 +60,9 @@ namespace bee { namespace ui {
 
 		// Load objects
 		internal::obj_button = new ObjUIButton();
-			internal::obj_button->set_sprite(internal::spr_button);
 		internal::obj_handle = new ObjUIHandle();
-			internal::obj_handle->set_sprite(internal::spr_handle);
 		internal::obj_text_entry = new ObjUITextEntry();
+		internal::obj_gauge = new ObjUIGauge();
 
 		internal::is_loaded = true;
 
@@ -82,10 +74,6 @@ namespace bee { namespace ui {
 			return 1;
 		}
 
-		// Free sprites
-		DEL(internal::spr_button);
-		DEL(internal::spr_handle);
-
 		// Free sounds
 		DEL(internal::snd_button_press);
 		DEL(internal::snd_button_release);
@@ -94,6 +82,7 @@ namespace bee { namespace ui {
 		DEL(internal::obj_button);
 		DEL(internal::obj_handle);
 		DEL(internal::obj_text_entry);
+		DEL(internal::obj_gauge);
 
 		internal::is_loaded = false;
 
@@ -117,10 +106,6 @@ namespace bee { namespace ui {
 		if (!internal::is_loaded) {
 			messenger::send({"engine", "ui"}, E_MESSAGE::WARNING, "UI not initialized: button not created");
 			return nullptr;
-		}
-
-		if (!internal::spr_button->get_is_loaded()) {
-			internal::spr_button->load();
 		}
 
 		bee::Instance* button = bee::get_current_room()->add_instance(-1, internal::obj_button, x, y, 0.0);
@@ -162,10 +147,6 @@ namespace bee { namespace ui {
 		if (!internal::is_loaded) {
 			messenger::send({"engine", "ui"}, E_MESSAGE::WARNING, "UI not initialized: handle not created");
 			return nullptr;
-		}
-
-		if (!internal::spr_handle->get_is_loaded()) {
-			internal::spr_handle->load();
 		}
 
 		bee::Instance* handle = bee::get_current_room()->add_instance(-1, internal::obj_handle, x, y, 0.0);
@@ -287,6 +268,30 @@ namespace bee { namespace ui {
 		func(text_entry, input, e);
 
 		return 0;
+	}
+
+	Instance* create_gauge(int x, int y, int w, int h, int range) {
+		if (!internal::is_loaded) {
+			messenger::send({"engine", "ui"}, E_MESSAGE::WARNING, "UI not initialized: gauge not created");
+			return nullptr;
+		}
+
+		bee::Instance* gauge = bee::get_current_room()->add_instance(-1, internal::obj_gauge, x, y, 0.0);
+		gauge->set_corner_x(x);
+		gauge->set_corner_y(y);
+
+		gauge->set_data("w", w);
+		gauge->set_data("h", h);
+
+		ObjUIGauge* obj_gauge = dynamic_cast<ObjUIGauge*>(internal::obj_gauge);
+		obj_gauge->update(gauge);
+		if (range > 0) {
+			obj_gauge->set_range(gauge, range);
+		} else {
+			obj_gauge->start_pulse(gauge);
+		}
+
+		return gauge;
 	}
 }}
 

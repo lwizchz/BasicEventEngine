@@ -444,7 +444,7 @@ namespace bee{ namespace console {
 		unsigned int input_line_y = rect.h - 30;
 
 		// Draw console rectangle and input line
-		draw_rectangle(cx, cy, rect.w, rect.h, true, {127, 127, 127, 225});
+		draw_rectangle(cx, cy, rect.w, rect.h, -1, {127, 127, 127, 225});
 
 		// Remove the top of the console log if it doesn't fit
 		size_t line_amount = input_line_y/line_height+1; // Calculate the total lines that can be stored in the console window

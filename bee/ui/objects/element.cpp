@@ -21,6 +21,7 @@ ObjUIElement::ObjUIElement(const std::string& new_name, const std::string& new_p
 		bee::E_EVENT::CREATE,
 		bee::E_EVENT::DESTROY,
 		bee::E_EVENT::MOUSE_PRESS,
+		bee::E_EVENT::MOUSE_INPUT,
 		bee::E_EVENT::MOUSE_RELEASE,
 		bee::E_EVENT::DRAW
 	};
@@ -41,12 +42,23 @@ void ObjUIElement::mouse_press(bee::Instance* self, SDL_Event* e) {
 			SDL_Rect a = self->get_aabb();
 			a.w = _i("w");
 			a.h = _i("h");
-			SDL_Rect b = {e->button.x-10, e->button.y-10, 20, 20};
+			SDL_Rect b = {e->button.x-1, e->button.y-1, 2, 2};
 			if (check_collision(a, b)) {
 				(*s)["is_pressed"] = true;
 			}
 			break;
 		}
+	}
+}
+void ObjUIElement::mouse_input(bee::Instance* self, SDL_Event* e) {
+	(*s)["has_hover"] = false;
+
+	SDL_Rect a = self->get_aabb();
+	a.w = _i("w");
+	a.h = _i("h");
+	SDL_Rect b = {e->motion.x-1, e->motion.y-1, 2, 2};
+	if (check_collision(a, b)) {
+		(*s)["has_hover"] = true;
 	}
 }
 void ObjUIElement::mouse_release(bee::Instance* self, SDL_Event* e) {
@@ -57,7 +69,7 @@ void ObjUIElement::mouse_release(bee::Instance* self, SDL_Event* e) {
 			SDL_Rect a = self->get_aabb();
 			a.w = _i("w");
 			a.h = _i("h");
-			SDL_Rect b = {e->button.x-10, e->button.y-10, 20, 20};
+			SDL_Rect b = {e->button.x-1, e->button.y-1, 2, 2};
 			if (check_collision(a, b)) {
 				if (_i("is_pressed")) {
 					(*s)["has_focus"] = true;
@@ -88,6 +100,7 @@ void ObjUIElement::reset(bee::Instance* self) {
 	(*s)["is_visible"] = true;
 	(*s)["is_pressed"] = false;
 	(*s)["has_focus"] = false;
+	(*s)["has_hover"] = false;
 }
 void ObjUIElement::set_focus(bee::Instance* self, bool new_has_focus) {
 	(*s)["has_focus"] = new_has_focus;
