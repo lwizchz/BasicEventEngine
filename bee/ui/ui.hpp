@@ -47,6 +47,9 @@ namespace ui {
 	int text_entry_handler(Instance*, const std::string&, const SDL_Event*);
 
 	Instance* create_gauge(int, int, int, int, int);
+
+	Instance* create_slider(int, int, int, int, int, int, bool, std::function<void (Instance*, int)>);
+	int slider_callback(Instance*, int);
 }}
 
 #endif // BEE_UI_H

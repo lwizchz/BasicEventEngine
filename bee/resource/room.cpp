@@ -406,14 +406,6 @@ namespace bee {
 		background_color = new_background_color;
 		return 0;
 	}
-	int Room::set_background_color(Uint8 r, Uint8 g, Uint8 b) {
-		background_color = {r, g, b, 255};
-		return 0;
-	}
-	int Room::set_background_color(E_RGB new_background_color) {
-		background_color = get_enum_color(new_background_color);
-		return 0;
-	}
 	int Room::set_is_background_color_enabled(bool new_is_background_color_enabled) {
 		is_background_color_enabled = new_is_background_color_enabled;
 		return 0;

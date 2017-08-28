@@ -39,12 +39,14 @@ namespace bee { namespace ui {
 		Object* obj_handle = nullptr;
 		Object* obj_text_entry = nullptr;
 		Object* obj_gauge = nullptr;
+		Object* obj_slider = nullptr;
 
 		std::map<Instance*,std::set<Instance*>> parents;
 		std::map<Instance*,std::function<void (Instance*)>> button_callbacks;
 		std::map<Instance*,std::function<void (Instance*, const std::string&)>> text_entry_callbacks;
 		std::map<Instance*,std::function<std::vector<SIDP> (Instance*, const std::string&)>> text_entry_completors;
 		std::map<Instance*,std::function<void (Instance*, const std::string&, const SDL_Event*)>> text_entry_handlers;
+		std::map<Instance*,std::function<void (Instance*, int)>> slider_callbacks;
 	}
 
 	int load() {
@@ -63,6 +65,7 @@ namespace bee { namespace ui {
 		internal::obj_handle = new ObjUIHandle();
 		internal::obj_text_entry = new ObjUITextEntry();
 		internal::obj_gauge = new ObjUIGauge();
+		internal::obj_slider = new ObjUISlider();
 
 		internal::is_loaded = true;
 
@@ -83,6 +86,7 @@ namespace bee { namespace ui {
 		DEL(internal::obj_handle);
 		DEL(internal::obj_text_entry);
 		DEL(internal::obj_gauge);
+		DEL(internal::obj_slider);
 
 		internal::is_loaded = false;
 
@@ -292,6 +296,49 @@ namespace bee { namespace ui {
 		}
 
 		return gauge;
+	}
+
+	Instance* create_slider(int x, int y, int w, int h, int range, int value, bool is_continuous_callback, std::function<void (Instance*, int)> func) {
+		if (!internal::is_loaded) {
+			messenger::send({"engine", "ui"}, E_MESSAGE::WARNING, "UI not initialized: slider not created");
+			return nullptr;
+		}
+
+		bee::Instance* slider = bee::get_current_room()->add_instance(-1, internal::obj_slider, x, y, 0.0);
+		slider->set_corner_x(x);
+		slider->set_corner_y(y);
+
+		slider->set_data("w", w);
+		slider->set_data("h", h);
+
+		ObjUISlider* obj_slider = dynamic_cast<ObjUISlider*>(internal::obj_slider);
+		obj_slider->update(slider);
+		obj_slider->set_range(slider, range);
+		obj_slider->set_value(slider, value);
+		obj_slider->set_is_continuous(slider, is_continuous_callback);
+
+		internal::slider_callbacks.emplace(slider, func);
+
+		return slider;
+	}
+	int slider_callback(Instance* slider, int value) {
+		if (!internal::is_loaded) {
+			messenger::send({"engine", "ui"}, E_MESSAGE::WARNING, "UI not initialized: slider callback not run");
+			return 1;
+		}
+
+		if (internal::slider_callbacks.find(slider) == internal::slider_callbacks.end()) {
+			return 2;
+		}
+
+		std::function<void (Instance*, int)> func = internal::slider_callbacks[slider];
+		if (func == nullptr) {
+			return 3;
+		}
+
+		func(slider, value);
+
+		return 0;
 	}
 }}
 

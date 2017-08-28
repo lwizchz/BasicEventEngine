@@ -19,6 +19,7 @@
 
 #include "drawing.hpp" // Include the engine headers
 
+#include "../util/real.hpp"
 #include "../util/files.hpp"
 #include "../util/platform.hpp"
 
@@ -78,7 +79,7 @@ namespace bee {
 	* @v2: the second vertex of the triangle
 	* @v3: the third vertex of the triangle
 	* @c: the color with which to draw the triangle
-	* @is_filled: whether the triangle should be drawn filled in or wireframe
+	* @border_width: whether the triangle should be drawn filled in or wireframe
 	*/
 	int draw_triangle(glm::vec3 v1, glm::vec3 v2, glm::vec3 v3, const RGBA& c, bool is_filled) {
 		draw_set_color(c); // Set the desired color
@@ -160,34 +161,10 @@ namespace bee {
 		return draw_line(glm::vec3(x1, y1, 0.0f), glm::vec3(x2, y2, 0.0f), c);
 	}
 	/*
-	* draw_line() - Draw a line from (x1, y1) to (x2, y2) in the current drawing color
-	* ! When the function is called without a color, simply call it with the current drawing color
-	* @x1: the first x-coordinate of the line
-	* @y1: the first y-coordinate of the line
-	* @x2: the second x-coordinate of the line
-	* @y2: the second y-coordinate of the line
-	*/
-	int draw_line(int x1, int y1, int x2, int y2) {
-		RGBA c = draw_get_color();
-		return draw_line(x1, y1, x2, y2, c);
-	}
-	/*
-	* draw_line() - Draw a line from (x1, y1) to (x2, y2) in the given color c
-	* ! When the function is called with an E_RGB, simply convert it to an RGBA and call the function again
-	* @x1: the first x-coordinate of the line
-	* @y1: the first y-coordinate of the line
-	* @x2: the second x-coordinate of the line
-	* @y2: the second y-coordinate of the line
-	* @c: the color with which to draw the line
-	*/
-	int draw_line(int x1, int y1, int x2, int y2, E_RGB c) {
-		return draw_line(x1, y1, x2, y2, get_enum_color(c));
-	}
-	/*
 	* draw_quad() - Draw a quad at the given coordinates
 	* @position: the position to draw the quad at
 	* @dimensions: the width, height, and depth of the quad
-	* @is_filled: whether the quad should be filled or simply an outline
+	* @border_width: whether the quad should be filled or simply an outline
 	* @c: the color with which to draw the quad
 	*/
 	int draw_quad(glm::vec3 position, glm::vec3 dimensions, int border_width, const RGBA& c) {
@@ -260,11 +237,76 @@ namespace bee {
 	* @y: the y-coordinate of the top left of the rectangle
 	* @w: the width of the rectangle
 	* @h: the height of the rectangle
-	* @is_filled: whether the rectangle should be filled or simply an outline
+	* @border_width: whether the rectangle should be filled or simply an outline
 	* @c: the color with which to draw the rectangle
 	*/
 	int draw_rectangle(int x, int y, int w, int h, int border_width, const RGBA& c) {
 		return draw_quad(glm::vec3(x, y, 0.0f), glm::vec3(w, h, 0.0f), border_width, c);
+	}
+
+	/*
+	* draw_polygon() - Draw a polygon around the given center coordinates
+	* @cx: the center x-coordinate
+	* @cy: the center y-coordinate
+	* @radius: the radius of the polygon
+	* @angle_start: the beginning angle to draw from
+	* @angle_span: the interior angle of the polygon
+	* @segment_amount: the number of sides of the polygon
+	* @border_width: whether the polygon should be filled or simply an outline
+	* @c: the color with which to draw the polygon
+	*/
+	int draw_polygon(int cx, int cy, int radius, int angle_start, int angle_span, int segment_amount, int border_width, const RGBA& c) {
+		float d_theta = static_cast<float>(angle_span) / segment_amount;
+
+		float tangential_factor = tan(degtorad(d_theta));
+		float radial_factor = cos(degtorad(d_theta));
+
+		float x = radius * cos(degtorad(angle_start));
+		float y = radius * sin(degtorad(angle_start));
+
+		glm::vec3 center (cx, cy, 0);
+		glm::vec3 p1 (x, y, 0);
+		glm::vec3 p2 (0, 0, 0);
+
+		for (size_t i=0; i<segment_amount; ++i) {
+			p2.x = (p1.x - p1.y*tangential_factor) * radial_factor;
+			p2.y = (p1.y + p1.x*tangential_factor) * radial_factor;
+
+			if (border_width < 1) {
+				draw_triangle(center, center+p1, center+p2, c, true);
+			} else {
+				draw_line(center+p1, center+p2, c);
+			}
+
+			p1 = p2;
+		}
+
+		return 0;
+	}
+	/*
+	* draw_polygon() - Draw a polygon around the given center coordinates
+	* @cx: the center x-coordinate
+	* @cy: the center y-coordinate
+	* @radius: the radius of the arc
+	* @angle_start: the beginning angle to draw from
+	* @angle_span: the interior angle of the arc
+	* @border_width: whether the arc should be filled or simply an outline
+	* @c: the color with which to draw the arc
+	*/
+	int draw_arc(int cx, int cy, int radius, int angle_start, int angle_span, int border_width, const RGBA& c) {
+		int segment_amount = angle_span / 4;
+		return draw_polygon(cx, cy, radius, angle_start, angle_span, segment_amount, border_width, c);
+	}
+	/*
+	* draw_circle() - Draw a circle around the given center coordinates
+	* @cx: the center x-coordinate
+	* @cy: the center y-coordinate
+	* @radius: the radius of the circle
+	* @border_width: whether the circle should be filled or simply an outline
+	* @c: the color with which to draw the circle
+	*/
+	int draw_circle(int cx, int cy, int radius, int border_width, const RGBA& c) {
+		return draw_arc(cx, cy, radius, 0, 360, border_width, c);
 	}
 
 	/*

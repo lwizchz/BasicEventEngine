@@ -26,10 +26,11 @@ namespace bee {
 	int draw_triangle(glm::vec3, glm::vec3, glm::vec3, const RGBA&, bool);
 	int draw_line(glm::vec3, glm::vec3, const RGBA&);
 	int draw_line(int, int, int, int, const RGBA&);
-	int draw_line(int, int, int, int);
-	int draw_line(int, int, int, int, E_RGB);
 	int draw_quad(glm::vec3, glm::vec3, int, const RGBA&);
 	int draw_rectangle(int, int, int, int, int, const RGBA&);
+	int draw_polygon(int, int, int, int, int, int, int, const RGBA&);
+	int draw_arc(int, int, int, int, int, int, const RGBA&);
+	int draw_circle(int, int, int, int, const RGBA&);
 
 	int draw_set_color(const RGBA&);
 	RGBA draw_get_color();

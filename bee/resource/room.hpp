@@ -127,8 +127,6 @@ namespace bee {
 			int set_is_isometric(bool);
 			int set_is_persistent(bool);
 			int set_background_color(RGBA);
-			int set_background_color(Uint8, Uint8, Uint8);
-			int set_background_color(E_RGB);
 			int set_is_background_color_enabled(bool);
 			int set_background(int, BackgroundData*);
 			int add_background(Background*, bool, bool, int, int, bool, bool, int, int, bool);

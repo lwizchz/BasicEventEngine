@@ -72,7 +72,7 @@ void ObjUIHandle::mouse_input(bee::Instance* self, SDL_Event* e) {
 		SDL_Rect a = self->get_aabb();
 		a.w = _i("w");
 		a.h = _i("h");
-		SDL_Rect b = {e->button.x-10, e->button.y-10, 20, 20};
+		SDL_Rect b = {e->button.x-10, e->button.y-10, 2, 2};
 		if (check_collision(a, b)) {
 			int new_x = e->button.x + _i("mouse_xoffset");
 			int new_y = e->button.y + _i("mouse_yoffset");

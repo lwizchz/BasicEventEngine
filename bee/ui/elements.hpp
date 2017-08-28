@@ -11,3 +11,4 @@
 #include "objects/handle.hpp"
 #include "objects/text_entry.hpp"
 #include "objects/gauge.hpp"
+#include "objects/slider.hpp"

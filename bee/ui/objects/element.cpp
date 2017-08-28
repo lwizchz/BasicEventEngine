@@ -51,6 +51,10 @@ void ObjUIElement::mouse_press(bee::Instance* self, SDL_Event* e) {
 	}
 }
 void ObjUIElement::mouse_input(bee::Instance* self, SDL_Event* e) {
+	if (e->type != SDL_MOUSEMOTION) {
+		return;
+	}
+
 	(*s)["has_hover"] = false;
 
 	SDL_Rect a = self->get_aabb();
