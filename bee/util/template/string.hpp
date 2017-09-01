@@ -18,6 +18,8 @@
 #include <map>
 #include <iostream>
 
+#include "../string.hpp"
+
 /*
 * vector_serialize() - Convert a vector into a serialized string
 * @v: the vector to serialize

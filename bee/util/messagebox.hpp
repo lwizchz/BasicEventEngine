@@ -9,6 +9,8 @@
 #ifndef _BEE_UTIL_MESSAGEBOX_H
 #define _BEE_UTIL_MESSAGEBOX_H 1
 
+#include <string>
+
 int show_message(const std::string&, const std::string&, const std::string&, const std::string&);
 bool show_question(const std::string&);
 int show_message(const std::string&);

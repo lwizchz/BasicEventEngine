@@ -13,13 +13,13 @@
 
 #include "network.hpp"
 
-#include "../debug.hpp"
 #include "../engine.hpp"
 
 #include "../util/real.hpp"
 #include "../util/string.hpp"
 #include "../util/network.hpp"
 #include "../util/platform.hpp"
+#include "../util/debug.hpp"
 #include "../util/template/string.hpp"
 
 #include "../init/gameoptions.hpp"

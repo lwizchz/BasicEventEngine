@@ -18,7 +18,7 @@
 
 #include "messagebox.hpp" // Include the function definitions
 
-#include "../debug.hpp"
+#include "debug.hpp"
 
 /*
 * show_message() - Display a modal message box with the given information and buttons

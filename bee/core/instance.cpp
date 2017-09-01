@@ -11,12 +11,12 @@
 
 #include "instance.hpp"
 
-#include "../debug.hpp"
 #include "../engine.hpp"
 
 #include "../util/collision.hpp"
 #include "../util/real.hpp"
 #include "../util/string.hpp"
+#include "../util/debug.hpp"
 #include "../util/template/string.hpp"
 
 #include "../messenger/messenger.hpp"

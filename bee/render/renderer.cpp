@@ -15,11 +15,11 @@
 
 #include "renderer.hpp" // Include the engine headers
 
-#include "../debug.hpp"
 #include "../engine.hpp"
 
 #include "../util/files.hpp"
 #include "../util/platform.hpp"
+#include "../util/debug.hpp"
 
 #include "../init/gameoptions.hpp"
 

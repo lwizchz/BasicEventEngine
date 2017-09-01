@@ -22,8 +22,9 @@
 
 #include "background.hpp" // Include the class resource header
 
-#include "../debug.hpp"
 #include "../engine.hpp"
+
+#include "../util/debug.hpp"
 
 #include "../init/gameoptions.hpp"
 

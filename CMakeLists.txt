@@ -35,7 +35,11 @@ set(warns "")
 include_directories("lib/doctest/doctest/" "lib/bullet3/src")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/lib/")
 
-add_subdirectory(bee)
+add_subdirectory("bee")
+
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+	add_subdirectory("tests")
+endif()
 
 if (WIN32) # Include Windows libraries manually
 	set(SRC ${${PROJECT_NAME}_SOURCE_DIR})
@@ -46,6 +50,9 @@ if (WIN32) # Include Windows libraries manually
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \"-I${SRC}/win/include\" \"-I${SRC}/lib/doctest/doctest\"")
 	add_executable(${PROJECT_NAME} main.cpp resources/resources.hpp)
 	target_link_libraries(${PROJECT_NAME} BEE)
+	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+		target_link_libraries(${PROJECT_NAME} BEE_Tests)
+	endif()
 
 	# Include SDL2 libraries
 	foreach(l SDL2_image SDL2_ttf SDL2_mixer SDL2_net SDL2)
@@ -99,6 +106,9 @@ else() # Include Unix libraries automatically
 
 	add_executable(${PROJECT_NAME} main.cpp resources/resources.hpp)
 	target_link_libraries(${PROJECT_NAME} BEE)
+	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+		target_link_libraries(${PROJECT_NAME} BEE_Tests)
+	endif()
 
 	# Include SDL2 related libraries
 	include(FindPkgConfig)

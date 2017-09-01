@@ -14,11 +14,11 @@
 
 #include "messenger.hpp"
 
-#include "../debug.hpp"
 #include "../engine.hpp"
 
 #include "../util/string.hpp"
 #include "../util/platform.hpp"
+#include "../util/debug.hpp"
 
 #include "../init/gameoptions.hpp"
 

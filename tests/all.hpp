@@ -6,19 +6,14 @@
 * See LICENSE for more details.
 */
 
-#ifndef BEE_UTIL_H
-#define BEE_UTIL_H 1
-
 #include "util/platform.hpp"
 #include "util/real.hpp"
 #include "util/string.hpp"
 #include "util/dates.hpp"
 #include "util/collision.hpp"
-#include "util/sound.hpp"
+//#include "util/sound.hpp"
 #include "util/messagebox.hpp"
 #include "util/files.hpp"
 #include "util/network.hpp"
-
-#include "util/template.hpp" // Include functions which require templates
-
-#endif // BEE_UTIL_H
+#include "util/debug.hpp"
+#include "util/template.hpp"

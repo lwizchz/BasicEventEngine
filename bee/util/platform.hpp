@@ -26,7 +26,7 @@ time_t bee_inc_dst(time_t);
 
 int bee_remove(const std::string&);
 bool bee_dir_exists(const std::string&);
-int bee_mkdir(const char*, mode_t);
+int bee_mkdir(const std::string&, mode_t);
 std::string bee_mkdtemp(const std::string&);
 
 std::string bee_inet_ntop(const void* src);

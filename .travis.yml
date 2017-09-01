@@ -13,17 +13,6 @@ before_install:
   - if [ "$CXX" = "g++" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
   - wget https://lukemontalvo.us/BasicEventEngine/resources.tar.gz
   - tar xzf resources.tar.gz
-before_script:
-  - cp ./lib/bullet.CMakeLists.txt ./lib/bullet3/CMakeLists.txt
-  - cd ./lib/bullet3/
-  - cmake .
-  - make
-  - cd ../../
 script: ./build.sh norun
 after_success:
-  - export DISPLAY=:99
-  - export AUDIODEV=null
-  - sudo apt-get install -qq mesa-utils libgl1-mesa-swx11 libgl1-mesa-swx11-dev xvfb
-  - /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1920x1080x24 -ac +extension GLX +extension RANDR +render -noreset
-  - sleep 3
-  - ./build/BasicEventEngine --single-run --sdl
+  - ./build/BasicEventEngine --single-run --headless

@@ -107,14 +107,13 @@ bool directory_exists(const std::string& fname) {
 * @fname: the path of the new directory
 */
 int directory_create(const std::string& fname) {
-	return bee_mkdir(fname.c_str(), 0755); // Call the cross-platform mkdir function with default unix permissions
+	return bee_mkdir(fname, 0755); // Call the cross-platform mkdir function with default unix permissions
 }
 /*
 * directory_get_temp() - Get a temporary directory to store temporary game files in
 */
 std::string directory_get_temp() {
-	char t[] = "/tmp/bee-XXXXXX"; // A format specifier, required by unix but ignored by windows
-	std::string d = bee_mkdtemp(t); // Call the cross-platform mkdtemp function
+	std::string d = bee_mkdtemp("/tmp/bee-XXXXXX"); // Call the cross-platform mkdtemp function with the format specifier
 	if (!d.empty()) { // If the call was successful, then append a slash to the path
 		d += "/";
 	}

@@ -49,17 +49,6 @@ namespace bee {
 		bool quit, is_ready, is_paused;
 		Room *first_room, *current_room;
 
-		// This defines the platform where 0=Linux, 1=Windows, 2=OSX, 3=other
-		#ifdef __linux__
-			const unsigned int platform = 0;
-		#elif _WIN32
-			const unsigned int platform = 1;
-		#elif __APPLE__
-			const unsigned int platform = 2;
-		#else
-			const unsigned int platform = 3;
-		#endif
-
 		unsigned int width, height;
 		SDL_Cursor* cursor;
 

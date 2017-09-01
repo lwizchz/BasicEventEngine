@@ -13,11 +13,11 @@
 
 #include "object.hpp" // Include the class resource header
 
-#include "../debug.hpp"
 #include "../engine.hpp"
 
 #include "../util/string.hpp"
 #include "../util/platform.hpp"
+#include "../util/debug.hpp"
 
 #include "../messenger/messenger.hpp"
 

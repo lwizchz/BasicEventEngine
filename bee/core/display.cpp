@@ -13,7 +13,7 @@
 
 #include "display.hpp"
 
-#include "../debug.hpp"
+#include "../util/debug.hpp"
 
 #include "../init/gameoptions.hpp"
 

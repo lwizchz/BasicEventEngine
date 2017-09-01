@@ -9,13 +9,13 @@
 #ifndef BEE_ENGINE
 #define BEE_ENGINE 1
 
+#include <iostream>
+
 #include <SDL2/SDL_image.h> // Include the required SDL headers
 #include <SDL2/SDL_mixer.h>
 
 #include "engine.hpp" // Include the engine headers
 
-#include "debug.hpp"
-#include "util.hpp"
 #include "enum.hpp"
 
 #include "init/gameoptions.hpp"
@@ -41,7 +41,15 @@
 
 #include "ui/ui.hpp"
 
+#include "util/platform.hpp"
+#include "util/debug.hpp"
 #include "util/windefine.hpp"
+#include "util/template/real.hpp"
+
+#ifndef NDEBUG
+	extern bool verify_assertions(int, char**);
+	extern bool verify_assertions();
+#endif
 
 namespace bee {
 	EngineState* engine = nullptr;
@@ -60,10 +68,14 @@ namespace bee {
 		);
 
 		if (get_options().should_assert) {
-			if (!verify_assertions(argc, argv)) {
-				messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't verify assertions");
-				return 2; // Return 2 when assertions could not be verified
-			}
+			#ifndef NDEBUG
+				if (!verify_assertions(argc, argv)) {
+					messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Assertion verification failed");
+					return 2; // Return 2 when assertions could not be verified
+				}
+			#else
+				messenger::send({"engine", "init"}, E_MESSAGE::WARNING, "Couldn't verify assertions: compiled without debug mode");
+			#endif
 		}
 
 		if (get_options().is_network_enabled) {
