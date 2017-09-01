@@ -15,11 +15,10 @@
 #include "gauge.hpp"
 
 ObjUIGauge::ObjUIGauge() : ObjUIElement("obj_ui_gauge", "/ui/objects/gauge.cpp") {
-	implemented_events = {
+	implemented_events.merge({
 		bee::E_EVENT::CREATE,
-		bee::E_EVENT::DESTROY,
 		bee::E_EVENT::DRAW
-	};
+	});
 }
 void ObjUIGauge::create(bee::Instance* self) {
 	ObjUIElement::create(self);

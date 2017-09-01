@@ -32,9 +32,9 @@ namespace bee {
 		int s = 0;
 		int v = 0;
 
-		int M = max<int>(r, g, b);
-		int m = min<int>(r, g, b);
-		int chroma = (M - m) * 100 / 255;
+		const int M = max<int>(r, g, b);
+		const int m = min<int>(r, g, b);
+		const int chroma = (M - m) * 100 / 255;
 
 		int h_prime = 0;
 		if (chroma != 0) {
@@ -73,9 +73,9 @@ namespace bee {
 		int s = hsv[1];
 		int v = hsv[2];
 
-		int chroma = v * s / 100;
-		int h_prime = (h % 360) * 100 / 60;
-		int x_color = chroma * (100 - abs((h_prime % 200) - 100)) / 100;
+		const int chroma = v * s / 100;
+		const int h_prime = (h % 360) * 100 / 60;
+		const int x_color = chroma * (100 - abs((h_prime % 200) - 100)) / 100;
 
 		RGBA rgba_prime;
 		switch (h_prime/100) {
@@ -109,10 +109,10 @@ namespace bee {
 			}
 		}
 
-		int m = v - chroma;
-		int red = (rgba_prime.r + m) * 255 / 100;
-		int green = (rgba_prime.g + m) * 255 / 100;
-		int blue = (rgba_prime.b + m) * 255 / 100;
+		const int m = v - chroma;
+		const int red = (rgba_prime.r + m) * 255 / 100;
+		const int green = (rgba_prime.g + m) * 255 / 100;
+		const int blue = (rgba_prime.b + m) * 255 / 100;
 
 		r = fit_bounds(red, 0, 255);
 		g = fit_bounds(green, 0, 255);
@@ -149,6 +149,15 @@ namespace bee {
 		std::array<int,3> hsv = get_hsv();
 		hsv[2] += v;
 		return set_hsv(hsv);
+	}
+
+	bool RGBA::operator==(const RGBA& other) {
+		return (
+			(this->r == other.r)
+			&&(this->g == other.g)
+			&&(this->b == other.b)
+			&&(this->a == other.a)
+		);
 	}
 }
 

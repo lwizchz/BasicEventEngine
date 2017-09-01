@@ -32,6 +32,8 @@ namespace bee {
 		int add_hue(int);
 		int add_saturation(int);
 		int add_value(int);
+
+		bool operator==(const RGBA&);
 	};
 }
 

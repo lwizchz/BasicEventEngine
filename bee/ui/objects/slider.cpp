@@ -15,14 +15,12 @@
 #include "slider.hpp"
 
 ObjUISlider::ObjUISlider() : ObjUIElement("obj_ui_slider", "/ui/objects/slider.cpp") {
-	implemented_events = {
+	implemented_events.merge({
 		bee::E_EVENT::CREATE,
-		bee::E_EVENT::DESTROY,
-		bee::E_EVENT::MOUSE_PRESS,
 		bee::E_EVENT::MOUSE_INPUT,
 		bee::E_EVENT::MOUSE_RELEASE,
 		bee::E_EVENT::DRAW
-	};
+	});
 }
 void ObjUISlider::create(bee::Instance* self) {
 	ObjUIElement::create(self);
@@ -111,9 +109,9 @@ void ObjUISlider::draw(bee::Instance* self) {
 
 	if (_i("show_text")) {
 		bee::Font* font = bee::engine->font_default;
-		font->draw_fast(self->get_corner_x(), self->get_corner_y() + h*2/3 - oy, "0");
-		font->draw_fast(self->get_corner_x() + w - 16, self->get_corner_y() + h*2/3 - oy, bee_itos(_i("range")));
-		font->draw_fast(slider_x + slider_size/2 - 8, self->get_corner_y() - h/3 - oy, bee_itos(_i("value")));
+		font->draw_fast(self->get_corner_x() - ox, self->get_corner_y() + h*2/3 - oy, "0");
+		font->draw_fast(self->get_corner_x() + w-16 - ox, self->get_corner_y() + h*2/3 - oy, bee_itos(_i("range")));
+		font->draw_fast(slider_x + slider_size/2 - 8 - ox, self->get_corner_y() - h/3 - oy, bee_itos(_i("value")));
 	}
 
 	bee::set_is_lightable(true);

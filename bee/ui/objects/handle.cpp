@@ -15,7 +15,7 @@
 #include "handle.hpp"
 
 ObjUIHandle::ObjUIHandle() : ObjUIElement("obj_ui_handle", "/ui/objects/handle.cpp") {
-	implemented_events = {
+	implemented_events.merge({
 		bee::E_EVENT::CREATE,
 		bee::E_EVENT::DESTROY,
 		bee::E_EVENT::STEP_END,
@@ -23,7 +23,7 @@ ObjUIHandle::ObjUIHandle() : ObjUIElement("obj_ui_handle", "/ui/objects/handle.c
 		bee::E_EVENT::MOUSE_INPUT,
 		bee::E_EVENT::MOUSE_RELEASE,
 		bee::E_EVENT::DRAW
-	};
+	});
 }
 void ObjUIHandle::create(bee::Instance* self) {
 	ObjUIElement::create(self);

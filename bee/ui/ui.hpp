@@ -50,6 +50,12 @@ namespace ui {
 
 	Instance* create_slider(int, int, int, int, int, int, bool, std::function<void (Instance*, int)>);
 	int slider_callback(Instance*, int);
+
+	Instance* create_optionbox(int, int, int, int);
+	int push_optionbox_option(Instance*, std::function<void (Instance*, bool)>);
+	int pop_optionbox_option(Instance*);
+	int reset_optionbox_options(Instance*);
+	int optionbox_callback(Instance*, int, bool);
 }}
 
 #endif // BEE_UI_H

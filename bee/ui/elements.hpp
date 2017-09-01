@@ -12,3 +12,4 @@
 #include "objects/text_entry.hpp"
 #include "objects/gauge.hpp"
 #include "objects/slider.hpp"
+#include "objects/optionbox.hpp"

@@ -40,6 +40,7 @@ namespace bee { namespace ui {
 		Object* obj_text_entry = nullptr;
 		Object* obj_gauge = nullptr;
 		Object* obj_slider = nullptr;
+		Object* obj_optionbox = nullptr;
 
 		std::map<Instance*,std::set<Instance*>> parents;
 		std::map<Instance*,std::function<void (Instance*)>> button_callbacks;
@@ -47,6 +48,7 @@ namespace bee { namespace ui {
 		std::map<Instance*,std::function<std::vector<SIDP> (Instance*, const std::string&)>> text_entry_completors;
 		std::map<Instance*,std::function<void (Instance*, const std::string&, const SDL_Event*)>> text_entry_handlers;
 		std::map<Instance*,std::function<void (Instance*, int)>> slider_callbacks;
+		std::map<Instance*,std::vector<std::function<void (Instance*, bool)>>> optionbox_callbacks;
 	}
 
 	int load() {
@@ -66,6 +68,7 @@ namespace bee { namespace ui {
 		internal::obj_text_entry = new ObjUITextEntry();
 		internal::obj_gauge = new ObjUIGauge();
 		internal::obj_slider = new ObjUISlider();
+		internal::obj_optionbox = new ObjUIOptionBox();
 
 		internal::is_loaded = true;
 
@@ -87,6 +90,7 @@ namespace bee { namespace ui {
 		DEL(internal::obj_text_entry);
 		DEL(internal::obj_gauge);
 		DEL(internal::obj_slider);
+		DEL(internal::obj_optionbox);
 
 		internal::is_loaded = false;
 
@@ -337,6 +341,85 @@ namespace bee { namespace ui {
 		}
 
 		func(slider, value);
+
+		return 0;
+	}
+
+	Instance* create_optionbox(int x, int y, int w, int h) {
+		if (!internal::is_loaded) {
+			messenger::send({"engine", "ui"}, E_MESSAGE::WARNING, "UI not initialized: optionbox not created");
+			return nullptr;
+		}
+
+		bee::Instance* optionbox = bee::get_current_room()->add_instance(-1, internal::obj_optionbox, x, y, 0.0);
+		optionbox->set_corner_x(x);
+		optionbox->set_corner_y(y);
+
+		optionbox->set_data("w", w);
+		optionbox->set_data("h", h);
+		if (h < 0) {
+			optionbox->set_data("adaptive_height", true);
+		}
+
+		return optionbox;
+	}
+	int push_optionbox_option(Instance* optionbox, std::function<void (Instance*, bool)> callback) {
+		if (!internal::is_loaded) {
+			messenger::send({"engine", "ui"}, E_MESSAGE::WARNING, "UI not initialized: option not added");
+			return 1;
+		}
+
+		internal::optionbox_callbacks[optionbox].push_back(callback);
+
+		return 0;
+	}
+	int pop_optionbox_option(Instance* optionbox) {
+		if (!internal::is_loaded) {
+			messenger::send({"engine", "ui"}, E_MESSAGE::WARNING, "UI not initialized: option not removed");
+			return 1;
+		}
+
+		if (internal::optionbox_callbacks[optionbox].empty()) {
+			return 1;
+		}
+
+		internal::optionbox_callbacks[optionbox].pop_back();
+
+		return 0;
+	}
+	int reset_optionbox_options(Instance* optionbox) {
+		if (!internal::is_loaded) {
+			messenger::send({"engine", "ui"}, E_MESSAGE::WARNING, "UI not initialized: optionbox not reset");
+			return 1;
+		}
+
+		if (internal::optionbox_callbacks.find(optionbox) == internal::optionbox_callbacks.end()) {
+			return 2;
+		}
+
+		internal::optionbox_callbacks.erase(optionbox);
+
+		return 0;
+	}
+	int optionbox_callback(Instance* optionbox, int option_index, bool state) {
+		if (!internal::is_loaded) {
+			messenger::send({"engine", "ui"}, E_MESSAGE::WARNING, "UI not initialized: optionbox callback not run");
+			return 1;
+		}
+
+		if (
+			(internal::optionbox_callbacks.find(optionbox) == internal::optionbox_callbacks.end())
+			||(option_index >= internal::optionbox_callbacks[optionbox].size())
+		) {
+			return 2;
+		}
+
+		std::function<void (Instance*, bool)> func = internal::optionbox_callbacks[optionbox][option_index];
+		if (func == nullptr) {
+			return 3;
+		}
+
+		func(optionbox, state);
 
 		return 0;
 	}

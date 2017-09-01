@@ -15,14 +15,13 @@
 #include "button.hpp"
 
 ObjUIButton::ObjUIButton() : ObjUIElement("obj_ui_button", "/ui/objects/button.cpp") {
-	implemented_events = {
+	implemented_events.merge({
 		bee::E_EVENT::CREATE,
 		bee::E_EVENT::DESTROY,
 		bee::E_EVENT::MOUSE_PRESS,
-		bee::E_EVENT::MOUSE_INPUT,
 		bee::E_EVENT::MOUSE_RELEASE,
 		bee::E_EVENT::DRAW
-	};
+	});
 }
 void ObjUIButton::create(bee::Instance* self) {
 	ObjUIElement::create(self);
