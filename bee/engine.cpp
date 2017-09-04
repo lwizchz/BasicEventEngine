@@ -185,7 +185,7 @@ namespace bee {
 				engine->fps_count++;
 				engine->frame_number++;
 				unsigned int new_tickstamp = get_ticks();
-				unsigned int fps_desired = min<unsigned int>(engine->fps_goal, engine->fps_max);
+				unsigned int fps_desired = min<unsigned int>({engine->fps_goal, engine->fps_max});
 				if (!engine->has_focus) {
 					fps_desired = engine->fps_unfocused;
 				}
@@ -590,7 +590,7 @@ namespace bee {
 		return engine->frame_number;
 	}
 	double get_delta() {
-		return max<double>(static_cast<double>(get_tick_delta()), 1.0) / 1000.0;
+		return max<double>({static_cast<double>(get_tick_delta()), 1.0}) / 1000.0;
 	}
 	Uint32 get_tick_delta() {
 		return engine->tick_delta;

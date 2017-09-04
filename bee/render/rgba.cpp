@@ -9,6 +9,8 @@
 #ifndef BEE_RENDER_RGBA
 #define BEE_RENDER_RGBA 1
 
+#include <iostream>
+
 #include "rgba.hpp"
 
 #include "../util/template/real.hpp"
@@ -27,92 +29,99 @@ namespace bee {
 		a(na)
 	{}
 
-	std::array<int,3> RGBA::get_hsv() const {
-		int h = 0;
-		int s = 0;
-		int v = 0;
+	std::array<float,3> RGBA::get_hsv() const {
+		float h = 0.f;
+		float s = 0.f;
+		float v = 0.f;
 
-		const int M = max<int>(r, g, b);
-		const int m = min<int>(r, g, b);
-		const int chroma = (M - m) * 100 / 255;
+		const float red = r / 255.f;
+		const float green = g / 255.f;
+		const float blue = b / 255.f;
 
-		int h_prime = 0;
-		if (chroma != 0) {
-			if (M == r) {
-				h_prime = ((g-b) * 100 / 255 * 100 / chroma) % (6 * 100);
-			} else if (M == g) {
-				h_prime = (b-r) * 100 / 255 * 100 / chroma + 2 * 200;
-			} else if (M == b) {
-				h_prime = (r-g) * 100 / 255 * 100 / chroma + 4 * 100;
+		const float M = max<float>({red, green, blue});
+		const float m = min<float>({red, green, blue});
+		const float chroma = M - m;
+
+		float h_prime = 0.f;
+		if (chroma != 0.f) {
+			if (M == red) {
+				h_prime = fmod((green-blue) / chroma, 6.f);
+			} else if (M == green) {
+				h_prime = (blue-red) / chroma + 2.f;
+			} else if (M == blue) {
+				h_prime = (red-green) / chroma + 4.f;
 			}
 		}
-		h = h_prime * 60 / 100;
+		h = h_prime * 60.f;
+		if (h < 0) {
+			h += 360.f;
+		}
 
-		v = M * 100 / 255;
+		v = M;
 
-		if (v == 0) {
-			s = 0;
+		if (M == 0.f) {
+			s = 0.f;
 		} else {
-			s = chroma * 100 / v;
+			s = chroma / M;
 		}
 
 		return {h, s, v};
 	}
-	int RGBA::get_hue() const {
+	float RGBA::get_hue() const {
 		return get_hsv()[0];
 	}
-	int RGBA::get_saturation() const {
+	float RGBA::get_saturation() const {
 		return get_hsv()[1];
 	}
-	int RGBA::get_value() const {
+	float RGBA::get_value() const {
 		return get_hsv()[2];
 	}
 
-	int RGBA::set_hsv(const std::array<int,3>& hsv) {
-		int h = hsv[0];
-		int s = hsv[1];
-		int v = hsv[2];
+	int RGBA::set_hsv(const std::array<float,3>& hsv) {
+		float h = hsv[0];
+		float s = hsv[1];
+		float v = hsv[2];
 
-		const int chroma = v * s / 100;
-		const int h_prime = (h % 360) * 100 / 60;
-		const int x_color = chroma * (100 - abs((h_prime % 200) - 100)) / 100;
+		const float chroma = v * s;
+		const float h_prime = fmod(h, 360.f) / 60.f;
+		const float x_color = chroma * (1.f - abs(fmod(h_prime, 2.f) - 1.f));
 
-		RGBA rgba_prime;
-		switch (h_prime/100) {
+		std::array<float,3> rgba_prime;
+		switch (static_cast<int>(h_prime)) {
 			case 0: {
-				rgba_prime = {chroma, x_color, 0, 255};
+				rgba_prime = {chroma, x_color, 0.f};
 				break;
 			}
 			case 1: {
-				rgba_prime = {x_color, chroma, 0, 255};
+				rgba_prime = {x_color, chroma, 0.f};
 				break;
 			}
 			case 2: {
-				rgba_prime = {0, chroma, x_color, 255};
+				rgba_prime = {0.f, chroma, x_color};
 				break;
 			}
 			case 3: {
-				rgba_prime = {0, x_color, chroma, 255};
+				rgba_prime = {0.f, x_color, chroma};
 				break;
 			}
 			case 4: {
-				rgba_prime = {x_color, 0, chroma, 255};
+				rgba_prime = {x_color, 0.f, chroma};
 				break;
 			}
 			case 5: {
-				rgba_prime = {chroma, 0, x_color, 255};
+				rgba_prime = {chroma, 0.f, x_color};
 				break;
 			}
 			default: {
-				rgba_prime = {0, 0, 0, 255};
+				rgba_prime = {0.f, 0.f, 0.f};
 				break;
 			}
 		}
 
-		const int m = v - chroma;
-		const int red = (rgba_prime.r + m) * 255 / 100;
-		const int green = (rgba_prime.g + m) * 255 / 100;
-		const int blue = (rgba_prime.b + m) * 255 / 100;
+		const float m = v - chroma;
+		const int red = round(255.f * (rgba_prime[0] + m));
+		const int green = round(255.f * (rgba_prime[1] + m));
+		const int blue = round(255.f * (rgba_prime[2] + m));
 
 		r = fit_bounds(red, 0, 255);
 		g = fit_bounds(green, 0, 255);
@@ -120,44 +129,54 @@ namespace bee {
 
 		return 0;
 	}
-	int RGBA::set_hue(int h) {
-		std::array<int,3> hsv = get_hsv();
+	int RGBA::set_hue(float h) {
+		std::array<float,3> hsv = get_hsv();
 		hsv[0] = h;
 		return set_hsv(hsv);
 	}
-	int RGBA::set_saturation(int s) {
-		std::array<int,3> hsv = get_hsv();
+	int RGBA::set_saturation(float s) {
+		std::array<float,3> hsv = get_hsv();
 		hsv[1] = s;
 		return set_hsv(hsv);
 	}
-	int RGBA::set_value(int v) {
-		std::array<int,3> hsv = get_hsv();
+	int RGBA::set_value(float v) {
+		std::array<float,3> hsv = get_hsv();
 		hsv[2] = v;
 		return set_hsv(hsv);
 	}
-	int RGBA::add_hue(int h) {
-		std::array<int,3> hsv = get_hsv();
+	int RGBA::add_hue(float h) {
+		std::array<float,3> hsv = get_hsv();
 		hsv[0] += h;
 		return set_hsv(hsv);
 	}
-	int RGBA::add_saturation(int s) {
-		std::array<int,3> hsv = get_hsv();
+	int RGBA::add_saturation(float s) {
+		std::array<float,3> hsv = get_hsv();
 		hsv[1] += s;
 		return set_hsv(hsv);
 	}
-	int RGBA::add_value(int v) {
-		std::array<int,3> hsv = get_hsv();
+	int RGBA::add_value(float v) {
+		std::array<float,3> hsv = get_hsv();
 		hsv[2] += v;
 		return set_hsv(hsv);
 	}
 
-	bool RGBA::operator==(const RGBA& other) {
+	bool RGBA::operator==(const RGBA& other) const {
 		return (
 			(this->r == other.r)
 			&&(this->g == other.g)
 			&&(this->b == other.b)
 			&&(this->a == other.a)
 		);
+	}
+
+	std::ostream& operator<<(std::ostream& os, const RGBA& rgba) {
+		os << "{" <<
+			static_cast<int>(rgba.r) << ", " <<
+			static_cast<int>(rgba.g) << ", " <<
+			static_cast<int>(rgba.b) << ", " <<
+			static_cast<int>(rgba.a) <<
+		"}";
+		return os;
 	}
 }
 

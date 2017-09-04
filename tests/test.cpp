@@ -14,6 +14,8 @@
 
 #include "test.hpp" // Include the function declarations
 
+#include "../bee/messenger/messenger.hpp"
+
 #include "all.hpp"
 
 /*
@@ -22,6 +24,8 @@
 * @argv: the argv from main()
 */
 bool verify_assertions(int argc, char** argv) {
+	bee::messenger::send({"tests"}, bee::E_MESSAGE::INFO, "Verifying assertions...");
+	bee::messenger::handle();
 	return (doctest::Context(argc, argv).run() == 0);
 }
 

@@ -20,20 +20,22 @@ namespace bee {
 		RGBA();
 		RGBA(int, int, int, int);
 
-		std::array<int,3> get_hsv() const;
-		int get_hue() const;
-		int get_saturation() const;
-		int get_value() const;
+		std::array<float,3> get_hsv() const;
+		float get_hue() const;
+		float get_saturation() const;
+		float get_value() const;
 
-		int set_hsv(const std::array<int,3>&);
-		int set_hue(int);
-		int set_saturation(int);
-		int set_value(int);
-		int add_hue(int);
-		int add_saturation(int);
-		int add_value(int);
+		int set_hsv(const std::array<float,3>&);
+		int set_hue(float);
+		int set_saturation(float);
+		int set_value(float);
+		int add_hue(float);
+		int add_saturation(float);
+		int add_value(float);
 
-		bool operator==(const RGBA&);
+		bool operator==(const RGBA&) const;
+
+		friend std::ostream& operator<<(std::ostream&, const RGBA&);
 	};
 }
 
