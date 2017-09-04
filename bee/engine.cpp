@@ -137,8 +137,12 @@ namespace bee {
 				bee::console::run(msg->descr);
 			});
 		} else {
-			messenger::internal::register_protected("cmdlog", {"engine", "commandline"}, true, [] (std::shared_ptr<MessageContents> msg) {
-				std::cout << "[" << msg->descr << "]\n";
+			messenger::internal::register_protected("cmdfilter", {"engine", "commandline"}, true, [] (std::shared_ptr<MessageContents> msg) {
+				if (msg->descr == "reset") {
+					messenger::reset_filter();
+				} else {
+					messenger::add_filter(msg->descr);
+				}
 			});
 		}
 

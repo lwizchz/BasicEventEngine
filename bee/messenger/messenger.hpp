@@ -48,6 +48,9 @@ namespace bee { namespace messenger {
 
 	int set_level(E_OUTPUT);
 	E_OUTPUT get_level();
+	int add_filter(const std::string&);
+	int set_filter_blacklist(bool);
+	int reset_filter();
 
 	int handle();
 	std::string get_type_string(E_MESSAGE);

@@ -30,4 +30,4 @@ before_install:
   - tar xzf resources.tar.gz
 script: ./build.sh norun
 after_success:
-  - ./build/BasicEventEngine --single-run --headless
+  - ./build/BEE_Example --single-run --headless

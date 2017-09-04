@@ -34,7 +34,10 @@ namespace bee { namespace messenger{
 		std::unordered_map<std::string,std::unordered_set<std::shared_ptr<MessageRecipient>>> recipients;
 		const std::unordered_set<std::string> protected_tags = {"engine", "console"};
 		std::vector<std::shared_ptr<MessageContents>> messages;
+
 		E_OUTPUT output_level = E_OUTPUT::NORMAL;
+		std::unordered_set<std::string> filter;
+		bool is_filter_blacklist = true;
 	}
 
 	/*
@@ -87,13 +90,30 @@ namespace bee { namespace messenger{
 			}
 		}
 
+		bool is_filtered = false;
+		for (auto& t : msg->tags) {
+			for (auto& f : filter) {
+				if (t == f) {
+					is_filtered = true;
+					break;
+				}
+			}
+
+			if (is_filtered) {
+				break;
+			}
+		}
+		if (!(is_filtered ^ is_filter_blacklist)) {
+			return 2; // Return 2 when the message got filtered
+		}
+
 		if ((get_options().is_headless)&&(!get_options().is_debug_enabled)) {
 			std::stringstream h; // Combine the message metadata
 			h << msg->tickstamp << "ms> ";
 
 			print_msg(h.str(), msg);
 
-			return 2; // Return 2 when in headless mode
+			return 3; // Return 3 when in headless mode
 		}
 
 		// Create a string of the message's tags
@@ -501,6 +521,29 @@ namespace bee { namespace messenger{
 	*/
 	E_OUTPUT get_level() {
 		return internal::output_level;
+	}
+	/*
+	* add_filter() - Add a tag to the filter list
+	* @f: the filter to add
+	*/
+	int add_filter(const std::string& f) {
+		internal::filter.emplace(f);
+		return internal::filter.size();
+	}
+	/*
+	* set_filter_blacklist() - Set the filter type
+	* @type: whether the filter should be a blacklist or whitelist
+	*/
+	int set_filter_blacklist(bool type) {
+		internal::is_filter_blacklist = type;
+		return 0;
+	}
+	/*
+	* reset_filter() - Remove all filters
+	*/
+	int reset_filter() {
+		internal::filter.clear();
+		return 0;
 	}
 
 	/*
