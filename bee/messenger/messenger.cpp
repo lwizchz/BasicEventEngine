@@ -150,44 +150,87 @@ namespace bee { namespace messenger{
 	std::exception_ptr internal::call_recipients(std::shared_ptr<MessageContents> msg) {
 		std::exception_ptr ep = nullptr;
 
-		for (auto& tag : msg->tags) { // Iterate over the message's tags
-			if (msg->has_processed) { // If the message has already been processed, skip it
-				continue;
-			}
-
-			auto rt = recipients.find(tag); // Make sure that the message tag exists
+		if (msg->tags[0] == "direct") { // Send the message directly to a recipient rather than handling tags
+			auto rt = recipients.find("direct"); // Recipients must register for the direct tag in order to receive direct messages
 			if (rt != recipients.end()) {
-				for (auto& recv : recipients[tag]) { // Iterate over the recipients who wish to process the tag
-					if (recv->is_strict) { // If the recipient is strict
-						if (recv->tags != msg->tags) { // If the tags don't match, skip it
-							continue;
-						} else { // Otherwise set the processed flag so that the message isn't handled multiple times
-							msg->has_processed = true;
+				for (size_t i=1; i<msg->tags.size(); ++i) {
+					for (auto& recv : rt->second) {
+						if (recv->name == msg->tags[i]) {
+							std::exception_ptr e = handle_recipient(recv, msg);
+							if (e != nullptr) {
+								ep = e;
+							}
 						}
 					}
+				}
+			}
+		} else {
+			for (auto& tag : msg->tags) { // Iterate over the message's tags
+				if (msg->has_processed) { // If the message has already been processed, skip it
+					continue;
+				}
 
-					// Call the recipient function
-					if (recv->func != nullptr) {
-						try {
-							recv->func(msg);
-						} catch (int e) { // Catch several kinds of exceptions that the recipient might throw
-							ep = std::current_exception();
-							bee_commandline_color(9);
-							std::cerr << "MSG ERR (" << get_ticks() << "ms): exception " << e << " thrown by recipient \"" << recv->name << "\"\n";
-							bee_commandline_color_reset();
-						} catch (const char* e) {
-							ep = std::current_exception();
-							bee_commandline_color(9);
-							std::cerr << "MSG ERR (" << get_ticks() << "ms): exception \"" << e << "\" thrown by recipient \"" << recv->name << "\"\n";
-							bee_commandline_color_reset();
-						} catch (...) {
-							ep = std::current_exception(); // Store any miscellaneous exceptions to be rethrown
+				auto rt = recipients.find(tag); // Make sure that the message tag exists
+				if (rt != recipients.end()) {
+					for (auto& recv : recipients[tag]) { // Iterate over the recipients who wish to process the tag
+						std::exception_ptr e = handle_recipient(recv, msg);
+						if (e != nullptr) {
+							ep = e;
 						}
 					}
 				}
 			}
 		}
+
 		msg->has_processed = true; // Set the processed flag after iterating over all message tags
+
+		return ep;
+	}
+	/*
+	* internal::handle_recipient() - Handle the individual recipient
+	* @recv: the recipient to send the message to
+	* @msg: the message to send
+	*/
+	std::exception_ptr internal::handle_recipient(std::shared_ptr<MessageRecipient> recv, std::shared_ptr<MessageContents> msg) {
+		std::exception_ptr ep = nullptr;
+
+		if (recv->is_strict) { // If the recipient is strict
+			if (recv->tags != msg->tags) { // If the tags don't match, skip it
+				if (recv->tags[0] != "direct") {
+					return nullptr;
+				}
+
+				// Allow strict messages that don't match the direct tag
+				std::vector<std::string> rt (recv->tags);
+				std::vector<std::string> mt (msg->tags);
+				mt.insert(mt.begin(), "direct");
+
+				if (rt != mt) {
+					return nullptr;
+				}
+			} else { // Otherwise set the processed flag so that the message isn't handled multiple times
+				msg->has_processed = true;
+			}
+		}
+
+		// Call the recipient function
+		if (recv->func != nullptr) {
+			try {
+				recv->func(msg);
+			} catch (int e) { // Catch several kinds of exceptions that the recipient might throw
+				ep = std::current_exception();
+				bee_commandline_color(9);
+				std::cerr << "MSG ERR (" << get_ticks() << "ms): exception " << e << " thrown by recipient \"" << recv->name << "\"\n";
+				bee_commandline_color_reset();
+			} catch (const char* e) {
+				ep = std::current_exception();
+				bee_commandline_color(9);
+				std::cerr << "MSG ERR (" << get_ticks() << "ms): exception \"" << e << "\" thrown by recipient \"" << recv->name << "\"\n";
+				bee_commandline_color_reset();
+			} catch (...) {
+				ep = std::current_exception(); // Store any miscellaneous exceptions to be rethrown
+			}
+		}
 
 		return ep;
 	}
