@@ -44,10 +44,7 @@ void ObjUISlider::mouse_input(bee::Instance* self, SDL_Event* e) {
 
 	if (!_i("is_pressed")) {
 		if ((_i("has_hover"))&&(e->type == SDL_MOUSEWHEEL)) {
-			int flip = 1;
-			if (e->wheel.direction == SDL_MOUSEWHEEL_FLIPPED) {
-				flip = -1;
-			}
+			int flip = bee::get_mouse_wheel_flip(e->wheel);
 
 			int v = _i("value");
 

@@ -26,12 +26,17 @@ namespace bee {
 	int set_mouse_global_position(int, int);
 	int set_mouse_global_x(int);
 	int set_mouse_global_y(int);
+
 	bool is_mouse_inside(const Instance&);
+
 	bool get_key_state(SDL_Scancode);
 	bool get_key_state(SDL_Keycode);
 	bool get_mod_state(Uint8);
 	bool get_mouse_state(Uint8);
+	int get_mouse_wheel_flip(const SDL_MouseWheelEvent&);
+
 	char append_input(std::string*, SDL_KeyboardEvent*);
+
 	int keystrings_populate();
 	SDL_Keycode keystrings_get_key(const std::string&);
 	std::string keystrings_get_string(SDL_Keycode);

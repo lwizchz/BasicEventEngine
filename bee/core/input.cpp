@@ -156,6 +156,20 @@ namespace bee {
 	bool get_mouse_state(Uint8 b) {
 		return (SDL_GetMouseState(nullptr, nullptr) & SDL_BUTTON(b)); // Return the button state of the given button as a boolean value
 	}
+	/*
+	* get_mouse_wheel_flip() - Return a scalar for mouse wheel flipping
+	* ! See https://wiki.libsdl.org/SDL_MouseWheelEvent for details
+	* @wheel: the mouse event to check
+	*/
+	int get_mouse_wheel_flip(const SDL_MouseWheelEvent& wheel) {
+		#if SDL_VERSION_ATLEAST(2, 0, 4)
+			if (wheel.direction == SDL_MOUSEWHEEL_FLIPPED) {
+				return -1;
+			}
+		#endif
+
+		return 1;
+	}
 
 	/*
 	* append_input() - Append the given keyboard event's key to the given string and return the added character
