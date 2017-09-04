@@ -61,7 +61,7 @@ void ObjUIOptionBox::draw(bee::Instance* self) {
 	bee::RGBA c_border = {0, 0, 0, 255};
 	bee::RGBA c_back = {_i("color_r"), _i("color_g"), _i("color_b"), _i("color_a")};
 	bee::RGBA c_highlight = c_back;
-	c_highlight.add_value(-20);
+	c_highlight.add_value(-0.20f);
 
 	int ox = 0, oy = 0;
 	bee::ViewData* v = bee::get_current_room()->get_current_view();

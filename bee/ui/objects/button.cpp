@@ -64,7 +64,7 @@ void ObjUIButton::draw(bee::Instance* self) {
 	bee::RGBA c_border = {0, 0, 0, 255};
 	bee::RGBA c_back = {_i("color_r"), _i("color_g"), _i("color_b"), _i("color_a")};
 	if (_i("has_hover")) {
-		c_back.add_value(-20);
+		c_back.add_value(-0.20f);
 	}
 
 	int press_offset = 0;
