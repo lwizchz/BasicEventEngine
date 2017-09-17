@@ -15,7 +15,7 @@
 #include "text_entry.hpp"
 
 ObjUITextEntry::ObjUITextEntry() : ObjUIElement("obj_ui_text_entry", "/ui/objects/text_entry.cpp") {
-	implemented_events.merge({
+	implemented_events.insert({
 		bee::E_EVENT::CREATE,
 		bee::E_EVENT::DESTROY,
 		bee::E_EVENT::KEYBOARD_PRESS,

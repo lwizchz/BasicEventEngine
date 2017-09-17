@@ -53,11 +53,14 @@ namespace bee {
 		is_pausable(true),
 
 		instances(),
-		instance_data(),
 		s(nullptr),
 		current_instance(nullptr),
 
-		implemented_events()
+		implemented_events({
+			E_EVENT::UPDATE,
+			E_EVENT::DESTROY,
+			E_EVENT::STEP_BEGIN
+		})
 	{}
 	/*
 	* Object::Object() - Construct the object, add it to the object resource list, and set the new name and path
@@ -133,7 +136,6 @@ namespace bee {
 
 		// Clear instance data
 		instances.clear();
-		instance_data.clear();
 		s = nullptr;
 		current_instance = nullptr;
 
@@ -302,17 +304,13 @@ namespace bee {
 		instances.erase(index);
 		instances.emplace(index, new_instance); // Emplace the instance in the list
 
-		instance_data[index]; // Construct the instance data map
-
 		return 0; // Return 0 on success
 	}
 	int Object::remove_instance(int index) {
-		instance_data.erase(index);
 		instances.erase(index);
 		return 0;
 	}
 	int Object::clear_instances() {
-		instance_data.clear();
 		instances.clear();
 		return 0;
 	}
@@ -357,81 +355,12 @@ namespace bee {
 	}
 
 	/*
-	* Object::get_data() - Return the data map for the given instance
-	* @inst_id: the id of ht einstance to fetch the data for
-	*/
-	std::map<std::string,SIDP> Object::get_data(int inst_id) const {
-		if (instance_data.find(inst_id) == instance_data.end()) {
-			return std::map<std::string,SIDP>(); // Return an empty map if the instance doesn't exist
-		}
-
-		return instance_data.at(inst_id); // Return the instance data on success
-	}
-	/*
-	* Object::get_data() - Return the requested data field from the given instance
-	* @inst_id: the id of the instance to fetch the data from
-	* @field: the name of the field to fetch
-	* @default_value: the value to return if the field doesn't exist
-	* @should_output: whether a warning should be output if the field doesn't exist
-	*/
-	const SIDP& Object::get_data(int inst_id, const std::string& field, const SIDP& default_value, bool should_output) const {
-		if (instance_data.find(inst_id) == instance_data.end()) { // If the instance doesn't exist, output a warning
-			if (should_output) {
-				messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to get data for the instance with id " + bee_itos(inst_id) + " of object \"" + name + "\"");
-			}
-			return default_value; // Return the default value when there is no instance with the desired id
-		}
-
-		const std::map<std::string,SIDP>& data = instance_data.at(inst_id); // Get the instance's data map
-		if (data.find(field) == data.end()) { // If the data field doesn't exist, output a warning and return the default value
-			if (should_output) {
-				messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to get the data field \"" + field + "\" from the instance of object \"" + name + "\", returning SIDP(0)");
-			}
-			return default_value;
-		}
-
-		return data.at(field); // Return the data field value on success
-	}
-	/*
-	* Object::get_data() - Return the requested data field from the given instance
-	* ! When the function is called without a default value, simply call it with a default value of 0 and with warning output enabled
-	* @inst_id: the id of the instance to fetch the data from
-	* @field: the name of the field to fetch
-	*/
-	const SIDP& Object::get_data(int inst_id, const std::string& field) const {
-		return get_data(inst_id, field, 0, true); // Return the attempt to fetch the given data field
-	}
-	/*
-	* Object::set_data() - Set the data map for the given instance
-	* @inst_id: the id of the instance to set the data for
-	* @data: the data map to use
-	*/
-	int Object::set_data(int inst_id, const std::map<std::string,SIDP>& data) {
-		instance_data[inst_id] = data; // Set the map to the desired data
-		return 0; // Return 0 on success
-	}
-	/*
-	* Object::set_data() - Set the requested data field value for the given instance
-	* @inst_id: the id of the instance to set the data for
-	* @field: the name of the field to set
-	* @data: the value to set the field to
-	*/
-	int Object::set_data(int inst_id, const std::string& field, const SIDP& data) {
-		if (instance_data.find(inst_id) == instance_data.end()) {
-			return 1; // Return 1 if the instance doesn't exist
-		}
-		instance_data.at(inst_id)[field] = data; // Otherwise set the desired field to the given data
-		return 0; // Return 0 on success
-	}
-
-	/*
 	* Object::update() - Update the instance and data map pointers to the given instance, usually before a call to one of the instance's events
 	* @inst: the instance to update the pointers for
 	*/
 	void Object::update(Instance* inst) {
 		current_instance = inst; // Set the current instance, i.e. the next instance to be operated on
-		s = &instance_data[inst->id]; // Get the pointer to the instance data map
-		(*s)["object"] = name; // Reset the field to this object's name
+		s = &inst->get_data(); // Update the pointer to the instance data map
 	}
 	/*
 	* Object::destroy() - Remove the instance data for the given instance
@@ -439,7 +368,6 @@ namespace bee {
 	*/
 	void Object::destroy(Instance* inst) {
 		net::internal::destroy_instance(inst);
-		instance_data.erase(inst->id);
 	}
 	/*
 	* Object::step_begin() - Update the instance every step

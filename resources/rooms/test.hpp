@@ -51,6 +51,10 @@ void RmTest::init() {
 	load_instance_map();
 
 	// Load required resources for this room
+	if (spr_bee->get_is_loaded()) {
+		return;
+	}
+
 	bee::loader::queue(spr_bee);
 	bee::loader::queue(snd_chirp);
 	bee::loader::queue(bk_green);

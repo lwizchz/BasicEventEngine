@@ -48,6 +48,8 @@ namespace bee {
 			bool path_is_drawn;
 			bool path_is_pausable;
 			double path_previous_mass;
+
+			std::map<std::string,SIDP> data;
 		public:
 			int id;
 			Uint32 subimage_time;
@@ -84,8 +86,10 @@ namespace bee {
 			int set_computation_type(E_COMPUTATION);
 			int set_is_persistent(bool);
 
+			std::map<std::string,SIDP>& get_data();
 			const SIDP& get_data(const std::string&, const SIDP&, bool) const;
 			const SIDP& get_data(const std::string&) const;
+			int set_data(const std::map<std::string,SIDP>&);
 			int set_data(const std::string&, const SIDP&);
 
 			btVector3 get_position() const;

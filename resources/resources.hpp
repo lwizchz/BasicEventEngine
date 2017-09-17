@@ -39,12 +39,14 @@ bee::Light* lt_ambient = nullptr;
 bee::Light* lt_bee = nullptr;
 
 // Declare objects
+bee::Object* obj_control = nullptr;
 bee::Object* obj_bee = nullptr;
 
 // Declare rooms
 bee::Room* rm_test = nullptr;
 
 // Include objects
+#include "objects/control.hpp"
 #include "objects/bee.hpp"
 
 // Include rooms
@@ -97,6 +99,7 @@ int bee::init_resources() {
 			lt_bee->set_color({255, 255, 255, 255});
 
 		// Init objects
+		obj_control = new ObjControl();
 		obj_bee = new ObjBee();
 			obj_bee->set_is_solid(true);
 			obj_bee->set_sprite(spr_bee);
@@ -143,6 +146,7 @@ int bee::close_resources() {
 	DEL(lt_bee);
 
 	// Destroy objects
+	DEL(obj_control);
 	DEL(obj_bee);
 
 	// Destroy rooms

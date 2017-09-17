@@ -28,6 +28,7 @@
 
 #include "enginestate.hpp"
 #include "input.hpp"
+#include "keybind.hpp"
 #include "resources.hpp"
 #include "room.hpp"
 
@@ -50,7 +51,7 @@ namespace bee{ namespace console {
 		std::unordered_map<std::string,std::string> aliases;
 		std::unordered_map<std::string,SIDP> variables;
 
-		std::map<SDL_Keycode,std::string> bindings;
+		std::unordered_map<SDL_Keycode,KeyBind> bindings;
 
 		std::vector<std::string> history;
 		int history_index = -1;
@@ -111,10 +112,10 @@ namespace bee{ namespace console {
 	int internal::handle_input(SDL_Event* e) {
 		// If the console is closed, handle keybindings
 		if (!get_is_open()) {
-			if (e->key.repeat == 0) { // If the key is not repeating
-				std::string command = bind(e->key.keysym.sym); // Fetch the command that's bound to the key
-				if (!command.empty()) { // If the command is set
-					run(command, true, 0); // Run the command without storing it in history
+			KeyBind kb = get_keybind(e->key.keysym.sym); // Fetch the command that's bound to the key
+			if ((!e->key.repeat)||(kb.is_repeatable)) {
+				if (!kb.command.empty()) { // If the command is set
+					run(kb.command, true, 0); // Run the command without storing it in history
 				}
 			}
 
@@ -554,7 +555,7 @@ namespace bee{ namespace console {
 
 		internal::commands.emplace(command, std::make_pair(descr, func)); // Add the command to the console command map
 
-		messenger::internal::register_protected(""+command, {"engine", "console", command}, true, func); // Register the command with the messaging system
+		messenger::internal::register_protected(command, {"engine", "console", command}, true, func); // Register the command with the messaging system
 
 		return 0; // Return 0 on success
 	}
@@ -567,33 +568,45 @@ namespace bee{ namespace console {
 	int add_command(const std::string& command, std::function<void (std::shared_ptr<MessageContents>)> func) {
 		return add_command(command, "", func);
 	}
+
 	/*
 	* bind() - Bind a key to a console command
+	* ! Console commands should generally be in snakecase but rebindable commands should be in camelcase
 	* @key: the keycode to bind to
-	* @command: the command to bind to
+	* @keybind: the keybind to bind to
 	*/
-	std::string bind(SDL_Keycode key, const std::string& command) {
-		if (trim(command).empty()) { // If the provided command is empty, then attempt to return the previously bound command
-			if (internal::bindings.find(key) != internal::bindings.end()) { // If the key has been bound, then return its command
-				return internal::bindings[key]; // Return the command on success when no command argument is provided
-			}
-			return ""; // Return an empty string when the provided command is empty and the key has not been bound
-		}
-
-		if (internal::bindings.find(key) == internal::bindings.end()) { // If the key has not been bound, then bind it to the given command
-			internal::bindings.emplace(key, trim(command));
-		} else { // Otherwise, output a warning
+	int bind(SDL_Keycode key, KeyBind keybind) {
+		if (internal::bindings.find(key) != internal::bindings.end()) { // If the key has already been bound, output a warning
 			messenger::send({"engine", "console"}, E_MESSAGE::WARNING, "Failed to bind key \"" + keystrings_get_string(key) + "\", the key is already in bound.");
+			return 1;
 		}
 
-		return trim(command); // Return the bound command on success
+		keybind.key = key;
+
+		internal::bindings.emplace(key, keybind);
+
+		return 0;
+	}
+	/*
+	* add_keybind() - Add a keybind's command and bind it to the given key
+	* @key: the key to bind to
+	* @keybind: the keybind to add
+	* @func: the function to add as a command
+	*/
+	int add_keybind(SDL_Keycode key, KeyBind keybind, std::function<void (std::shared_ptr<MessageContents>)> func) {
+		int r = add_command(keybind.command, func);
+		r += bind(key, keybind);
+		return r;
 	}
 	/*
 	* bind() - Return the command that is bound to the given key
 	* @key: the keycode to bind to
 	*/
-	std::string bind(SDL_Keycode key) {
-		return bind(key, "");
+	KeyBind get_keybind(SDL_Keycode key) {
+		if (internal::bindings.find(key) != internal::bindings.end()) { // If the key has been bound, then return its command
+			return internal::bindings.at(key); // Return the command on success when no command argument is provided
+		}
+		return KeyBind(); // Return an empty string when the provided command is empty and the key has not been bound
 	}
 	/*
 	* unbind() - Unbind a key from a console command
@@ -606,12 +619,34 @@ namespace bee{ namespace console {
 		return 0; // Return 0 on success
 	}
 	/*
+	* unbind() - Unbind a keybind from a console command
+	* @keybind: the keybind to unbind
+	*/
+	int unbind(KeyBind keybind, bool should_remove_command) {
+		for (auto& bind : internal::bindings) {
+			if (bind.second.command == keybind.command) {
+				internal::bindings.erase(bind.first);
+
+				if (should_remove_command) {
+					internal::commands.erase(keybind.command);
+				}
+
+				return 0;
+			}
+		}
+
+		messenger::send({"engine", "console"}, E_MESSAGE::WARNING, "Failed to unbind keybinding for \"" + keybind.command + "\": no key found");
+
+		return 1;
+	}
+	/*
 	* unbind_all() - Unbind all keys from the console
 	*/
 	int unbind_all() {
 		internal::bindings.clear();
 		return 0;
 	}
+
 	/*
 	* alias() - Add a console alias to multiple commands
 	* @alias: the alias to use
@@ -633,6 +668,7 @@ namespace bee{ namespace console {
 	const std::unordered_map<std::string,std::string>& get_aliases() {
 		return internal::aliases;
 	}
+
 	/*
 	* set_var() - Set a console variable
 	* @name: the name of the variable

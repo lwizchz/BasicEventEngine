@@ -15,7 +15,7 @@
 #include "optionbox.hpp"
 
 ObjUIOptionBox::ObjUIOptionBox() : ObjUIElement("obj_ui_optionbox", "/ui/objects/optionbox.cpp") {
-	implemented_events.merge({
+	implemented_events.insert({
 		bee::E_EVENT::CREATE,
 		bee::E_EVENT::MOUSE_INPUT,
 		bee::E_EVENT::MOUSE_RELEASE,

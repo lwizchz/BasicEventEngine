@@ -15,7 +15,7 @@
 #include "gauge.hpp"
 
 ObjUIGauge::ObjUIGauge() : ObjUIElement("obj_ui_gauge", "/ui/objects/gauge.cpp") {
-	implemented_events.merge({
+	implemented_events.insert({
 		bee::E_EVENT::CREATE,
 		bee::E_EVENT::DRAW
 	});

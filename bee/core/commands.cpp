@@ -237,9 +237,11 @@ namespace bee{ namespace console {
 				std::vector<SIDP> params = parse_parameters(msg->descr); // Parse the parameters from the given command
 
 				if (params.size() > 2) { // If both a key and command are provided, bind the command to the key
-					bind(keystrings_get_key(SIDP_s(params[1])), string_unescape(SIDP_s(params[2])));
+					SDL_Keycode k (keystrings_get_key(SIDP_s(params[1])));
+					KeyBind kb (k, string_unescape(SIDP_s(params[2])), false);
+					bind(k, kb);
 				} else if (params.size() > 1) { // If only a command is provided, output the command that is bound to it
-					messenger::send({"engine", "console"}, E_MESSAGE::INFO, bind(keystrings_get_key(SIDP_s(params[1]))));
+					messenger::send({"engine", "console"}, E_MESSAGE::INFO, get_keybind(keystrings_get_key(SIDP_s(params[1]))).command);
 				} else { // If no key is provided, output a warning
 					messenger::send({"engine", "console"}, E_MESSAGE::WARNING, "No key specified for binding");
 				}

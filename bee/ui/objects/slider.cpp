@@ -15,7 +15,7 @@
 #include "slider.hpp"
 
 ObjUISlider::ObjUISlider() : ObjUIElement("obj_ui_slider", "/ui/objects/slider.cpp") {
-	implemented_events.merge({
+	implemented_events.insert({
 		bee::E_EVENT::CREATE,
 		bee::E_EVENT::MOUSE_INPUT,
 		bee::E_EVENT::MOUSE_RELEASE,

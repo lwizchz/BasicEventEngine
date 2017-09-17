@@ -16,17 +16,14 @@
 #include "../util/template/real.hpp"
 
 namespace bee {
-	RGBA::RGBA() :
-		r(0),
-		g(0),
-		b(0),
-		a(0)
-	{}
 	RGBA::RGBA(int nr, int ng, int nb, int na) :
 		r(nr),
 		g(ng),
 		b(nb),
 		a(na)
+	{}
+	RGBA::RGBA() :
+		RGBA(0, 0, 0, 0)
 	{}
 
 	std::array<float,3> RGBA::get_hsv() const {

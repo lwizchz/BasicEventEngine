@@ -22,6 +22,7 @@
 namespace bee{
 	// Forward declaration
 	class Instance;
+	struct KeyBind;
 
 namespace console {
 	int reset();
@@ -49,12 +50,17 @@ namespace console {
 
 	int add_command(const std::string&, const std::string&, std::function<void (std::shared_ptr<MessageContents>)>);
 	int add_command(const std::string&, std::function<void (std::shared_ptr<MessageContents>)>);
-	std::string bind(SDL_Keycode, const std::string&);
-	std::string bind(SDL_Keycode);
+
+	int bind(SDL_Keycode, KeyBind);
+	int add_keybind(SDL_Keycode, KeyBind, std::function<void (std::shared_ptr<MessageContents>)>);
+	KeyBind get_keybind(SDL_Keycode);
 	int unbind(SDL_Keycode);
+	int unbind(KeyBind, bool);
 	int unbind_all();
+
 	int alias(const std::string&, const std::string&);
 	const std::unordered_map<std::string,std::string>& get_aliases();
+
 	int set_var(const std::string&, SIDP);
 	SIDP get_var(const std::string&);
 

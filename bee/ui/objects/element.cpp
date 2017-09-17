@@ -17,14 +17,14 @@
 ObjUIElement::ObjUIElement(const std::string& new_name, const std::string& new_path) :
 	Object(new_name, new_path)
 {
-	implemented_events = {
+	implemented_events.insert({
 		bee::E_EVENT::CREATE,
 		bee::E_EVENT::DESTROY,
 		bee::E_EVENT::MOUSE_PRESS,
 		bee::E_EVENT::MOUSE_INPUT,
 		bee::E_EVENT::MOUSE_RELEASE,
 		bee::E_EVENT::DRAW
-	};
+	});
 }
 ObjUIElement::~ObjUIElement() {}
 void ObjUIElement::create(bee::Instance* self) {

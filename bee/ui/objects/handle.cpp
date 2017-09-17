@@ -15,7 +15,7 @@
 #include "handle.hpp"
 
 ObjUIHandle::ObjUIHandle() : ObjUIElement("obj_ui_handle", "/ui/objects/handle.cpp") {
-	implemented_events.merge({
+	implemented_events.insert({
 		bee::E_EVENT::CREATE,
 		bee::E_EVENT::DESTROY,
 		bee::E_EVENT::STEP_END,

@@ -17,8 +17,8 @@ namespace bee {
 	struct RGBA {
 		Uint8 r, g, b, a;
 
-		RGBA();
 		RGBA(int, int, int, int);
+		RGBA();
 
 		std::array<float,3> get_hsv() const;
 		float get_hue() const;

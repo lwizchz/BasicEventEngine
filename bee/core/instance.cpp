@@ -57,6 +57,8 @@ namespace bee {
 		path_is_pausable(false),
 		path_previous_mass(0.0),
 
+		data(),
+
 		id(-1),
 		subimage_time(0),
 		alarm_end(),
@@ -76,6 +78,7 @@ namespace bee {
 	}
 	Instance::~Instance() {
 		delete body;
+		data.clear();
 	}
 	int Instance::init(int new_id, Object* new_object, double new_x, double new_y, double new_z) {
 		id = new_id;
@@ -94,6 +97,9 @@ namespace bee {
 		pos_previous = pos_start;
 		path_pos_start = btVector3(0.0, 0.0, 0.0);
 		path_previous_mass = 0.0;
+
+		data.clear();
+		data["object"] = object->get_name();
 
 		is_solid = true;
 		if (!object->get_is_solid()) {
@@ -282,13 +288,11 @@ namespace bee {
 	}
 
 	int Instance::set_object(Object* new_object) {
-		std::map<std::string,SIDP> data = object->get_data(id);
-
 		object->remove_instance(id);
+
 		object = new_object;
 		object->add_instance(id, this);
-
-		object->set_data(id, data);
+		data["object"] = object->get_name();
 
 		return 0;
 	}
@@ -328,14 +332,52 @@ namespace bee {
 		return 0;
 	}
 
+	/*
+	* Instance::get_data() - Return a reference to the data map
+	*/
+	std::map<std::string,SIDP>& Instance::get_data() {
+		return data;
+	}
+	/*
+	* Instance::get_data() - Return the requested data field from the data map
+	* @field: the name of the field to fetch
+	* @default_value: the value to return if the field doesn't exist
+	* @should_output: whether a warning should be output if the field doesn't exist
+	*/
 	const SIDP& Instance::get_data(const std::string& field, const SIDP& default_value, bool should_output) const {
-		return object->get_data(id, field, default_value, should_output);
+		if (data.find(field) == data.end()) { // If the data field doesn't exist, output a warning and return the default value
+			if (should_output) {
+				messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to get the data field \"" + field + "\" from the instance of object \"" + get_object()->get_name() + "\", returning SIDP(0)");
+			}
+			return default_value;
+		}
+
+		return data.at(field); // Return the data field value on success
 	}
+	/*
+	* Instance::get_data() - Return the requested data field from the data map
+	* ! When the function is called without a default value, simply call it with a default value of 0 and with warning output enabled
+	* @field: the name of the field to fetch
+	*/
 	const SIDP& Instance::get_data(const std::string& field) const {
-		return object->get_data(id, field);
+		return get_data(field, 0, true);
 	}
-	int Instance::set_data(const std::string& field, const SIDP& data) {
-		return object->set_data(id, field, data);
+	/*
+	* Instance::set_data() - Replace the data map
+	* @new_data: the new data map to use
+	*/
+	int Instance::set_data(const std::map<std::string,SIDP>& new_data) {
+		data = new_data;
+		return 0;
+	}
+	/*
+	* Instance::set_data() - Set the requested data field
+	* @field: the name of the field to set
+	* @value: the value to set the field to
+	*/
+	int Instance::set_data(const std::string& field, const SIDP& value) {
+		data[field] = value;
+		return 0;
 	}
 
 	btVector3 Instance::get_position() const {

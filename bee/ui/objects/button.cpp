@@ -15,7 +15,7 @@
 #include "button.hpp"
 
 ObjUIButton::ObjUIButton() : ObjUIElement("obj_ui_button", "/ui/objects/button.cpp") {
-	implemented_events.merge({
+	implemented_events.insert({
 		bee::E_EVENT::CREATE,
 		bee::E_EVENT::DESTROY,
 		bee::E_EVENT::MOUSE_PRESS,

@@ -726,30 +726,45 @@ namespace bee {
 	}
 	int Room::transfer_instances(const Room* old_room) {
 		if (old_room == nullptr) {
+			Object* obj_control = get_object_by_name("obj_control");
+			if (obj_control == nullptr) {
+				return 2;
+			}
+
+			// If an obj_control exists, create it for the first room
+			int index = next_instance_id++;
+			Instance* inst_control = new Instance(index, obj_control, 0, 0, 0);
+			set_instance(index, inst_control);
+			sort_instances();
+			obj_control->add_instance(index, inst_control);
+
+			for (E_EVENT e : obj_control->implemented_events) {
+				instances_sorted_events[e].emplace(inst_control, inst_control->id);
+			}
+
+			created_instances.push_back(inst_control);
+
 			return 1;
 		}
 
-		std::map<int,std::map<std::string,SIDP>> old_instance_data;
-
 		for (auto& inst : instances) {
-			old_instance_data.emplace(inst.first, inst.second->get_object()->get_data(inst.first));
 			inst.second->get_object()->remove_instance(inst.first);
 		}
+
+		const std::map<int,Instance*> old_instances = old_room->get_instances();
+
 		instances.clear();
 		instances_sorted.clear();
 		instances_sorted_events.clear();
 
-		for (auto& inst : old_room->get_instances()) {
+		for (auto& inst : old_instances) {
 			set_instance(inst.first, inst.second);
 			inst.second->get_object()->add_instance(inst.first, inst.second);
-			if (old_instance_data.find(inst.first) != old_instance_data.end()) {
-				inst.second->get_object()->set_data(inst.first, old_instance_data.at(inst.first));
-			}
 
 			if (inst.second->get_physbody() != nullptr) {
 				PhysicsBody* b = inst.second->get_physbody();
-				this->add_physbody(inst.second, b);
-				b->attach(this->get_phys_world());
+				add_physbody(inst.second, b);
+				b->attach(get_phys_world());
 			}
 
 			for (E_EVENT e : inst.second->get_object()->implemented_events) {

@@ -11,7 +11,7 @@
 
 #include <string> // Include the required library headers
 #include <map>
-#include <list>
+#include <set>
 
 #include <SDL2/SDL.h> // Include the required SDL headers
 
@@ -47,7 +47,6 @@ namespace bee {
 
 			std::map<int,Instance*> instances; // A list of all the instances of this object type
 		protected:
-			std::map<int,std::map<std::string,SIDP>> instance_data; // A data map for all of this object's instances
 			std::map<std::string,SIDP>* s; // A pointer to the data map for the instance that is currently being processed
 			Instance* current_instance; // A pointer to the instance that is currently being processed
 
@@ -55,7 +54,7 @@ namespace bee {
 			Object();
 			Object(const std::string&, const std::string&);
 		public:
-			std::list<E_EVENT> implemented_events; // A list of all the events that the object implements
+			std::set<E_EVENT> implemented_events; // A list of all the events that the object implements
 
 			// See bee/resources/object.cpp for function comments
 			virtual ~Object();
@@ -105,12 +104,6 @@ namespace bee {
 			size_t get_instance_amount() const;
 			Instance* get_instance(int) const;
 			std::string get_instance_string() const;
-
-			std::map<std::string,SIDP> get_data(int) const;
-			const SIDP& get_data(int, const std::string&, const SIDP&, bool) const;
-			const SIDP& get_data(int, const std::string&) const;
-			int set_data(int, const std::map<std::string,SIDP>&);
-			int set_data(int, const std::string&, const SIDP&);
 
 			virtual void update(Instance*);
 			virtual void create(Instance*) =0;
