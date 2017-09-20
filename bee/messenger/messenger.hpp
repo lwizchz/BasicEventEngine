@@ -23,6 +23,7 @@ namespace bee { namespace messenger {
 	namespace internal {
 		int output_msg(std::shared_ptr<MessageContents>);
 		int print_msg(const std::string&, std::shared_ptr<MessageContents>);
+		bool should_print(E_OUTPUT, E_MESSAGE);
 		std::exception_ptr call_recipients(std::shared_ptr<MessageContents>);
 		std::exception_ptr handle_recipient(std::shared_ptr<MessageRecipient>, std::shared_ptr<MessageContents>);
 
@@ -46,11 +47,16 @@ namespace bee { namespace messenger {
 	int send(const std::vector<std::string>&, E_MESSAGE, const std::string&);
 	int log(const std::string&);
 
-	int set_level(E_OUTPUT);
-	E_OUTPUT get_level();
 	int add_filter(const std::string&);
 	int set_filter_blacklist(bool);
 	int reset_filter();
+
+	int add_log(const std::string&, E_OUTPUT);
+	int remove_log(const std::string&, bool);
+	int clear_logs(bool);
+
+	int set_level(E_OUTPUT);
+	E_OUTPUT get_level();
 
 	int handle();
 	std::string get_type_string(E_MESSAGE);

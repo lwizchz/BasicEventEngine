@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <algorithm>
+#include <fstream>
 
 #include "messenger.hpp"
 
@@ -27,6 +28,7 @@
 
 #include "../core/enginestate.hpp"
 
+#include "../util/files.hpp"
 #include "../util/windefine.hpp"
 
 namespace bee { namespace messenger{
@@ -35,9 +37,10 @@ namespace bee { namespace messenger{
 		const std::unordered_set<std::string> protected_tags = {"engine", "console"};
 		std::vector<std::shared_ptr<MessageContents>> messages;
 
-		E_OUTPUT output_level = E_OUTPUT::NORMAL;
 		std::unordered_set<std::string> filter;
 		bool is_filter_blacklist = true;
+
+		std::unordered_map<std::string,std::pair<E_OUTPUT,std::ostream*>> logfiles = {{"stdout", {E_OUTPUT::NORMAL, nullptr}}};
 	}
 
 	/*
@@ -54,6 +57,8 @@ namespace bee { namespace messenger{
 			)));
 		}
 
+		clear_logs(false);
+
 		internal::recipients.clear();
 		internal::messages.clear();
 
@@ -65,31 +70,6 @@ namespace bee { namespace messenger{
 	* @msg: the message to process
 	*/
 	int internal::output_msg(std::shared_ptr<MessageContents> msg) {
-		switch (get_level()) { // Skip certain messages depending on the verbosity level
-			case E_OUTPUT::NONE: { // When the verbosity is NONE, skip all message types
-				return 1; // Return 1 when the message should not be printed
-			}
-			case E_OUTPUT::QUIET: { // When the verbosity is QUIET, skip all types except warnings and errors
-				if (
-					(msg->type != E_MESSAGE::WARNING)
-					|| (msg->type != E_MESSAGE::ERROR)
-				) 		{
-					return 1; // Return 1 when the message should not be printed
-				}
-				break;
-			}
-			case E_OUTPUT::NORMAL: // When the verbosity is NORMAL, skip internal messages
-			default: {
-				if (msg->type == E_MESSAGE::INTERNAL) {
-					return 1; // Return 1 when the message should not be printed
-				}
-				break;
-			}
-			case E_OUTPUT::VERBOSE: { // When the verbosity is VERBOSE, skip no message types
-				break;
-			}
-		}
-
 		bool is_filtered = false;
 		for (auto& t : msg->tags) {
 			for (auto& f : filter) {
@@ -132,36 +112,76 @@ namespace bee { namespace messenger{
 	* @msg: the message whose description should be printed
 	*/
 	int internal::print_msg(const std::string& header, std::shared_ptr<MessageContents> msg) {
-		// Change the output color depending on the message type
-		if (msg->type == E_MESSAGE::WARNING) {
-			bee_commandline_color(11); // Yellow
+		for (auto& lf : logfiles) {
+			if (!should_print(lf.second.first, msg->type)) {
+				continue;
+			}
+
+			std::ostream* o = lf.second.second;
+
+			if (lf.first == "stdout") {
+				// Change the output color depending on the message type
+				if (msg->type == E_MESSAGE::WARNING) {
+					bee_commandline_color(11); // Yellow
+				}
+				if (msg->type == E_MESSAGE::ERROR) {
+					bee_commandline_color(9); // Red
+				}
+
+				// Output to the appropriate stream
+				o = &std::cout;
+				if ((msg->type == E_MESSAGE::WARNING)||(msg->type == E_MESSAGE::ERROR)) {
+					o = &std::cerr;
+				}
+			}
+
+			// Output the message metadata
+			*o << header;
+
+			// Output the message description
+			if (msg->descr.find("\n") != std::string::npos) { // If the description is multiple liness, indent it as necessary
+				*o << "\n";
+				*o << debug_indent(msg->descr, 1);
+			} else { // Otherwise, output it as normal
+				*o << msg->descr << "\n";
+			}
+
+			bee_commandline_color_reset(); // Reset the output color
+
+			std::flush(*o); // Flush the output buffer after printing
 		}
-		if (msg->type == E_MESSAGE::ERROR) {
-			bee_commandline_color(9); // Red
-		}
-
-		// Output to the appropriate stream
-		std::ostream* o = &std::cout;
-		if ((msg->type == E_MESSAGE::WARNING)||(msg->type == E_MESSAGE::ERROR)) {
-			o = &std::cerr;
-		}
-
-		// Output the message metadata
-		*o << header;
-
-		// Output the message description
-		if (msg->descr.find("\n") != std::string::npos) { // If the description is multiple liness, indent it as necessary
-			*o << "\n";
-			*o << debug_indent(msg->descr, 1);
-		} else { // Otherwise, output it as normal
-			*o << msg->descr << "\n";
-		}
-
-		bee_commandline_color_reset(); // Reset the output color
-
-		std::flush(std::cout); // Flush the output buffer after printing
 
 		return 0;
+	}
+	/*
+	*
+	*/
+	bool internal::should_print(E_OUTPUT level, E_MESSAGE type) {
+		switch (level) { // Skip certain messages depending on the verbosity level
+			case E_OUTPUT::NONE: { // When the verbosity is NONE, skip all message types
+				return false; // Return 1 when the message should not be printed
+			}
+			case E_OUTPUT::QUIET: { // When the verbosity is QUIET, skip all types except warnings and errors
+				if (
+					(type != E_MESSAGE::WARNING)
+					|| (type != E_MESSAGE::ERROR)
+				) 		{
+					return false; // Return 1 when the message should not be printed
+				}
+				break;
+			}
+			case E_OUTPUT::NORMAL: // When the verbosity is NORMAL, skip internal messages
+			default: {
+				if (type == E_MESSAGE::INTERNAL) {
+					return false; // Return 1 when the message should not be printed
+				}
+				break;
+			}
+			case E_OUTPUT::VERBOSE: { // When the verbosity is VERBOSE, skip no message types
+				break;
+			}
+		}
+		return true;
 	}
 	/*
 	* internal::call_recipients() - Call the recipients who are registered for the given message's tags
@@ -322,6 +342,7 @@ namespace bee { namespace messenger{
 
 		return 0; // Return 0 on success
 	}
+
 	/*
 	* internal::remove_messages() - Remove messages from processing based on the given criterion function
 	* @func: the callback which determines whether to remove a message
@@ -513,20 +534,6 @@ namespace bee { namespace messenger{
 	}
 
 	/*
-	* set_level() - Set the output level when printing message descriptions
-	* @new_level: the output level to use
-	*/
-	int set_level(E_OUTPUT new_level) {
-		internal::output_level = new_level;
-		return 0;
-	}
-	/*
-	* get_level() - Return the output level when printing message descriptions
-	*/
-	E_OUTPUT get_level() {
-		return internal::output_level;
-	}
-	/*
 	* add_filter() - Add a tag to the filter list
 	* @f: the filter to add
 	*/
@@ -548,6 +555,90 @@ namespace bee { namespace messenger{
 	int reset_filter() {
 		internal::filter.clear();
 		return 0;
+	}
+
+	/*
+	* add_log() - Add a filename as a log file
+	* ! This function can also be used to change the output level of existing log files
+	* @filename: the file to log to
+	* @level: the output level to log
+	*/
+	int add_log(const std::string& filename, E_OUTPUT level) {
+		if (filename == "stdout") { // Deny overwriting stdout via this function
+			return 1;
+		}
+
+		std::ofstream* logfile = new std::ofstream(filename);
+		if (!logfile->is_open()) {
+			send({"engine", "messenger"}, E_MESSAGE::ERROR, "Failed to open log file \"" + filename + "\"");
+			return 2;
+		}
+
+		internal::logfiles[filename] = std::make_pair(level, logfile);
+
+		return 0;
+	}
+	/*
+	* remove_log() - Remove the given filename from being a log file
+	* @filename: the filename to remove
+	* @should_delete: whether the file should also be deleted
+	*/
+	int remove_log(const std::string& filename, bool should_delete) {
+		if (filename == "stdout") { // Deny removing stdout via this function
+			return 1;
+		}
+
+		if (internal::logfiles.find(filename) == internal::logfiles.end()) {
+			send({"engine", "messenger"}, E_MESSAGE::WARNING, "The log file \"" + filename + "\" could not be removed because it has not been added");
+			return 2;
+		}
+
+		std::ofstream* logfile = static_cast<std::ofstream*>(internal::logfiles.at(filename).second);
+		logfile->close();
+
+		internal::logfiles.erase(filename);
+
+		if (should_delete) {
+			file_delete(filename);
+		}
+
+		return 0;
+	}
+	/*
+	* clear_logs() - Clear all log files except stdout
+	* @should_delete: Whether the log files should be deleted
+	*/
+	int clear_logs(bool should_delete) {
+		for (auto it=internal::logfiles.begin(); it!=internal::logfiles.end(); ++it) {
+			if (it->first == "stdout") {
+				continue;
+			}
+
+			std::ofstream* logfile = static_cast<std::ofstream*>(it->second.second);
+			logfile->close();
+
+			if (should_delete) {
+				file_delete(it->first);
+			}
+
+			it = internal::logfiles.erase(it);
+		}
+		return 0;
+	}
+
+	/*
+	* set_level() - Set the output level when printing message descriptions
+	* @new_level: the output level to use
+	*/
+	int set_level(E_OUTPUT new_level) {
+		internal::logfiles["stdout"] = std::make_pair(new_level, nullptr);
+		return 0;
+	}
+	/*
+	* get_level() - Return the output level when printing message descriptions
+	*/
+	E_OUTPUT get_level() {
+		return internal::logfiles["stdout"].first;
 	}
 
 	/*

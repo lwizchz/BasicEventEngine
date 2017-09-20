@@ -45,6 +45,7 @@ namespace bee { // The engine namespace
 		int close_sdl();
 
 		int update_delta();
+		int frame_delay();
 	}
 
 	// User defined in resources/resources.hpp

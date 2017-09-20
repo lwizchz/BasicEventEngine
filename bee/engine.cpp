@@ -186,34 +186,7 @@ namespace bee {
 				net::handle_events();
 				messenger::handle();
 
-				engine->fps_count++;
-				engine->frame_number++;
-				unsigned int new_tickstamp = get_ticks();
-				unsigned int fps_desired = min<unsigned int>({engine->fps_goal, engine->fps_max});
-				if (!engine->has_focus) {
-					fps_desired = engine->fps_unfocused;
-				}
-				if (
-					(new_tickstamp - engine->tickstamp < 1000/fps_desired)
-					&&(new_tickstamp - engine->tickstamp > 0)
-				) {
-					if ((!get_options().is_vsync_enabled)||(!engine->has_focus)) {
-						Uint32 delay = (1000/fps_desired) - (new_tickstamp - engine->tickstamp);
-						//messenger::log("FPS delay: " + bee_itos(delay) + "ms, " + bee_itos(100*delay/fps_desired) + "% of the frame");
-						SDL_Delay(delay);
-					}
-				} else if (new_tickstamp - engine->tickstamp > 3*1000/fps_desired) { // If the tick difference is more than 3 frames worth, output a warning
-					Uint32 overtime = (new_tickstamp - engine->tickstamp) - (1000/fps_desired);
-					messenger::send({"engine"}, E_MESSAGE::WARNING, "Engine loop over time by " + bee_itos(overtime) + "ms, " + bee_itos(overtime/(1000/fps_desired)) + " frames lost");
-				}
-				internal::update_delta();
-
-				// Compute the number of frames in the last second, the stable fps
-				if (engine->tickstamp - engine->fps_ticks >= 1000) {
-					engine->fps_stable = engine->fps_count / ((engine->tickstamp-engine->fps_ticks)/1000);
-					engine->fps_count = 0;
-					engine->fps_ticks = engine->tickstamp;
-				}
+				internal::frame_delay();
 
 				// If the single_run flag option is used, exit the game loop after saving a screenshot
 				if (get_options().single_run) {
@@ -582,6 +555,37 @@ namespace bee {
 	int internal::update_delta() {
 		engine->tick_delta = get_ticks() - engine->tickstamp;
 		engine->tickstamp = get_ticks();
+		return 0;
+	}
+	int internal::frame_delay() {
+		engine->fps_count++;
+		engine->frame_number++;
+		unsigned int new_tickstamp = get_ticks();
+		unsigned int fps_desired = min<unsigned int>({engine->fps_goal, engine->fps_max});
+		if (!engine->has_focus) {
+			fps_desired = engine->fps_unfocused;
+		}
+
+		Uint32 frame_ticks = 1000/fps_desired;
+		if (new_tickstamp - engine->tickstamp < frame_ticks) {
+			if ((!get_options().is_vsync_enabled)||(!engine->has_focus)) {
+				Uint32 delay = frame_ticks - (new_tickstamp - engine->tickstamp);
+				//messenger::log("FPS delay: " + bee_itos(delay) + "ms, " + bee_itos(100*delay/fps_desired) + "% of the frame");
+				SDL_Delay(delay);
+			}
+		} else if (new_tickstamp - engine->tickstamp > 3*frame_ticks) { // If the tick difference is more than 3 frames worth, output a warning
+			Uint32 overtime = (new_tickstamp - engine->tickstamp) - frame_ticks;
+			messenger::send({"engine"}, E_MESSAGE::WARNING, "Engine loop over time by " + bee_itos(overtime) + "ms, " + bee_itos(overtime/frame_ticks) + " frames lost");
+		}
+		internal::update_delta();
+
+		// Compute the number of frames in the last second, the stable fps
+		if (engine->tickstamp - engine->fps_ticks >= 1000) {
+			engine->fps_stable = engine->fps_count;
+			engine->fps_count = 0;
+			engine->fps_ticks = engine->tickstamp;
+		}
+
 		return 0;
 	}
 	Uint32 get_ticks() {

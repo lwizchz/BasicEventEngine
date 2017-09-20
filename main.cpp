@@ -22,6 +22,9 @@ int main(int argc, char* argv[]) {
 	bee::GameOptions options;
 	//options.is_debug_enabled = true;
 
+	// Add a logfile to the messenger
+	bee::messenger::add_log(MACRO_TO_STR(GAME_NAME) + std::string(".log"), bee::E_OUTPUT::NORMAL);
+
 	// Initialize the game engine
 	if (bee::init(argc, argv, bee::get_standard_flags(), &rm_test, &options)) {
 		bee::messenger::handle();
