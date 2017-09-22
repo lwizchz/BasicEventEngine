@@ -40,6 +40,8 @@ namespace bee { namespace loader {
 			return 1;
 		}
 
+		messenger::send({"engine", "loader"}, E_MESSAGE::INTERNAL, "Loading resource \"" + (*next_resource)->get_name() + "\"...");
+
 		(*next_resource)->load();
 		++next_resource;
 		amount_loaded++;
@@ -55,7 +57,7 @@ namespace bee { namespace loader {
 		}
 
 		if (next_resource != resources.end()) {
-			messenger::send({"engine", "loader"}, E_MESSAGE::INTERNAL, "Lazily load the next " + bee_itos(lazy_amount) + " resources");
+			messenger::send({"engine", "loader", "lazysignal"}, E_MESSAGE::INTERNAL, "Lazily loading the next " + bee_itos(lazy_amount) + " resources");
 		}
 
 		return 0;
@@ -105,7 +107,7 @@ namespace bee { namespace loader {
 		if (internal::lazy_recipient == nullptr) { // If lazy loading hasn't been initialized, register with the messenger
 			internal::lazy_recipient = std::shared_ptr<MessageRecipient>(new MessageRecipient(
 				"lazy_loader",
-				{"engine", "loader"},
+				{"engine", "loader", "lazysignal"},
 				true,
 				[] (std::shared_ptr<MessageContents> msg) {
 					loader::internal::load_lazy();

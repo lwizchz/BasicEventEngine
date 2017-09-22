@@ -63,15 +63,6 @@ int bee_stoi(const std::string& s) {
 }
 
 /*
-* bee_inc_dst() - Increment the time by 1 hour, given in seconds, in order to handle daylight savings changes
-* ! On non-Windows systems this is a no-op
-* @t: the time to increment
-*/
-time_t bee_inc_dst(time_t t) {
-	return t;
-}
-
-/*
 * bee_remove() - Delete the given file and return the status
 * @fname: the name of the file to delete
 */
@@ -283,14 +274,6 @@ int bee_stoi(const std::string& s) {
 }
 
 /*
-* bee_inc_dst() - Increment the time by 1 hour, given in seconds, in order to handle daylight savings changes
-* @t: the time to increment
-*/
-time_t bee_inc_dst(time_t t) {
-	return t + 3600;
-}
-
-/*
 * bee_remove() - Delete the given file and return the status
 * @fname: the name of the file to delete
 */
@@ -339,9 +322,10 @@ std::string bee_mkdtemp(const std::string& t) {
 		GetTempPath(MAX_PATH, p); // Request a unique temporary directory path
         	path = p;
         	path += "bee-" + std::to_string(GetCurrentProcessId());
-
-		bee_mkdir(path, 0755);
 	}
+	
+	bee_mkdir(path, 0755); // Recreate the directory if necessary
+	
 	return path; // Return the path
 }
 
@@ -545,15 +529,6 @@ int bee_stoi(const std::string& s) {
 }
 
 /*
-* bee_inc_dst() - Increment the time by 1 hour, given in seconds, in order to handle daylight savings changes
-* ! On non-Windows systems this is a no-op
-* @t: the time to increment
-*/
-time_t bee_inc_dst(time_t t) {
-	return t;
-}
-
-/*
 * bee_remove() - Delete the given file and return the status
 * @fname: the name of the file to delete
 */
@@ -745,15 +720,6 @@ std::string bee_itos(int i) {
 */
 int bee_stoi(const std::string& s) {
 	return std::stoi(s);
-}
-
-/*
-* bee_inc_dst() - Increment the time by 1 hour, given in seconds, in order to handle daylight savings changes
-* ! On non-Windows systems this is a no-op
-* @t: the time to increment
-*/
-time_t bee_inc_dst(time_t t) {
-	return t;
 }
 
 /*

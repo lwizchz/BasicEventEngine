@@ -244,7 +244,7 @@ namespace bee {
 			return 1; // Return 1 when the sound is not loaded
 		}
 
-		int v = 128*static_cast<int>(bee::get_volume()*volume); // Get the volume level relative to the global volume
+		int v = static_cast<int>(128*bee::get_volume()*volume); // Get the volume level relative to the global volume
 		if (is_music) { // If the sound is music, set the volume appropriately
 			Mix_VolumeMusic(v);
 		} else { // Otherwise set the sound chunk volume

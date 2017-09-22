@@ -22,8 +22,6 @@ std::string bee_get_path();
 std::string bee_itos(int);
 int bee_stoi(const std::string&);
 
-time_t bee_inc_dst(time_t);
-
 int bee_remove(const std::string&);
 bool bee_dir_exists(const std::string&);
 int bee_mkdir(const std::string&, mode_t);

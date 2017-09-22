@@ -194,7 +194,7 @@ namespace bee { namespace messenger{
 			auto rt = recipients.find("direct"); // Recipients must register for the direct tag in order to receive direct messages
 			if (rt != recipients.end()) {
 				for (size_t i=1; i<msg->tags.size(); ++i) {
-					for (auto& recv : rt->second) {
+					for (auto recv : rt->second) {
 						if (recv->name == msg->tags[i]) {
 							std::exception_ptr e = handle_recipient(recv, msg);
 							if (e != nullptr) {
@@ -212,7 +212,7 @@ namespace bee { namespace messenger{
 
 				auto rt = recipients.find(tag); // Make sure that the message tag exists
 				if (rt != recipients.end()) {
-					for (auto& recv : recipients[tag]) { // Iterate over the recipients who wish to process the tag
+					for (auto recv : recipients[tag]) { // Iterate over the recipients who wish to process the tag
 						std::exception_ptr e = handle_recipient(recv, msg);
 						if (e != nullptr) {
 							ep = e;
@@ -440,7 +440,7 @@ namespace bee { namespace messenger{
 		std::shared_ptr<MessageRecipient> recv (nullptr);
 
 		for (auto& tag : internal::recipients) { // Iterate over all tags
-			for (auto& r : tag.second) { // Iterate over the recipients for a specific tag
+			for (auto r : tag.second) { // Iterate over the recipients for a specific tag
 				if (r->name == name) { // If the specific recipient matches the desired recipient's name
 					recv = r; // Assign the recipient and break out
 					break;
@@ -652,7 +652,7 @@ namespace bee { namespace messenger{
 		const Uint32 t = get_ticks(); // Get the current tick to compare with message tickstamps
 
 		// Print message descriptions
-		for (auto& msg : internal::messages) {
+		for (auto msg : internal::messages) {
 			if (t < msg->tickstamp) { // If the message should be processed in the future, skip it
 				continue;
 			}
@@ -662,11 +662,7 @@ namespace bee { namespace messenger{
 
 		// Process messages with recipient functions
 		std::exception_ptr ep = nullptr; // Store any thrown values
-		for (auto& msg : internal::messages) { // Iterate over the messages
-			if (msg == nullptr) {
-				continue;
-			}
-
+		for (auto msg : internal::messages) { // Iterate over the messages
 			if (t < msg->tickstamp) { // If the message should be processed in the future, skip it
 				continue;
 			}

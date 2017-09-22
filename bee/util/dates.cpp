@@ -117,12 +117,7 @@ time_t date_inc_year(time_t old_date, int amount) {
 time_t date_inc_month(time_t old_date, int amount) {
 	struct tm* timeinfo = localtime(&old_date); // Convert the timestamp into an info struct, add the given amount, and return the data as a timestamp
 	timeinfo->tm_mon += amount;
-
-	time_t r = mktime(timeinfo);
-	if (timeinfo->tm_isdst == 1) { // Handle daylight savings time for Windows
-        	return bee_inc_dst(r); // This function will only increment it for Windows
-	}
-	return r;
+	return mktime(timeinfo);
 }
 /*
 * date_inc_week() - Return a timestamp with the given timestamp's week incremented by the given amount
@@ -132,12 +127,7 @@ time_t date_inc_month(time_t old_date, int amount) {
 time_t date_inc_week(time_t old_date, int amount) {
 	struct tm* timeinfo = localtime(&old_date); // Convert the timestamp into an info struct, add the given amount, and return the data as a timestamp
 	timeinfo->tm_mday += amount*7;
-
-	time_t r = mktime(timeinfo);
-	if (timeinfo->tm_isdst == 1) { // Handle daylight savings time for Windows
-        	return bee_inc_dst(r); // This function will only increment it for Windows
-	}
-	return r;
+	return mktime(timeinfo);
 }
 /*
 * date_inc_day() - Return a timestamp with the given timestamp's day incremented by the given amount
@@ -147,12 +137,7 @@ time_t date_inc_week(time_t old_date, int amount) {
 time_t date_inc_day(time_t old_date, int amount) {
 	struct tm* timeinfo = localtime(&old_date); // Convert the timestamp into an info struct, add the given amount, and return the data as a timestamp
 	timeinfo->tm_mday += amount;
-
-	time_t r = mktime(timeinfo);
-	if (timeinfo->tm_isdst == 1) { // Handle daylight savings time for Windows
-        	return bee_inc_dst(r); // This function will only increment it for Windows
-	}
-	return r;
+	return mktime(timeinfo);
 }
 /*
 * date_inc_hour() - Return a timestamp with the given timestamp's hour incremented by the given amount
@@ -162,12 +147,7 @@ time_t date_inc_day(time_t old_date, int amount) {
 time_t date_inc_hour(time_t old_date, int amount) {
 	struct tm* timeinfo = localtime(&old_date); // Convert the timestamp into an info struct, add the given amount, and return the data as a timestamp
 	timeinfo->tm_hour += amount;
-
-	time_t r = mktime(timeinfo);
-	if (timeinfo->tm_isdst == 1) { // Handle daylight savings time for Windows
-        	return bee_inc_dst(r); // This function will only increment it for Windows
-	}
-	return r;
+	return mktime(timeinfo);
 }
 /*
 * date_inc_minute() - Return a timestamp with the given timestamp's minute incremented by the given amount
@@ -177,12 +157,7 @@ time_t date_inc_hour(time_t old_date, int amount) {
 time_t date_inc_minute(time_t old_date, int amount) {
 	struct tm* timeinfo = localtime(&old_date); // Convert the timestamp into an info struct, add the given amount, and return the data as a timestamp
 	timeinfo->tm_min += amount;
-
-	time_t r = mktime(timeinfo);
-	if (timeinfo->tm_isdst == 1) { // Handle daylight savings time for Windows
-        	return bee_inc_dst(r); // This function will only increment it for Windows
-	}
-	return r;
+	return mktime(timeinfo);
 }
 /*
 * date_inc_second() - Return a timestamp with the given timestamp's second incremented by the given amount
@@ -192,12 +167,7 @@ time_t date_inc_minute(time_t old_date, int amount) {
 time_t date_inc_second(time_t old_date, int amount) {
 	struct tm* timeinfo = localtime(&old_date); // Convert the timestamp into an info struct, add the given amount, and return the data as a timestamp
 	timeinfo->tm_sec += amount;
-
-	time_t r = mktime(timeinfo);
-	if (timeinfo->tm_isdst == 1) { // Handle daylight savings time for Windows
-        	return bee_inc_dst(r); // This function will only increment it for Windows
-	}
-	return r;
+	return mktime(timeinfo);
 }
 
 /*
