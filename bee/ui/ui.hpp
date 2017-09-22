@@ -55,7 +55,7 @@ namespace ui {
 	int push_optionbox_option(Instance*, std::function<void (Instance*, bool)>);
 	int pop_optionbox_option(Instance*);
 	int reset_optionbox_options(Instance*);
-	int optionbox_callback(Instance*, int, bool);
+	int optionbox_callback(Instance*, size_t, bool);
 }}
 
 #endif // BEE_UI_H

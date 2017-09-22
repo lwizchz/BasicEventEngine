@@ -17,7 +17,7 @@
 
 #include "resource.hpp"
 
-#include "../util/sound.hpp"
+#include "../util/soundeffects.hpp"
 
 namespace bee {
 	class Sound: public Resource { // The sound resource class is used to play all audio

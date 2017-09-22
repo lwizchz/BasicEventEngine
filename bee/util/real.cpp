@@ -32,7 +32,7 @@ unsigned int random_internal(unsigned int new_seed, unsigned int minimum, unsign
 		seed = new_seed;
 		engine.seed(seed);
 	} else if (seed == DEFAULT_RANDOM_SEED) { // If the current seed is the terrible default seed then seed the engine with the current time
-		seed = time(nullptr);
+		seed = static_cast<unsigned int>(time(nullptr));
 		engine.seed(seed);
 	}
 
@@ -82,7 +82,7 @@ unsigned int random_set_seed(unsigned int new_seed) {
 * random_reset_seed() - Set the seed of the random number engine to the current time
 */
 unsigned int random_reset_seed() {
-	return random_set_seed(time(nullptr));
+	return random_set_seed(static_cast<unsigned int>(time(nullptr)));
 }
 /*
 * randomize() - Set the seed of the random number engine to a random number
@@ -108,6 +108,9 @@ template int sign<int>(int);
 template int sign<long>(long);
 template int sign<float>(float);
 template int sign<double>(double);
+#ifdef _WIN32
+	template int sign<time_t>(time_t); // On Windows, time_t is __int64 but on Linux, time_t is long
+#endif
 /*
 * sqr() - Return the square of the given number
 * @x: the number to square
@@ -186,7 +189,21 @@ double direction_of(double x1, double y1, double x2, double y2) {
 * @z2: the z-coordinate of the second point
 */
 btVector3 direction_of(double x1, double y1, double z1, double x2, double y2, double z2) {
-	return (btVector3(x2, y2, z2) - btVector3(x1, y1, z1)).normalized();
+	btVector3 v1 = btVector3(
+		btScalar(x1),
+		btScalar(y1),
+		btScalar(z1)
+	);
+	btVector3 v2 = btVector3(
+		btScalar(x2),
+		btScalar(y2),
+		btScalar(z2)
+	);
+	return btVector3(
+		v2.x()-v1.x(),
+		v2.y()-v1.y(),
+		v2.z()-v1.z()
+	).normalized();
 }
 /*
 * dist_sqr() - Return the square of the distance from (x1, y1, z1) to (x2, y2, z2) in order to avoid costly square roots
@@ -337,7 +354,7 @@ template bool is_between<double>(double, double, double);
 */
 template <typename T>
 bool is_angle_between(T x, T a, T b) {
-	x = absolute_angle(x); // Make sure the angle is between 0.0 and 360.0 degrees
+	x = static_cast<T>(absolute_angle(x)); // Make sure the angle is between 0.0 and 360.0 degrees
 	if (a < b) { // If the bounds are normal
 		return is_between(x, a, b);
 	} else { // If the bounds are at the top of the unit circle e.g. from 315 to 45

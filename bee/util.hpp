@@ -14,10 +14,10 @@
 #include "util/string.hpp"
 #include "util/dates.hpp"
 #include "util/collision.hpp"
-#include "util/sound.hpp"
+#include "util/soundeffects.hpp"
 #include "util/messagebox.hpp"
 #include "util/files.hpp"
-#include "util/network.hpp"
+#include "util/networking.hpp"
 
 #include "util/template.hpp" // Include functions which require templates
 

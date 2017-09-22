@@ -19,7 +19,7 @@
 
 #include "enginestate.hpp"
 #include "instance.hpp"
-#include "room.hpp"
+#include "rooms.hpp"
 
 #include "../render/renderer.hpp"
 #include "../render/viewdata.hpp"

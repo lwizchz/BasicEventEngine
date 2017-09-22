@@ -348,7 +348,13 @@ namespace bee {
 		table.push_back({"(id", "object", "x", "y", "z)"}); // Append the table header
 
 		for (auto& i : instances) { // Iterate over the instances and add each of them to the table
-			table.push_back({bee_itos(i.second->id), i.second->get_object()->get_name(), bee_itos(i.second->get_position()[0]), bee_itos(i.second->get_position()[1]), bee_itos(i.second->get_position()[2])});
+			table.push_back({
+				bee_itos(i.second->id),
+				i.second->get_object()->get_name(),
+				bee_itos(static_cast<int>(i.second->get_position()[0])),
+				bee_itos(static_cast<int>(i.second->get_position()[1])),
+				bee_itos(static_cast<int>(i.second->get_position()[2]))
+			});
 		}
 
 		return string_tabulate(table); // Return the table as a properly spaced string

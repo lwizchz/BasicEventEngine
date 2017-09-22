@@ -73,7 +73,7 @@ namespace bee {
 			int set_death_type(Particle*);
 			int on_death(ParticleSystem*, ParticleData*);
 
-			ParticleData* reuse_particle(int, int, Uint32);
+			ParticleData* reuse_particle(double, double, Uint32);
 			int remove_old_particles();
 	};
 }

@@ -116,9 +116,9 @@ namespace bee {
 		}
 
 		const float m = v - chroma;
-		const int red = round(255.f * (rgba_prime[0] + m));
-		const int green = round(255.f * (rgba_prime[1] + m));
-		const int blue = round(255.f * (rgba_prime[2] + m));
+		const int red = static_cast<int>(round(255.f * (rgba_prime[0] + m)));
+		const int green = static_cast<int>(round(255.f * (rgba_prime[1] + m)));
+		const int blue = static_cast<int>(round(255.f * (rgba_prime[2] + m)));
 
 		r = fit_bounds(red, 0, 255);
 		g = fit_bounds(green, 0, 255);

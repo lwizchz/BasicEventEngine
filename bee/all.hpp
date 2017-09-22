@@ -24,7 +24,7 @@
 #include "core/keybind.hpp"
 #include "core/loader.hpp"
 #include "core/resources.hpp"
-#include "core/room.hpp"
+#include "core/rooms.hpp"
 #include "core/sidp.hpp"
 #include "core/window.hpp"
 

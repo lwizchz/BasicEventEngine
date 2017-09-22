@@ -69,11 +69,11 @@ namespace bee {
 	}
 
 	int ParticleEmitter::emit(ParticleSystem* sys, double xoffset, double yoffset) {
-		return sys->add_particle(particle_type, xoffset + x + random(w), yoffset + y + random(h));
+		return sys->add_particle(particle_type, static_cast<int>(xoffset + x) + random(w), static_cast<int>(yoffset + y) + random(h));
 	}
 	int ParticleEmitter::handle(ParticleSystem* sys, double system_x, double system_y) {
-		int ex = get_following_x(system_x);
-		int ey = get_following_y(system_y);
+		double ex = get_following_x(system_x);
+		double ey = get_following_y(system_y);
 
 		if (number >= 0) {
 			for (int i=0; i<number; i++) {
@@ -93,7 +93,7 @@ namespace bee {
 		double ex = get_following_x(system_x);
 		double ey = get_following_y(system_y);
 
-		return draw_rectangle(ex+x, ey+y, w, h, 1, get_enum_color(color));
+		return draw_rectangle(static_cast<int>(ex+x), static_cast<int>(ey+y), w, h, 1, get_enum_color(color));
 	}
 }
 

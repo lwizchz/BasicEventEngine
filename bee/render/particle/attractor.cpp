@@ -67,8 +67,8 @@ namespace bee {
 	}
 
 	int ParticleAttractor::handle(ParticleData* pd, double system_x, double system_y, double delta) {
-		int ax = get_following_x(system_x);
-		int ay = get_following_y(system_y);
+		int ax = static_cast<int>(get_following_x(system_x));
+		int ay = static_cast<int>(get_following_y(system_y));
 
 		double ds = dist_sqr(pd->x, pd->y, ax+x+w/2, ay+y+h/2);
 		if (ds < sqr(max_distance)) {
@@ -96,10 +96,10 @@ namespace bee {
 	}
 
 	int ParticleAttractor::draw_debug(double system_x, double system_y, E_RGB color) {
-		int ax = get_following_x(system_x);
-		int ay = get_following_y(system_y);
+		double ax = get_following_x(system_x);
+		double ay = get_following_y(system_y);
 
-		return draw_rectangle(ax+x, ay+y, w, h, 1, get_enum_color(color));
+		return draw_rectangle(static_cast<int>(ax+x), static_cast<int>(ay+y), w, h, 1, get_enum_color(color));
 	}
 }
 

@@ -19,7 +19,7 @@
 namespace bee {
 	// Forward declarations
 	class Particle;
-	class SpriteDrawData;
+	struct SpriteDrawData;
 
 	class ParticleData {
 			Particle* particle_type;

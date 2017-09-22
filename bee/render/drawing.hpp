@@ -28,7 +28,7 @@ namespace bee {
 	int draw_line(int, int, int, int, const RGBA&);
 	int draw_quad(glm::vec3, glm::vec3, int, const RGBA&);
 	int draw_rectangle(int, int, int, int, int, const RGBA&);
-	int draw_polygon(int, int, int, int, int, int, int, const RGBA&);
+	int draw_polygon(int, int, int, int, int, unsigned int, int, const RGBA&);
 	int draw_arc(int, int, int, int, int, int, const RGBA&);
 	int draw_circle(int, int, int, int, const RGBA&);
 

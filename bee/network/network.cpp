@@ -17,7 +17,7 @@
 
 #include "../util/real.hpp"
 #include "../util/string.hpp"
-#include "../util/network.hpp"
+#include "../util/networking.hpp"
 #include "../util/platform.hpp"
 #include "../util/debug.hpp"
 #include "../util/template/string.hpp"
@@ -28,11 +28,12 @@
 
 #include "../core/instance.hpp"
 #include "../core/enginestate.hpp"
-#include "../core/room.hpp"
+#include "../core/rooms.hpp"
 #include "../core/serialdata.hpp"
 
 #include "connection.hpp"
 #include "event.hpp"
+#include "packet.hpp"
 
 #include "../resource/room.hpp"
 

@@ -6,8 +6,8 @@
 * See LICENSE for more details.
 */
 
-#ifndef BEE_CORE_ROOM
-#define BEE_CORE_ROOM 1
+#ifndef BEE_CORE_ROOMS
+#define BEE_CORE_ROOMS 1
 
 #include "../defines.hpp"
 
@@ -18,7 +18,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "room.hpp"
+#include "rooms.hpp"
 
 #include "../util/collision.hpp"
 
@@ -225,7 +225,10 @@ namespace bee {
 			} else { // If the viewport is defined then use it
 				view = glm::translate(glm::mat4(1.0f), glm::vec3(viewport->view_x, viewport->view_y, 0.0f));
 				port = glm::vec4(viewport->port_x, viewport->port_y, viewport->port_width, viewport->port_height);
-				render_set_camera(new Camera(viewport->view_width, viewport->view_height));
+				render_set_camera(new Camera(
+					static_cast<float>(viewport->view_width),
+					static_cast<float>(viewport->view_height)
+				));
 				projection = render_get_projection();
 			}
 
@@ -262,4 +265,4 @@ namespace bee {
 	}
 }
 
-#endif // BEE_CORE_ROOM
+#endif // BEE_CORE_ROOMS

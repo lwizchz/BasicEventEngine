@@ -26,7 +26,7 @@ namespace bee {
 	class Instance;
 	class Sprite;
 
-	class NetworkEvent;
+	struct NetworkEvent;
 
 	class Object: public Resource { // The object resource class is used to handle all events and instance data
 			static std::map<int,Object*> list;

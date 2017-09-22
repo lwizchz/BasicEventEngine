@@ -19,7 +19,7 @@
 
 namespace bee {
 	// Forward declarations
-	class NetworkClient;
+	struct NetworkClient;
 	class NetworkPacket;
 	class Instance;
 

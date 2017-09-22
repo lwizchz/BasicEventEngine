@@ -91,8 +91,9 @@ namespace bee {
 		}
 
 		int amount = 0;
+		const size_t arg_amount = engine->argc;
 		try {
-			for (size_t i=1; i<engine->argc; ++i) {
+			for (size_t i=1; i<arg_amount; ++i) {
 				if (engine->argv[i][0] == '-') { // If the argument is a flag
 					std::string arg (engine->argv[i]);
 					ProgramFlag* flag = nullptr;
@@ -105,7 +106,7 @@ namespace bee {
 					if (flag != nullptr) {
 						std::string optarg;
 						if (flag->arg_type != E_FLAGARG::NONE) {
-							if ((i+1 < engine->argc)&&(engine->argv[i+1][0] != '-')) {
+							if ((i+1 < arg_amount)&&(engine->argv[i+1][0] != '-')) {
 								++i;
 								optarg = std::string(engine->argv[i]);
 							}
@@ -130,7 +131,7 @@ namespace bee {
 					}
 				}
 			}
-		} catch (const std::string& e) {
+		} catch (const std::string&) {
 			return -(amount+1);
 		}
 

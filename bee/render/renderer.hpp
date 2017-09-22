@@ -21,7 +21,7 @@
 
 namespace bee {
 	// Forward declaration
-	class Camera;
+	struct Camera;
 
 	class Renderer {
 		public:

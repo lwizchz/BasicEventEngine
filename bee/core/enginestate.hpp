@@ -24,15 +24,15 @@
 
 namespace bee {
 	// Forward declarations
-	class ProgramFlag;
-	class GameOptions;
+	struct ProgramFlag;
+	struct GameOptions;
 
 	class Messenger;
 	class Console;
-	class NetworkConnection;
+	struct NetworkConnection;
 
 	class Renderer;
-	class RGBA;
+	struct RGBA;
 
 	class Sprite;
 	class Font;

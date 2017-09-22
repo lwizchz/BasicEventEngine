@@ -49,8 +49,8 @@ namespace bee {
 		deviation = random(d) + d/2;
 		double s = particle_type->scale * get_deviation_percent();
 
-		w = particle_type->get_sprite()->get_subimage_width() * s;
-		h = particle_type->get_sprite()->get_height() * s;
+		w = static_cast<int>(particle_type->get_sprite()->get_subimage_width() * s);
+		h = static_cast<int>(particle_type->get_sprite()->get_height() * s);
 
 		velocity = particle_type->velocity;
 		creation_time = now;
@@ -110,11 +110,13 @@ namespace bee {
 	}
 	Uint8 ParticleData::get_alpha(Uint32 ticks) {
 		Uint8 max_alpha = particle_type->color.a;
-		Uint32 max_time = particle_type->max_time * get_deviation_percent();
+		Uint32 max_time = static_cast<Uint32>(particle_type->max_time * get_deviation_percent());
 
 		double p = 1.0 - 500.0 / max_time;
 		if (ticks > max_time * p) { // Use a linear relationship to gradually decrease the alpha for the last 500ms of the particle's life
-			return max_alpha * (max_time - ticks) / (max_time * (1.0-p));
+			return static_cast<Uint8>(
+				max_alpha * (max_time - ticks) / (max_time * (1.0-p))
+			);
 		}
 
 		return max_alpha;
@@ -150,10 +152,10 @@ namespace bee {
 	int ParticleData::draw(double system_x, double system_y, Uint32 ticks) {
 		RGBA c = particle_type->color;
 		c.a = get_alpha(ticks);
-		return particle_type->get_sprite()->draw((system_x+x) - w/2, (system_y+y) - h/2, creation_time, w, h, get_angle(ticks), c, SDL_FLIP_NONE);
+		return particle_type->get_sprite()->draw(static_cast<int>(system_x+x) - w/2, static_cast<int>(system_y+y) - h/2, creation_time, w, h, get_angle(ticks), c, SDL_FLIP_NONE);
 	}
 	int ParticleData::draw_debug(double system_x, double system_y, E_RGB color) {
-		return draw_rectangle((system_x+x) - w/2, (system_y+y) - h/2, w, h, 1, get_enum_color(color));
+		return draw_rectangle(static_cast<int>(system_x+x) - w/2, static_cast<int>(system_y+y) - h/2, w, h, 1, get_enum_color(color));
 	}
 }
 

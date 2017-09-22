@@ -62,8 +62,8 @@ namespace bee {
 	}
 
 	int ParticleDeflector::handle(ParticleData* pd, double old_px, double old_py, double system_x, double system_y) {
-		int dx = get_following_x(system_x);
-		int dy = get_following_y(system_y);
+		double dx = get_following_x(system_x);
+		double dy = get_following_y(system_y);
 
 		SDL_Rect a = pd->get_rect();
 		SDL_Rect b = {static_cast<int>(dx+x), static_cast<int>(dy+y), static_cast<int>(w), static_cast<int>(h)};
@@ -76,10 +76,10 @@ namespace bee {
 	}
 
 	int ParticleDeflector::draw_debug(double system_x, double system_y, E_RGB color) {
-		int dx = get_following_x(system_x);
-		int dy = get_following_y(system_y);
+		double dx = get_following_x(system_x);
+		double dy = get_following_y(system_y);
 
-		return draw_rectangle(dx+x, dy+y, w, h, 1, get_enum_color(color));
+		return draw_rectangle(static_cast<int>(dx+x), static_cast<int>(dy+y), w, h, 1, get_enum_color(color));
 	}
 }
 

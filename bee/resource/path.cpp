@@ -153,7 +153,12 @@ namespace bee {
 		table.push_back({"(x", "y", "z", "speed)"}); // Append the table header
 
 		for (auto it = coordinate_list.begin(); it != coordinate_list.end(); ++it) { // Iterate over the coordinates and add each of them to the table
-			table.push_back({bee_itos(std::get<0>(*it)), bee_itos(std::get<1>(*it)), bee_itos(std::get<2>(*it)), bee_itos(std::get<3>(*it))});
+			table.push_back({
+				bee_itos(static_cast<int>(std::get<0>(*it))),
+				bee_itos(static_cast<int>(std::get<1>(*it))),
+				bee_itos(static_cast<int>(std::get<2>(*it))),
+				bee_itos(static_cast<int>(std::get<3>(*it)))
+			});
 		}
 
 		return string_tabulate(table); // Return the table as a properly spaced string

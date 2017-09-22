@@ -1,11 +1,11 @@
 set(deps_bee engine.cpp enum.hpp)
-set(deps_bee_util util/platform.cpp util/real.cpp util/string.cpp util/dates.cpp util/collision.cpp util/sound.cpp util/messagebox.cpp util/files.cpp util/network.cpp util/debug.cpp)
+set(deps_bee_util util/platform.cpp util/real.cpp util/string.cpp util/dates.cpp util/collision.cpp util/soundeffects.cpp util/messagebox.cpp util/files.cpp util/networking.cpp util/debug.cpp)
 
 set(deps_bee_init init/info.cpp init/gameoptions.cpp init/programflags.cpp)
 
 set(deps_bee_messenger messenger/messenger.cpp messenger/messagecontents.cpp messenger/messagerecipient.cpp)
 
-set(deps_bee_core core/console.cpp core/display.cpp core/enginestate.cpp core/input.cpp core/instance.cpp core/keybind.cpp core/loader.cpp core/resources.cpp core/room.cpp core/sidp.cpp core/serialdata.cpp core/window.cpp)
+set(deps_bee_core core/console.cpp core/display.cpp core/enginestate.cpp core/input.cpp core/instance.cpp core/keybind.cpp core/loader.cpp core/resources.cpp core/rooms.cpp core/sidp.cpp core/serialdata.cpp core/window.cpp)
 
 set(deps_bee_network network/network.cpp network/client.cpp network/connection.cpp network/packet.cpp network/data.cpp network/event.cpp)
 
@@ -22,8 +22,9 @@ set(deps ${deps_bee} ${deps_bee_util} ${deps_bee_init} ${deps_bee_messenger} ${d
 
 if (WIN32)
 	set(SRC ${${PROJECT_NAME}_SOURCE_DIR})
-	#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-shadow \"-L${SRC}/win/lib\" \"-I${SRC}/win/include\" \"-I${SRC}/lib/doctest/doctest\"")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \"-I${SRC}/win/include\" \"-I${SRC}/lib/doctest/doctest\"")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \"-I${SRC}/win/include\" \"-I${SRC}/lib/doctest/doctest\" /Qpar /Fo$(IntDir)%(Directory)")
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} /MTd")
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} /MT")
 endif()
 
 add_library(BEE ${deps})

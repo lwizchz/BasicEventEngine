@@ -6,8 +6,8 @@
 * See LICENSE for more details.
 */
 
-#ifndef BEE_UTIL_SOUND
-#define BEE_UTIL_SOUND 1
+#ifndef BEE_UTIL_SOUNDEFFECT
+#define BEE_UTIL_SOUNDEFFECT 1
 
 // Sound effect functions, not fully implemented
 
@@ -16,7 +16,7 @@
 
 #include <SDL2/SDL_mixer.h> // Include the SDL2_mixer headers for the audio data types
 
-#include "sound.hpp" // Include the function definitions
+#include "soundeffects.hpp" // Include the function definitions
 
 #include "real.hpp" // Include the required real number functions
 
@@ -170,4 +170,4 @@ void sound_effect_equalizer_cleanup(int channel, void* udata) {
 	// The equalizer sound effect is currently unimplemented and will have no effect
 }
 
-#endif // BEE_UTIL_SOUND
+#endif // BEE_UTIL_SOUNDEFFECT

@@ -21,7 +21,7 @@
 
 #include "../messenger/messenger.hpp"
 
-#include "../core/room.hpp"
+#include "../core/rooms.hpp"
 
 #include "../resource/room.hpp"
 
@@ -75,7 +75,7 @@ namespace bee {
 	int PhysicsWorld::set_gravity(btVector3 new_gravity) {
 		gravity = new_gravity;
 		//world->setGravity(gravity);
-		world->setGravity(10.0*gravity/scale);
+		world->setGravity(gravity*btScalar(10.0/scale));
 		return 0;
 	}
 	int PhysicsWorld::set_scale(double new_scale) {
@@ -106,14 +106,14 @@ namespace bee {
 		}
 
 		scale = new_scale;
-		world->setGravity(10.0*gravity/scale);
+		world->setGravity(gravity*btScalar(10.0/scale));
 
 		return 0;
 	}
 
 	int PhysicsWorld::add_body(PhysicsBody* new_body) {
 		if (scale != new_body->get_scale()) {
-			messenger::send({"engine", "physics"}, E_MESSAGE::WARNING, "Failed to add body to world: scale mismatch: world(" + bee_itos(scale) + "), body(" + bee_itos(new_body->get_scale()) + ")\n");
+			messenger::send({"engine", "physics"}, E_MESSAGE::WARNING, "Failed to add body to world: scale mismatch: world(" + std::to_string(scale) + "), body(" + std::to_string(new_body->get_scale()) + ")\n");
 			return 1;
 		}
 
@@ -128,14 +128,14 @@ namespace bee {
 		bool should_disable_collisions = false;
 		switch (type) {
 			case E_PHYS_CONSTRAINT::POINT: {
-				btPoint2PointConstraint* c = new btPoint2PointConstraint(*(body->get_body()), btVector3(p[0], p[1], p[2]));
+				btPoint2PointConstraint* c = new btPoint2PointConstraint(*(body->get_body()), btVector3(btScalar(p[0]), btScalar(p[1]), btScalar(p[2])));
 				world->addConstraint(c, should_disable_collisions);
 
 				constraint = c;
 				break;
 			}
 			case E_PHYS_CONSTRAINT::HINGE: {
-				btHingeConstraint* c = new btHingeConstraint(*(body->get_body()), btVector3(p[0], p[1], p[2]), btVector3(p[3], p[4], p[5]));
+				btHingeConstraint* c = new btHingeConstraint(*(body->get_body()), btVector3(btScalar(p[0]), btScalar(p[1]), btScalar(p[2])), btVector3(btScalar(p[3]), btScalar(p[4]), btScalar(p[5])));
 				world->addConstraint(c, should_disable_collisions);
 
 				constraint = c;
@@ -145,10 +145,10 @@ namespace bee {
 				btSliderConstraint* c = new btSliderConstraint(*(body->get_body()), btTransform::getIdentity(), true);
 				world->addConstraint(c, should_disable_collisions);
 
-				c->setLowerLinLimit(p[0]);
-				c->setUpperLinLimit(p[1]);
-				c->setLowerAngLimit(p[2]);
-				c->setUpperAngLimit(p[3]);
+				c->setLowerLinLimit(btScalar(p[0]));
+				c->setUpperLinLimit(btScalar(p[1]));
+				c->setLowerAngLimit(btScalar(p[2]));
+				c->setUpperAngLimit(btScalar(p[3]));
 
 				constraint = c;
 				break;
@@ -166,10 +166,10 @@ namespace bee {
 				btGeneric6DofConstraint* c = new btGeneric6DofConstraint(*(body->get_body()), btTransform::getIdentity(), true);
 				world->addConstraint(c, should_disable_collisions);
 
-				c->setLinearLowerLimit(btVector3(p[0], p[1], p[2]));
-				c->setLinearUpperLimit(btVector3(p[3], p[4], p[5]));
-				c->setAngularLowerLimit(btVector3(p[6], p[7], p[8]));
-				c->setAngularUpperLimit(btVector3(p[9], p[10], p[11]));
+				c->setLinearLowerLimit(btVector3(btScalar(p[0]), btScalar(p[1]), btScalar(p[2])));
+				c->setLinearUpperLimit(btVector3(btScalar(p[3]), btScalar(p[4]), btScalar(p[5])));
+				c->setAngularLowerLimit(btVector3(btScalar(p[6]), btScalar(p[7]), btScalar(p[8])));
+				c->setAngularUpperLimit(btVector3(btScalar(p[9]), btScalar(p[10]), btScalar(p[11])));
 
 				constraint = c;
 				break;
@@ -226,14 +226,14 @@ namespace bee {
 		bool should_disable_collisions = false;
 		switch (type) {
 			case E_PHYS_CONSTRAINT::POINT: {
-				btPoint2PointConstraint* c = new btPoint2PointConstraint(*(body1->get_body()), *(body2->get_body()), btVector3(p[0], p[1], p[2]), btVector3(p[3], p[4], p[5]));
+				btPoint2PointConstraint* c = new btPoint2PointConstraint(*(body1->get_body()), *(body2->get_body()), btVector3(btScalar(p[0]), btScalar(p[1]), btScalar(p[2])), btVector3(btScalar(p[3]), btScalar(p[4]), btScalar(p[5])));
 				world->addConstraint(c, should_disable_collisions);
 
 				constraint = c;
 				break;
 			}
 			case E_PHYS_CONSTRAINT::HINGE: {
-				btHingeConstraint* c = new btHingeConstraint(*(body1->get_body()), *(body2->get_body()), btVector3(p[0], p[1], p[2]), btVector3(p[3], p[4], p[5]), btVector3(p[6], p[7], p[8]), btVector3(p[9], p[10], p[11]));
+				btHingeConstraint* c = new btHingeConstraint(*(body1->get_body()), *(body2->get_body()), btVector3(btScalar(p[0]), btScalar(p[1]), btScalar(p[2])), btVector3(btScalar(p[3]), btScalar(p[4]), btScalar(p[5])), btVector3(btScalar(p[6]), btScalar(p[7]), btScalar(p[8])), btVector3(btScalar(p[9]), btScalar(p[10]), btScalar(p[11])));
 				world->addConstraint(c, should_disable_collisions);
 
 				constraint = c;
@@ -243,10 +243,10 @@ namespace bee {
 				btSliderConstraint* c = new btSliderConstraint(*(body1->get_body()), *(body2->get_body()), btTransform::getIdentity(), btTransform::getIdentity(), true);
 				world->addConstraint(c, should_disable_collisions);
 
-				c->setLowerLinLimit(p[0]);
-				c->setUpperLinLimit(p[1]);
-				c->setLowerAngLimit(p[2]);
-				c->setUpperAngLimit(p[3]);
+				c->setLowerLinLimit(btScalar(p[0]));
+				c->setUpperLinLimit(btScalar(p[1]));
+				c->setLowerAngLimit(btScalar(p[2]));
+				c->setUpperAngLimit(btScalar(p[3]));
 
 				constraint = c;
 				break;
@@ -264,10 +264,10 @@ namespace bee {
 				btGeneric6DofConstraint* c = new btGeneric6DofConstraint(*(body1->get_body()), *(body2->get_body()), btTransform::getIdentity(), btTransform::getIdentity(), true);
 				world->addConstraint(c, should_disable_collisions);
 
-				c->setLinearLowerLimit(btVector3(p[0], p[1], p[2]));
-				c->setLinearUpperLimit(btVector3(p[3], p[4], p[5]));
-				c->setAngularLowerLimit(btVector3(p[6], p[7], p[8]));
-				c->setAngularUpperLimit(btVector3(p[9], p[10], p[11]));
+				c->setLinearLowerLimit(btVector3(btScalar(p[0]), btScalar(p[1]), btScalar(p[2])));
+				c->setLinearUpperLimit(btVector3(btScalar(p[3]), btScalar(p[4]), btScalar(p[5])));
+				c->setAngularLowerLimit(btVector3(btScalar(p[6]), btScalar(p[7]), btScalar(p[8])));
+				c->setAngularUpperLimit(btVector3(btScalar(p[9]), btScalar(p[10]), btScalar(p[11])));
 
 				constraint = c;
 				break;
@@ -331,7 +331,7 @@ namespace bee {
 	}
 
 	int PhysicsWorld::step(double step_size) {
-		world->stepSimulation(step_size, 10);
+		world->stepSimulation(btScalar(step_size), 10);
 		return 0;
 	}
 

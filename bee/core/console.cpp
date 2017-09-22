@@ -30,7 +30,7 @@
 #include "input.hpp"
 #include "keybind.hpp"
 #include "resources.hpp"
-#include "room.hpp"
+#include "rooms.hpp"
 
 #include "../render/drawing.hpp"
 #include "../render/renderer.hpp"
@@ -430,8 +430,8 @@ namespace bee{ namespace console {
 	*/
 	int internal::draw() {
 		// Get the view offset
-		int cx = ui_handle->get_corner_x();
-		int cy = ui_handle->get_corner_y();
+		int cx = static_cast<int>(ui_handle->get_corner_x());
+		int cy = static_cast<int>(ui_handle->get_corner_y());
 
 		ui_text_entry->set_corner_x(cx);
 		ui_text_entry->set_corner_y(cy+rect.h);
@@ -455,7 +455,9 @@ namespace bee{ namespace console {
 		// Split lines if they are wider than the console window
 		for (auto it=lines.begin(); it!=lines.end(); ++it) {
 			if (engine->font_default->get_string_width(*it) > rect.w) {
-				int c = 1.5*rect.w/engine->font_default->get_font_size()-1;
+				int c = static_cast<int>(
+					1.5 * rect.w / engine->font_default->get_font_size()
+				) - 1;
 
 				lines.emplace(it+1, (*it).substr(c));
 				*it = (*it).substr(0, c);

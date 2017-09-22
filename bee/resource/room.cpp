@@ -37,7 +37,7 @@
 #include "../core/console.hpp"
 #include "../core/enginestate.hpp"
 #include "../core/resources.hpp"
-#include "../core/room.hpp"
+#include "../core/rooms.hpp"
 
 #include "../render/drawing.hpp"
 #include "../render/renderer.hpp"
@@ -361,7 +361,13 @@ namespace bee {
 			table.push_back({"(id", "object", "x", "y", "z)"});
 
 			for (auto& i : instances_sorted) {
-				table.push_back({bee_itos(i.first->id), i.first->get_object()->get_name(), bee_itos(i.first->get_x()), bee_itos(i.first->get_y()), bee_itos(i.first->get_z())});
+				table.push_back({
+					bee_itos(i.first->id),
+					i.first->get_object()->get_name(),
+					bee_itos(static_cast<int>(i.first->get_x())),
+					bee_itos(static_cast<int>(i.first->get_y())),
+					bee_itos(static_cast<int>(i.first->get_z()))
+				});
 			}
 
 			return string_tabulate(table);
@@ -570,9 +576,9 @@ namespace bee {
 		return 0;
 	}
 	int Room::add_light(LightData lighting) {
-		lighting.attenuation.x = 10000.0/lighting.attenuation.x;
-		lighting.attenuation.y = 1000.0/lighting.attenuation.y;
-		lighting.attenuation.z = 1000.0/lighting.attenuation.z;
+		lighting.attenuation.x = 10000.f/lighting.attenuation.x;
+		lighting.attenuation.y = 1000.f/lighting.attenuation.y;
+		lighting.attenuation.z = 1000.f/lighting.attenuation.z;
 		lights.push_back(lighting);
 		return 0;
 	}
@@ -639,8 +645,8 @@ namespace bee {
 							break;
 						}
 						case E_LIGHT::POINT: {
-							int r = 10000.0/l.attenuation.y;
-							s->draw(l.position.x-r/2, l.position.y-r/2, 0, r, r, 0.0, l.color, SDL_FLIP_NONE);
+							int r = static_cast<int>(10000/l.attenuation.y);
+							s->draw(static_cast<int>(l.position.x)-r/2, static_cast<int>(l.position.y)-r/2, 0, r, r, 0.0, l.color, SDL_FLIP_NONE);
 							break;
 						}
 						case E_LIGHT::SPOT: {
@@ -733,7 +739,7 @@ namespace bee {
 
 			// If an obj_control exists, create it for the first room
 			int index = next_instance_id++;
-			Instance* inst_control = new Instance(index, obj_control, 0, 0, 0);
+			Instance* inst_control = new Instance(index, obj_control, 0.0, 0.0, 0.0);
 			set_instance(index, inst_control);
 			sort_instances();
 			obj_control->add_instance(index, inst_control);
@@ -1083,11 +1089,11 @@ namespace bee {
 
 				i.first->set_position(
 					i.first->get_position()
-					+ std::get<3>(c)*abs(i.first->get_path_speed())
+					+ btScalar(std::get<3>(c)*abs(i.first->get_path_speed()))
 					* direction_of(
 						i.first->get_x(), i.first->get_y(), i.first->get_z(),
 						i.first->path_pos_start.x()+std::get<0>(c), i.first->path_pos_start.y()+std::get<1>(c), i.first->path_pos_start.z()+std::get<2>(c)
-					) * get_delta()
+					) * btScalar(get_delta())
 				);
 			}
 		}

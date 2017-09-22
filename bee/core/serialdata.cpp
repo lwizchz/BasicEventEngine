@@ -101,7 +101,7 @@ namespace bee {
 		float factor = 10.0f;
 
 		if (is_writing) {
-			int f = d * factor;
+			int f = static_cast<int>(d * factor);
 
 			data.push_back(static_cast<Uint8>(E_DATA_TYPE::FLOAT));
 			data.push_back(f >> 8);
@@ -134,8 +134,8 @@ namespace bee {
 			ss << d;
 			std::string s = ss.str();
 
-			data.push_back(s.size() >> 8);
-			data.push_back(s.size());
+			data.push_back(static_cast<Uint8>(s.size() >> 8));
+			data.push_back(static_cast<Uint8>(s.size()));
 
 			for (auto& c : s) {
 				data.push_back(c);
@@ -180,8 +180,8 @@ namespace bee {
 			data.reserve(data.size() + d.size() + 1);
 			data.push_back(static_cast<Uint8>(E_DATA_TYPE::STRING));
 
-			data.push_back(d.size() >> 8);
-			data.push_back(d.size());
+			data.push_back(static_cast<Uint8>(d.size() >> 8));
+			data.push_back(static_cast<Uint8>(d.size()));
 
 			for (auto& c : d) {
 				data.push_back(c);
@@ -222,8 +222,8 @@ namespace bee {
 			data.reserve(data.size() + d.size() + 1);
 			data.push_back(static_cast<Uint8>(E_DATA_TYPE::SERIAL));
 
-			data.push_back(d.size() >> 8);
-			data.push_back(d.size());
+			data.push_back(static_cast<Uint8>(d.size() >> 8));
+			data.push_back(static_cast<Uint8>(d.size()));
 
 			for (auto& e : d) {
 				data.push_back(e);
@@ -265,8 +265,8 @@ namespace bee {
 			data.reserve(data.size() + d.size() + 1);
 			data.push_back(static_cast<Uint8>(E_DATA_TYPE::SERIAL));
 
-			data.push_back(d.size() >> 8);
-			data.push_back(d.size());
+			data.push_back(static_cast<Uint8>(d.size() >> 8));
+			data.push_back(static_cast<Uint8>(d.size()));
 			pos += 3;
 
 			for (auto& e : d) {

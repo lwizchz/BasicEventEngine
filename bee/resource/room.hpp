@@ -26,8 +26,8 @@
 
 namespace bee {
 	// Forward declarations
-	class BackgroundData;
-	class ViewData;
+	struct BackgroundData;
+	struct ViewData;
 	class PhysicsWorld;
 	class Particle;
 	class ParticleSystem;
@@ -35,7 +35,7 @@ namespace bee {
 	class Sprite;
 	class Background;
 
-	class NetworkEvent;
+	struct NetworkEvent;
 
 	// Declare a function to flip <int,Instance*> to <Instance*,int> for use with instances_sorted
 	namespace internal {

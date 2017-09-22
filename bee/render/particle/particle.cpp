@@ -24,7 +24,7 @@
 #include "../../messenger/messenger.hpp"
 
 #include "../../core/resources.hpp"
-#include "../../core/room.hpp"
+#include "../../core/rooms.hpp"
 
 #include "particledata.hpp"
 #include "system.hpp"
@@ -213,7 +213,7 @@ namespace bee {
 		old_particles.push_back(pd);
 		return 0;
 	}
-	ParticleData* Particle::reuse_particle(int x, int y, Uint32 timestamp) {
+	ParticleData* Particle::reuse_particle(double x, double y, Uint32 timestamp) {
 		if (old_particles.empty()) {
 			return (new ParticleData(this, x, y, timestamp));
 		}

@@ -12,7 +12,7 @@
 #include <btBulletDynamicsCommon.h>
 
 namespace bee {
-	struct PhysicsFilter : public btOverlapFilterCallback {
+	class PhysicsFilter : public btOverlapFilterCallback {
 		virtual bool needBroadphaseCollision(btBroadphaseProxy*, btBroadphaseProxy*) const;
 	};
 }

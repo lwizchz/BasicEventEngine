@@ -126,7 +126,7 @@ namespace bee {
 
 	int ParticleSystem::fast_forward(int frames) { // Fast-forwading more than 500 milliseconds is not recommended due to how long it takes to calculate
 		int t = get_ticks();
-		int step = 1000.0/get_fps_goal();
+		int step = 1000/get_fps_goal();
 		for (int i=0; i<frames; i++) {
 			time_offset += step;
 			draw(t+time_offset, 1.0/step, false);
@@ -159,7 +159,7 @@ namespace bee {
 		return 0;
 	}
 	int ParticleSystem::draw(Uint32 now, double delta, bool should_draw) {
-		int system_x = xoffset, system_y = yoffset;
+		double system_x = xoffset, system_y = yoffset;
 		if (following != nullptr) {
 			system_x += following->get_x();
 			system_y += following->get_y();
@@ -222,14 +222,18 @@ namespace bee {
 							ticks = 0;
 						}
 
-						int x = xoffset + p->x - p->get_w()/2;
-						int y = yoffset + p->y - p->get_h()/2;
+						int x = static_cast<int>(
+							xoffset + p->x - p->get_w()/2
+						);
+						int y = static_cast<int>(
+							yoffset + p->y - p->get_h()/2
+						);
 						if (following != nullptr) {
-							x += following->get_x();
-							y += following->get_y();
+							x += static_cast<int>(following->get_x());
+							y += static_cast<int>(following->get_y());
 						}
 
-						SpriteDrawData* sdd = new SpriteDrawData(x, y, p->get_creation(), p->get_w(), p->get_h(), absolute_angle(p->get_angle(ticks)));
+						SpriteDrawData* sdd = new SpriteDrawData(x, y, p->get_creation(), static_cast<int>(p->get_w()), static_cast<int>(p->get_h()), absolute_angle(p->get_angle(ticks)));
 						draw_data[p->get_type()].push_back(sdd);
 						//p->draw(system_x, system_y, ticks);
 
@@ -265,7 +269,7 @@ namespace bee {
 		return draw(get_ticks()+time_offset, get_delta(), true);
 	}
 	int ParticleSystem::draw_debug() {
-		int system_x = xoffset, system_y = yoffset;
+		double system_x = xoffset, system_y = yoffset;
 		if (following != nullptr) {
 			system_x += following->get_x();
 			system_y += following->get_y();
@@ -316,7 +320,7 @@ namespace bee {
 		return 0;
 	}
 
-	int ParticleSystem::add_particle(Particle* p, int x, int y) {
+	int ParticleSystem::add_particle(Particle* p, double x, double y) {
 		ParticleData* pd = p->reuse_particle(x, y, get_ticks()+time_offset);
 		particles.push_back(pd);
 		return 0;

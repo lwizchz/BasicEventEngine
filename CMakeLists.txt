@@ -37,44 +37,43 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/lib/")
 
 add_subdirectory("bee")
 
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-	add_subdirectory("tests")
-endif()
-
 if (WIN32) # Include Windows libraries manually
 	set(SRC ${${PROJECT_NAME}_SOURCE_DIR})
 	include_directories(${CMAKE_CURRENT_SOURCE_DIR} "${SRC}/win/include")
 
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${game_defines}")
-	#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-shadow \"-L${SRC}/win/lib\" \"-I${SRC}/win/include\" \"-I${SRC}/lib/doctest/doctest\"")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \"-I${SRC}/win/include\" \"-I${SRC}/lib/doctest/doctest\"")
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} /MTd")
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} /MT")
+
 	add_executable(${PROJECT_NAME} main.cpp resources/resources.hpp)
 	target_link_libraries(${PROJECT_NAME} BEE)
-	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-		target_link_libraries(${PROJECT_NAME} BEE_Tests)
-	endif()
+
+	add_subdirectory("tests")
+	target_link_libraries(${PROJECT_NAME} BEE_Tests)
 
 	# Include SDL2 libraries
 	foreach(l SDL2_image SDL2_ttf SDL2_mixer SDL2_net SDL2)
-		target_link_libraries(${PROJECT_NAME} "${SRC}/win/lib/lib${l}.dll.a")
+		target_link_libraries(${PROJECT_NAME} "${SRC}/win/lib/${l}.lib")
 	endforeach(l)
 
 	# Include OpenGL libraries
 	set(GLEW_INCLUDE_DIR ${SRC}/win/include)
 	set(GLEW_LIBRARY ${SRC}/win/lib/glew32s.lib)
 	set(GLUT_INCLUDE_DIR ${SRC}/win/include)
-	set(GLUT_glut_LIBRARY ${SRC}/win/lib/libfreeglut_static.a)
+	set(GLUT_glut_LIBRARY ${SRC}/win/lib/freeglut.lib)
 
 	set(ASSIMP_INCLUDE_DIRECTORIES ${SRC}/win/include)
 	set(ASSIMP_LIBRARIES ${SRC}/win/lib/libassimp.dll.a)
 
-	set(BULLET_SRC ${${PROJECT_NAME}_SOURCE_DIR}/lib/bullet3/src)
+	set(BULLET_DIR ${${PROJECT_NAME}_SOURCE_DIR}/lib/bullet3)
+	set(BULLET_INCLUDE_DIRS ${BULLET_DIR}/src)
 	set(
 		BULLET_LIBRARIES
 
-		lib/Release/BulletDynamics
-		lib/Release/BulletCollision
-		lib/Release/LinearMath
+		${BULLET_DIR}/bin/BulletDynamics.lib
+		${BULLET_DIR}/bin/BulletCollision.lib
+		${BULLET_DIR}/bin/LinearMath.lib
 	)
 
 	find_package(GLEW REQUIRED)
@@ -85,6 +84,7 @@ if (WIN32) # Include Windows libraries manually
 	target_link_libraries(${PROJECT_NAME} ${GLEW_LIBRARIES} ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES} ${ASSIMP_LIBRARIES} ${BULLET_LIBRARIES})
 else() # Include Unix libraries automatically
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+		add_subdirectory("tests")
 		set(warns "-Wall -Wextra -Wpedantic -Wshadow -Wno-unused-parameter")
 	endif()
 

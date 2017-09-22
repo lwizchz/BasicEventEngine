@@ -20,7 +20,7 @@
 #include "../messenger/messenger.hpp"
 
 #include "../core/enginestate.hpp"
-#include "../core/room.hpp"
+#include "../core/rooms.hpp"
 
 #include "room.hpp"
 

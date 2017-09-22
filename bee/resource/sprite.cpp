@@ -30,14 +30,14 @@
 #include "../messenger/messenger.hpp"
 
 #include "../core/enginestate.hpp"
-#include "../core/room.hpp"
+#include "../core/rooms.hpp"
 #include "../core/window.hpp"
 
 #include "../render/drawing.hpp"
 #include "../render/renderer.hpp"
 
-#include "../resource/light.hpp"
-#include "../resource/room.hpp"
+#include "light.hpp"
+#include "room.hpp"
 
 namespace bee {
 	/*
@@ -361,7 +361,7 @@ namespace bee {
 		}
 
 		// Convert the subimage width to a percentage of the full texture width
-		GLfloat w = subimage_width;
+		GLfloat w = GLfloat(subimage_width);
 		if (width > 0) {
 			w /= width;
 		}
@@ -419,9 +419,10 @@ namespace bee {
 		}
 
 		// Convert the width and height of the crop rectangle to a percentage of the full texture dimensions
-		GLfloat x, y, w, h;
-		x = crop.x; y = crop.y;
-		w = crop.w; h = crop.h;
+		GLfloat x = GLfloat(crop.x);
+		GLfloat y = GLfloat(crop.y);
+		GLfloat w = GLfloat(crop.w);
+		GLfloat h = GLfloat(crop.h);
 		x /= width; w /= width;
 		y /= height; h /= height;
 
@@ -966,7 +967,7 @@ namespace bee {
 				// Send the cached rotation matrix to the shader
 				// This is not included in the above transformation matrix because it is faster to rotate everything in the geometry shader
 				if (s->angle != 0.0) {
-					glUniformMatrix4fv(engine->renderer->rotation_location, 1, GL_FALSE, glm::value_ptr(rotation_cache[s->angle]));
+					glUniformMatrix4fv(engine->renderer->rotation_location, 1, GL_FALSE, glm::value_ptr(rotation_cache[static_cast<unsigned int>(s->angle)]));
 				}
 
 				// Add the subimage to the list of lightables so that it can cast shadows
@@ -974,10 +975,10 @@ namespace bee {
 					// Fill a lightable data struct with the position and vertices of the subimage
 					LightableData* l = new LightableData(*lightable_data);
 					l->position = glm::vec4(drect.x, drect.y, 0.0f, 0.0f);
-					l->mask[1].x = rect_width;
-					l->mask[2].x = rect_width;
-					l->mask[2].y = height;
-					l->mask[3].y = height;
+					l->mask[1].x = static_cast<float>(rect_width);
+					l->mask[2].x = static_cast<float>(rect_width);
+					l->mask[2].y = static_cast<float>(height);
+					l->mask[3].y = static_cast<float>(height);
 
 					get_current_room()->add_lightable(l); // Add the struct to the room's list of lightables
 				}

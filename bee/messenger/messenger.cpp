@@ -609,8 +609,9 @@ namespace bee { namespace messenger{
 	* @should_delete: Whether the log files should be deleted
 	*/
 	int clear_logs(bool should_delete) {
-		for (auto it=internal::logfiles.begin(); it!=internal::logfiles.end(); ++it) {
+		for (auto it=internal::logfiles.begin(); it!=internal::logfiles.end(); ) {
 			if (it->first == "stdout") {
+				++it;
 				continue;
 			}
 
@@ -621,7 +622,7 @@ namespace bee { namespace messenger{
 				file_delete(it->first);
 			}
 
-			it = internal::logfiles.erase(it);
+			internal::logfiles.erase(it++);
 		}
 		return 0;
 	}

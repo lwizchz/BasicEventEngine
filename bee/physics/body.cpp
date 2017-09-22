@@ -21,7 +21,7 @@
 #include "../messenger/messenger.hpp"
 
 #include "../core/instance.hpp"
-#include "../core/room.hpp"
+#include "../core/rooms.hpp"
 #include "../core/sidp.hpp"
 #include "../core/serialdata.hpp"
 
@@ -49,15 +49,15 @@ namespace bee {
 
 		btTransform transform;
 		transform.setIdentity();
-		transform.setOrigin(btVector3(x, y, z)/scale);
+		transform.setOrigin(btVector3(btScalar(x), btScalar(y), btScalar(z))/btScalar(scale));
 		motion_state = new btDefaultMotionState(transform);
 
 		btRigidBody::btRigidBodyConstructionInfo rb_info (btScalar(mass), motion_state, shape, get_inertia());
-		rb_info.m_friction = friction;
+		rb_info.m_friction = btScalar(friction);
 
 		body = new btRigidBody(rb_info);
 
-		body->setSleepingThresholds(body->getLinearSleepingThreshold()/scale, body->getAngularSleepingThreshold());
+		body->setSleepingThresholds(body->getLinearSleepingThreshold()/btScalar(scale), body->getAngularSleepingThreshold());
 	}
 	PhysicsBody::~PhysicsBody() {
 		delete motion_state;
@@ -125,7 +125,7 @@ namespace bee {
 		if (type != previous_type) {
 			shape_param_amount = get_shape_param_amount(type);
 			if ((type == E_PHYS_SHAPE::MULTISPHERE)||(type == E_PHYS_SHAPE::CONVEX_HULL)) {
-				shape_param_amount = get_shape_param_amount(type, SIDP_cd(m["shape_params"], 0));
+				shape_param_amount = get_shape_param_amount(type, static_cast<int>(SIDP_cd(m["shape_params"], 0)));
 			}
 
 			if (shape_params != nullptr) {
@@ -145,22 +145,42 @@ namespace bee {
 		attached_instance = inst;
 		body->setCollisionFlags(SIDP_i(m["collision_flags"]));
 
-		btVector3 position = btVector3(SIDP_cd(m["position"], 0), SIDP_cd(m["position"], 1), SIDP_cd(m["position"], 2));
-		btVector3 rotation = btVector3(SIDP_cd(m["rotation"], 0), SIDP_cd(m["rotation"], 1), SIDP_cd(m["rotation"], 2));
+		btVector3 position = btVector3(
+			btScalar(SIDP_cd(m["position"], 0)),
+			btScalar(SIDP_cd(m["position"], 1)),
+			btScalar(SIDP_cd(m["position"], 2))
+		);
+		btVector3 rotation = btVector3(
+			btScalar(SIDP_cd(m["rotation"], 0)),
+			btScalar(SIDP_cd(m["rotation"], 1)),
+			btScalar(SIDP_cd(m["rotation"], 2))
+		);
 
 		btTransform transform;
 		transform.setIdentity();
-		transform.setOrigin(position/scale);
+		transform.setOrigin(position/btScalar(scale));
 		btQuaternion qt;
 		qt.setEuler(rotation.y(), rotation.x(), rotation.z());
 		transform.setRotation(qt);
 		body->setCenterOfMassTransform(transform);
 
-		btVector3 gravity = btVector3(SIDP_cd(m["gravity"], 0), SIDP_cd(m["gravity"], 1), SIDP_cd(m["gravity"], 2));
+		btVector3 gravity = btVector3(
+			btScalar(SIDP_cd(m["gravity"], 0)),
+			btScalar(SIDP_cd(m["gravity"], 1)),
+			btScalar(SIDP_cd(m["gravity"], 2))
+		);
 		body->setGravity(gravity);
 
-		btVector3 velocity = btVector3(SIDP_cd(m["velocity"], 0), SIDP_cd(m["velocity"], 1), SIDP_cd(m["velocity"], 2));
-		btVector3 velocity_ang = btVector3(SIDP_cd(m["velocity_ang"], 0), SIDP_cd(m["velocity_ang"], 1), SIDP_cd(m["velocity_ang"], 2));
+		btVector3 velocity = btVector3(
+			btScalar(SIDP_cd(m["velocity"], 0)),
+			btScalar(SIDP_cd(m["velocity"], 1)),
+			btScalar(SIDP_cd(m["velocity"], 2))
+		);
+		btVector3 velocity_ang = btVector3(
+			btScalar(SIDP_cd(m["velocity_ang"], 0)),
+			btScalar(SIDP_cd(m["velocity_ang"], 1)),
+			btScalar(SIDP_cd(m["velocity_ang"], 2))
+		);
 		body->setLinearVelocity(velocity);
 		body->setAngularVelocity(velocity_ang);
 
@@ -233,7 +253,7 @@ namespace bee {
 
 		btTransform transform;
 		transform.setIdentity();
-		transform.setOrigin(position/scale);
+		transform.setOrigin(position/btScalar(scale));
 		btQuaternion qt;
 		qt.setEuler(rotation.y(), rotation.x(), rotation.z());
 		transform.setRotation(qt);
@@ -307,7 +327,7 @@ namespace bee {
 		if ((mass != 0.0)&&(shape != nullptr)) {
 			shape->calculateLocalInertia(btScalar(mass), local_intertia);
 		}
-		return local_intertia*scale;
+		return local_intertia*btScalar(scale);
 	}
 	btRigidBody* PhysicsBody::get_body() const {
 		return body;
@@ -323,7 +343,7 @@ namespace bee {
 		return motion_state;
 	}
 	btVector3 PhysicsBody::get_position() const {
-		return body->getCenterOfMassPosition()*scale;
+		return body->getCenterOfMassPosition()*btScalar(scale);
 	}
 	btQuaternion PhysicsBody::get_rotation() const {
 		return body->getCenterOfMassTransform().getRotation();
@@ -355,40 +375,42 @@ namespace bee {
 			scale = attached_world->get_scale();
 		}
 
+		btScalar s = 2.0*scale;
+
 		switch (type) {
 			case E_PHYS_SHAPE::SPHERE: {
 				/*
 				* p[0]: the radius
 				*/
-				shape = new btSphereShape(btScalar(p[0]));
+				shape = new btSphereShape(btScalar(p[0]) / s);
 				break;
 			}
 			case E_PHYS_SHAPE::BOX: {
 				/*
 				* p[0], p[1], p[2]: the width, height, and depth
 				*/
-				shape = new btBoxShape(btVector3(btScalar(p[0]), btScalar(p[1]), btScalar(p[2])) / (2.0*scale));
+				shape = new btBoxShape(btVector3(btScalar(p[0]), btScalar(p[1]), btScalar(p[2])) / s);
 				break;
 			}
 			case E_PHYS_SHAPE::CYLINDER: {
 				/*
 				* p[0], p[1]: the radius and height
 				*/
-				shape = new btCylinderShape(btVector3(btScalar(p[0]), btScalar(p[1]), btScalar(p[0])));
+				shape = new btCylinderShape(btVector3(btScalar(p[0]), btScalar(p[1]), btScalar(p[0])) / s);
 				break;
 			}
 			case E_PHYS_SHAPE::CAPSULE: {
 				/*
 				* p[0], p[1]: the radius and height
 				*/
-				shape = new btCapsuleShape(btScalar(p[0]), btScalar(p[1]));
+				shape = new btCapsuleShape(btScalar(p[0]) / s, btScalar(p[1]) / s);
 				break;
 			}
 			case E_PHYS_SHAPE::CONE: {
 				/*
 				* p[0], p[1]: the radius and height
 				*/
-				shape = new btConeShape(btScalar(p[0]), btScalar(p[1]));
+				shape = new btConeShape(btScalar(p[0]) / s, btScalar(p[1]) / s);
 				break;
 			}
 			case E_PHYS_SHAPE::MULTISPHERE: {
@@ -397,18 +419,18 @@ namespace bee {
 				* p[1], p[2], p[3], ..., p[p[0]]: the x-, y-, and z-coordinates of each sphere's center
 				* p[p[0]+1], p[p[0]+2], p[p[0]+3], ..., p[2*p[0]]: the x-, y-, and z-scaling for each axis of the appropriate sphere
 				*/
-				size_t amount = p[0];
+				const size_t amount = static_cast<size_t>(p[0]);
 
 				btVector3* pos = new btVector3[amount];
 				for (size_t i=0; i<amount; i+=3) {
-					pos[i] = btVector3(p[i+2], p[i+3], p[i+4]);
+					pos[i] = btVector3(btScalar(p[i+2]), btScalar(p[i+3]), btScalar(p[i+4])) / s;
 				}
 				btScalar* radii = new btScalar[amount];
 				for (size_t i=0; i<amount; ++i) {
-					radii[i] = btScalar(p[i+amount+1]);
+					radii[i] = btScalar(p[i+amount+1]) / s;
 				}
 
-				shape_param_amount = get_shape_param_amount(type, p[0]);
+				shape_param_amount = get_shape_param_amount(type, amount);
 				shape = new btMultiSphereShape(pos, radii, amount);
 
 				delete[] pos;
@@ -421,15 +443,15 @@ namespace bee {
 				* p[0]: the amount of points
 				* p[1], p[2], p[3], ..., p[p[0]]: the x-, y-, and z-coordinates of each point
 				*/
-				size_t amount = p[0];
+				const size_t amount = static_cast<size_t>(p[0]);
 
 				btConvexHullShape* tmp_shape = new btConvexHullShape();
 
 				for (size_t i=0; i<amount; i+=3) {
-					tmp_shape->addPoint(btVector3(p[i+2], p[i+3], p[i+4]));
+					tmp_shape->addPoint(btVector3(btScalar(p[i+2]), btScalar(p[i+3]), btScalar(p[i+4])) / s);
 				}
 
-				shape_param_amount = get_shape_param_amount(type, p[0]);
+				shape_param_amount = get_shape_param_amount(type, amount);
 				shape = tmp_shape;
 
 				break;
@@ -509,11 +531,11 @@ namespace bee {
 		body = nullptr;
 
 		btRigidBody::btRigidBodyConstructionInfo rb_info (btScalar(mass), motion_state, shape, get_inertia());
-		rb_info.m_friction = friction;
+		rb_info.m_friction = btScalar(friction);
 
 		body = new btRigidBody(rb_info);
 
-		body->setSleepingThresholds(body->getLinearSleepingThreshold()/scale, body->getAngularSleepingThreshold());
+		body->setSleepingThresholds(body->getLinearSleepingThreshold()/btScalar(scale), body->getAngularSleepingThreshold());
 		body->setCollisionFlags(body->getCollisionFlags() | (cflags & btCollisionObject::CF_NO_CONTACT_RESPONSE));
 
 		attached_world = tmp_world;

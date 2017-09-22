@@ -23,7 +23,7 @@
 
 #include "resources.hpp"
 #include "sidp.hpp"
-#include "room.hpp"
+#include "rooms.hpp"
 #include "serialdata.hpp"
 
 #include "../render/drawing.hpp"
@@ -93,7 +93,7 @@ namespace bee {
 			set_position(new_x, new_y, new_z);
 		}
 
-		pos_start = btVector3(new_x, new_y, new_z);
+		pos_start = btVector3(btScalar(new_x), btScalar(new_y), btScalar(new_z));
 		pos_previous = pos_start;
 		path_pos_start = btVector3(0.0, 0.0, 0.0);
 		path_previous_mass = 0.0;
@@ -204,8 +204,16 @@ namespace bee {
 		body->deserialize(SIDP_m(m["body"]), this);
 		is_solid = SIDP_i(m["is_solid"]);
 		depth = SIDP_i(m["depth"]);
-		pos_start = btVector3(SIDP_cd(m["pos_start"], 0), SIDP_cd(m["pos_start"], 1), SIDP_cd(m["pos_start"], 2));
-		pos_previous = btVector3(SIDP_cd(m["pos_previous"], 0), SIDP_cd(m["pos_previous"], 1), SIDP_cd(m["pos_previous"], 2));
+		pos_start = btVector3(
+			btScalar(SIDP_cd(m["pos_start"], 0)),
+			btScalar(SIDP_cd(m["pos_start"], 1)),
+			btScalar(SIDP_cd(m["pos_start"], 2))
+		);
+		pos_previous = btVector3(
+			btScalar(SIDP_cd(m["pos_previous"], 0)),
+			btScalar(SIDP_cd(m["pos_previous"], 1)),
+			btScalar(SIDP_cd(m["pos_previous"], 2))
+		);
 
 		path = get_path_by_name(SIDP_s(m["path"]));
 		path_speed = SIDP_d(m["path_speed"]);
@@ -214,7 +222,11 @@ namespace bee {
 		path_is_drawn = SIDP_i(m["path_is_drawn"]);
 		path_is_pausable = SIDP_i(m["path_is_pausable"]);
 		path_previous_mass = SIDP_d(m["path_previous_mass"]);
-		path_pos_start = btVector3(SIDP_cd(m["path_pos_start"], 0), SIDP_cd(m["path_pos_start"], 1), SIDP_cd(m["path_pos_start"], 2));
+		path_pos_start = btVector3(
+			btScalar(SIDP_cd(m["path_pos_start"], 0)),
+			btScalar(SIDP_cd(m["path_pos_start"], 1)),
+			btScalar(SIDP_cd(m["path_pos_start"], 2))
+		);
 
 		return 0;
 	}
@@ -457,14 +469,18 @@ namespace bee {
 	int Instance::set_position(btVector3 p) {
 		btTransform t;
 		t.setIdentity();
-		t.setOrigin(p/body->get_scale());
+		t.setOrigin(p / btScalar(body->get_scale()));
 
 		body->get_body()->setCenterOfMassTransform(t);
 
 		return 0;
 	}
 	int Instance::set_position(double new_x, double new_y, double new_z) {
-		return set_position(btVector3(new_x, new_y, new_z));
+		return set_position(btVector3(
+			btScalar(new_x),
+			btScalar(new_y),
+			btScalar(new_z)
+		));
 	}
 	int Instance::set_to_start() {
 		return set_position(pos_start);
@@ -483,7 +499,7 @@ namespace bee {
 	}
 	int Instance::move(btVector3 new_impulse) {
 		body->get_body()->activate();
-		body->get_body()->applyCentralImpulse(new_impulse / body->get_scale());
+		body->get_body()->applyCentralImpulse(new_impulse / btScalar(body->get_scale()));
 		return 0;
 	}
 	int Instance::move(double new_magnitude, btVector3 new_direction) {
@@ -491,11 +507,15 @@ namespace bee {
 			new_direction *= -1.0;
 			new_magnitude = fabs(new_magnitude);
 		}
-		return move(new_magnitude*new_direction);
+		return move(btScalar(new_magnitude)*new_direction);
 	}
 	int Instance::move(double new_magnitude, double new_direction) {
 		new_direction = absolute_angle(new_direction);
-		return move(new_magnitude, btVector3(cos(degtorad(new_direction)), -sin(degtorad(new_direction)), 0.0));
+		return move(new_magnitude, btVector3(
+			btScalar(cos(degtorad(new_direction))),
+			btScalar(-sin(degtorad(new_direction))),
+			btScalar(0.0)
+		));
 	}
 	int Instance::move_to(double new_magnitude, double other_x, double other_y, double other_z) {
 		if (distance(get_x(), get_y(), get_z(), other_x, other_y, other_z) < new_magnitude) {
@@ -515,7 +535,7 @@ namespace bee {
 		return move_away(new_magnitude, other_x, other_y, 0.0);
 	}
 	int Instance::set_friction(double new_friction) {
-		body->get_body()->setFriction(new_friction);
+		body->get_body()->setFriction(btScalar(new_friction));
 		return 0;
 	}
 	int Instance::set_gravity(btVector3 new_gravity) {
@@ -523,7 +543,11 @@ namespace bee {
 		return 0;
 	}
 	int Instance::set_gravity(double new_gx, double new_gy, double new_gz) {
-		return set_gravity(btVector3(new_gx, new_gy, new_gz));
+		return set_gravity(btVector3(
+			btScalar(new_gx),
+			btScalar(new_gy),
+			btScalar(new_gz)
+		));
 	}
 	int Instance::move_outside(btVector3 dir) {
 		/*double dist = distance(l.x1, l.y1, l.x2, l.y2);
@@ -550,7 +574,7 @@ namespace bee {
 			mask.y = y;
 		}*/
 
-		return 0;
+		return 1;
 	}
 	int Instance::set_is_solid(bool new_is_solid) {
 		is_solid = new_is_solid;
@@ -574,10 +598,10 @@ namespace bee {
 		}
 		new_direction = absolute_angle(new_direction);
 		return set_velocity(btVector3(
-			new_magnitude*cos(degtorad(new_direction)),
-			new_magnitude*-sin(degtorad(new_direction)),
-			0.0
-		) / body->get_scale());
+			btScalar(new_magnitude*cos(degtorad(new_direction))),
+			btScalar(new_magnitude*-sin(degtorad(new_direction))),
+			btScalar(0.0)
+		) / btScalar(body->get_scale()));
 	}
 	int Instance::add_velocity(btVector3 new_velocity) {
 		return set_velocity(get_velocity() + new_velocity);
@@ -589,16 +613,16 @@ namespace bee {
 		}
 		new_direction = absolute_angle(new_direction);
 		return set_velocity(get_velocity() + btVector3(
-			new_magnitude*cos(degtorad(new_direction)),
-			new_magnitude*-sin(degtorad(new_direction)),
-			0.0
-		) / body->get_scale());
+			btScalar(new_magnitude*cos(degtorad(new_direction))),
+			btScalar(new_magnitude*-sin(degtorad(new_direction))),
+			btScalar(0.0)
+		) / btScalar(body->get_scale()));
 	}
 	int Instance::limit_velocity(double new_limit) {
 		btVector3 v = get_velocity();
 		double speed_sqr = v.length2();
 		if (speed_sqr > sqr(new_limit)) {
-			set_velocity(new_limit * v.normalize());
+			set_velocity(btScalar(new_limit) * v.normalize());
 			return 1;
 		}
 		return 0;
@@ -606,7 +630,7 @@ namespace bee {
 	int Instance::limit_velocity_x(double x_limit) {
 		btVector3 v = get_velocity();
 		if (abs(v.x()) > x_limit) {
-			v.setX(x_limit * sign(v.x()));
+			v.setX(btScalar(x_limit) * sign(v.x()));
 			set_velocity(v);
 			return 1;
 		}
@@ -615,7 +639,7 @@ namespace bee {
 	int Instance::limit_velocity_y(double y_limit) {
 		btVector3 v = get_velocity();
 		if (abs(v.y()) > y_limit) {
-			v.setY(y_limit * sign(v.y()));
+			v.setY(btScalar(y_limit) * sign(v.y()));
 			set_velocity(v);
 			return 1;
 		}
@@ -624,7 +648,7 @@ namespace bee {
 	int Instance::limit_velocity_z(double z_limit) {
 		btVector3 v = get_velocity();
 		if (abs(v.z()) > z_limit) {
-			v.setZ(z_limit * sign(v.z()));
+			v.setZ(btScalar(z_limit) * sign(v.z()));
 			set_velocity(v);
 			return 1;
 		}
@@ -738,7 +762,10 @@ namespace bee {
 	bool Instance::is_move_free(double magnitude, double direction) {
 		double dx = cos(degtorad(direction)) * magnitude;
 		double dy = -sin(degtorad(direction)) * magnitude;
-		return is_place_free(get_x()+dx, get_y()+dy);
+		return is_place_free(
+			static_cast<int>(get_x()+dx),
+			static_cast<int>(get_y()+dy)
+		);
 	}
 	bool Instance::is_snapped(int hsnap, int vsnap) const {
 		if ((static_cast<int>(get_x()) % hsnap == 0)&&(static_cast<int>(get_y()) % vsnap == 0)) {
@@ -755,8 +782,8 @@ namespace bee {
 			vsnap = 1;
 		}
 
-		int xsnap = get_x();
-		int ysnap = get_y();
+		int xsnap = static_cast<int>(get_x());
+		int ysnap = static_cast<int>(get_y());
 
 		int dx = xsnap % hsnap;
 		int dy = ysnap % vsnap;
@@ -893,15 +920,15 @@ namespace bee {
 
 		if (absolute) {
 			path_pos_start = btVector3(
-				std::get<0>(path->get_coordinate_list().front()),
-				std::get<1>(path->get_coordinate_list().front()),
-				std::get<2>(path->get_coordinate_list().front())
+				btScalar(std::get<0>(path->get_coordinate_list().front())),
+				btScalar(std::get<1>(path->get_coordinate_list().front())),
+				btScalar(std::get<2>(path->get_coordinate_list().front()))
 			);
 		} else {
 			path_pos_start = btVector3(
-				get_x(),
-				get_y(),
-				get_z()
+				btScalar(get_x()),
+				btScalar(get_y()),
+				btScalar(get_z())
 			);
 		}
 
@@ -985,9 +1012,9 @@ namespace bee {
 				case E_PATH_END::CONTINUE: { // Continue from current position
 					path_current_node = -1;
 					path_pos_start = btVector3(
-						get_x(),
-						get_y(),
-						get_z()
+						btScalar(get_x()),
+						btScalar(get_y()),
+						btScalar(get_z())
 					);
 					break;
 				}
@@ -1014,7 +1041,7 @@ namespace bee {
 	bool Instance::get_path_drawn() {
 		return path_is_drawn;
 	}
-	int Instance::get_path_speed() {
+	double Instance::get_path_speed() {
 		return path_speed;
 	}
 	int Instance::get_path_node() {
@@ -1037,7 +1064,7 @@ namespace bee {
 		int xo=0, yo=0;
 		std::tie(xo, yo) = object->get_mask_offset();
 
-		return get_sprite()->draw(get_corner_x()-xo, get_corner_y()-yo, subimage_time, w, h, angle, color, flip);
+		return get_sprite()->draw(static_cast<int>(get_corner_x())-xo, static_cast<int>(get_corner_y())-yo, subimage_time, w, h, angle, color, flip);
 	}
 	int Instance::draw(int w, int h, double angle, E_RGB color, SDL_RendererFlip flip) {
 		if (get_sprite() == nullptr) {
@@ -1052,7 +1079,7 @@ namespace bee {
 		int xo=0, yo=0;
 		std::tie(xo, yo) = object->get_mask_offset();
 
-		return get_sprite()->draw(get_corner_x()-xo, get_corner_y()-yo, subimage_time);
+		return get_sprite()->draw(static_cast<int>(get_corner_x())-xo, static_cast<int>(get_corner_y())-yo, subimage_time);
 	}
 	int Instance::draw(int w, int h) {
 		if (get_sprite() == nullptr) {
@@ -1061,7 +1088,7 @@ namespace bee {
 		int xo=0, yo=0;
 		std::tie(xo, yo) = object->get_mask_offset();
 
-		return get_sprite()->draw(get_corner_x()-xo, get_corner_y()-yo, subimage_time, w, h);
+		return get_sprite()->draw(static_cast<int>(get_corner_x())-xo, static_cast<int>(get_corner_y())-yo, subimage_time, w, h);
 	}
 	int Instance::draw(double angle) {
 		if (get_sprite() == nullptr) {
@@ -1070,7 +1097,7 @@ namespace bee {
 		int xo=0, yo=0;
 		std::tie(xo, yo) = object->get_mask_offset();
 
-		return get_sprite()->draw(get_corner_x()-xo, get_corner_y()-yo, subimage_time, angle);
+		return get_sprite()->draw(static_cast<int>(get_corner_x())-xo, static_cast<int>(get_corner_y())-yo, subimage_time, angle);
 	}
 	int Instance::draw(RGBA color) {
 		if (get_sprite() == nullptr) {
@@ -1079,7 +1106,7 @@ namespace bee {
 		int xo=0, yo=0;
 		std::tie(xo, yo) = object->get_mask_offset();
 
-		return get_sprite()->draw(get_corner_x()-xo, get_corner_y()-yo, subimage_time, color);
+		return get_sprite()->draw(static_cast<int>(get_corner_x())-xo, static_cast<int>(get_corner_y())-yo, subimage_time, color);
 	}
 	int Instance::draw(E_RGB color) {
 		return draw(get_enum_color(color));
@@ -1091,7 +1118,7 @@ namespace bee {
 		int xo=0, yo=0;
 		std::tie(xo, yo) = object->get_mask_offset();
 
-		return get_sprite()->draw(get_corner_x()-xo, get_corner_y()-yo, subimage_time, flip);
+		return get_sprite()->draw(static_cast<int>(get_corner_x())-xo, static_cast<int>(get_corner_y())-yo, subimage_time, flip);
 	}
 
 	int Instance::draw_path() {

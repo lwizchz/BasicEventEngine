@@ -18,7 +18,7 @@
 #include "../messenger/messenger.hpp"
 
 #include "../core/instance.hpp"
-#include "../core/room.hpp"
+#include "../core/rooms.hpp"
 
 #include "../resource/sprite.hpp"
 #include "../resource/sound.hpp"
@@ -401,7 +401,7 @@ namespace bee { namespace ui {
 
 		return 0;
 	}
-	int optionbox_callback(Instance* optionbox, int option_index, bool state) {
+	int optionbox_callback(Instance* optionbox, size_t option_index, bool state) {
 		if (!internal::is_loaded) {
 			messenger::send({"engine", "ui"}, E_MESSAGE::WARNING, "UI not initialized: optionbox callback not run");
 			return 1;

@@ -19,8 +19,8 @@
 namespace bee {
 	// Forward declarations
 	class NetworkData;
-	class NetworkClient;
-	class NetworkConnection;
+	struct NetworkClient;
+	struct NetworkConnection;
 
 	class NetworkPacket {
 		std::vector<Uint8> packet;

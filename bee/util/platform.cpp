@@ -352,10 +352,10 @@ std::string bee_mkdtemp(const std::string& t) {
 std::string bee_inet_ntop(const void* src) {
 	//InetNtop(AF_INET, src, dest, INET_ADDRSTRLEN); // FIXME: it won't let me include the Winsock2 library, ws2_32.lib, so I rewrote the below functionality
 
-	const unsigned char* addr = (unsigned char*) src; // Cast the address data into unsigned chars
-	char dest[INET_ADDRSTRLEN]; // Declare a char array to put the address into
+	const unsigned char* addr = static_cast<const unsigned char*>(src); // Cast the address data into unsigned chars
+	char dest[INET_ADDRSTRLEN+1]; // Declare a char array to put the address into
 
-	sprintf(dest, "%u.%u.%u.%u", addr[0], addr[1], addr[2], addr[3]); // Convert each byte into an unsigned integer, separated by '.'
+	sprintf_s(dest, INET_ADDRSTRLEN, "%u.%u.%u.%u", addr[0], addr[1], addr[2], addr[3]); // Convert each byte into an unsigned integer, separated by '.'
 
 	return std::string(dest); // Return the address as a string
 }
@@ -473,7 +473,7 @@ int bee_commandline_clear() {
 
 	if (!FillConsoleOutputCharacter(
 		h_stdout,
-		(TCHAR) ' ',
+		static_cast<TCHAR>(' '),
 		cell_count,
 		homecoords,
 		&count
@@ -483,7 +483,7 @@ int bee_commandline_clear() {
 
 	if (!FillConsoleOutputCharacter(
 		h_stdout,
-		csbi.wAttributes,
+		static_cast<TCHAR>(csbi.wAttributes),
 		cell_count,
 		homecoords,
 		&count

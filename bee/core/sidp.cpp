@@ -154,7 +154,7 @@ namespace bee {
 				str = ns;
 				type = 0;
 			}
-		} catch (const std::invalid_argument &e) {}
+		} catch (const std::invalid_argument) {}
 
 		if (type == -1) { // No possible type, this will only occur when std::stod or std::stoi fails
 			messenger::send({"engine", "sidp"}, E_MESSAGE::WARNING, "WARN: SIDP type not determined, storing as string: \"" + ns + "\"");

@@ -71,8 +71,8 @@ namespace bee {
 			data.reserve(data.size() + d.size() + 1);
 			data.push_back(static_cast<Uint8>(E_DATA_TYPE::VECTOR));
 
-			data.push_back(d.size() >> 8);
-			data.push_back(d.size());
+			data.push_back(static_cast<Uint8>(d.size() >> 8));
+			data.push_back(static_cast<Uint8>(d.size()));
 
 			for (auto& e : d) {
 				this->store(e);
@@ -109,8 +109,8 @@ namespace bee {
 			data.reserve(data.size() + d.size() + 1);
 			data.push_back(static_cast<Uint8>(E_DATA_TYPE::MAP));
 
-			data.push_back(d.size() >> 8);
-			data.push_back(d.size());
+			data.push_back(static_cast<Uint8>(d.size() >> 8));
+			data.push_back(static_cast<Uint8>(d.size()));
 
 			for (auto& kv : d) {
 				A k = kv.first;
@@ -152,8 +152,8 @@ namespace bee {
 			data.reserve(data.size() + d.size() + 1);
 			data.push_back(static_cast<Uint8>(E_DATA_TYPE::MAP));
 
-			data.push_back(d.size() >> 8);
-			data.push_back(d.size());
+			data.push_back(static_cast<Uint8>(d.size() >> 8));
+			data.push_back(static_cast<Uint8>(d.size()));
 
 			for (auto& kv : d) {
 				A k = kv.first;

@@ -180,7 +180,7 @@ namespace bee {
 			int handle_path_end();
 			bool has_path();
 			bool get_path_drawn();
-			int get_path_speed();
+			double get_path_speed();
 			int get_path_node();
 			std::vector<path_coord_t> get_path_coords();
 			bool get_path_pausable();

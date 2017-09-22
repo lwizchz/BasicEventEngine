@@ -128,9 +128,18 @@ namespace bee {
 
 			return 0; // Return 0 on success
 		} else {
-			int r = SDL_RenderDrawLine(engine->renderer->sdl_renderer, v1.x, v1.y, v2.x, v2.y); // Draw the given triangle in the given color
-			r |= SDL_RenderDrawLine(engine->renderer->sdl_renderer, v2.x, v2.y, v3.x, v3.y);
-			r |= SDL_RenderDrawLine(engine->renderer->sdl_renderer, v1.x, v1.y, v3.x, v3.y);
+			int r = SDL_RenderDrawLine(engine->renderer->sdl_renderer, // Draw the given triangle in the given color
+				static_cast<int>(v1.x), static_cast<int>(v1.y),
+				static_cast<int>(v2.x), static_cast<int>(v2.y)
+			);
+			r |= SDL_RenderDrawLine(engine->renderer->sdl_renderer,
+				static_cast<int>(v2.x), static_cast<int>(v2.y),
+				static_cast<int>(v3.x), static_cast<int>(v3.y)
+			);
+			r |= SDL_RenderDrawLine(engine->renderer->sdl_renderer,
+				static_cast<int>(v1.x), static_cast<int>(v1.y),
+				static_cast<int>(v3.x), static_cast<int>(v3.y)
+			);
 			return r; // Return the status
 		}
 	}
@@ -146,7 +155,10 @@ namespace bee {
 		if (get_options().renderer_type != E_RENDERER::SDL) {
 			return draw_triangle(v1, v2, v2, c, false); // Draw the line as a set of triangles
 		} else {
-			return SDL_RenderDrawLine(engine->renderer->sdl_renderer, v1.x, v1.y, v2.x, v2.y); // Draw the given line in the given color
+			return SDL_RenderDrawLine(engine->renderer->sdl_renderer, // Draw the given line in the given color
+				static_cast<int>(v1.x), static_cast<int>(v1.y),
+				static_cast<int>(v2.x), static_cast<int>(v2.y)
+			);
 		}
 	}
 	/*
@@ -255,22 +267,22 @@ namespace bee {
 	* @border_width: whether the polygon should be filled or simply an outline
 	* @c: the color with which to draw the polygon
 	*/
-	int draw_polygon(int cx, int cy, int radius, int angle_start, int angle_span, int segment_amount, int border_width, const RGBA& c) {
-		float d_theta = static_cast<float>(angle_span) / segment_amount;
+	int draw_polygon(int cx, int cy, int radius, int angle_start, int angle_span, unsigned int segment_amount, int border_width, const RGBA& c) {
+		double d_theta = static_cast<double>(angle_span) / segment_amount;
 
-		float tangential_factor = tan(degtorad(d_theta));
-		float radial_factor = cos(degtorad(d_theta));
+		double tangential_factor = tan(degtorad(d_theta));
+		double radial_factor = cos(degtorad(d_theta));
 
-		float x = radius * cos(degtorad(angle_start));
-		float y = radius * sin(degtorad(angle_start));
+		double x = radius * cos(degtorad(angle_start));
+		double y = radius * sin(degtorad(angle_start));
 
 		glm::vec3 center (cx, cy, 0);
 		glm::vec3 p1 (x, y, 0);
 		glm::vec3 p2 (0, 0, 0);
 
 		for (size_t i=0; i<segment_amount; ++i) {
-			p2.x = (p1.x - p1.y*tangential_factor) * radial_factor;
-			p2.y = (p1.y + p1.x*tangential_factor) * radial_factor;
+			p2.x = static_cast<float>(p1.x - p1.y*tangential_factor * radial_factor);
+			p2.y = static_cast<float>(p1.y + p1.x*tangential_factor * radial_factor);
 
 			if (border_width < 1) {
 				draw_triangle(center, center+p1, center+p2, c, true);
@@ -414,7 +426,7 @@ namespace bee {
 
 		std::string fn (filename);
 		if (file_exists(fn)) { // If the file already exists, append a timestamp
-			fn = file_plainname(fn) + "-" + bee_itos(time(nullptr)) + file_extname(fn);
+			fn = file_plainname(fn) + "-" + bee_itos(static_cast<int>(time(nullptr))) + file_extname(fn);
 			if (file_exists(fn)) { // If the appended file already exists, abort
 				messenger::send({"engine"}, E_MESSAGE::WARNING, "Failed to save screenshot: files already exist: \"" + filename + "\" and \"" + fn + "\"");
 				return -2; // Return -2 on filename error

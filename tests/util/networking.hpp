@@ -6,16 +6,16 @@
 * See LICENSE for more details.
 */
 
-#ifndef TESTS_UTIL_NETWORK
-#define TESTS_UTIL_NETWORK 1
+#ifndef TESTS_UTIL_NETWORKING
+#define TESTS_UTIL_NETWORKING 1
 
 #include "doctest.h" // Include the required unit testing library
 
-#include "../../bee/util/network.hpp"
+#include "../../bee/util/networking.hpp"
 
 TEST_SUITE_BEGIN("util");
 
-TEST_CASE("network") {
+TEST_CASE("networking") {
 	REQUIRE(network_init() == 0);
 	int port = 3054;
 	IPaddress* ipa = network_resolve_host("127.0.0.1", port);
@@ -40,4 +40,4 @@ TEST_CASE("network") {
 
 TEST_SUITE_END();
 
-#endif // TESTS_UTIL_NETWORK
+#endif // TESTS_UTIL_NETWORKING

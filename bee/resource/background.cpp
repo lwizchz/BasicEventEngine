@@ -31,7 +31,7 @@
 #include "../messenger/messenger.hpp"
 
 #include "../core/enginestate.hpp"
-#include "../core/room.hpp"
+#include "../core/rooms.hpp"
 
 #include "../render/renderer.hpp"
 
@@ -553,7 +553,7 @@ namespace bee {
 			drawing_end();
 		} else { // Otherwise, draw the background with optional animation and tiling
 			// Calculate the delta x and y for the current animation time
-			const float dt_fps = (get_ticks()-animation_time)/engine->fps_goal;
+			const int dt_fps = (get_ticks()-animation_time)/engine->fps_goal;
 			int dx = b->horizontal_speed*dt_fps;
 			int dy = b->vertical_speed*dt_fps;
 

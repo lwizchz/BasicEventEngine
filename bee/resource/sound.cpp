@@ -244,7 +244,7 @@ namespace bee {
 			return 1; // Return 1 when the sound is not loaded
 		}
 
-		int v = bee::get_volume()*volume*128; // Get the volume level relative to the global volume
+		int v = 128*static_cast<int>(bee::get_volume()*volume); // Get the volume level relative to the global volume
 		if (is_music) { // If the sound is music, set the volume appropriately
 			Mix_VolumeMusic(v);
 		} else { // Otherwise set the sound chunk volume
@@ -266,9 +266,9 @@ namespace bee {
 	*/
 	int Sound::set_pan_internal(int channel) {
 		if (pan > 0.0) { // If the panning is greated than 0.0, pan the channel to the right
-			Mix_SetPanning(channel, 255-pan*255, 255);
+			Mix_SetPanning(channel, 255-static_cast<int>(pan*255), 255);
 		} else if (pan < 0.0) { // If the panning is less than 0.0, pan the channel to the left
-			Mix_SetPanning(channel, 255, 255+pan*255);
+			Mix_SetPanning(channel, 255, 255+static_cast<int>(pan*255));
 		} else { // If the panning is equal to 0.0, pan the channel to the center
 			Mix_SetPanning(channel, 255, 255);
 		}

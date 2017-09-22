@@ -6,13 +6,13 @@
 * See LICENSE for more details.
 */
 
-#ifndef BEE_CORE_ROOM_H
-#define BEE_CORE_ROOM_H 1
+#ifndef BEE_CORE_ROOMS_H
+#define BEE_CORE_ROOMS_H 1
 
 namespace bee {
 	// Forward declarations
 	class Room;
-	class ViewData;
+	struct ViewData;
 
 	void restart_room();
 	int change_room(Room*, bool);
@@ -33,4 +33,4 @@ namespace bee {
 	bool get_is_paused();
 }
 
-#endif // BEE_CORE_ROOM_H
+#endif // BEE_CORE_ROOMS_H

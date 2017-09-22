@@ -17,8 +17,8 @@
 
 namespace bee {
 	// Forward declarations
-	class NetworkClient;
-	class NetworkConnection;
+	struct NetworkClient;
+	struct NetworkConnection;
 
 	class NetworkData {
 		Uint8 signals;

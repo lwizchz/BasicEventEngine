@@ -18,7 +18,7 @@
 namespace bee {
 	// Forward declarations
 	class Instance;
-	class SpriteDrawData;
+	struct SpriteDrawData;
 
 	class Particle;
 	class ParticleData;
@@ -70,7 +70,7 @@ namespace bee {
 			int draw_debug();
 			int clear();
 
-			int add_particle(Particle*, int, int);
+			int add_particle(Particle*, double, double);
 	};
 }
 

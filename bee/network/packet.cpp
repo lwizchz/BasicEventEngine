@@ -12,7 +12,7 @@
 #include "packet.hpp"
 
 #include "../util/platform.hpp"
-#include "../util/network.hpp"
+#include "../util/networking.hpp"
 #include "../util/real.hpp"
 
 #include "../messenger/messenger.hpp"
@@ -203,13 +203,13 @@ namespace bee {
 		packet[2] = -1;
 		packet[3] = -1;
 
-		packet[4] = size >> 8;
-		packet[5] = size;
+		packet[4] = static_cast<Uint8>(size >> 8);
+		packet[5] = static_cast<Uint8>(size);
 
 		sequence = get_next_id() << 6;
 		sequence += 1 << 3;
 		packet[6] = sequence >> 8;
-		packet[7] = sequence;
+		packet[7] = static_cast<Uint8>(sequence);
 
 		timestamp = net::get_time();
 		packet[8] = timestamp >> 24;
@@ -265,11 +265,11 @@ namespace bee {
 			p[2] = -1;
 			p[3] = -1;
 
-			p[4] = s >> 8;
-			p[5] = s;
+			p[4] = static_cast<Uint8>(s >> 8);
+			p[5] = static_cast<Uint8>(s);
 
 			p[6] = sequence >> 8;
-			p[7] = sequence + multi_packet.size();
+			p[7] = static_cast<Uint8>(sequence + multi_packet.size());
 
 			p[8] = timestamp >> 24;
 			p[9] = timestamp >> 16;

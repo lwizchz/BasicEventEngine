@@ -91,17 +91,17 @@ namespace bee {
 			if (engine->renderer->render_is_3d) {
 				engine->renderer->render_camera = new Camera(glm::vec3(0.0f, 0.0f, -540.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 			} else {
-				engine->renderer->render_camera = new Camera(get_width(), get_height());
+				engine->renderer->render_camera = new Camera(static_cast<float>(get_width()), static_cast<float>(get_height()));
 			}
 		} else {
 			engine->renderer->render_camera = new_camera;
 		}
 
 		if (engine->renderer->render_camera->width == 0.0) {
-			engine->renderer->render_camera->width = get_width();
+			engine->renderer->render_camera->width = static_cast<float>(get_width());
 		}
 		if (engine->renderer->render_camera->height == 0.0) {
-			engine->renderer->render_camera->height = get_height();
+			engine->renderer->render_camera->height = static_cast<float>(get_height());
 		}
 
 		render_calc_projection();

@@ -6,15 +6,15 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_UTIL_NETWORK
-#define _BEE_UTIL_NETWORK 1
+#ifndef BEE_UTIL_NETWORKING
+#define BEE_UTIL_NETWORKING 1
 
 // Networking functions
 
 #include <iostream>
 #include <string.h> // Required for Windows memcpy()
 
-#include "network.hpp" // Include the function definitions
+#include "networking.hpp" // Include the function definitions
 
 #include "platform.hpp" // Include the required inet_ntop() function
 
@@ -388,4 +388,4 @@ int network_packet_free_vector(UDPpacket** packets) {
 	return 0; // Return 0 on success
 }
 
-#endif // _BEE_UTIL_NETWORK
+#endif // _BEE_UTIL_NETWORKING
