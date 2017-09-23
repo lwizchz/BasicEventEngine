@@ -31,14 +31,4 @@
 	#define BEE_GAME_ID 4294967295 // pow(2,32)-1, the maximum value
 #endif // BEE_GAME_ID
 
-#ifndef BEE_VERSION_MAJOR
-	#define BEE_VERSION_MAJOR 0
-#endif
-#ifndef BEE_VERSION_MINOR
-	#define BEE_VERSION_MINOR 1
-#endif
-#ifndef BEE_VERSION_RELEASE
-	#define BEE_VERSION_RELEASE 1
-#endif
-
 #endif // BEE_DEFINES_H

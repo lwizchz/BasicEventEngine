@@ -40,9 +40,11 @@ void ObjUIOptionBox::mouse_release(bee::Instance* self, SDL_Event* e) {
 
 	if (_i("has_focus")) {
 		int index = get_option_at(self, bee::get_mouse_global_x(), bee::get_mouse_global_y());
-		bool state = _ci("option_state", index);
 
-		set_option_state(self, index, !state);
+		if (index >= 0) {
+			bool state = _ci("option_state", index);
+			set_option_state(self, index, !state);
+		}
 	}
 }
 void ObjUIOptionBox::draw(bee::Instance* self) {
@@ -129,10 +131,10 @@ void ObjUIOptionBox::pop_option(bee::Instance* self) {
 	bee::ui::pop_optionbox_option(self);
 }
 
-std::string ObjUIOptionBox::get_option(bee::Instance* self, int index) {
+std::string ObjUIOptionBox::get_option(bee::Instance* self, size_t index) {
 	return _cs("options", index);
 }
-bool ObjUIOptionBox::get_option_state(bee::Instance* self, int index) {
+bool ObjUIOptionBox::get_option_state(bee::Instance* self, size_t index) {
 	return _ci("option_state", index);
 }
 int ObjUIOptionBox::get_option_at(bee::Instance* self, int mx, int my) {
@@ -161,7 +163,7 @@ std::vector<int> ObjUIOptionBox::get_selected_options(bee::Instance* self) {
 	return v;
 }
 
-void ObjUIOptionBox::set_option_state(bee::Instance* self, int index, bool new_state) {
+void ObjUIOptionBox::set_option_state(bee::Instance* self, size_t index, bool new_state) {
 	if (_i("type") == 0) {
 		_v("option_state")[index] = new_state;
 		bee::ui::optionbox_callback(self, index, new_state);

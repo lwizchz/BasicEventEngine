@@ -63,7 +63,7 @@ namespace bee {
 		}
 
 		messenger::send({"engine", "init"}, E_MESSAGE::INFO,
-			"Initializing with BasicEventEngine v" +
+			"Initializing BasicEventEngine v" +
 			std::to_string(BEE_VERSION_MAJOR) + "." + std::to_string(BEE_VERSION_MINOR) + "." + std::to_string(BEE_VERSION_RELEASE)
 		);
 
@@ -267,7 +267,7 @@ namespace bee {
 	}
 
 	int internal::init_sdl() {
-		if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
+		if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
 			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't init SDL: " + get_sdl_error());
 			return 3; // Return 3 when SDL couldn't be initialized
 		}

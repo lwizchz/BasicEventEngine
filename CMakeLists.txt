@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 
 set(ENGINE_VERSION_MAJOR "0")
 set(ENGINE_VERSION_MINOR "1")
-set(ENGINE_VERSION_RELEASE "3")
+set(ENGINE_VERSION_RELEASE "4")
 
 if (GAME_NAME)
 	project("${GAME_NAME}" CXX C)
@@ -29,27 +29,29 @@ endif()
 set(engine_defines "-DBEE_VERSION_MAJOR=${ENGINE_VERSION_MAJOR} -DBEE_VERSION_MINOR=${ENGINE_VERSION_MINOR} -DBEE_VERSION_RELEASE=${ENGINE_VERSION_RELEASE}")
 set(game_defines "-DBEE_BUILD_ID=${BEE_BUILD_ID} -DBEE_GAME_ID=${BEE_GAME_ID}")
 set(game_defines "${game_defines} -DGAME_NAME=${PROJECT_NAME} -DGAME_VERSION_MAJOR=${GAME_VERSION_MAJOR} -DGAME_VERSION_MINOR=${GAME_VERSION_MINOR} -DGAME_VERSION_RELEASE=${GAME_VERSION_RELEASE}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${engine_defines}")
 
 set(warns "")
 
 include_directories("lib/doctest/doctest/" "lib/bullet3/src")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/lib/")
 
-add_subdirectory("bee")
-
 if (WIN32) # Include Windows libraries manually
 	set(SRC ${${PROJECT_NAME}_SOURCE_DIR})
 	include_directories(${CMAKE_CURRENT_SOURCE_DIR} "${SRC}/win/include")
 
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${game_defines}")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \"-I${SRC}/win/include\" \"-I${SRC}/lib/doctest/doctest\"")
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} /MTd")
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} /MT")
 
-	add_executable(${PROJECT_NAME} main.cpp resources/resources.hpp)
-	target_link_libraries(${PROJECT_NAME} BEE)
+	add_subdirectory("bee")
 
 	add_subdirectory("tests")
+
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${game_defines}")
+
+	add_executable(${PROJECT_NAME} main.cpp resources/resources.hpp)
+	target_link_libraries(${PROJECT_NAME} BEE)
 	target_link_libraries(${PROJECT_NAME} BEE_Tests)
 
 	# Include SDL2 libraries
@@ -84,22 +86,27 @@ if (WIN32) # Include Windows libraries manually
 	target_link_libraries(${PROJECT_NAME} ${GLEW_LIBRARIES} ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES} ${ASSIMP_LIBRARIES} ${BULLET_LIBRARIES})
 else() # Include Unix libraries automatically
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-		add_subdirectory("tests")
 		set(warns "-Wall -Wextra -Wpedantic -Wshadow -Wno-unused-parameter")
 	endif()
 
 	set(packaged_lib_dir "-Wl,-rpath='\$ORIGIN/lib/'") # ./lib (relative to the executable) will be search for dynamic library loading
-	set(CMAKE_CXX_FLAGS_DEBUG "${packaged_lib_dir} -g -pg -pipe -std=c++14 ${warns} -D_REENTRANT ${engine_defines}")
-	set(CMAKE_CXX_FLAGS_RELEASE "${packaged_lib_dir} -O2 -pipe -std=c++14 ${warns} -D_REENTRANT -DNDEBUG ${engine_defines}")
+	set(CMAKE_CXX_FLAGS_DEBUG "${packaged_lib_dir} -g -pg -pipe -std=c++14 ${warns} -D_REENTRANT")
+	set(CMAKE_CXX_FLAGS_RELEASE "${packaged_lib_dir} -O2 -pipe -std=c++14 ${warns} -D_REENTRANT -DNDEBUG")
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_DEBUG}")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG}")
 	else()
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_RELEASE}")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE}")
 	endif()
 
 	# Enable link time optimization if it is supported
 	if(GXX_HAS_LTO_FLAG)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto")
+	endif()
+
+	add_subdirectory("bee")
+
+	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+		add_subdirectory("tests")
 	endif()
 
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${game_defines}")

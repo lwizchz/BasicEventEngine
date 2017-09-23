@@ -154,49 +154,49 @@ namespace bee {
 	}
 
 	std::string Instance::serialize(bool should_pretty_print) const {
-		std::map<std::string,SIDP> data;
-		data["id"] = id;
-		data["object"] = object->get_name();
-		data["sprite"] = "";
+		std::map<std::string,SIDP> instance_info;
+		instance_info["id"] = id;
+		instance_info["object"] = object->get_name();
+		instance_info["sprite"] = "";
 		if (get_sprite() != nullptr) {
-			data["sprite"] = get_sprite()->get_name();
+			instance_info["sprite"] = get_sprite()->get_name();
 		}
-		data["subimage_time"] = static_cast<int>(subimage_time);
+		instance_info["subimage_time"] = static_cast<int>(subimage_time);
 
 		std::string b = body->serialize(should_pretty_print);
 		if (should_pretty_print) {
 			b = debug_indent(b, 1);
 		}
-		data["body"] = b;
+		instance_info["body"] = b;
 
-		data["is_solid"] = is_solid;
-		data["depth"] = depth;
-		data["pos_start"].vector(new std::vector<SIDP>({pos_start.x(), pos_start.y(), pos_start.z()}));
-		data["pos_previous"].vector(new std::vector<SIDP>({pos_previous.x(), pos_previous.y(), pos_previous.z()}));
+		instance_info["is_solid"] = is_solid;
+		instance_info["depth"] = depth;
+		instance_info["pos_start"].vector(new std::vector<SIDP>({pos_start.x(), pos_start.y(), pos_start.z()}));
+		instance_info["pos_previous"].vector(new std::vector<SIDP>({pos_previous.x(), pos_previous.y(), pos_previous.z()}));
 
-		data["path"] = "";
+		instance_info["path"] = "";
 		if (path != nullptr) {
-			data["path"] = path->get_name();
+			instance_info["path"] = path->get_name();
 		}
-		data["path_speed"] = path_speed;
-		data["path_end_action"] = static_cast<int>(path_end_action);
-		data["path_current_node"] = path_current_node;
-		data["path_is_drawn"] = path_is_drawn;
-		data["path_is_pausable"] = path_is_pausable;
-		data["path_previous_mass"] = path_previous_mass;
-		data["path_pos_start"].vector(new std::vector<SIDP>({path_pos_start.x(), path_pos_start.y(), path_pos_start.z()}));
+		instance_info["path_speed"] = path_speed;
+		instance_info["path_end_action"] = static_cast<int>(path_end_action);
+		instance_info["path_current_node"] = path_current_node;
+		instance_info["path_is_drawn"] = path_is_drawn;
+		instance_info["path_is_pausable"] = path_is_pausable;
+		instance_info["path_previous_mass"] = path_previous_mass;
+		instance_info["path_pos_start"].vector(new std::vector<SIDP>({path_pos_start.x(), path_pos_start.y(), path_pos_start.z()}));
 
-		return map_serialize(data, should_pretty_print);
+		return map_serialize(instance_info, should_pretty_print);
 	}
 	std::string Instance::serialize() const {
 		return serialize(false);
 	}
 	int Instance::deserialize(std::map<SIDP,SIDP>& m, Object* new_object) {
 		id = SIDP_i(m["id"]);
-		if (new_object == nullptr) {
-			object = get_object_by_name(SIDP_s(m["object"]));
-		} else {
+		if (new_object != nullptr) {
 			object = new_object;
+		} else {
+			object = get_object_by_name(SIDP_s(m["object"]));
 		}
 		sprite = get_sprite_by_name(SIDP_s(m["sprite"]));
 
@@ -230,55 +230,55 @@ namespace bee {
 
 		return 0;
 	}
-	int Instance::deserialize(const std::string& data, Object* new_object) {
+	int Instance::deserialize(const std::string& instance_info, Object* new_object) {
 		std::map<SIDP,SIDP> m;
-		if (map_deserialize(data, &m)) {
+		if (map_deserialize(instance_info, &m)) {
 			messenger::send({"engine", "instance"}, E_MESSAGE::WARNING, "Failed to deserialize instance");
 			return 1;
 		}
 
 		return deserialize(m, new_object);
 	}
-	int Instance::deserialize(const std::string& data) {
-		return deserialize(data, nullptr);
+	int Instance::deserialize(const std::string& instance_info) {
+		return deserialize(instance_info, nullptr);
 	}
 
 	std::vector<Uint8> Instance::serialize_net() {
-		SerialData data (256);
+		SerialData sd (256);
 
 		std::string sprite_name = get_sprite()->get_name();
-		data.store_string(sprite_name);
+		sd.store_string(sprite_name);
 		int s = subimage_time;
-		data.store_int(s);
+		sd.store_int(s);
 
 		std::vector<Uint8> body_data = body->serialize_net();
-		data.store_serial_v(body_data);
+		sd.store_serial_v(body_data);
 
 		std::vector<double> ppos = {pos_previous.x(), pos_previous.y(), pos_previous.z()};
-		data.store_vector(ppos);
+		sd.store_vector(ppos);
 
-		return data.get();
+		return sd.get();
 	}
 	int Instance::deserialize_net(std::vector<Uint8> d) {
 		if (d.empty()) {
 			return 1;
 		}
 
-		SerialData data (d);
+		SerialData sd (d);
 
 		std::string sprite_name;
-		data.store_string(sprite_name);
+		sd.store_string(sprite_name);
 		sprite = get_sprite_by_name(sprite_name);
 		int s;
-		data.store_int(s);
+		sd.store_int(s);
 		subimage_time = s;
 
 		std::vector<Uint8> body_data;
-		data.store_serial_v(body_data);
+		sd.store_serial_v(body_data);
 		body->deserialize_net(body_data);
 
 		std::vector<double> ppos;
-		data.store_vector(ppos);
+		sd.store_vector(ppos);
 		pos_previous = {
 			static_cast<float>(ppos[0]),
 			static_cast<float>(ppos[1]),

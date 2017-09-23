@@ -25,12 +25,12 @@ class ObjUIOptionBox : public ObjUIElement {
 		void push_option(bee::Instance*, const std::string&, bool, std::function<void (bee::Instance*, bool)>);
 		void pop_option(bee::Instance*);
 
-		std::string get_option(bee::Instance*, int);
-		bool get_option_state(bee::Instance*, int);
+		std::string get_option(bee::Instance*, size_t);
+		bool get_option_state(bee::Instance*, size_t);
 		int get_option_at(bee::Instance*, int, int);
 		std::vector<int> get_selected_options(bee::Instance*);
 
-		void set_option_state(bee::Instance*, int, bool);
+		void set_option_state(bee::Instance*, size_t, bool);
 };
 
 #endif // BEE_UI_OBJ_OPTIONBOX_H

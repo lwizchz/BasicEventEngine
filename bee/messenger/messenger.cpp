@@ -652,7 +652,8 @@ namespace bee { namespace messenger{
 		const Uint32 t = get_ticks(); // Get the current tick to compare with message tickstamps
 
 		// Print message descriptions
-		for (auto msg : internal::messages) {
+		for (size_t i=0; i<internal::messages.size(); ++i) { // Iterate over the messages
+			std::shared_ptr<MessageContents>& msg = internal::messages[i];
 			if (t < msg->tickstamp) { // If the message should be processed in the future, skip it
 				continue;
 			}
@@ -662,7 +663,8 @@ namespace bee { namespace messenger{
 
 		// Process messages with recipient functions
 		std::exception_ptr ep = nullptr; // Store any thrown values
-		for (auto msg : internal::messages) { // Iterate over the messages
+		for (size_t i=0; i<internal::messages.size(); ++i) { // Iterate over the messages
+			std::shared_ptr<MessageContents>& msg = internal::messages[i];
 			if (t < msg->tickstamp) { // If the message should be processed in the future, skip it
 				continue;
 			}
@@ -675,9 +677,6 @@ namespace bee { namespace messenger{
 
 		// Remove processed messages
 		internal::messages.erase(std::remove_if(internal::messages.begin(), internal::messages.end(), [] (std::shared_ptr<MessageContents> msg) {
-			if (msg == nullptr) {
-				return true;
-			}
 			return msg->has_processed;
 		}), internal::messages.end());
 

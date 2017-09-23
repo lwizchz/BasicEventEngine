@@ -89,17 +89,15 @@ debug()
         assert_build_type "debug" "$1"
         echo -n "debug" > "$1/last_build_type.txt"
 
-        if [ ! -f "$1/Makefile" ]; then
-                cmake \
-                        -DCMAKE_BUILD_TYPE=Debug \
-                        -DGAME_NAME="$game" \
-                        -DBEE_BUILD_ID=$build_id \
-                        -DBEE_GAME_ID=$game_id \
-                        -DGAME_VERSION_MAJOR=$version_major \
-                        -DGAME_VERSION_MINOR=$version_minor \
-                        -DGAME_VERSION_RELEASE=$version_release \
-                        ..
-        fi
+        cmake \
+                -DCMAKE_BUILD_TYPE=Debug \
+                -DGAME_NAME="$game" \
+                -DBEE_BUILD_ID=$build_id \
+                -DBEE_GAME_ID=$game_id \
+                -DGAME_VERSION_MAJOR=$version_major \
+                -DGAME_VERSION_MINOR=$version_minor \
+                -DGAME_VERSION_RELEASE=$version_release \
+                ..
 
         make -j5
         if [ $? -ne 0 ]; then
@@ -133,17 +131,15 @@ release()
         assert_build_type "release" "$1"
         echo -n "release" > "$1/last_build_type.txt"
 
-        if [ ! -f "$1/Makefile" ]; then
-                cmake \
-                        -DCMAKE_BUILD_TYPE=Release \
-                        -DGAME_NAME="$game" \
-                        -DBEE_BUILD_ID=$build_id \
-                        -DBEE_GAME_ID=$game_id \
-                        -DGAME_VERSION_MAJOR=$version_major \
-                        -DGAME_VERSION_MINOR=$version_minor \
-                        -DGAME_VERSION_RELEASE=$version_release \
-                        ..
-        fi
+        cmake \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DGAME_NAME="$game" \
+                -DBEE_BUILD_ID=$build_id \
+                -DBEE_GAME_ID=$game_id \
+                -DGAME_VERSION_MAJOR=$version_major \
+                -DGAME_VERSION_MINOR=$version_minor \
+                -DGAME_VERSION_RELEASE=$version_release \
+                ..
 
         make -j5
         if [ $? -ne 0 ]; then

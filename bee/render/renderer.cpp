@@ -68,6 +68,8 @@ namespace bee {
 	}
 
 	int Renderer::opengl_init() {
+		messenger::send({"engine", "renderer"}, E_MESSAGE::INFO, "Compiling OpenGL shaders...");
+
 		context = SDL_GL_CreateContext(window);
 		if (context == nullptr) {
 			messenger::send({"engine", "renderer"}, E_MESSAGE::ERROR, "Couldn't create OpenGL context: " + get_sdl_error() + "\n");
@@ -343,16 +345,23 @@ namespace bee {
 		glDeleteShader(geometry_shader);
 		glDeleteShader(fragment_shader);
 
-		if (get_options().renderer_type == E_RENDERER::OPENGL4) {
-			messenger::send({"engine", "renderer"}, E_MESSAGE::INFO, "Now rendering with OpenGL 4.1");
-		} else if (get_options().renderer_type == E_RENDERER::OPENGL3) {
-			messenger::send({"engine", "renderer"}, E_MESSAGE::INFO, "Now rendering with OpenGL 3.3");
-		}
-
 		int va = 0, vi = 0;
 		SDL_GL_GetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, &va);
 		SDL_GL_GetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, &vi);
-		messenger::send({"engine", "renderer"}, E_MESSAGE::INFO, "GLversion: " + bee_itos(va) + "." + bee_itos(vi));
+
+		if (
+			(get_options().renderer_type == E_RENDERER::OPENGL4)
+			&&(va == 4)&&(vi == 1)
+		) {
+			messenger::send({"engine", "renderer"}, E_MESSAGE::INFO, "Now rendering with OpenGL 4.1");
+		} else if (
+			(get_options().renderer_type == E_RENDERER::OPENGL3)
+			&&(va == 3)&&(vi == 3)
+		) {
+			messenger::send({"engine", "renderer"}, E_MESSAGE::INFO, "Now rendering with OpenGL 3.3");
+		} else {
+			messenger::send({"engine", "renderer"}, E_MESSAGE::INFO, "Now rendering with OpenGL " + bee_itos(va) + "." + bee_itos(vi));
+		}
 
 		projection_cache = new glm::mat4(1.0f);
 
