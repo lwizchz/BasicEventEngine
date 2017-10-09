@@ -48,11 +48,11 @@ namespace console {
 	int toggle();
 	bool get_is_open();
 
-	int add_command(const std::string&, const std::string&, std::function<void (std::shared_ptr<MessageContents>)>);
-	int add_command(const std::string&, std::function<void (std::shared_ptr<MessageContents>)>);
+	int add_command(const std::string&, const std::string&, std::function<void (const MessageContents&)>);
+	int add_command(const std::string&, std::function<void (const MessageContents&)>);
 
 	int bind(SDL_Keycode, KeyBind);
-	int add_keybind(SDL_Keycode, KeyBind, std::function<void (std::shared_ptr<MessageContents>)>);
+	int add_keybind(SDL_Keycode, KeyBind, std::function<void (const MessageContents&)>);
 	KeyBind get_keybind(SDL_Keycode);
 	int unbind(SDL_Keycode);
 	int unbind(KeyBind, bool);

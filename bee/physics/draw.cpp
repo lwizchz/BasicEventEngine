@@ -28,7 +28,6 @@ namespace bee {
 
 		attached_world(new_world)
 	{}
-	PhysicsDraw::~PhysicsDraw() {}
 
 	void PhysicsDraw::drawLine(const btVector3& v1, const btVector3& v2, const btVector3& color1, const btVector3& color2) {
 		if (attached_world != nullptr) {

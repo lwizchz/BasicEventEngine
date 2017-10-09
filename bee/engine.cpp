@@ -133,15 +133,15 @@ namespace bee {
 
 		// Register the logging system
 		if (get_options().is_headless) {
-			messenger::internal::register_protected("cmdconsole", {"engine", "commandline"}, true, [] (std::shared_ptr<MessageContents> msg) {
-				bee::console::run(msg->descr);
+			messenger::internal::register_protected("cmdconsole", {"engine", "commandline"}, true, [] (const MessageContents& msg) {
+				bee::console::run(msg.descr);
 			});
 		} else {
-			messenger::internal::register_protected("cmdfilter", {"engine", "commandline"}, true, [] (std::shared_ptr<MessageContents> msg) {
-				if (msg->descr == "reset") {
+			messenger::internal::register_protected("cmdfilter", {"engine", "commandline"}, true, [] (const MessageContents& msg) {
+				if (msg.descr == "reset") {
 					messenger::reset_filter();
 				} else {
-					messenger::add_filter(msg->descr);
+					messenger::add_filter(msg.descr);
 				}
 			});
 		}

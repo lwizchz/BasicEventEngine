@@ -28,13 +28,16 @@ namespace bee {
 		NetworkData(Uint8);
 		NetworkData(E_NETSIG1, E_NETSIG2);
 		NetworkData(E_NETSIG1, E_NETSIG2, const std::vector<Uint8>&);
+		NetworkData(const NetworkData&);
 		~NetworkData();
 		int reset();
+
+		NetworkData& operator=(const NetworkData&);
 
 		int append_data(const std::vector<Uint8>&);
 		int append_data(const std::vector<Uint8>&, size_t);
 
-		std::vector<Uint8> get();
+		std::vector<Uint8> get() const;
 
 		Uint8 get_signals() const;
 		E_NETSIG1 get_signal1() const;

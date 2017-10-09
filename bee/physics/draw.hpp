@@ -23,7 +23,6 @@ namespace bee {
 			PhysicsWorld* attached_world;
 		public:
 			PhysicsDraw(PhysicsWorld*);
-			virtual ~PhysicsDraw();
 
 			virtual void drawLine(const btVector3&, const btVector3&, const btVector3&, const btVector3&);
 			virtual void drawLine(const btVector3&, const btVector3&, const btVector3&);

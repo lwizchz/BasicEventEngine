@@ -61,11 +61,13 @@ namespace bee {
 
 			Instance();
 			Instance(int, Object*, double, double, double);
+			Instance(const Instance&);
 			virtual ~Instance();
 			int init(int, Object*, double, double, double);
 			int print();
 
-			bool operator< (const Instance& other) const;
+			bool operator<(const Instance&) const;
+			Instance& operator=(const Instance&);
 
 			std::string serialize(bool) const;
 			std::string serialize() const;

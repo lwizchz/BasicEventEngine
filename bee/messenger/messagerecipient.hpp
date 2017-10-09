@@ -18,10 +18,12 @@ namespace bee {
 		std::string name;
 		std::vector<std::string> tags;
 		bool is_strict;
-		std::function<void (std::shared_ptr<MessageContents>)> func = nullptr;
+		std::function<void (const MessageContents&)> func = nullptr;
 
 		MessageRecipient();
-		MessageRecipient(std::string, std::vector<std::string>, bool, std::function<void (std::shared_ptr<MessageContents>)>);
+		MessageRecipient(const std::string&, const std::vector<std::string>&, bool, std::function<void (const MessageContents&)>);
+
+		bool operator<(const MessageRecipient&) const;
 	};
 }
 

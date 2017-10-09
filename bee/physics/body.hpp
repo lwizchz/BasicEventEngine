@@ -45,7 +45,10 @@ namespace bee {
 			double friction;
 		public:
 			PhysicsBody(PhysicsWorld*, Instance*, E_PHYS_SHAPE, double, double, double, double, double*);
+			PhysicsBody(const PhysicsBody&);
 			~PhysicsBody();
+
+			PhysicsBody& operator=(const PhysicsBody&);
 
 			std::string serialize(bool) const;
 			std::string serialize() const;

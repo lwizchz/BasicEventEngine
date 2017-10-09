@@ -29,7 +29,7 @@ namespace bee { namespace loader {
 		size_t total_amount = 0;
 		size_t lazy_amount = 0;
 
-		std::shared_ptr<MessageRecipient> lazy_recipient = nullptr;
+		bool has_recipient = false;
 	}
 
 	/*
@@ -104,16 +104,16 @@ namespace bee { namespace loader {
 	* @amount: the amount to load per frame
 	*/
 	int load_lazy(int amount) {
-		if (internal::lazy_recipient == nullptr) { // If lazy loading hasn't been initialized, register with the messenger
-			internal::lazy_recipient = std::shared_ptr<MessageRecipient>(new MessageRecipient(
+		if (!internal::has_recipient) { // If lazy loading hasn't been initialized, register with the messenger
+			messenger::internal::register_protected(
 				"lazy_loader",
 				{"engine", "loader", "lazysignal"},
 				true,
-				[] (std::shared_ptr<MessageContents> msg) {
+				[] (const MessageContents& msg) {
 					loader::internal::load_lazy();
 				}
-			));
-			messenger::internal::register_protected(internal::lazy_recipient);
+			);
+			internal::has_recipient = true;
 		}
 
 		internal::amount_loaded = 0;

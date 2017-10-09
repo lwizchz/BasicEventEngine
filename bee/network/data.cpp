@@ -40,6 +40,10 @@ namespace bee {
 	{
 		append_data(new_data);
 	}
+	NetworkData::NetworkData(const NetworkData& other) :
+		signals(other.signals),
+		data(other.data)
+	{}
 	NetworkData::~NetworkData() {
 		reset();
 	}
@@ -47,6 +51,15 @@ namespace bee {
 		signals = 0;
 		data.clear();
 		return 0;
+	}
+
+	NetworkData& NetworkData::operator=(const NetworkData& rhs) {
+		if (this != &rhs) {
+			this->reset();
+			this->signals = rhs.signals;
+			this->data = rhs.data;
+		}
+		return *this;
 	}
 
 	int NetworkData::append_data(const std::vector<Uint8>& new_data) {
@@ -64,7 +77,7 @@ namespace bee {
 		return 0;
 	}
 
-	std::vector<Uint8> NetworkData::get() {
+	std::vector<Uint8> NetworkData::get() const {
 		return data;
 	}
 

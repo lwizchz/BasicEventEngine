@@ -84,10 +84,25 @@ namespace bee {
 
 		load_net(udp_data);
 	}
+	NetworkPacket::NetworkPacket(const NetworkPacket& other) :
+		packet(other.packet),
+
+		data(new NetworkData(*other.data)),
+		multi_packet(other.multi_packet),
+		sequence(other.sequence),
+		timestamp(other.timestamp),
+
+		id(other.id)
+	{}
 	NetworkPacket::~NetworkPacket() {
 		reset();
 	}
 	int NetworkPacket::reset() {
+		if (data != nullptr) {
+			delete data;
+			data = nullptr;
+		}
+
 		packet.clear();
 
 		free_multi();

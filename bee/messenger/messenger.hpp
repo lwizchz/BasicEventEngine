@@ -21,28 +21,28 @@ namespace bee { namespace messenger {
 	int clear();
 
 	namespace internal {
-		int output_msg(std::shared_ptr<MessageContents>);
-		int print_msg(const std::string&, std::shared_ptr<MessageContents>);
+		int output_msg(const MessageContents&);
+		int print_msg(const std::string&, const MessageContents&);
 		bool should_print(E_OUTPUT, E_MESSAGE);
-		std::exception_ptr call_recipients(std::shared_ptr<MessageContents>);
-		std::exception_ptr handle_recipient(std::shared_ptr<MessageRecipient>, std::shared_ptr<MessageContents>);
+		std::exception_ptr call_recipients(const MessageContents&);
+		std::exception_ptr handle_recipient(const MessageRecipient&, const MessageContents&);
 
-		int register_protected(std::shared_ptr<MessageRecipient>);
-		std::shared_ptr<MessageRecipient> register_protected(std::string, const std::vector<std::string>&, bool, std::function<void (std::shared_ptr<MessageContents>)>);
-		int unregister_protected(std::shared_ptr<MessageRecipient>);
-		int send_urgent(std::shared_ptr<MessageContents>);
+		int register_protected(const MessageRecipient&);
+		int register_protected(const std::string&, const std::vector<std::string>&, bool, std::function<void (const MessageContents&)>);
+		int unregister_protected(const std::string&);
+		int send_urgent(const MessageContents&);
+		int send_urgent(const std::vector<std::string>&, E_MESSAGE, const std::string&, std::shared_ptr<void>);
 
-		int remove_messages(std::function<bool (std::shared_ptr<MessageContents>)>);
+		int remove_messages(std::function<bool (const MessageContents&)>);
 	}
 
-	int register_recipient(std::shared_ptr<MessageRecipient>);
-	std::shared_ptr<MessageRecipient> register_recipient(std::string, const std::vector<std::string>&, bool, std::function<void (std::shared_ptr<MessageContents>)>);
-	std::shared_ptr<MessageRecipient> register_recipient(const std::vector<std::string>&, std::function<void (std::shared_ptr<MessageContents>)>);
-	int unregister(std::shared_ptr<MessageRecipient>);
-	int unregister_name(const std::string&);
+	int register_recipient(const MessageRecipient&);
+	int register_recipient(const std::string&, const std::vector<std::string>&, bool, std::function<void (const MessageContents&)>);
+	int register_recipient(const std::vector<std::string>&, std::function<void (const MessageContents&)>);
+	int unregister(const std::string&);
 	int unregister_all();
 
-	int send(std::shared_ptr<MessageContents>);
+	int send(const MessageContents&);
 	int send(const std::vector<std::string>&, E_MESSAGE, const std::string&, std::shared_ptr<void>);
 	int send(const std::vector<std::string>&, E_MESSAGE, const std::string&);
 	int log(const std::string&);

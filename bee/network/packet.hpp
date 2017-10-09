@@ -46,6 +46,7 @@ namespace bee {
 		NetworkPacket(Uint8, NetworkData*);
 		NetworkPacket(Uint8, E_NETSIG1, E_NETSIG2);
 		NetworkPacket(Uint8, E_NETSIG1, E_NETSIG2, std::vector<Uint8>);
+		NetworkPacket(const NetworkPacket&);
 		NetworkPacket(UDPpacket*);
 		~NetworkPacket();
 		int reset();

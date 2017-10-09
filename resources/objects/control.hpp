@@ -81,39 +81,39 @@ void ObjControl::create(bee::Instance* self) {
 		(*s)["part_system"] = part_system;
 	}
 
-	bee::console::add_keybind(SDLK_RETURN, bee::KeyBind("RoomRestart"), [] (std::shared_ptr<bee::MessageContents> msg) {
+	bee::console::add_keybind(SDLK_RETURN, bee::KeyBind("RoomRestart"), [] (const bee::MessageContents& msg) {
 		bee::set_transition_type(static_cast<bee::E_TRANSITION>(static_cast<int>(bee::get_transition_type())+1));
 		bee::restart_room();
 	});
 
-	bee::console::add_keybind(SDLK_w, bee::KeyBind("MoveForward", true), [this] (std::shared_ptr<bee::MessageContents> msg) {
+	bee::console::add_keybind(SDLK_w, bee::KeyBind("MoveForward", true), [this] (const bee::MessageContents& msg) {
 		(*s)["camz"] += (*s)["camspeed"];
 	});
-	bee::console::add_keybind(SDLK_s, bee::KeyBind("MoveBackward", true), [this] (std::shared_ptr<bee::MessageContents> msg) {
+	bee::console::add_keybind(SDLK_s, bee::KeyBind("MoveBackward", true), [this] (const bee::MessageContents& msg) {
 		(*s)["camz"] -= (*s)["camspeed"];
 	});
-	bee::console::add_keybind(SDLK_a, bee::KeyBind("MoveLeft", true), [this] (std::shared_ptr<bee::MessageContents> msg) {
+	bee::console::add_keybind(SDLK_a, bee::KeyBind("MoveLeft", true), [this] (const bee::MessageContents& msg) {
 		(*s)["camx"] -= (*s)["camspeed"];
 	});
-	bee::console::add_keybind(SDLK_d, bee::KeyBind("MoveRight", true), [this] (std::shared_ptr<bee::MessageContents> msg) {
+	bee::console::add_keybind(SDLK_d, bee::KeyBind("MoveRight", true), [this] (const bee::MessageContents& msg) {
 		(*s)["camx"] += (*s)["camspeed"];
 	});
-	bee::console::add_keybind(SDLK_q, bee::KeyBind("MoveDown", true), [this] (std::shared_ptr<bee::MessageContents> msg) {
+	bee::console::add_keybind(SDLK_q, bee::KeyBind("MoveDown", true), [this] (const bee::MessageContents& msg) {
 		(*s)["camy"] += (*s)["camspeed"];
 	});
-	bee::console::add_keybind(SDLK_e, bee::KeyBind("MoveUp", true), [this] (std::shared_ptr<bee::MessageContents> msg) {
+	bee::console::add_keybind(SDLK_e, bee::KeyBind("MoveUp", true), [this] (const bee::MessageContents& msg) {
 		(*s)["camy"] -= (*s)["camspeed"];
 	});
 
 
-	bee::console::add_keybind(SDLK_z, bee::KeyBind("NetworkStartSession"), [] (std::shared_ptr<bee::MessageContents> msg) {
+	bee::console::add_keybind(SDLK_z, bee::KeyBind("NetworkStartSession"), [] (const bee::MessageContents& msg) {
 		bee::net::session_start("test_session", 4, "hostplayer");
 	});
-	bee::console::add_keybind(SDLK_x, bee::KeyBind("NetworkJoinSession"), [] (std::shared_ptr<bee::MessageContents> msg) {
+	bee::console::add_keybind(SDLK_x, bee::KeyBind("NetworkJoinSession"), [] (const bee::MessageContents& msg) {
 		//bee::net::session_join("127.0.0.1", "clientplayer");
 		bee::net::session_join("192.168.1.155", "clientplayer");
 	});
-	bee::console::add_keybind(SDLK_c, bee::KeyBind("NetworkFindSessions"), [] (std::shared_ptr<bee::MessageContents> msg) {
+	bee::console::add_keybind(SDLK_c, bee::KeyBind("NetworkFindSessions"), [] (const bee::MessageContents& msg) {
 		const std::map<std::string,std::string>& servers = bee::net::session_find();
 		if (!servers.empty()) {
 			std::cerr << "Available servers:\n";
@@ -125,7 +125,7 @@ void ObjControl::create(bee::Instance* self) {
 		}
 	});
 
-	bee::console::add_keybind(SDLK_1, bee::KeyBind("StartSound"), [] (std::shared_ptr<bee::MessageContents> msg) {
+	bee::console::add_keybind(SDLK_1, bee::KeyBind("StartSound"), [] (const bee::MessageContents& msg) {
 		snd_chirp->effect_set(static_cast<int>(bee::E_SOUNDEFFECT::NONE));
 
 		if (snd_chirp->get_is_playing()) {
@@ -134,16 +134,16 @@ void ObjControl::create(bee::Instance* self) {
 			snd_chirp->play();
 		}
 	});
-	bee::console::add_keybind(SDLK_2, bee::KeyBind("StartSoundEcho"), [] (std::shared_ptr<bee::MessageContents> msg) {
+	bee::console::add_keybind(SDLK_2, bee::KeyBind("StartSoundEcho"), [] (const bee::MessageContents& msg) {
 		snd_chirp->stop();
 		snd_chirp->effect_set(static_cast<int>(bee::E_SOUNDEFFECT::ECHO));
 		snd_chirp->play();
 	});
 
-	bee::console::add_keybind(SDLK_n, bee::KeyBind("Start3D"), [] (std::shared_ptr<bee::MessageContents> msg) {
+	bee::console::add_keybind(SDLK_n, bee::KeyBind("Start3D"), [] (const bee::MessageContents& msg) {
 		bee::render_set_3d(true);
 	});
-	bee::console::add_keybind(SDLK_m, bee::KeyBind("End3D"), [] (std::shared_ptr<bee::MessageContents> msg) {
+	bee::console::add_keybind(SDLK_m, bee::KeyBind("End3D"), [] (const bee::MessageContents& msg) {
 		bee::render_set_3d(false);
 	});
 }

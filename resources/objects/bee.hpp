@@ -45,8 +45,7 @@ void ObjBee::create(bee::Instance* self) {
 	if (self == obj_bee->get_instance(0)) {
 		(*s)["serialdata"] = self->serialize();
 
-		//bee::console::add_keybind(SDLK_y, bee::KeyBind("StartPath"), [this, self] (std::shared_ptr<bee::MessageContents> msg) {
-		bee::console::add_keybind(SDLK_y, bee::KeyBind("StartPath"), [this, self] (std::shared_ptr<bee::MessageContents> msg) mutable {
+		bee::console::add_keybind(SDLK_y, bee::KeyBind("StartPath"), [this, self] (const bee::MessageContents& msg) mutable {
 			self = obj_bee->get_instance(0);
 			s = &self->get_data();
 
@@ -55,16 +54,14 @@ void ObjBee::create(bee::Instance* self) {
 			self->set_path_drawn(true);
 		});
 
-		//bee::console::add_keybind(SDLK_b, bee::KeyBind("StartSerialize"), [this, self] (std::shared_ptr<bee::MessageContents> msg) {
-		bee::console::add_keybind(SDLK_b, bee::KeyBind("StartSerialize"), [this, self] (std::shared_ptr<bee::MessageContents> msg) mutable {
+		bee::console::add_keybind(SDLK_b, bee::KeyBind("StartSerialize"), [this, self] (const bee::MessageContents& msg) mutable {
 			self = obj_bee->get_instance(0);
 			s = &self->get_data();
 
 			bee::messenger::send({"bee"}, bee::E_MESSAGE::INFO, self->serialize(true));
 			(*s)["serialdata"] = self->serialize();
 		});
-		//bee::console::add_keybind(SDLK_v, bee::KeyBind("StartDeserialize"), [this, self] (std::shared_ptr<bee::MessageContents> msg) {
-		bee::console::add_keybind(SDLK_v, bee::KeyBind("StartDeserialize"), [this, self] (std::shared_ptr<bee::MessageContents> msg) mutable {
+		bee::console::add_keybind(SDLK_v, bee::KeyBind("StartDeserialize"), [this, self] (const bee::MessageContents& msg) mutable {
 			self = obj_bee->get_instance(0);
 			s = &self->get_data();
 

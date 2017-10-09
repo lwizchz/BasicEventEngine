@@ -47,7 +47,7 @@ namespace bee{ namespace console {
 	namespace internal {
 		bool is_open = false;
 
-		std::unordered_map<std::string,std::pair<std::string,std::function<void (std::shared_ptr<MessageContents>)>>> commands;
+		std::unordered_map<std::string,std::pair<std::string,std::function<void (const MessageContents&)>>> commands;
 		std::unordered_map<std::string,std::string> aliases;
 		std::unordered_map<std::string,SIDP> variables;
 
@@ -158,8 +158,8 @@ namespace bee{ namespace console {
 		line_height = engine->font_default->get_string_height(); // Store the default drawing line height for later console drawing operations
 
 		// Register the console logger
-		messenger::internal::register_protected("consolelog", {"engine", "console"}, true, [] (std::shared_ptr<MessageContents> msg) {
-			log << msg->descr << "\n";
+		messenger::internal::register_protected("consolelog", {"engine", "console"}, true, [] (const MessageContents& msg) {
+			log << msg.descr << "\n";
 		});
 
 		init_commands();
@@ -328,21 +328,20 @@ namespace bee{ namespace console {
 		}
 
 		if (is_urgent) { // If the command is urgent, send it immediately
-			messenger::internal::send_urgent(std::shared_ptr<MessageContents>(new MessageContents(
-				get_ticks()+delay,
+			messenger::internal::send_urgent(
 				{"engine", "console", SIDP_s(params[0])},
 				E_MESSAGE::GENERAL,
 				c,
 				nullptr
-			)));
+			);
 		} else { // Otherwise, send it normally
-			messenger::send(std::shared_ptr<MessageContents>(new MessageContents(
+			messenger::send(MessageContents(
 				get_ticks()+delay,
 				{"engine", "console", SIDP_s(params[0])},
 				E_MESSAGE::GENERAL,
 				c,
 				nullptr
-			)));
+			));
 		}
 
 		return 0; // Return 0 on success
@@ -549,7 +548,7 @@ namespace bee{ namespace console {
 	* @descr: the command description that will be displayed when the user runs `help command_name` in this console subsystem
 	* @func: the function to call that will handle the command
 	*/
-	int add_command(const std::string& command, const std::string& descr, std::function<void (std::shared_ptr<MessageContents>)> func) {
+	int add_command(const std::string& command, const std::string& descr, std::function<void (const MessageContents&)> func) {
 		if (internal::commands.find(command) != internal::commands.end()) { // If the command already exists, then output a warning
 			messenger::send({"engine", "console"}, E_MESSAGE::WARNING, "Failed to register new command \"" + command + "\", the command name is already in use.");
 			return 1; // Return 1 on command existence
@@ -567,7 +566,7 @@ namespace bee{ namespace console {
 	* @command: the command name to handle
 	* @func: the function to call that will handle the command
 	*/
-	int add_command(const std::string& command, std::function<void (std::shared_ptr<MessageContents>)> func) {
+	int add_command(const std::string& command, std::function<void (const MessageContents&)> func) {
 		return add_command(command, "", func);
 	}
 
@@ -595,7 +594,7 @@ namespace bee{ namespace console {
 	* @keybind: the keybind to add
 	* @func: the function to add as a command
 	*/
-	int add_keybind(SDL_Keycode key, KeyBind keybind, std::function<void (std::shared_ptr<MessageContents>)> func) {
+	int add_keybind(SDL_Keycode key, KeyBind keybind, std::function<void (const MessageContents&)> func) {
 		int r = add_command(keybind.command, func);
 		r += bind(key, keybind);
 		return r;
@@ -637,7 +636,7 @@ namespace bee{ namespace console {
 			}
 		}
 
-		messenger::send({"engine", "console"}, E_MESSAGE::WARNING, "Failed to unbind keybinding for \"" + keybind.command + "\": no key found");
+		//messenger::send({"engine", "console"}, E_MESSAGE::WARNING, "Failed to unbind keybinding for \"" + keybind.command + "\": no key found");
 
 		return 1;
 	}

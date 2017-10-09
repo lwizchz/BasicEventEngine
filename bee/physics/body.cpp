@@ -54,10 +54,44 @@ namespace bee {
 
 		btRigidBody::btRigidBodyConstructionInfo rb_info (btScalar(mass), motion_state, shape, get_inertia());
 		rb_info.m_friction = btScalar(friction);
-
 		body = new btRigidBody(rb_info);
 
 		body->setSleepingThresholds(body->getLinearSleepingThreshold()/btScalar(scale), body->getAngularSleepingThreshold());
+	}
+	PhysicsBody::PhysicsBody(const PhysicsBody& other) :
+		type(other.type),
+		shape(nullptr),
+		shape_param_amount(other.shape_param_amount),
+		shape_params(nullptr),
+
+		motion_state(nullptr),
+		body(nullptr),
+
+		attached_world(other.attached_world),
+		attached_instance(other.attached_instance),
+		constraints(),
+
+		scale(other.scale),
+		mass(other.mass),
+		friction(other.friction)
+	{
+		double* p = new double[shape_param_amount];
+		for (size_t i=0; i<shape_param_amount; ++i) {
+			p[i] = other.shape_params[i];
+		}
+		set_shape(type, p);
+
+		motion_state = new btDefaultMotionState(*other.motion_state);
+
+		btRigidBody::btRigidBodyConstructionInfo rb_info (btScalar(mass), motion_state, shape, get_inertia());
+		rb_info.m_friction = btScalar(friction);
+		body = new btRigidBody(rb_info);
+
+		body->setSleepingThresholds(body->getLinearSleepingThreshold()/btScalar(scale), body->getAngularSleepingThreshold());
+
+		for (auto& c : other.constraints) {
+			this->add_constraint(std::get<0>(c), std::get<1>(c));
+		}
 	}
 	PhysicsBody::~PhysicsBody() {
 		delete motion_state;
@@ -72,6 +106,48 @@ namespace bee {
 		}
 
 		delete shape;
+	}
+
+	PhysicsBody& PhysicsBody::operator=(const PhysicsBody& rhs) {
+		if (this != &rhs) {
+			this->type = rhs.type;
+			if (this->shape != nullptr) {
+				delete shape;
+				this->shape = nullptr;
+			}
+			this->shape_param_amount = rhs.shape_param_amount;
+			if (shape_params != nullptr) {
+				delete[] shape_params;
+				shape_params = nullptr;
+			}
+
+			double* p = new double[shape_param_amount];
+			for (size_t i=0; i<shape_param_amount; ++i) {
+				p[i] = rhs.shape_params[i];
+			}
+			this->set_shape(this->type, p);
+
+			this->scale = rhs.scale;
+			this->mass = rhs.mass;
+			this->friction = rhs.friction;
+
+			this->motion_state = new btDefaultMotionState(*rhs.motion_state);
+
+			btRigidBody::btRigidBodyConstructionInfo rb_info (btScalar(this->mass), this->motion_state, this->shape, this->get_inertia());
+			rb_info.m_friction = btScalar(this->friction);
+			this->body = new btRigidBody(rb_info);
+
+			this->body->setSleepingThresholds(this->body->getLinearSleepingThreshold()/btScalar(this->scale), this->body->getAngularSleepingThreshold());
+
+			this->attached_world = rhs.attached_world;
+			this->attached_instance = rhs.attached_instance;
+			this->constraints.clear();
+
+			for (auto& c : rhs.constraints) {
+				this->add_constraint(std::get<0>(c), std::get<1>(c));
+			}
+		}
+		return *this;
 	}
 
 	std::string PhysicsBody::serialize(bool should_pretty_print) const {

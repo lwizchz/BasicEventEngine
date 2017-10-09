@@ -76,6 +76,11 @@ namespace bee {
 	{
 		init(new_id, new_object, new_x, new_y, new_z);
 	}
+	Instance::Instance(const Instance& other) :
+		Instance(other.id, other.object, other.get_x(), other.get_y(), other.get_z())
+	{
+		this->data = other.data;
+	}
 	Instance::~Instance() {
 		delete body;
 		data.clear();
@@ -146,11 +151,19 @@ namespace bee {
 		return 0;
 	}
 
-	bool Instance::operator< (const Instance& other) const {
-		if (depth == other.depth) {
-			return (id < other.id);
+	bool Instance::operator<(const Instance& rhs) const {
+		if (depth == rhs.depth) {
+			return (id < rhs.id);
 		}
-		return (depth > other.depth);
+		return (depth > rhs.depth);
+	}
+	Instance& Instance::operator=(const Instance& rhs) {
+		if (this != &rhs) {
+			btVector3 pos = rhs.get_position();
+			this->init(rhs.id, rhs.object, pos.x(), pos.y(), pos.z());
+			this->data = rhs.data;
+		}
+		return *this;
 	}
 
 	std::string Instance::serialize(bool should_pretty_print) const {

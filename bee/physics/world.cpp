@@ -122,54 +122,107 @@ namespace bee {
 
 		return 0;
 	}
+	/*
+	* add_constraint() - Add a constraint of the given type to the body with the given parameters
+	* ! See http://bulletphysics.org/mediawiki-1.5.8/index.php/Constraints for more information
+	* @type: the constraint type
+	* @body: the body to constrain
+	* @p: the constraint parameters
+	*/
 	int PhysicsWorld::add_constraint(E_PHYS_CONSTRAINT type, PhysicsBody* body, double* p) {
 		btTypedConstraint* constraint = nullptr;
+
+		btScalar s = 2.0*scale;
 
 		bool should_disable_collisions = false;
 		switch (type) {
 			case E_PHYS_CONSTRAINT::POINT: {
-				btPoint2PointConstraint* c = new btPoint2PointConstraint(*(body->get_body()), btVector3(btScalar(p[0]), btScalar(p[1]), btScalar(p[2])));
+				/*
+				* p[0], p[1], p[2]: the relative coordinates of the pivot in the body
+				*/
+				btPoint2PointConstraint* c = new btPoint2PointConstraint(
+					*(body->get_body()),
+					btVector3(btScalar(p[0]), btScalar(p[1]), btScalar(p[2])) / s
+				);
 				world->addConstraint(c, should_disable_collisions);
 
 				constraint = c;
 				break;
 			}
 			case E_PHYS_CONSTRAINT::HINGE: {
-				btHingeConstraint* c = new btHingeConstraint(*(body->get_body()), btVector3(btScalar(p[0]), btScalar(p[1]), btScalar(p[2])), btVector3(btScalar(p[3]), btScalar(p[4]), btScalar(p[5])));
+				/*
+				* p[0], p[1], p[2]: the relative coordinates of the pivot axis in the body
+				* p[3], p[4], p[5]: the direction of the pivot axis relative to the body
+				*/
+				btHingeConstraint* c = new btHingeConstraint(
+					*(body->get_body()),
+					btVector3(btScalar(p[0]), btScalar(p[1]), btScalar(p[2])) / s,
+					btVector3(btScalar(p[3]), btScalar(p[4]), btScalar(p[5])) / s
+				);
 				world->addConstraint(c, should_disable_collisions);
 
 				constraint = c;
 				break;
 			}
 			case E_PHYS_CONSTRAINT::SLIDER: {
+				/*
+				* p[0]: the lower limit of linear motion
+				* p[1]: the upper limit of linear motion
+				* p[2]: the lower limit of angular motion
+				* p[3]: the upper limit of angular motion
+				*/
 				btSliderConstraint* c = new btSliderConstraint(*(body->get_body()), btTransform::getIdentity(), true);
 				world->addConstraint(c, should_disable_collisions);
 
-				c->setLowerLinLimit(btScalar(p[0]));
-				c->setUpperLinLimit(btScalar(p[1]));
-				c->setLowerAngLimit(btScalar(p[2]));
-				c->setUpperAngLimit(btScalar(p[3]));
+				c->setLowerLinLimit(btScalar(p[0]) / s);
+				c->setUpperLinLimit(btScalar(p[1]) / s);
+				c->setLowerAngLimit(btScalar(p[2]) / s);
+				c->setUpperAngLimit(btScalar(p[3]) / s);
 
 				constraint = c;
 				break;
 			}
 			case E_PHYS_CONSTRAINT::CONE: {
+				/*
+				* p[0], p[1]: the swing spans of the cone's rotation for the y- and z-axes (given that the x-axis is along the cone's height)
+				* p[2]: the twist span of the x-axis
+				* p[3]: the softness
+				* p[4]: the bias factor
+				* p[5]: the relaxation factor
+				*/
 				btConeTwistConstraint* c = new btConeTwistConstraint(*(body->get_body()), btTransform::getIdentity());
 				world->addConstraint(c, should_disable_collisions);
 
-				c->setLimit(btScalar(p[0]), btScalar(p[1]), btScalar(p[2]), btScalar(p[3]));
+				c->setLimit(
+					btScalar(p[0]) / s, btScalar(p[1]) / s,
+					btScalar(p[2]) / s,
+					btScalar(p[3]) / s,
+					btScalar(p[4]) / s,
+					btScalar(p[5]) / s
+				);
 
 				constraint = c;
 				break;
 			}
 			case E_PHYS_CONSTRAINT::SIXDOF: {
+				/*
+				* p[0], p[1], p[2]: the lower limit of linear motion
+				* p[3], p[4], p[5]: the upper limit of linear motion
+				* p[6], p[7], p[8]: the lower limit of angular motion
+				* p[9], p[10], p[11]: the upper limit of angular motion
+				*
+				* On all 6dof constraints, if:
+				*   lower_limit == upper_limit: the axis is locked
+				*   lower_limit < upper_limit: the axis is limited to that range
+				*   lower_limit > upper_limit: the axis is free
+				*/
 				btGeneric6DofConstraint* c = new btGeneric6DofConstraint(*(body->get_body()), btTransform::getIdentity(), true);
 				world->addConstraint(c, should_disable_collisions);
 
-				c->setLinearLowerLimit(btVector3(btScalar(p[0]), btScalar(p[1]), btScalar(p[2])));
-				c->setLinearUpperLimit(btVector3(btScalar(p[3]), btScalar(p[4]), btScalar(p[5])));
-				c->setAngularLowerLimit(btVector3(btScalar(p[6]), btScalar(p[7]), btScalar(p[8])));
-				c->setAngularUpperLimit(btVector3(btScalar(p[9]), btScalar(p[10]), btScalar(p[11])));
+				c->setLinearLowerLimit(btVector3(btScalar(p[0]), btScalar(p[1]), btScalar(p[2])) / s);
+				c->setLinearUpperLimit(btVector3(btScalar(p[3]), btScalar(p[4]), btScalar(p[5])) / s);
+				c->setAngularLowerLimit(btVector3(btScalar(p[6]), btScalar(p[7]), btScalar(p[8])) / s);
+				c->setAngularUpperLimit(btVector3(btScalar(p[9]), btScalar(p[10]), btScalar(p[11])) / s);
 
 				constraint = c;
 				break;
@@ -190,9 +243,9 @@ namespace bee {
 				btGeneric6DofConstraint* c = new btGeneric6DofConstraint(*(body->get_body()), btTransform::getIdentity(), true);
 				world->addConstraint(c, should_disable_collisions);
 
-				c->setLinearLowerLimit(btVector3(1, 1, 0));
+				c->setLinearLowerLimit(btVector3(1, 1, 0) / s);
 				c->setLinearUpperLimit(btVector3(0, 0, 0));
-				c->setAngularLowerLimit(btVector3(0, 0, 1));
+				c->setAngularLowerLimit(btVector3(0, 0, 1) / s);
 				c->setAngularUpperLimit(btVector3(0, 0, 0));
 
 				constraint = c;
@@ -202,7 +255,7 @@ namespace bee {
 				btGeneric6DofConstraint* c = new btGeneric6DofConstraint(*(body->get_body()), btTransform::getIdentity(), true);
 				world->addConstraint(c, should_disable_collisions);
 
-				c->setLinearLowerLimit(btVector3(1, 1, 0));
+				c->setLinearLowerLimit(btVector3(1, 1, 0) / s);
 				c->setLinearUpperLimit(btVector3(0, 0, 0));
 				c->setAngularLowerLimit(btVector3(0, 0, 0));
 				c->setAngularUpperLimit(btVector3(0, 0, 0));
@@ -220,67 +273,146 @@ namespace bee {
 
 		return 0;
 	}
+	/*
+	* add_constraint() - Add a constraint of the given type between the bodies with the given parameters
+	* ! See http://bulletphysics.org/mediawiki-1.5.8/index.php/Constraints for more information
+	* @type: the constraint type
+	* @body1: the first body to constrain
+	* @body2: the second body to constrain
+	* @p: the constraint parameters
+	*/
 	int PhysicsWorld::add_constraint(E_PHYS_CONSTRAINT type, PhysicsBody* body1, PhysicsBody* body2, double* p) {
 		btTypedConstraint* constraint = nullptr;
+
+		btScalar s = 2.0*scale;
 
 		bool should_disable_collisions = false;
 		switch (type) {
 			case E_PHYS_CONSTRAINT::POINT: {
-				btPoint2PointConstraint* c = new btPoint2PointConstraint(*(body1->get_body()), *(body2->get_body()), btVector3(btScalar(p[0]), btScalar(p[1]), btScalar(p[2])), btVector3(btScalar(p[3]), btScalar(p[4]), btScalar(p[5])));
+				/*
+				* p[0], p[1], p[2]: the relative coordinates of the pivot in body1
+				* p[3], p[4], p[5]: the relative coordinates of the pivot in body2
+				*/
+				btPoint2PointConstraint* c = new btPoint2PointConstraint(
+					*(body1->get_body()), *(body2->get_body()),
+					btVector3(btScalar(p[0]), btScalar(p[1]), btScalar(p[2])) / s,
+					btVector3(btScalar(p[3]), btScalar(p[4]), btScalar(p[5])) / s
+				);
 				world->addConstraint(c, should_disable_collisions);
 
 				constraint = c;
 				break;
 			}
 			case E_PHYS_CONSTRAINT::HINGE: {
-				btHingeConstraint* c = new btHingeConstraint(*(body1->get_body()), *(body2->get_body()), btVector3(btScalar(p[0]), btScalar(p[1]), btScalar(p[2])), btVector3(btScalar(p[3]), btScalar(p[4]), btScalar(p[5])), btVector3(btScalar(p[6]), btScalar(p[7]), btScalar(p[8])), btVector3(btScalar(p[9]), btScalar(p[10]), btScalar(p[11])));
+				/*
+				* p[0], p[1], p[2]: the relative coordinates of the pivot in body1
+				* p[3], p[4], p[5]: the relative coordinates of the pivot in body2
+				* p[6], p[7], p[8]: the direction of the pivot axis relative to body1
+				* p[9], p[10], p[11]: the direction of the pivot axis relative to body2
+				*/
+				btHingeConstraint* c = new btHingeConstraint(
+					*(body1->get_body()), *(body2->get_body()),
+					btVector3(btScalar(p[0]), btScalar(p[1]), btScalar(p[2])) / s,
+					btVector3(btScalar(p[3]), btScalar(p[4]), btScalar(p[5])) / s,
+					btVector3(btScalar(p[6]), btScalar(p[7]), btScalar(p[8])) / s,
+					btVector3(btScalar(p[9]), btScalar(p[10]), btScalar(p[11])) / s
+				);
 				world->addConstraint(c, should_disable_collisions);
 
 				constraint = c;
 				break;
 			}
 			case E_PHYS_CONSTRAINT::SLIDER: {
-				btSliderConstraint* c = new btSliderConstraint(*(body1->get_body()), *(body2->get_body()), btTransform::getIdentity(), btTransform::getIdentity(), true);
+				/*
+				* p[0]: the lower limit of linear motion
+				* p[1]: the upper limit of linear motion
+				* p[2]: the lower limit of angular motion
+				* p[3]: the upper limit of angular motion
+				*/
+				btSliderConstraint* c = new btSliderConstraint(
+					*(body1->get_body()), *(body2->get_body()),
+					btTransform::getIdentity(), btTransform::getIdentity(),
+					true
+				);
 				world->addConstraint(c, should_disable_collisions);
 
-				c->setLowerLinLimit(btScalar(p[0]));
-				c->setUpperLinLimit(btScalar(p[1]));
-				c->setLowerAngLimit(btScalar(p[2]));
-				c->setUpperAngLimit(btScalar(p[3]));
+				c->setLowerLinLimit(btScalar(p[0]) / s);
+				c->setUpperLinLimit(btScalar(p[1]) / s);
+				c->setLowerAngLimit(btScalar(p[2]) / s);
+				c->setUpperAngLimit(btScalar(p[3]) / s);
 
 				constraint = c;
 				break;
 			}
 			case E_PHYS_CONSTRAINT::CONE: {
-				btConeTwistConstraint* c = new btConeTwistConstraint(*(body1->get_body()), *(body2->get_body()), btTransform::getIdentity(), btTransform::getIdentity());
+				/*
+				* p[0], p[1]: the swing spans of the cone's rotation for the y- and z-axes (given that the x-axis is along the cone's height)
+				* p[2]: the twist span of the x-axis
+				* p[3]: the softness
+				* p[4]: the bias factor
+				* p[5]: the relaxation factor
+				*/
+				btConeTwistConstraint* c = new btConeTwistConstraint(
+					*(body1->get_body()), *(body2->get_body()),
+					btTransform::getIdentity(), btTransform::getIdentity()
+				);
 				world->addConstraint(c, should_disable_collisions);
 
-				c->setLimit(btScalar(p[0]), btScalar(p[1]), btScalar(p[2]), btScalar(p[3]));
+				c->setLimit(
+					btScalar(p[0]) / s, btScalar(p[1]) / s,
+					btScalar(p[2]) / s,
+					btScalar(p[3]) / s,
+					btScalar(p[4]) / s,
+					btScalar(p[5]) / s
+				);
 
 				constraint = c;
 				break;
 			}
 			case E_PHYS_CONSTRAINT::SIXDOF: {
-				btGeneric6DofConstraint* c = new btGeneric6DofConstraint(*(body1->get_body()), *(body2->get_body()), btTransform::getIdentity(), btTransform::getIdentity(), true);
+				/*
+				* p[0], p[1], p[2]: the lower limit of linear motion
+				* p[3], p[4], p[5]: the upper limit of linear motion
+				* p[6], p[7], p[8]: the lower limit of angular motion
+				* p[9], p[10], p[11]: the upper limit of angular motion
+				*
+				* On all 6dof constraints, if:
+				*   lower_limit == upper_limit: the axis is locked
+				*   lower_limit < upper_limit: the axis is limited to that range
+				*   lower_limit > upper_limit: the axis is free
+				*/
+				btGeneric6DofConstraint* c = new btGeneric6DofConstraint(
+					*(body1->get_body()), *(body2->get_body()),
+					btTransform::getIdentity(), btTransform::getIdentity(),
+					true
+				);
 				world->addConstraint(c, should_disable_collisions);
 
-				c->setLinearLowerLimit(btVector3(btScalar(p[0]), btScalar(p[1]), btScalar(p[2])));
-				c->setLinearUpperLimit(btVector3(btScalar(p[3]), btScalar(p[4]), btScalar(p[5])));
-				c->setAngularLowerLimit(btVector3(btScalar(p[6]), btScalar(p[7]), btScalar(p[8])));
-				c->setAngularUpperLimit(btVector3(btScalar(p[9]), btScalar(p[10]), btScalar(p[11])));
+				c->setLinearLowerLimit(btVector3(btScalar(p[0]), btScalar(p[1]), btScalar(p[2])) / s);
+				c->setLinearUpperLimit(btVector3(btScalar(p[3]), btScalar(p[4]), btScalar(p[5])) / s);
+				c->setAngularLowerLimit(btVector3(btScalar(p[6]), btScalar(p[7]), btScalar(p[8])) / s);
+				c->setAngularUpperLimit(btVector3(btScalar(p[9]), btScalar(p[10]), btScalar(p[11])) / s);
 
 				constraint = c;
 				break;
 			}
 			case E_PHYS_CONSTRAINT::FIXED: {
-				btGeneric6DofConstraint* c = new btGeneric6DofConstraint(*(body1->get_body()), *(body2->get_body()), btTransform::getIdentity(), btTransform::getIdentity(), true);
+				btGeneric6DofConstraint* c = new btGeneric6DofConstraint(
+					*(body1->get_body()), *(body2->get_body()),
+					btTransform::getIdentity(), btTransform::getIdentity(),
+					true
+				);
 				world->addConstraint(c, should_disable_collisions);
 
 				constraint = c;
 				break;
 			}
 			case E_PHYS_CONSTRAINT::FLAT: {
-				btGeneric6DofConstraint* c = new btGeneric6DofConstraint(*(body1->get_body()), *(body2->get_body()), btTransform::getIdentity(), btTransform::getIdentity(), true);
+				btGeneric6DofConstraint* c = new btGeneric6DofConstraint(
+					*(body1->get_body()), *(body2->get_body()),
+					btTransform::getIdentity(), btTransform::getIdentity(),
+					true
+				);
 				world->addConstraint(c, should_disable_collisions);
 
 				c->setLinearLowerLimit(btVector3(1, 1, 0));
@@ -292,7 +424,11 @@ namespace bee {
 				break;
 			}
 			case E_PHYS_CONSTRAINT::TILE: {
-				btGeneric6DofConstraint* c = new btGeneric6DofConstraint(*(body1->get_body()), *(body2->get_body()), btTransform::getIdentity(), btTransform::getIdentity(), true);
+				btGeneric6DofConstraint* c = new btGeneric6DofConstraint(
+					*(body1->get_body()), *(body2->get_body()),
+					btTransform::getIdentity(), btTransform::getIdentity(),
+					true
+				);
 				world->addConstraint(c, should_disable_collisions);
 
 				c->setLinearLowerLimit(btVector3(1, 1, 0));

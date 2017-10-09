@@ -34,7 +34,7 @@ namespace bee{ namespace console {
 		add_command(
 			"quit",
 			"End the game",
-			[] (std::shared_ptr<MessageContents> msg) {
+			[] (const MessageContents& msg) {
 				messenger::send({"engine", "console"}, E_MESSAGE::INFO, "Quitting...");
 				set_transition_type(E_TRANSITION::NONE);
 				end_game();
@@ -49,8 +49,8 @@ namespace bee{ namespace console {
 		add_command(
 			"help",
 			"Show help text for specified commands",
-			[] (std::shared_ptr<MessageContents> msg) {
-				std::vector<SIDP> params = parse_parameters(msg->descr); // Parse the parameters from the given command
+			[] (const MessageContents& msg) {
+				std::vector<SIDP> params = parse_parameters(msg.descr); // Parse the parameters from the given command
 
 				if (params.size() > 1) { // If a specific command was specified, output its entire help text
 					messenger::send({"engine", "console"}, E_MESSAGE::INFO, "Command help for \"" + SIDP_s(params[1]) + "\":\n" + get_help(SIDP_s(params[1])));
@@ -97,8 +97,8 @@ namespace bee{ namespace console {
 		add_command(
 			"find",
 			"Output all commands which match a certain string",
-			[] (std::shared_ptr<MessageContents> msg) {
-				std::vector<SIDP> params = parse_parameters(msg->descr); // Parse the parameters from the given command
+			[] (const MessageContents& msg) {
+				std::vector<SIDP> params = parse_parameters(msg.descr); // Parse the parameters from the given command
 
 				std::string commands = "";
 				std::string search = SIDP_s(params[1]);
@@ -124,7 +124,7 @@ namespace bee{ namespace console {
 		add_command(
 			"clear",
 			"Clear the console log",
-			[] (std::shared_ptr<MessageContents> msg) {
+			[] (const MessageContents& msg) {
 				// Clear the console log and reset the page index
 				log.str(std::string());
 				log.clear();
@@ -144,8 +144,8 @@ namespace bee{ namespace console {
 			"echo",
 			"Output a string to the console\n"
 			"Primarily useful for config scripts",
-			[] (std::shared_ptr<MessageContents> msg) {
-				std::vector<SIDP> params = parse_parameters(msg->descr); // Parse the parameters from the given command
+			[] (const MessageContents& msg) {
+				std::vector<SIDP> params = parse_parameters(msg.descr); // Parse the parameters from the given command
 
 				std::string output = ""; // Initialize a string to be used as output
 				for (auto it=params.begin()+1; it!= params.end(); ++it) { // Iterate over the arguments
@@ -164,7 +164,7 @@ namespace bee{ namespace console {
 		add_command(
 			"console_open",
 			"Open the console",
-			[] (std::shared_ptr<MessageContents> msg) {
+			[] (const MessageContents& msg) {
 				open();
 			}
 		);
@@ -174,7 +174,7 @@ namespace bee{ namespace console {
 		add_command(
 			"console_close",
 			"Close the console",
-			[] (std::shared_ptr<MessageContents> msg) {
+			[] (const MessageContents& msg) {
 				bee::console::close();
 			}
 		);
@@ -185,7 +185,7 @@ namespace bee{ namespace console {
 			"console_toggle",
 			"Toggle the status of the console\n"
 			"Also see console_open and _close.",
-			[] (std::shared_ptr<MessageContents> msg) {
+			[] (const MessageContents& msg) {
 				toggle();
 			}
 		);
@@ -201,8 +201,8 @@ namespace bee{ namespace console {
 			"alias",
 			"Alias multiple commands to a single command\n"
 			"The aliases can be viewed by omitting the commands",
-			[] (std::shared_ptr<MessageContents> msg) {
-				std::vector<SIDP> params = parse_parameters(msg->descr); // Parse the parameters from the given command
+			[] (const MessageContents& msg) {
+				std::vector<SIDP> params = parse_parameters(msg.descr); // Parse the parameters from the given command
 
 				if (params.size() > 2) {
 					alias(SIDP_s(params[1]), string_unescape(SIDP_s(params[2])));
@@ -233,8 +233,8 @@ namespace bee{ namespace console {
 			"bind",
 			"Bind a key to a command\n"
 			"The binds can be viewed by omitting the commands",
-			[] (std::shared_ptr<MessageContents> msg) {
-				std::vector<SIDP> params = parse_parameters(msg->descr); // Parse the parameters from the given command
+			[] (const MessageContents& msg) {
+				std::vector<SIDP> params = parse_parameters(msg.descr); // Parse the parameters from the given command
 
 				if (params.size() > 2) { // If both a key and command are provided, bind the command to the key
 					SDL_Keycode k (keystrings_get_key(SIDP_s(params[1])));
@@ -255,8 +255,8 @@ namespace bee{ namespace console {
 			"unbind",
 			"Unbind a key from a command\n"
 			"All keys can be unbound by provided \"all\" as the key",
-			[] (std::shared_ptr<MessageContents> msg) {
-				std::vector<SIDP> params = parse_parameters(msg->descr); // Parse the parameters from the given command
+			[] (const MessageContents& msg) {
+				std::vector<SIDP> params = parse_parameters(msg.descr); // Parse the parameters from the given command
 
 				if (params.size() > 1) { // If a key is provided, unbind it from any commands
 					if (SIDP_s(params[1]) == "all") {
@@ -278,8 +278,8 @@ namespace bee{ namespace console {
 			"exec",
 			"Execute the specified config file\n"
 			"No commands from the specified file will be apended to console history",
-			[] (std::shared_ptr<MessageContents> msg) {
-				std::vector<SIDP> params = parse_parameters(msg->descr); // Parse the parameters from the given command
+			[] (const MessageContents& msg) {
+				std::vector<SIDP> params = parse_parameters(msg.descr); // Parse the parameters from the given command
 
 				if (params.size() > 1) { // If a filename is provided, execute it
 					std::string fn = "cfg/"+params[1].to_str(); // Construct the path
@@ -309,8 +309,8 @@ namespace bee{ namespace console {
 			"wait",
 			"Execute the specified command after the given millisecond delay\n"
 			"The given value is the minimum time before the message will be processed",
-			[] (std::shared_ptr<MessageContents> msg) {
-				std::vector<SIDP> params = parse_parameters(msg->descr); // Parse the parameters from the given command
+			[] (const MessageContents& msg) {
+				std::vector<SIDP> params = parse_parameters(msg.descr); // Parse the parameters from the given command
 
 				if (params.size() > 2) { // If both required arguments were provided, execute the command
 					run(string_unescape(SIDP_s(params[2])), true, SIDP_i(params[1]));
@@ -328,10 +328,10 @@ namespace bee{ namespace console {
 			"unwait",
 			"Remove all wait commands from the messaging system\n"
 			"Useful for breaking endless loops",
-			[] (std::shared_ptr<MessageContents> msg) {
+			[] (const MessageContents& msg) {
 				const std::vector<std::string> wait_tags = {"engine", "console", "wait"};
-				messenger::internal::remove_messages([&wait_tags] (std::shared_ptr<MessageContents> m) {
-					return (m->tags == wait_tags);
+				messenger::internal::remove_messages([&wait_tags] (const MessageContents& m) {
+					return (m.tags == wait_tags);
 				});
 			}
 		);
@@ -343,8 +343,8 @@ namespace bee{ namespace console {
 		add_command(
 			"set",
 			"Set a console variable to the given value",
-			[] (std::shared_ptr<MessageContents> msg) {
-				std::vector<SIDP> params = parse_parameters(msg->descr); // Parse the parameters from the given command
+			[] (const MessageContents& msg) {
+				std::vector<SIDP> params = parse_parameters(msg.descr); // Parse the parameters from the given command
 
 				if (params.size() > 2) {
 					set_var(SIDP_s(params[1]), params[2]);
@@ -360,8 +360,8 @@ namespace bee{ namespace console {
 		add_command(
 			"get",
 			"Output the value of a console variable",
-			[] (std::shared_ptr<MessageContents> msg) {
-				std::vector<SIDP> params = parse_parameters(msg->descr); // Parse the parameters from the given command
+			[] (const MessageContents& msg) {
+				std::vector<SIDP> params = parse_parameters(msg.descr); // Parse the parameters from the given command
 
 				if (params.size() > 1) {
 					messenger::send({"engine", "console"}, E_MESSAGE::INFO, get_var(SIDP_s(params[1])).to_str());
@@ -378,8 +378,8 @@ namespace bee{ namespace console {
 		add_command(
 			"screenshot",
 			"Save a screenshot to the given file",
-			[] (std::shared_ptr<MessageContents> msg) {
-				std::vector<SIDP> params = parse_parameters(msg->descr); // Parse the parameters from the given command
+			[] (const MessageContents& msg) {
+				std::vector<SIDP> params = parse_parameters(msg.descr); // Parse the parameters from the given command
 
 				if (params.size() > 1) { // If a filename is provided, then save the screenshot to it
 					save_screenshot(params[1].to_str());
@@ -397,8 +397,8 @@ namespace bee{ namespace console {
 		add_command(
 			"debug",
 			"Enable or disable debug mode",
-			[] (std::shared_ptr<MessageContents> msg) {
-				std::vector<SIDP> params = parse_parameters(msg->descr); // Parse the parameters from the given command
+			[] (const MessageContents& msg) {
+				std::vector<SIDP> params = parse_parameters(msg.descr); // Parse the parameters from the given command
 
 				if (params.size() > 1) {
 					GameOptions o = get_options();
@@ -417,8 +417,8 @@ namespace bee{ namespace console {
 		add_command(
 			"verbosity",
 			"Set the verbosity level of the messenger",
-			[] (std::shared_ptr<MessageContents> msg) {
-				std::vector<SIDP> params = parse_parameters(msg->descr); // Parse the parameters from the given command
+			[] (const MessageContents& msg) {
+				std::vector<SIDP> params = parse_parameters(msg.descr); // Parse the parameters from the given command
 
 				if (params.size() > 1) {
 					messenger::set_level(static_cast<E_OUTPUT>(SIDP_i(params[1])));
@@ -436,8 +436,8 @@ namespace bee{ namespace console {
 		add_command(
 			"volume",
 			"Set the global sound volume from 0.0 to 1.0",
-			[] (std::shared_ptr<MessageContents> msg) {
-				std::vector<SIDP> params = parse_parameters(msg->descr); // Parse the parameters from the given command
+			[] (const MessageContents& msg) {
+				std::vector<SIDP> params = parse_parameters(msg.descr); // Parse the parameters from the given command
 
 				if (params.size() > 1) {
 					set_volume(SIDP_d(params[1]));
@@ -453,7 +453,7 @@ namespace bee{ namespace console {
 		add_command(
 			"restart",
 			"Restart the game",
-			[] (std::shared_ptr<MessageContents> msg) {
+			[] (const MessageContents& msg) {
 				restart_game();
 			}
 		);
@@ -463,7 +463,7 @@ namespace bee{ namespace console {
 		add_command(
 			"restart_room",
 			"Restart the current room",
-			[] (std::shared_ptr<MessageContents> msg) {
+			[] (const MessageContents& msg) {
 				restart_room();
 			}
 		);
@@ -474,7 +474,7 @@ namespace bee{ namespace console {
 		add_command(
 			"info",
 			"Output information about the current room",
-			[] (std::shared_ptr<MessageContents> msg) {
+			[] (const MessageContents& msg) {
 				messenger::send({"engine", "console"}, E_MESSAGE::INFO, get_current_room()->get_print());
 			}
 		);
@@ -485,7 +485,7 @@ namespace bee{ namespace console {
 		add_command(
 			"pause",
 			"Toggle the pause state of the game",
-			[] (std::shared_ptr<MessageContents> msg) {
+			[] (const MessageContents& msg) {
 				set_is_paused(!get_is_paused());
 			}
 		);
@@ -496,7 +496,7 @@ namespace bee{ namespace console {
 		add_command(
 			"netstatus",
 			"List information about the network session",
-			[] (std::shared_ptr<MessageContents> msg) {
+			[] (const MessageContents& msg) {
 				messenger::send({"engine", "console"}, E_MESSAGE::INFO, net::get_print());
 			}
 		);

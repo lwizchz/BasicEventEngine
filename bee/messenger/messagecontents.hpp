@@ -18,7 +18,6 @@
 
 namespace bee {
 	struct MessageContents {
-		bool has_processed;
 		Uint32 tickstamp;
 		std::vector<std::string> tags;
 		E_MESSAGE type;
@@ -26,7 +25,7 @@ namespace bee {
 		std::shared_ptr<void> data;
 
 		MessageContents();
-		MessageContents(Uint32, std::vector<std::string>, E_MESSAGE, std::string, std::shared_ptr<void>);
+		MessageContents(Uint32, const std::vector<std::string>&, E_MESSAGE, const std::string&, std::shared_ptr<void>);
 	};
 }
 

@@ -16,15 +16,13 @@
 
 namespace bee {
 	MessageContents::MessageContents() :
-		has_processed(false),
 		tickstamp(0),
 		tags(),
 		type(E_MESSAGE::GENERAL),
 		descr(),
 		data(nullptr)
 	{}
-	MessageContents::MessageContents(Uint32 tm, std::vector<std::string> tg, E_MESSAGE tp, std::string de, std::shared_ptr<void> da) :
-		has_processed(false),
+	MessageContents::MessageContents(Uint32 tm, const std::vector<std::string>& tg, E_MESSAGE tp, const std::string& de, std::shared_ptr<void> da) :
 		tickstamp(tm),
 		tags(tg),
 		type(tp),

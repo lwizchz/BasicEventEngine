@@ -23,12 +23,16 @@ namespace bee {
 		is_strict(false),
 		func(nullptr)
 	{}
-	MessageRecipient::MessageRecipient(std::string n, std::vector<std::string> t, bool s, std::function<void (std::shared_ptr<MessageContents>)> f) :
+	MessageRecipient::MessageRecipient(const std::string& n, const std::vector<std::string>& t, bool s, std::function<void (const MessageContents&)> f) :
 		name(n),
 		tags(t),
 		is_strict(s),
 		func(f)
 	{}
+
+	bool MessageRecipient::operator<(const MessageRecipient& rhs) const {
+		return (this->name < rhs.name);
+	}
 }
 
 #endif // BEE_CORE_MESSAGERECIPIENT
