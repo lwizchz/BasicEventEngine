@@ -270,12 +270,12 @@ namespace bee { namespace messenger{
 				} catch (int e) { // Catch several kinds of exceptions that the recipient might throw
 					ep = std::current_exception();
 					bee_commandline_color(9);
-					std::cerr << "MSG ERR (" << get_ticks() << "ms): exception " << e << " thrown by recipient \"" << recv->name << "\"\n";
+					std::cerr << "MSG ERR (" << get_ticks() << "ms): exception " << e << " thrown by recipient \"" << recv.name << "\"\n";
 					bee_commandline_color_reset();
 				} catch (const char* e) {
 					ep = std::current_exception();
 					bee_commandline_color(9);
-					std::cerr << "MSG ERR (" << get_ticks() << "ms): exception \"" << e << "\" thrown by recipient \"" << recv->name << "\"\n";
+					std::cerr << "MSG ERR (" << get_ticks() << "ms): exception \"" << e << "\" thrown by recipient \"" << recv.name << "\"\n";
 					bee_commandline_color_reset();
 				} catch (...) {
 					ep = std::current_exception(); // Store any miscellaneous exceptions to be rethrown
