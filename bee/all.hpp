@@ -26,6 +26,7 @@
 #include "core/resources.hpp"
 #include "core/rooms.hpp"
 #include "core/sidp.hpp"
+#include "core/statemachine.hpp"
 #include "core/window.hpp"
 
 #include "network/network.hpp"

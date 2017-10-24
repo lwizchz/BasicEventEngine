@@ -419,19 +419,26 @@ namespace bee { namespace messenger{
 	* @name: the name of the recipient to unregister
 	*/
 	int unregister(const std::string& name) {
+		std::string protected_tag = "";
 		for (auto& tag : internal::recipients) { // Iterate over all tags
-			if (internal::protected_tags.find(tag.first) != internal::protected_tags.end()) { // If the specific tag is protected, deny removal for any tags
-				// Output an error message
-				bee_commandline_color(11);
-				std::cerr << "MSG failed to unregister recipient \"" << name << "\" because of protected tag \"" << tag.first << "\".\n";
-				bee_commandline_color_reset();
-
-				return 1; // Return 1 on denial by protected tag
-			}
-
-			tag.second.erase(std::remove_if(tag.second.begin(), tag.second.end(), [&name] (const MessageRecipient& recv) {
-				return (recv.name == name);
+			tag.second.erase(std::remove_if(tag.second.begin(), tag.second.end(), [&name, &tag, &protected_tag] (const MessageRecipient& recv) {
+				if (recv.name == name) {
+					if (internal::protected_tags.find(tag.first) != internal::protected_tags.end()) { // If the specific tag is protected, deny removal for any tags
+						protected_tag = tag.first;
+					}
+					return protected_tag.empty();
+				}
+				return false;
 			}), tag.second.end());
+		}
+
+		if (!protected_tag.empty()) {
+			// Output an error message
+			bee_commandline_color(11);
+			std::cerr << "MSG failed to unregister recipient \"" << name << "\" because of protected tag \"" << protected_tag << "\".\n";
+			bee_commandline_color_reset();
+
+			return 1; // Return 1 on denial by protected tag
 		}
 
 		return 0;

@@ -40,6 +40,7 @@ namespace bee {
 	int keystrings_populate();
 	SDL_Keycode keystrings_get_key(const std::string&);
 	std::string keystrings_get_string(SDL_Keycode);
+	std::string keystrings_get_name(SDL_Keycode);
 }
 
 #endif // BEE_CORE_INPUT_H

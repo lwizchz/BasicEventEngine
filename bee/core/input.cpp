@@ -963,6 +963,7 @@ namespace bee {
 	#undef stringkey
 	/*
 	* keystrings_get_key() - Return the SDL keycode from the given string
+	* @key: the key string
 	*/
 	SDL_Keycode keystrings_get_key(const std::string& key) {
 		if (engine->keystrings_keys.empty()) {
@@ -976,7 +977,8 @@ namespace bee {
 		return SDLK_UNKNOWN;
 	}
 	/*
-	* keystrings_get_string() - Return the SDL keycode from the given string
+	* keystrings_get_string() - Return the string of the given SDL keycode
+	* @key: the keycode
 	*/
 	std::string keystrings_get_string(SDL_Keycode key) {
 		if (engine->keystrings_strings.empty()) {
@@ -988,6 +990,14 @@ namespace bee {
 		}
 
 		return "SDLK_UNKNOWN";
+	}
+	/*
+	* keystrings_get_name() - Return the name of the given SDL keycode
+	* @key: the keycode
+	*/
+	std::string keystrings_get_name(SDL_Keycode key) {
+		std::string keystring = keystrings_get_string(key);
+		return string_title(string_replace(keystring.substr(5), "_", " "));
 	}
 }
 

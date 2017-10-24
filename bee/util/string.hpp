@@ -24,6 +24,7 @@ std::vector<Uint8> orda(const std::string&);
 
 std::string string_lower(const std::string&);
 std::string string_upper(const std::string&);
+std::string string_title(const std::string&);
 std::string string_letters(const std::string&);
 std::string string_digits(const std::string&);
 std::string string_lettersdigits(const std::string&);

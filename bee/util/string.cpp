@@ -95,6 +95,27 @@ std::string string_upper(const std::string& str) {
 	return s;
 }
 /*
+* string_upper() - Change the characters in the string so that they are titlecase, i.e. all lowercase except the beginning of words
+* @str: the string to operate on
+*/
+std::string string_title(const std::string& str) {
+	std::string s = "";
+	s.resize(str.length());
+
+	char previous_c = ' ';
+	for (auto c : str) {
+		if (previous_c == ' ') {
+			s += ::toupper(c);
+		} else {
+			s += ::tolower(c);
+		}
+
+		previous_c = c;
+	}
+
+	return s;
+}
+/*
 * string_letters() - Filter the characters in the string so that only alphabetical characters are returned
 * @str: the string to operate on
 */
