@@ -1,6 +1,12 @@
 #!/bin/bash
 # Builds BEE with CMake
 
+# Change to the top source directory
+ls "`pwd`" | grep "build.sh"
+if [ $? -ne 0 ]; then
+        cd ..
+fi
+
 source config.sh
 
 download_dependencies()
@@ -99,6 +105,10 @@ debug()
                 -DGAME_VERSION_RELEASE=$version_release \
                 ..
 
+        if [ "$2" == "nomake" ]; then
+                return
+        fi
+
         make -j5
         if [ $? -ne 0 ]; then
                 echo "Debug build failed!"
@@ -141,6 +151,10 @@ release()
                 -DGAME_VERSION_RELEASE=$version_release \
                 ..
 
+        if [ "$2" == "nomake" ]; then
+                return
+        fi
+
         make -j5
         if [ $? -ne 0 ]; then
                 echo "Release build failed!"
@@ -166,6 +180,13 @@ build_dir="$(readlink -f ${build_dir})"
 if [ -z "$1" ] || [ "$1" == "release" ]; then
         build_dependencies
         release "$build_dir"
+elif [ "$1" == "nomake" ]; then
+        build_dependencies
+        if [ -f "${build_dir}/last_build_type.txt" ]; then
+                $(cat "${build_dir}/last_build_type.txt") "$build_dir" "nomake"
+        else
+                release "$build_dir" "nomake"
+        fi
 elif [ "$1" == "norun" ]; then
         build_dependencies
         if [ -f "${build_dir}/last_build_type.txt" ]; then
