@@ -42,15 +42,17 @@ namespace bee {
 		Uint8 id;
 
 		NetworkPacket();
-		NetworkPacket(Uint8);
+		explicit NetworkPacket(Uint8);
 		NetworkPacket(Uint8, NetworkData*);
 		NetworkPacket(Uint8, E_NETSIG1, E_NETSIG2);
 		NetworkPacket(Uint8, E_NETSIG1, E_NETSIG2, std::vector<Uint8>);
 		NetworkPacket(const NetworkPacket&);
-		NetworkPacket(UDPpacket*);
+		explicit NetworkPacket(UDPpacket*);
 		~NetworkPacket();
 		int reset();
 		int free_multi();
+
+		NetworkPacket& operator=(const NetworkPacket&);
 
 		int load_net(UDPpacket*);
 		int append_net(UDPpacket*);

@@ -36,7 +36,7 @@ namespace bee {
 		arg_type(E_FLAGARG::NONE),
 		func(nullptr)
 	{}
-	ProgramFlag::ProgramFlag(std::string l, char s, bool p, E_FLAGARG a, std::function<void (const std::string&)> f) :
+	ProgramFlag::ProgramFlag(const std::string& l, char s, bool p, E_FLAGARG a, const std::function<void (const std::string&)>& f) :
 		longopt(l),
 		shortopt(s),
 		pre_init(p),
@@ -80,11 +80,11 @@ namespace bee {
 
 	/*
 	* handle_flags() - Handle each flag's callback
-	* @new_flags: the new flags to use
+	* @flags: the new flags to use
 	* @pre_init: whether this function is being called before or after engine initialization
 	*/
-	int handle_flags(const std::list<ProgramFlag*>& new_flags, bool pre_init) {
-		engine->flags = new_flags;
+	int handle_flags(const std::list<ProgramFlag*>& flags, bool pre_init) {
+		engine->flags = flags;
 
 		if (engine->flags.empty()) {
 			return 0;

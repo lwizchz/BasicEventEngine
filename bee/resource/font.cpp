@@ -115,9 +115,7 @@ namespace bee {
 	*/
 	Font::~Font() {
 		this->free(); // Free all font data
-		if (list.find(id) != list.end()) { // Remove the font from the resource list
-			list.erase(id);
-		}
+		list.erase(id); // Remove the font from the resource list
 	}
 
 	/*

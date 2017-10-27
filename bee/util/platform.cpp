@@ -73,10 +73,12 @@ int bee_remove(const std::string& fname) {
 * bee_dir_exists() - Return whether the given directory exists
 * @fname: the name of the directory to check
 */
-bool bee_dir_exists(const std::string& fname) {
+int bee_dir_exists(const std::string& fname) {
 	struct stat st;
-	stat(fname.c_str(), &st); // Get the status of the given file
-	return S_ISDIR(st.st_mode); // Return whether it is a directory or not
+	if (stat(fname.c_str(), &st) == -1) { // Get the status of the given file
+		return -1;
+	}
+	return (S_ISDIR(st.st_mode) == 0) ? 0 : 1; // Return whether it is a directory or not
 }
 /*
 * bee_mkdir() - Attempt to create a directory with the given path and permissions and return 0 on success
@@ -292,12 +294,12 @@ int bee_remove(const std::string& fname) {
 * bee_dir_exists() - Return whether the given directory exists
 * @fname: the name of the directory to check
 */
-bool bee_dir_exists(const std::string& fname) {
+int bee_dir_exists(const std::string& fname) {
 	DWORD dwAttr = GetFileAttributes(fname.c_str()); // Get the file attributes
 	if (dwAttr == 0xffffffff) { // If the file does not exist, return false
-        	return false;
+        	return 0;
 	}
-	return (dwAttr & FILE_ATTRIBUTE_DIRECTORY); // Return whether the file is a directory or not
+	return (dwAttr & FILE_ATTRIBUTE_DIRECTORY) ? 1 : 0; // Return whether the file is a directory or not
 }
 /*
 * bee_mkdir() - Attempt to create a directory with the given path
@@ -323,9 +325,9 @@ std::string bee_mkdtemp(const std::string& t) {
         	path = p;
         	path += "bee-" + std::to_string(GetCurrentProcessId());
 	}
-	
+
 	bee_mkdir(path, 0755); // Recreate the directory if necessary
-	
+
 	return path; // Return the path
 }
 
@@ -539,10 +541,12 @@ int bee_remove(const std::string& fname) {
 * bee_dir_exists() - Return whether the given directory exists
 * @fname: the name of the directory to check
 */
-bool bee_dir_exists(const std::string& fname) {
+int bee_dir_exists(const std::string& fname) {
 	struct stat st;
-	stat(fname.c_str(), &st); // Get the status of the given file
-	return S_ISDIR(st.st_mode); // Return whether it is a directory or not
+	if (stat(fname.c_str(), &st) == -1) { // Get the status of the given file
+		return -1;
+	}
+	return (S_ISDIR(st.st_mode) == 0) ? 0 : 1; // Return whether it is a directory or not
 }
 /*
 * bee_mkdir() - Attempt to create a directory with the given path and permissions and return 0 on success
@@ -733,8 +737,8 @@ int bee_remove(const std::string& fname) {
 * bee_dir_exists() - Return whether the given directory exists
 * @fname: the name of the directory to check
 */
-bool bee_dir_exists(const std::string& fname) {
-	return false;
+int bee_dir_exists(const std::string& fname) {
+	return 0;
 }
 /*
 * bee_mkdir() - Attempt to create a directory with the given path and permissions and return 0 on success

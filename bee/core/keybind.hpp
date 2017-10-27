@@ -21,7 +21,7 @@ namespace bee {
 
 		KeyBind(SDL_Keycode, const std::string&, bool);
 		KeyBind();
-		KeyBind(const std::string&);
+		explicit KeyBind(const std::string&);
 		KeyBind(const std::string&, bool);
 	};
 }

@@ -23,7 +23,7 @@ std::string bee_itos(int);
 int bee_stoi(const std::string&);
 
 int bee_remove(const std::string&);
-bool bee_dir_exists(const std::string&);
+int bee_dir_exists(const std::string&);
 int bee_mkdir(const std::string&, mode_t);
 std::string bee_mkdtemp(const std::string&);
 

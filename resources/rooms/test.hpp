@@ -11,14 +11,14 @@
 
 class RmTest: public bee::Room {
 	public:
-		bee::ViewData vw_main = {
+		bee::ViewData vw_main = bee::ViewData(
 			true,
-			0, 0, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT,
-			100, 100, 1800, 600,
+			{0, 0, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT},
+			{100, 100, 1800, 600},
 			nullptr,
 			50, 50,
 			0, 0
-		};
+		);
 
 		RmTest();
 		void init();

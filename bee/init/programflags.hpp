@@ -22,7 +22,7 @@ namespace bee {
 		std::function<void (const std::string&)> func;
 
 		ProgramFlag();
-		ProgramFlag(std::string, char, bool, E_FLAGARG, std::function<void (const std::string&)>);
+		ProgramFlag(const std::string&, char, bool, E_FLAGARG, const std::function<void (const std::string&)>&);
 	};
 
 	namespace internal {

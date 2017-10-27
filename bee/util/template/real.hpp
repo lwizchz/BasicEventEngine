@@ -32,34 +32,6 @@ T choose(std::initializer_list<T> args) {
 }
 
 /*
-* min() - Return the minimum value of the given arguments
-* @args: the arguments to evaluate
-*/
-template <typename T>
-T min(std::initializer_list<T> args) {
-	T m = *args.begin();
-	for (auto& e : args) {
-		if (e < m) {
-			m = e;
-		}
-	}
-	return m;
-}
-/*
-* max() - Return the maximum value of the given arguments
-* @args: the arguments to evaluate
-*/
-template <typename T>
-T max(std::initializer_list<T> args) {
-	T m = *args.begin();
-	for (auto& e : args) {
-		if (e > m) {
-			m = e;
-		}
-	}
-	return m;
-}
-/*
 * mean() - Return the mean average of the given arguments
 * @args: the arguments to evaluate
 */

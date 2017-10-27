@@ -27,8 +27,8 @@ namespace bee {
 			bool is_writing;
 		public:
 			SerialData();
-			SerialData(size_t);
-			SerialData(const std::vector<Uint8>&);
+			explicit SerialData(size_t);
+			explicit SerialData(const std::vector<Uint8>&);
 
 			int reset();
 			int rewind();
@@ -42,12 +42,12 @@ namespace bee {
 			int store_serial_v(std::vector<Uint8>&);
 			int store_serial_m(std::map<std::string,std::vector<Uint8>>&);
 
-			int store(unsigned char&);
-			int store(int&);
-			int store(float&);
-			int store(double&);
-			int store(std::string&);
-			int store(SIDP&);
+			int store(unsigned char);
+			int store(int);
+			int store(float);
+			int store(double);
+			int store(std::string);
+			int store(SIDP);
 
 			template <typename A>
 			int store_vector(std::vector<A>&);
@@ -60,6 +60,13 @@ namespace bee {
 			typename std::enable_if<std::is_same<A, std::vector<B>>::value, int>::type store(A&);
 			template <typename A, typename B, typename C>
 			typename std::enable_if<std::is_same<A, std::map<B,C>>::value, int>::type store(A&);
+
+			int get(unsigned char&);
+			int get(int&);
+			int get(float&);
+			int get(double&);
+			int get(std::string&);
+			int get(SIDP&);
 
 			std::vector<Uint8> get() const;
 			Uint8 peek() const;
@@ -96,7 +103,7 @@ namespace bee {
 			size += data[pos++];
 			for (size_t i=0; i<size; ++i) {
 				A j;
-				this->store(j);
+				this->get(j);
 				d.push_back(j);
 			}
 		}
@@ -138,8 +145,8 @@ namespace bee {
 			for (size_t i=0; i<size; ++i) {
 				A k;
 				B v;
-				this->store(k);
-				this->store(v);
+				this->get(k);
+				this->get(v);
 				d.emplace(k, v);
 			}
 		}
@@ -181,7 +188,7 @@ namespace bee {
 			for (size_t i=0; i<size; ++i) {
 				A k;
 				B v;
-				this->store(k);
+				this->get(k);
 				this->store_vector(v);
 				d.emplace(k, v);
 			}

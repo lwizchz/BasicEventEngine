@@ -124,8 +124,7 @@ namespace bee { namespace messenger{
 				// Change the output color depending on the message type
 				if (msg.type == E_MESSAGE::WARNING) {
 					bee_commandline_color(11); // Yellow
-				}
-				if (msg.type == E_MESSAGE::ERROR) {
+				} else if (msg.type == E_MESSAGE::ERROR) {
 					bee_commandline_color(9); // Red
 				}
 
@@ -167,7 +166,7 @@ namespace bee { namespace messenger{
 			case E_OUTPUT::QUIET: { // When the verbosity is QUIET, skip all types except warnings and errors
 				if (
 					(type != E_MESSAGE::WARNING)
-					|| (type != E_MESSAGE::ERROR)
+					&&(type != E_MESSAGE::ERROR)
 				) 		{
 					return false;
 				}
@@ -606,10 +605,10 @@ namespace bee { namespace messenger{
 
 	/*
 	* set_level() - Set the output level when printing message descriptions
-	* @new_level: the output level to use
+	* @level: the output level to use
 	*/
-	int set_level(E_OUTPUT new_level) {
-		internal::logfiles["stdout"] = std::make_pair(new_level, nullptr);
+	int set_level(E_OUTPUT level) {
+		internal::logfiles["stdout"] = std::make_pair(level, nullptr);
 		return 0;
 	}
 	/*

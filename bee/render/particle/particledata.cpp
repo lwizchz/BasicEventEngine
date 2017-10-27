@@ -20,8 +20,8 @@
 #include "../../resource/sprite.hpp"
 
 namespace bee {
-	ParticleData::ParticleData(Particle* new_particle_type, double new_x, double new_y, Uint32 now) :
-		particle_type(new_particle_type),
+	ParticleData::ParticleData(Particle* _particle_type, double _x, double _y, Uint32 now) :
+		particle_type(_particle_type),
 
 		w(1),
 		h(1),
@@ -33,17 +33,17 @@ namespace bee {
 
 		deviation(particle_type->get_deviation()),
 
-		x(new_x),
-		y(new_y),
+		x(_x),
+		y(_y),
 
 		velocity()
 	{
 		init(x, y, now);
 	}
 
-	int ParticleData::init(double new_x, double new_y, Uint32 now) {
-		x = new_x;
-		y = new_y;
+	int ParticleData::init(double _x, double _y, Uint32 now) {
+		x = _x;
+		y = _y;
 
 		unsigned int d = particle_type->get_deviation();
 		deviation = random(d) + d/2;
@@ -69,8 +69,8 @@ namespace bee {
 		return (depth > other.depth);
 	}
 
-	int ParticleData::set_type(Particle* new_type) {
-		particle_type = new_type;
+	int ParticleData::set_type(Particle* _type) {
+		particle_type = _type;
 		return 0;
 	}
 	int ParticleData::move(double delta) {

@@ -87,6 +87,13 @@ TEST_CASE("real/bounds") {
 	REQUIRE(fit_bounds(7, 3, 6) == 6);
 	REQUIRE(fit_bounds(5, 6, 3) == 5);
 	REQUIRE(fit_bounds(5.0, 3.0, 6.0) == 5.0);
+	REQUIRE(qmod(5, 3) == 2);
+	REQUIRE(qmod(3, 3) == 0);
+	REQUIRE(qmod(2, 3) == 2);
+	REQUIRE(qmod(5.f, 3) == 2.f);
+	REQUIRE(qmod(5.f, 3) == fmod(5.f, 3.f));
+	REQUIRE(qmod(5.0, 3) == 2.0);
+	REQUIRE(qmod(5.0, 3) == fmod(5.0, 3.0));
 }
 TEST_CASE("real/checksum") {
 	REQUIRE(checksum_internal_table(0) == 0);

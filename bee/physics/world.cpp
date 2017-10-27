@@ -50,6 +50,30 @@ namespace bee {
 
 		world->getPairCache()->setOverlapFilterCallback(filter_callback);
 	}
+	PhysicsWorld::PhysicsWorld(const PhysicsWorld& other) :
+		collision_configuration(new btDefaultCollisionConfiguration()),
+		dispatcher(new btCollisionDispatcher(collision_configuration)),
+		broadphase(new btDbvtBroadphase()),
+		solver(new btSequentialImpulseConstraintSolver()),
+		world(new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collision_configuration)),
+
+		filter_callback(new PhysicsFilter()),
+
+		debug_draw(new PhysicsDraw(this)),
+
+		gravity(other.gravity),
+		scale(other.scale)
+	{
+		debug_draw->setDebugMode(other.debug_draw->getDebugMode());
+		world->setDebugDrawer(debug_draw);
+
+		set_gravity(gravity);
+		set_scale(scale);
+
+		world->setInternalTickCallback(Room::collision_internal, static_cast<void*>(this));
+
+		world->getPairCache()->setOverlapFilterCallback(filter_callback);
+	}
 	PhysicsWorld::~PhysicsWorld() {
 		delete debug_draw;
 
@@ -62,6 +86,55 @@ namespace bee {
 		delete collision_configuration;
 	}
 
+	PhysicsWorld& PhysicsWorld::operator=(const PhysicsWorld& rhs) {
+		if (this != &rhs) {
+			if (this->collision_configuration != nullptr) {
+				delete this->collision_configuration;
+				this->collision_configuration = nullptr;
+			}
+			if (this->dispatcher != nullptr) {
+				delete this->dispatcher;
+				this->dispatcher = nullptr;
+			}
+			if (this->broadphase != nullptr) {
+				delete this->broadphase;
+				this->broadphase = nullptr;
+			}
+			if (this->solver != nullptr) {
+				delete this->solver;
+				this->solver = nullptr;
+			}
+			if (this->world != nullptr) {
+				delete this->world;
+				this->world = nullptr;
+			}
+
+			this->collision_configuration = new btDefaultCollisionConfiguration();
+			this->dispatcher = new btCollisionDispatcher(this->collision_configuration);
+			this->broadphase = new btDbvtBroadphase();
+			this->solver = new btSequentialImpulseConstraintSolver();
+			this->world = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collision_configuration);
+
+			this->filter_callback = new PhysicsFilter();
+
+			this->debug_draw = new PhysicsDraw(this);
+
+			this->gravity = rhs.gravity;
+			this->scale = rhs.scale;
+
+			debug_draw->setDebugMode(rhs.debug_draw->getDebugMode());
+			world->setDebugDrawer(debug_draw);
+
+			set_gravity(gravity);
+			set_scale(scale);
+
+			world->setInternalTickCallback(Room::collision_internal, static_cast<void*>(this));
+
+			world->getPairCache()->setOverlapFilterCallback(filter_callback);
+		}
+		return *this;
+	}
+
 	btVector3 PhysicsWorld::get_gravity() const {
 		return gravity;
 	}
@@ -72,14 +145,14 @@ namespace bee {
 		return world->getDispatcher();
 	}
 
-	int PhysicsWorld::set_gravity(btVector3 new_gravity) {
-		gravity = new_gravity;
+	int PhysicsWorld::set_gravity(btVector3 _gravity) {
+		gravity = _gravity;
 		//world->setGravity(gravity);
 		world->setGravity(gravity*btScalar(10.0/scale));
 		return 0;
 	}
-	int PhysicsWorld::set_scale(double new_scale) {
-		if (new_scale != scale) {
+	int PhysicsWorld::set_scale(double _scale) {
+		if (_scale != scale) {
 			int a = 0;
 
 			for (int i=world->getNumConstraints()-1; i>=0; --i, ++a) {
@@ -105,7 +178,7 @@ namespace bee {
 			}
 		}
 
-		scale = new_scale;
+		scale = _scale;
 		world->setGravity(gravity*btScalar(10.0/scale));
 
 		return 0;

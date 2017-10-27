@@ -68,6 +68,6 @@ bool date_is_today(time_t);
 int date_days_in_month(time_t);
 int date_days_in_year(time_t);
 
-double stopwatch(std::string, std::function<void()>);
+double stopwatch(const std::string&, std::function<void()>, bool);
 
 #endif // BEE_UTIL_DATES_H

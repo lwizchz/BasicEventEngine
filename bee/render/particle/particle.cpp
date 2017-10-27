@@ -33,17 +33,17 @@
 #include "../../resource/room.hpp"
 
 namespace bee {
-	Particle::Particle(Sprite* new_sprite, double new_scale, Uint32 new_max_time, unsigned int new_deviation) :
-		sprite(new_sprite),
+	Particle::Particle(Sprite* _sprite, double _scale, Uint32 _max_time, unsigned int _deviation) :
+		sprite(_sprite),
 		has_own_sprite(false),
 
-		deviation(new_deviation),
+		deviation(_deviation),
 
 		on_death_func(nullptr),
 		death_type(nullptr),
 		old_particles(),
 
-		scale(new_scale),
+		scale(_scale),
 		velocity(),
 
 		angle(0.0),
@@ -53,7 +53,7 @@ namespace bee {
 
 		color({255, 255, 255, 255}),
 
-		max_time(new_max_time),
+		max_time(_max_time),
 		death_amount(1),
 
 		should_reanimate(true),
@@ -64,12 +64,12 @@ namespace bee {
 			init();
 		}
 	}
-	Particle::Particle(E_PT_SHAPE new_shape, double new_scale, Uint32 new_max_time, unsigned int new_deviation) :
-		Particle(nullptr, new_scale, new_max_time, new_deviation)
+	Particle::Particle(E_PT_SHAPE _shape, double _scale, Uint32 _max_time, unsigned int _deviation) :
+		Particle(nullptr, _scale, _max_time, _deviation)
 	{
 		has_own_sprite = true;
 
-		switch (new_shape) {
+		switch (_shape) {
 			case E_PT_SHAPE::PIXEL: {
 				sprite = add_sprite("pt_sprite_pixel", "particles/00_pixel.png");
 				break;
@@ -127,17 +127,17 @@ namespace bee {
 				break;
 			}
 			default: // This should never happen
-				messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Couldn't initialize particle: unknown particle type " + bee_itos(static_cast<int>(new_shape)));
+				messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Couldn't initialize particle: unknown particle type " + bee_itos(static_cast<int>(_shape)));
 				return;
 		}
 
 		init();
 	}
-	Particle::Particle(Sprite* new_sprite, double new_scale, Uint32 new_max_time) :
-		Particle(new_sprite, new_scale, new_max_time, 50)
+	Particle::Particle(Sprite* _sprite, double _scale, Uint32 _max_time) :
+		Particle(_sprite, _scale, _max_time, 50)
 	{}
-	Particle::Particle(E_PT_SHAPE new_shape, double new_scale, Uint32 new_max_time) :
-		Particle(new_shape, new_scale, new_max_time, 50)
+	Particle::Particle(E_PT_SHAPE _shape, double _scale, Uint32 _max_time) :
+		Particle(_shape, _scale, _max_time, 50)
 	{}
 	Particle::~Particle() {
 		remove_old_particles();
@@ -196,8 +196,8 @@ namespace bee {
 		return deviation;
 	}
 
-	int Particle::set_death_type(Particle* new_death_type) {
-		death_type = new_death_type;
+	int Particle::set_death_type(Particle* _death_type) {
+		death_type = _death_type;
 		return 0;
 	}
 	int Particle::on_death(ParticleSystem* sys, ParticleData* pd) {

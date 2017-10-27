@@ -83,9 +83,7 @@ namespace bee {
 	*/
 	Sound::~Sound() {
 		this->free(); // Free all sound data
-		if (list.find(id) != list.end()) { // Remove the sound from the resource list
-			list.erase(id);
-		}
+		list.erase(id); // Remove the sound from the resource list
 	}
 
 	/*

@@ -63,9 +63,7 @@ namespace bee {
 	* Path::~Path() - Remove the path from the resource list
 	*/
 	Path::~Path() {
-		if (list.find(id) != list.end()) { // Remove the path from the resource list
-			list.erase(id);
-		}
+		list.erase(id); // Remove the path from the resource list
 	}
 
 	/*

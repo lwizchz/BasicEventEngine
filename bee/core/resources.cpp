@@ -39,10 +39,9 @@ namespace bee {
 	* @channel: the channel which has finished playback
 	*/
 	void sound_finished(int channel) {
-		Sound* s;
 		for (size_t i=0; i<Sound::get_amount(); ++i) { // Iterate over the sounds in order to remove finished channels from each sound's list
-			if (Sound::get(i) != nullptr) {
-				s = Sound::get(i);
+			Sound* s = Sound::get(i);
+			if (s != nullptr) {
 				if (!s->get_is_music()) { // Music cannot be played on multiple channels
 					s->finished(channel); // Remove the finished channel from the list
 				}
@@ -58,14 +57,15 @@ namespace bee {
 	}
 	/*
 	* set_volume() - Set a new global sound volume and update it for all currently playing sounds
-	* @new_volume: the new volume to use
+	* @volume: the new volume to use
 	*/
-	int set_volume(double new_volume) {
-		engine->volume = new_volume; // Set the volume
+	int set_volume(double volume) {
+		engine->volume = volume; // Set the volume
 
 		for (size_t i=0; i<Sound::get_amount(); ++i) { // Iterate over the sounds and update them to the new volume
-			if (Sound::get(i) != nullptr) {
-				Sound::get(i)->update_volume();
+			Sound* s = Sound::get(i);
+			if (s != nullptr) {
+				s->update_volume();
 			}
 		}
 
@@ -75,9 +75,8 @@ namespace bee {
 	* sound_stop_loops() - Immediately stop all looping sounds
 	*/
 	int sound_stop_loops() {
-		Sound* s;
 		for (size_t i=0; i<Sound::get_amount(); ++i) { // Iterate over the sounds and stop them individually
-			s = Sound::get(i);
+			Sound* s = Sound::get(i);
 			if ((s != nullptr)&&(s->get_is_looping())) {
 				s->stop();
 			}
@@ -89,9 +88,8 @@ namespace bee {
 	* sound_stop_all() - Immediately stop all sounds
 	*/
 	int sound_stop_all() {
-		Sound* s;
 		for (size_t i=0; i<Sound::get_amount(); ++i) { // Iterate over the sounds and stop them individually
-			s = Sound::get(i);
+			Sound* s = Sound::get(i);
 			if (s != nullptr) {
 				s->stop();
 			}
@@ -208,9 +206,8 @@ namespace bee {
 	* @name: the name of the desired sprite
 	*/
 	Sprite* get_sprite_by_name(const std::string& name) {
-		Sprite* s;
 		for (size_t i=0; i<Sprite::get_amount(); ++i) { // Iterate over the sprites in order to find the first one with the given name
-			s = Sprite::get(i);
+			Sprite* s = Sprite::get(i);
 			if (s != nullptr) {
 				if (s->get_name() == name) {
 					return s; // Return the desired sprite on success
@@ -224,9 +221,8 @@ namespace bee {
 	* @name: the name of the desired sound
 	*/
 	Sound* get_sound_by_name(const std::string& name) {
-		Sound* s;
 		for (size_t i=0; i<Sound::get_amount(); ++i) { // Iterate over the sounds in order to find the first one with the given name
-			s = Sound::get(i);
+			Sound* s = Sound::get(i);
 			if (s != nullptr) {
 				if (s->get_name() == name) {
 					return s; // Return the desired sound on success
@@ -240,9 +236,8 @@ namespace bee {
 	* @name: the name of the desired background
 	*/
 	Background* get_background_by_name(const std::string& name) {
-		Background* b;
 		for (size_t i=0; i<Background::get_amount(); ++i) { // Iterate over the backgrounds in order to find the first one with the given name
-			b = Background::get(i);
+			Background* b = Background::get(i);
 			if (b != nullptr) {
 				if (b->get_name() == name) {
 					return b; // Return the desired background on success
@@ -256,9 +251,8 @@ namespace bee {
 	* @name: the name of the desired font
 	*/
 	Font* get_font_by_name(const std::string& name) {
-		Font* f;
 		for (size_t i=0; i<Font::get_amount(); ++i) { // Iterate over the fonts in order to find the first one with the given name
-			f = Font::get(i);
+			Font* f = Font::get(i);
 			if (f != nullptr) {
 				if (f->get_name() == name) {
 					return f; // Return the desired font on success
@@ -272,9 +266,8 @@ namespace bee {
 	* @name: the name of the desired path
 	*/
 	Path* get_path_by_name(const std::string& name) {
-		Path* p;
 		for (size_t i=0; i<Path::get_amount(); ++i) { // Iterate over the paths in order to find the first one with the given name
-			p = Path::get(i);
+			Path* p = Path::get(i);
 			if (p != nullptr) {
 				if (p->get_name() == name) {
 					return p; // Return the desired path on success
@@ -288,9 +281,8 @@ namespace bee {
 	* @name: the name of the desired timeline
 	*/
 	Timeline* get_timeline_by_name(const std::string& name) {
-		Timeline* t;
 		for (size_t i=0; i<Timeline::get_amount(); ++i) { // Iterate over the timelines in order to find the first one with the given name
-			t = Timeline::get(i);
+			Timeline* t = Timeline::get(i);
 			if (t != nullptr) {
 				if (t->get_name() == name) {
 					return t; // Return the desired timeline on success
@@ -304,9 +296,8 @@ namespace bee {
 	* @name: the name of the desired mesh
 	*/
 	Mesh* get_mesh_by_name(const std::string& name) {
-		Mesh* m;
 		for (size_t i=0; i<Mesh::get_amount(); ++i) { // Iterate over the meshes in order to find the first one with the given name
-			m = Mesh::get(i);
+			Mesh* m = Mesh::get(i);
 			if (m != nullptr) {
 				if (m->get_name() == name) {
 					return m; // Return the desired mesh on success
@@ -320,9 +311,8 @@ namespace bee {
 	* @name: the name of the desired light
 	*/
 	Light* get_light_by_name(const std::string& name) {
-		Light* l;
 		for (size_t i=0; i<Light::get_amount(); ++i) { // Iterate over the lights in order to find the first one with the given name
-			l = Light::get(i);
+			Light* l = Light::get(i);
 			if (l != nullptr) {
 				if (l->get_name() == name) {
 					return l; // Return the desired light on success
@@ -336,9 +326,8 @@ namespace bee {
 	* @name: the name of the desired object
 	*/
 	Object* get_object_by_name(const std::string& name) {
-		Object* o;
 		for (size_t i=0; i<Object::get_amount(); ++i) { // Iterate over the objects in order to find the first one with the given name
-			o = Object::get(i);
+			Object* o = Object::get(i);
 			if (o != nullptr) {
 				if (o->get_name() == name) {
 					return o; // Return the desired object on success
@@ -352,9 +341,8 @@ namespace bee {
 	* @name: the name of the desired room
 	*/
 	Room* get_room_by_name(const std::string& name) {
-		Room* r;
 		for (size_t i=0; i<Room::get_amount(); ++i) { // Iterate over the rooms in order to find the first one with the given name
-			r = Room::get(i);
+			Room* r = Room::get(i);
 			if (r != nullptr) {
 				if (r->get_name() == name) {
 					return r; // Return the desired room on success

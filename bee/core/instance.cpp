@@ -71,10 +71,10 @@ namespace bee {
 			alarm_end[i] = 0xffffffff;
 		}
 	}
-	Instance::Instance(int new_id, Object* new_object, double new_x, double new_y, double new_z) :
+	Instance::Instance(int _id, Object* _object, double x, double y, double z) :
 		Instance()
 	{
-		init(new_id, new_object, new_x, new_y, new_z);
+		init(_id, _object, x, y, z);
 	}
 	Instance::Instance(const Instance& other) :
 		Instance(other.id, other.object, other.get_x(), other.get_y(), other.get_z())
@@ -85,20 +85,20 @@ namespace bee {
 		delete body;
 		data.clear();
 	}
-	int Instance::init(int new_id, Object* new_object, double new_x, double new_y, double new_z) {
-		id = new_id;
-		object = new_object;
+	int Instance::init(int _id, Object* _object, double x, double y, double z) {
+		id = _id;
+		object = _object;
 		subimage_time = get_ticks();
 		depth = object->get_depth();
 
 		if (body == nullptr) {
 			PhysicsWorld* w = get_current_room()->get_phys_world();
-			body = new PhysicsBody(w, this, E_PHYS_SHAPE::NONE, 0.0, new_x, new_y, new_z, nullptr);
+			body = new PhysicsBody(w, this, E_PHYS_SHAPE::NONE, 0.0, x, y, z, nullptr);
 		} else {
-			set_position(new_x, new_y, new_z);
+			set_position(x, y, z);
 		}
 
-		pos_start = btVector3(btScalar(new_x), btScalar(new_y), btScalar(new_z));
+		pos_start = btVector3(btScalar(x), btScalar(y), btScalar(z));
 		pos_previous = pos_start;
 		path_pos_start = btVector3(0.0, 0.0, 0.0);
 		path_previous_mass = 0.0;
@@ -204,10 +204,10 @@ namespace bee {
 	std::string Instance::serialize() const {
 		return serialize(false);
 	}
-	int Instance::deserialize(std::map<SIDP,SIDP>& m, Object* new_object) {
+	int Instance::deserialize(std::map<SIDP,SIDP>& m, Object* _object) {
 		id = SIDP_i(m["id"]);
-		if (new_object != nullptr) {
-			object = new_object;
+		if (_object != nullptr) {
+			object = _object;
 		} else {
 			object = get_object_by_name(SIDP_s(m["object"]));
 		}
@@ -243,14 +243,14 @@ namespace bee {
 
 		return 0;
 	}
-	int Instance::deserialize(const std::string& instance_info, Object* new_object) {
+	int Instance::deserialize(const std::string& instance_info, Object* _object) {
 		std::map<SIDP,SIDP> m;
 		if (map_deserialize(instance_info, &m)) {
 			messenger::send({"engine", "instance"}, E_MESSAGE::WARNING, "Failed to deserialize instance");
 			return 1;
 		}
 
-		return deserialize(m, new_object);
+		return deserialize(m, _object);
 	}
 	int Instance::deserialize(const std::string& instance_info) {
 		return deserialize(instance_info, nullptr);
@@ -312,25 +312,25 @@ namespace bee {
 		return 0;
 	}
 
-	int Instance::set_object(Object* new_object) {
+	int Instance::set_object(Object* _object) {
 		object->remove_instance(id);
 
-		object = new_object;
+		object = _object;
 		object->add_instance(id, this);
 		data["object"] = object->get_name();
 
 		return 0;
 	}
-	int Instance::set_sprite(Sprite* new_sprite) {
-		sprite = new_sprite;
+	int Instance::set_sprite(Sprite* _sprite) {
+		sprite = _sprite;
 		return 0;
 	}
 	int Instance::add_physbody() {
 		get_current_room()->add_physbody(this, body);
 		return 0;
 	}
-	int Instance::set_computation_type(E_COMPUTATION new_computation_type) {
-		computation_type = new_computation_type;
+	int Instance::set_computation_type(E_COMPUTATION _computation_type) {
+		computation_type = _computation_type;
 
 		switch (computation_type) {
 			case E_COMPUTATION::NOTHING:
@@ -352,8 +352,8 @@ namespace bee {
 
 		return 0;
 	}
-	int Instance::set_is_persistent(bool new_is_persistent) {
-		is_persistent = new_is_persistent;
+	int Instance::set_is_persistent(bool _is_persistent) {
+		is_persistent = _is_persistent;
 		return 0;
 	}
 
@@ -382,17 +382,18 @@ namespace bee {
 	/*
 	* Instance::get_data() - Return the requested data field from the data map
 	* ! When the function is called without a default value, simply call it with a default value of 0 and with warning output enabled
+	* ! This function cannot return a const reference because the default value would be out of scope
 	* @field: the name of the field to fetch
 	*/
-	const SIDP& Instance::get_data(const std::string& field) const {
+	SIDP Instance::get_data(const std::string& field) const {
 		return get_data(field, 0, true);
 	}
 	/*
 	* Instance::set_data() - Replace the data map
-	* @new_data: the new data map to use
+	* @_data: the new data map to use
 	*/
-	int Instance::set_data(const std::map<std::string,SIDP>& new_data) {
-		data = new_data;
+	int Instance::set_data(const std::map<std::string,SIDP>& _data) {
+		data = _data;
 		return 0;
 	}
 	/*
@@ -488,78 +489,78 @@ namespace bee {
 
 		return 0;
 	}
-	int Instance::set_position(double new_x, double new_y, double new_z) {
+	int Instance::set_position(double x, double y, double z) {
 		return set_position(btVector3(
-			btScalar(new_x),
-			btScalar(new_y),
-			btScalar(new_z)
+			btScalar(x),
+			btScalar(y),
+			btScalar(z)
 		));
 	}
 	int Instance::set_to_start() {
 		return set_position(pos_start);
 	}
-	int Instance::set_corner_x(double new_x) {
-		return set_position(new_x + get_width()/2.0, get_y(), get_z());
+	int Instance::set_corner_x(double x) {
+		return set_position(x + get_width()/2.0, get_y(), get_z());
 	}
-	int Instance::set_corner_y(double new_y) {
-		return set_position(get_x(), new_y + get_height()/2.0, get_z());
+	int Instance::set_corner_y(double y) {
+		return set_position(get_x(), y + get_height()/2.0, get_z());
 	}
-	int Instance::set_mass(double new_mass) {
+	int Instance::set_mass(double mass) {
 		btVector3 pos = get_position(); // Store the position since setting the mass to 0.0 resets it
-		get_physbody()->set_mass(new_mass);
+		get_physbody()->set_mass(mass);
 		set_position(pos);
 		return 0;
 	}
-	int Instance::move(btVector3 new_impulse) {
+	int Instance::move(btVector3 impulse) {
 		body->get_body()->activate();
-		body->get_body()->applyCentralImpulse(new_impulse / btScalar(body->get_scale()));
+		body->get_body()->applyCentralImpulse(impulse / btScalar(body->get_scale()));
 		return 0;
 	}
-	int Instance::move(double new_magnitude, btVector3 new_direction) {
-		if (new_magnitude < 0.0) {
-			new_direction *= -1.0;
-			new_magnitude = fabs(new_magnitude);
+	int Instance::move(double magnitude, btVector3 direction) {
+		if (magnitude < 0.0) {
+			direction *= -1.0;
+			magnitude = fabs(magnitude);
 		}
-		return move(btScalar(new_magnitude)*new_direction);
+		return move(btScalar(magnitude)*direction);
 	}
-	int Instance::move(double new_magnitude, double new_direction) {
-		new_direction = absolute_angle(new_direction);
-		return move(new_magnitude, btVector3(
-			btScalar(cos(degtorad(new_direction))),
-			btScalar(-sin(degtorad(new_direction))),
+	int Instance::move(double magnitude, double direction) {
+		direction = absolute_angle(direction);
+		return move(magnitude, btVector3(
+			btScalar(cos(degtorad(direction))),
+			btScalar(-sin(degtorad(direction))),
 			btScalar(0.0)
 		));
 	}
-	int Instance::move_to(double new_magnitude, double other_x, double other_y, double other_z) {
-		if (distance(get_x(), get_y(), get_z(), other_x, other_y, other_z) < new_magnitude) {
+	int Instance::move_to(double magnitude, double other_x, double other_y, double other_z) {
+		if (distance(get_x(), get_y(), get_z(), other_x, other_y, other_z) < magnitude) {
 			return 1;
 		}
-		move(new_magnitude, direction_of(get_x(), get_y(), get_z(), other_x, other_y, other_z));
+		move(magnitude, direction_of(get_x(), get_y(), get_z(), other_x, other_y, other_z));
 		return 0;
 	}
-	int Instance::move_to(double new_magnitude, double other_x, double other_y) {
-		return move_to(new_magnitude, other_x, other_y, 0.0);
+	int Instance::move_to(double magnitude, double other_x, double other_y) {
+		return move_to(magnitude, other_x, other_y, 0.0);
 	}
-	int Instance::move_away(double new_magnitude, double other_x, double other_y, double other_z) {
-		move(new_magnitude, direction_of(other_x, other_y, other_z, get_x(), get_y(), get_z()));
+	int Instance::move_away(double magnitude, double other_x, double other_y, double other_z) {
+		move(magnitude, direction_of(other_x, other_y, other_z, get_x(), get_y(), get_z()));
 		return 0;
 	}
-	int Instance::move_away(double new_magnitude, double other_x, double other_y) {
-		return move_away(new_magnitude, other_x, other_y, 0.0);
+	int Instance::move_away(double magnitude, double other_x, double other_y) {
+		return move_away(magnitude, other_x, other_y, 0.0);
 	}
-	int Instance::set_friction(double new_friction) {
-		body->get_body()->setFriction(btScalar(new_friction));
+	int Instance::set_friction(double friction) {
+		body->get_body()->setFriction(btScalar(friction));
 		return 0;
 	}
-	int Instance::set_gravity(btVector3 new_gravity) {
-		body->get_body()->setGravity(new_gravity);
+	int Instance::set_gravity(btVector3 gravity) {
+		body->get_body()->setGravity(gravity);
 		return 0;
 	}
-	int Instance::set_gravity(double new_gx, double new_gy, double new_gz) {
+	int Instance::set_gravity(double gx, double gy, double gz) {
 		return set_gravity(btVector3(
-			btScalar(new_gx),
-			btScalar(new_gy),
-			btScalar(new_gz)
+			btScalar(gx),
+			btScalar(gy),
+			btScalar(gz)
 		));
 	}
 	int Instance::move_outside(btVector3 dir) {
@@ -589,10 +590,10 @@ namespace bee {
 
 		return 1;
 	}
-	int Instance::set_is_solid(bool new_is_solid) {
-		is_solid = new_is_solid;
+	int Instance::set_is_solid(bool _is_solid) {
+		is_solid = _is_solid;
 
-		if (new_is_solid) {
+		if (_is_solid) {
 			body->get_body()->setCollisionFlags(body->get_body()->getCollisionFlags() & ~btCollisionObject::CF_NO_CONTACT_RESPONSE);
 		} else {
 			body->get_body()->setCollisionFlags(body->get_body()->getCollisionFlags() | btCollisionObject::CF_NO_CONTACT_RESPONSE);
@@ -600,42 +601,42 @@ namespace bee {
 
 		return 0;
 	}
-	int Instance::set_velocity(btVector3 new_velocity) {
-		body->get_body()->setLinearVelocity(new_velocity);
+	int Instance::set_velocity(btVector3 velocity) {
+		body->get_body()->setLinearVelocity(velocity);
 		return 0;
 	}
-	int Instance::set_velocity(double new_magnitude, double new_direction) {
-		if (new_magnitude < 0.0) {
-			new_direction -= 180.0;
-			new_magnitude = fabs(new_magnitude);
+	int Instance::set_velocity(double magnitude, double direction) {
+		if (magnitude < 0.0) {
+			direction -= 180.0;
+			magnitude = fabs(magnitude);
 		}
-		new_direction = absolute_angle(new_direction);
+		direction = absolute_angle(direction);
 		return set_velocity(btVector3(
-			btScalar(new_magnitude*cos(degtorad(new_direction))),
-			btScalar(new_magnitude*-sin(degtorad(new_direction))),
+			btScalar(magnitude*cos(degtorad(direction))),
+			btScalar(magnitude*-sin(degtorad(direction))),
 			btScalar(0.0)
 		) / btScalar(body->get_scale()));
 	}
-	int Instance::add_velocity(btVector3 new_velocity) {
-		return set_velocity(get_velocity() + new_velocity);
+	int Instance::add_velocity(btVector3 velocity) {
+		return set_velocity(get_velocity() + velocity);
 	}
-	int Instance::add_velocity(double new_magnitude, double new_direction) {
-		if (new_magnitude < 0.0) {
-			new_direction -= 180.0;
-			new_magnitude = fabs(new_magnitude);
+	int Instance::add_velocity(double magnitude, double direction) {
+		if (magnitude < 0.0) {
+			direction -= 180.0;
+			magnitude = fabs(magnitude);
 		}
-		new_direction = absolute_angle(new_direction);
+		direction = absolute_angle(direction);
 		return set_velocity(get_velocity() + btVector3(
-			btScalar(new_magnitude*cos(degtorad(new_direction))),
-			btScalar(new_magnitude*-sin(degtorad(new_direction))),
+			btScalar(magnitude*cos(degtorad(direction))),
+			btScalar(magnitude*-sin(degtorad(direction))),
 			btScalar(0.0)
 		) / btScalar(body->get_scale()));
 	}
-	int Instance::limit_velocity(double new_limit) {
+	int Instance::limit_velocity(double limit) {
 		btVector3 v = get_velocity();
 		double speed_sqr = v.length2();
-		if (speed_sqr > sqr(new_limit)) {
-			set_velocity(btScalar(new_limit) * v.normalize());
+		if (speed_sqr > sqr(limit)) {
+			set_velocity(btScalar(limit) * v.normalize());
 			return 1;
 		}
 		return 0;
@@ -684,10 +685,10 @@ namespace bee {
 		return body->get_body()->getGravity();
 	}
 
-	bool Instance::is_place_free(int new_x, int new_y) const {
+	bool Instance::is_place_free(int x, int y) const {
 		SDL_Rect mask = get_aabb();
-		mask.x = new_x;
-		mask.y = new_y;
+		mask.x = x;
+		mask.y = y;
 
 		for (auto& i : get_current_room()->get_instances()) {
 			if (i.second == this) {
@@ -709,10 +710,10 @@ namespace bee {
 
 		return true;
 	}
-	bool Instance::is_place_empty(int new_x, int new_y) const {
+	bool Instance::is_place_empty(int x, int y) const {
 		SDL_Rect mask = get_aabb();
-		mask.x = new_x;
-		mask.y = new_y;
+		mask.x = x;
+		mask.y = y;
 
 		for (auto& i : get_current_room()->get_instances()) {
 			if (i.second == this) {
@@ -728,10 +729,10 @@ namespace bee {
 
 		return true;
 	}
-	bool Instance::is_place_meeting(int new_x, int new_y, Object* other) const {
+	bool Instance::is_place_meeting(int x, int y, Object* other) const {
 		SDL_Rect mask = get_aabb();
-		mask.x = new_x;
-		mask.y = new_y;
+		mask.x = x;
+		mask.y = y;
 
 		for (auto& i : other->get_instances()) {
 			if (i.second == this) {
@@ -747,13 +748,13 @@ namespace bee {
 
 		return false;
 	}
-	bool Instance::is_place_meeting(int new_x, int new_y, int other_id) const {
-		return is_place_meeting(new_x, new_y, Object::get(other_id));
+	bool Instance::is_place_meeting(int x, int y, int other_id) const {
+		return is_place_meeting(x, y, Object::get(other_id));
 	}
-	bool Instance::is_place_meeting(int new_x, int new_y, Object* other, std::function<void(Instance*,Instance*)> func) {
+	bool Instance::is_place_meeting(int x, int y, Object* other, std::function<void(Instance*,Instance*)> func) {
 		SDL_Rect mask = get_aabb();
-		mask.x = new_x;
-		mask.y = new_y;
+		mask.x = x;
+		mask.y = y;
 
 		bool r = false;
 
@@ -922,10 +923,10 @@ namespace bee {
 		return 0;
 	}
 
-	int Instance::path_start(Path* new_path, double new_path_speed, E_PATH_END new_end_action, bool absolute) {
-		path = new_path;
-		path_speed = new_path_speed;
-		path_end_action = new_end_action;
+	int Instance::path_start(Path* _path, double _path_speed, E_PATH_END _end_action, bool absolute) {
+		path = _path;
+		path_speed = _path_speed;
+		path_end_action = _end_action;
 		path_current_node = -1;
 
 		path_previous_mass = get_physbody()->get_mass();
@@ -1001,12 +1002,12 @@ namespace bee {
 		}
 		return 1;
 	}
-	int Instance::set_path_drawn(bool new_path_is_drawn) {
-		path_is_drawn = new_path_is_drawn;
+	int Instance::set_path_drawn(bool _path_is_drawn) {
+		path_is_drawn = _path_is_drawn;
 		return 0;
 	}
-	int Instance::set_path_pausable(bool new_path_is_pausable) {
-		path_is_pausable = new_path_is_pausable;
+	int Instance::set_path_pausable(bool _path_is_pausable) {
+		path_is_pausable = _path_is_pausable;
 		return 0;
 	}
 	int Instance::handle_path_end() {

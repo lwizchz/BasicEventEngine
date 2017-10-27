@@ -61,7 +61,7 @@ namespace console {
 	int alias(const std::string&, const std::string&);
 	const std::unordered_map<std::string,std::string>& get_aliases();
 
-	int set_var(const std::string&, SIDP);
+	int set_var(const std::string&, const SIDP&);
 	SIDP get_var(const std::string&);
 
 	int run(const std::string&);

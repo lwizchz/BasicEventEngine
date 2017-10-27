@@ -30,13 +30,13 @@ namespace bee {
 
 		shape(E_PS_SHAPE::RECTANGLE)
 	{}
-	ParticleDestroyer::ParticleDestroyer(double new_x, double new_y, unsigned int new_w, unsigned int new_h) :
+	ParticleDestroyer::ParticleDestroyer(double _x, double _y, unsigned int _w, unsigned int _h) :
 		ParticleDestroyer()
 	{
-		x = new_x;
-		y = new_y;
-		w = (new_w < 1) ? 1 : new_w;
-		h = (new_h < 1) ? 1 : new_h;
+		x = _x;
+		y = _y;
+		w = (_w < 1) ? 1 : _w;
+		h = (_h < 1) ? 1 : _h;
 	}
 
 	int ParticleDestroyer::set_following(Instance* inst) {

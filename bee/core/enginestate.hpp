@@ -84,6 +84,7 @@ namespace bee {
 		unsigned int fps_stable;
 
 		EngineState(int, char**, GameOptions*);
+		~EngineState();
 
 		int free(); // Must be called to free data before closing SDL
 	};

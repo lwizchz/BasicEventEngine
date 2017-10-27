@@ -30,21 +30,21 @@ namespace bee {
 
 		friction(1.0)
 	{}
-	ParticleDeflector::ParticleDeflector(double new_x, double new_y, unsigned int new_w, unsigned int new_h) :
+	ParticleDeflector::ParticleDeflector(double _x, double _y, unsigned int _w, unsigned int _h) :
 		ParticleDeflector()
 	{
-		x = new_x;
-		y = new_y;
-		w = (new_w < 1) ? 1 : new_w;
-		h = (new_h < 1) ? 1 : new_h;
+		x = _x;
+		y = _y;
+		w = (_w < 1) ? 1 : _w;
+		h = (_h < 1) ? 1 : _h;
 	}
 
 	int ParticleDeflector::set_following(Instance* inst) {
 		following = inst;
 		return 0;
 	}
-	int ParticleDeflector::set_friction(double new_friction) {
-		friction = new_friction;
+	int ParticleDeflector::set_friction(double _friction) {
+		friction = _friction;
 		return 0;
 	}
 

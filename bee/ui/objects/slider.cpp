@@ -94,8 +94,8 @@ void ObjUISlider::draw(bee::Instance* self) {
 	int ox = 0, oy = 0;
 	bee::ViewData* v = bee::get_current_room()->get_current_view();
 	if (v != nullptr) {
-		ox = v->view_x;
-		oy = v->view_y;
+		ox = v->view.x;
+		oy = v->view.y;
 	}
 
 	bee::draw_rectangle(self->get_corner_x() - ox, self->get_corner_y() + h/2 - oy, w, 2, -1, c_track);

@@ -25,7 +25,7 @@ namespace bee {
 		std::vector<Uint8> data;
 	public:
 		NetworkData();
-		NetworkData(Uint8);
+		explicit NetworkData(Uint8);
 		NetworkData(E_NETSIG1, E_NETSIG2);
 		NetworkData(E_NETSIG1, E_NETSIG2, const std::vector<Uint8>&);
 		NetworkData(const NetworkData&);

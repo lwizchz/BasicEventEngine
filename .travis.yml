@@ -5,12 +5,6 @@ dist: trusty
 compiler: gcc
 os: linux
 
-env:
-    global:
-    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
-    #   via the "travis encrypt" command using the project repo's public key
-    - secure: "YHOkLpQ/6MsCDBSGrFpXYQVW37GzLwbgAeMINdnaf30/x7B7hanF2c5wVtQUxGKcbdrtSmCWvXb/Lz1/NsRb5eRIjM2HMfl8ZEGBKOYD5IbUJP66o/Nob8mHZWzcbTkSpeyUNwF8dYB3HXhEobowUHcR2lonWNmaDVv3A+IY3WQ5CayoR3HPSgWMKpEto2s9sFAmjMyRszimSkQmKFbT7rwdHiPS0D0N2Zm51QW2TZQZpAEY9D5LO9eEF24o9NrMq880Zio2I31Ctfqh/UlpevqYnuiQwtT/rQFh0jgTDP2yazvy8VjVv4MMSbBM9iwrDo9kiD/cKPIrvJ+K4Swj+dBUpgQTkyA57ithERtjdrPg5aMToesavZb+Yl1yzkrJIgG5Y9nxJ+XlQ0+BFz3xKnfpwUbr4OqXtQmY4EoXp/FvbOWrUVvlIdSy9JuXwA9JgUT6N3ibDzfo6ub/XMLXbGm15ro2J9TGY2RaCrZpnyWqxL3rbTYkk3YkTdqc1bu7eLwpapdPPMA5NsB7Fwok+c4DMIiW4yjoP04xKdgAyZhTipTIDhJbXDcV6p5BJCg5Rk5AWAkGNgAosBubX0uTwWj0mevOTthfnQCpbV3ydpqPctEDAXGBOt1c3BYM0x66kRQO+A9kg+v5s1LBJZHIXSyP1QpXxubEidaAX5plLW0="
-
 addons:
     apt:
         sources:
@@ -29,17 +23,8 @@ addons:
           - libglm-dev
           - freeglut3-dev
           - libassimp-dev
-    coverity_scan:
-        project:
-            name: "piluke/BasicEventEngine"
-            description: "Build submitted via Travis CI"
-        notification_email: lukemontalvo@gmail.com
-        build_command_prepend: "./build.sh nomake; cd build"
-        build_command: "../build.sh norun"
-        branch_pattern: master
 
 before_install:
-  - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
   - if [ "$CXX" = "g++" ]; then export CXX="g++-6" CC="gcc-6"; fi
   - wget https://lukemontalvo.us/BasicEventEngine/resources.tar.gz
   - tar xzf resources.tar.gz

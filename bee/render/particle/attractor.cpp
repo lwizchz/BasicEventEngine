@@ -31,25 +31,25 @@ namespace bee {
 		max_distance(100.0),
 		force_type(E_PS_FORCE::LINEAR)
 	{}
-	ParticleAttractor::ParticleAttractor(double new_x, double new_y, unsigned int new_w, unsigned int new_h) :
+	ParticleAttractor::ParticleAttractor(double _x, double _y, unsigned int _w, unsigned int _h) :
 		ParticleAttractor()
 	{
-		x = new_x;
-		y = new_y;
-		w = (new_w < 1) ? 1 : new_w;
-		h = (new_h < 1) ? 1 : new_h;
+		x = _x;
+		y = _y;
+		w = (_w < 1) ? 1 : _w;
+		h = (_h < 1) ? 1 : _h;
 	}
 
 	int ParticleAttractor::set_following(Instance* inst) {
 		following = inst;
 		return 0;
 	}
-	int ParticleAttractor::set_force(double new_force) {
-		force = new_force;
+	int ParticleAttractor::set_force(double _force) {
+		force = _force;
 		return 0;
 	}
-	int ParticleAttractor::set_max_distance(double new_max_distance) {
-		max_distance = new_max_distance;
+	int ParticleAttractor::set_max_distance(double _max_distance) {
+		max_distance = _max_distance;
 		return 0;
 	}
 

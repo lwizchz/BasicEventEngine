@@ -9,6 +9,8 @@
 #ifndef BEE_RENDER_VIEWDATA_H
 #define BEE_RENDER_VIEWDATA_H 1
 
+#include <SDL2/SDL.h> // Include the required SDL headers
+
 namespace bee {
 	// Forward declaration
 	class Instance;
@@ -16,15 +18,16 @@ namespace bee {
 	struct ViewData {
 		bool is_visible;
 
-		int view_x, view_y, view_width, view_height;
-		int port_x, port_y, port_width, port_height;
+		SDL_Rect view;
+		SDL_Rect port;
 
 		Instance* following;
 
 		int horizontal_border, vertical_border;
 		int horizontal_speed, vertical_speed;
 
-		//ViewData();
+		ViewData();
+		ViewData(bool, SDL_Rect, SDL_Rect, Instance*, int, int, int, int);
 	};
 }
 

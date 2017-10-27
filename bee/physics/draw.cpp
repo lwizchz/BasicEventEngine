@@ -23,10 +23,10 @@
 #include "../render/rgba.hpp"
 
 namespace bee {
-	PhysicsDraw::PhysicsDraw(PhysicsWorld* new_world) :
+	PhysicsDraw::PhysicsDraw(PhysicsWorld* _world) :
 		debug_mode(0),
 
-		attached_world(new_world)
+		attached_world(_world)
 	{}
 
 	void PhysicsDraw::drawLine(const btVector3& v1, const btVector3& v2, const btVector3& color1, const btVector3& color2) {
@@ -106,8 +106,8 @@ namespace bee {
 		}
 	}
 
-	void PhysicsDraw::setDebugMode(int new_debug_mode) {
-		debug_mode = new_debug_mode;
+	void PhysicsDraw::setDebugMode(int _debug_mode) {
+		debug_mode = _debug_mode;
 	}
 	int PhysicsDraw::getDebugMode() const {
 		return debug_mode;

@@ -25,7 +25,7 @@ namespace bee {
 		std::map<std::string,std::vector<Uint8>> instances;
 
 		NetworkEvent();
-		NetworkEvent(E_NETEVENT);
+		explicit NetworkEvent(E_NETEVENT);
 	};
 }
 

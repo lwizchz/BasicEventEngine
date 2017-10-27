@@ -33,26 +33,26 @@ namespace bee {
 			SDL_GLContext context;
 
 			// The following GLint's are all uniforms in the OpenGL shaders
-			GLuint program = 0; // This is the location of the OpenGL program (where the shaders are compiled)
-			GLint vertex_location = -1;
-			GLint normal_location = -1;
-			GLint fragment_location = -1;
-			GLuint target = 0;
+			GLuint program; // This is the location of the OpenGL program (where the shaders are compiled)
+			GLint vertex_location;
+			GLint normal_location;
+			GLint fragment_location;
+			GLuint target;
 
-			GLint projection_location = -1;
-			GLint view_location = -1;
-			GLint model_location = -1;
-			GLint port_location = -1;
+			GLint projection_location;
+			GLint view_location;
+			GLint model_location;
+			GLint port_location;
 
-			GLint rotation_location = -1;
+			GLint rotation_location;
 
-			GLint texture_location = -1;
-			GLint colorize_location = -1;
-			GLint primitive_location = -1;
-			GLint flip_location = -1;
+			GLint texture_location;
+			GLint colorize_location;
+			GLint primitive_location;
+			GLint flip_location;
 
-			GLint is_lightable_location = -1;
-			GLint light_amount_location = -1;
+			GLint is_lightable_location;
+			GLint light_amount_location;
 			struct {
 				GLint type;
 				GLint position;
@@ -61,7 +61,7 @@ namespace bee {
 				GLint color;
 			} lighting_location[BEE_MAX_LIGHTS];
 
-			GLint lightable_amount_location = -1;
+			GLint lightable_amount_location;
 			struct {
 				GLint position;
 				GLint vertex_amount;

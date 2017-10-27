@@ -207,13 +207,13 @@ namespace bee {
 	}
 
 	// Return the requested type
-	std::string SIDP::s(std::string file, int line) const {
+	std::string SIDP::s(const std::string& file, int line) const {
 		if (type != 0) {
 			messenger::send({"engine", "sidp"}, E_MESSAGE::WARNING, "Type is " + bee_itos(type) + ", not a string but the string was requested, called from " + file + ":" + bee_itos(line));
 		}
 		return str;
 	}
-	int SIDP::i(std::string file, int line) const {
+	int SIDP::i(const std::string& file, int line) const {
 		if ((type != 1)&&(type != 2)) {
 			messenger::send({"engine", "sidp"}, E_MESSAGE::WARNING, "Type is " + bee_itos(type) + ", not an integer but the integer was requested, called from " + file + ":" + bee_itos(line));
 		}
@@ -222,7 +222,7 @@ namespace bee {
 		}
 		return integer;
 	}
-	double SIDP::d(std::string file, int line) const {
+	double SIDP::d(const std::string& file, int line) const {
 		if ((type != 1)&&(type != 2)) {
 			messenger::send({"engine", "sidp"}, E_MESSAGE::WARNING, "Type is " + bee_itos(type) + ", not a double but the double was requested, called from " + file + ":" + bee_itos(line));
 		}
@@ -231,13 +231,13 @@ namespace bee {
 		}
 		return floating;
 	}
-	void* SIDP::p(std::string file, int line) const {
+	void* SIDP::p(const std::string& file, int line) const {
 		if (type != 3) {
 			messenger::send({"engine", "sidp"}, E_MESSAGE::WARNING, "Type is " + bee_itos(type) + ", not a pointer but the pointer was requested, called from " + file + ":" + bee_itos(line));
 		}
 		return pointer;
 	}
-	SIDP SIDP::p(size_t index, std::string file, int line) const {
+	SIDP SIDP::p(size_t index, const std::string& file, int line) const {
 		if (type != 3) {
 			messenger::send({"engine", "sidp"}, E_MESSAGE::WARNING, "Type is " + bee_itos(type) + ", not a pointer but the pointer array was requested, called from " + file + ":" + bee_itos(line));
 			return SIDP();
@@ -251,7 +251,7 @@ namespace bee {
 
 		return v->at(index);
 	}
-	SIDP SIDP::p(SIDP key, std::string file, int line) const {
+	SIDP SIDP::p(SIDP key, const std::string& file, int line) const {
 		if (type != 3) {
 			messenger::send({"engine", "sidp"}, E_MESSAGE::WARNING, "Type is " + bee_itos(type) + ", not a pointer but the pointer array was requested, called from " + file + ":" + bee_itos(line));
 			return SIDP();
@@ -265,14 +265,14 @@ namespace bee {
 
 		return m->at(key);
 	}
-	std::vector<SIDP>& SIDP::v(std::string file, int line) const {
+	std::vector<SIDP>& SIDP::v(const std::string& file, int line) const {
 		if ((type != 3)||(container_type != 1)) {
 			messenger::send({"engine", "sidp"}, E_MESSAGE::WARNING, "Type is " + bee_itos(type) + "." + bee_itos(container_type) + ", not a vector pointer, called from " + file + ":" + bee_itos(line));
 		}
 
 		return *static_cast<std::vector<SIDP>*>(pointer);
 	}
-	std::map<SIDP,SIDP>& SIDP::m(std::string file, int line) const {
+	std::map<SIDP,SIDP>& SIDP::m(const std::string& file, int line) const {
 		if ((type != 3)||(container_type != 2)) {
 			messenger::send({"engine", "sidp"}, E_MESSAGE::WARNING, "Type is " + bee_itos(type) + "." + bee_itos(container_type) + ", not a map pointer, called from " + file + ":" + bee_itos(line));
 		}
@@ -281,6 +281,10 @@ namespace bee {
 	}
 
 	SIDP& SIDP::operator=(const SIDP& rhs) {
+		if (this == &rhs) {
+			return *this;
+		}
+
 		reset();
 		this->type = rhs.type;
 		this->container_type = rhs.container_type;
@@ -309,7 +313,8 @@ namespace bee {
 				break;
 			}
 			default: {
-				throw std::runtime_error("Error: SIDP operator invalid type");
+				//throw std::runtime_error("Error: SIDP operator invalid type");
+				break; // This should never be reached
 			}
 		}
 

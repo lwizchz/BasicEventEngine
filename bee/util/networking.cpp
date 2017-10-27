@@ -318,9 +318,7 @@ int network_udp_recv_vector(UDPsocket udp, UDPpacket** packets) {
 * @size: the size of packet to allocate
 */
 UDPpacket* network_packet_alloc(int size) {
-	UDPpacket* packet = nullptr; // Declare a packet data pointer
-
-	packet = SDLNet_AllocPacket(size); // Attempt to allocate the requested space
+	UDPpacket* packet = SDLNet_AllocPacket(size); // Attempt to allocate the requested space
 	if (packet == nullptr) { // If the packet could not be allocated
 		std::cerr << "NET ERR Failed to allocate UDP packet: " << SDLNet_GetError() << "\n"; // Output the error message
 	}
@@ -370,9 +368,7 @@ UDPpacket* network_packet_realloc(UDPpacket* packet, int size) {
 * @size: the size of each packet
 */
 UDPpacket** network_packet_alloc_vector(int amount, int size) {
-	UDPpacket** packets = nullptr; // Declare a packet array pointer
-
-	packets = SDLNet_AllocPacketV(amount, size); // Attempt to allocate space for the packets
+	UDPpacket** packets = SDLNet_AllocPacketV(amount, size); // Attempt to allocate space for the packets
 	if (packets == nullptr) { // If the packets could not be allocated
 		std::cerr << "NET ERR Failed to allocate UDP vector packets: " << SDLNet_GetError() << "\n"; // Output the error message
 	}

@@ -59,6 +59,7 @@ namespace bee {
 
 		scene(nullptr),
 		mesh(nullptr),
+		material(nullptr),
 		vertices(nullptr),
 		normals(nullptr),
 		uv_array(nullptr),
@@ -91,9 +92,7 @@ namespace bee {
 	*/
 	Mesh::~Mesh() {
 		this->free(); // Free all the mesh data
-		if (list.find(id) != list.end()) { // Remove the mesh from the resource list
-			list.erase(id);
-		}
+		list.erase(id); // Remove the mesh from the resource list
 	}
 	/*
 	* Mesh::add_to_resources() - Add the mesh to the appropriate resource list

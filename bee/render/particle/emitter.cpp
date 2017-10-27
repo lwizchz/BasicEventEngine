@@ -35,23 +35,23 @@ namespace bee {
 		number(1),
 		number_count(0)
 	{}
-	ParticleEmitter::ParticleEmitter(double new_x, double new_y, unsigned int new_w, unsigned int new_h, Particle* ptype) :
+	ParticleEmitter::ParticleEmitter(double _x, double _y, unsigned int _w, unsigned int _h, Particle* _type) :
 		ParticleEmitter()
 	{
-		x = new_x;
-		y = new_y;
-		w = (new_w < 1) ? 1 : new_w;
-		h = (new_h < 1) ? 1 : new_h;
+		x = _x;
+		y = _y;
+		w = (_w < 1) ? 1 : _w;
+		h = (_h < 1) ? 1 : _h;
 
-		particle_type = ptype;
+		particle_type = _type;
 	}
 
 	int ParticleEmitter::set_following(Instance* inst) {
 		following = inst;
 		return 0;
 	}
-	int ParticleEmitter::set_number(int new_number) {
-		number = new_number;
+	int ParticleEmitter::set_number(int _number) {
+		number = _number;
 		return 0;
 	}
 

@@ -90,7 +90,7 @@ namespace bee {
 
 			std::map<std::string,SIDP>& get_data();
 			const SIDP& get_data(const std::string&, const SIDP&, bool) const;
-			const SIDP& get_data(const std::string&) const;
+			SIDP get_data(const std::string&) const;
 			int set_data(const std::map<std::string,SIDP>&);
 			int set_data(const std::string&, const SIDP&);
 

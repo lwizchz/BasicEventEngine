@@ -35,29 +35,29 @@ namespace bee {
 	* ! This should be used to disable lighting only on specific elements, e.g. the HUD
 	* ! After calling this function it is the user's job to reset the lighting to the previous state
 	* ! See Sprite::set_is_lightable() in bee/resources/sprite.cpp for more specific usage
-	* @new_is_lightable: whether to enable lighting
+	* @is_lightable: whether to enable lighting
 	*/
-	int set_is_lightable(bool new_is_lightable) {
+	int set_is_lightable(bool is_lightable) {
 		if (get_options().renderer_type == E_RENDERER::SDL) {
 			return 1;
 		}
 
-		glUniform1i(engine->renderer->is_lightable_location, (new_is_lightable) ? 1 : 0);
+		glUniform1i(engine->renderer->is_lightable_location, (is_lightable) ? 1 : 0);
 
 		return 0;
 	}
 
 	/*
 	* render_set_3d() - Set whether 3D mode is enabled or not
-	* @new_is_3d: whether to enable 3D mode
+	* @is_3d: whether to enable 3D mode
 	*/
-	int render_set_3d(bool new_is_3d) {
+	int render_set_3d(bool is_3d) {
 		if (get_options().renderer_type == E_RENDERER::SDL) {
 			messenger::send({"engine", "renderer"}, E_MESSAGE::WARNING, "Cannot enable 3D rendering in SDL mode");
 			return 1;
 		}
 
-		engine->renderer->render_is_3d = new_is_3d;
+		engine->renderer->render_is_3d = is_3d;
 
 		if (engine->renderer->render_camera == nullptr) {
 			render_set_camera(nullptr);
@@ -75,11 +75,11 @@ namespace bee {
 	}
 	/*
 	* render_set_camera() - Set the camera position and angle for 3D mode
-	* @new_camera: the new camera to render as
+	* @camera: the new camera to render as
 	*/
-	int render_set_camera(Camera* new_camera) {
+	int render_set_camera(Camera* camera) {
 		if (engine->renderer->render_camera != nullptr) {
-			if (engine->renderer->render_camera == new_camera) {
+			if (engine->renderer->render_camera == camera) {
 				return 1;
 			}
 
@@ -87,14 +87,14 @@ namespace bee {
 			engine->renderer->render_camera = nullptr;
 		}
 
-		if (new_camera == nullptr) {
+		if (camera == nullptr) {
 			if (engine->renderer->render_is_3d) {
 				engine->renderer->render_camera = new Camera(glm::vec3(0.0f, 0.0f, -540.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 			} else {
 				engine->renderer->render_camera = new Camera(static_cast<float>(get_width()), static_cast<float>(get_height()));
 			}
 		} else {
-			engine->renderer->render_camera = new_camera;
+			engine->renderer->render_camera = camera;
 		}
 
 		if (engine->renderer->render_camera->width == 0.0) {

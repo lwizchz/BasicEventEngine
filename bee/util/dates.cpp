@@ -474,8 +474,9 @@ int date_days_in_year(time_t date) {
 * stopwatch() - Print out how long it took a function to execute
 * @name: the name of the function to print out
 * @func: the function to call
+* @should_print: whether to print the elapsed time
 */
-double stopwatch(std::string name, std::function<void()> func) {
+double stopwatch(const std::string& name, std::function<void()> func, bool should_print) {
 	auto start = std::chrono::high_resolution_clock::now(); // Store the current time
 
 	func(); // Call the function
@@ -483,7 +484,9 @@ double stopwatch(std::string name, std::function<void()> func) {
 	auto end = std::chrono::high_resolution_clock::now(); // Store the new current time
 	double elapsed_ms = std::chrono::duration<double,std::milli>(end-start).count(); // Calculate the elapsed time
 
-	std::cout << "UTIL The function \"" << name << "\" finished in " << elapsed_ms << "ms.\n"; // Output the function name and elapsed time
+	if (should_print) {
+		std::cout << "UTIL The function \"" << name << "\" finished in " << elapsed_ms << "ms.\n"; // Output the function name and elapsed time
+	}
 
 	return elapsed_ms; // Return the elapsed time
 }

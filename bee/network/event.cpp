@@ -17,8 +17,8 @@ namespace bee {
 		id(-1),
 		data()
 	{}
-	NetworkEvent::NetworkEvent(E_NETEVENT new_type) :
-		type(new_type),
+	NetworkEvent::NetworkEvent(E_NETEVENT _type) :
+		type(_type),
 		id(-1),
 		data()
 	{}

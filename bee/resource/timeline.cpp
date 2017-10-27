@@ -67,9 +67,7 @@ namespace bee {
 	* Timeline::~Timeline() - Remove the timeline from the resource list
 	*/
 	Timeline::~Timeline() {
-		if (list.find(id) != list.end()) { // Remove the timeline from the resource list
-			list.erase(id);
-		}
+		list.erase(id); // Remove the timeline from the resource list
 	}
 
 	/*

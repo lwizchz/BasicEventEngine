@@ -166,9 +166,7 @@ namespace bee {
 			physics_world = nullptr;
 		}
 
-		if (list.find(id) != list.end()) { // Remove the room from the resource list
-			list.erase(id);
-		}
+		list.erase(id); // Remove the room from the resource list
 	}
 
 	int Room::add_to_resources() {
@@ -338,10 +336,10 @@ namespace bee {
 
 				table.push_back({
 					booltostring(v->is_visible),
-					bee_itos(v->view_x), bee_itos(v->view_y),
-					bee_itos(v->view_width), bee_itos(v->view_height),
-					bee_itos(v->port_x), bee_itos(v->port_y),
-					bee_itos(v->port_width), bee_itos(v->port_height),
+					bee_itos(v->view.x), bee_itos(v->view.y),
+					bee_itos(v->view.w), bee_itos(v->view.h),
+					bee_itos(v->port.x), bee_itos(v->port.y),
+					bee_itos(v->port.w), bee_itos(v->port.h),
 					follow_name,
 					bee_itos(v->horizontal_border), bee_itos(v->vertical_border),
 					bee_itos(v->horizontal_speed), bee_itos(v->vertical_speed)
@@ -782,7 +780,7 @@ namespace bee {
 		return 0;
 	}
 
-	int Room::save_instance_map(std::string fname) {
+	int Room::save_instance_map(const std::string& fname) {
 		std::ofstream savefile (fname, std::ios::trunc);
 		if (!savefile.good()) {
 			return 1;
@@ -794,7 +792,7 @@ namespace bee {
 		savefile.close();
 		return 0;
 	}
-	int Room::load_instance_map(std::string fname) {
+	int Room::load_instance_map(const std::string& fname) {
 		if (get_is_ready()) {
 			instance_map = fname;
 			restart_room();
@@ -965,7 +963,7 @@ namespace bee {
 	std::string Room::get_instance_map() const {
 		return instance_map;
 	}
-	int Room::set_instance_map(std::string new_instance_map) {
+	int Room::set_instance_map(const std::string& new_instance_map) {
 		instance_map = new_instance_map;
 		return 1;
 	}
@@ -1257,8 +1255,14 @@ namespace bee {
 				}
 
 				if (
-					((i.first->get_path_speed() >= 0)&&(i.first->get_path_node() == static_cast<int>(i.first->get_path_coords().size())-1))
-					||((i.first->get_path_speed() < 0)&&(i.first->get_path_node() == -1))
+					(
+						(i.first->get_path_speed() >= 0)
+						&&(i.first->get_path_node() == static_cast<int>(i.first->get_path_coords().size())-1)
+					)
+					||(
+						(i.first->get_path_speed() < 0)
+						&&(i.first->get_path_node() == -1)
+					)
 				) {
 					if (instances_sorted_events[E_EVENT::PATH_END].find(i.first) != instances_sorted_events[E_EVENT::PATH_END].end()) {
 						i.first->get_object()->update(i.first);
@@ -1405,30 +1409,30 @@ namespace bee {
 						if (instances_sorted.find(f) != instances_sorted.end()) {
 							SDL_Rect a = f->get_aabb();
 							SDL_Rect b = {
-								view_current->view_x,
-								view_current->view_y,
-								view_current->port_width,
-								view_current->port_height
+								view_current->view.x,
+								view_current->view.y,
+								view_current->port.w,
+								view_current->port.h
 							};
 							if (a.x < -b.x+view_current->horizontal_border) {
-								view_current->view_x = -(a.x - view_current->horizontal_border);
+								view_current->view.x = -(a.x - view_current->horizontal_border);
 							} else if (a.x+a.w > -b.x+b.w-view_current->horizontal_border) {
-								view_current->view_x = b.w - (a.x + a.w + view_current->horizontal_border);
+								view_current->view.x = b.w - (a.x + a.w + view_current->horizontal_border);
 							}
 							if (a.y < -b.y+view_current->vertical_border) {
-								view_current->view_y = -(a.y - view_current->vertical_border);
+								view_current->view.y = -(a.y - view_current->vertical_border);
 							} else if (a.y+a.h > -b.y+b.h-view_current->vertical_border) {
-								view_current->view_y = b.h - (a.y + a.h + view_current->vertical_border);
+								view_current->view.y = b.h - (a.y + a.h + view_current->vertical_border);
 							}
 						} else {
 							view_current->following = nullptr;
 						}
 					}
 					if (view_current->horizontal_speed != 0) {
-						view_current->view_x -= view_current->horizontal_speed;
+						view_current->view.x -= view_current->horizontal_speed;
 					}
 					if (view_current->vertical_speed != 0) {
-						view_current->view_y -= view_current->vertical_speed;
+						view_current->view.y -= view_current->vertical_speed;
 					}
 
 					set_viewport(view_current);

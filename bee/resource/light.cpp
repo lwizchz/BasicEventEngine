@@ -73,9 +73,7 @@ namespace bee {
 	* Light::~Light() - Remove the light from the resouce list
 	*/
 	Light::~Light() {
-		if (list.find(id) != list.end()) { // Remove the light from the resource list
-			list.erase(id);
-		}
+		list.erase(id); // Remove the light from the resource list
 	}
 
 	/*

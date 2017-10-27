@@ -38,7 +38,7 @@ void ObjBee::create(bee::Instance* self) {
 	(*s)["text_id"] = static_cast<void*>(nullptr);
 
 	bee::Instance* ui_handle = bee::ui::create_handle(self->get_corner_x(), self->get_corner_y(), 100, 100, self);
-	ObjUIHandle* obj_ui_handle = dynamic_cast<ObjUIHandle*>(ui_handle->get_object());
+	ObjUIHandle* obj_ui_handle = static_cast<ObjUIHandle*>(ui_handle->get_object());
 	obj_ui_handle->set_is_visible(ui_handle, false);
 	(*s)["ui_handle"] = static_cast<void*>(ui_handle);
 

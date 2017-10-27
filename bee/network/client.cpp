@@ -19,9 +19,9 @@ namespace bee {
 		id(-1),
 		name()
 	{}
-	NetworkClient::NetworkClient(UDPsocket new_sock, int new_channel) :
-		sock(new_sock),
-		channel(new_channel),
+	NetworkClient::NetworkClient(UDPsocket _sock, int _channel) :
+		sock(_sock),
+		channel(_channel),
 		last_recv(0),
 		id(-1),
 		name()

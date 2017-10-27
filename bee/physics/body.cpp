@@ -28,8 +28,8 @@
 #include "../resource/room.hpp"
 
 namespace bee {
-	PhysicsBody::PhysicsBody(PhysicsWorld* new_world, Instance* new_inst, E_PHYS_SHAPE new_type, double new_mass, double x, double y, double z, double* p) :
-		type(new_type),
+	PhysicsBody::PhysicsBody(PhysicsWorld* _world, Instance* _inst, E_PHYS_SHAPE _type, double _mass, double x, double y, double z, double* p) :
+		type(_type),
 		shape(nullptr),
 		shape_param_amount(0),
 		shape_params(nullptr),
@@ -37,15 +37,15 @@ namespace bee {
 		motion_state(nullptr),
 		body(nullptr),
 
-		attached_world(new_world),
-		attached_instance(new_inst),
+		attached_world(_world),
+		attached_instance(_inst),
 		constraints(),
 
 		scale(1.0),
-		mass(new_mass),
+		mass(_mass),
 		friction(0.5)
 	{
-		set_shape(new_type, p);
+		set_shape(_type, p);
 
 		btTransform transform;
 		transform.setIdentity();
@@ -356,12 +356,12 @@ namespace bee {
 		return 0;
 	}
 
-	int PhysicsBody::attach(PhysicsWorld* new_world) {
+	int PhysicsBody::attach(PhysicsWorld* _world) {
 		if (attached_instance != nullptr) {
 			attached_instance->add_physbody();
 		}
-		/*if (attached_world != new_world)*/ {
-			attached_world = new_world;
+		/*if (attached_world != _world)*/ {
+			attached_world = _world;
 
 			if (constraints.size() > 0) {
 				auto tmp_constraints = constraints;
@@ -434,7 +434,7 @@ namespace bee {
 		return 2.0*asin(get_rotation().z());
 	}
 
-	int PhysicsBody::set_shape(E_PHYS_SHAPE new_type, double* p) {
+	int PhysicsBody::set_shape(E_PHYS_SHAPE _type, double* p) {
 		if (shape != nullptr) {
 			delete shape;
 			shape = nullptr;
@@ -443,7 +443,7 @@ namespace bee {
 			delete[] shape_params;
 			shape_params = nullptr;
 		}
-		type = new_type;
+		type = _type;
 		shape_params = p;
 		shape_param_amount = get_shape_param_amount(type);
 
@@ -545,15 +545,15 @@ namespace bee {
 
 		return 0;
 	}
-	int PhysicsBody::set_mass(double new_mass) {
-		mass = new_mass;
+	int PhysicsBody::set_mass(double _mass) {
+		mass = _mass;
 
 		update_state();
 
 		return 0;
 	}
-	int PhysicsBody::set_friction(double new_friction) {
-		friction = new_friction;
+	int PhysicsBody::set_friction(double _friction) {
+		friction = _friction;
 
 		update_state();
 
@@ -615,7 +615,9 @@ namespace bee {
 		body->setCollisionFlags(body->getCollisionFlags() | (cflags & btCollisionObject::CF_NO_CONTACT_RESPONSE));
 
 		attached_world = tmp_world;
-		attached_world->add_body(this);
+		if (attached_world != nullptr) {
+			attached_world->add_body(this);
+		}
 
 		return 0;
 	}

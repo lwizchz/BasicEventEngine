@@ -36,11 +36,11 @@
 #include "../resource/room.hpp"
 
 namespace bee {
-	EngineState::EngineState(int new_argc, char** new_argv, GameOptions* new_options) :
-		argc(new_argc),
-		argv(new_argv),
+	EngineState::EngineState(int _argc, char** _argv, GameOptions* _options) :
+		argc(_argc),
+		argv(_argv),
 		flags(),
-		options(new_options),
+		options(_options),
 
 		quit(false),
 		is_ready(false),
@@ -79,6 +79,7 @@ namespace bee {
 		transition_speed(1024.0/DEFAULT_GAME_FPS),
 		transition_custom_func(nullptr),
 
+		keystate(nullptr),
 		keystrings_keys(),
 		keystrings_strings(),
 
@@ -87,6 +88,9 @@ namespace bee {
 
 		fps_stable(0)
 	{}
+	EngineState::~EngineState() {
+		free();
+	}
 
 	int EngineState::free() {
 		if (font_default != nullptr) {

@@ -23,20 +23,6 @@ TEST_CASE("template/real") {
 	std::string c3 = choose<std::string>({"a", "b", "c", "d"});
 	REQUIRE(((c3 == "a")||(c3 == "b")||(c3 == "c")||(c3 == "d")));
 
-	int min1 = min<int>({1, 2, 3, 4});
-	REQUIRE(min1 == 1);
-	double min2 = min<double>({1.0, 2.0, 3.0, 4.0});
-	REQUIRE(min2 == 1.0);
-	std::string min3 = min<std::string>({"a", "b", "c", "d"});
-	REQUIRE(min3 == "a");
-
-	int max1 = max<int>({1, 2, 3, 4});
-	REQUIRE(max1 == 4);
-	double max2 = max<double>({1.0, 2.0, 3.0, 4.0});
-	REQUIRE(max2 == 4.0);
-	std::string max3 = max<std::string>({"a", "b", "c", "d"});
-	REQUIRE(max3 == "d");
-
 	int mean1 = mean<int>({1, 2, 3, 4});
 	REQUIRE(mean1 == 2);
 	double mean2 = mean<double>({1.0, 2.0, 3.0, 4.0});
@@ -60,7 +46,6 @@ TEST_CASE("template/string") {
 	};
 	std::map<std::string,int> n1;
 	std::map<std::string,int> n2;
-	std::map<std::string,int> n3;
 
 	REQUIRE(map_serialize(m, false) == "{a:1,b:2,c:3,d:4}");
 	REQUIRE(map_deserialize("{a:1,b:2,c:3,d:4}", &n1) == 0);

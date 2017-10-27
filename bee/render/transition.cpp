@@ -110,18 +110,18 @@ namespace bee {
 	}
 	/*
 	* set_transition_type() - Set the transition type for draw_transition()
-	* @new_type: the new transition type to use
+	* @type: the new transition type to use
 	*/
-	int set_transition_type(E_TRANSITION new_type) {
-		engine->transition_type = new_type; // Set the new type
+	int set_transition_type(E_TRANSITION type) {
+		engine->transition_type = type; // Set the new type
 		return 0; // Return 0 on success
 	}
 	/*
 	* set_transition_custom() - Set the transition type to a custom function for draw_transition()
-	* @new_custom: the new custom transition type to use
+	* @custom_func: the new custom transition type to use
 	*/
-	int set_transition_custom(std::function<void (Sprite*, Sprite*)> new_custom) {
-		engine->transition_custom_func = new_custom; // Set the new custom function
+	int set_transition_custom(std::function<void (Sprite*, Sprite*)> custom_func) {
+		engine->transition_custom_func = custom_func; // Set the new custom function
 		engine->transition_type = E_TRANSITION::CUSTOM;
 		return 0; // Return 0 on success
 	}
@@ -133,10 +133,10 @@ namespace bee {
 	}
 	/*
 	* set_transition_speed() - Set the transition speed for draw_transition()
-	* @new_speed: the new transition speed to use
+	* @speed: the new transition speed to use
 	*/
-	int set_transition_speed(double new_speed) {
-		engine->transition_speed = new_speed/get_fps_goal(); // Set the new speed
+	int set_transition_speed(double speed) {
+		engine->transition_speed = speed/get_fps_goal(); // Set the new speed
 		return 0; // Return 0 on success
 	}
 	/*

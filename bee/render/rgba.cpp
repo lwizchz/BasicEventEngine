@@ -9,11 +9,11 @@
 #ifndef BEE_RENDER_RGBA
 #define BEE_RENDER_RGBA 1
 
-#include <iostream>
+#include <ostream>
 
 #include "rgba.hpp"
 
-#include "../util/template/real.hpp"
+#include "../util/real.hpp"
 
 namespace bee {
 	RGBA::RGBA(int nr, int ng, int nb, int na) :
@@ -35,14 +35,14 @@ namespace bee {
 		const float green = g / 255.f;
 		const float blue = b / 255.f;
 
-		const float M = max<float>({red, green, blue});
-		const float m = min<float>({red, green, blue});
+		const float M = std::max(red, std::max(green, blue));
+		const float m = std::min(red, std::min(green, blue));
 		const float chroma = M - m;
 
 		float h_prime = 0.f;
 		if (chroma != 0.f) {
 			if (M == red) {
-				h_prime = fmod((green-blue) / chroma, 6.f);
+				h_prime = qmod((green-blue) / chroma, 6);
 			} else if (M == green) {
 				h_prime = (blue-red) / chroma + 2.f;
 			} else if (M == blue) {
@@ -75,54 +75,57 @@ namespace bee {
 	}
 
 	int RGBA::set_hsv(const std::array<float,3>& hsv) {
-		float h = hsv[0];
-		float s = hsv[1];
-		float v = hsv[2];
+		const float& h = hsv[0];
+		const float& s = hsv[1];
+		const float& v = hsv[2];
 
 		const float chroma = v * s;
-		const float h_prime = fmod(h, 360.f) / 60.f;
-		const float x_color = chroma * (1.f - abs(fmod(h_prime, 2.f) - 1.f));
+		const float h_prime = h / 60.f;
+		const float x_color = chroma * (1.f - abs(qmod(h_prime, 2) - 1.f));
 
-		std::array<float,3> rgba_prime;
+		float component_1 = 0.f;
+		float component_2 = 0.f;
+		float component_3 = 0.f;
 		switch (static_cast<int>(h_prime)) {
 			case 0: {
-				rgba_prime = {chroma, x_color, 0.f};
+				component_1 = chroma;
+				component_2 = x_color;
 				break;
 			}
 			case 1: {
-				rgba_prime = {x_color, chroma, 0.f};
+				component_1 = x_color;
+				component_2 = chroma;
 				break;
 			}
 			case 2: {
-				rgba_prime = {0.f, chroma, x_color};
+				component_2 = chroma;
+				component_3 = x_color;
 				break;
 			}
 			case 3: {
-				rgba_prime = {0.f, x_color, chroma};
+				component_2 = x_color;
+				component_3 = chroma;
 				break;
 			}
 			case 4: {
-				rgba_prime = {x_color, 0.f, chroma};
+				component_1 = x_color;
+				component_3 = chroma;
 				break;
 			}
 			case 5: {
-				rgba_prime = {chroma, 0.f, x_color};
+				component_1 = chroma;
+				component_3 = x_color;
 				break;
 			}
 			default: {
-				rgba_prime = {0.f, 0.f, 0.f};
 				break;
 			}
 		}
 
 		const float m = v - chroma;
-		const int red = static_cast<int>(round(255.f * (rgba_prime[0] + m)));
-		const int green = static_cast<int>(round(255.f * (rgba_prime[1] + m)));
-		const int blue = static_cast<int>(round(255.f * (rgba_prime[2] + m)));
-
-		r = fit_bounds(red, 0, 255);
-		g = fit_bounds(green, 0, 255);
-		b = fit_bounds(blue, 0, 255);
+		r = static_cast<int>(round(255.f * (component_1 + m)));
+		g = static_cast<int>(round(255.f * (component_2 + m)));
+		b = static_cast<int>(round(255.f * (component_3 + m)));
 
 		return 0;
 	}

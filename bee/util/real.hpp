@@ -61,6 +61,8 @@ template <typename T>
 extern bool is_angle_between(T, T, T);
 template <typename T>
 extern T fit_bounds(T, T, T);
+template <typename T>
+extern T qmod(T, unsigned int);
 
 unsigned int checksum_internal_table(size_t);
 unsigned int checksum_internal_reflect(unsigned int, const char);

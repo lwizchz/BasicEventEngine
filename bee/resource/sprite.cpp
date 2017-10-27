@@ -126,9 +126,7 @@ namespace bee {
 	*/
 	Sprite::~Sprite() {
 		this->free(); // Free all sprite data
-		if (list.find(id) != list.end()) { // Remove the sprite from the resource list
-			list.erase(id);
-		}
+		list.erase(id); // Remove the sprite from the resource list
 	}
 
 	/*

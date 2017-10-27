@@ -14,19 +14,19 @@
 #include "../util/string.hpp"
 
 namespace bee {
-	KeyBind::KeyBind(SDL_Keycode new_key, const std::string& new_command, bool new_is_repeatable) :
-		key(new_key),
-		command(new_command),
-		is_repeatable(new_is_repeatable)
+	KeyBind::KeyBind(SDL_Keycode _key, const std::string& _command, bool _is_repeatable) :
+		key(_key),
+		command(_command),
+		is_repeatable(_is_repeatable)
 	{}
 	KeyBind::KeyBind() :
 		KeyBind(SDLK_UNKNOWN, "", false)
 	{}
-	KeyBind::KeyBind(const std::string& new_command) :
-		KeyBind(SDLK_UNKNOWN, new_command, false)
+	KeyBind::KeyBind(const std::string& _command) :
+		KeyBind(SDLK_UNKNOWN, _command, false)
 	{}
-	KeyBind::KeyBind(const std::string& new_command, bool new_is_repeatable) :
-		KeyBind(SDLK_UNKNOWN, new_command, new_is_repeatable)
+	KeyBind::KeyBind(const std::string& _command, bool _is_repeatable) :
+		KeyBind(SDLK_UNKNOWN, _command, _is_repeatable)
 	{}
 }
 

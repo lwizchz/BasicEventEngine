@@ -55,10 +55,10 @@ namespace bee {
 	EngineState* engine = nullptr;
 	bool is_initialized = false;
 
-	int init(int argc, char** argv, const std::list<ProgramFlag*>& new_flags, Room** new_first_room, GameOptions* new_options) {
-		engine = new EngineState(argc, argv, new_options);
+	int init(int argc, char** argv, const std::list<ProgramFlag*>& _flags, Room** _first_room, GameOptions* _options) {
+		engine = new EngineState(argc, argv, _options);
 
-		if (handle_flags(new_flags, true) < 0) {
+		if (handle_flags(_flags, true) < 0) {
 			return 1; // Return 1 when the flags request to exit
 		}
 
@@ -108,8 +108,8 @@ namespace bee {
 
 		ui::load();
 
-		if (*new_first_room != nullptr) {
-			if (change_room(*new_first_room, false)) {
+		if (*_first_room != nullptr) {
+			if (change_room(*_first_room, false)) {
 				messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't load first room");
 				return 10; // Return 10 when the first room could not be loaded
 			}
@@ -117,7 +117,7 @@ namespace bee {
 
 		console::internal::init_ui();
 
-		if (handle_flags(new_flags, false) < 0) {
+		if (handle_flags(_flags, false) < 0) {
 			return 1; // Return 1 when the flags request to exit
 		}
 		messenger::handle();
@@ -561,7 +561,7 @@ namespace bee {
 		engine->fps_count++;
 		engine->frame_number++;
 		unsigned int new_tickstamp = get_ticks();
-		unsigned int fps_desired = min<unsigned int>({engine->fps_goal, engine->fps_max});
+		unsigned int fps_desired = std::min(engine->fps_goal, engine->fps_max);
 		if (!engine->has_focus) {
 			fps_desired = engine->fps_unfocused;
 		}
@@ -598,7 +598,7 @@ namespace bee {
 		return engine->frame_number;
 	}
 	double get_delta() {
-		return max<double>({static_cast<double>(get_tick_delta()), 1.0}) / 1000.0;
+		return static_cast<double>(std::max(get_tick_delta(), 1u)) / 1000;
 	}
 	Uint32 get_tick_delta() {
 		return engine->tick_delta;

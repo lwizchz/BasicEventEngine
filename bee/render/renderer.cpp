@@ -41,10 +41,53 @@ namespace bee {
 		sdl_renderer(nullptr),
 		context(nullptr),
 
+		program(0),
+		vertex_location(-1),
+		normal_location(-1),
+		fragment_location(-1),
+		target(0),
+
+		projection_location(-1),
+		view_location(-1),
+		model_location(-1),
+		port_location(-1),
+
+		rotation_location(-1),
+
+		texture_location(-1),
+		colorize_location(-1),
+		primitive_location(-1),
+		flip_location(-1),
+
+		is_lightable_location(-1),
+		light_amount_location(-1),
+
+		lightable_amount_location(-1),
+
 		render_is_3d(false),
 		render_camera(nullptr),
-		projection_cache(nullptr)
-	{}
+		projection_cache(nullptr),
+
+		triangle_vao(-1),
+		triangle_vbo(-1),
+		triangle_ibo(-1)
+	{
+		for (size_t i=0; i<BEE_MAX_LIGHTS; ++i) {
+			lighting_location[i].type = -1;
+			lighting_location[i].position = -1;
+			lighting_location[i].direction = -1;
+			lighting_location[i].attenuation = -1;
+			lighting_location[i].color = -1;
+		}
+
+		for (size_t i=0; i<BEE_MAX_LIGHTABLES; ++i) {
+			lightable_location[i].position = -1;
+			lightable_location[i].vertex_amount = -1;
+			for (size_t j=0; j<BEE_MAX_MASK_VERTICES; ++j) {
+				lightable_location[i].mask[j] = -1;
+			}
+		}
+	}
 	Renderer::~Renderer() {
 		if (render_camera != nullptr) {
 			delete render_camera;
@@ -111,6 +154,7 @@ namespace bee {
 		const std::string fs_fn_basic_user = "resources/basic.fragment.glsl";
 		std::string fs_fn (fs_fn_default);
 		if (get_options().is_basic_shaders_enabled == true) {
+			fs_fn = fs_fn_basic_default;
 			if (file_exists(fs_fn_basic_user)) {
 				fs_fn = fs_fn_basic_user;
 			}
@@ -476,9 +520,8 @@ namespace bee {
 		}
 
 		// Reload sprite and background textures
-		Sprite* s;
 		for (size_t i=0; i<Sprite::get_amount(); i++) {
-			s = Sprite::get(i);
+			Sprite* s = Sprite::get(i);
 			if (s != nullptr) {
 				if (s->get_is_loaded()) {
 					s->free();
@@ -486,9 +529,8 @@ namespace bee {
 				}
 			}
 		}
-		Background* b;
 		for (size_t i=0; i<Background::get_amount(); i++) {
-			b = Background::get(i);
+			Background* b = Background::get(i);
 			if (b != nullptr) {
 				if (b->get_is_loaded()) {
 					b->free();

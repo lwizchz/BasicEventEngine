@@ -223,11 +223,11 @@ namespace bee {
 				port = glm::vec4(0.0f, 0.0f, get_room_width(), get_room_height());
 				projection = render_get_projection();
 			} else { // If the viewport is defined then use it
-				view = glm::translate(glm::mat4(1.0f), glm::vec3(viewport->view_x, viewport->view_y, 0.0f));
-				port = glm::vec4(viewport->port_x, viewport->port_y, viewport->port_width, viewport->port_height);
+				view = glm::translate(glm::mat4(1.0f), glm::vec3(viewport->view.x, viewport->view.y, 0.0f));
+				port = glm::vec4(viewport->port.x, viewport->port.y, viewport->port.w, viewport->port.h);
 				render_set_camera(new Camera(
-					static_cast<float>(viewport->view_width),
-					static_cast<float>(viewport->view_height)
+					static_cast<float>(viewport->view.w),
+					static_cast<float>(viewport->view.h)
 				));
 				projection = render_get_projection();
 			}
@@ -242,7 +242,7 @@ namespace bee {
 			if (viewport == nullptr) { // If the viewport is not defined then set the drawing area to the entire screen
 				v = {0, 0, get_width(), get_height()};
 			} else { // If the viewport is defined then use it
-				v = {viewport->port_x, viewport->port_y, viewport->port_width, viewport->port_height};
+				v = viewport->port;
 			}
 			return SDL_RenderSetViewport(engine->renderer->sdl_renderer, &v);
 		}
@@ -252,9 +252,9 @@ namespace bee {
 	* set_is_paused() - Set the pause state of the engine and return the previous state
 	* ! Note that this will stop processing non-draw events for all objects which have is_pausable set to true
 	*/
-	bool set_is_paused(bool new_is_paused) {
+	bool set_is_paused(bool is_paused) {
 		bool p = engine->is_paused;
-		engine->is_paused = new_is_paused;
+		engine->is_paused = is_paused;
 		return p;
 	}
 	/*

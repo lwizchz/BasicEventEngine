@@ -35,10 +35,10 @@ namespace bee {
 		signals = s1 << 4;
 		signals += s2 << 4 >> 4;
 	}
-	NetworkData::NetworkData(E_NETSIG1 signal1, E_NETSIG2 signal2, const std::vector<Uint8>& new_data) :
+	NetworkData::NetworkData(E_NETSIG1 signal1, E_NETSIG2 signal2, const std::vector<Uint8>& _data) :
 		NetworkData(signal1, signal2)
 	{
-		append_data(new_data);
+		append_data(_data);
 	}
 	NetworkData::NetworkData(const NetworkData& other) :
 		signals(other.signals),

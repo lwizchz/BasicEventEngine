@@ -11,27 +11,32 @@
 
 #include "viewdata.hpp"
 
+#include "../defines.hpp"
+
 namespace bee {
-	/*ViewData::ViewData() :
-		is_visible(true),
+	ViewData::ViewData() :
+		ViewData(
+			true,
+			{0, 0, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT},
+			{0, 0, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT},
+			nullptr,
+			0, 0,
+			0, 0
+		)
+	{}
+	ViewData::ViewData(bool _is_visible, SDL_Rect _view, SDL_Rect _port, Instance* _following, int _horizontal_border, int _vertical_border, int _horizontal_speed, int _vertical_speed) :
+		is_visible(_is_visible),
 
-		view_x(0),
-		view_y(0),
-		view_width(DEFAULT_WINDOW_WIDTH),
-		view_height(DEFAULT_WINDOW_HEIGHT),
+		view(_view),
+		port(_port),
 
-		port_x(0),
-		port_y(0),
-		port_width(DEFAULT_WINDOW_WIDTH),
-		port_height(DEFAULT_WINDOW_HEIGHT),
+		following(_following),
 
-		following(nullptr),
-
-		horizontal_border(0),
-		vertical_border(0),
-		horizontal_speed(0),
-		vertical_speed(0)
-	{}*/
+		horizontal_border(_horizontal_border),
+		vertical_border(_vertical_border),
+		horizontal_speed(_horizontal_speed),
+		vertical_speed(_vertical_speed)
+	{}
 }
 
 #endif // BEE_RENDER_VIEWDATA

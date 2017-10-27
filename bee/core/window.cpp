@@ -65,10 +65,10 @@ namespace bee {
 
 	/*
 	* set_window_title() - Set the title string of the current window
-	* @new_title: the string to set the title to
+	* @title: the string to set the title to
 	*/
-	int set_window_title(const std::string& new_title) {
-		SDL_SetWindowTitle(engine->renderer->window, new_title.c_str());
+	int set_window_title(const std::string& title) {
+		SDL_SetWindowTitle(engine->renderer->window, title.c_str());
 		return 0;
 	}
 	/*
@@ -84,33 +84,33 @@ namespace bee {
 	}
 	/*
 	* set_show_cursor() - Set whether to show the cursor or not
-	* @new_show_cursor: whether the cursor should be visible or not
+	* @show_cursor: whether the cursor should be visible or not
 	*/
-	int set_show_cursor(bool new_show_cursor) {
-		SDL_ShowCursor((new_show_cursor) ? SDL_ENABLE : SDL_DISABLE);
+	int set_show_cursor(bool show_cursor) {
+		SDL_ShowCursor((show_cursor) ? SDL_ENABLE : SDL_DISABLE);
 		return 0;
 	}
 	/*
 	* set_window_position() - Set the game window position
-	* @new_x: the new x-coordinate to move the window to
-	* @new_y: the new y-coordinate to move the window to
+	* @x: the new x-coordinate to move the window to
+	* @y: the new y-coordinate to move the window to
 	*/
-	int set_window_position(int new_x, int new_y) {
-		SDL_SetWindowPosition(engine->renderer->window, new_x, new_y);
+	int set_window_position(int x, int y) {
+		SDL_SetWindowPosition(engine->renderer->window, x, y);
 		return 0;
 	}
 	/*
 	* set_window_x() - Set the x-coordinate of the game window
-	* @new_x: the new x-coordinate to move the window to
+	* @x: the new x-coordinate to move the window to
 	*/
-	int set_window_x(int new_x) {
-		return set_window_position(new_x, get_window_y());
+	int set_window_x(int x) {
+		return set_window_position(x, get_window_y());
 	}
 	/*
 	* set_window_y() - Set the y-coordinate of the game window
 	*/
-	int set_window_y(int new_y) {
-		return set_window_position(get_window_x(), new_y);
+	int set_window_y(int y) {
+		return set_window_position(get_window_x(), y);
 	}
 	/*
 	* set_window_center() - Center the game window on the screen
@@ -120,28 +120,28 @@ namespace bee {
 	}
 	/*
 	* set_window_size() - Change the size of the game window
-	* @new_width: the new width to change the window to
-	* @new_height: the new height to change the window to
+	* @width: the new width to change the window to
+	* @height: the new height to change the window to
 	*/
-	int set_window_size(int new_width, int new_height) {
-		engine->width = new_width;
-		engine->height = new_height;
+	int set_window_size(int width, int height) {
+		engine->width = width;
+		engine->height = height;
 		SDL_SetWindowSize(engine->renderer->window, engine->width, engine->height);
 		return 0;
 	}
 	/*
 	* set_width() - Change the width of the game window
-	* @new_width: the new width to change the window to
+	* @width: the new width to change the window to
 	*/
-	int set_width(int new_width) {
-		return set_window_size(new_width, engine->height);
+	int set_width(int width) {
+		return set_window_size(width, engine->height);
 	}
 	/*
 	* set_height() - Change the height of the game window
-	* @new_height: the new height to change the window to
+	* @height: the new height to change the window to
 	*/
-	int set_height(int new_height) {
-		return set_window_size(engine->width, new_height);
+	int set_height(int height) {
+		return set_window_size(engine->width, height);
 	}
 }
 

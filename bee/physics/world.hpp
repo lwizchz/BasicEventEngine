@@ -20,7 +20,6 @@ namespace bee {
 	class PhysicsBody;
 
 	class PhysicsWorld {
-		private:
 			btDefaultCollisionConfiguration* collision_configuration;
 			btCollisionDispatcher* dispatcher;
 			btBroadphaseInterface* broadphase;
@@ -35,7 +34,10 @@ namespace bee {
 			double scale;
 		public:
 			PhysicsWorld();
+			PhysicsWorld(const PhysicsWorld&);
 			~PhysicsWorld();
+
+			PhysicsWorld& operator=(const PhysicsWorld&);
 
 			btVector3 get_gravity() const;
 			double get_scale() const;

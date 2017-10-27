@@ -67,8 +67,8 @@ namespace bee {
 		}
 
 		if (v != nullptr) { // If the view exists then adjust the coordinates
-			mx -= v->port_x;
-			my -= v->port_y;
+			mx -= v->port.x;
+			my -= v->port.y;
 		}
 
 		return std::make_pair(mx, my); // Return the pair on success

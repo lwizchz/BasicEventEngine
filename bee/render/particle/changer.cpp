@@ -33,16 +33,16 @@ namespace bee {
 
 		change_type(E_PS_CHANGE::ALL)
 	{}
-	ParticleChanger::ParticleChanger(double new_x, double new_y, unsigned int new_w, unsigned int new_h, Particle* new_part_before, Particle* new_part_after) :
+	ParticleChanger::ParticleChanger(double _x, double _y, unsigned int _w, unsigned int _h, Particle* _part_before, Particle* _part_after) :
 		ParticleChanger()
 	{
-		x = new_x;
-		y = new_y;
-		w = (new_w < 1) ? 1 : new_w;
-		h = (new_h < 1) ? 1 : new_h;
+		x = _x;
+		y = _y;
+		w = (_w < 1) ? 1 : _w;
+		h = (_h < 1) ? 1 : _h;
 
-		particle_before = new_part_before;
-		particle_after = new_part_after;
+		particle_before = _part_before;
+		particle_after = _part_after;
 	}
 
 	int ParticleChanger::set_following(Instance* inst) {

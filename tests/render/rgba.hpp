@@ -13,10 +13,12 @@
 
 #include "../../bee/render/rgba.hpp"
 
+#include "../../bee/util/dates.hpp"
+
 TEST_SUITE_BEGIN("render");
 
 TEST_CASE("rgba") {
-	const int i = 2;
+	const int i = 2; // Increment by i to avoid spending time testing every single case
 	for (int r=0; r<256; r+=i) {
 		for (int g=0; g<256; g+=i) {
 			for (int b=0; b<256; b+=i) {
@@ -25,8 +27,6 @@ TEST_CASE("rgba") {
 
 				std::array<float,3> a = c1.get_hsv();
 				c2.set_hsv(a);
-
-				INFO("hsv: {" << a[0] << ", " << a[1] << ", " << a[2] << "}");
 
 				REQUIRE(c1 == c2);
 			}

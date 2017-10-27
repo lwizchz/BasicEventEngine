@@ -50,28 +50,28 @@ namespace bee {
 
 		id(0)
 	{}
-	NetworkPacket::NetworkPacket(Uint8 new_id) :
+	NetworkPacket::NetworkPacket(Uint8 _id) :
 		NetworkPacket()
 	{
-		id = new_id;
+		id = _id;
 	}
-	NetworkPacket::NetworkPacket(Uint8 new_id, NetworkData* new_data) :
+	NetworkPacket::NetworkPacket(Uint8 _id, NetworkData* _data) :
 		NetworkPacket()
 	{
-		id = new_id;
-		data = new_data;
+		id = _id;
+		data = _data;
 	}
-	NetworkPacket::NetworkPacket(Uint8 new_id, E_NETSIG1 signal1, E_NETSIG2 signal2) :
+	NetworkPacket::NetworkPacket(Uint8 _id, E_NETSIG1 signal1, E_NETSIG2 signal2) :
 		NetworkPacket()
 	{
-		id = new_id;
+		id = _id;
 		data = new NetworkData(signal1, signal2);
 	}
-	NetworkPacket::NetworkPacket(Uint8 new_id, E_NETSIG1 signal1, E_NETSIG2 signal2, std::vector<Uint8> new_data) :
+	NetworkPacket::NetworkPacket(Uint8 _id, E_NETSIG1 signal1, E_NETSIG2 signal2, std::vector<Uint8> _data) :
 		NetworkPacket()
 	{
-		id = new_id;
-		data = new NetworkData(signal1, signal2, new_data);
+		id = _id;
+		data = new NetworkData(signal1, signal2, _data);
 	}
 	NetworkPacket::NetworkPacket(UDPpacket* udp_data) :
 		NetworkPacket()
@@ -115,6 +115,21 @@ namespace bee {
 		}
 		multi_packet.clear();
 		return 0;
+	}
+
+	NetworkPacket& NetworkPacket::operator=(const NetworkPacket& rhs) {
+		if (this != &rhs) {
+			this->reset();
+			this->packet = rhs.packet;
+
+			this->data = new NetworkData(*rhs.data);
+			this->multi_packet = rhs.multi_packet;
+			this->sequence = rhs.sequence;
+			this->timestamp = rhs.timestamp;
+
+			this->id = rhs.id;
+		}
+		return *this;
 	}
 
 	int NetworkPacket::load_net(UDPpacket* udp_data) {
@@ -161,12 +176,12 @@ namespace bee {
 
 		return 0;
 	}
-	int NetworkPacket::load_data(NetworkData* new_data) {
-		data = new_data;
+	int NetworkPacket::load_data(NetworkData* _data) {
+		data = _data;
 		return 0;
 	}
-	int NetworkPacket::append_data(NetworkData* new_data) {
-		data->append_data(new_data->get());
+	int NetworkPacket::append_data(NetworkData* _data) {
+		data->append_data(_data->get());
 		return 0;
 	}
 

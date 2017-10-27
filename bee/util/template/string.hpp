@@ -143,9 +143,7 @@ int map_deserialize(const std::string& s, std::map<A,B>* m) {
 		B value;
 		v >> value;
 
-		if (m->find(key) != m->end()) {
-			m->erase(key);
-		}
+		m->erase(key);
 		m->emplace(key, value); // Add the pair to the map
 	}
 

@@ -30,9 +30,9 @@ namespace bee {
 		SIDP(const char*);
 		SIDP(int);
 		SIDP(double);
-		SIDP(void*);
-		SIDP(std::vector<SIDP>*);
-		SIDP(std::map<SIDP,SIDP>*);
+		explicit SIDP(void*);
+		explicit SIDP(std::vector<SIDP>*);
+		explicit SIDP(std::map<SIDP,SIDP>*);
 		~SIDP();
 		int reset();
 
@@ -42,14 +42,14 @@ namespace bee {
 		std::string to_str() const;
 
 		// Return the requested type
-		std::string s(std::string, int) const;
-		int i(std::string, int) const;
-		double d(std::string, int) const;
-		void* p(std::string, int) const;
-		SIDP p(size_t, std::string, int) const;
-		SIDP p(SIDP, std::string, int) const;
-		std::vector<SIDP>& v(std::string, int) const;
-		std::map<SIDP,SIDP>& m(std::string, int) const;
+		std::string s(const std::string&, int) const;
+		int i(const std::string&, int) const;
+		double d(const std::string&, int) const;
+		void* p(const std::string&, int) const;
+		SIDP p(size_t, const std::string&, int) const;
+		SIDP p(SIDP, const std::string&, int) const;
+		std::vector<SIDP>& v(const std::string&, int) const;
+		std::map<SIDP,SIDP>& m(const std::string&, int) const;
 
 		SIDP& operator=(const SIDP&);
 		SIDP& operator=(const std::string&);

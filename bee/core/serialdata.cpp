@@ -24,24 +24,23 @@ namespace bee {
 	{
 		data.reserve(initial_size);
 	}
-	SerialData::SerialData(const std::vector<Uint8>& new_data) :
-		SerialData()
-	{
-		is_writing = false;
-		data = new_data;
-	}
+	SerialData::SerialData(const std::vector<Uint8>& _data) :
+		data(_data),
+		pos(0),
+		is_writing(false)
+	{}
 
 	int SerialData::reset() {
 		data.clear();
-		pos = 0;
+		rewind();
 		return 0;
 	}
 	int SerialData::rewind() {
 		pos = 0;
 		return 0;
 	}
-	int SerialData::set_writing(bool new_is_writing) {
-		is_writing = new_is_writing;
+	int SerialData::set_writing(bool _is_writing) {
+		is_writing = _is_writing;
 		return 0;
 	}
 
@@ -98,7 +97,7 @@ namespace bee {
 		/*int min = -32767;
 		int max = 32767;*/
 
-		float factor = 10.0f;
+		float factor = 100.0f;
 
 		if (is_writing) {
 			int f = static_cast<int>(d * factor);
@@ -305,31 +304,82 @@ namespace bee {
 		return 0;
 	}
 
-	int SerialData::store(unsigned char& d) {
-		return store_char(d);
+	int SerialData::store(unsigned char d) {
+		if (is_writing) {
+			return store_char(d);
+		}
+		return 3;
 	}
-	int SerialData::store(int& d) {
-		return store_int(d);
+	int SerialData::store(int d) {
+		if (is_writing) {
+			return store_int(d);
+		}
+		return 3;
 	}
-	int SerialData::store(float& d) {
-		return store_float(d);
+	int SerialData::store(float d) {
+		if (is_writing) {
+			return store_float(d);
+		}
+		return 3;
 	}
-	int SerialData::store(double& d) {
-		return store_double(d);
+	int SerialData::store(double d) {
+		if (is_writing) {
+			return store_double(d);
+		}
+		return 3;
 	}
-	int SerialData::store(std::string& d) {
-		return store_string(d);
+	int SerialData::store(std::string d) {
+		if (is_writing) {
+			return store_string(d);
+		}
+		return 3;
 	}
-	int SerialData::store(SIDP& d) {
+	int SerialData::store(SIDP d) {
 		if (is_writing) {
 			std::string s = d.to_str();
 			return store_string(s);
-		} else {
+		}
+		return 3;
+	}
+
+	int SerialData::get(unsigned char& d) {
+		if (!is_writing) {
+			return store_char(d);
+		}
+		return 3;
+	}
+	int SerialData::get(int& d) {
+		if (!is_writing) {
+			return store_int(d);
+		}
+		return 3;
+	}
+	int SerialData::get(float& d) {
+		if (!is_writing) {
+			return store_float(d);
+		}
+		return 3;
+	}
+	int SerialData::get(double& d) {
+		if (!is_writing) {
+			return store_double(d);
+		}
+		return 3;
+	}
+	int SerialData::get(std::string& d) {
+		if (!is_writing) {
+			return store_string(d);
+		}
+		return 3;
+	}
+	int SerialData::get(SIDP& d) {
+		if (!is_writing) {
 			std::string s;
 			int r = store_string(s);
 			d.interpret(s);
 			return r;
 		}
+		return 3;
 	}
 
 	std::vector<Uint8> SerialData::get() const {

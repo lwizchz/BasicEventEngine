@@ -149,11 +149,11 @@ namespace bee {
 			int reset_properties();
 			int transfer_instances(const Room*);
 
-			int save_instance_map(std::string);
-			int load_instance_map(std::string);
+			int save_instance_map(const std::string&);
+			int load_instance_map(const std::string&);
 			int load_instance_map();
 			std::string get_instance_map() const;
-			int set_instance_map(std::string);
+			int set_instance_map(const std::string&);
 
 			int create();
 			int destroy();

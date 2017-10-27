@@ -120,9 +120,7 @@ namespace bee {
 	*/
 	Background::~Background() {
 		this->free(); // Free all background data
-		if (list.find(id) != list.end()) { // Remove the background from the resource list
-			list.erase(id);
-		}
+		list.erase(id); // Remove the background from the resource list
 	}
 
 	/*

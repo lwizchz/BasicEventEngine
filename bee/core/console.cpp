@@ -91,7 +91,7 @@ namespace bee{ namespace console {
 		internal::rect = {0, 0, 800, 500};
 		internal::line_height = 20;
 
-		ObjUITextEntry* obj_text_entry = dynamic_cast<ObjUITextEntry*>(internal::ui_text_entry->get_object());
+		ObjUITextEntry* obj_text_entry = static_cast<ObjUITextEntry*>(internal::ui_text_entry->get_object());
 		obj_text_entry->set_input(internal::ui_text_entry, "");
 		obj_text_entry->reset_completion(internal::ui_text_entry);
 
@@ -175,7 +175,7 @@ namespace bee{ namespace console {
 		ui_handle = bee::ui::create_handle(rect.x, rect.y, rect.w, 10, nullptr);
 
 		ui_handle->set_is_persistent(true);
-		ObjUIHandle* obj_handle = dynamic_cast<ObjUIHandle*>(ui_handle->get_object());
+		ObjUIHandle* obj_handle = static_cast<ObjUIHandle*>(ui_handle->get_object());
 		obj_handle->set_is_visible(ui_handle, is_open);
 		obj_handle->set_color(ui_handle, {0, 0, 0, 255});
 
@@ -183,7 +183,7 @@ namespace bee{ namespace console {
 			bee::console::run(input); // Run the command
 
 			// Reset the console state
-			ObjUITextEntry* obj_text_entry = dynamic_cast<ObjUITextEntry*>(text_entry->get_object());
+			ObjUITextEntry* obj_text_entry = static_cast<ObjUITextEntry*>(text_entry->get_object());
 			obj_text_entry->set_input(text_entry, "");
 			obj_text_entry->reset_completion(text_entry);
 			obj_text_entry->set_focus(text_entry, true);
@@ -193,7 +193,7 @@ namespace bee{ namespace console {
 		ui_text_entry->set_is_persistent(true);
 		ui_text_entry->set_data("input_tmp", std::string());
 
-		ObjUITextEntry* obj_text_entry = dynamic_cast<ObjUITextEntry*>(ui_text_entry->get_object());
+		ObjUITextEntry* obj_text_entry = static_cast<ObjUITextEntry*>(ui_text_entry->get_object());
 		obj_text_entry->set_is_visible(ui_text_entry, is_open);
 		obj_text_entry->set_color(ui_text_entry, {127, 127, 127, 127});
 
@@ -252,7 +252,7 @@ namespace bee{ namespace console {
 					break;
 				}
 				case SDLK_ESCAPE: {
-					ObjUITextEntry* obj_entry = dynamic_cast<ObjUITextEntry*>(text_entry->get_object());
+					ObjUITextEntry* obj_entry = static_cast<ObjUITextEntry*>(text_entry->get_object());
 					obj_entry->set_input(text_entry, "");
 					obj_entry->reset_completion(text_entry);
 					break;
@@ -286,11 +286,11 @@ namespace bee{ namespace console {
 	* internal::update_ui() - Update the UI visibility to match the console visibility
 	*/
 	int internal::update_ui() {
-		ObjUIHandle* obj_handle = dynamic_cast<ObjUIHandle*>(ui_handle->get_object());
+		ObjUIHandle* obj_handle = static_cast<ObjUIHandle*>(ui_handle->get_object());
 		obj_handle->update(ui_handle);
 		obj_handle->set_is_visible(ui_handle, is_open);
 
-		ObjUITextEntry* obj_text_entry = dynamic_cast<ObjUITextEntry*>(ui_text_entry->get_object());
+		ObjUITextEntry* obj_text_entry = static_cast<ObjUITextEntry*>(ui_text_entry->get_object());
 		obj_text_entry->update(ui_text_entry);
 		obj_text_entry->set_focus(ui_text_entry, is_open);
 		obj_text_entry->set_is_visible(ui_text_entry, is_open);
@@ -436,8 +436,8 @@ namespace bee{ namespace console {
 		ui_text_entry->set_corner_y(cy+rect.h);
 
 		if (get_current_room()->get_current_view() != nullptr) {
-			cx -= get_current_room()->get_current_view()->view_x;
-			cy -= get_current_room()->get_current_view()->view_y;
+			cx -= get_current_room()->get_current_view()->view.x;
+			cy -= get_current_room()->get_current_view()->view.y;
 		}
 
 		// Set the drawing sizes
@@ -675,7 +675,7 @@ namespace bee{ namespace console {
 	* @name: the name of the variable
 	* @value: the value to set
 	*/
-	int set_var(const std::string& name, SIDP value) {
+	int set_var(const std::string& name, const SIDP& value) {
 		if (internal::commands.find(name) != internal::commands.end()) { // If a command already exists, then return a warning
 			messenger::send({"engine", "console"}, E_MESSAGE::WARNING, "Failed to set variable \"" + name + "\", a command with the same name exists.");
 			return 1;

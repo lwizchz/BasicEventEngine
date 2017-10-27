@@ -93,7 +93,7 @@ namespace bee {
 			int set_parent_id(int);
 			int set_mask(Sprite*);
 			int set_mask_id(int);
-			int set_mask_offset(std::pair<int,int>);
+			int set_mask_offset(const std::pair<int,int>&);
 			int set_mask_offset(int, int);
 			int set_is_pausable(bool);
 

@@ -323,14 +323,11 @@ namespace bee {
 
 	/*
 	* draw_set_color() - Set the current drawing color to the given value
-	* @new_color: the new RGBA with which to draw and clear the screen
+	* @_color: the new RGBA with which to draw and clear the screen
 	*/
-	int draw_set_color(const RGBA& new_color) {
+	int draw_set_color(const RGBA& _color) {
 		// Set color to the new color
-		engine->color->r = new_color.r;
-		engine->color->g = new_color.g;
-		engine->color->b = new_color.b;
-		engine->color->a = new_color.a;
+		*engine->color = _color;
 
 		if (get_options().renderer_type != E_RENDERER::SDL) {
 			glm::vec4 uc = glm::vec4(engine->color->r, engine->color->g, engine->color->b, engine->color->a);
@@ -338,7 +335,7 @@ namespace bee {
 			glClearColor(uc.r, uc.g, uc.b, uc.a); // Set the OpenGL clear and draw colors as floats from [0.0, 1.0]
 			glUniform4fv(engine->renderer->colorize_location, 1, glm::value_ptr(uc)); // Change the fragment to the given color
 		} else {
-			return SDL_SetRenderDrawColor(engine->renderer->sdl_renderer, new_color.r, new_color.g, new_color.b, new_color.a); // Set the SDL draw color as Uint8's from [0, 255]
+			return SDL_SetRenderDrawColor(engine->renderer->sdl_renderer, _color.r, _color.g, _color.b, _color.a); // Set the SDL draw color as Uint8's from [0, 255]
 		}
 
 		return 0;

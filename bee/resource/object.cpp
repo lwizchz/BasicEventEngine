@@ -83,9 +83,7 @@ namespace bee {
 	* Object::~Object() - Remove the object from the resource list
 	*/
 	Object::~Object() {
-		if (list.find(id) != list.end()) { // Remove the object from the resource list
-			list.erase(id);
-		}
+		list.erase(id); // Remove the object from the resource list
 	}
 
 
@@ -278,7 +276,7 @@ namespace bee {
 		mask = new_mask;
 		return 0;
 	}
-	int Object::set_mask_offset(std::pair<int,int> new_offset) {
+	int Object::set_mask_offset(const std::pair<int,int>& new_offset) {
 		std::tie(xoffset, yoffset) = new_offset;
 		return 0;
 	}

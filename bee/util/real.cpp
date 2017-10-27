@@ -389,6 +389,28 @@ template int fit_bounds<int>(int, int, int);
 template long fit_bounds<long>(long, long, long);
 template float fit_bounds<float>(float, float, float);
 template double fit_bounds<double>(double, double, double);
+/*
+* qmod() - Return the result of a "quick" modulo
+* ! This is used to avoid unnecessary floating point divisions
+* ! This is effectively: x - truncated(x/m) * m
+* @x: the quotient numerator
+* @m: the quotient denominator
+*/
+template <typename T>
+T qmod(T x, unsigned int m) {
+	if ((m == 0)||(m == 1)) {
+		return m;
+	}
+
+	while (x >= 0) {
+		x -= m;
+	}
+	return x+m;
+}
+template int qmod<int>(int, unsigned int);
+template long qmod<long>(long, unsigned int);
+template float qmod<float>(float, unsigned int);
+template double qmod<double>(double, unsigned int);
 
 /*
 * checksum_internal_table() - Return a value from the CRC lookup table

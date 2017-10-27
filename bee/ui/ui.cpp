@@ -100,7 +100,7 @@ namespace bee { namespace ui {
 
 	int destroy_parent(bee::Instance* parent) {
 		for (auto& i : internal::parents[parent]) {
-			ObjUIHandle* obj_handle = dynamic_cast<ObjUIHandle*>(i->get_object());
+			ObjUIHandle* obj_handle = static_cast<ObjUIHandle*>(i->get_object());
 			obj_handle->update(i);
 			obj_handle->bind(i, nullptr);
 
@@ -120,10 +120,10 @@ namespace bee { namespace ui {
 		button->set_corner_x(x);
 		button->set_corner_y(y);
 
-		button->set_data("font", static_cast<void*>(font));
+		button->set_data("font", SIDP(font));
 		button->set_data("text", str);
 
-		ObjUIButton* obj_button = dynamic_cast<ObjUIButton*>(internal::obj_button);
+		ObjUIButton* obj_button = static_cast<ObjUIButton*>(internal::obj_button);
 		obj_button->update(button);
 		obj_button->center_width(button);
 
@@ -164,7 +164,7 @@ namespace bee { namespace ui {
 		handle->set_data("w", w);
 		handle->set_data("h", h);
 
-		ObjUIHandle* obj_handle = dynamic_cast<ObjUIHandle*>(internal::obj_handle);
+		ObjUIHandle* obj_handle = static_cast<ObjUIHandle*>(internal::obj_handle);
 		obj_handle->update(handle);
 		obj_handle->bind(handle, parent);
 
@@ -192,7 +192,7 @@ namespace bee { namespace ui {
 		text_entry->set_corner_x(x);
 		text_entry->set_corner_y(y);
 
-		ObjUITextEntry* obj_text_entry = dynamic_cast<ObjUITextEntry*>(internal::obj_text_entry);
+		ObjUITextEntry* obj_text_entry = static_cast<ObjUITextEntry*>(internal::obj_text_entry);
 		obj_text_entry->update(text_entry);
 		obj_text_entry->set_size(text_entry, rows, cols);
 
@@ -291,7 +291,7 @@ namespace bee { namespace ui {
 		gauge->set_data("w", w);
 		gauge->set_data("h", h);
 
-		ObjUIGauge* obj_gauge = dynamic_cast<ObjUIGauge*>(internal::obj_gauge);
+		ObjUIGauge* obj_gauge = static_cast<ObjUIGauge*>(internal::obj_gauge);
 		obj_gauge->update(gauge);
 		if (range > 0) {
 			obj_gauge->set_range(gauge, range);
@@ -315,7 +315,7 @@ namespace bee { namespace ui {
 		slider->set_data("w", w);
 		slider->set_data("h", h);
 
-		ObjUISlider* obj_slider = dynamic_cast<ObjUISlider*>(internal::obj_slider);
+		ObjUISlider* obj_slider = static_cast<ObjUISlider*>(internal::obj_slider);
 		obj_slider->update(slider);
 		obj_slider->set_range(slider, range);
 		obj_slider->set_value(slider, value);

@@ -6,8 +6,8 @@
 * See LICENSE for more details.
 */
 
-#ifndef _BEE_UTIL_MESSAGEBOX_H
-#define _BEE_UTIL_MESSAGEBOX_H 1
+#ifndef BEE_UTIL_MESSAGEBOX_H
+#define BEE_UTIL_MESSAGEBOX_H 1
 
 #include <string>
 
@@ -18,4 +18,4 @@ int show_warning(const std::string&);
 int show_error(const std::string&, bool);
 int show_error(const std::string&);
 
-#endif // _BEE_UTIL_MESSAGEBOX_H
+#endif // BEE_UTIL_MESSAGEBOX_H
