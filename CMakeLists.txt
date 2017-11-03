@@ -111,11 +111,13 @@ else() # Include Unix libraries automatically
 
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${game_defines}")
 
-	add_executable(${PROJECT_NAME} main.cpp resources/resources.hpp)
+	add_subdirectory("resources")
+	add_executable(${PROJECT_NAME} main.cpp)
 	target_link_libraries(${PROJECT_NAME} BEE)
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 		target_link_libraries(${PROJECT_NAME} BEE_Tests)
 	endif()
+	target_link_libraries(${PROJECT_NAME} Resources)
 
 	# Include SDL2 related libraries
 	include(FindPkgConfig)

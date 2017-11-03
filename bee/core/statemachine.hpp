@@ -50,7 +50,7 @@ namespace bee {
 			std::string get_state() const;
 			std::string get_state(int) const;
 			std::string get_states() const;
-			bool get_has_state(const std::string&) const;
+			bool has_state(const std::string&) const;
 
 			int push_state(const std::string&);
 			int pop_state();

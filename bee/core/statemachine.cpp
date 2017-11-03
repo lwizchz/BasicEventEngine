@@ -121,7 +121,7 @@ namespace bee {
 
 		return states;
 	}
-	bool StateMachine::get_has_state(const std::string& name) const {
+	bool StateMachine::has_state(const std::string& name) const {
 		for (auto& s : stack) {
 			if (s == name) {
 				return true;

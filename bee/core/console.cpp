@@ -164,7 +164,7 @@ namespace bee{ namespace console {
 
 		init_commands();
 
-		run("exec \"config.cfg\"", true, 0); // Configure default binds
+		//run("exec \"config.cfg\"", true, 0); // Configure default binds
 
 		return 0; // Return 0 on success
 	}
@@ -578,7 +578,7 @@ namespace bee{ namespace console {
 	*/
 	int bind(SDL_Keycode key, KeyBind keybind) {
 		if (internal::bindings.find(key) != internal::bindings.end()) { // If the key has already been bound, output a warning
-			messenger::send({"engine", "console"}, E_MESSAGE::WARNING, "Failed to bind key \"" + keystrings_get_string(key) + "\", the key is already in bound.");
+			messenger::send({"engine", "console"}, E_MESSAGE::WARNING, "Failed to bind key \"" + keystrings_get_string(key) + "\", the key is already bound.");
 			return 1;
 		}
 
@@ -596,7 +596,9 @@ namespace bee{ namespace console {
 	*/
 	int add_keybind(SDL_Keycode key, KeyBind keybind, std::function<void (const MessageContents&)> func) {
 		int r = add_command(keybind.command, func);
-		r += bind(key, keybind);
+		if (key != SDLK_UNKNOWN) {
+			r += bind(key, keybind);
+		}
 		return r;
 	}
 	/*
