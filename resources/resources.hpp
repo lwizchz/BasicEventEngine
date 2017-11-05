@@ -12,6 +12,8 @@
 #include "../bee/util.hpp"
 #include "../bee/all.hpp"
 
+#include "extras.hpp"
+
 // Define sprites
 extern bee::Sprite* spr_none;
 
@@ -34,6 +36,7 @@ extern bee::Sprite* spr_logo;
 // Define objects
 extern bee::Object* obj_menu;
 
+extern bee::Object* obj_lattice;
 extern bee::Object* obj_player;
 
 // Define rooms

@@ -34,6 +34,8 @@ void RmMenu::init() {
 		std::to_string(GAME_VERSION_MAJOR) + "." + std::to_string(GAME_VERSION_MINOR) + "." + std::to_string(GAME_VERSION_RELEASE)
 	);
 
+	bee::render_set_3d(true);
+
 	add_instance(-1, obj_menu, 0, 0, 0);
 }
 

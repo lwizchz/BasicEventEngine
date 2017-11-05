@@ -6,20 +6,18 @@
 * See LICENSE for more details.
 */
 
-#ifndef RES_OBJ_PLAYER_H
-#define RES_OBJ_PLAYER_H 1
+#ifndef RES_OBJ_LATTICE_H
+#define RES_OBJ_LATTICE_H 1
 
-class ObjPlayer : public bee::Object {
+class ObjLattice : public bee::Object {
 	public:
-		ObjPlayer();
+		ObjLattice();
 
 		void create(bee::Instance*);
 		void destroy(bee::Instance*);
 		void step_mid(bee::Instance*);
-		void mouse_input(bee::Instance*, SDL_Event*);
+		void mouse_press(bee::Instance*, SDL_Event*);
 		void draw(bee::Instance*);
-
-		void update_position(bee::Instance*);
 };
 
-#endif // RES_OBJ_PLAYER_H
+#endif // RES_OBJ_LATTICE_H

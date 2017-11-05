@@ -26,6 +26,10 @@ namespace bee {
 		RGBA(0, 0, 0, 0)
 	{}
 
+	RGBA RGBA::get_inverse() {
+		return RGBA(255-r, 255-g, 255-b, a);
+	}
+
 	std::array<float,3> RGBA::get_hsv() const {
 		float h = 0.f;
 		float s = 0.f;

@@ -258,31 +258,27 @@ namespace bee {
 
 	/*
 	* draw_polygon() - Draw a polygon around the given center coordinates
-	* @cx: the center x-coordinate
-	* @cy: the center y-coordinate
+	* @center: the center coordinate
 	* @radius: the radius of the polygon
-	* @angle_start: the beginning angle to draw from
-	* @angle_span: the interior angle of the polygon
+	* @ang_start: the beginning angle to draw from
+	* @ang_span: the interior angle of the polygon
 	* @segment_amount: the number of sides of the polygon
 	* @border_width: whether the polygon should be filled or simply an outline
 	* @c: the color with which to draw the polygon
 	*/
-	int draw_polygon(int cx, int cy, int radius, int angle_start, int angle_span, unsigned int segment_amount, int border_width, const RGBA& c) {
-		double d_theta = static_cast<double>(angle_span) / segment_amount;
+	int draw_polygon(glm::vec3 center, double radius, double ang_start, double ang_span, unsigned int segment_amount, int border_width, const RGBA& c) {
+		double angle_start = degtorad(ang_start);
+		double angle_span = degtorad(ang_span);
 
-		double tangential_factor = tan(degtorad(d_theta));
-		double radial_factor = cos(degtorad(d_theta));
+		double x_0 = radius * cos(angle_start);
+		double y_0 = radius * sin(angle_start);
 
-		double x = radius * cos(degtorad(angle_start));
-		double y = radius * sin(degtorad(angle_start));
-
-		glm::vec3 center (cx, cy, 0);
-		glm::vec3 p1 (x, y, 0);
-		glm::vec3 p2 (0, 0, 0);
+		glm::vec3 p1 (x_0, y_0, 0.0);
+		glm::vec3 p2 (0.0, 0.0, 0.0);
 
 		for (size_t i=0; i<segment_amount; ++i) {
-			p2.x = static_cast<float>(p1.x - p1.y*tangential_factor * radial_factor);
-			p2.y = static_cast<float>(p1.y + p1.x*tangential_factor * radial_factor);
+			p2.x = radius * cos(angle_start + angle_span*(i+1)/segment_amount);
+			p2.y = radius * sin(angle_start + angle_span*(i+1)/segment_amount);
 
 			if (border_width < 1) {
 				draw_triangle(center, center+p1, center+p2, c, true);
@@ -296,29 +292,27 @@ namespace bee {
 		return 0;
 	}
 	/*
-	* draw_polygon() - Draw a polygon around the given center coordinates
-	* @cx: the center x-coordinate
-	* @cy: the center y-coordinate
+	* draw_arc() - Draw a polygon around the given center coordinates
+	* @center: the center coordinate
 	* @radius: the radius of the arc
 	* @angle_start: the beginning angle to draw from
 	* @angle_span: the interior angle of the arc
 	* @border_width: whether the arc should be filled or simply an outline
 	* @c: the color with which to draw the arc
 	*/
-	int draw_arc(int cx, int cy, int radius, int angle_start, int angle_span, int border_width, const RGBA& c) {
-		int segment_amount = angle_span / 4;
-		return draw_polygon(cx, cy, radius, angle_start, angle_span, segment_amount, border_width, c);
+	int draw_arc(glm::vec3 center, double radius, double angle_start, double angle_span, int border_width, const RGBA& c) {
+		unsigned int segment_amount = radius;
+		return draw_polygon(center, radius, angle_start, angle_span, segment_amount, border_width, c);
 	}
 	/*
 	* draw_circle() - Draw a circle around the given center coordinates
-	* @cx: the center x-coordinate
-	* @cy: the center y-coordinate
+	* @center: the center coordinate
 	* @radius: the radius of the circle
 	* @border_width: whether the circle should be filled or simply an outline
 	* @c: the color with which to draw the circle
 	*/
-	int draw_circle(int cx, int cy, int radius, int border_width, const RGBA& c) {
-		return draw_arc(cx, cy, radius, 0, 360, border_width, c);
+	int draw_circle(glm::vec3 center, double radius, int border_width, const RGBA& c) {
+		return draw_arc(center, radius, 0, 360, border_width, c);
 	}
 
 	/*

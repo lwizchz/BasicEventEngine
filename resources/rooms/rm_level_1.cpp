@@ -29,6 +29,7 @@ void RmLevel1::init() {
 
 	set_background_color({16, 16, 28, 255});
 
+	add_instance(-1, obj_lattice, 0, 0, 0);
 	add_instance(-1, obj_player, 0, 0, 0);
 }
 

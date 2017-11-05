@@ -96,9 +96,9 @@ void ObjUIOptionBox::draw(bee::Instance* self) {
 				);
 			}
 		} else if (_i("type") == 1) {
-			bee::draw_circle(self->get_corner_x() + 24 - ox, self->get_corner_y() + i*_i("option_height") + 16 - oy, 8, 1, c_border);
+			bee::draw_circle(glm::vec3(self->get_corner_x() + 24 - ox, self->get_corner_y() + i*_i("option_height") + 16 - oy, 0), 8, 1, c_border);
 			if (_ci("option_state", i)) {
-				bee::draw_circle(self->get_corner_x() + 24 - ox, self->get_corner_y() + i*_i("option_height") + 16 - oy, 6, -1, c_border);
+				bee::draw_circle(glm::vec3(self->get_corner_x() + 24 - ox, self->get_corner_y() + i*_i("option_height") + 16 - oy, 0), 6, -1, c_border);
 			}
 		}
 

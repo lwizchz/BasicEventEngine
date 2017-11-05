@@ -20,6 +20,8 @@ namespace bee {
 		RGBA(int, int, int, int);
 		RGBA();
 
+		RGBA get_inverse();
+
 		std::array<float,3> get_hsv() const;
 		float get_hue() const;
 		float get_saturation() const;

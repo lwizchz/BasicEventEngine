@@ -102,7 +102,7 @@ void ObjUISlider::draw(bee::Instance* self) {
 
 	int slider_size = _i("slider_size");
 	int slider_x = self->get_corner_x() + w * _i("value") / _i("range") - slider_size/2;
-	bee::draw_circle(slider_x + slider_size/2 - ox, self->get_corner_y() + h/2 - oy, slider_size/2, -1, c_slider);
+	bee::draw_circle(glm::vec3(slider_x + slider_size/2 - ox, self->get_corner_y() + h/2 - oy, 0), slider_size/2, -1, c_slider);
 
 	if (_i("show_text")) {
 		bee::Font* font = bee::engine->font_default;

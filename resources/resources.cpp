@@ -33,6 +33,7 @@ bee::Sprite* spr_logo = nullptr;
 // Define objects
 bee::Object* obj_menu = nullptr;
 
+bee::Object* obj_lattice = nullptr;
 bee::Object* obj_player = nullptr;
 
 // Define rooms
@@ -43,6 +44,7 @@ bee::Room* rm_level_1 = nullptr;
 // Include objects
 #include "objects/obj_menu.hpp"
 
+#include "objects/obj_lattice.hpp"
 #include "objects/obj_player.hpp"
 
 // Include rooms
@@ -80,6 +82,7 @@ int bee::init_resources() {
 		// Init objects
 		obj_menu = new ObjMenu();
 
+		obj_lattice = new ObjLattice();
 		obj_player = new ObjPlayer();
 
 		// Init rooms
@@ -120,6 +123,7 @@ int bee::close_resources() {
 	// Destroy objects
 	DEL(obj_menu);
 
+	DEL(obj_lattice);
 	DEL(obj_player);
 
 	// Destroy rooms
