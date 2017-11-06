@@ -208,7 +208,8 @@ namespace bee{ namespace console {
 		bee::ui::add_text_entry_handler(ui_text_entry, [] (Instance* text_entry, const std::string& input, const SDL_Event* e) {
 			switch (e->key.keysym.sym) {
 				case SDLK_UP: { // The up arrow cycles through completion commands or reverse history
-					std::vector<SIDP>* completions = static_cast<std::vector<SIDP>*>(SIDP_p(text_entry->get_data("completions")));
+					SIDP c = text_entry->get_data("completions"); // Store the copy returned by get_data()
+					std::vector<SIDP>* completions = static_cast<std::vector<SIDP>*>(SIDP_p(c));
 					if (completions->size() > 1) { // If a command is being completed
 						int completion_index = SIDP_i(text_entry->get_data("completion_index"));
 						if (completion_index > 0) { // If a completion command is already selected, lower the index and set the input line to the given command
@@ -229,7 +230,8 @@ namespace bee{ namespace console {
 					break;
 				}
 				case SDLK_DOWN: { // The down arrow cycles through the forward history
-					std::vector<SIDP>* completions = static_cast<std::vector<SIDP>*>(SIDP_p(text_entry->get_data("completions")));
+					SIDP c = text_entry->get_data("completions"); // Store the copy returned by get_data()
+					std::vector<SIDP>* completions = static_cast<std::vector<SIDP>*>(SIDP_p(c));
 					if (completions->size() > 1) { // If a command is being completed
 						int completion_index = SIDP_i(text_entry->get_data("completion_index"));
 						if (completion_index == -1) { // If not completion command has been selected, store the previous user input

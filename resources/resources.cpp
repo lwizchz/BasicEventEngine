@@ -35,6 +35,7 @@ bee::Object* obj_menu = nullptr;
 
 bee::Object* obj_lattice = nullptr;
 bee::Object* obj_player = nullptr;
+bee::Object* obj_enemy = nullptr;
 
 // Define rooms
 bee::Room* rm_menu = nullptr;
@@ -46,6 +47,7 @@ bee::Room* rm_level_1 = nullptr;
 
 #include "objects/obj_lattice.hpp"
 #include "objects/obj_player.hpp"
+#include "objects/obj_enemy.hpp"
 
 // Include rooms
 #include "rooms/rm_menu.hpp"
@@ -84,6 +86,7 @@ int bee::init_resources() {
 
 		obj_lattice = new ObjLattice();
 		obj_player = new ObjPlayer();
+		obj_enemy = new ObjEnemy();
 
 		// Init rooms
 		rm_menu = new RmMenu();
@@ -125,6 +128,7 @@ int bee::close_resources() {
 
 	DEL(obj_lattice);
 	DEL(obj_player);
+	DEL(obj_enemy);
 
 	// Destroy rooms
 	DEL(rm_menu);

@@ -18,6 +18,9 @@ PrimitiveLine::PrimitiveLine(const glm::vec3& _p1, const glm::vec3& _p2) :
 	p1(_p1),
 	p2(_p2)
 {}
+PrimitiveLine* PrimitiveLine::clone() {
+	return new PrimitiveLine(p1, p2);
+}
 int PrimitiveLine::draw(const glm::vec3& offset, const glm::vec3& rot, bee::RGBA color) {
 	return bee::draw_line(p1+offset, p2+offset, color);
 }
@@ -27,6 +30,9 @@ PrimitiveTriangle::PrimitiveTriangle(const glm::vec3& _p1, const glm::vec3& _p2,
 	p2(_p2),
 	p3(_p3)
 {}
+PrimitiveTriangle* PrimitiveTriangle::clone() {
+	return new PrimitiveTriangle(p1, p2, p3);
+}
 int PrimitiveTriangle::draw(const glm::vec3& offset, const glm::vec3& rot, bee::RGBA color) {
 	return bee::draw_triangle(p1+offset, p2+offset, p3+offset, color, false);
 }
@@ -35,6 +41,9 @@ PrimitiveQuad::PrimitiveQuad(const glm::vec3& _pos, const glm::vec3& _size) :
 	pos(_pos),
 	size(_size)
 {}
+PrimitiveQuad* PrimitiveQuad::clone() {
+	return new PrimitiveQuad(pos, size);
+}
 int PrimitiveQuad::draw(const glm::vec3& offset, const glm::vec3& rot, bee::RGBA color) {
 	return bee::draw_quad(pos+offset, size, 1, color);
 }
@@ -46,6 +55,9 @@ PrimitivePolygon::PrimitivePolygon(const glm::vec3& _pos, double _radius, double
 	angle_span(_angle_span),
 	segment_amount(_segment_amount)
 {}
+PrimitivePolygon* PrimitivePolygon::clone() {
+	return new PrimitivePolygon(pos, radius, angle_start, angle_span, segment_amount);
+}
 int PrimitivePolygon::draw(const glm::vec3& offset, const glm::vec3& rot, bee::RGBA color) {
 	return bee::draw_polygon(pos+offset, radius, angle_start, angle_span, segment_amount, 1, color);
 }
@@ -157,21 +169,21 @@ VectorSprite::VectorSprite(const std::string& _path) :
 		}
 	}
 }
-/*VectorSprite::VectorSprite(const VectorSprite& other) :
+VectorSprite::VectorSprite(const VectorSprite& other) :
 	path(other.path),
 	primitives()
 {
 	for (auto& p : other.primitives) {
-		//primitives.push_back(new Primitive(p));
+		primitives.push_back(p->clone());
 	}
-}*/
+}
 VectorSprite::~VectorSprite() {
 	for (auto& p : primitives) {
 		delete p;
 	}
 }
 
-/*VectorSprite& VectorSprite::operator=(const VectorSprite& rhs) {
+VectorSprite& VectorSprite::operator=(const VectorSprite& rhs) {
 	if (this != &rhs) {
 		this->path = rhs.path;
 
@@ -181,11 +193,11 @@ VectorSprite::~VectorSprite() {
 		this->primitives.clear();
 
 		for (auto& p : rhs.primitives) {
-			//this->primitives.push_back(new Primitive(p));
+			this->primitives.push_back(p->clone());
 		}
 	}
 	return *this;
-}*/
+}
 
 int VectorSprite::draw(const glm::vec3& pos, const glm::vec3& rot, bee::RGBA color) {
 	for (auto& p : primitives) {

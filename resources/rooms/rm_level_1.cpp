@@ -31,6 +31,10 @@ void RmLevel1::init() {
 
 	add_instance(-1, obj_lattice, 0, 0, 0);
 	add_instance(-1, obj_player, 0, 0, 0);
+
+	for (size_t i=0; i<10; ++i) {
+		add_instance(-1, obj_enemy, 0, 0, 0);
+	}
 }
 
 #endif // RES_RM_LEVEL_1

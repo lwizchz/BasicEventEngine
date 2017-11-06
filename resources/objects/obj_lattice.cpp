@@ -110,6 +110,7 @@ void ObjLattice::mouse_press(bee::Instance* self, SDL_Event* e) {
 void ObjLattice::draw(bee::Instance* self) {
 	glm::vec3 offset (_d("offset_x"), _d("offset_y"), _d("offset_z"));
 	glm::vec3 offset3d (_d("offset_x"), _d("offset_y"), _d("offset_z")+2000.0);
+	glm::vec3 offset3dfar (_d("offset_x"), _d("offset_y"), _d("offset_z")+10000.0);
 	glm::vec3 rot (_d("rot_x"), _d("rot_y"), _d("rot_z"));
 	bee::RGBA color (_i("color_r"), _i("color_g"), _i("color_b"), 255);
 
@@ -138,6 +139,7 @@ void ObjLattice::draw(bee::Instance* self) {
 		} else {
 			bee::draw_line(pl->p1+offset, pl->p1+offset3d, color);
 		}
+		bee::draw_line(pl->p1+offset3d, pl->p1+offset3dfar, {30, 30, 30, 255});
 		++i;
 	}
 }

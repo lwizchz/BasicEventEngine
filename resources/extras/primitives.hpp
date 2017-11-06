@@ -20,6 +20,7 @@ enum class E_PRIMITIVE {
 
 struct Primitive {
 	virtual ~Primitive() {};
+	virtual Primitive* clone() {return new Primitive();};
 	virtual int draw(const glm::vec3&, const glm::vec3&, bee::RGBA) {return 0;};
 };
 struct PrimitiveLine : public Primitive {
@@ -27,6 +28,7 @@ struct PrimitiveLine : public Primitive {
 	glm::vec3 p2;
 
 	PrimitiveLine(const glm::vec3&, const glm::vec3&);
+	PrimitiveLine* clone();
 	int draw(const glm::vec3&, const glm::vec3&, bee::RGBA);
 };
 struct PrimitiveTriangle : public Primitive {
@@ -35,6 +37,7 @@ struct PrimitiveTriangle : public Primitive {
 	glm::vec3 p3;
 
 	PrimitiveTriangle(const glm::vec3&, const glm::vec3&, const glm::vec3&);
+	PrimitiveTriangle* clone();
 	int draw(const glm::vec3&, const glm::vec3&, bee::RGBA);
 };
 struct PrimitiveQuad : public Primitive {
@@ -42,6 +45,7 @@ struct PrimitiveQuad : public Primitive {
 	glm::vec3 size;
 
 	PrimitiveQuad(const glm::vec3&, const glm::vec3&);
+	PrimitiveQuad* clone();
 	int draw(const glm::vec3&, const glm::vec3&, bee::RGBA);
 };
 struct PrimitivePolygon : public Primitive {
@@ -52,6 +56,7 @@ struct PrimitivePolygon : public Primitive {
 	unsigned int segment_amount;
 
 	PrimitivePolygon(const glm::vec3&, double, double, double, unsigned int);
+	PrimitivePolygon* clone();
 	virtual ~PrimitivePolygon() {};
 	int draw(const glm::vec3&, const glm::vec3&, bee::RGBA);
 };
@@ -67,10 +72,10 @@ class VectorSprite {
 		std::vector<Primitive*> primitives;
 	public:
 		VectorSprite(const std::string&);
-		//VectorSprite(const VectorSprite&);
+		VectorSprite(const VectorSprite&);
 		virtual ~VectorSprite();
 
-		//VectorSprite& operator=(const VectorSprite&);
+		VectorSprite& operator=(const VectorSprite&);
 
 		int draw(const glm::vec3&, const glm::vec3&, bee::RGBA);
 };

@@ -38,6 +38,7 @@ extern bee::Object* obj_menu;
 
 extern bee::Object* obj_lattice;
 extern bee::Object* obj_player;
+extern bee::Object* obj_enemy;
 
 // Define rooms
 extern bee::Room* rm_menu;
