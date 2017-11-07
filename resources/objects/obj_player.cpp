@@ -82,7 +82,7 @@ void ObjPlayer::create(bee::Instance* self) {
 		(*s)["position"] = qmod(_i("position"), _i("max_positions")*10);
 		this->update_position(self);
 	};
-	bee::State state_move_ccw ("MoveCounterClockwise", {"Still", "MoveClockwise", "Shoot", "Super", "Dead"});
+	bee::State state_move_ccw ("MoveCounterClockwise", {"Still", "MoveClockwise", "FirePellet", "FireBeam", "Super", "Dead"});
 	state_move_ccw.update_func = [this, self, sm] (Uint32 ticks) {
 		if (_i("movement") >= 0) {
 			sm->pop_state_all("MoveCounterClockwise");

@@ -100,7 +100,9 @@ void ObjLattice::destroy(bee::Instance* self) {
 	Object::destroy(self);
 }
 void ObjLattice::step_mid(bee::Instance* self) {
-	bee::render_set_camera(new bee::Camera(glm::vec3(bee::get_width()/2.0, bee::get_height()/2.0, -540.0), glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
+	double mx = 100.0 * (bee::get_mouse_global_x()-bee::get_width()/2.0)/bee::get_width();
+	double my = 100.0 * (bee::get_mouse_global_y()-bee::get_height()/2.0)/bee::get_height();
+	bee::render_set_camera(new bee::Camera(glm::vec3(bee::get_width()/2.0 + mx, bee::get_height()/2.0 + my, -540.0), glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
 }
 void ObjLattice::mouse_press(bee::Instance* self, SDL_Event* e) {
 	if ((_i("is_creating"))&&(e->button.button == SDL_BUTTON_LEFT)) {
