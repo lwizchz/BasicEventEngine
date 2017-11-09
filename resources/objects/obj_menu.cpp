@@ -29,7 +29,7 @@ ObjMenu::ObjMenu() : Object("obj_menu", "obj_menu.cpp") {
 }
 
 void ObjMenu::create(bee::Instance* self) {
-
+	bee::console::run("let level_index = 0");
 }
 void ObjMenu::step_mid(bee::Instance* self) {
 	bee::render_set_camera(new bee::Camera(glm::vec3(bee::get_width()/2.0, bee::get_height()/2.0, -540.0), glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
