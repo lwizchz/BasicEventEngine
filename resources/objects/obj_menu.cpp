@@ -61,7 +61,7 @@ void ObjMenu::game_start(bee::Instance* self) {
 
 		(*s)["is_creating"] = false;
 
-		std::vector<bee::SIDP> params = bee::console::internal::parse_parameters(msg.descr); // Parse the parameters from the given command
+		std::vector<bee::SIDP> params = bee::console::internal::parse_parameters(msg.descr, true); // Parse the parameters from the given command
 		if (params.size() < 2) {
 			bee::messenger::send({"SaveLevel"}, bee::E_MESSAGE::INFO, "Failed to save level: no filename provided");
 			return;
@@ -89,7 +89,7 @@ void ObjMenu::game_start(bee::Instance* self) {
 		bee::console::run("LoadLevel " + SIDP_s(params[1]));
 	});
 	bee::console::add_command("LoadLevel", [this, self] (const bee::MessageContents& msg) mutable {
-		std::vector<bee::SIDP> params = bee::console::internal::parse_parameters(msg.descr); // Parse the parameters from the given command
+		std::vector<bee::SIDP> params = bee::console::internal::parse_parameters(msg.descr, true); // Parse the parameters from the given command
 		if (params.size() < 2) {
 			bee::messenger::send({"LoadLevel"}, bee::E_MESSAGE::INFO, "Failed to load level: no filename provided");
 			return;

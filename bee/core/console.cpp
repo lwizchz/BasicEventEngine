@@ -9,8 +9,10 @@
 #ifndef BEE_CORE_CONSOLE
 #define BEE_CORE_CONSOLE 1
 
+#include <iostream>
 #include <sstream>
 #include <algorithm>
+#include <regex>
 
 #include <GL/glew.h> // Include the required OpenGL headers
 #include <SDL2/SDL_opengl.h>
@@ -198,7 +200,7 @@ namespace bee{ namespace console {
 		obj_text_entry->set_color(ui_text_entry, {127, 127, 127, 127});
 
 		bee::ui::add_text_entry_completor(ui_text_entry, [] (Instance* text_entry, const std::string& input) -> std::vector<SIDP> {
-			std::vector<SIDP> params = parse_parameters(input); // Parse the current parameters from the input line
+			std::vector<SIDP> params = parse_parameters(input, true); // Parse the current parameters from the input line
 			if (params.size() == 1) { // Complete the command if it's the only parameter
 				return complete(text_entry, SIDP_s(params[0])); // Find new completion comands
 			} else { // TODO: Complete command arguments
@@ -308,7 +310,7 @@ namespace bee{ namespace console {
 	*/
 	int internal::run_internal(const std::string& command, bool is_urgent, Uint32 delay) {
 		std::string c = trim(command);
-		std::vector<SIDP> params = parse_parameters(c); // Parse the parameters from the given command in order to get the command name as params[0]
+		std::vector<SIDP> params = parse_parameters(c, false); // Parse the parameters from the given command in order to get the command name as params[0]
 
 		// Remove comments from the end of commands
 		size_t compos = c.find("//");
@@ -415,16 +417,92 @@ namespace bee{ namespace console {
 	/*
 	* internal::parse_parameters() - Convert the command to a parameter list
 	* @command: the full command string
+	* @should_replace: whether to substitute variable values for their names
 	*/
-	std::vector<SIDP> internal::parse_parameters(const std::string& command) {
-		std::map<int,std::string> params = split(command, ' ', true); // Split the command parameters by spaces, respecting quotes
+	std::vector<SIDP> internal::parse_parameters(const std::string& command, bool should_replace) {
+		std::vector<std::string> params = splitv(command, ' ', true); // Split the command parameters by spaces, respecting containers
 
 		std::vector<SIDP> param_list; // Create a vector to store each parameter instead of the map from split()
 		for (auto& p : params) { // Iterate over each parameter and store it as a SIDP interpreted type
-			param_list.push_back(SIDP(p.second));
+			if (should_replace) {
+				param_list.push_back(SIDP(replace_vars(p)));
+			} else {
+				param_list.push_back(SIDP(p));
+			}
 		}
 
 		return param_list; // Return the vector of parameters on success
+	}
+	/*
+	* internal::replace_vars() - Replace the variables in a command string with their values
+	* @command: the command to modify
+	*/
+	std::string internal::replace_vars(const std::string& input) {
+		std::string output = "";
+
+		for (size_t i=0; i<input.length(); ++i) {
+			if (
+				(input[i] != '$')
+				||((i>0)&&(input[i-1] == '\\'))
+			) {
+				output += input[i];
+			} else {
+				int containers = 0;
+				std::string var = "";
+				while (++i < input.length()) {
+					var += input[i];
+					if (std::regex_match(var, std::regex("[^[:alnum:][]]"))) {
+						--i;
+						var.pop_back();
+						break;
+					}
+
+					if (var.back() == '[') {
+						++containers;
+					} else if (var.back() == ']') {
+						--containers;
+						if (containers < 0) {
+							--i;
+							var.pop_back();
+							break;
+						}
+					}
+				}
+				if (var.empty()) {
+					continue;
+				}
+
+				var = replace_vars(var);
+
+				std::string index = "";
+				for (size_t j=0; j<var.length(); ++j) {
+					if (var[j] == '[') {
+						std::string v (var.substr(0, j));
+						while (++j < var.length()) {
+							if (var[j] == ']') {
+								break;
+							}
+							index += var[j];
+						}
+						var = v;
+						break;
+					}
+				}
+
+				if (!index.empty()) {
+					if (is_str_integer(index)) {
+						output += SIDP_c(get_var(var), std::stoi(index)).to_str(); // Get vector element
+					} else {
+						//output += SIDP_c(get_var(var), SIDP(index)).to_str(); // Get map element
+						output += index;
+					}
+				} else {
+					output += get_var(var).to_str(); // Get non-container variable
+				}
+			}
+		}
+
+		return output;
 	}
 	/*
 	* internal::draw() - Draw the console and its output
@@ -697,7 +775,8 @@ namespace bee{ namespace console {
 		if (internal::variables.find(name) != internal::variables.end()) {
 			return internal::variables[name];
 		}
-		return SIDP();
+
+		return internal::replace_vars(name);
 	}
 
 

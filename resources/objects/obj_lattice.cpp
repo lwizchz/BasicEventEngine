@@ -43,8 +43,11 @@ void ObjLattice::create(bee::Instance* self) {
 	(*s)["is_creating"] = false;
 
 	std::vector<bee::SIDP>* lv = new std::vector<bee::SIDP>();
+	std::string level = SIDP_s(bee::console::get_var("$levels[$level_index]"));
+	bee::console::run("let level_index += 1");
+	//std::string level = SIDP_s(bee::console::get_var("$level"));
 
-	std::string datastr = file_get_contents("resources/rooms/" + SIDP_s(bee::console::get_var("level")) + ".csv");
+	std::string datastr = file_get_contents("resources/rooms/" + level + ".csv");
 	std::istringstream data_stream (datastr);
 
 	while (!data_stream.eof()) {
@@ -103,6 +106,16 @@ void ObjLattice::step_mid(bee::Instance* self) {
 	double mx = 100.0 * (bee::get_mouse_global_x()-bee::get_width()/2.0)/bee::get_width();
 	double my = 100.0 * (bee::get_mouse_global_y()-bee::get_height()/2.0)/bee::get_height();
 	bee::render_set_camera(new bee::Camera(glm::vec3(bee::get_width()/2.0 + mx, bee::get_height()/2.0 + my, -540.0), glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
+
+	if (obj_enemy->get_instance(0) == nullptr) {
+		bee::Instance* player = obj_player->get_instance(0);
+		if ((player != nullptr)&&(SIDP_i(player->get_data("health")) > 0)) {
+			if (SIDP_i(bee::console::get_var("$level_index")) < SIDP_v(bee::console::get_var("$levels")).size()) {
+				bee::console::run("LoadLevel $levels[$level_index]");
+				return;
+			}
+		}
+	}
 }
 void ObjLattice::mouse_press(bee::Instance* self, SDL_Event* e) {
 	if ((_i("is_creating"))&&(e->button.button == SDL_BUTTON_LEFT)) {

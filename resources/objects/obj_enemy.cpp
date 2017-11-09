@@ -37,7 +37,7 @@ void ObjEnemy::create(bee::Instance* self) {
 	(*s)["max_positions"] = 0; // This is set on first run by update_position()
 	(*s)["movement"] = 0;
 	(*s)["movement_speed"] = 40;
-	(*s)["approach"] = -1 * static_cast<int>(random_range(100, 1000));
+	(*s)["approach"] = -1.0 * static_cast<double>(random_range(100, 1000));
 
 	VectorSprite* vs = new VectorSprite("resources/sprites/enemy.csv");
 	(*s)["vsprite"] = static_cast<void*>(vs);
@@ -49,8 +49,8 @@ void ObjEnemy::create(bee::Instance* self) {
 
 	bee::State state_still ("Still", {"Approach"});
 	state_still.update_func = [this, self, sm] (Uint32 ticks) {
-		if (_i("approach") < 0) {
-			(*s)["approach"] += static_cast<int>(random_range(1, 3));
+		if (_d("approach") < 0.0) {
+			(*s)["approach"] += static_cast<double>(random_range(1, 3));
 			this->update_position(self);
 		} else {
 			sm->pop_state_all("Still");
@@ -59,8 +59,8 @@ void ObjEnemy::create(bee::Instance* self) {
 	};
 	bee::State state_approach ("Approach", {"Attack", "Dead"});
 	state_approach.update_func = [this, self, sm] (Uint32 ticks) {
-		if (_i("approach") < 100) {
-			(*s)["approach"] += 1;
+		if (_d("approach") < 100.0) {
+			(*s)["approach"] += bee::SIDP(1.0);
 			this->update_position(self);
 		} else {
 			(*s)["movement"] = (*s)["movement_speed"];
@@ -149,7 +149,7 @@ void ObjEnemy::update_position(bee::Instance* self) {
 		(*s)["position"] = static_cast<int>(random(_i("max_positions")));
 	}
 
-	double approach = 2000.0-2000.0*_i("approach")/100;
+	double approach = 2000.0-2000.0*_d("approach")/100.0;
 
 	PrimitiveLine* l = static_cast<PrimitiveLine*>(SIDP_cp(lat->get_data("levelvector"), _i("position")));
 	self->set_position(

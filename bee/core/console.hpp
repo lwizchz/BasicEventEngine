@@ -39,7 +39,8 @@ namespace console {
 		int run_internal(const std::string&, bool, Uint32);
 		int run(const std::string&, bool, Uint32);
 		std::vector<SIDP> complete(Instance*, const std::string&);
-		std::vector<SIDP> parse_parameters(const std::string&);
+		std::vector<SIDP> parse_parameters(const std::string&, bool);
+		std::string replace_vars(const std::string&);
 		int draw();
 	}
 
