@@ -27,7 +27,8 @@ void RmMenu::init() {
 	get_phys_world()->set_gravity(btVector3(0.0, 0.0, 0.0));
 	get_phys_world()->set_scale(100.0);
 
-	set_background_color({16, 16, 28, 255});
+	//set_background_color({16, 16, 28, 255});
+	add_background(bk_vortex, true, false, 0, 0, false, false, 0, 0, false);
 
 	bee::set_window_title(
 		std::string(MACRO_TO_STR(GAME_NAME)) + " - v" +

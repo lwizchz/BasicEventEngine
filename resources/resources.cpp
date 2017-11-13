@@ -19,6 +19,7 @@ bee::Sprite* spr_logo = nullptr;
 // Define sounds
 
 // Define backgrounds
+bee::Background* bk_vortex = nullptr;
 
 // Define fonts
 
@@ -36,6 +37,7 @@ bee::Object* obj_menu = nullptr;
 bee::Object* obj_lattice = nullptr;
 bee::Object* obj_player = nullptr;
 bee::Object* obj_enemy = nullptr;
+bee::Object* obj_bee = nullptr;
 
 // Define rooms
 bee::Room* rm_menu = nullptr;
@@ -48,6 +50,7 @@ bee::Room* rm_level_1 = nullptr;
 #include "objects/obj_lattice.hpp"
 #include "objects/obj_player.hpp"
 #include "objects/obj_enemy.hpp"
+#include "objects/obj_bee.hpp"
 
 // Include rooms
 #include "rooms/rm_menu.hpp"
@@ -70,6 +73,8 @@ int bee::init_resources() {
 		// Init sounds
 
 		// Init backgrounds
+		bk_vortex = new Background("bk_vortex", "bk_vortex.png");
+			bk_vortex->load();
 
 		// Init fonts
 
@@ -87,6 +92,7 @@ int bee::init_resources() {
 		obj_lattice = new ObjLattice();
 		obj_player = new ObjPlayer();
 		obj_enemy = new ObjEnemy();
+		obj_bee = new ObjBee();
 
 		// Init rooms
 		rm_menu = new RmMenu();
@@ -109,9 +115,12 @@ int bee::close_resources() {
 	// Destroy sprites
 	DEL(spr_none);
 
+	DEL(spr_logo);
+
 	// Destroy sounds
 
 	// Destroy backgrounds
+	DEL(bk_vortex);
 
 	// Destroy fonts
 
@@ -129,6 +138,7 @@ int bee::close_resources() {
 	DEL(obj_lattice);
 	DEL(obj_player);
 	DEL(obj_enemy);
+	DEL(obj_bee);
 
 	// Destroy rooms
 	DEL(rm_menu);

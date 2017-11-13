@@ -100,7 +100,7 @@ std::string string_upper(const std::string& str) {
 */
 std::string string_title(const std::string& str) {
 	std::string s = "";
-	s.resize(str.length());
+	s.reserve(str.length());
 
 	char previous_c = ' ';
 	for (auto c : str) {

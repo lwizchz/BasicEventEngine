@@ -21,6 +21,7 @@ ObjLattice::ObjLattice() : Object("obj_lattice", "obj_lattice.cpp") {
 		bee::E_EVENT::UPDATE,
 		bee::E_EVENT::CREATE,
 		bee::E_EVENT::DESTROY,
+		bee::E_EVENT::ALARM,
 		bee::E_EVENT::STEP_MID,
 		bee::E_EVENT::MOUSE_PRESS,
 		bee::E_EVENT::DRAW
@@ -102,17 +103,25 @@ void ObjLattice::destroy(bee::Instance* self) {
 
 	Object::destroy(self);
 }
+void ObjLattice::alarm(bee::Instance* self, size_t a) {
+	switch (a) {
+		case 0: {
+			bee::console::run("LoadLevel $levels[$level_index]");
+			break;
+		}
+		default: {}
+	}
+}
 void ObjLattice::step_mid(bee::Instance* self) {
 	double mx = 100.0 * (bee::get_mouse_global_x()-bee::get_width()/2.0)/bee::get_width();
 	double my = 100.0 * (bee::get_mouse_global_y()-bee::get_height()/2.0)/bee::get_height();
 	bee::render_set_camera(new bee::Camera(glm::vec3(bee::get_width()/2.0 + mx, bee::get_height()/2.0 + my, -540.0), glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
 
-	if (obj_enemy->get_instance(0) == nullptr) {
+	if ((obj_enemy->get_instance(0) == nullptr)&&(self->alarm_end[0] == 0xffffffff)) {
 		bee::Instance* player = obj_player->get_instance(0);
 		if ((player != nullptr)&&(SIDP_i(player->get_data("health")) > 0)) {
-			if (SIDP_i(bee::console::get_var("$level_index")) < SIDP_v(bee::console::get_var("$levels")).size()) {
-				bee::console::run("LoadLevel $levels[$level_index]");
-				return;
+			if (static_cast<unsigned int>(SIDP_i(bee::console::get_var("$level_index"))) < SIDP_v(bee::console::get_var("$levels")).size()) {
+				self->set_alarm(0, 700);
 			}
 		}
 	}

@@ -15,6 +15,7 @@ class ObjLattice : public bee::Object {
 
 		void create(bee::Instance*);
 		void destroy(bee::Instance*);
+		void alarm(bee::Instance*, size_t);
 		void step_mid(bee::Instance*);
 		void mouse_press(bee::Instance*, SDL_Event*);
 		void draw(bee::Instance*);

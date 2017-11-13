@@ -67,7 +67,7 @@ namespace bee {
 		pos_previous(),
 		path_pos_start()
 	{
-		for (size_t i=0; i<BEE_ALARM_COUNT; i++) {
+		for (size_t i=0; i<BEE_ALARM_COUNT; ++i) {
 			alarm_end[i] = 0xffffffff;
 		}
 	}

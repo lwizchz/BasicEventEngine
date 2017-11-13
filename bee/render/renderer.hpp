@@ -50,6 +50,7 @@ namespace bee {
 			GLint colorize_location;
 			GLint primitive_location;
 			GLint flip_location;
+			GLint time_location;
 
 			GLint is_lightable_location;
 			GLint light_amount_location;

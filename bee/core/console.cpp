@@ -9,7 +9,6 @@
 #ifndef BEE_CORE_CONSOLE
 #define BEE_CORE_CONSOLE 1
 
-#include <iostream>
 #include <sstream>
 #include <algorithm>
 #include <regex>
@@ -682,7 +681,7 @@ namespace bee{ namespace console {
 		return r;
 	}
 	/*
-	* bind() - Return the command that is bound to the given key
+	* get_keybind() - Return the command that is bound to the given key
 	* @key: the keycode to bind to
 	*/
 	KeyBind get_keybind(SDL_Keycode key) {
@@ -690,6 +689,17 @@ namespace bee{ namespace console {
 			return internal::bindings.at(key); // Return the command on success when no command argument is provided
 		}
 		return KeyBind(); // Return an empty string when the provided command is empty and the key has not been bound
+	}
+	/*
+	* get_keycode() - Return the keycode bound to the keybind with the given name
+	*/
+	SDL_Keycode get_keycode(const std::string& keybind) {
+		for (auto& kb : internal::bindings) {
+			if (kb.second.command == keybind) {
+				return kb.second.key;;
+			}
+		}
+		return SDLK_UNKNOWN;
 	}
 	/*
 	* unbind() - Unbind a key from a console command

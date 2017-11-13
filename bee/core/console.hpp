@@ -55,6 +55,7 @@ namespace console {
 	int bind(SDL_Keycode, KeyBind);
 	int add_keybind(SDL_Keycode, KeyBind, std::function<void (const MessageContents&)>);
 	KeyBind get_keybind(SDL_Keycode);
+	SDL_Keycode get_keycode(const std::string&);
 	int unbind(SDL_Keycode);
 	int unbind(KeyBind, bool);
 	int unbind_all();

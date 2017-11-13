@@ -1018,7 +1018,7 @@ namespace bee {
 			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
 				continue;
 			}
-			for (int e=0; e<BEE_ALARM_COUNT; e++) {
+			for (size_t e=0; e<BEE_ALARM_COUNT; ++e) {
 				if (i.first->alarm_end[e] != 0xffffffff) {
 					if (get_ticks() >= i.first->alarm_end[e]) {
 						i.first->alarm_end[e] = 0xffffffff; // Reset alarm

@@ -28,12 +28,16 @@ void RmLevel1::init() {
 	get_phys_world()->set_scale(100.0);
 
 	set_background_color({16, 16, 28, 255});
+	//add_background(bk_vortex, true, false, 0, 0, false, false, 0, 0, false);
 
 	add_instance(-1, obj_lattice, 0, 0, 0);
 	add_instance(-1, obj_player, 0, 0, 0);
 
-	for (size_t i=0; i<10; ++i) {
+	for (size_t i=0; i<20; ++i) {
 		add_instance(-1, obj_enemy, 0, 0, 0);
+	}
+	for (size_t i=0; i<2; ++i) {
+		add_instance(-1, obj_bee, 0, 0, 0);
 	}
 }
 

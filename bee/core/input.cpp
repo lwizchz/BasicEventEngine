@@ -997,7 +997,7 @@ namespace bee {
 	*/
 	std::string keystrings_get_name(SDL_Keycode key) {
 		std::string keystring = keystrings_get_string(key);
-		return string_title(string_replace(keystring.substr(5), "_", " "));
+		return string_upper(string_replace(keystring.substr(5), "_", " "));
 	}
 }
 

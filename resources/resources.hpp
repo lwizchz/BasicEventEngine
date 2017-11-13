@@ -22,6 +22,7 @@ extern bee::Sprite* spr_logo;
 // Define sounds
 
 // Define backgrounds
+extern bee::Background* bk_vortex;
 
 // Define fonts
 
@@ -39,6 +40,7 @@ extern bee::Object* obj_menu;
 extern bee::Object* obj_lattice;
 extern bee::Object* obj_player;
 extern bee::Object* obj_enemy;
+extern bee::Object* obj_bee;
 
 // Define rooms
 extern bee::Room* rm_menu;

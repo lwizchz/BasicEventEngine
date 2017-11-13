@@ -6,23 +6,20 @@
 * See LICENSE for more details.
 */
 
-#ifndef RES_OBJ_PLAYER_H
-#define RES_OBJ_PLAYER_H 1
+#ifndef RES_OBJ_BEE_H
+#define RES_OBJ_BEE_H 1
 
-class ObjPlayer : public bee::Object {
+class ObjBee : public bee::Object {
 	public:
-		ObjPlayer();
+		ObjBee();
 
 		void create(bee::Instance*);
 		void destroy(bee::Instance*);
 		void step_mid(bee::Instance*);
-		void mouse_input(bee::Instance*, SDL_Event*);
 		void draw(bee::Instance*);
 
-		void update_movement(bee::Instance*);
 		void update_position(bee::Instance*);
 		void hurt(bee::Instance*, int);
-		void collect_bee(bee::Instance*);
 };
 
-#endif // RES_OBJ_PLAYER_H
+#endif // RES_OBJ_ENEMY_H

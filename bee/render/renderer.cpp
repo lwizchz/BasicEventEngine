@@ -58,6 +58,7 @@ namespace bee {
 		colorize_location(-1),
 		primitive_location(-1),
 		flip_location(-1),
+		time_location(-1),
 
 		is_lightable_location(-1),
 		light_amount_location(-1),
@@ -338,6 +339,8 @@ namespace bee {
 			messenger::send({"engine", "renderer"}, E_MESSAGE::ERROR, "Couldn't get location of 'flip' in the fragment shader");
 			return 7; // Return 7 when a uniform location could not be found
 		}
+		// Optional uniforms
+		time_location = glGetUniformLocation(program, "time");
 
 		is_lightable_location = glGetUniformLocation(program, "is_lightable");
 		if ((is_lightable_location == -1)&&(!get_options().is_basic_shaders_enabled)) {
@@ -497,6 +500,7 @@ namespace bee {
 
 			glUseProgram(program);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glUniform1i(time_location, get_ticks()); // Set the time uniform to the current ticks
 		} else {
 			SDL_RenderClear(sdl_renderer);
 		}

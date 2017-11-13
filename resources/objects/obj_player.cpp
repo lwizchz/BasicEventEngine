@@ -27,7 +27,6 @@ ObjPlayer::ObjPlayer() : Object("obj_player", "obj_player.cpp") {
 		bee::E_EVENT::MOUSE_INPUT,
 		bee::E_EVENT::DRAW
 	});
-	set_depth(1);
 }
 
 void ObjPlayer::create(bee::Instance* self) {
@@ -46,8 +45,8 @@ void ObjPlayer::create(bee::Instance* self) {
 	(*s)["beam_position"] = -1;
 	(*s)["beam_damage"] = 200;
 
-	(*s)["super_max_charges"] = 2;
-	(*s)["super_charges"] = (*s)["super_max_charges"];
+	(*s)["super_max_charges"] = 3;
+	(*s)["super_charges"] = 1;
 	(*s)["super_cooldown"] = 0;
 	(*s)["super_duration"] = 50;
 	(*s)["super_damage"] = 300;
@@ -141,10 +140,10 @@ void ObjPlayer::create(bee::Instance* self) {
 	};
 	bee::State state_super ("Super", {"Still", "MoveClockwise", "MoveCounterClockwise", "FirePellet", "FireBeam"});
 	state_super.start_func = [this, self, sm] () {
-		/*if (_i("super_charges") <= 0) {
+		if (_i("super_charges") <= 0) {
 			sm->pop_state_all("Super");
 			return;
-		}*/
+		}
 
 		if (_i("super_cooldown") > 0) {
 			sm->pop_state_all("Super");
@@ -243,17 +242,7 @@ void ObjPlayer::mouse_input(bee::Instance* self, SDL_Event* e) {
 
 		(*s)["movement"] = m;
 
-		bee::StateMachine* sm = static_cast<bee::StateMachine*>(_p("sm"));
-		if (m > 0) {
-			sm->pop_state_all("MoveCounterClockwise");
-			sm->push_state("MoveClockwise");
-		} else if (m < 0) {
-			sm->pop_state_all("MoveClockwise");
-			sm->push_state("MoveCounterClockwise");
-		} else {
-			sm->pop_state_all("MoveClockwise");
-			sm->pop_state_all("MoveCounterClockwise");
-		}
+		update_movement(self);
 	}
 }
 void ObjPlayer::draw(bee::Instance* self) {
@@ -268,11 +257,25 @@ void ObjPlayer::draw(bee::Instance* self) {
 	VectorSprite* vs = static_cast<VectorSprite*>(_p("vsprite"));
 	vs->draw(glm::vec3(self->get_x(), self->get_y(), self->get_z()), glm::vec3(0.0, 0.0, 0.0), c);
 
-	bee::set_is_lightable(false);
 	bee::engine->font_default->draw_fast(0, 0, sm->get_states(), {255, 255, 255, 255});
-	bee::set_is_lightable(true);
+
+	std::string status = "Health: " + std::to_string(_i("health")) + "\nCharges: " + std::to_string(_i("super_charges"));
+	bee::engine->font_default->draw_fast(0, 50, status, {255, 255, 255, 255});
 }
 
+void ObjPlayer::update_movement(bee::Instance* self) {
+	bee::StateMachine* sm = static_cast<bee::StateMachine*>(_p("sm"));
+	if (_i("movement") > 0) {
+		sm->pop_state_all("MoveCounterClockwise");
+		sm->push_state("MoveClockwise");
+	} else if (_i("movement") < 0) {
+		sm->pop_state_all("MoveClockwise");
+		sm->push_state("MoveCounterClockwise");
+	} else {
+		sm->pop_state_all("MoveClockwise");
+		sm->pop_state_all("MoveCounterClockwise");
+	}
+}
 void ObjPlayer::update_position(bee::Instance* self) {
 	bee::Instance* lat = obj_lattice->get_instance(0);
 	if (lat == nullptr) {
@@ -299,6 +302,12 @@ void ObjPlayer::hurt(bee::Instance* self, int damage) {
 	if (_i("health") <= 0) {
 		bee::StateMachine* sm = static_cast<bee::StateMachine*>(_p("sm"));
 		sm->push_state("Dead");
+	}
+}
+void ObjPlayer::collect_bee(bee::Instance* self) {
+	hurt(self, -100);
+	if (_i("super_charges") < _i("super_max_charges")) {
+		(*s)["super_charges"] += 1;
 	}
 }
 

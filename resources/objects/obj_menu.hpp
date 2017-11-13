@@ -14,6 +14,7 @@ class ObjMenu : public bee::Object {
 		ObjMenu();
 
 		void create(bee::Instance*);
+		void destroy(bee::Instance*);
 		void draw(bee::Instance*);
 		void step_mid(bee::Instance*);
 		void game_start(bee::Instance*);
