@@ -450,7 +450,7 @@ namespace bee{ namespace console {
 				std::string var = "";
 				while (++i < input.length()) {
 					var += input[i];
-					if (std::regex_match(var, std::regex("[^[:alnum:][]]"))) {
+					if (std::regex_match(var, std::regex("[^[:alnum:]\\[\\]]"))) {
 						--i;
 						var.pop_back();
 						break;
