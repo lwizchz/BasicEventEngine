@@ -248,7 +248,7 @@ namespace bee {
 			);
 			for (auto& s : draw_data) {
 				if (!s.first->is_lightable) {
-					set_is_lightable(false);
+					render::set_is_lightable(false);
 				}
 
 				bool is_sprite_lightable = s.first->get_sprite()->get_is_lightable();
@@ -258,7 +258,7 @@ namespace bee {
 
 				s.first->get_sprite()->draw_array(s.second, s.first->rotation_cache, s.first->color, SDL_FLIP_NONE);
 
-				set_is_lightable(true);
+				render::set_is_lightable(true);
 				s.first->get_sprite()->set_is_lightable(is_sprite_lightable);
 			}
 		}

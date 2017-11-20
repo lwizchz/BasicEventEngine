@@ -52,7 +52,7 @@ void ObjUIOptionBox::draw(bee::Instance* self) {
 		return;
 	}
 
-	bee::set_is_lightable(false);
+	bee::render::set_is_lightable(false);
 
 	if (_i("adaptive_height")) {
 		(*s)["h"] = static_cast<int>(_v("options").size() * _i("option_height"));
@@ -109,7 +109,7 @@ void ObjUIOptionBox::draw(bee::Instance* self) {
 		++i;
 	}
 
-	bee::set_is_lightable(true);
+	bee::render::set_is_lightable(true);
 }
 
 void ObjUIOptionBox::set_type(bee::Instance* self, int new_type) {

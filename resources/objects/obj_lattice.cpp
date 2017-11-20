@@ -115,7 +115,7 @@ void ObjLattice::alarm(bee::Instance* self, size_t a) {
 void ObjLattice::step_mid(bee::Instance* self) {
 	double mx = 100.0 * (bee::get_mouse_global_x()-bee::get_width()/2.0)/bee::get_width();
 	double my = 100.0 * (bee::get_mouse_global_y()-bee::get_height()/2.0)/bee::get_height();
-	bee::render_set_camera(new bee::Camera(glm::vec3(bee::get_width()/2.0 + mx, bee::get_height()/2.0 + my, -540.0), glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
+	bee::render::set_camera(new bee::Camera(glm::vec3(bee::get_width()/2.0 + mx, bee::get_height()/2.0 + my, -540.0), glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
 
 	if ((obj_enemy->get_instance(0) == nullptr)&&(self->alarm_end[0] == 0xffffffff)) {
 		bee::Instance* player = obj_player->get_instance(0);

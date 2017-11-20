@@ -35,6 +35,7 @@
 
 #include "../render/drawing.hpp"
 #include "../render/renderer.hpp"
+#include "../render/shader.hpp"
 
 #include "light.hpp"
 #include "room.hpp"
@@ -505,10 +506,10 @@ namespace bee {
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
 
 			// Bind the vertices to the VAO's vertex buffer
-			glEnableVertexAttribArray(engine->renderer->vertex_location);
+			glEnableVertexAttribArray(engine->renderer->program->get_location("v_position"));
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
 			glVertexAttribPointer(
-				engine->renderer->vertex_location,
+				engine->renderer->program->get_location("v_position"),
 				2,
 				GL_FLOAT,
 				GL_FALSE,
@@ -626,7 +627,7 @@ namespace bee {
 		glBindVertexArray(vao); // Bind the VAO for the sprite
 
 		// Bind the sprite texture
-		glUniform1i(engine->renderer->texture_location, 0);
+		glUniform1i(engine->renderer->program->get_location("f_texture"), 0);
 		glBindTexture(GL_TEXTURE_2D, gl_texture);
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
@@ -641,9 +642,9 @@ namespace bee {
 			return 0; // Return 0 since nothing needs to be done for SDL mode
 		}
 
-		glUniformMatrix4fv(engine->renderer->model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the partial transformation matrix
-		glUniformMatrix4fv(engine->renderer->rotation_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the rotation matrix
-		glUniform1i(engine->renderer->flip_location, 0); // Reset the flip type
+		glUniformMatrix4fv(engine->renderer->program->get_location("model"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the partial transformation matrix
+		glUniformMatrix4fv(engine->renderer->program->get_location("rotation"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the rotation matrix
+		glUniform1i(engine->renderer->program->get_location("flip"), 0); // Reset the flip type
 
 		glBindVertexArray(0); // Unbind the VAO
 
@@ -704,7 +705,7 @@ namespace bee {
 			// Generate the partial transformation matrix (translation and scaling) for the subimage
 			glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(drect.x, drect.y, -0.5f)); // Translate the subimage the desired amount in the x- and y-planes, note that the z-coordinate is nonzero so that there is no z-fighting with backgrounds in 3D mode
 			model = glm::scale(model, glm::vec3(static_cast<float>(w)/rect_width, static_cast<float>(h)/height, 1.0f)); // Scale the subimage in the x- and y-planes
-			glUniformMatrix4fv(engine->renderer->model_location, 1, GL_FALSE, glm::value_ptr(model)); // Send the transformation matrix to the shader
+			glUniformMatrix4fv(engine->renderer->program->get_location("model"), 1, GL_FALSE, glm::value_ptr(model)); // Send the transformation matrix to the shader
 
 			// Generate the rotation matrix for the subimage
 			// This is not included in the above transformation matrix because it is faster to rotate everything in the geometry shader
@@ -712,13 +713,13 @@ namespace bee {
 				glm::mat4 rotation = glm::translate(glm::mat4(1.0f), glm::vec3(rotate_x*rect_width, rotate_y*height, 0.0f));
 				rotation = glm::rotate(rotation, static_cast<float>(degtorad(angle)), glm::vec3(0.0f, 0.0f, 1.0f)); // Rotate the subimage on the z-axis around the sprite's rotation origin at (rotate_x, rotate_y)
 				rotation = glm::translate(rotation, glm::vec3(-rotate_x*rect_width, -rotate_y*height, 0.0f));
-				glUniformMatrix4fv(engine->renderer->rotation_location, 1, GL_FALSE, glm::value_ptr(rotation)); // Send the rotation matrix to the shader
+				glUniformMatrix4fv(engine->renderer->program->get_location("rotation"), 1, GL_FALSE, glm::value_ptr(rotation)); // Send the rotation matrix to the shader
 			}
 
 			// Colorize the sprite with the given color
 			glm::vec4 color = glm::vec4(new_color.r, new_color.g, new_color.b, new_color.a); // Normalize the color values from 0.0 to 1.0
 			color /= 255.0f;
-			glUniform4fv(engine->renderer->colorize_location, 1, glm::value_ptr(color)); // Send the color to the shader
+			glUniform4fv(engine->renderer->program->get_location("colorize"), 1, glm::value_ptr(color)); // Send the color to the shader
 
 			// Determine the desired flip type
 			int f = 0; // The default behavior is to not flip
@@ -728,7 +729,7 @@ namespace bee {
 			if (flip & SDL_FLIP_VERTICAL) {
 				f += 2;
 			}
-			glUniform1i(engine->renderer->flip_location, f); // Send the flip type to the shader
+			glUniform1i(engine->renderer->program->get_location("flip"), f); // Send the flip type to the shader
 
 			// Add the subimage to the list of lightables so that it can cast shadows
 			if (is_lightable) { // If the sprite is set as lightable
@@ -745,10 +746,10 @@ namespace bee {
 			}
 
 			// Bind the texture coordinates of the current subimage
-			glEnableVertexAttribArray(engine->renderer->fragment_location);
+			glEnableVertexAttribArray(engine->renderer->program->get_location("v_texcoord"));
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords[current_subimage]);
 			glVertexAttribPointer(
-				engine->renderer->fragment_location,
+				engine->renderer->program->get_location("v_texcoord"),
 				2,
 				GL_FLOAT,
 				GL_FALSE,
@@ -902,7 +903,7 @@ namespace bee {
 			// Colorize the sprite with the given color
 			glm::vec4 color = glm::vec4(new_color.r, new_color.g, new_color.b, new_color.a); // Normalize the color values from 0.0 to 1.0
 			color /= 255.0f;
-			glUniform4fv(engine->renderer->colorize_location, 1, glm::value_ptr(color)); // Send the color to the shader
+			glUniform4fv(engine->renderer->program->get_location("colorize"), 1, glm::value_ptr(color)); // Send the color to the shader
 
 			// Determine the desired flip type
 			int f = 0; // The default behavior is to not flip
@@ -912,7 +913,7 @@ namespace bee {
 			if (flip & SDL_FLIP_VERTICAL) {
 				f += 2;
 			}
-			glUniform1i(engine->renderer->flip_location, f); // Send the flip type to the shader
+			glUniform1i(engine->renderer->program->get_location("flip"), f); // Send the flip type to the shader
 
 			// Get the amount indices that will be drawn per sprite instance
 			int size;
@@ -960,12 +961,12 @@ namespace bee {
 				// Generate the partial transformation matrix (translation and scaling) for the instance
 				glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(drect.x, drect.y, -1.0f)); // Translate the instance the desired amount in the x- and y-planes, note that the z-coordinate is nonzero so that there is no z-fighting with non-particle sprites in 3D mode
 				model = glm::scale(model, glm::vec3(static_cast<float>(s->w)/rect_width, static_cast<float>(s->h)/height, 1.0)); // Scale the instance in the x- and y-planes
-				glUniformMatrix4fv(engine->renderer->model_location, 1, GL_FALSE, glm::value_ptr(model)); // Send the transformation matrix to the shader
+				glUniformMatrix4fv(engine->renderer->program->get_location("model"), 1, GL_FALSE, glm::value_ptr(model)); // Send the transformation matrix to the shader
 
 				// Send the cached rotation matrix to the shader
 				// This is not included in the above transformation matrix because it is faster to rotate everything in the geometry shader
 				if (s->angle != 0.0) {
-					glUniformMatrix4fv(engine->renderer->rotation_location, 1, GL_FALSE, glm::value_ptr(rotation_cache[static_cast<unsigned int>(s->angle)]));
+					glUniformMatrix4fv(engine->renderer->program->get_location("rotation"), 1, GL_FALSE, glm::value_ptr(rotation_cache[static_cast<unsigned int>(s->angle)]));
 				}
 
 				// Add the subimage to the list of lightables so that it can cast shadows
@@ -982,10 +983,10 @@ namespace bee {
 				}
 
 				// Bind the texture coordinates of the current subimage
-				glEnableVertexAttribArray(engine->renderer->fragment_location);
+				glEnableVertexAttribArray(engine->renderer->program->get_location("v_texcoord"));
 				glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords[current_subimage]);
 				glVertexAttribPointer(
-					engine->renderer->fragment_location,
+					engine->renderer->program->get_location("v_texcoord"),
 					2,
 					GL_FLOAT,
 					GL_FALSE,
@@ -1079,10 +1080,10 @@ namespace bee {
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
 
 			// Bind the vertices to the VAO's vertex buffer
-			glEnableVertexAttribArray(engine->renderer->vertex_location);
+			glEnableVertexAttribArray(engine->renderer->program->get_location("v_position"));
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
 			glVertexAttribPointer(
-				engine->renderer->vertex_location,
+				engine->renderer->program->get_location("v_position"),
 				2,
 				GL_FLOAT,
 				GL_FALSE,

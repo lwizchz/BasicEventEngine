@@ -84,7 +84,7 @@ void ObjUITextEntry::draw(bee::Instance* self) {
 		return;
 	}
 
-	bee::set_is_lightable(false);
+	bee::render::set_is_lightable(false);
 
 	bee::Font* font = bee::engine->font_default;
 	bee::RGBA c_text = bee::get_enum_color(bee::E_RGB::BLACK);
@@ -134,7 +134,7 @@ void ObjUITextEntry::draw(bee::Instance* self) {
 		}
 	}
 
-	bee::set_is_lightable(true);
+	bee::render::set_is_lightable(true);
 }
 
 void ObjUITextEntry::reset(bee::Instance* self) {

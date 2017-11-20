@@ -41,6 +41,7 @@
 
 #include "../render/drawing.hpp"
 #include "../render/renderer.hpp"
+#include "../render/shader.hpp"
 #include "../render/transition.hpp"
 #include "../render/viewdata.hpp"
 #include "../render/particle/system.hpp"
@@ -588,22 +589,22 @@ namespace bee {
 					break;
 				}
 
-				glUniform4fv(engine->renderer->lightable_location[i].position, 1, glm::value_ptr(l->position));
-				int e = 0;
+				glUniform4fv(engine->renderer->program->get_location("lightable[" + bee_itos(i) + "].position"), 1, glm::value_ptr(l->position));
+				int j = 0;
 				for (auto& v : l->mask) {
-					if (e >= BEE_MAX_MASK_VERTICES) {
+					if (j >= BEE_MAX_MASK_VERTICES) {
 						break;
 					}
 
-					glUniform4fv(engine->renderer->lightable_location[i].mask[e], 1, glm::value_ptr(v));
+					glUniform4fv(engine->renderer->program->get_location("lightable[" + bee_itos(i) + "].mask[" + bee_itos(j) + "]"), 1, glm::value_ptr(v));
 
-					e++;
+					j++;
 				}
-				glUniform1i(engine->renderer->lightable_location[i].vertex_amount, e);
+				glUniform1i(engine->renderer->program->get_location("lightable[" + bee_itos(i) + "].vertex_amount"), j);
 
 				i++;
 			}
-			glUniform1i(engine->renderer->lightable_amount_location, i);
+			glUniform1i(engine->renderer->program->get_location("lightable_amount"), i);
 
 			i = 0;
 			for (auto& l : lights) {
@@ -614,15 +615,15 @@ namespace bee {
 				glm::vec4 c (l.color.r, l.color.g, l.color.b, l.color.a);
 				c /= 255.0f;
 
-				glUniform1i(engine->renderer->lighting_location[i].type, static_cast<int>(l.type));
-				glUniform4fv(engine->renderer->lighting_location[i].position, 1, glm::value_ptr(l.position));
-				glUniform4fv(engine->renderer->lighting_location[i].direction, 1, glm::value_ptr(l.direction));
-				glUniform4fv(engine->renderer->lighting_location[i].attenuation, 1, glm::value_ptr(l.attenuation));
-				glUniform4fv(engine->renderer->lighting_location[i].color, 1, glm::value_ptr(c));
+				glUniform1i(engine->renderer->program->get_location("lighting[" + bee_itos(i) + "].type"), static_cast<int>(l.type));
+				glUniform4fv(engine->renderer->program->get_location("lighting[" + bee_itos(i) + "].position"), 1, glm::value_ptr(l.position));
+				glUniform4fv(engine->renderer->program->get_location("lighting[" + bee_itos(i) + "].direction"), 1, glm::value_ptr(l.direction));
+				glUniform4fv(engine->renderer->program->get_location("lighting[" + bee_itos(i) + "].attenuation"), 1, glm::value_ptr(l.attenuation));
+				glUniform4fv(engine->renderer->program->get_location("lighting[" + bee_itos(i) + "].color"), 1, glm::value_ptr(c));
 
 				i++;
 			}
-			glUniform1i(engine->renderer->light_amount_location, i);
+			glUniform1i(engine->renderer->program->get_location("light_amount"), i);
 		} else {
 			if (!lights.empty()) {
 				int w = get_width(), h = get_height();

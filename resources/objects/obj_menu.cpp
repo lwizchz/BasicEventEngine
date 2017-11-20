@@ -46,7 +46,7 @@ void ObjMenu::destroy(bee::Instance* self) {
 	Object::destroy(self);
 }
 void ObjMenu::step_mid(bee::Instance* self) {
-	bee::render_set_camera(new bee::Camera(glm::vec3(bee::get_width()/2.0, bee::get_height()/2.0, -540.0), glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
+	bee::render::set_camera(new bee::Camera(glm::vec3(bee::get_width()/2.0, bee::get_height()/2.0, -540.0), glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
 }
 void ObjMenu::draw(bee::Instance* self) {
 	int cx = bee::get_width()/2;

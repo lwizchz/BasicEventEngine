@@ -28,8 +28,9 @@
 
 #include "camera.hpp"
 #include "renderer.hpp"
+#include "shader.hpp"
 
-namespace bee {
+namespace bee { namespace render {
 	/*
 	* set_is_lightable() - Set whether to enable lighting or not
 	* ! This should be used to disable lighting only on specific elements, e.g. the HUD
@@ -42,16 +43,36 @@ namespace bee {
 			return 1;
 		}
 
-		glUniform1i(engine->renderer->is_lightable_location, (is_lightable) ? 1 : 0);
+		glUniform1i(engine->renderer->program->get_location("is_lightable"), (is_lightable) ? 1 : 0);
 
 		return 0;
 	}
 
+	std::string opengl_prepend_version(const std::string& shader) {
+		switch (get_options().renderer_type) {
+			case E_RENDERER::OPENGL4: {
+				if (GL_VERSION_4_1) {
+					return "#version 410 core\n" + shader;
+				}
+			}
+			case E_RENDERER::OPENGL3: {
+				if (GL_VERSION_3_3) {
+					return "#version 330 core\n" + shader;
+				}
+			}
+			case E_RENDERER::SDL:
+			default: {
+				engine->options->renderer_type = E_RENDERER::SDL;
+				return shader;
+			}
+		}
+	}
+
 	/*
-	* render_set_3d() - Set whether 3D mode is enabled or not
+	* set_3d() - Set whether 3D mode is enabled or not
 	* @is_3d: whether to enable 3D mode
 	*/
-	int render_set_3d(bool is_3d) {
+	int set_3d(bool is_3d) {
 		if (get_options().renderer_type == E_RENDERER::SDL) {
 			messenger::send({"engine", "renderer"}, E_MESSAGE::WARNING, "Cannot enable 3D rendering in SDL mode");
 			return 1;
@@ -60,7 +81,7 @@ namespace bee {
 		engine->renderer->render_is_3d = is_3d;
 
 		if (engine->renderer->render_camera == nullptr) {
-			render_set_camera(nullptr);
+			set_camera(nullptr);
 		}
 
 		if (engine->renderer->render_is_3d) {
@@ -69,15 +90,15 @@ namespace bee {
 			glDisable(GL_DEPTH_TEST);
 		}
 
-		render_calc_projection();
+		calc_projection();
 
 		return 0;
 	}
 	/*
-	* render_set_camera() - Set the camera position and angle for 3D mode
+	* set_camera() - Set the camera position and angle for 3D mode
 	* @camera: the new camera to render as
 	*/
-	int render_set_camera(Camera* camera) {
+	int set_camera(Camera* camera) {
 		if (engine->renderer->render_camera != nullptr) {
 			if (engine->renderer->render_camera == camera) {
 				return 1;
@@ -104,36 +125,36 @@ namespace bee {
 			engine->renderer->render_camera->height = static_cast<float>(get_height());
 		}
 
-		render_calc_projection();
+		calc_projection();
 
 		return 0;
 	}
 	/*
-	* render_get_3d() - Return whether 3D mode is enabled or not
+	* get_3d() - Return whether 3D mode is enabled or not
 	*/
-	bool render_get_3d() {
+	bool get_3d() {
 		return engine->renderer->render_is_3d;
 	}
 	/*
-	* render_get_projection() - Get the projection matrix of the current camera
+	* get_projection() - Get the projection matrix of the current camera
 	*/
-	glm::mat4 render_get_projection() {
+	glm::mat4 get_projection() {
 		if (engine->renderer->render_camera == nullptr) {
-			render_set_camera(nullptr);
+			set_camera(nullptr);
 		}
 
 		if (engine->renderer->projection_cache == nullptr) {
-			return render_calc_projection();
+			return calc_projection();
 		}
 
 		return *(engine->renderer->projection_cache);
 	}
 	/*
-	* render_calc_projection() - Recalculate the projection matrix for the current camera
+	* calc_projection() - Recalculate the projection matrix for the current camera
 	*/
-	glm::mat4 render_calc_projection() {
+	glm::mat4 calc_projection() {
 		if (engine->renderer->render_camera == nullptr) {
-			render_set_camera(nullptr);
+			set_camera(nullptr);
 		}
 
 		glm::mat4 projection = glm::mat4(1.0f);
@@ -152,11 +173,11 @@ namespace bee {
 		return projection;
 	}
 	/*
-	* render_get_camera() - Get a copy of the camera values
+	* get_camera() - Get a copy of the camera values
 	*/
-	Camera render_get_camera() {
+	Camera get_camera() {
 		return *(engine->renderer->render_camera);
 	}
-}
+}}
 
 #endif // BEE_RENDER

@@ -56,7 +56,7 @@ void ObjUIButton::draw(bee::Instance* self) {
 		return;
 	}
 
-	bee::set_is_lightable(false);
+	bee::render::set_is_lightable(false);
 
 	int w = _i("w");
 	int h = _i("h");
@@ -99,7 +99,7 @@ void ObjUIButton::draw(bee::Instance* self) {
 		bee::messenger::log("empty button");
 	}
 
-	bee::set_is_lightable(true);
+	bee::render::set_is_lightable(true);
 }
 
 void ObjUIButton::center_width(bee::Instance* self) {

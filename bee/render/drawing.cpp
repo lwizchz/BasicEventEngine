@@ -31,6 +31,7 @@
 
 #include "renderer.hpp"
 #include "rgba.hpp"
+#include "shader.hpp"
 
 namespace bee {
 	/*
@@ -97,17 +98,17 @@ namespace bee {
 			glBindBuffer(GL_ARRAY_BUFFER, engine->renderer->triangle_vbo);
 			glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
 
-			glUniform1i(engine->renderer->primitive_location, 1); // Enable primitive mode so that the color is correctly applied
+			glUniform1i(engine->renderer->program->get_location("is_primitive"), 1); // Enable primitive mode so that the color is correctly applied
 
 			if (!is_filled) {
 				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Enable line drawing (i.e. wireframe) mode so that the lines will be drawn correctly
 			}
 
 			// Bind the vertices to the vertex array buffer
-			glEnableVertexAttribArray(engine->renderer->vertex_location);
+			glEnableVertexAttribArray(engine->renderer->program->get_location("v_position"));
 			glBindBuffer(GL_ARRAY_BUFFER, engine->renderer->triangle_vbo);
 			glVertexAttribPointer(
-				engine->renderer->vertex_location,
+				engine->renderer->program->get_location("v_position"),
 				3,
 				GL_FLOAT,
 				GL_FALSE,
@@ -119,10 +120,10 @@ namespace bee {
 			glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, 0); // Draw the triangle
 
 			// Reset the shader state
-			glDisableVertexAttribArray(engine->renderer->vertex_location); // Unbind the vertices
+			glDisableVertexAttribArray(engine->renderer->program->get_location("v_position")); // Unbind the vertices
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Reset the drawing type
 
-			glUniform1i(engine->renderer->primitive_location, 0); // Reset the colorization mode
+			glUniform1i(engine->renderer->program->get_location("is_primitive"), 0); // Reset the colorization mode
 
 			glBindVertexArray(0); // Unbind the VAO
 
@@ -327,7 +328,7 @@ namespace bee {
 			glm::vec4 uc = glm::vec4(engine->color->r, engine->color->g, engine->color->b, engine->color->a);
 			uc /= 255.0f;
 			glClearColor(uc.r, uc.g, uc.b, uc.a); // Set the OpenGL clear and draw colors as floats from [0.0, 1.0]
-			glUniform4fv(engine->renderer->colorize_location, 1, glm::value_ptr(uc)); // Change the fragment to the given color
+			glUniform4fv(engine->renderer->program->get_location("colorize"), 1, glm::value_ptr(uc)); // Change the fragment to the given color
 		} else {
 			return SDL_SetRenderDrawColor(engine->renderer->sdl_renderer, _color.r, _color.g, _color.b, _color.a); // Set the SDL draw color as Uint8's from [0, 255]
 		}
@@ -344,7 +345,7 @@ namespace bee {
 			glm::vec4 uc = glm::vec4(engine->color->r, engine->color->g, engine->color->b, engine->color->a);
 			uc /= 255.0f;
 			glClearColor(uc.r, uc.g, uc.b, uc.a); // Set the OpenGL clear and draw colors as floats from [0.0, 1.0]
-			glUniform4fv(engine->renderer->colorize_location, 1, glm::value_ptr(uc)); // Change the fragment to the given color
+			glUniform4fv(engine->renderer->program->get_location("colorize"), 1, glm::value_ptr(uc)); // Change the fragment to the given color
 		} else {
 			SDL_GetRenderDrawColor(engine->renderer->sdl_renderer, &c.r, &c.g, &c.b, &c.a); // Get the current SDL renderer color
 

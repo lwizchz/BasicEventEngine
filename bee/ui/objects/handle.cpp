@@ -101,7 +101,7 @@ void ObjUIHandle::draw(bee::Instance* self) {
 		return;
 	}
 
-	bee::set_is_lightable(false);
+	bee::render::set_is_lightable(false);
 
 	bee::RGBA c_back = {_i("color_r"), _i("color_g"), _i("color_b"), _i("color_a")};
 	bee::RGBA c_stripe = {255, 255, 255, 255};
@@ -130,7 +130,7 @@ void ObjUIHandle::draw(bee::Instance* self) {
 		);
 	}
 
-	bee::set_is_lightable(true);
+	bee::render::set_is_lightable(true);
 }
 
 void ObjUIHandle::bind(bee::Instance* self, bee::Instance* parent_inst) {

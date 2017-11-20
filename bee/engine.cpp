@@ -376,7 +376,7 @@ namespace bee {
 				case SDL_WINDOWEVENT: {
 					switch (event.window.event) {
 						case SDL_WINDOWEVENT_SHOWN: {
-							render_set_camera(nullptr);
+							render::set_camera(nullptr);
 							engine->renderer->render();
 							engine->has_focus = true;
 							break;
@@ -395,7 +395,7 @@ namespace bee {
 						case SDL_WINDOWEVENT_RESIZED: {
 							engine->width = event.window.data1;
 							engine->height = event.window.data2;
-							render_set_camera(nullptr);
+							render::set_camera(nullptr);
 							engine->renderer->render();
 							break;
 						}

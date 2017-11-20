@@ -83,7 +83,7 @@ void ObjUISlider::draw(bee::Instance* self) {
 		return;
 	}
 
-	bee::set_is_lightable(false);
+	bee::render::set_is_lightable(false);
 
 	int w = _i("w");
 	int h = _i("h");
@@ -111,7 +111,7 @@ void ObjUISlider::draw(bee::Instance* self) {
 		font->draw_fast(slider_x + slider_size/2 - 8 - ox, self->get_corner_y() - h/3 - oy, bee_itos(_i("value")));
 	}
 
-	bee::set_is_lightable(true);
+	bee::render::set_is_lightable(true);
 }
 
 int ObjUISlider::get_range(bee::Instance* self) {

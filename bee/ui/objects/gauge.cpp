@@ -37,7 +37,7 @@ void ObjUIGauge::draw(bee::Instance* self) {
 		return;
 	}
 
-	bee::set_is_lightable(false);
+	bee::render::set_is_lightable(false);
 
 	int w = _i("w");
 	int h = _i("h");
@@ -87,7 +87,7 @@ void ObjUIGauge::draw(bee::Instance* self) {
 
 	bee::draw_rectangle(self->get_corner_x() - ox, self->get_corner_y() - oy, w, h, 2, c_border);
 
-	bee::set_is_lightable(true);
+	bee::render::set_is_lightable(true);
 }
 
 int ObjUIGauge::get_range(bee::Instance* self) {

@@ -36,6 +36,7 @@
 #include "../core/enginestate.hpp"
 
 #include "../render/renderer.hpp"
+#include "../render/shader.hpp"
 
 namespace bee {
 	std::map<int,Mesh*> Mesh::list;
@@ -256,22 +257,22 @@ namespace bee {
 		glGenBuffers(1, &vbo_vertices);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
 		glBufferData(GL_ARRAY_BUFFER, 3 * vertex_amount * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
-		glVertexAttribPointer(engine->renderer->vertex_location, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(engine->renderer->vertex_location);
+		glVertexAttribPointer(engine->renderer->program->get_location("v_position"), 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(engine->renderer->program->get_location("v_position"));
 
 		// Bind the normals for the mesh
 		glGenBuffers(1, &vbo_normals);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
 		glBufferData(GL_ARRAY_BUFFER, 3 * vertex_amount * sizeof(GLfloat), normals, GL_STATIC_DRAW);
-		glVertexAttribPointer(engine->renderer->normal_location, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(engine->renderer->normal_location);
+		glVertexAttribPointer(engine->renderer->program->get_location("v_normal"), 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(engine->renderer->program->get_location("v_normal"));
 
 		// Bind the texture coordinates for the mesh
 		glGenBuffers(1, &vbo_texcoords);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords);
 		glBufferData(GL_ARRAY_BUFFER, 2 * vertex_amount * sizeof(GLfloat), uv_array, GL_STATIC_DRAW);
-		glVertexAttribPointer(engine->renderer->fragment_location, 2, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(engine->renderer->fragment_location);
+		glVertexAttribPointer(engine->renderer->program->get_location("v_texcoord"), 2, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(engine->renderer->program->get_location("v_texcoord"));
 
 		// Bind the mesh ibo
 		glGenBuffers(1, &ibo);
@@ -402,16 +403,16 @@ namespace bee {
 		glBindVertexArray(vao); // Bind the vao for the mesh
 
 		if (has_texture) { // If necessary, bind the mesh texture
-			glUniform1i(engine->renderer->texture_location, 0);
+			glUniform1i(engine->renderer->program->get_location("f_texture"), 0);
 			glBindTexture(GL_TEXTURE_2D, gl_texture);
 		} else { // Otherwise, enable primitive drawing mode
-			glUniform1i(engine->renderer->primitive_location, 1);
+			glUniform1i(engine->renderer->program->get_location("is_primitive"), 1);
 		}
 
 		// Generate the partial transformation matrix (translation and scaling) for the mesh
 		glm::mat4 model = glm::translate(glm::mat4(1.0f), pos); // Translate the mesh the desired amount
 		model = glm::scale(model, scale); // Scale the mesh as desired
-		glUniformMatrix4fv(engine->renderer->model_location, 1, GL_FALSE, glm::value_ptr(model)); // Send the transformation matrix to the shader
+		glUniformMatrix4fv(engine->renderer->program->get_location("model"), 1, GL_FALSE, glm::value_ptr(model)); // Send the transformation matrix to the shader
 
 		// Generate the rotation matrix for the mesh
 		// This is not included in the above transformation matrix because it is faster to rotate everything in the geometry shader
@@ -425,21 +426,21 @@ namespace bee {
 		if (rotate.z != 0.0) { // Rotate around the z-axis if necessary
 			rotation = glm::rotate(rotation, static_cast<float>(degtorad(rotate.z)), glm::vec3(0.0f, 0.0f, 1.0f));
 		}
-		glUniformMatrix4fv(engine->renderer->rotation_location, 1, GL_FALSE, glm::value_ptr(rotation)); // Send the rotation matrix to the shader
+		glUniformMatrix4fv(engine->renderer->program->get_location("rotation"), 1, GL_FALSE, glm::value_ptr(rotation)); // Send the rotation matrix to the shader
 
 		// Colorize the mesh with the given color
 		glm::vec4 c (color.r, color.g, color.b, color.a);
 		c /= 255.0f;
-		glUniform4fv(engine->renderer->colorize_location, 1, glm::value_ptr(c));
+		glUniform4fv(engine->renderer->program->get_location("colorize"), 1, glm::value_ptr(c));
 
 		if (is_wireframe) { // If the mesh should be drawn in wireframe, set the polygone drawing mode to line
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		}
 
 		// Bind the vertices to fix disruption from primitive drawing
-		glEnableVertexAttribArray(engine->renderer->vertex_location);
+		glEnableVertexAttribArray(engine->renderer->program->get_location("v_position"));
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
-		glVertexAttribPointer(engine->renderer->vertex_location, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glVertexAttribPointer(engine->renderer->program->get_location("v_position"), 3, GL_FLOAT, GL_FALSE, 0, 0);
 
 		// Draw the triangles from the ibo
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
@@ -448,13 +449,13 @@ namespace bee {
 		glDrawElements(GL_TRIANGLES, size/sizeof(GLuint), GL_UNSIGNED_INT, 0);
 
 		// Reset the drawing matrices
-		glUniformMatrix4fv(engine->renderer->model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
-		glUniformMatrix4fv(engine->renderer->rotation_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
+		glUniformMatrix4fv(engine->renderer->program->get_location("model"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
+		glUniformMatrix4fv(engine->renderer->program->get_location("rotation"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Reset the polygon drawing mode to fill
 
 		// Unbind the texture
 		glBindTexture(GL_TEXTURE_2D, 0);
-		glUniform1i(engine->renderer->primitive_location, 0);
+		glUniform1i(engine->renderer->program->get_location("is_primitive"), 0);
 
 		glBindVertexArray(0); // Unbind the vao
 

@@ -33,6 +33,7 @@
 #include "../render/camera.hpp"
 #include "../render/render.hpp"
 #include "../render/renderer.hpp"
+#include "../render/shader.hpp"
 #include "../render/transition.hpp"
 #include "../render/viewdata.hpp"
 
@@ -221,20 +222,20 @@ namespace bee {
 			if (viewport == nullptr) { // If the viewport is not defined then set the drawing area to the entire screen
 				view = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 				port = glm::vec4(0.0f, 0.0f, get_room_width(), get_room_height());
-				projection = render_get_projection();
+				projection = render::get_projection();
 			} else { // If the viewport is defined then use it
 				view = glm::translate(glm::mat4(1.0f), glm::vec3(viewport->view.x, viewport->view.y, 0.0f));
 				port = glm::vec4(viewport->port.x, viewport->port.y, viewport->port.w, viewport->port.h);
-				render_set_camera(new Camera(
+				render::set_camera(new Camera(
 					static_cast<float>(viewport->view.w),
 					static_cast<float>(viewport->view.h)
 				));
-				projection = render_get_projection();
+				projection = render::get_projection();
 			}
 
-			glUniformMatrix4fv(engine->renderer->view_location, 1, GL_FALSE, glm::value_ptr(view));
-			glUniform4fv(engine->renderer->port_location, 1, glm::value_ptr(port));
-			glUniformMatrix4fv(engine->renderer->projection_location, 1, GL_FALSE, glm::value_ptr(projection));
+			glUniformMatrix4fv(engine->renderer->program->get_location("view"), 1, GL_FALSE, glm::value_ptr(view));
+			glUniform4fv(engine->renderer->program->get_location("port"), 1, glm::value_ptr(port));
+			glUniformMatrix4fv(engine->renderer->program->get_location("projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
 			return 0;
 		} else {

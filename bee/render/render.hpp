@@ -9,17 +9,21 @@
 #ifndef BEE_RENDER_H
 #define BEE_RENDER_H 1
 
+#include <string>
+
 #include "camera.hpp"
 
-namespace bee {
+namespace bee { namespace render {
 	int set_is_lightable(bool);
 
-	int render_set_3d(bool);
-	int render_set_camera(Camera*);
-	bool render_get_3d();
-	glm::mat4 render_get_projection();
-	glm::mat4 render_calc_projection();
-	Camera render_get_camera();
-}
+	std::string opengl_prepend_version(const std::string&);
+
+	int set_3d(bool);
+	int set_camera(Camera*);
+	bool get_3d();
+	glm::mat4 get_projection();
+	glm::mat4 calc_projection();
+	Camera get_camera();
+}}
 
 #endif // BEE_RENDER_H

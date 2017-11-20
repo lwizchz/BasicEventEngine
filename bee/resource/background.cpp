@@ -34,6 +34,7 @@
 #include "../core/rooms.hpp"
 
 #include "../render/renderer.hpp"
+#include "../render/shader.hpp"
 
 namespace bee {
 	/*
@@ -283,10 +284,10 @@ namespace bee {
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
 
 			// Bind the vertices to the VAO's vertex buffer
-			glEnableVertexAttribArray(engine->renderer->vertex_location);
+			glEnableVertexAttribArray(engine->renderer->program->get_location("v_position"));
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
 			glVertexAttribPointer(
-				engine->renderer->vertex_location,
+				engine->renderer->program->get_location("v_position"),
 				2,
 				GL_FLOAT,
 				GL_FALSE,
@@ -396,7 +397,7 @@ namespace bee {
 			// Generate the partial transformation matrix (translation) for the subimage
 			// Note that the scaling matrix has been precalculated by the caller function
 			glm::mat4 m = glm::translate(model, glm::vec3(dest->x, dest->y, 0.0f)); // Translate the texture the desired amount in the x- and y-planes
-			glUniformMatrix4fv(engine->renderer->model_location, 1, GL_FALSE, glm::value_ptr(m)); // Send the transformation matrix to the shader
+			glUniformMatrix4fv(engine->renderer->program->get_location("model"), 1, GL_FALSE, glm::value_ptr(m)); // Send the transformation matrix to the shader
 
 			// Draw the triangles which form the rectangular background
 			int size;
@@ -495,14 +496,14 @@ namespace bee {
 		glBindVertexArray(vao); // Bind the VAO for the background
 
 		// Bind the background texture
-		glUniform1i(engine->renderer->texture_location, 0);
+		glUniform1i(engine->renderer->program->get_location("f_texture"), 0);
 		glBindTexture(GL_TEXTURE_2D, gl_texture);
 
 		// Bind the texture coordinates
-		glEnableVertexAttribArray(engine->renderer->fragment_location);
+		glEnableVertexAttribArray(engine->renderer->program->get_location("v_texcoord"));
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords);
 		glVertexAttribPointer(
-			engine->renderer->fragment_location,
+			engine->renderer->program->get_location("v_texcoord"),
 			2,
 			GL_FLOAT,
 			GL_FALSE,
@@ -522,7 +523,7 @@ namespace bee {
 			return 0; // Return 0 since nothing needs to be done for SDL mode
 		}
 
-		glUniformMatrix4fv(engine->renderer->model_location, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the partial transformation matrix
+		glUniformMatrix4fv(engine->renderer->program->get_location("model"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the partial transformation matrix
 
 		glBindVertexArray(0); // Unbind the VAO
 
@@ -622,10 +623,10 @@ namespace bee {
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
 
 			// Bind the vertices to the VAO's vertex buffer
-			glEnableVertexAttribArray(engine->renderer->vertex_location);
+			glEnableVertexAttribArray(engine->renderer->program->get_location("v_position"));
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
 			glVertexAttribPointer(
-				engine->renderer->vertex_location,
+				engine->renderer->program->get_location("v_position"),
 				2,
 				GL_FLOAT,
 				GL_FALSE,
