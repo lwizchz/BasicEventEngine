@@ -40,15 +40,17 @@
 #include "../core/rooms.hpp"
 
 #include "../render/drawing.hpp"
+#include "../render/render.hpp"
 #include "../render/renderer.hpp"
 #include "../render/shader.hpp"
 #include "../render/transition.hpp"
-#include "../render/viewdata.hpp"
+#include "../render/viewport.hpp"
 #include "../render/particle/system.hpp"
 
 #include "../physics/body.hpp"
 #include "../physics/world.hpp"
 
+#include "texture.hpp"
 #include "sprite.hpp"
 #include "background.hpp"
 #include "timeline.hpp"
@@ -111,8 +113,7 @@ namespace bee {
 		background_color({255, 255, 255, 255}),
 		is_background_color_enabled(true),
 		backgrounds(),
-		is_views_enabled(false),
-		views(),
+		views({new ViewPort()}),
 
 		next_instance_id(0),
 		instances(),
@@ -150,7 +151,12 @@ namespace bee {
 	}
 	Room::~Room() {
 		backgrounds.clear();
+
+		for (auto& v : views) {
+			delete v;
+		}
 		views.clear();
+
 		instances.clear();
 		instances_sorted.clear();
 		particle_systems.clear();
@@ -160,6 +166,7 @@ namespace bee {
 		reset_lights();
 		if (light_map != nullptr) {
 			delete light_map;
+			light_map = nullptr;
 		}
 
 		if (physics_world != nullptr) {
@@ -205,8 +212,12 @@ namespace bee {
 		background_color = {255, 255, 255, 255};
 		is_background_color_enabled = true;
 		backgrounds.clear();
-		is_views_enabled = false;
+
+		for (auto& v : views) {
+			delete v;
+		}
 		views.clear();
+		views.push_back(new ViewPort());
 
 		for (auto& i : instances) {
 			delete i.second;
@@ -263,7 +274,6 @@ namespace bee {
 		}
 		s <<
 		"\n	backgrounds\n" << debug_indent(background_string, 2) <<
-		"	is_views_enabled            " << is_views_enabled <<
 		"\n	views\n" << debug_indent(view_string, 2) <<
 		"	instances\n" << debug_indent(instance_string, 2) <<
 		"}\n";
@@ -318,32 +328,21 @@ namespace bee {
 		}
 		return "none\n";
 	}
-	bool Room::get_is_views_enabled() const {
-		return is_views_enabled;
-	}
-	std::vector<ViewData*> Room::get_views() const {
+	std::vector<ViewPort*> Room::get_views() const {
 		return views;
 	}
 	std::string Room::get_view_string() const {
 		if (views.size() > 0) {
 			std::vector<std::vector<std::string>> table;
-			table.push_back({"(visible", "vx,", "vy", "vwidth", "vheight", "px,", "py", "pwidth", "pheight", "object", "hborder", "vborder", "hspeed", "vspeed)"});
+			table.push_back({"(active", "vx,", "vy", "vwidth", "vheight", "px,", "py", "pwidth", "pheight)"});
 
 			for (auto& v : views) {
-				std::string follow_name = "none";
-				if (v->following != nullptr) {
-					follow_name = v->following->get_object()->get_name();
-				}
-
 				table.push_back({
-					booltostring(v->is_visible),
+					booltostring(v->is_active),
 					bee_itos(v->view.x), bee_itos(v->view.y),
 					bee_itos(v->view.w), bee_itos(v->view.h),
 					bee_itos(v->port.x), bee_itos(v->port.y),
-					bee_itos(v->port.w), bee_itos(v->port.h),
-					follow_name,
-					bee_itos(v->horizontal_border), bee_itos(v->vertical_border),
-					bee_itos(v->horizontal_speed), bee_itos(v->vertical_speed)
+					bee_itos(v->port.w), bee_itos(v->port.h)
 				});
 			}
 
@@ -373,7 +372,7 @@ namespace bee {
 		}
 		return "none\n";
 	}
-	ViewData* Room::get_current_view() const {
+	ViewPort* Room::get_current_view() const {
 		return view_current;
 	}
 	PhysicsWorld* Room::get_phys_world() const {
@@ -429,15 +428,11 @@ namespace bee {
 		backgrounds[new_index] = new_background;
 		return new_index;
 	}
-	int Room::add_background(Background* new_background, bool new_is_visible, bool new_is_foreground, int new_x, int new_y, bool new_is_horizontal_tile, bool new_is_vertical_tile, int new_horizontal_speed, int new_vertical_speed, bool new_is_stretched) {
+	int Room::add_background(Texture* new_background, bool new_is_visible, bool new_is_foreground, int new_x, int new_y, bool new_is_horizontal_tile, bool new_is_vertical_tile, int new_horizontal_speed, int new_vertical_speed, bool new_is_stretched) {
 		BackgroundData* background = new BackgroundData(new_background, new_is_visible, new_is_foreground, new_x, new_y, new_is_horizontal_tile, new_is_vertical_tile, new_horizontal_speed, new_vertical_speed, new_is_stretched);
 		return set_background(-1, background);
 	}
-	int Room::set_is_views_enabled(bool new_is_views_enabled) {
-		is_views_enabled = new_is_views_enabled;
-		return 0;
-	}
-	int Room::set_view(int desired_index, ViewData* new_view) {
+	int Room::set_view(int desired_index, ViewPort* new_view) {
 		size_t new_index = desired_index;
 
 		// If the index doesn't exist, append the view
@@ -627,11 +622,11 @@ namespace bee {
 		} else {
 			if (!lights.empty()) {
 				int w = get_width(), h = get_height();
-				set_render_target(light_map);
+				render::set_target(light_map);
 				draw_set_color({0, 0, 0, 255});
-				engine->renderer->render_clear();
+				render::clear();
 
-				Sprite* s = new Sprite("pt_sprite_sphere", "particles/07_sphere.png");
+				Texture* s = new Texture("pt_sprite_sphere", "particles/07_sphere.png");
 				s->load();
 
 				for (auto& l : lights) {
@@ -645,7 +640,7 @@ namespace bee {
 						}
 						case E_LIGHT::POINT: {
 							int r = static_cast<int>(10000/l.attenuation.y);
-							s->draw(static_cast<int>(l.position.x)-r/2, static_cast<int>(l.position.y)-r/2, 0, r, r, 0.0, l.color, SDL_FLIP_NONE);
+							s->draw(static_cast<int>(l.position.x)-r/2, static_cast<int>(l.position.y)-r/2, 0, r, r, 0.0, l.color);
 							break;
 						}
 						case E_LIGHT::SPOT: {
@@ -654,7 +649,7 @@ namespace bee {
 					}
 				}
 				delete s;
-				reset_render_target();
+				render::reset_target();
 				draw_set_blend(SDL_BLENDMODE_MOD);
 				light_map->draw(0, 0, 0);
 				draw_set_blend(SDL_BLENDMODE_BLEND);
@@ -710,7 +705,7 @@ namespace bee {
 		if (light_map != nullptr) {
 			delete light_map;
 		}
-		light_map = new Sprite();
+		light_map = new Texture();
 
 		if (physics_world != nullptr) {
 			delete physics_world;
@@ -720,7 +715,6 @@ namespace bee {
 
 		// Reset background data
 		for (auto& b : backgrounds) {
-			b->background->set_time_update();
 			delete b;
 		}
 		backgrounds.clear();
@@ -1039,16 +1033,6 @@ namespace bee {
 			}
 			i.first->get_object()->update(i.first);
 			i.first->get_object()->step_begin(i.first);
-		}
-
-		if ((get_options().is_debug_enabled)&&(!get_options().is_headless)) {
-			if (is_background_color_enabled) {
-				draw_set_color(background_color);
-			} else {
-				draw_set_color(get_enum_color(E_RGB::WHITE));
-			}
-
-			engine->renderer->render_clear();
 		}
 
 		return 0;
@@ -1390,81 +1374,53 @@ namespace bee {
 		return should_collide;
 	}
 	int Room::draw() {
+		handle_lights();
+
+		for (auto& v : views) {
+			if (v->is_active) {
+				view_current = v;
+				render::set_viewport(view_current);
+				view_current->update();
+				draw_view(view_current);
+			}
+		}
+		view_current = nullptr;
+
 		if (is_background_color_enabled) {
 			draw_set_color(background_color);
 		} else {
 			draw_set_color(get_enum_color(E_RGB::WHITE));
 		}
 
-		if (is_views_enabled) { // Render different viewports
-			if (!get_options().is_debug_enabled) {
-				engine->renderer->render_clear();
+		render::reset_target();
+		render::clear();
+		render::set_viewport(nullptr);
+
+		for (auto& v : views) {
+			if (v->is_active) {
+				v->draw();
 			}
-
-			for (auto& v : views) {
-				if (v->is_visible) {
-					view_current = v;
-
-					if (view_current->following != nullptr) {
-						Instance* f = view_current->following;
-						if (instances_sorted.find(f) != instances_sorted.end()) {
-							SDL_Rect a = f->get_aabb();
-							SDL_Rect b = {
-								view_current->view.x,
-								view_current->view.y,
-								view_current->port.w,
-								view_current->port.h
-							};
-							if (a.x < -b.x+view_current->horizontal_border) {
-								view_current->view.x = -(a.x - view_current->horizontal_border);
-							} else if (a.x+a.w > -b.x+b.w-view_current->horizontal_border) {
-								view_current->view.x = b.w - (a.x + a.w + view_current->horizontal_border);
-							}
-							if (a.y < -b.y+view_current->vertical_border) {
-								view_current->view.y = -(a.y - view_current->vertical_border);
-							} else if (a.y+a.h > -b.y+b.h-view_current->vertical_border) {
-								view_current->view.y = b.h - (a.y + a.h + view_current->vertical_border);
-							}
-						} else {
-							view_current->following = nullptr;
-						}
-					}
-					if (view_current->horizontal_speed != 0) {
-						view_current->view.x -= view_current->horizontal_speed;
-					}
-					if (view_current->vertical_speed != 0) {
-						view_current->view.y -= view_current->vertical_speed;
-					}
-
-					set_viewport(view_current);
-					draw_view();
-
-					handle_lights();
-				}
-			}
-			view_current = nullptr;
-			set_viewport(nullptr);
-		} else {
-			if (!get_options().is_debug_enabled) {
-				engine->renderer->render_clear();
-			}
-
-			set_viewport(nullptr);
-			draw_view();
-
-			handle_lights();
 		}
 
-		engine->renderer->render();
+		render::render();
 		reset_lights();
 
 		return 0;
 	}
-	int Room::draw_view() {
+	int Room::draw_view(ViewPort* viewport) {
 		// Draw backgrounds
+		if (is_background_color_enabled) {
+			draw_set_color(background_color);
+		} else {
+			draw_set_color(get_enum_color(E_RGB::WHITE));
+		}
+
+		render::set_target(viewport->texture);
+		render::clear();
+
 		for (auto& b : backgrounds) {
-			if (b->is_visible && !b->is_foreground) {
-				b->background->draw(b->x, b->y, b);
+			if ((b->is_visible)&&(!b->is_foreground)) {
+				b->background->draw(b->x, b->y, 0);
 			}
 		}
 
@@ -1483,8 +1439,8 @@ namespace bee {
 
 		// Draw foregrounds
 		for (auto& b : backgrounds) {
-			if (b->is_visible && b->is_foreground) {
-				b->background->draw(b->x, b->y, b);
+			if ((b->is_visible)&&(b->is_foreground)) {
+				b->background->draw(b->x, b->y, 0);
 			}
 		}
 
@@ -1513,6 +1469,9 @@ namespace bee {
 		if (console::get_is_open()) {
 			console::internal::draw();
 		}
+
+		render::render_textures();
+		render::render();
 
 		return 0;
 	}

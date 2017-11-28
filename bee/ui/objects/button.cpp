@@ -73,7 +73,7 @@ void ObjUIButton::draw(bee::Instance* self) {
 	}
 
 	int ox = 0, oy = 0;
-	bee::ViewData* v = bee::get_current_room()->get_current_view();
+	bee::ViewPort* v = bee::get_current_room()->get_current_view();
 	if (v != nullptr) {
 		ox = v->view.x;
 		oy = v->view.y;
@@ -109,7 +109,7 @@ void ObjUIButton::center_width(bee::Instance* self) {
 	}
 
 	int ox = 0;
-	bee::ViewData* v = bee::get_current_room()->get_current_view();
+	bee::ViewPort* v = bee::get_current_room()->get_current_view();
 	if (v != nullptr) {
 		ox = v->view.x;
 	}

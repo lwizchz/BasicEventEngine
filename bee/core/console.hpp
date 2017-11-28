@@ -68,6 +68,7 @@ namespace console {
 
 	int run(const std::string&);
 	std::string get_help(const std::string&);
+	int log(E_MESSAGE, const std::string&);
 }}
 
 #endif // BEE_CORE_CONSOLE_H

@@ -13,7 +13,16 @@
 
 #include "camera.hpp"
 
-namespace bee { namespace render {
+namespace bee {
+	class Texture;
+	struct TextureDrawData;
+	struct ViewPort;
+
+namespace render {
+	namespace internal {
+		int render_texture(const TextureDrawData&);
+	}
+
 	int set_is_lightable(bool);
 
 	std::string opengl_prepend_version(const std::string&);
@@ -24,6 +33,17 @@ namespace bee { namespace render {
 	glm::mat4 get_projection();
 	glm::mat4 calc_projection();
 	Camera get_camera();
+
+	int set_viewport(ViewPort*);
+
+	int queue_texture(const Texture*, const TextureDrawData&);
+	int render_textures();
+
+	int reset_target();
+	int set_target(Texture*);
+
+	int clear();
+	int render();
 }}
 
 #endif // BEE_RENDER_H

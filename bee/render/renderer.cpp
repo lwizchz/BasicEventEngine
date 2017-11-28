@@ -15,8 +15,6 @@
 
 #include "renderer.hpp" // Include the engine headers
 
-#include "../engine.hpp"
-
 #include "../util/files.hpp"
 #include "../util/platform.hpp"
 #include "../util/debug.hpp"
@@ -131,7 +129,7 @@ namespace bee {
 			}
 		}
 
-		program = new Program();
+		program = new ShaderProgram();
 
 		Shader vertex_shader (vs_fn, GL_VERTEX_SHADER);
 		program->add_shader(vertex_shader);
@@ -240,6 +238,8 @@ namespace bee {
 		return 0;
 	}
 	int Renderer::sdl_renderer_init() {
+		messenger::send({"engine", "renderer"}, E_MESSAGE::ERROR, "The SDL renderer is deprecated and will be removed soon");
+
 		int renderer_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE;
 		if (get_options().is_vsync_enabled) {
 			renderer_flags |= SDL_RENDERER_PRESENTVSYNC;
@@ -259,6 +259,8 @@ namespace bee {
 		return 0; // Return 0 on success
 	}
 	int Renderer::sdl_renderer_close() {
+		messenger::send({"engine", "renderer"}, E_MESSAGE::ERROR, "The SDL renderer is deprecated and will be removed soon");
+
 		if (sdl_renderer != nullptr) {
 			SDL_DestroyRenderer(sdl_renderer);
 			sdl_renderer = nullptr;
@@ -267,30 +269,7 @@ namespace bee {
 		return 0;
 	}
 
-	int Renderer::render_clear() {
-		draw_set_color(*(engine->color));
-		if (get_options().renderer_type != E_RENDERER::SDL) {
-			if (target > 0) {
-				glBindFramebuffer(GL_FRAMEBUFFER, target);
-			}
-
-			glUseProgram(program->get_program());
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			glUniform1i(program->get_location("time"), get_ticks()); // Set the time uniform to the current ticks
-		} else {
-			SDL_RenderClear(sdl_renderer);
-		}
-		return 0;
-	}
-	int Renderer::render() const {
-		if (get_options().renderer_type != E_RENDERER::SDL) {
-			SDL_GL_SwapWindow(window);
-		} else {
-			SDL_RenderPresent(sdl_renderer);
-		}
-		return 0;
-	}
-	int Renderer::render_reset() {
+	int Renderer::reset() {
 		if (get_options().renderer_type != E_RENDERER::SDL) {
 			opengl_close();
 			opengl_init();

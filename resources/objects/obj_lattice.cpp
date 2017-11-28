@@ -44,9 +44,13 @@ void ObjLattice::create(bee::Instance* self) {
 	(*s)["is_creating"] = false;
 
 	std::vector<bee::SIDP>* lv = new std::vector<bee::SIDP>();
-	std::string level = SIDP_s(bee::console::get_var("$levels[$level_index]"));
-	bee::console::run("let level_index += 1");
-	//std::string level = SIDP_s(bee::console::get_var("$level"));
+	std::string level;
+	if (SIDP_i(bee::console::get_var("$level_index")) < 0) {
+		level = SIDP_s(bee::console::get_var("$level"));
+	} else {
+		level = SIDP_s(bee::console::get_var("$levels[$level_index]"));
+		bee::console::run("let level_index += 1");
+	}
 
 	std::string datastr = file_get_contents("resources/rooms/" + level + ".csv");
 	std::istringstream data_stream (datastr);
@@ -106,7 +110,7 @@ void ObjLattice::destroy(bee::Instance* self) {
 void ObjLattice::alarm(bee::Instance* self, size_t a) {
 	switch (a) {
 		case 0: {
-			bee::console::run("LoadLevel $levels[$level_index]");
+			bee::console::run("LoadNextLevel");
 			break;
 		}
 		default: {}

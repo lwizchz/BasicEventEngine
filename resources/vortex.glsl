@@ -14,9 +14,20 @@ in vec2 f_texcoord;
 out vec4 f_fragment;
 
 uniform sampler2D f_texture;
+uniform int flip = 0;
 uniform int time;
 
 void main() {
+	if (flip == 1) {
+		f_fragment = texture(f_texture, vec2(1.0-f_texcoord.x, f_texcoord.y));
+	} else if (flip == 2) {
+		f_fragment = texture(f_texture, vec2(f_texcoord.x, 1.0-f_texcoord.y));
+	} else if (flip == 3) {
+		f_fragment = texture(f_texture, 1.0-f_texcoord);
+	} else {
+		f_fragment = texture(f_texture, f_texcoord);
+	}
+
 	if (f_fragment == vec4(16.0/255.0, 16.0/255.0, 28.0/255.0, 1.0)) {
 		vec2 pos = vec2(f_position.x, f_position.y);
 		vec2 posp = vec2(f_position.x/1920.0, f_position.y/1080.0);

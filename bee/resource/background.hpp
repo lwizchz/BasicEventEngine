@@ -16,10 +16,10 @@
 
 namespace bee {
 	// Forward declaration
-	class Background;
+	class Texture;
 
 	struct BackgroundData { // The data struct which is used to pass data to the Room class in bee/resources/room.hpp
-		Background* background; // A pointer to the background to use this data with
+		Texture* background; // A pointer to the background to use this data with
 		bool is_visible; // Whether to draw the background
 		bool is_foreground; // Whether to draw the texture above or below the other sprites
 		int x, y; // The coordinates of the desired draw location
@@ -29,7 +29,7 @@ namespace bee {
 
 		// See bee/resources/background.cpp for function comments
 		BackgroundData();
-		BackgroundData(Background*, bool, bool, int, int, bool, bool, int, int, bool);
+		BackgroundData(Texture*, bool, bool, int, int, bool, bool, int, int, bool);
 	};
 
 	class Background: public Resource { // The background class is used to draw tiled textures behind or in front of all other on-screen objects

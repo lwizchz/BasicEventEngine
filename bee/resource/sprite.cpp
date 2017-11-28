@@ -104,7 +104,9 @@ namespace bee {
 		is_lightable(true),
 
 		framebuffer(-1)
-	{}
+	{
+		messenger::send({"engine", "resource"}, E_MESSAGE::ERROR, "The Sprite resource type is deprecated and will be removed soon");
+	}
 	/*
 	* Sprite::Sprite() - Construct the sprite, add it to the sprite resource list, and set the new name and path
 	* @new_name: the name of the sprite to use

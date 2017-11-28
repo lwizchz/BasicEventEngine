@@ -14,19 +14,12 @@
 #include "../enum.hpp"
 
 namespace bee {
-	// Forward declarations
-	class Sprite;
-	class Background;
-
-	int reset_render_target();
-	int set_render_target(Sprite*, int, int);
-	int set_render_target(Sprite*);
-	int set_render_target(Background*, int, int);
-	int set_render_target(Background*);
+	// Forward declaration
+	class Texture;
 
 	E_TRANSITION get_transition_type();
 	int set_transition_type(E_TRANSITION);
-	int set_transition_custom(std::function<void (Sprite*, Sprite*)>);
+	int set_transition_custom(std::function<void (Texture*, Texture*)>);
 	double get_transition_speed();
 	int set_transition_speed(double);
 	int draw_transition();

@@ -10,11 +10,11 @@ set(deps_bee_core core/console.cpp core/display.cpp core/enginestate.cpp core/in
 set(deps_bee_network network/network.cpp network/client.cpp network/connection.cpp network/packet.cpp network/data.cpp network/event.cpp)
 
 set(deps_bee_render_particle render/particle/attractor.cpp render/particle/changer.cpp render/particle/deflector.cpp render/particle/destroyer.cpp render/particle/emitter.cpp render/particle/particle.cpp render/particle/particledata.cpp render/particle/system.cpp)
-set(deps_bee_render render/camera.cpp render/drawing.cpp render/render.cpp render/renderer.cpp render/rgba.cpp render/shader.cpp render/transition.cpp render/viewdata.cpp ${deps_bee_render_particle})
+set(deps_bee_render render/camera.cpp render/drawing.cpp render/render.cpp render/renderer.cpp render/rgba.cpp render/shader.cpp render/transition.cpp render/viewport.cpp ${deps_bee_render_particle})
 
 set(deps_bee_physics physics/body.cpp physics/filter.cpp physics/draw.cpp physics/world.cpp)
 
-set(deps_bee_resource resource/sprite.cpp resource/sound.cpp resource/background.cpp resource/font.cpp resource/path.cpp resource/timeline.cpp resource/mesh.cpp resource/light.cpp resource/object.cpp resource/room.cpp)
+set(deps_bee_resource resource/texture.cpp resource/sprite.cpp resource/background.cpp resource/sound.cpp resource/font.cpp resource/path.cpp resource/timeline.cpp resource/mesh.cpp resource/light.cpp resource/object.cpp resource/room.cpp)
 
 set(deps_bee_ui ui/ui.cpp ui/objects/element.cpp ui/objects/button.cpp ui/objects/handle.cpp ui/objects/text_entry.cpp ui/objects/gauge.cpp ui/objects/slider.cpp ui/objects/optionbox.cpp)
 

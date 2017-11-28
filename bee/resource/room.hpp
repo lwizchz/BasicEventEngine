@@ -27,13 +27,12 @@
 namespace bee {
 	// Forward declarations
 	struct BackgroundData;
-	struct ViewData;
+	struct ViewPort;
 	class PhysicsWorld;
 	class Particle;
 	class ParticleSystem;
 
-	class Sprite;
-	class Background;
+	class Texture;
 
 	struct NetworkEvent;
 
@@ -62,8 +61,7 @@ namespace bee {
 			RGBA background_color; // The background color of the room
 			bool is_background_color_enabled; // Whether the background color should be drawn
 			std::vector<BackgroundData*> backgrounds; // The list of backgrounds that should be drawn
-			bool is_views_enabled; // Whether drawing should occur inside views
-			std::vector<ViewData*> views; // The list of views that shold be drawn
+			std::vector<ViewPort*> views; // The list of views that shold be drawn
 
 			int next_instance_id; // The id for the next created instance, always increasing
 			std::map<int,Instance*> instances; // A map of all instances with their associated id
@@ -79,14 +77,14 @@ namespace bee {
 
 			std::vector<LightData> lights; // A list of all the queued lights to be drawn
 			std::vector<LightableData*> lightables; // A list of all the lightables which can cast shadows
-			Sprite* light_map; // A texture used for SDL light rendering
+			Texture* light_map; // A texture used for SDL light rendering
 
 			PhysicsWorld* physics_world; // The world used to simulate all physics objects in the room
 			std::map<const btRigidBody*,Instance*> physics_instances; // A map of the bodies in the world with their associated instance
 
 			std::string instance_map; // The path of the instance map file to load instance from when the room starts
 
-			ViewData* view_current; // A pointer to the current view that is being drawn
+			ViewPort* view_current; // A pointer to the current view that is being drawn
 		public:
 			// See bee/resources/room.cpp for function comments
 			Room();
@@ -111,12 +109,11 @@ namespace bee {
 			bool get_is_background_color_enabled() const;
 			std::vector<BackgroundData*> get_backgrounds() const;
 			std::string get_background_string() const;
-			bool get_is_views_enabled() const;
-			std::vector<ViewData*> get_views() const;
+			std::vector<ViewPort*> get_views() const;
 			std::string get_view_string() const;
 			const std::map<int,Instance*>& get_instances() const;
 			std::string get_instance_string() const;
-			ViewData* get_current_view() const;
+			ViewPort* get_current_view() const;
 			PhysicsWorld* get_phys_world() const;
 			const std::map<const btRigidBody*,Instance*>& get_phys_instances() const;
 
@@ -129,9 +126,8 @@ namespace bee {
 			int set_background_color(RGBA);
 			int set_is_background_color_enabled(bool);
 			int set_background(int, BackgroundData*);
-			int add_background(Background*, bool, bool, int, int, bool, bool, int, int, bool);
-			int set_is_views_enabled(bool);
-			int set_view(int, ViewData*);
+			int add_background(Texture*, bool, bool, int, int, bool, bool, int, int, bool);
+			int set_view(int, ViewPort*);
 			int set_instance(int, Instance*);
 			Instance* add_instance(int, Object*, double, double, double);
 			int add_instance_grid(int, Object*, double, double, double);
@@ -181,7 +177,7 @@ namespace bee {
 			static void collision_internal(btDynamicsWorld*, btScalar);
 			static bool check_collision_filter(btBroadphaseProxy*, btBroadphaseProxy*);
 			int draw();
-			int draw_view();
+			int draw_view(ViewPort*);
 			int animation_end();
 			int room_start();
 			int room_end();

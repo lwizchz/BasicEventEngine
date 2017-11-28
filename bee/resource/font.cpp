@@ -25,44 +25,46 @@
 
 #include "../core/enginestate.hpp"
 
-#include "sprite.hpp"
+#include "../render/render.hpp"
+
+#include "texture.hpp"
 
 namespace bee {
 	/*
 	* TextData::TextData() - Construct the data struct and initialize the default values
 	*/
 	TextData::TextData() :
-		sprites(),
+		textures(),
 		text()
 	{}
 	/*
 	* TextData::TextData() - Construct the data struct and initialize the provided values
-	* @new_sprite: the sprite for the first line of text
-	* @new_text: the text that has been rendered in the sprite
+	* @new_texture: the texture for the first line of text
+	* @new_text: the text that has been rendered in the texture
 	*/
-	TextData::TextData(Sprite* new_sprite, const std::string& new_text) :
-		sprites(),
+	TextData::TextData(Texture* new_texture, const std::string& new_text) :
+		textures(),
 		text(new_text)
 	{
-		sprites.emplace(0, new_sprite); // Set the provided sprite as the data for the first line
+		textures.emplace(0, new_texture); // Set the provided texture as the data for the first line
 	}
 	/*
-	* TextData::~TextData() - Free the memory for each line's sprite
+	* TextData::~TextData() - Free the memory for each line's texture
 	*/
 	TextData::~TextData() {
-		for (auto& s : sprites) { // Iterate over the sprites and delete each one
+		for (auto& s : textures) { // Iterate over the textures and delete each one
 			delete s.second;
 		}
-		sprites.clear(); // Clear the list
+		textures.clear(); // Clear the list
 		text.clear();
 	}
 	/*
-	* TextData::pop_front() -  Pop the front sprite so it won't be deleted twice
+	* TextData::pop_front() -  Pop the front texture so it won't be deleted twice
 	*/
-	Sprite* TextData::pop_front() {
-		Sprite* s = sprites.begin()->second; // Store a copy of the sprite pointer
-		sprites.erase(sprites.begin()); // Erase the sprite from the list
-		return s; // Return the sprite
+	Texture* TextData::pop_front() {
+		Texture* t = textures.begin()->second; // Store a copy of the texture pointer
+		textures.erase(textures.begin()); // Erase the texture from the list
+		return t; // Return the texture
 	}
 
 	std::map<int,Font*> Font::list;
@@ -278,7 +280,7 @@ namespace bee {
 		}
 
 		if (is_sprite) { // If the font is a sprite font, load it appropriately
-			sprite_font = new Sprite("spr_"+get_name(), path); // Create and load a sprite for the font
+			sprite_font = new Texture("spr_"+get_name(), path); // Create and load a sprite for the font
 			if (!sprite_font->load()) { // If the sprite fails to load, output a warning
 				messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to load the font \"" + path + "\": " + get_sdl_error());
 				has_draw_failed = true;
@@ -360,14 +362,14 @@ namespace bee {
 		}
 
 		// Create a temporary sprite to draw the rendered text to the screen
-		Sprite* tmp_sprite = new Sprite();
-		tmp_sprite->load_from_surface(tmp_surface); // Load the rendered text into the sprite
+		Texture* tmp_texture = new Texture();
+		tmp_texture->load_from_surface(tmp_surface); // Load the rendered text into the texture
 		SDL_FreeSurface(tmp_surface); // Free the temporary surface
 
-		tmp_sprite->set_is_lightable(false); // Remove lighting from the text
-		tmp_sprite->draw(x, y, 0, false); // Draw the text
+		tmp_texture->draw(x, y, 0); // Draw the text
+		render::render_textures();
 
-		TextData* textdata = new TextData(tmp_sprite, t); // Store the temporary sprite in a TextData struct
+		TextData* textdata = new TextData(tmp_texture, t); // Store the temporary texture in a TextData struct
 
 		return textdata; // Return the textdata on success
 	}
@@ -400,7 +402,7 @@ namespace bee {
 				if (textdata == nullptr) { // If it's the first line, set it as the entire textdata
 					textdata = r;
 				} else { // Otherwise append its data to the existing textdata
-					textdata->sprites.emplace(textdata->sprites.size(), r->pop_front());
+					textdata->textures.emplace(textdata->textures.size(), r->pop_front());
 					delete r; // Free the temporary data
 				}
 			}
@@ -442,7 +444,7 @@ namespace bee {
 			size_t i = 0;
 			for (auto& l : lines) { // Iterate over the lines and draw each one
 				if (!l.empty()) {
-					textdata->sprites[i]->draw(x, y, 0, false);
+					textdata->textures[i]->draw(x, y, 0);
 				}
 				++i;
 			}
@@ -493,7 +495,7 @@ namespace bee {
 			int w = sprite_font->get_subimage_width();
 			int h = sprite_font->get_height();
 			for (char& c : t) {
-				sprite_font->draw_subimage(x+(i++), y, static_cast<int>(c), w, h, 0.0, {color.r, color.g, color.b, color.a}, SDL_FLIP_NONE);
+				sprite_font->draw_subimage(x+(i++), y, static_cast<int>(c), w, h, 0.0, {color.r, color.g, color.b, color.a});
 			}
 		} else { // Otherwise, draw the font normally
 			// Render the text to a temporary surface
@@ -509,14 +511,14 @@ namespace bee {
 			}
 
 			// Create a temporary sprite to draw the rendered text to the screen
-			Sprite* tmp_sprite = new Sprite();
-			tmp_sprite->load_from_surface(tmp_surface); // Load the rendered text into the sprite
+			Texture* tmp_texture = new Texture();
+			tmp_texture->load_from_surface(tmp_surface); // Load the rendered text into the texture
 			SDL_FreeSurface(tmp_surface); // Free the temporary surface
 
-			tmp_sprite->set_is_lightable(false); // Remove lighting from the text
-			tmp_sprite->draw(x, y, 0, false); // Draw the text
+			tmp_texture->draw(x, y, 0); // Draw the text
+			render::render_textures();
 
-			delete tmp_sprite; // Free the temporary sprite
+			delete tmp_texture; // Free the temporary texture
 		}
 
 		return 0; // Return 0 on success

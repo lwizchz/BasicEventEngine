@@ -57,7 +57,7 @@ namespace bee {
 	* BackgroundData::BackgroundData() - Construct the data struct and initiliaze with all the given values
 	* ! See bee/resources/background.hpp for a description of these member variables
 	*/
-	BackgroundData::BackgroundData(Background* new_background, bool new_is_visible, bool new_is_foreground, int new_x, int new_y, bool new_is_horizontal_tile, bool new_is_vertical_tile, int new_horizontal_speed, int new_vertical_speed, bool new_is_stretched) :
+	BackgroundData::BackgroundData(Texture* new_background, bool new_is_visible, bool new_is_foreground, int new_x, int new_y, bool new_is_horizontal_tile, bool new_is_vertical_tile, int new_horizontal_speed, int new_vertical_speed, bool new_is_stretched) :
 		background(new_background),
 		is_visible(new_is_visible),
 		is_foreground(new_is_foreground),
@@ -98,7 +98,9 @@ namespace bee {
 		vbo_texcoords(-1),
 
 		framebuffer(-1)
-	{}
+	{
+		messenger::send({"engine", "resource"}, E_MESSAGE::ERROR, "The Background resource type is deprecated and will be removed soon");
+	}
 	/*
 	* Background::Background() - Construct the background, add it to the background resource list, and set the new name and path
 	* @new_name: the name of the background to use

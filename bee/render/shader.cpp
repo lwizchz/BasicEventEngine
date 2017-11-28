@@ -67,13 +67,13 @@ namespace bee {
 		return 0;
 	}
 
-	Program::Program() :
+	ShaderProgram::ShaderProgram() :
 		program(glCreateProgram()),
 		shaders(),
 		inputs()
 	{}
 
-	int Program::delete_shaders() {
+	int ShaderProgram::delete_shaders() {
 		for (auto& shader : shaders) {
 			if (shader.get_shader() != static_cast<GLuint>(-1)) {
 				glDeleteShader(shader.get_shader());
@@ -82,7 +82,7 @@ namespace bee {
 		return 0;
 	}
 
-	int Program::add_shader(Shader& shader) {
+	int ShaderProgram::add_shader(Shader& shader) {
 		if (shader.compile() != 0) {
 			return 1;
 		}
@@ -93,15 +93,15 @@ namespace bee {
 
 		return 0;
 	}
-	int Program::add_attrib(const std::string& name, bool is_required) {
+	int ShaderProgram::add_attrib(const std::string& name, bool is_required) {
 		inputs.emplace(name, ShaderInput(true, is_required));
 		return 0;
 	}
-	int Program::add_uniform(const std::string& name, bool is_required) {
+	int ShaderProgram::add_uniform(const std::string& name, bool is_required) {
 		inputs.emplace(name, ShaderInput(false, is_required));
 		return 0;
 	}
-	int Program::link() {
+	int ShaderProgram::link() {
 		glLinkProgram(program);
 
 		GLint is_program_linked = GL_FALSE;
@@ -137,16 +137,26 @@ namespace bee {
 		return 0;
 	}
 
-	GLuint Program::get_program() const {
+	GLuint ShaderProgram::get_program() const {
 		return program;
 	}
-	GLint Program::get_location(const std::string& input) const {
+	GLint ShaderProgram::get_location(const std::string& input) const {
 		if (inputs.find(input) == inputs.end()) {
 			messenger::send({"engine", "renderer"}, E_MESSAGE::WARNING, "Shader input \"" + input + "\" not found");
 			return -1;
 		}
 
 		return inputs.at(input).location;
+	}
+
+	int ShaderProgram::apply() {
+		if (program == static_cast<GLuint>(-1)) {
+			return 1;
+		}
+
+		glUseProgram(program);
+
+		return 0;
 	}
 }
 

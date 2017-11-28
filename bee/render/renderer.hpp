@@ -22,7 +22,7 @@
 namespace bee {
 	// Forward declaration
 	struct Camera;
-	class Program;
+	class ShaderProgram;
 
 	class Renderer {
 		public:
@@ -33,8 +33,7 @@ namespace bee {
 			// This is the OpenGL renderer context
 			SDL_GLContext context;
 
-			Program* program;
-			GLuint target;
+			ShaderProgram* program;
 
 			bool render_is_3d;
 			Camera* render_camera;
@@ -53,9 +52,7 @@ namespace bee {
 			int sdl_renderer_init();
 			int sdl_renderer_close();
 
-			int render_clear();
-			int render() const;
-			int render_reset();
+			int reset();
 	};
 }
 

@@ -27,7 +27,6 @@
 #include "serialdata.hpp"
 
 #include "../render/drawing.hpp"
-#include "../render/viewdata.hpp"
 
 #include "../physics/body.hpp"
 #include "../physics/world.hpp"

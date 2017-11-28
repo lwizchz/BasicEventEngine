@@ -35,7 +35,7 @@
 #include "render/render.hpp"
 #include "render/renderer.hpp"
 
-#include "resource/sprite.hpp"
+#include "resource/texture.hpp"
 #include "resource/font.hpp"
 #include "resource/room.hpp"
 
@@ -96,8 +96,8 @@ namespace bee {
 			}
 		}
 
-		engine->texture_before = new Sprite();
-		engine->texture_after = new Sprite();
+		engine->texture_before = new Texture();
+		engine->texture_after = new Texture();
 
 		engine->font_default = new Font("font_default", "liberation_mono.ttf", 16, false);
 			engine->font_default->load();
@@ -210,6 +210,7 @@ namespace bee {
 						break;
 					}
 					case 2: { // Restart game
+						sound_stop_loops(); // Stop all looping sounds from the previous run
 						change_room(engine->first_room, false);
 						break;
 					}
@@ -255,13 +256,13 @@ namespace bee {
 
 		free_standard_flags();
 
-		messenger::handle();
-		messenger::clear();
-
 		if (engine != nullptr) {
 			delete engine;
 			engine = nullptr;
 		}
+
+		messenger::handle();
+		messenger::clear();
 
 		return 0;
 	}
@@ -377,7 +378,7 @@ namespace bee {
 					switch (event.window.event) {
 						case SDL_WINDOWEVENT_SHOWN: {
 							render::set_camera(nullptr);
-							engine->renderer->render();
+							render::render();
 							engine->has_focus = true;
 							break;
 						}
@@ -386,7 +387,7 @@ namespace bee {
 							break;
 						}
 						case SDL_WINDOWEVENT_EXPOSED: {
-							engine->renderer->render();
+							render::render();
 							break;
 						}
 						case SDL_WINDOWEVENT_MOVED: {
@@ -396,11 +397,11 @@ namespace bee {
 							engine->width = event.window.data1;
 							engine->height = event.window.data2;
 							render::set_camera(nullptr);
-							engine->renderer->render();
+							render::render();
 							break;
 						}
 						case SDL_WINDOWEVENT_SIZE_CHANGED: {
-							engine->renderer->render();
+							render::render();
 							break;
 						}
 						case SDL_WINDOWEVENT_MINIMIZED: {

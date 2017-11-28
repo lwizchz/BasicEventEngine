@@ -13,9 +13,13 @@
 
 #include <GL/glew.h> // Include the required OpenGL headers
 #include <SDL2/SDL_opengl.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "render.hpp" // Include the engine headers
+
+#include "../engine.hpp"
 
 #include "../util/real.hpp"
 
@@ -24,13 +28,24 @@
 #include "../messenger/messenger.hpp"
 
 #include "../core/enginestate.hpp"
+#include "../core/rooms.hpp"
 #include "../core/window.hpp"
 
 #include "camera.hpp"
+#include "drawing.hpp"
 #include "renderer.hpp"
 #include "shader.hpp"
+#include "viewport.hpp"
+
+#include "../resource/texture.hpp"
 
 namespace bee { namespace render {
+	namespace internal {
+		GLuint target = 0;
+
+		std::map<const Texture*,std::list<TextureDrawData>> textures;
+	}
+
 	/*
 	* set_is_lightable() - Set whether to enable lighting or not
 	* ! This should be used to disable lighting only on specific elements, e.g. the HUD
@@ -62,7 +77,6 @@ namespace bee { namespace render {
 			}
 			case E_RENDERER::SDL:
 			default: {
-				engine->options->renderer_type = E_RENDERER::SDL;
 				return shader;
 			}
 		}
@@ -177,6 +191,149 @@ namespace bee { namespace render {
 	*/
 	Camera get_camera() {
 		return *(engine->renderer->render_camera);
+	}
+
+	/*
+	* set_viewport() - Set the new drawing viewport within the window
+	* ! See https://wiki.libsdl.org/SDL_RenderSetViewport for details
+	* @viewport: the rectangle defining the desired viewport
+	*/
+	int set_viewport(ViewPort* viewport) {
+		if (get_options().renderer_type != E_RENDERER::SDL) {
+			glm::mat4 projection (get_projection());
+			glm::mat4 view;
+			glm::vec4 port;
+
+			if (viewport == nullptr) { // If the viewport is not defined then set the drawing area to the entire screen
+				view = glm::mat4(1.0f);
+				port = glm::vec4(0.0f, 0.0f, get_width(), get_height());
+			} else { // If the viewport is defined then use it
+				view = glm::translate(glm::mat4(1.0f), glm::vec3(viewport->view.x, viewport->view.y, 0.0f));
+				port = glm::vec4(viewport->port.x, viewport->port.y, viewport->port.w, viewport->port.h);
+			}
+
+			glUniformMatrix4fv(engine->renderer->program->get_location("view"), 1, GL_FALSE, glm::value_ptr(view));
+			glUniform4fv(engine->renderer->program->get_location("port"), 1, glm::value_ptr(port));
+			glUniformMatrix4fv(engine->renderer->program->get_location("projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+			return 0;
+		} else {
+			SDL_Rect v;
+			if (viewport == nullptr) { // If the viewport is not defined then set the drawing area to the entire screen
+				v = {0, 0, get_width(), get_height()};
+			} else { // If the viewport is defined then use it
+				v = viewport->port;
+			}
+			return SDL_RenderSetViewport(engine->renderer->sdl_renderer, &v);
+		}
+	}
+
+	int internal::render_texture(const TextureDrawData& td) {
+		glUniformMatrix4fv(engine->renderer->program->get_location("model"), 1, GL_FALSE, glm::value_ptr(td.model));
+		glUniformMatrix4fv(engine->renderer->program->get_location("rotation"), 1, GL_FALSE, glm::value_ptr(td.rotation));
+		glUniform4fv(engine->renderer->program->get_location("colorize"), 1, glm::value_ptr(td.color));
+
+		// Bind the texture coordinates
+		glEnableVertexAttribArray(engine->renderer->program->get_location("v_texcoord"));
+		glBindBuffer(GL_ARRAY_BUFFER, td.buffer);
+		glVertexAttribPointer(
+			engine->renderer->program->get_location("v_texcoord"),
+			2,
+			GL_FLOAT,
+			GL_FALSE,
+			0,
+			0
+		);
+
+		// Draw the triangles which form the rectangular subimage
+		int size;
+		glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+		glDrawElements(GL_TRIANGLES, size/sizeof(GLushort), GL_UNSIGNED_SHORT, 0);
+
+		return 0;
+	}
+	int queue_texture(const Texture* texture, const TextureDrawData& data) {
+		if (internal::textures.find(texture) == internal::textures.end()) {
+			internal::textures.emplace(texture, std::list<TextureDrawData>({data}));
+		} else {
+			internal::textures.at(texture).push_back(data);
+		}
+		return 0;
+	}
+	int render_textures() {
+		for (auto t : internal::textures) {
+			glBindVertexArray(t.second.front().vao); // Bind the VAO for the texture
+
+			glUniform1i(engine->renderer->program->get_location("f_texture"), 0);
+			glBindTexture(GL_TEXTURE_2D, t.second.front().texture);
+
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, t.second.front().ibo);
+
+			for (auto& td : t.second) {
+				internal::render_texture(td);
+			}
+
+			glBindVertexArray(0); // Unbind the VAO
+		}
+
+		glUniformMatrix4fv(engine->renderer->program->get_location("model"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the partial transformation matrix
+		glUniformMatrix4fv(engine->renderer->program->get_location("rotation"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the rotation matrix
+
+		internal::textures.clear();
+
+		return 0;
+	}
+
+	/*
+	* reset_target() - Set the rendering target back to the screen
+	* ! See https://wiki.libsdl.org/SDL_SetRenderTarget for details
+	*/
+	int reset_target() {
+		if (get_options().is_headless) {
+			return 1; // Return 1 when in headless mode
+		}
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0); // Reset the bound framebuffer
+		internal::target = 0; // Reset the target
+
+		return 0;
+	}
+	/*
+	* set_target() - Set the given Texture as the render target with the given width and height
+	* @target: the Texture to use as the render target
+	*/
+	int set_target(Texture* target) {
+		if (get_options().is_headless) {
+			return 1; // Return 1 when in headless mode
+		}
+
+		if (target == nullptr) { // If the given target is nullptr then reset the render target
+			reset_target();
+		} else {
+			internal::target = target->set_as_target();
+		}
+
+		return 0;
+	}
+
+	int clear() {
+		draw_set_color(*(engine->color));
+		if (get_options().renderer_type != E_RENDERER::SDL) {
+			engine->renderer->program->apply();
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glUniform1i(engine->renderer->program->get_location("time"), get_ticks()); // Set the time uniform to the current ticks
+		} else {
+			SDL_RenderClear(engine->renderer->sdl_renderer);
+		}
+		return 0;
+	}
+	int render() {
+		if (get_options().renderer_type != E_RENDERER::SDL) {
+			SDL_GL_SwapWindow(engine->renderer->window);
+		} else {
+			SDL_RenderPresent(engine->renderer->sdl_renderer);
+		}
+		return 0;
 	}
 }}
 

@@ -15,14 +15,15 @@
 #include "extras.hpp"
 
 // Define sprites
-extern bee::Sprite* spr_none;
+extern bee::Texture* spr_none;
 
-extern bee::Sprite* spr_logo;
-
-// Define sounds
+extern bee::Texture* spr_logo;
 
 // Define backgrounds
-extern bee::Background* bk_vortex;
+extern bee::Texture* bk_vortex;
+
+// Define sounds
+extern bee::Sound* snd_main;
 
 // Define fonts
 

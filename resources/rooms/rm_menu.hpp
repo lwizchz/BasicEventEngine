@@ -13,6 +13,7 @@ class RmMenu : public bee::Room {
 	public:
 		RmMenu();
 		void init();
+		void end();
 };
 
 #endif // RES_RM_MENU_H

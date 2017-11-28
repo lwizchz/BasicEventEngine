@@ -63,6 +63,9 @@ void ObjMenu::draw(bee::Instance* self) {
 	(*s)["controls_td"] = bee::engine->font_default->draw(static_cast<bee::TextData*>(_p("controls_td")), cx-150, 550, _s("controls_str"), {255, 255, 255, 255});
 }
 void ObjMenu::game_start(bee::Instance* self) {
+	snd_main->loop();
+
+	// Add commands
 	bee::console::add_command("CreateLevel", [this, self] (const bee::MessageContents& msg) mutable {
 		self = obj_lattice->get_instance(0);
 		if (self == nullptr) {
@@ -70,7 +73,11 @@ void ObjMenu::game_start(bee::Instance* self) {
 		}
 		s = &self->get_data();
 
+		bee::get_current_room()->destroy_all(obj_player);
+		bee::get_current_room()->destroy_all(obj_enemy);
+		bee::get_current_room()->destroy_all(obj_bee);
 		_v("levelvector").clear();
+
 		(*s)["offset_x"] = 0;
 		(*s)["offset_y"] = 0;
 		(*s)["offset_z"] = 0;
@@ -83,20 +90,25 @@ void ObjMenu::game_start(bee::Instance* self) {
 		}
 		s = &self->get_data();
 
-		(*s)["is_creating"] = false;
-
 		std::vector<bee::SIDP> params = bee::console::internal::parse_parameters(msg.descr, true); // Parse the parameters from the given command
 		if (params.size() < 2) {
-			bee::messenger::send({"SaveLevel"}, bee::E_MESSAGE::INFO, "Failed to save level: no filename provided");
+			bee::console::log(bee::E_MESSAGE::WARNING, "Failed to save level: no filename provided");
 			return;
 		}
-		bee::console::set_var("level", params[1]);
 
-		std::ofstream levelfile ("resources/rooms/"+SIDP_s(params[1])+".csv", std::ios::trunc);
-		if (!levelfile.good()) {
-			bee::messenger::send({"SaveLevel"}, bee::E_MESSAGE::INFO, "Failed to save level: could not open file");
+		const std::string levelpath ("resources/rooms/"+SIDP_s(params[1])+".csv");
+		if (file_exists(levelpath)) {
+			bee::console::log(bee::E_MESSAGE::WARNING, "Failed to save level: file already exists");
 			return;
 		}
+
+		std::ofstream levelfile (levelpath, std::ios::trunc);
+		if (!levelfile.good()) {
+			bee::console::log(bee::E_MESSAGE::WARNING, "Failed to save level: could not open file");
+			return;
+		}
+
+		(*s)["is_creating"] = false;
 
 		PrimitiveLine* prev_line = nullptr;
 		for (auto& p : _v("levelvector")) {
@@ -115,11 +127,20 @@ void ObjMenu::game_start(bee::Instance* self) {
 	bee::console::add_command("LoadLevel", [this, self] (const bee::MessageContents& msg) mutable {
 		std::vector<bee::SIDP> params = bee::console::internal::parse_parameters(msg.descr, true); // Parse the parameters from the given command
 		if (params.size() < 2) {
-			bee::messenger::send({"LoadLevel"}, bee::E_MESSAGE::INFO, "Failed to load level: no filename provided");
+			bee::console::log(bee::E_MESSAGE::WARNING, "Failed to load level: no filename provided");
 			return;
 		}
 		bee::console::set_var("level", params[1]);
+		bee::console::set_var("level_index", -1);
 
+		bee::change_room(rm_level_1);
+	});
+	bee::console::add_command("LoadNextLevel", [this, self] (const bee::MessageContents& msg) mutable {
+		if (SIDP_i(bee::console::get_var("$level_index")) < 0) {
+			return;
+		}
+		std::string level (SIDP_s(bee::console::get_var("$levels[$level_index]")));
+		bee::console::set_var("level", level);
 		bee::change_room(rm_level_1);
 	});
 
@@ -130,11 +151,22 @@ void ObjMenu::game_start(bee::Instance* self) {
 		}
 		bee::change_room(rm_menu);
 	});
+	bee::console::add_keybind(SDLK_UNKNOWN, bee::KeyBind("Reset"), [this, self] (const bee::MessageContents& msg) mutable {
+		if (bee::get_current_room() == rm_menu) {
+			return;
+		}
+
+		if (SIDP_i(bee::console::get_var("$level_index")) >= 0) {
+			bee::console::run("let level_index += -1");
+		}
+
+		bee::restart_room();
+	});
 	bee::console::add_keybind(SDLK_UNKNOWN, bee::KeyBind("MoveClockwise", true), [this, self] (const bee::MessageContents& msg) mutable {
 		self = obj_player->get_instance(0);
 		if (self == nullptr) {
 			if (bee::get_current_room() == rm_menu) {
-				bee::console::run("LoadLevel rm_level_1");
+				bee::console::run("LoadNextLevel");
 			}
 			return;
 		}
@@ -149,7 +181,7 @@ void ObjMenu::game_start(bee::Instance* self) {
 		self = obj_player->get_instance(0);
 		if (self == nullptr) {
 			if (bee::get_current_room() == rm_menu) {
-				bee::console::run("LoadLevel rm_level_1");
+				bee::console::run("LoadNextLevel");
 			}
 			return;
 		}
@@ -164,7 +196,7 @@ void ObjMenu::game_start(bee::Instance* self) {
 		self = obj_player->get_instance(0);
 		if (self == nullptr) {
 			if (bee::get_current_room() == rm_menu) {
-				bee::console::run("LoadLevel rm_level_1");
+				bee::console::run("LoadNextLevel");
 			}
 			return;
 		}
@@ -177,7 +209,7 @@ void ObjMenu::game_start(bee::Instance* self) {
 		self = obj_player->get_instance(0);
 		if (self == nullptr) {
 			if (bee::get_current_room() == rm_menu) {
-				bee::console::run("LoadLevel rm_level_1");
+				bee::console::run("LoadNextLevel");
 			}
 			return;
 		}
@@ -190,7 +222,7 @@ void ObjMenu::game_start(bee::Instance* self) {
 		self = obj_player->get_instance(0);
 		if (self == nullptr) {
 			if (bee::get_current_room() == rm_menu) {
-				bee::console::run("LoadLevel rm_level_1");
+				bee::console::run("LoadNextLevel");
 			}
 			return;
 		}

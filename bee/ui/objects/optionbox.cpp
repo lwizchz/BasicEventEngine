@@ -66,7 +66,7 @@ void ObjUIOptionBox::draw(bee::Instance* self) {
 	c_highlight.add_value(-0.20f);
 
 	int ox = 0, oy = 0;
-	bee::ViewData* v = bee::get_current_room()->get_current_view();
+	bee::ViewPort* v = bee::get_current_room()->get_current_view();
 	if (v != nullptr) {
 		ox = v->view.x;
 		oy = v->view.y;

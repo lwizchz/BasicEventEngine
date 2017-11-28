@@ -36,7 +36,7 @@
 #include "../render/drawing.hpp"
 #include "../render/renderer.hpp"
 #include "../render/rgba.hpp"
-#include "../render/viewdata.hpp"
+#include "../render/viewport.hpp"
 
 #include "../resource/font.hpp"
 #include "../resource/room.hpp"
@@ -812,6 +812,15 @@ namespace bee{ namespace console {
 		}
 
 		return h; // Return the command's description on success
+	}
+	/*
+	* log() - Log a message to the console
+	* @type: the message type
+	* @str: the message to log
+	*/
+	int log(E_MESSAGE type, const std::string& str) {
+		messenger::send({"engine", "console"}, type, str);
+		return 0;
 	}
 }}
 

@@ -151,6 +151,10 @@ void ObjEnemy::update_position(bee::Instance* self) {
 	double approach = 2000.0-2000.0*_d("approach")/100.0;
 
 	PrimitiveLine* l = static_cast<PrimitiveLine*>(SIDP_cp(lat->get_data("levelvector"), _i("position")));
+	if (l == nullptr) {
+		return;
+	}
+
 	self->set_position(
 		l->p1.x + SIDP_d(lat->get_data("offset_x")),
 		l->p1.y + SIDP_d(lat->get_data("offset_y")),

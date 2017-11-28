@@ -43,12 +43,12 @@ namespace bee {
 			int compile();
 	};
 
-	class Program {
+	class ShaderProgram {
 			GLuint program;
 			std::vector<Shader> shaders;
 			std::map<std::string,ShaderInput> inputs;
 		public:
-			Program();
+			ShaderProgram();
 
 			int delete_shaders();
 
@@ -59,6 +59,8 @@ namespace bee {
 
 			GLuint get_program() const;
 			GLint get_location(const std::string&) const;
+
+			int apply();
 	};
 }
 
