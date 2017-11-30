@@ -1376,6 +1376,8 @@ namespace bee {
 	int Room::draw() {
 		handle_lights();
 
+		engine->renderer->program->apply();
+
 		for (auto& v : views) {
 			if (v->is_active) {
 				view_current = v;
@@ -1401,6 +1403,8 @@ namespace bee {
 				v->draw();
 			}
 		}
+
+		engine->renderer->program->apply();
 
 		render::render();
 		reset_lights();

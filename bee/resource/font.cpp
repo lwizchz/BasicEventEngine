@@ -580,14 +580,28 @@ namespace bee {
 
 		int w = 0; // Declare a temporary variable for the width
 		if (size == font_size) { // If the desired size is the same as the currently loaded size, fetch the width appropriately
-			TTF_SizeUTF8(font, text.c_str(), &w, nullptr);
+			std::vector<std::string> lines = splitv(text, '\n', false); // Separate the text by newline
+			int w0 = 0;
+			for (auto& l : lines) {
+				TTF_SizeUTF8(font, l.c_str(), &w0, nullptr);
+				if (w0 > w) {
+					w = w0;
+				}
+			}
 		} else { // Otherwise, load a temporary font
 			TTF_Font* tmp_font = TTF_OpenFont(path.c_str(), size); // Open the same TTF file with the desired font size
 			if (tmp_font == nullptr) { // If the font failed to load, output a warning
 				return -2; // Return -2 when font loading failed
 			}
 
-			TTF_SizeUTF8(font, text.c_str(), &w, nullptr); // Get the temporary width
+			std::vector<std::string> lines = splitv(text, '\n', false); // Separate the text by newline
+			int w0 = 0;
+			for (auto& l : lines) {
+				TTF_SizeUTF8(tmp_font, l.c_str(), &w0, nullptr); // Get the temporary width
+				if (w0 > w) {
+					w = w0;
+				}
+			}
 
 			TTF_CloseFont(tmp_font); // Close the font after getting the width
 		}
@@ -621,14 +635,24 @@ namespace bee {
 
 		int h = 0; // Declare a temporary variable for the height
 		if (size == font_size) {
-			TTF_SizeUTF8(font, text.c_str(), nullptr, &h);
+			std::vector<std::string> lines = splitv(text, '\n', false); // Separate the text by newline
+			int h0 = 0;
+			for (auto& l : lines) {
+				TTF_SizeUTF8(font, l.c_str(), nullptr, &h0);
+				h += h0 + lineskip;
+			}
 		} else { // Otherwise, load a temporary font
 			TTF_Font* tmp_font = TTF_OpenFont(path.c_str(), size); // Open the same TTF file with the desired font size
 			if (tmp_font == nullptr) { // If the font failed to load, output a warning
 				return -2; // Return -2 when font loading failed
 			}
 
-			TTF_SizeUTF8(font, text.c_str(), nullptr, &h); // Get the temporary height
+			std::vector<std::string> lines = splitv(text, '\n', false); // Separate the text by newline
+			int h0 = 0;
+			for (auto& l : lines) {
+				TTF_SizeUTF8(tmp_font, l.c_str(), nullptr, &h0); // Get the temporary height
+				h += h0 + lineskip;
+			}
 
 			TTF_CloseFont(tmp_font); // Close the font after getting the height
 		}

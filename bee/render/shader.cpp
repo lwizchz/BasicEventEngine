@@ -118,7 +118,9 @@ namespace bee {
 		}
 
 		// Locate inputs
-		for (auto& input : inputs) {
+		std::map<std::string,ShaderInput> _inputs (inputs);
+		inputs.clear();
+		for (auto& input : _inputs) {
 			if (input.second.is_attrib) {
 				input.second.location = glGetAttribLocation(program, input.first.c_str());
 			} else {
@@ -129,6 +131,10 @@ namespace bee {
 				messenger::send({"engine", "renderer"}, E_MESSAGE::ERROR, "Couldn't get the location of \"" + input.first + "\" in the shader program");
 				delete_shaders();
 				return 2;
+			}
+
+			if (input.second.location != -1) {
+				inputs.emplace(input.first, input.second);
 			}
 		}
 

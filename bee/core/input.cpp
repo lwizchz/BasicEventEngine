@@ -122,6 +122,19 @@ namespace bee {
 	}
 
 	/*
+	* set_mouse_is_visible() - Change the cursor visibility
+	* @should_show: whether to make the cursor visible or not
+	*/
+	int set_mouse_is_visible(bool should_show) {
+		if (should_show) {
+			SDL_ShowCursor(SDL_ENABLE);
+		} else {
+			SDL_ShowCursor(SDL_DISABLE);
+		}
+		return 0;
+	}
+
+	/*
 	* get_key_state() - Return whether the given scancode is pressed
 	* @k: the scancode to check
 	*/

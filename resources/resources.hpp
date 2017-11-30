@@ -23,7 +23,12 @@ extern bee::Texture* spr_logo;
 extern bee::Texture* bk_vortex;
 
 // Define sounds
-extern bee::Sound* snd_main;
+extern bee::Sound* snd_music_main;
+
+extern bee::Sound* snd_shoot;
+extern bee::Sound* snd_super;
+extern bee::Sound* snd_hit;
+extern bee::Sound* snd_gameover;
 
 // Define fonts
 

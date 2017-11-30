@@ -76,6 +76,7 @@ void ObjBee::create(bee::Instance* self) {
 			obj->update(player);
 			obj->collect_bee(player);
 
+			sm->pop_state_all("Stuck");
 			sm->push_state("Dead");
 
 			return;

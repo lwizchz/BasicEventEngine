@@ -20,7 +20,12 @@ bee::Texture* spr_logo = nullptr;
 bee::Texture* bk_vortex = nullptr;
 
 // Define sounds
-bee::Sound* snd_main = nullptr;
+bee::Sound* snd_music_main = nullptr;
+
+bee::Sound* snd_shoot = nullptr;
+bee::Sound* snd_super = nullptr;
+bee::Sound* snd_hit = nullptr;
+bee::Sound* snd_gameover = nullptr;
 
 // Define fonts
 
@@ -76,8 +81,17 @@ int bee::init_resources() {
 			bk_vortex->load();
 
 		// Init sounds
-		snd_main = new Sound("snd_main", "snd_main.wav", false);
-			snd_main->load();
+		snd_music_main = new Sound("snd_music_main", "snd_music_main.wav", false);
+			snd_music_main->load();
+
+		snd_shoot = new Sound("snd_shoot", "snd_shoot.wav", false);
+			snd_shoot->load();
+		snd_super = new Sound("snd_super", "snd_super.wav", false);
+			snd_super->load();
+		snd_hit = new Sound("snd_hit", "snd_hit.wav", false);
+			snd_hit->load();
+		snd_gameover = new Sound("snd_gameover", "snd_gameover.wav", false);
+			snd_gameover->load();
 
 		// Init fonts
 
@@ -124,7 +138,12 @@ int bee::close_resources() {
 	DEL(bk_vortex);
 
 	// Destroy sounds
-	DEL(snd_main);
+	DEL(snd_music_main);
+
+	DEL(snd_shoot);
+	DEL(snd_super);
+	DEL(snd_hit);
+	DEL(snd_gameover);
 
 	// Destroy fonts
 

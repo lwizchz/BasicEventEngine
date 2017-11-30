@@ -116,6 +116,8 @@ void ObjPlayer::create(bee::Instance* self) {
 			return;
 		}
 
+		snd_shoot->play();
+
 		(*s)["gun_cooldown"] = _i("beam_duration");
 		(*s)["beam_position"] = _i("position") / 10;
 	};
@@ -149,6 +151,8 @@ void ObjPlayer::create(bee::Instance* self) {
 			sm->pop_state_all("Super");
 			return;
 		}
+
+		snd_super->play();
 
 		(*s)["super_charges"] -= 1;
 		(*s)["super_cooldown"] = _i("super_duration");
@@ -206,6 +210,9 @@ void ObjPlayer::create(bee::Instance* self) {
 		lat->set_data("color_b", 255);
 	};
 	bee::State state_dead ("Dead", {});
+	state_dead.start_func = [this, self, sm] () {
+		snd_gameover->play();
+	};
 
 	sm->add_state(state_still);
 	sm->add_state(state_move_cw);
@@ -257,10 +264,16 @@ void ObjPlayer::draw(bee::Instance* self) {
 	VectorSprite* vs = static_cast<VectorSprite*>(_p("vsprite"));
 	vs->draw(glm::vec3(self->get_x(), self->get_y(), self->get_z()), glm::vec3(0.0, 0.0, 0.0), c);
 
-	bee::engine->font_default->draw_fast(0, 0, sm->get_states(), {255, 255, 255, 255});
+	//bee::engine->font_default->draw_fast(0, 0, sm->get_states(), {255, 255, 255, 255});
 
 	std::string status = "Health: " + std::to_string(_i("health")) + "\nCharges: " + std::to_string(_i("super_charges"));
-	bee::engine->font_default->draw_fast(0, 50, status, {255, 255, 255, 255});
+	int cx = bee::get_width()/2 - bee::engine->font_default->get_string_width(status)/2;
+	int by = bee::get_height() - bee::engine->font_default->get_string_height(status) - 20;
+	bee::engine->font_default->draw_fast(cx, by, status, {255, 255, 255, 255});
+
+	if (sm->has_state("Dead")) {
+		bee::engine->font_default->draw_fast(cx-30, by-100, "    Game Over\nReset level with " + bee::keystrings_get_name(bee::console::get_keycode("Reset")), {255, 255, 255, 255});
+	}
 }
 
 void ObjPlayer::update_movement(bee::Instance* self) {
@@ -298,9 +311,11 @@ void ObjPlayer::update_position(bee::Instance* self) {
 	);
 }
 void ObjPlayer::hurt(bee::Instance* self, int damage) {
+	bee::StateMachine* sm = static_cast<bee::StateMachine*>(_p("sm"));
+
 	(*s)["health"] -= damage;
-	if (_i("health") <= 0) {
-		bee::StateMachine* sm = static_cast<bee::StateMachine*>(_p("sm"));
+
+	if ((_i("health") <= 0)&&(!sm->has_state("Dead"))) {
 		sm->push_state("Dead");
 	}
 }

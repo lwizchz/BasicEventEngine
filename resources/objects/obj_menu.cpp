@@ -54,7 +54,7 @@ void ObjMenu::draw(bee::Instance* self) {
 
 	if ((_s("controls_str").empty())&&(bee::console::get_keycode("Quit") != SDLK_UNKNOWN)) {
 		std::string c;
-		for (auto& e : {"MoveClockwise", "MoveCounterClockwise", "FireBeam", "Super", "Quit"}) {
+		for (auto& e : {"MoveClockwise", "MoveCounterClockwise", "FireBeam", "Super", "Reset", "Quit"}) {
 			c += std::string(e) + " : " + bee::keystrings_get_name(bee::console::get_keycode(e)) + "\n";
 		}
 		c += "\n\nShoot red guys, collect yellow guys";
@@ -63,7 +63,7 @@ void ObjMenu::draw(bee::Instance* self) {
 	(*s)["controls_td"] = bee::engine->font_default->draw(static_cast<bee::TextData*>(_p("controls_td")), cx-150, 550, _s("controls_str"), {255, 255, 255, 255});
 }
 void ObjMenu::game_start(bee::Instance* self) {
-	snd_main->loop();
+	snd_music_main->loop();
 
 	// Add commands
 	bee::console::add_command("CreateLevel", [this, self] (const bee::MessageContents& msg) mutable {

@@ -30,7 +30,7 @@ ObjEnemy::ObjEnemy() : Object("obj_enemy", "obj_enemy.cpp") {
 
 void ObjEnemy::create(bee::Instance* self) {
 	(*s)["health"] = 100;
-	(*s)["damage"] = 100;
+	(*s)["damage"] = 150;
 
 	(*s)["position"] = 0;
 	(*s)["max_positions"] = 0; // This is set on first run by update_position()
@@ -81,6 +81,7 @@ void ObjEnemy::create(bee::Instance* self) {
 			obj->update(player);
 			obj->hurt(player, _i("damage"));
 
+			sm->pop_state_all("Attack");
 			sm->push_state("Dead");
 
 			return;
@@ -103,6 +104,7 @@ void ObjEnemy::create(bee::Instance* self) {
 	};
 	bee::State state_dead ("Dead", {});
 	state_dead.start_func = [this, self, sm] () {
+		snd_hit->play_once();
 		bee::get_current_room()->destroy(self);
 	};
 

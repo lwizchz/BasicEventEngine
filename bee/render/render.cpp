@@ -319,9 +319,7 @@ namespace bee { namespace render {
 	int clear() {
 		draw_set_color(*(engine->color));
 		if (get_options().renderer_type != E_RENDERER::SDL) {
-			engine->renderer->program->apply();
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			glUniform1i(engine->renderer->program->get_location("time"), get_ticks()); // Set the time uniform to the current ticks
 		} else {
 			SDL_RenderClear(engine->renderer->sdl_renderer);
 		}

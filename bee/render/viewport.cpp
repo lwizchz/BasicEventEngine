@@ -56,9 +56,9 @@ namespace bee {
 	void ViewPort::draw() {
 		ShaderProgram* s (engine->renderer->program);
 		if (shader != nullptr) {
-			shader->apply();
 			s = shader;
 		}
+		s->apply();
 		texture->draw(0, 0, 0);
 
 		glUniform1i(s->get_location("flip"), 2);

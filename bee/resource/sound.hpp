@@ -92,6 +92,7 @@ namespace bee {
 
 			int play(int);
 			int play();
+			int play_once();
 			int stop();
 			int rewind();
 			int pause();
