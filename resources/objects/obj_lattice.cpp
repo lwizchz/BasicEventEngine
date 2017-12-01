@@ -45,11 +45,15 @@ void ObjLattice::create(bee::Instance* self) {
 
 	std::vector<bee::SIDP>* lv = new std::vector<bee::SIDP>();
 	std::string level;
-	if (SIDP_i(bee::console::get_var("$level_index")) < 0) {
-		level = SIDP_s(bee::console::get_var("$level"));
-	} else {
-		level = SIDP_s(bee::console::get_var("$levels[$level_index]"));
-		bee::console::run("let level_index += 1");
+	if (bee::get_current_room() == rm_levels) {
+		if (SIDP_i(bee::console::get_var("$level_index")) < 0) {
+			level = SIDP_s(bee::console::get_var("$level"));
+		} else {
+			level = SIDP_s(bee::console::get_var("$levels[$level_index]"));
+			bee::console::run("let level_index += 1");
+		}
+	} else if (bee::get_current_room() == rm_win) {
+		level = "eye";
 	}
 
 	std::string datastr = file_get_contents("resources/rooms/" + level + ".csv");
@@ -109,8 +113,21 @@ void ObjLattice::destroy(bee::Instance* self) {
 }
 void ObjLattice::alarm(bee::Instance* self, size_t a) {
 	switch (a) {
-		case 0: {
-			bee::console::run("LoadNextLevel");
+		case 0: { // Go to next level
+			if (static_cast<unsigned int>(SIDP_i(bee::console::get_var("$level_index"))) < SIDP_v(bee::console::get_var("$levels")).size()) {
+				bee::console::run("LoadNextLevel");
+			} else {
+				bee::change_room(rm_win);
+			}
+			break;
+		}
+		case 1: { // Spawn more enemies and bees
+			for (size_t i=0; i<20; ++i) {
+				bee::get_current_room()->add_instance(-1, obj_enemy, 0, 0, 0);
+			}
+			for (size_t i=0; i<2; ++i) {
+				bee::get_current_room()->add_instance(-1, obj_bee, 0, 0, 0);
+			}
 			break;
 		}
 		default: {}
@@ -119,13 +136,19 @@ void ObjLattice::alarm(bee::Instance* self, size_t a) {
 void ObjLattice::step_mid(bee::Instance* self) {
 	double mx = 100.0 * (bee::get_mouse_global_x()-bee::get_width()/2.0)/bee::get_width();
 	double my = 100.0 * (bee::get_mouse_global_y()-bee::get_height()/2.0)/bee::get_height();
+	if (_i("is_creating")) {
+		mx = 0.0;
+		my = 0.0;
+	}
 	bee::render::set_camera(new bee::Camera(glm::vec3(bee::get_width()/2.0 + mx, bee::get_height()/2.0 + my, -540.0), glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
 
-	if ((obj_enemy->get_instance(0) == nullptr)&&(self->alarm_end[0] == 0xffffffff)) {
+	if ((obj_enemy->get_instance(0) == nullptr)&&(self->alarm_end[0] == 0xffffffff)&&(self->alarm_end[1] == 0xffffffff)) {
 		bee::Instance* player = obj_player->get_instance(0);
 		if ((player != nullptr)&&(SIDP_i(player->get_data("health")) > 0)) {
-			if (static_cast<unsigned int>(SIDP_i(bee::console::get_var("$level_index"))) < SIDP_v(bee::console::get_var("$levels")).size()) {
+			if (bee::get_current_room() == rm_levels) {
 				self->set_alarm(0, 700);
+			} else {
+				self->set_alarm(1, 700);
 			}
 		}
 	}
@@ -169,6 +192,10 @@ void ObjLattice::draw(bee::Instance* self) {
 		}
 		bee::draw_line(pl->p1+offset3d, pl->p1+offset3dfar, {30, 30, 30, 255});
 		++i;
+	}
+
+	if (_i("is_creating")) {
+		bee::engine->font_default->draw_fast(10, 10, "To save level, open console with the tilde/backtick key (`), and type \"SaveLevel levelname\"\nLevels will be saved to \"resources/rooms/levelname.csv\"", {255, 255, 255, 255});
 	}
 }
 

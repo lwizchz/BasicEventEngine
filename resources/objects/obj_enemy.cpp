@@ -38,9 +38,6 @@ void ObjEnemy::create(bee::Instance* self) {
 	(*s)["movement_speed"] = 40;
 	(*s)["approach"] = -1.0 * static_cast<double>(random_range(100, 2000));
 
-	VectorSprite* vs = new VectorSprite("resources/sprites/enemy.csv");
-	(*s)["vsprite"] = static_cast<void*>(vs);
-
 	this->update_position(self);
 
 	// State handling
@@ -116,9 +113,6 @@ void ObjEnemy::create(bee::Instance* self) {
 	(*s)["sm"] = static_cast<void*>(sm);
 }
 void ObjEnemy::destroy(bee::Instance* self) {
-	VectorSprite* vs = static_cast<VectorSprite*>(_p("vsprite"));
-	delete vs;
-
 	bee::StateMachine* sm = static_cast<bee::StateMachine*>(_p("sm"));
 	delete sm;
 
@@ -129,10 +123,7 @@ void ObjEnemy::step_mid(bee::Instance* self) {
 	sm->update_all();
 }
 void ObjEnemy::draw(bee::Instance* self) {
-	bee::RGBA c (255, 0, 0, 255);
-
-	VectorSprite* vs = static_cast<VectorSprite*>(_p("vsprite"));
-	vs->draw(glm::vec3(self->get_x(), self->get_y(), self->get_z()), glm::vec3(0.0, 0.0, 0.0), c);
+	vs_enemy->draw(glm::vec3(self->get_x(), self->get_y(), self->get_z()), glm::vec3(0.0, 0.0, 0.0), {255, 0, 0, 255});
 }
 
 void ObjEnemy::update_position(bee::Instance* self) {
@@ -166,6 +157,8 @@ void ObjEnemy::update_position(bee::Instance* self) {
 void ObjEnemy::hurt(bee::Instance* self, int damage) {
 	(*s)["health"] -= damage;
 	if (_i("health") <= 0) {
+		bee::Instance* player (obj_player->get_instance(0));
+		player->set_data("score", SIDP_i(player->get_data("score"))+20);
 		bee::StateMachine* sm = static_cast<bee::StateMachine*>(_p("sm"));
 		sm->push_state("Dead");
 	}

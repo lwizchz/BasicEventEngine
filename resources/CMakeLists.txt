@@ -1,6 +1,6 @@
 set(extras extras/primitives.cpp)
 set(objects objects/obj_menu.cpp objects/obj_lattice.cpp objects/obj_player.cpp objects/obj_enemy.cpp objects/obj_bee.cpp)
-set(rooms rooms/rm_menu.cpp rooms/rm_level_1.cpp)
+set(rooms rooms/rm_menu.cpp rooms/rm_levels.cpp rooms/rm_win.cpp)
 set(deps resources.cpp ${extras} ${objects} ${rooms})
 
 if (WIN32)

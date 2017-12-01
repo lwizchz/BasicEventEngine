@@ -6,19 +6,19 @@
 * See LICENSE for more details.
 */
 
-#ifndef RES_RM_LEVEL_1
-#define RES_RM_LEVEL_1 1
+#ifndef RES_RM_WIN
+#define RES_RM_WIN 1
 
 #include "../../bee/util.hpp"
 #include "../../bee/all.hpp"
 
 #include "../resources.hpp"
 
-#include "rm_level_1.hpp"
+#include "rm_win.hpp"
 
-RmLevel1::RmLevel1() : Room("rm_level_1", "rm_level_1.cpp") {}
+RmWin::RmWin() : Room("rm_win", "rm_win.cpp") {}
 
-void RmLevel1::init() {
+void RmWin::init() {
 	Room::init();
 
 	set_width(1920);
@@ -41,4 +41,4 @@ void RmLevel1::init() {
 	}
 }
 
-#endif // RES_RM_LEVEL_1
+#endif // RES_RM_WIN

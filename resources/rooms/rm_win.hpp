@@ -6,13 +6,13 @@
 * See LICENSE for more details.
 */
 
-#ifndef RES_RM_LEVEL_1_H
-#define RES_RM_LEVEL_1_H 1
+#ifndef RES_RM_WIN_H
+#define RES_RM_WIN_H 1
 
-class RmLevel1 : public bee::Room {
+class RmWin : public bee::Room {
 	public:
-		RmLevel1();
+		RmWin();
 		void init();
 };
 
-#endif // RES_RM_LEVEL_1_H
+#endif // RES_RM_WIN_H

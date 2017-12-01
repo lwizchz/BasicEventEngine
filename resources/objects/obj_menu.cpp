@@ -61,6 +61,10 @@ void ObjMenu::draw(bee::Instance* self) {
 		(*s)["controls_str"] = c;
 	}
 	(*s)["controls_td"] = bee::engine->font_default->draw(static_cast<bee::TextData*>(_p("controls_td")), cx-150, 550, _s("controls_str"), {255, 255, 255, 255});
+
+	vs_enemy->draw(glm::vec3(cx-150+30, 760, 0), glm::vec3(0.0, 0.0, 0.0), {255, 0, 0, 255});
+	vs_bee->draw(glm::vec3(cx-150+250, 760, 0), glm::vec3(0.0, 0.0, 0.0), {255, 255, 0, 255});
+	bee::engine->font_default->draw_fast(cx-150, 800, "150dmg\t\t\t\t100hp\n  \t\t\t\t\t+1 charge", {255, 255, 255, 255});
 }
 void ObjMenu::game_start(bee::Instance* self) {
 	snd_music_main->loop();
@@ -77,6 +81,8 @@ void ObjMenu::game_start(bee::Instance* self) {
 		bee::get_current_room()->destroy_all(obj_enemy);
 		bee::get_current_room()->destroy_all(obj_bee);
 		_v("levelvector").clear();
+
+		bee::set_mouse_is_visible(true);
 
 		(*s)["offset_x"] = 0;
 		(*s)["offset_y"] = 0;
@@ -96,6 +102,11 @@ void ObjMenu::game_start(bee::Instance* self) {
 			return;
 		}
 
+		if (_v("levelvector").size() < 3) {
+			bee::console::log(bee::E_MESSAGE::WARNING, "Failed to save level: not enough vertices");
+			return;
+		}
+
 		const std::string levelpath ("resources/rooms/"+SIDP_s(params[1])+".csv");
 		if (file_exists(levelpath)) {
 			bee::console::log(bee::E_MESSAGE::WARNING, "Failed to save level: file already exists");
@@ -110,9 +121,13 @@ void ObjMenu::game_start(bee::Instance* self) {
 
 		(*s)["is_creating"] = false;
 
+		PrimitiveLine* first_line = nullptr;
 		PrimitiveLine* prev_line = nullptr;
 		for (auto& p : _v("levelvector")) {
 			PrimitiveLine* pl = static_cast<PrimitiveLine*>(SIDP_p(p));
+			if (first_line == nullptr) {
+				first_line = pl;
+			}
 			if (prev_line != nullptr) {
 				levelfile <<
 					prev_line->p2[0] << "\t" << prev_line->p2[1] << "\t" << prev_line->p2[2] << "\t\t" <<
@@ -120,6 +135,9 @@ void ObjMenu::game_start(bee::Instance* self) {
 			}
 			prev_line = pl;
 		}
+		levelfile <<
+			prev_line->p2[0] << "\t" << prev_line->p2[1] << "\t" << prev_line->p2[2] << "\t\t" <<
+			first_line->p2[0] << "\t" << first_line->p2[1] << "\t" << first_line->p2[2] << "\n";
 		levelfile.close();
 
 		bee::console::run("LoadLevel " + SIDP_s(params[1]));
@@ -133,15 +151,22 @@ void ObjMenu::game_start(bee::Instance* self) {
 		bee::console::set_var("level", params[1]);
 		bee::console::set_var("level_index", -1);
 
-		bee::change_room(rm_level_1);
+		bee::set_mouse_is_visible(false);
+
+		bee::change_room(rm_levels);
 	});
 	bee::console::add_command("LoadNextLevel", [this, self] (const bee::MessageContents& msg) mutable {
 		if (SIDP_i(bee::console::get_var("$level_index")) < 0) {
 			return;
 		}
+
+		if (static_cast<unsigned int>(SIDP_i(bee::console::get_var("$level_index"))) >= SIDP_v(bee::console::get_var("$levels")).size()) {
+			return;
+		}
+
 		std::string level (SIDP_s(bee::console::get_var("$levels[$level_index]")));
 		bee::console::set_var("level", level);
-		bee::change_room(rm_level_1);
+		bee::change_room(rm_levels);
 	});
 
 	bee::console::add_keybind(SDLK_UNKNOWN, bee::KeyBind("Quit"), [this, self] (const bee::MessageContents& msg) mutable {
@@ -156,7 +181,7 @@ void ObjMenu::game_start(bee::Instance* self) {
 			return;
 		}
 
-		if (SIDP_i(bee::console::get_var("$level_index")) >= 0) {
+		if ((bee::get_current_room() == rm_levels)&&(SIDP_i(bee::console::get_var("$level_index")) >= 0)) {
 			bee::console::run("let level_index += -1");
 		}
 

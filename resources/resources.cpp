@@ -16,6 +16,9 @@ bee::Texture* spr_none = nullptr;
 
 bee::Texture* spr_logo = nullptr;
 
+VectorSprite* vs_enemy = nullptr;
+VectorSprite* vs_bee = nullptr;
+
 // Define backgrounds
 bee::Texture* bk_vortex = nullptr;
 
@@ -48,7 +51,8 @@ bee::Object* obj_bee = nullptr;
 // Define rooms
 bee::Room* rm_menu = nullptr;
 
-bee::Room* rm_level_1 = nullptr;
+bee::Room* rm_levels = nullptr;
+bee::Room* rm_win = nullptr;
 
 // Include objects
 #include "objects/obj_menu.hpp"
@@ -60,8 +64,8 @@ bee::Room* rm_level_1 = nullptr;
 
 // Include rooms
 #include "rooms/rm_menu.hpp"
-
-#include "rooms/rm_level_1.hpp"
+#include "rooms/rm_levels.hpp"
+#include "rooms/rm_win.hpp"
 
 /*
 * bee::init_resources() - Initialize all game resources
@@ -75,6 +79,9 @@ int bee::init_resources() {
 
 		spr_logo = new Texture("spr_logo", "menu/logo.png");
 			spr_logo->load();
+
+		vs_enemy = new VectorSprite("resources/sprites/enemy.csv");
+		vs_bee = new VectorSprite("resources/sprites/bee.csv");
 
 		// Init backgrounds
 		bk_vortex = new Texture("bk_vortex", "bk_vortex.png");
@@ -113,8 +120,8 @@ int bee::init_resources() {
 
 		// Init rooms
 		rm_menu = new RmMenu();
-
-		rm_level_1 = new RmLevel1();
+		rm_levels = new RmLevels();
+		rm_win = new RmWin();
 
 		is_initialized = true; // Set the engine initialization flag
 	} catch (...) {
@@ -133,6 +140,9 @@ int bee::close_resources() {
 	DEL(spr_none);
 
 	DEL(spr_logo);
+
+	DEL(vs_enemy);
+	DEL(vs_bee);
 
 	// Destroy backgrounds
 	DEL(bk_vortex);
@@ -165,8 +175,8 @@ int bee::close_resources() {
 
 	// Destroy rooms
 	DEL(rm_menu);
-
-	DEL(rm_level_1);
+	DEL(rm_levels);
+	DEL(rm_win);
 
 	is_initialized = false; // Unset the engine initialization flag
 

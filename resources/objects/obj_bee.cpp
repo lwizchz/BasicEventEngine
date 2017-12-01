@@ -38,9 +38,6 @@ void ObjBee::create(bee::Instance* self) {
 	(*s)["movement_speed"] = 40;
 	(*s)["approach"] = -1.0 * static_cast<double>(random_range(5, 20));
 
-	VectorSprite* vs = new VectorSprite("resources/sprites/bee.csv");
-	(*s)["vsprite"] = static_cast<void*>(vs);
-
 	this->update_position(self);
 
 	// State handling
@@ -95,9 +92,6 @@ void ObjBee::create(bee::Instance* self) {
 	(*s)["sm"] = static_cast<void*>(sm);
 }
 void ObjBee::destroy(bee::Instance* self) {
-	VectorSprite* vs = static_cast<VectorSprite*>(_p("vsprite"));
-	delete vs;
-
 	bee::StateMachine* sm = static_cast<bee::StateMachine*>(_p("sm"));
 	delete sm;
 
@@ -108,10 +102,7 @@ void ObjBee::step_mid(bee::Instance* self) {
 	sm->update_all();
 }
 void ObjBee::draw(bee::Instance* self) {
-	bee::RGBA c (255, 255, 0, 255);
-
-	VectorSprite* vs = static_cast<VectorSprite*>(_p("vsprite"));
-	vs->draw(glm::vec3(self->get_x(), self->get_y(), self->get_z()), glm::vec3(0.0, 0.0, 0.0), c);
+	vs_bee->draw(glm::vec3(self->get_x(), self->get_y(), self->get_z()), glm::vec3(0.0, 0.0, 0.0), {255, 255, 0, 255});
 }
 
 void ObjBee::update_position(bee::Instance* self) {

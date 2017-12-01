@@ -31,6 +31,7 @@ ObjPlayer::ObjPlayer() : Object("obj_player", "obj_player.cpp") {
 
 void ObjPlayer::create(bee::Instance* self) {
 	(*s)["health"] = 300;
+	(*s)["score"] = 0;
 
 	(*s)["position"] = 0;
 	(*s)["max_positions"] = 0; // This is set on first run by update_position()
@@ -267,9 +268,18 @@ void ObjPlayer::draw(bee::Instance* self) {
 	//bee::engine->font_default->draw_fast(0, 0, sm->get_states(), {255, 255, 255, 255});
 
 	std::string status = "Health: " + std::to_string(_i("health")) + "\nCharges: " + std::to_string(_i("super_charges"));
+	if (bee::get_current_room() == rm_levels) {
+		status = "Level " + std::to_string(SIDP_i(bee::console::get_var("$level_index"))) + ": " + SIDP_s(bee::console::get_var("$level")) + "\n" + status;
+	} else if (bee::get_current_room() == rm_win) {
+		status = "Endless Score: " + std::to_string(_i("score")) + "\n" + status;
+	}
 	int cx = bee::get_width()/2 - bee::engine->font_default->get_string_width(status)/2;
 	int by = bee::get_height() - bee::engine->font_default->get_string_height(status) - 20;
 	bee::engine->font_default->draw_fast(cx, by, status, {255, 255, 255, 255});
+
+	if (bee::get_current_room() == rm_win) {
+		bee::engine->font_default->draw_fast(cx-50, 100, "You Win!\nNow playing Endless Horde Mode\n\nPress L to enter level creation mode", {255, 255, 255, 255});
+	}
 
 	if (sm->has_state("Dead")) {
 		bee::engine->font_default->draw_fast(cx-30, by-100, "    Game Over\nReset level with " + bee::keystrings_get_name(bee::console::get_keycode("Reset")), {255, 255, 255, 255});
@@ -324,6 +334,7 @@ void ObjPlayer::collect_bee(bee::Instance* self) {
 	if (_i("super_charges") < _i("super_max_charges")) {
 		(*s)["super_charges"] += 1;
 	}
+	(*s)["score"] += 100;
 }
 
 #endif // RES_OBJ_PLAYER

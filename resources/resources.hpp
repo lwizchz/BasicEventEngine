@@ -19,6 +19,9 @@ extern bee::Texture* spr_none;
 
 extern bee::Texture* spr_logo;
 
+extern VectorSprite* vs_enemy;
+extern VectorSprite* vs_bee;
+
 // Define backgrounds
 extern bee::Texture* bk_vortex;
 
@@ -50,8 +53,8 @@ extern bee::Object* obj_bee;
 
 // Define rooms
 extern bee::Room* rm_menu;
-
-extern bee::Room* rm_level_1;
+extern bee::Room* rm_levels;
+extern bee::Room* rm_win;
 
 namespace bee {
 	int init_resources();
