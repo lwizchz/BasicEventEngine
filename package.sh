@@ -26,9 +26,11 @@ fi
 ./build.sh norun "$build_dir"
 
 mkdir "$game"
+mkdir -p "$game/bee/render/"
 cp "$build_dir/$game" "$game/$game"
 cp -r "./resources/" "$game/"
 cp -r "./cfg/" "$game/"
+cp -r "./bee/render/shader" "$game/bee/render/"
 
 # Copy dynamic libraries
 mkdir "$game/lib"
