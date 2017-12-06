@@ -24,7 +24,7 @@
 #include "../render/renderer.hpp"
 #include "../render/viewport.hpp"
 
-#include "../resource/sprite.hpp"
+#include "../resource/texture.hpp"
 #include "../resource/object.hpp"
 #include "../resource/room.hpp"
 
@@ -111,7 +111,7 @@ namespace bee {
 	* @instance: the instance to check a collision for
 	*/
 	bool is_mouse_inside(const Instance& instance) {
-		Sprite* m = instance.get_object()->get_mask();
+		Texture* m = instance.get_object()->get_mask();
 		if (m == nullptr) {
 			return false;
 		}

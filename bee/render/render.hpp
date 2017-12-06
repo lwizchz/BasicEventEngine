@@ -17,6 +17,7 @@ namespace bee {
 	class Texture;
 	struct TextureDrawData;
 	struct ViewPort;
+	class ShaderProgram;
 
 namespace render {
 	namespace internal {
@@ -41,6 +42,8 @@ namespace render {
 
 	int reset_target();
 	int set_target(Texture*);
+	int set_program(ShaderProgram*);
+	ShaderProgram* get_program();
 
 	int clear();
 	int render();

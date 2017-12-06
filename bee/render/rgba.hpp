@@ -13,11 +13,15 @@
 
 #include <SDL2/SDL.h>
 
+#include "../enum.hpp"
+
 namespace bee {
 	struct RGBA {
 		Uint8 r, g, b, a;
 
 		RGBA(int, int, int, int);
+		RGBA(E_RGB, Uint8);
+		RGBA(E_RGB);
 		RGBA();
 
 		RGBA get_inverse();

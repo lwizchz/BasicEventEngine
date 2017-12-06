@@ -41,6 +41,20 @@ namespace bee {
 		std::pair<Instance*,int> flip_instancemap_pair(const std::pair<int,Instance*>&);
 	}
 
+	struct BackgroundData { // The data struct which is used to pass data to the Room class
+		Texture* background; // A pointer to the background to use this data with
+		bool is_visible; // Whether to draw the background
+		bool is_foreground; // Whether to draw the texture above or below the other sprites
+		int x, y; // The coordinates of the desired draw location
+		bool is_horizontal_tile, is_vertical_tile; // Whether the texture should be tiled horizontally and vertically
+		int horizontal_speed, vertical_speed; // The speed with which the texture should move horizontally and vertically in pixels per second
+		bool is_stretched; // Whether the texture should be stretched to the window size, note that stretched textures will not be animated or tiled
+
+		// See bee/resources/background.cpp for function comments
+		BackgroundData();
+		BackgroundData(Texture*, bool, bool, int, int, bool, bool, int, int, bool);
+	};
+
 	struct InstanceSort { // This struct is used as the comparator for the instances_sorted member of the Room class
 		bool operator() (Instance* lhs, Instance* rhs) const {
 			return (*lhs) < (*rhs); // Compare the values instead of the pointers

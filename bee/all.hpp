@@ -58,8 +58,6 @@
 
 #include "resource/resource.hpp"
 #include "resource/texture.hpp"
-#include "resource/sprite.hpp"
-#include "resource/background.hpp"
 #include "resource/sound.hpp"
 #include "resource/font.hpp"
 #include "resource/path.hpp"

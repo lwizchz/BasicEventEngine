@@ -44,6 +44,8 @@ namespace bee { namespace render {
 		GLuint target = 0;
 
 		std::map<const Texture*,std::list<TextureDrawData>> textures;
+
+		ShaderProgram* program = nullptr;
 	}
 
 	/*
@@ -54,12 +56,7 @@ namespace bee { namespace render {
 	* @is_lightable: whether to enable lighting
 	*/
 	int set_is_lightable(bool is_lightable) {
-		if (get_options().renderer_type == E_RENDERER::SDL) {
-			return 1;
-		}
-
-		glUniform1i(engine->renderer->program->get_location("is_lightable"), (is_lightable) ? 1 : 0);
-
+		glUniform1i(internal::program->get_location("is_lightable"), (is_lightable) ? 1 : 0);
 		return 0;
 	}
 
@@ -75,7 +72,6 @@ namespace bee { namespace render {
 					return "#version 330 core\n" + shader;
 				}
 			}
-			case E_RENDERER::SDL:
 			default: {
 				return shader;
 			}
@@ -87,11 +83,6 @@ namespace bee { namespace render {
 	* @is_3d: whether to enable 3D mode
 	*/
 	int set_3d(bool is_3d) {
-		if (get_options().renderer_type == E_RENDERER::SDL) {
-			messenger::send({"engine", "renderer"}, E_MESSAGE::WARNING, "Cannot enable 3D rendering in SDL mode");
-			return 1;
-		}
-
 		engine->renderer->render_is_3d = is_3d;
 
 		if (engine->renderer->render_camera == nullptr) {
@@ -199,45 +190,35 @@ namespace bee { namespace render {
 	* @viewport: the rectangle defining the desired viewport
 	*/
 	int set_viewport(ViewPort* viewport) {
-		if (get_options().renderer_type != E_RENDERER::SDL) {
-			glm::mat4 projection (get_projection());
-			glm::mat4 view;
-			glm::vec4 port;
+		glm::mat4 projection (get_projection());
+		glm::mat4 view;
+		glm::vec4 port;
 
-			if (viewport == nullptr) { // If the viewport is not defined then set the drawing area to the entire screen
-				view = glm::mat4(1.0f);
-				port = glm::vec4(0.0f, 0.0f, get_width(), get_height());
-			} else { // If the viewport is defined then use it
-				view = glm::translate(glm::mat4(1.0f), glm::vec3(viewport->view.x, viewport->view.y, 0.0f));
-				port = glm::vec4(viewport->port.x, viewport->port.y, viewport->port.w, viewport->port.h);
-			}
-
-			glUniformMatrix4fv(engine->renderer->program->get_location("view"), 1, GL_FALSE, glm::value_ptr(view));
-			glUniform4fv(engine->renderer->program->get_location("port"), 1, glm::value_ptr(port));
-			glUniformMatrix4fv(engine->renderer->program->get_location("projection"), 1, GL_FALSE, glm::value_ptr(projection));
-
-			return 0;
-		} else {
-			SDL_Rect v;
-			if (viewport == nullptr) { // If the viewport is not defined then set the drawing area to the entire screen
-				v = {0, 0, get_width(), get_height()};
-			} else { // If the viewport is defined then use it
-				v = viewport->port;
-			}
-			return SDL_RenderSetViewport(engine->renderer->sdl_renderer, &v);
+		if (viewport == nullptr) { // If the viewport is not defined then set the drawing area to the entire screen
+			view = glm::mat4(1.0f);
+			port = glm::vec4(0.0f, 0.0f, get_width(), get_height());
+		} else { // If the viewport is defined then use it
+			view = glm::translate(glm::mat4(1.0f), glm::vec3(viewport->view.x, viewport->view.y, 0.0f));
+			port = glm::vec4(viewport->port.x, viewport->port.y, viewport->port.w, viewport->port.h);
 		}
+
+		glUniformMatrix4fv(internal::program->get_location("view"), 1, GL_FALSE, glm::value_ptr(view));
+		glUniform4fv(internal::program->get_location("port"), 1, glm::value_ptr(port));
+		glUniformMatrix4fv(internal::program->get_location("projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+		return 0;
 	}
 
 	int internal::render_texture(const TextureDrawData& td) {
-		glUniformMatrix4fv(engine->renderer->program->get_location("model"), 1, GL_FALSE, glm::value_ptr(td.model));
-		glUniformMatrix4fv(engine->renderer->program->get_location("rotation"), 1, GL_FALSE, glm::value_ptr(td.rotation));
-		glUniform4fv(engine->renderer->program->get_location("colorize"), 1, glm::value_ptr(td.color));
+		glUniformMatrix4fv(internal::program->get_location("model"), 1, GL_FALSE, glm::value_ptr(td.model));
+		glUniformMatrix4fv(internal::program->get_location("rotation"), 1, GL_FALSE, glm::value_ptr(td.rotation));
+		glUniform4fv(internal::program->get_location("colorize"), 1, glm::value_ptr(td.color));
 
 		// Bind the texture coordinates
-		glEnableVertexAttribArray(engine->renderer->program->get_location("v_texcoord"));
+		glEnableVertexAttribArray(internal::program->get_location("v_texcoord"));
 		glBindBuffer(GL_ARRAY_BUFFER, td.buffer);
 		glVertexAttribPointer(
-			engine->renderer->program->get_location("v_texcoord"),
+			internal::program->get_location("v_texcoord"),
 			2,
 			GL_FLOAT,
 			GL_FALSE,
@@ -264,7 +245,7 @@ namespace bee { namespace render {
 		for (auto t : internal::textures) {
 			glBindVertexArray(t.second.front().vao); // Bind the VAO for the texture
 
-			glUniform1i(engine->renderer->program->get_location("f_texture"), 0);
+			glUniform1i(internal::program->get_location("f_texture"), 0);
 			glBindTexture(GL_TEXTURE_2D, t.second.front().texture);
 
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, t.second.front().ibo);
@@ -276,8 +257,8 @@ namespace bee { namespace render {
 			glBindVertexArray(0); // Unbind the VAO
 		}
 
-		glUniformMatrix4fv(engine->renderer->program->get_location("model"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the partial transformation matrix
-		glUniformMatrix4fv(engine->renderer->program->get_location("rotation"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the rotation matrix
+		glUniformMatrix4fv(internal::program->get_location("model"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the partial transformation matrix
+		glUniformMatrix4fv(internal::program->get_location("rotation"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the rotation matrix
 
 		internal::textures.clear();
 
@@ -315,22 +296,21 @@ namespace bee { namespace render {
 
 		return 0;
 	}
+	int set_program(ShaderProgram* new_program) {
+		internal::program = new_program;
+		return 0;
+	}
+	ShaderProgram* get_program() {
+		return internal::program;
+	}
 
 	int clear() {
 		draw_set_color(*(engine->color));
-		if (get_options().renderer_type != E_RENDERER::SDL) {
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		} else {
-			SDL_RenderClear(engine->renderer->sdl_renderer);
-		}
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		return 0;
 	}
 	int render() {
-		if (get_options().renderer_type != E_RENDERER::SDL) {
-			SDL_GL_SwapWindow(engine->renderer->window);
-		} else {
-			SDL_RenderPresent(engine->renderer->sdl_renderer);
-		}
+		SDL_GL_SwapWindow(engine->renderer->window);
 		return 0;
 	}
 }}

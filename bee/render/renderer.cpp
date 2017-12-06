@@ -31,8 +31,7 @@
 #include "rgba.hpp"
 #include "shader.hpp"
 
-#include "../resource/sprite.hpp"
-#include "../resource/background.hpp"
+#include "../resource/texture.hpp"
 
 namespace bee {
 	Renderer::Renderer() :
@@ -270,30 +269,16 @@ namespace bee {
 	}
 
 	int Renderer::reset() {
-		if (get_options().renderer_type != E_RENDERER::SDL) {
-			opengl_close();
-			opengl_init();
-		} else {
-			sdl_renderer_close();
-			sdl_renderer_init();
-		}
+		opengl_close();
+		opengl_init();
 
-		// Reload sprite and background textures
-		for (size_t i=0; i<Sprite::get_amount(); i++) {
-			Sprite* s = Sprite::get(i);
-			if (s != nullptr) {
-				if (s->get_is_loaded()) {
-					s->free();
-					s->load();
-				}
-			}
-		}
-		for (size_t i=0; i<Background::get_amount(); i++) {
-			Background* b = Background::get(i);
-			if (b != nullptr) {
-				if (b->get_is_loaded()) {
-					b->free();
-					b->load();
+		// Reload textures
+		for (size_t i=0; i<Texture::get_amount(); i++) {
+			Texture* t = Texture::get(i);
+			if (t != nullptr) {
+				if (t->get_is_loaded()) {
+					t->free();
+					t->load();
 				}
 			}
 		}

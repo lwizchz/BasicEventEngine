@@ -59,6 +59,9 @@ namespace bee {
 			s = shader;
 		}
 		s->apply();
+		render::set_viewport(nullptr);
+
+		update();
 		texture->draw(0, 0, 0);
 
 		glUniform1i(s->get_location("flip"), 2);

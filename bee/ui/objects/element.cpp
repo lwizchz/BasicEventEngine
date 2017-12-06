@@ -95,7 +95,7 @@ void ObjUIElement::reset(bee::Instance* self) {
 	(*s)["w"] = 0;
 	(*s)["h"] = 0;
 
-	bee::Sprite* spr = self->get_sprite();
+	bee::Texture* spr = self->get_sprite();
 	if (spr != nullptr) {
 		(*s)["w"] = spr->get_width();
 		(*s)["h"] = spr->get_height();

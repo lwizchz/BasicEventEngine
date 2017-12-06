@@ -197,16 +197,11 @@ namespace bee {
 			return 2; // Return 2 when in headless mode
 		}
 
-		if (get_options().renderer_type == E_RENDERER::SDL) { // If the SDL rendering mode is enabled, output a warning
-			messenger::send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to load mesh because SDL rendering is currently enabled");
-			return 3; // Return 3 when SDL rendering is enabled
-		}
-
 		// Attempt to import the object file
 		scene = aiImportFile(path.c_str(), aiProcessPreset_TargetRealtime_MaxQuality); // Import it with "MaxQuality"
 		if (scene == nullptr) { // If the file couldn't be imported, output a warning
 			messenger::send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to load mesh \"" + name + "\": " + aiGetErrorString());
-			return 4; // Return 4 on import failure
+			return 3; // Return 3 on import failure
 		}
 
 		mesh = scene->mMeshes[mesh_index]; // Get the mesh with the desired index
@@ -291,7 +286,7 @@ namespace bee {
 				if (tmp_surface == nullptr) { // If the surface could not be loaded, output a warning
 					free_internal();
 					messenger::send({"engine", "sprite"}, E_MESSAGE::WARNING, "Failed to load the texture for mesh \"" + name + "\": " + IMG_GetError());
-					return 5; // Return 5 on texture load failure
+					return 4; // Return 4 on texture load failure
 				}
 
 				// Generate the texture from the surface pixels
@@ -319,7 +314,7 @@ namespace bee {
 
 				free_internal();
 				messenger::send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to load the texture for mesh \"" + name + "\", the material reported a texture with no file path");
-				return 6; // Return 6 on missing texture file
+				return 5; // Return 5 on missing texture file
 			}
 		}
 

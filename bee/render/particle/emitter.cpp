@@ -93,7 +93,7 @@ namespace bee {
 		double ex = get_following_x(system_x);
 		double ey = get_following_y(system_y);
 
-		return draw_rectangle(static_cast<int>(ex+x), static_cast<int>(ey+y), w, h, 1, get_enum_color(color));
+		return draw_rectangle(static_cast<int>(ex+x), static_cast<int>(ey+y), w, h, 1, RGBA(color));
 	}
 }
 

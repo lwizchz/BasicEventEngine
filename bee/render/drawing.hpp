@@ -13,6 +13,8 @@
 
 #include <SDL2/SDL.h> // Include the required SDL headers
 
+#include <GL/glew.h> // Include the required OpenGL headers
+#include <SDL2/SDL_opengl.h>
 #include <glm/glm.hpp> // Include the required OpenGL headers
 
 #include "../enum.hpp"
@@ -20,9 +22,6 @@
 #include "rgba.hpp"
 
 namespace bee {
-	RGBA get_enum_color(E_RGB, Uint8);
-	RGBA get_enum_color(E_RGB);
-
 	int draw_triangle(glm::vec3, glm::vec3, glm::vec3, const RGBA&, bool);
 	int draw_line(glm::vec3, glm::vec3, const RGBA&);
 	int draw_line(int, int, int, int, const RGBA&);
@@ -34,8 +33,8 @@ namespace bee {
 
 	int draw_set_color(const RGBA&);
 	RGBA draw_get_color();
-	int draw_set_blend(SDL_BlendMode);
-	SDL_BlendMode draw_get_blend();
+	int draw_set_blend(GLenum, GLenum);
+	std::pair<GLenum,GLenum> draw_get_blend();
 
 	RGBA get_pixel_color(int, int);
 	int save_screenshot(const std::string&);

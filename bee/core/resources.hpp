@@ -14,9 +14,8 @@
 
 namespace bee { // The engine namespace
 	// Forward declarations
-	class Sprite;
+	class Texture;
 	class Sound;
-	class Background;
 	class Font;
 	class Path;
 	class Timeline;
@@ -32,9 +31,8 @@ namespace bee { // The engine namespace
 	int sound_stop_loops();
 	int sound_stop_all();
 
-	Sprite* add_sprite(const std::string&, const std::string&);
+	Texture* add_texture(const std::string&, const std::string&);
 	Sound* add_sound(const std::string&, const std::string&, bool);
-	Background* add_background(const std::string&, const std::string&);
 	Font* add_font(const std::string&, const std::string&, int, bool);
 	Path* add_path(const std::string&, const std::string&);
 	Timeline* add_timeline(const std::string&, const std::string&);
@@ -43,9 +41,8 @@ namespace bee { // The engine namespace
 	Object* add_object(const std::string&, const std::string&);
 	Room* add_room(const std::string&, const std::string&);
 
-	Sprite* get_sprite_by_name(const std::string&);
+	Texture* get_texture_by_name(const std::string&);
 	Sound* get_sound_by_name(const std::string&);
-	Background* get_background_by_name(const std::string&);
 	Font* get_font_by_name(const std::string&);
 	Path* get_path_by_name(const std::string&);
 	Timeline* get_timeline_by_name(const std::string&);

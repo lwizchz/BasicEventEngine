@@ -23,15 +23,15 @@
 
 namespace bee {
 	// Forward declarations
-	class Sprite;
+	class Texture;
 
 	class Particle;
 	class ParticleData;
 	class ParticleSystem;
 
 	class Particle {
-			Sprite* sprite;
-			bool has_own_sprite;
+			Texture* texture;
+			bool has_own_texture;
 
 			unsigned int deviation;
 
@@ -56,18 +56,18 @@ namespace bee {
 
 			bool should_reanimate;
 			bool is_lightable;
-			bool is_sprite_lightable;
+			bool is_texture_lightable;
 
-			Particle(Sprite*, double, Uint32, unsigned int);
+			Particle(Texture*, double, Uint32, unsigned int);
 			Particle(E_PT_SHAPE, double, Uint32, unsigned int);
-			Particle(Sprite*, double, Uint32);
+			Particle(Texture*, double, Uint32);
 			Particle(E_PT_SHAPE, double, Uint32);
 			~Particle();
 
 			int init();
 			int print();
 
-			Sprite* get_sprite();
+			Texture* get_texture();
 			unsigned int get_deviation();
 
 			int set_death_type(Particle*);

@@ -24,7 +24,7 @@
 namespace bee {
 	// Forward declarations
 	class Instance;
-	class Sprite;
+	class Texture;
 
 	struct NetworkEvent;
 
@@ -35,13 +35,13 @@ namespace bee {
 			int id; // The id of the resource
 			std::string name; // An arbitrary name for the resource
 			std::string path; // The path of the object's child header
-			Sprite* sprite; // The sprite to draw for the object
+			Texture* sprite; // The texture to draw for the object
 			bool is_solid; // Whether the object should be solid to collisions
 			bool is_visible; // Whether the object should be visible
 			bool is_persistent; // Whether the object's instances should persist between rooms
 			int depth; // The depth of the object
 			Object* parent; // The parent of the object, all parent events will be called before the child's
-			Sprite* mask; // An alternate sprite to use as the object's collision mask
+			Texture* mask; // An alternate texture to use as the object's collision mask
 			int xoffset, yoffset; // How far the sprite and mask should be offset from the object position
 			bool is_pausable; // Whether the object is pausable or not
 
@@ -68,31 +68,25 @@ namespace bee {
 			int get_id() const;
 			std::string get_name() const;
 			std::string get_path() const;
-			Sprite* get_sprite() const;
-			int get_sprite_id() const;
+			Texture* get_sprite() const;
 			bool get_is_solid() const;
 			bool get_is_visible() const;
 			bool get_is_persistent() const;
 			int get_depth() const;
 			Object* get_parent() const;
-			int get_parent_id() const;
-			Sprite* get_mask() const;
-			int get_mask_id() const;
+			Texture* get_mask() const;
 			std::pair<int,int> get_mask_offset() const;
 			bool get_is_pausable() const;
 
 			int set_name(const std::string&);
 			int set_path(const std::string&);
-			int set_sprite(Sprite*);
-			int set_sprite_id(int);
+			int set_sprite(Texture*);
 			int set_is_solid(bool);
 			int set_is_visible(bool);
 			int set_is_persistent(bool);
 			int set_depth(int);
 			int set_parent(Object*);
-			int set_parent_id(int);
-			int set_mask(Sprite*);
-			int set_mask_id(int);
+			int set_mask(Texture*);
 			int set_mask_offset(const std::pair<int,int>&);
 			int set_mask_offset(int, int);
 			int set_is_pausable(bool);

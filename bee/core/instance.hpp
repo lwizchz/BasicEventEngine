@@ -26,7 +26,7 @@
 
 namespace bee {
 	// Forward declarations
-	class Sprite;
+	class Texture;
 	class Object;
 	class PhysicsBody;
 
@@ -34,7 +34,7 @@ namespace bee {
 			btVector3 pos_start;
 
 			Object* object;
-			Sprite* sprite;
+			Texture* sprite;
 
 			PhysicsBody* body;
 			bool is_solid;
@@ -83,7 +83,7 @@ namespace bee {
 			int set_alarm(size_t, Uint32);
 
 			int set_object(Object*);
-			int set_sprite(Sprite*);
+			int set_sprite(Texture*);
 			int add_physbody();
 			int set_computation_type(E_COMPUTATION);
 			int set_is_persistent(bool);
@@ -106,7 +106,7 @@ namespace bee {
 			double get_zstart() const;
 
 			Object* get_object() const;
-			Sprite* get_sprite() const;
+			Texture* get_sprite() const;
 			PhysicsBody* get_physbody() const;
 			bool get_is_solid() const;
 			double get_mass() const;
@@ -187,14 +187,8 @@ namespace bee {
 			std::vector<path_coord_t> get_path_coords();
 			bool get_path_pausable();
 
-			int draw(int, int, double, RGBA, SDL_RendererFlip);
-			int draw(int, int, double, E_RGB, SDL_RendererFlip);
+			int draw(int, int, double, RGBA);
 			int draw();
-			int draw(int, int);
-			int draw(double);
-			int draw(RGBA);
-			int draw(E_RGB);
-			int draw(SDL_RendererFlip);
 
 			int draw_path();
 	};

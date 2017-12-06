@@ -506,7 +506,7 @@ namespace bee {
 		       return 1; // Return 1 when already loaded
 		}
 
-		if ((get_options().is_headless)||(get_options().renderer_type == E_RENDERER::SDL)) {
+		if (get_options().is_headless) {
 			return 2; // Return 2 when texture rendering is not applicable
 		}
 
@@ -534,7 +534,7 @@ namespace bee {
 		       return 1; // Return 1 when already loaded
 		}
 
-		if ((get_options().is_headless)||(get_options().renderer_type == E_RENDERER::SDL)) {
+		if (get_options().is_headless) {
 			return 2; // Return 2 when texture rendering is not applicable
 		}
 

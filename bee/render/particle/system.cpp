@@ -30,7 +30,7 @@
 #include "deflector.hpp"
 #include "changer.hpp"
 
-#include "../../resource/sprite.hpp"
+#include "../../resource/texture.hpp"
 
 namespace bee {
 	ParticleSystem::ParticleSystem() :
@@ -43,8 +43,6 @@ namespace bee {
 		destroyers(),
 		deflectors(),
 		changers(),
-
-		draw_data(),
 
 		is_oldfirst(true),
 		depth(0),
@@ -85,9 +83,9 @@ namespace bee {
 	}
 	int ParticleSystem::load() {
 		for (auto& p : particle_types) {
-			if (p->get_sprite() != nullptr) {
-				if (!p->get_sprite()->get_is_loaded()) {
-					p->get_sprite()->load();
+			if (p->get_texture() != nullptr) {
+				if (!p->get_texture()->get_is_loaded()) {
+					p->get_texture()->load();
 				}
 			}
 		}
@@ -207,7 +205,6 @@ namespace bee {
 		}
 
 		if (should_draw) {
-			clear_draw_data();
 			particles.erase(
 				std::remove_if(
 					particles.begin(),
@@ -233,9 +230,7 @@ namespace bee {
 							y += static_cast<int>(following->get_y());
 						}
 
-						SpriteDrawData* sdd = new SpriteDrawData(x, y, p->get_creation(), static_cast<int>(p->get_w()), static_cast<int>(p->get_h()), absolute_angle(p->get_angle(ticks)));
-						draw_data[p->get_type()].push_back(sdd);
-						//p->draw(system_x, system_y, ticks);
+						p->draw(x, y, ticks);
 
 						if (p->is_dead(ticks)) {
 							p->get_type()->on_death(this, p);
@@ -246,21 +241,7 @@ namespace bee {
 				),
 				particles.end()
 			);
-			for (auto& s : draw_data) {
-				if (!s.first->is_lightable) {
-					render::set_is_lightable(false);
-				}
-
-				bool is_sprite_lightable = s.first->get_sprite()->get_is_lightable();
-				if (!s.first->is_sprite_lightable) {
-					s.first->get_sprite()->set_is_lightable(false);
-				}
-
-				s.first->get_sprite()->draw_array(s.second, s.first->rotation_cache, s.first->color, SDL_FLIP_NONE);
-
-				render::set_is_lightable(true);
-				s.first->get_sprite()->set_is_lightable(is_sprite_lightable);
-			}
+			render::render_textures();
 		}
 
 		return 0;
@@ -296,15 +277,6 @@ namespace bee {
 
 		return 0;
 	}
-	int ParticleSystem::clear_draw_data() {
-		for (auto& p : draw_data) {
-			for (auto& sdd : p.second) {
-				delete sdd;
-			}
-		}
-		draw_data.clear();
-		return 0;
-	}
 	int ParticleSystem::clear() {
 		for (auto& pt : particle_types) {
 			pt->remove_old_particles();
@@ -315,7 +287,6 @@ namespace bee {
 		}
 
 		particles.clear();
-		clear_draw_data();
 
 		return 0;
 	}

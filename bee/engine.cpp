@@ -275,7 +275,8 @@ namespace bee {
 
 		// Use the highest version of OpenGL available
 		switch (get_options().renderer_type) {
-			case E_RENDERER::OPENGL4: {
+			case E_RENDERER::OPENGL4:
+			default: {
 				if (GL_VERSION_4_1) { // FIXME: Properly test for opengl support
 					SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
 					SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
@@ -292,10 +293,6 @@ namespace bee {
 					SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
 					break;
 				}
-			}
-			case E_RENDERER::SDL:
-			default: {
-				engine->options->renderer_type = E_RENDERER::SDL;
 			}
 		}
 
@@ -333,16 +330,9 @@ namespace bee {
 		engine->keystate = SDL_GetKeyboardState(nullptr);
 		keystrings_populate();
 
-		if (get_options().renderer_type != E_RENDERER::SDL) {
-			if (engine->renderer->opengl_init()) {
-				messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Could not initialize the OpenGL renderer");
-				return 5; // Return 5 when the renderer could not be initialized
-			}
-		} else { // if not OpenGL, init an SDL renderer
-			if (engine->renderer->sdl_renderer_init()) {
-				messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Could not initialized the SDL renderer");
-				return 5; // Return 5 when the renderer could not be initialized
-			}
+		if (engine->renderer->opengl_init()) {
+			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Could not initialize the OpenGL renderer");
+			return 5; // Return 5 when the renderer could not be initialized
 		}
 
 		int img_flags = IMG_INIT_PNG | IMG_INIT_JPG;
@@ -576,7 +566,11 @@ namespace bee {
 			}
 		} else if (new_tickstamp - engine->tickstamp > 3*frame_ticks) { // If the tick difference is more than 3 frames worth, output a warning
 			Uint32 overtime = (new_tickstamp - engine->tickstamp) - frame_ticks;
-			messenger::send({"engine"}, E_MESSAGE::WARNING, "Engine loop over time by " + bee_itos(overtime) + "ms, " + bee_itos(overtime/frame_ticks) + " frames lost");
+			E_MESSAGE type (E_MESSAGE::INFO);
+			if (overtime/frame_ticks >= 10) {
+				type = E_MESSAGE::WARNING;
+			}
+			messenger::send({"engine"}, type, "Engine loop over time by " + bee_itos(overtime) + "ms, " + bee_itos(overtime/frame_ticks) + " frames lost");
 		}
 		internal::update_delta();
 

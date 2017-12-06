@@ -223,7 +223,7 @@ namespace bee {
 	* @zstart: the z-coordinate to offset the path by
 	*/
 	int Path::draw(double xstart, double ystart, double zstart) {
-		RGBA c_line = get_enum_color(E_RGB::AQUA); // Define the drawing color
+		RGBA c_line (E_RGB::AQUA); // Define the drawing color
 		glm::vec3 vs (xstart, ystart, zstart); // Define the start point
 		glm::vec3 v1, v2; // Declare two vectors to use for the start and end points of each line
 

@@ -29,13 +29,13 @@
 #include "particledata.hpp"
 #include "system.hpp"
 
-#include "../../resource/sprite.hpp"
+#include "../../resource/texture.hpp"
 #include "../../resource/room.hpp"
 
 namespace bee {
-	Particle::Particle(Sprite* _sprite, double _scale, Uint32 _max_time, unsigned int _deviation) :
-		sprite(_sprite),
-		has_own_sprite(false),
+	Particle::Particle(Texture* _texture, double _scale, Uint32 _max_time, unsigned int _deviation) :
+		texture(_texture),
+		has_own_texture(false),
 
 		deviation(_deviation),
 
@@ -58,72 +58,72 @@ namespace bee {
 
 		should_reanimate(true),
 		is_lightable(true),
-		is_sprite_lightable(false)
+		is_texture_lightable(false)
 	{
-		if (sprite != nullptr) {
+		if (texture != nullptr) {
 			init();
 		}
 	}
 	Particle::Particle(E_PT_SHAPE _shape, double _scale, Uint32 _max_time, unsigned int _deviation) :
 		Particle(nullptr, _scale, _max_time, _deviation)
 	{
-		has_own_sprite = true;
+		has_own_texture = true;
 
 		switch (_shape) {
 			case E_PT_SHAPE::PIXEL: {
-				sprite = add_sprite("pt_sprite_pixel", "particles/00_pixel.png");
+				texture = add_texture("pt_texture_pixel", "particles/00_pixel.png");
 				break;
 			}
 			case E_PT_SHAPE::DISK: {
-				sprite = add_sprite("pt_sprite_disk", "particles/01_disk.png");
+				texture = add_texture("pt_texture_disk", "particles/01_disk.png");
 				break;
 			}
 			case E_PT_SHAPE::SQUARE: {
-				sprite = add_sprite("pt_sprite_square", "particles/02_square.png");
+				texture = add_texture("pt_texture_square", "particles/02_square.png");
 				break;
 			}
 			case E_PT_SHAPE::LINE: {
-				sprite = add_sprite("pt_sprite_line", "particles/03_line.png");
+				texture = add_texture("pt_texture_line", "particles/03_line.png");
 				break;
 			}
 			case E_PT_SHAPE::STAR: {
-				sprite = add_sprite("pt_sprite_star", "particles/04_star.png");
+				texture = add_texture("pt_texture_star", "particles/04_star.png");
 				break;
 			}
 			case E_PT_SHAPE::CIRCLE: {
-				sprite = add_sprite("pt_sprite_circle", "particles/05_circle.png");
+				texture = add_texture("pt_texture_circle", "particles/05_circle.png");
 				break;
 			}
 			case E_PT_SHAPE::RING: {
-				sprite = add_sprite("pt_sprite_ring", "particles/06_ring.png");
+				texture = add_texture("pt_texture_ring", "particles/06_ring.png");
 				break;
 			}
 			case E_PT_SHAPE::SPHERE: {
-				sprite = add_sprite("pt_sprite_sphere", "particles/07_sphere.png");
+				texture = add_texture("pt_texture_sphere", "particles/07_sphere.png");
 				break;
 			}
 			case E_PT_SHAPE::FLARE: {
-				sprite = add_sprite("pt_sprite_flare", "particles/08_flare.png");
+				texture = add_texture("pt_texture_flare", "particles/08_flare.png");
 				break;
 			}
 			case E_PT_SHAPE::SPARK: {
-				sprite = add_sprite("pt_sprite_spark", "particles/09_spark.png");
+				texture = add_texture("pt_texture_spark", "particles/09_spark.png");
 				break;
 			}
 			case E_PT_SHAPE::EXPLOSION: {
-				sprite = add_sprite("pt_sprite_explosion", "particles/10_explosion.png");
+				texture = add_texture("pt_texture_explosion", "particles/10_explosion.png");
 				break;
 			}
 			case E_PT_SHAPE::CLOUD: {
-				sprite = add_sprite("pt_sprite_cloud", "particles/11_cloud.png");
+				texture = add_texture("pt_texture_cloud", "particles/11_cloud.png");
 				break;
 			}
 			case E_PT_SHAPE::SMOKE: {
-				sprite = add_sprite("pt_sprite_smoke", "particles/12_smoke.png");
+				texture = add_texture("pt_texture_smoke", "particles/12_smoke.png");
 				break;
 			}
 			case E_PT_SHAPE::SNOW: {
-				sprite = add_sprite("pt_sprite_snow", "particles/13_snow.png");
+				texture = add_texture("pt_sprite_snow", "particles/13_snow.png");
 				break;
 			}
 			default: // This should never happen
@@ -133,8 +133,8 @@ namespace bee {
 
 		init();
 	}
-	Particle::Particle(Sprite* _sprite, double _scale, Uint32 _max_time) :
-		Particle(_sprite, _scale, _max_time, 50)
+	Particle::Particle(Texture* _texture, double _scale, Uint32 _max_time) :
+		Particle(_texture, _scale, _max_time, 50)
 	{}
 	Particle::Particle(E_PT_SHAPE _shape, double _scale, Uint32 _max_time) :
 		Particle(_shape, _scale, _max_time, 50)
@@ -142,17 +142,17 @@ namespace bee {
 	Particle::~Particle() {
 		remove_old_particles();
 
-		if (has_own_sprite) {
-			delete sprite;
+		if (has_own_texture) {
+			delete texture;
 		}
 	}
 
 	int Particle::init() {
 		rotation_cache.reserve(360);
 		for (int a=0; a<360; a++) {
-			glm::mat4 r = glm::translate(glm::mat4(1.0f), glm::vec3(static_cast<float>(sprite->get_subimage_width())/2.0f, static_cast<float>(sprite->get_height())/2.0f, 0.0f));
+			glm::mat4 r = glm::translate(glm::mat4(1.0f), glm::vec3(static_cast<float>(texture->get_subimage_width())/2.0f, static_cast<float>(texture->get_height())/2.0f, 0.0f));
 			r = glm::rotate(r, static_cast<float>(degtorad(a)), glm::vec3(0.0f, 0.0f, 1.0f));
-			r = glm::translate(r, glm::vec3(-static_cast<float>(sprite->get_subimage_width())/2.0f, -static_cast<float>(sprite->get_height())/2.0f, 0.0f));
+			r = glm::translate(r, glm::vec3(-static_cast<float>(texture->get_subimage_width())/2.0f, -static_cast<float>(texture->get_height())/2.0f, 0.0f));
 			rotation_cache.push_back(r);
 		}
 
@@ -168,7 +168,7 @@ namespace bee {
 		std::stringstream s;
 		s <<
 		"Particle { "
-		"\n	sprite                  " << sprite <<
+		"\n	texture                  " << texture <<
 		"\n	scale                   " << scale <<
 		"\n	deviation               " << deviation <<
 		"\n	velocity:" <<
@@ -182,15 +182,15 @@ namespace bee {
 		"\n	death_amount            " << death_amount <<
 		"\n	should_reanimate        " << should_reanimate <<
 		"\n	is_lightable            " << is_lightable <<
-		"\n	is_sprite_lightable	" << is_sprite_lightable <<
+		"\n	is_texture_lightable	" << is_texture_lightable <<
 		"\n}\n";
 		messenger::send({"engine", "resource"}, E_MESSAGE::INFO, s.str());
 
 		return 0;
 	}
 
-	Sprite* Particle::get_sprite() {
-		return sprite;
+	Texture* Particle::get_texture() {
+		return texture;
 	}
 	unsigned int Particle::get_deviation() {
 		return deviation;

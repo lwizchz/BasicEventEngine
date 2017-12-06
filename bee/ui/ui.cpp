@@ -20,7 +20,6 @@
 #include "../core/instance.hpp"
 #include "../core/rooms.hpp"
 
-#include "../resource/sprite.hpp"
 #include "../resource/sound.hpp"
 #include "../resource/font.hpp"
 #include "../resource/object.hpp"

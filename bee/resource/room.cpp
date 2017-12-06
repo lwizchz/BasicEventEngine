@@ -51,8 +51,6 @@
 #include "../physics/world.hpp"
 
 #include "texture.hpp"
-#include "sprite.hpp"
-#include "background.hpp"
 #include "timeline.hpp"
 #include "light.hpp"
 #include "object.hpp"
@@ -63,6 +61,39 @@ namespace bee {
 			return std::pair<Instance*,int>(p.second, p.first);
 		}
 	}
+
+	/*
+	* BackgroundData::BackgroundData() - Construct the data struct and initiliaze all values
+	* ! See bee/resources/background.hpp for a description of these member variables
+	*/
+	BackgroundData::BackgroundData() :
+		background(nullptr),
+		is_visible(false),
+		is_foreground(false),
+		x(0),
+		y(0),
+		is_horizontal_tile(false),
+		is_vertical_tile(false),
+		horizontal_speed(0),
+		vertical_speed(0),
+		is_stretched(false)
+	{}
+	/*
+	* BackgroundData::BackgroundData() - Construct the data struct and initiliaze with all the given values
+	* ! See bee/resources/background.hpp for a description of these member variables
+	*/
+	BackgroundData::BackgroundData(Texture* new_background, bool new_is_visible, bool new_is_foreground, int new_x, int new_y, bool new_is_horizontal_tile, bool new_is_vertical_tile, int new_horizontal_speed, int new_vertical_speed, bool new_is_stretched) :
+		background(new_background),
+		is_visible(new_is_visible),
+		is_foreground(new_is_foreground),
+		x(new_x),
+		y(new_y),
+		is_horizontal_tile(new_is_horizontal_tile),
+		is_vertical_tile(new_is_vertical_tile),
+		horizontal_speed(new_horizontal_speed),
+		vertical_speed(new_vertical_speed),
+		is_stretched(new_is_stretched)
+	{}
 
 	const std::list<E_EVENT> Room::event_list = {
 		E_EVENT::CREATE,
@@ -577,84 +608,47 @@ namespace bee {
 		return 0;
 	}
 	int Room::handle_lights() {
-		if (get_options().renderer_type != E_RENDERER::SDL) {
-			int i = 0;
-			for (auto& l : lightables) {
-				if (i >= BEE_MAX_LIGHTABLES) {
+		int i = 0;
+		for (auto& l : lightables) {
+			if (i >= BEE_MAX_LIGHTABLES) {
+				break;
+			}
+
+			glUniform4fv(engine->renderer->program->get_location("lightable[" + bee_itos(i) + "].position"), 1, glm::value_ptr(l->position));
+			int j = 0;
+			for (auto& v : l->mask) {
+				if (j >= BEE_MAX_MASK_VERTICES) {
 					break;
 				}
 
-				glUniform4fv(engine->renderer->program->get_location("lightable[" + bee_itos(i) + "].position"), 1, glm::value_ptr(l->position));
-				int j = 0;
-				for (auto& v : l->mask) {
-					if (j >= BEE_MAX_MASK_VERTICES) {
-						break;
-					}
+				glUniform4fv(engine->renderer->program->get_location("lightable[" + bee_itos(i) + "].mask[" + bee_itos(j) + "]"), 1, glm::value_ptr(v));
 
-					glUniform4fv(engine->renderer->program->get_location("lightable[" + bee_itos(i) + "].mask[" + bee_itos(j) + "]"), 1, glm::value_ptr(v));
-
-					j++;
-				}
-				glUniform1i(engine->renderer->program->get_location("lightable[" + bee_itos(i) + "].vertex_amount"), j);
-
-				i++;
+				j++;
 			}
-			glUniform1i(engine->renderer->program->get_location("lightable_amount"), i);
+			glUniform1i(engine->renderer->program->get_location("lightable[" + bee_itos(i) + "].vertex_amount"), j);
 
-			i = 0;
-			for (auto& l : lights) {
-				if (i >= BEE_MAX_LIGHTS) {
-					break;
-				}
-
-				glm::vec4 c (l.color.r, l.color.g, l.color.b, l.color.a);
-				c /= 255.0f;
-
-				glUniform1i(engine->renderer->program->get_location("lighting[" + bee_itos(i) + "].type"), static_cast<int>(l.type));
-				glUniform4fv(engine->renderer->program->get_location("lighting[" + bee_itos(i) + "].position"), 1, glm::value_ptr(l.position));
-				glUniform4fv(engine->renderer->program->get_location("lighting[" + bee_itos(i) + "].direction"), 1, glm::value_ptr(l.direction));
-				glUniform4fv(engine->renderer->program->get_location("lighting[" + bee_itos(i) + "].attenuation"), 1, glm::value_ptr(l.attenuation));
-				glUniform4fv(engine->renderer->program->get_location("lighting[" + bee_itos(i) + "].color"), 1, glm::value_ptr(c));
-
-				i++;
-			}
-			glUniform1i(engine->renderer->program->get_location("light_amount"), i);
-		} else {
-			if (!lights.empty()) {
-				int w = get_width(), h = get_height();
-				render::set_target(light_map);
-				draw_set_color({0, 0, 0, 255});
-				render::clear();
-
-				Texture* s = new Texture("pt_sprite_sphere", "particles/07_sphere.png");
-				s->load();
-
-				for (auto& l : lights) {
-					switch (l.type) {
-						case E_LIGHT::AMBIENT: {
-							draw_rectangle(0, 0, w, h, -1, l.color);
-							break;
-						}
-						case E_LIGHT::DIFFUSE: {
-							break;
-						}
-						case E_LIGHT::POINT: {
-							int r = static_cast<int>(10000/l.attenuation.y);
-							s->draw(static_cast<int>(l.position.x)-r/2, static_cast<int>(l.position.y)-r/2, 0, r, r, 0.0, l.color);
-							break;
-						}
-						case E_LIGHT::SPOT: {
-							break;
-						}
-					}
-				}
-				delete s;
-				render::reset_target();
-				draw_set_blend(SDL_BLENDMODE_MOD);
-				light_map->draw(0, 0, 0);
-				draw_set_blend(SDL_BLENDMODE_BLEND);
-			}
+			i++;
 		}
+		glUniform1i(engine->renderer->program->get_location("lightable_amount"), i);
+
+		i = 0;
+		for (auto& l : lights) {
+			if (i >= BEE_MAX_LIGHTS) {
+				break;
+			}
+
+			glm::vec4 c (l.color.r, l.color.g, l.color.b, l.color.a);
+			c /= 255.0f;
+
+			glUniform1i(engine->renderer->program->get_location("lighting[" + bee_itos(i) + "].type"), static_cast<int>(l.type));
+			glUniform4fv(engine->renderer->program->get_location("lighting[" + bee_itos(i) + "].position"), 1, glm::value_ptr(l.position));
+			glUniform4fv(engine->renderer->program->get_location("lighting[" + bee_itos(i) + "].direction"), 1, glm::value_ptr(l.direction));
+			glUniform4fv(engine->renderer->program->get_location("lighting[" + bee_itos(i) + "].attenuation"), 1, glm::value_ptr(l.attenuation));
+			glUniform4fv(engine->renderer->program->get_location("lighting[" + bee_itos(i) + "].color"), 1, glm::value_ptr(c));
+
+			i++;
+		}
+		glUniform1i(engine->renderer->program->get_location("light_amount"), i);
 
 		return 0;
 	}
@@ -908,7 +902,7 @@ namespace bee {
 
 						if (set_params[0][0] == '@') {
 							if (set_params[0] == "@sprite") {
-								inst->set_sprite(get_sprite_by_name(set_params[1]));
+								inst->set_sprite(get_texture_by_name(set_params[1]));
 							} else if (set_params[0] == "@solid") {
 								inst->set_is_solid(SIDP_i(SIDP(set_params[1])));
 							} else if (set_params[0] == "@depth") {
@@ -1381,7 +1375,6 @@ namespace bee {
 		for (auto& v : views) {
 			if (v->is_active) {
 				view_current = v;
-				render::set_viewport(view_current);
 				view_current->update();
 				draw_view(view_current);
 			}
@@ -1391,12 +1384,12 @@ namespace bee {
 		if (is_background_color_enabled) {
 			draw_set_color(background_color);
 		} else {
-			draw_set_color(get_enum_color(E_RGB::WHITE));
+			draw_set_color(RGBA(E_RGB::WHITE));
 		}
 
 		render::reset_target();
-		render::clear();
 		render::set_viewport(nullptr);
+		render::clear();
 
 		for (auto& v : views) {
 			if (v->is_active) {
@@ -1405,8 +1398,8 @@ namespace bee {
 		}
 
 		engine->renderer->program->apply();
-
-		render::render();
+		
+		//render::render();
 		reset_lights();
 
 		return 0;
@@ -1416,10 +1409,11 @@ namespace bee {
 		if (is_background_color_enabled) {
 			draw_set_color(background_color);
 		} else {
-			draw_set_color(get_enum_color(E_RGB::WHITE));
+			draw_set_color(RGBA(E_RGB::WHITE));
 		}
 
 		render::set_target(viewport->texture);
+		render::set_viewport(viewport);
 		render::clear();
 
 		for (auto& b : backgrounds) {
@@ -1459,7 +1453,7 @@ namespace bee {
 
 		if (get_options().is_debug_enabled) {
 			// Draw room outline
-			draw_rectangle(0, 0, get_width(), get_height(), 1, get_enum_color(E_RGB::RED));
+			draw_rectangle(0, 0, get_width(), get_height(), 1, RGBA(E_RGB::RED));
 
 			// Draw physics engine debug shapes
 			physics_world->draw_debug();

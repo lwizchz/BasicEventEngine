@@ -575,7 +575,7 @@ namespace bee{ namespace console {
 		td_log = engine->font_default->draw(td_log, cx, cy, short_log, {0, 0, 0, 255}); // Draw the console log
 
 		// Define several drawing colors
-		RGBA c_text = get_enum_color(E_RGB::BLACK);
+		RGBA c_text (E_RGB::BLACK);
 
 		// Draw the console page number
 		std::string p = std::to_string(page_index+1) + "/" + std::to_string(total_lines/line_amount+1);

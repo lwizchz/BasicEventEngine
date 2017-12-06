@@ -21,9 +21,8 @@
 #include "enginestate.hpp"
 
 #include "../resource/resource.hpp"
-#include "../resource/sprite.hpp"
+#include "../resource/texture.hpp"
 #include "../resource/sound.hpp"
-#include "../resource/background.hpp"
 #include "../resource/font.hpp"
 #include "../resource/path.hpp"
 #include "../resource/timeline.hpp"
@@ -99,14 +98,14 @@ namespace bee {
 	}
 
 	/*
-	* add_sprite() - Initiliaze, load, and return a newly created sprite resource
-	* @name: the name to initialize the sprite with
-	* @path: the path to initialize the sprite with
+	* add_texture() - Initiliaze, load, and return a newly created texture resource
+	* @name: the name to initialize the texture with
+	* @path: the path to initialize the texture with
 	*/
-	Sprite* add_sprite(const std::string& name, const std::string& path) {
-		Sprite* new_sprite = new Sprite(name, path);
-		new_sprite->load();
-		return new_sprite;
+	Texture* add_texture(const std::string& name, const std::string& path) {
+		Texture* new_texture = new Texture(name, path);
+		new_texture->load();
+		return new_texture;
 	}
 	/*
 	* add_sound() - Initiliaze, load, and return a newly created sound resource
@@ -118,16 +117,6 @@ namespace bee {
 		Sound* new_sound = new Sound(name, path, is_music);
 		new_sound->load();
 		return new_sound;
-	}
-	/*
-	* add_background() - Initiliaze, load, and return a newly created background resource
-	* @name: the name to initialize the background with
-	* @path: the path to initialize the background with
-	*/
-	Background* add_background(const std::string& name, const std::string& path) {
-		Background* new_background = new Background(name, path);
-		new_background->load();
-		return new_background;
 	}
 	/*
 	* add_font() - Initiliaze, load, and return a newly created font resource
@@ -202,15 +191,15 @@ namespace bee {
 	}
 
 	/*
-	* get_sprite_by_name() - Return the sprite resource with the given name
-	* @name: the name of the desired sprite
+	* get_texture_by_name() - Return the texture resource with the given name
+	* @name: the name of the desired texture
 	*/
-	Sprite* get_sprite_by_name(const std::string& name) {
-		for (size_t i=0; i<Sprite::get_amount(); ++i) { // Iterate over the sprites in order to find the first one with the given name
-			Sprite* s = Sprite::get(i);
-			if (s != nullptr) {
-				if (s->get_name() == name) {
-					return s; // Return the desired sprite on success
+	Texture* get_texture_by_name(const std::string& name) {
+		for (size_t i=0; i<Texture::get_amount(); ++i) { // Iterate over the textures in order to find the first one with the given name
+			Texture* t = Texture::get(i);
+			if (t != nullptr) {
+				if (t->get_name() == name) {
+					return t; // Return the desired texture on success
 				}
 			}
 		}
@@ -226,21 +215,6 @@ namespace bee {
 			if (s != nullptr) {
 				if (s->get_name() == name) {
 					return s; // Return the desired sound on success
-				}
-			}
-		}
-		return nullptr; // Return nullptr on failure
-	}
-	/*
-	* get_background_by_name() - Return the background resource with the given name
-	* @name: the name of the desired background
-	*/
-	Background* get_background_by_name(const std::string& name) {
-		for (size_t i=0; i<Background::get_amount(); ++i) { // Iterate over the backgrounds in order to find the first one with the given name
-			Background* b = Background::get(i);
-			if (b != nullptr) {
-				if (b->get_name() == name) {
-					return b; // Return the desired background on success
 				}
 			}
 		}

@@ -160,6 +160,7 @@ namespace bee {
 			return 1;
 		}
 
+		render::set_program(this);
 		glUseProgram(program);
 
 		return 0;

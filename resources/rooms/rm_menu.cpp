@@ -43,7 +43,7 @@ void RmMenu::init() {
 	add_instance(-1, obj_menu, 0, 0, 0);
 
 	// Add vortex shader
-	/*bee::ShaderProgram* sp = new bee::ShaderProgram();
+	bee::ShaderProgram* sp = new bee::ShaderProgram();
 
 	bee::Shader vs ("bee/render/shader/default.vertex.glsl", GL_VERTEX_SHADER);
 	sp->add_shader(vs);
@@ -65,6 +65,7 @@ void RmMenu::init() {
 	sp->add_shader(fs);
 
 	sp->add_uniform("f_texture", true);
+	sp->add_uniform("colorize", true);
 	sp->add_uniform("flip", true);
 	sp->add_uniform("time", true);
 
@@ -74,11 +75,11 @@ void RmMenu::init() {
 	v->update_func = [] (bee::ViewPort* vp) {
 		glUniform1i(vp->shader->get_location("time"), bee::get_ticks());
 	};
-	v->shader = sp;*/
+	v->shader = sp;
 }
 void RmMenu::end() {
-	/*delete bee::get_current_room()->get_views().at(0)->shader;
-	bee::get_current_room()->get_views().at(0)->shader = nullptr;*/
+	delete bee::get_current_room()->get_views().at(0)->shader;
+	bee::get_current_room()->get_views().at(0)->shader = nullptr;
 }
 
 #endif // RES_RM_MENU
