@@ -29,7 +29,8 @@
 #include "../core/instance.hpp"
 #include "../core/enginestate.hpp"
 #include "../core/rooms.hpp"
-#include "../core/serialdata.hpp"
+
+#include "../data/serialdata.hpp"
 
 #include "connection.hpp"
 #include "event.hpp"

@@ -6,8 +6,8 @@
 * See LICENSE for more details.
 */
 
-#ifndef BEE_CORE_STATEMACHINE_H
-#define BEE_CORE_STATEMACHINE_H 1
+#ifndef BEE_DATA_STATEMACHINE_H
+#define BEE_DATA_STATEMACHINE_H 1
 
 #include <functional>
 #include <deque>
@@ -63,4 +63,4 @@ namespace bee {
 	};
 }
 
-#endif // BEE_CORE_STATEMACHINE_H
+#endif // BEE_DATA_STATEMACHINE_H

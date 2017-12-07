@@ -74,7 +74,7 @@ namespace bee {
 					return 2; // Return 2 when assertions could not be verified
 				}
 			#else
-				messenger::send({"engine", "init"}, E_MESSAGE::WARNING, "Couldn't verify assertions: compiled without debug mode");
+				messenger::send({"engine", "init"}, E_MESSAGE::INFO, "Couldn't verify assertions: compiled without debug mode");
 			#endif
 		}
 

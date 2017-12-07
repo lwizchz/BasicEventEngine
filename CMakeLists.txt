@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 
 set(ENGINE_VERSION_MAJOR "0")
 set(ENGINE_VERSION_MINOR "1")
-set(ENGINE_VERSION_RELEASE "4")
+set(ENGINE_VERSION_RELEASE "5")
 
 if (GAME_NAME)
 	project("${GAME_NAME}" CXX C)

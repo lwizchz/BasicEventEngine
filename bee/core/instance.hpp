@@ -18,7 +18,7 @@
 #include "../defines.hpp"
 #include "../enum.hpp"
 
-#include "sidp.hpp"
+#include "../data/sidp.hpp"
 
 #include "../render/rgba.hpp"
 

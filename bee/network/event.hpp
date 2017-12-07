@@ -15,7 +15,7 @@
 
 #include "../enum.hpp"
 
-#include "../core/sidp.hpp"
+#include "../data/sidp.hpp"
 
 namespace bee {
 	struct NetworkEvent {

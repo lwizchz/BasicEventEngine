@@ -6,8 +6,8 @@
 * See LICENSE for more details.
 */
 
-#ifndef BEE_CORE_SERIALDATA_H
-#define BEE_CORE_SERIALDATA_H 1
+#ifndef BEE_DATA_SERIALDATA_H
+#define BEE_DATA_SERIALDATA_H 1
 
 #include <vector>
 #include <map>
@@ -209,4 +209,4 @@ namespace bee {
 	}
 }
 
-#endif // BEE_CORE_SERIALDATA_H
+#endif // BEE_DATA_SERIALDATA_H

@@ -22,9 +22,10 @@
 #include "../messenger/messenger.hpp"
 
 #include "resources.hpp"
-#include "sidp.hpp"
 #include "rooms.hpp"
-#include "serialdata.hpp"
+
+#include "../data/sidp.hpp"
+#include "../data/serialdata.hpp"
 
 #include "../render/drawing.hpp"
 

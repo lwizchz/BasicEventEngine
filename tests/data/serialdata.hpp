@@ -6,14 +6,14 @@
 * See LICENSE for more details.
 */
 
-#ifndef TESTS_CORE_SERIALDATA
-#define TESTS_CORE_SERIALDATA 1
+#ifndef TESTS_DATA_SERIALDATA
+#define TESTS_DATA_SERIALDATA 1
 
 #include "doctest.h" // Include the required unit testing library
 
-#include "../../bee/core/serialdata.hpp"
+#include "../../bee/data/serialdata.hpp"
 
-TEST_SUITE_BEGIN("core");
+TEST_SUITE_BEGIN("data");
 
 TEST_CASE("serialdata1") {
 	bee::SerialData sd1;
@@ -156,4 +156,4 @@ TEST_CASE("serialdata4") {
 
 TEST_SUITE_END();
 
-#endif // TESTS_CORE_SERIALDATA
+#endif // TESTS_DATA_SERIALDATA

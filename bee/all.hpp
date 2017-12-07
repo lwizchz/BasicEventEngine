@@ -25,9 +25,11 @@
 #include "core/loader.hpp"
 #include "core/resources.hpp"
 #include "core/rooms.hpp"
-#include "core/sidp.hpp"
-#include "core/statemachine.hpp"
 #include "core/window.hpp"
+
+#include "data/serialdata.hpp"
+#include "data/sidp.hpp"
+#include "data/statemachine.hpp"
 
 #include "network/network.hpp"
 #include "network/connection.hpp"

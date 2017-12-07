@@ -6,8 +6,8 @@
 * See LICENSE for more details.
 */
 
-#ifndef BEE_CORE_SIDP
-#define BEE_CORE_SIDP 1
+#ifndef BEE_DATA_SIDP
+#define BEE_DATA_SIDP 1
 
 #include <regex>
 
@@ -552,4 +552,4 @@ namespace bee {
 	}
 }
 
-#endif // BEE_CORE_SIDP
+#endif // BEE_DATA_SIDP
