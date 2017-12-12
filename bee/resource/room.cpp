@@ -64,35 +64,21 @@ namespace bee {
 
 	/*
 	* BackgroundData::BackgroundData() - Construct the data struct and initiliaze all values
-	* ! See bee/resources/background.hpp for a description of these member variables
 	*/
 	BackgroundData::BackgroundData() :
-		background(nullptr),
+		texture(nullptr),
 		is_visible(false),
 		is_foreground(false),
-		x(0),
-		y(0),
-		is_horizontal_tile(false),
-		is_vertical_tile(false),
-		horizontal_speed(0),
-		vertical_speed(0),
-		is_stretched(false)
+		transform()
 	{}
 	/*
 	* BackgroundData::BackgroundData() - Construct the data struct and initiliaze with all the given values
-	* ! See bee/resources/background.hpp for a description of these member variables
 	*/
-	BackgroundData::BackgroundData(Texture* new_background, bool new_is_visible, bool new_is_foreground, int new_x, int new_y, bool new_is_horizontal_tile, bool new_is_vertical_tile, int new_horizontal_speed, int new_vertical_speed, bool new_is_stretched) :
-		background(new_background),
-		is_visible(new_is_visible),
-		is_foreground(new_is_foreground),
-		x(new_x),
-		y(new_y),
-		is_horizontal_tile(new_is_horizontal_tile),
-		is_vertical_tile(new_is_vertical_tile),
-		horizontal_speed(new_horizontal_speed),
-		vertical_speed(new_vertical_speed),
-		is_stretched(new_is_stretched)
+	BackgroundData::BackgroundData(Texture* _texture, bool _is_visible, bool _is_foreground, int _x, int _y, bool _is_horizontal_tile, bool _is_vertical_tile, int _horizontal_speed, int _vertical_speed, bool _is_stretched) :
+		texture(_texture),
+		is_visible(_is_visible),
+		is_foreground(_is_foreground),
+		transform(_x, _y, _is_horizontal_tile, _is_vertical_tile, _horizontal_speed, _vertical_speed, _is_stretched)
 	{}
 
 	const std::list<E_EVENT> Room::event_list = {
@@ -348,10 +334,11 @@ namespace bee {
 			table.push_back({"(name", "visible", "fore", "x", "y", "htile", "vtile", "hspeed", "vspeed", "stretch)"});
 
 			for (auto& b : backgrounds) {
+				const TextureTransform& tr = b->transform;
 				table.push_back({
-					b->background->get_name(), booltostring(b->is_visible), booltostring(b->is_foreground),
-					bee_itos(b->x), bee_itos(b->y), booltostring(b->is_horizontal_tile), booltostring(b->is_vertical_tile),
-					bee_itos(b->horizontal_speed), bee_itos(b->vertical_speed), booltostring(b->is_stretched)
+					b->texture->get_name(), booltostring(b->is_visible), booltostring(b->is_foreground),
+					bee_itos(tr.x), bee_itos(tr.y), booltostring(tr.is_horizontal_tile), booltostring(tr.is_vertical_tile),
+					bee_itos(tr.horizontal_speed), bee_itos(tr.vertical_speed), booltostring(tr.is_stretched)
 				});
 			}
 
@@ -614,22 +601,22 @@ namespace bee {
 				break;
 			}
 
-			glUniform4fv(engine->renderer->program->get_location("lightable[" + bee_itos(i) + "].position"), 1, glm::value_ptr(l->position));
+			glUniform4fv(render::get_program()->get_location("lightable[" + bee_itos(i) + "].position"), 1, glm::value_ptr(l->position));
 			int j = 0;
 			for (auto& v : l->mask) {
 				if (j >= BEE_MAX_MASK_VERTICES) {
 					break;
 				}
 
-				glUniform4fv(engine->renderer->program->get_location("lightable[" + bee_itos(i) + "].mask[" + bee_itos(j) + "]"), 1, glm::value_ptr(v));
+				glUniform4fv(render::get_program()->get_location("lightable[" + bee_itos(i) + "].mask[" + bee_itos(j) + "]"), 1, glm::value_ptr(v));
 
 				j++;
 			}
-			glUniform1i(engine->renderer->program->get_location("lightable[" + bee_itos(i) + "].vertex_amount"), j);
+			glUniform1i(render::get_program()->get_location("lightable[" + bee_itos(i) + "].vertex_amount"), j);
 
 			i++;
 		}
-		glUniform1i(engine->renderer->program->get_location("lightable_amount"), i);
+		glUniform1i(render::get_program()->get_location("lightable_amount"), i);
 
 		i = 0;
 		for (auto& l : lights) {
@@ -640,15 +627,17 @@ namespace bee {
 			glm::vec4 c (l.color.r, l.color.g, l.color.b, l.color.a);
 			c /= 255.0f;
 
-			glUniform1i(engine->renderer->program->get_location("lighting[" + bee_itos(i) + "].type"), static_cast<int>(l.type));
-			glUniform4fv(engine->renderer->program->get_location("lighting[" + bee_itos(i) + "].position"), 1, glm::value_ptr(l.position));
-			glUniform4fv(engine->renderer->program->get_location("lighting[" + bee_itos(i) + "].direction"), 1, glm::value_ptr(l.direction));
-			glUniform4fv(engine->renderer->program->get_location("lighting[" + bee_itos(i) + "].attenuation"), 1, glm::value_ptr(l.attenuation));
-			glUniform4fv(engine->renderer->program->get_location("lighting[" + bee_itos(i) + "].color"), 1, glm::value_ptr(c));
+			glUniform1i(render::get_program()->get_location("lighting[" + bee_itos(i) + "].type"), static_cast<int>(l.type));
+			glUniform4fv(render::get_program()->get_location("lighting[" + bee_itos(i) + "].position"), 1, glm::value_ptr(l.position));
+			glUniform4fv(render::get_program()->get_location("lighting[" + bee_itos(i) + "].direction"), 1, glm::value_ptr(l.direction));
+			glUniform4fv(render::get_program()->get_location("lighting[" + bee_itos(i) + "].attenuation"), 1, glm::value_ptr(l.attenuation));
+			glUniform4fv(render::get_program()->get_location("lighting[" + bee_itos(i) + "].color"), 1, glm::value_ptr(c));
 
 			i++;
 		}
-		glUniform1i(engine->renderer->program->get_location("light_amount"), i);
+		glUniform1i(render::get_program()->get_location("light_amount"), i);
+
+		reset_lights();
 
 		return 0;
 	}
@@ -658,6 +647,11 @@ namespace bee {
 		}
 		lightables.clear();
 		lights.clear();
+		return 0;
+	}
+	int Room::clear_lights() {
+		glUniform1i(render::get_program()->get_location("lightable_amount"), 0);
+		glUniform1i(render::get_program()->get_location("light_amount"), 0);
 		return 0;
 	}
 
@@ -1368,8 +1362,6 @@ namespace bee {
 		return should_collide;
 	}
 	int Room::draw() {
-		handle_lights();
-
 		engine->renderer->program->apply();
 
 		for (auto& v : views) {
@@ -1391,6 +1383,8 @@ namespace bee {
 		render::set_viewport(nullptr);
 		render::clear();
 
+		clear_lights();
+
 		for (auto& v : views) {
 			if (v->is_active) {
 				v->draw();
@@ -1398,9 +1392,7 @@ namespace bee {
 		}
 
 		engine->renderer->program->apply();
-		
-		//render::render();
-		reset_lights();
+
 
 		return 0;
 	}
@@ -1414,13 +1406,16 @@ namespace bee {
 
 		render::set_target(viewport->texture);
 		render::set_viewport(viewport);
+
 		render::clear();
+		handle_lights();
 
 		for (auto& b : backgrounds) {
 			if ((b->is_visible)&&(!b->is_foreground)) {
-				b->background->draw(b->x, b->y, 0);
+				b->texture->draw_transform(b->transform);
 			}
 		}
+		render::render_textures();
 
 		// Draw instances
 		for (auto& i : instances_sorted_events[E_EVENT::DRAW]) {
@@ -1429,16 +1424,18 @@ namespace bee {
 				i.first->get_object()->draw(i.first);
 			}
 		}
+		render::render_textures();
 
 		// Draw particles
 		for (auto& psys : particle_systems) {
 			psys->draw();
 		}
+		render::render_textures();
 
 		// Draw foregrounds
 		for (auto& b : backgrounds) {
 			if ((b->is_visible)&&(b->is_foreground)) {
-				b->background->draw(b->x, b->y, 0);
+				b->texture->draw_transform(b->transform);
 			}
 		}
 

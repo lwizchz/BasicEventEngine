@@ -6,20 +6,20 @@
 * See LICENSE for more details.
 */
 
-#ifndef RES_OBJ_ENEMY_H
-#define RES_OBJ_ENEMY_H 1
+#ifndef RES_OBJ_CONTROL_H
+#define RES_OBJ_CONTROL_H 1
 
-class ObjEnemy : public bee::Object {
+class ObjControl : public bee::Object {
 	public:
-		ObjEnemy();
+		ObjControl();
 
 		void create(bee::Instance*);
 		void destroy(bee::Instance*);
 		void step_mid(bee::Instance*);
+		void mouse_press(bee::Instance*, SDL_Event*);
 		void draw(bee::Instance*);
-
-		void update_position(bee::Instance*);
-		void hurt(bee::Instance*, int);
+		void room_start(bee::Instance*);
+		void game_start(bee::Instance*);
 };
 
-#endif // RES_OBJ_ENEMY_H
+#endif // RES_OBJ_CONTROL_H

@@ -38,10 +38,28 @@
 #include "../render/renderer.hpp"
 #include "../render/shader.hpp"
 
-#include "light.hpp"
 #include "room.hpp"
 
 namespace bee {
+	/*
+	* TextureTransform::TextureTransform() - Construct the data struct and initiliaze all values
+	*/
+	TextureTransform::TextureTransform() :
+		TextureTransform(0, 0, false, false, 0, 0, false)
+	{}
+	/*
+	* TextureTransform::TextureTransform() - Construct the data struct and initiliaze with all the given values
+	*/
+	TextureTransform::TextureTransform(int _x, int _y, bool _is_horizontal_tile, bool _is_vertical_tile, int _horizontal_speed, int _vertical_speed, bool _is_stretched) :
+		x(_x),
+		y(_y),
+		is_horizontal_tile(_is_horizontal_tile),
+		is_vertical_tile(_is_vertical_tile),
+		horizontal_speed(_horizontal_speed),
+		vertical_speed(_vertical_speed),
+		is_stretched(_is_stretched)
+	{}
+
 	TextureDrawData::TextureDrawData(GLuint _vao, GLuint _texture, GLuint _ibo) :
 		TextureDrawData(_vao, _texture, _ibo, glm::mat4(1.0f), glm::mat4(1.0f), glm::vec4(1.0f), -1)
 	{}
@@ -789,6 +807,80 @@ namespace bee {
 	*/
 	int Texture::draw(int x, int y, Uint32 subimage_time) {
 		return draw(x, y, subimage_time, -1, -1, 0.0, {255, 255, 255, 255}); // Return the result of drawing the texture
+	}
+	int Texture::draw_transform(const TextureTransform& tr) {
+		if (!is_loaded) { // Do not attempt to draw the texture if it has not been loaded
+			if (!has_draw_failed) { // If the draw call hasn't failed before, output a warning
+				messenger::send({"engine", "texture"}, E_MESSAGE::WARNING, "Failed to draw texture \"" + name + "\" because it is not loaded");
+				has_draw_failed = true; // Set the draw failure boolean
+			}
+			return 1; // Return 1 on failure
+		}
+
+		if (tr.is_stretched) { // If the background should be stretched, then draw it without animation
+			draw(0, 0, 0, get_room_width(), get_room_height(), 0.0, {255, 255, 255, 255});
+		} else {
+			const int dt_fps = get_ticks()/engine->fps_goal;
+			int dx = tr.horizontal_speed*dt_fps;
+			int dy = tr.vertical_speed*dt_fps;
+
+			SDL_Rect rect = {tr.x+dx, tr.y+dy, static_cast<int>(width), static_cast<int>(height)};
+
+			if ((tr.is_horizontal_tile)&&(tr.is_vertical_tile)) {
+				const int rh = get_room_height();
+				while (rect.y-rect.h < rh) { // Tile as many horizontal lines as necessary to fill the window to the bottom
+					tile_horizontal(rect); // Tile the background across the row
+					rect.y += rect.h; // Move to the below row
+				}
+				rect.y = tr.y + dy - rect.h; // Reset the row to above the first
+				while (rect.y+rect.h > 0) { // Tile as many horizontal lines as necessary to fill the window to the top
+					tile_horizontal(rect); // Tile the background across the row
+					rect.y -= rect.h; // Move to the above row
+				}
+			} else if (tr.is_horizontal_tile) {
+				tile_horizontal(rect);
+			} else if (tr.is_vertical_tile) {
+				tile_vertical(rect);
+			} else {
+				draw(rect.x, rect.y, 0);
+			}
+		}
+
+		return 0;
+	}
+	int Texture::tile_horizontal(const SDL_Rect& r) {
+		SDL_Rect dest (r);
+		const int rw = get_room_width();
+
+		while (dest.x < rw) { // Continue drawing to the right until the rectangle is past the right side of the window
+			draw(dest.x, dest.y, 0);
+			dest.x += dest.w; // Move the rectangle on right to the next tile
+		}
+
+		dest.x = r.x - dest.w; // Reset the rectangle start
+		while (dest.x + dest.w > 0) { // Continue drawing to the left until the rectangle is past the left side of the window
+			draw(dest.x, dest.y, 0);
+			dest.x -= dest.w; // Move the rectangle on left to the next tile
+		}
+
+		return 0;
+	}
+	int Texture::tile_vertical(const SDL_Rect& r) {
+		SDL_Rect dest (r);
+		const int rh = get_room_height();
+
+		while (dest.y < rh) { // Continue drawing to the bottom until the rectnagle is past the bottom of the window
+			draw(dest.x, dest.y, 0);
+			dest.y += dest.h; // Move the rectangle on down to the next tile
+		}
+
+		dest.y = r.y - dest.h; // Reset the rectangle start
+		while (dest.y + dest.h > 0) { // Continue drawing to the top until the rectangle is past the top of the window
+			draw(dest.x, dest.y, 0);
+			dest.y -= dest.h; // Move the rectangle on up to the next tile
+		}
+
+		return 0;
 	}
 	/*
 	* Texture::set_as_target() - Set the texture as the render target

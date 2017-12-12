@@ -15,11 +15,9 @@ class ObjBee : public bee::Object {
 
 		void create(bee::Instance*);
 		void destroy(bee::Instance*);
-		void step_mid(bee::Instance*);
+		void commandline_input(bee::Instance*, const std::string&);
+		void outside_room(bee::Instance*);
 		void draw(bee::Instance*);
-
-		void update_position(bee::Instance*);
-		void hurt(bee::Instance*, int);
 };
 
-#endif // RES_OBJ_ENEMY_H
+#endif // RES_OBJ_BEE_H

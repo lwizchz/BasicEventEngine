@@ -27,6 +27,17 @@
 #include "../render/rgba.hpp"
 
 namespace bee {
+	struct TextureTransform { // The data struct which is used to pass transform data to the Texture class
+		int x, y; // The coordinates of the desired draw location
+		bool is_horizontal_tile, is_vertical_tile; // Whether the texture should be tiled horizontally and vertically
+		int horizontal_speed, vertical_speed; // The speed with which the texture should move horizontally and vertically in pixels per second
+		bool is_stretched; // Whether the texture should be stretched to the window size, note that stretched textures will not be animated or tiled
+
+		// See bee/resources/texture.cpp for function comments
+		TextureTransform();
+		TextureTransform(int, int, bool, bool, int, int, bool);
+	};
+
 	struct TextureDrawData {
 		GLuint vao;
 		GLuint texture;
@@ -72,6 +83,9 @@ namespace bee {
 			// See bee/resources/texture.cpp for function comments
 			int drawing_begin();
 			int drawing_end();
+
+			int tile_horizontal(const SDL_Rect&);
+			int tile_vertical(const SDL_Rect&);
 		public:
 			// See bee/resources/texture.cpp for function comments
 			Texture();
@@ -124,6 +138,7 @@ namespace bee {
 			int draw_subimage(int, int, unsigned int, int, int, double, RGBA);
 			int draw(int, int, Uint32, int, int, double, RGBA);
 			int draw(int, int, Uint32);
+			int draw_transform(const TextureTransform&);
 			GLuint set_as_target();
 	};
 }

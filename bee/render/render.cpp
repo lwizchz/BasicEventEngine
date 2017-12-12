@@ -56,7 +56,7 @@ namespace bee { namespace render {
 	* @is_lightable: whether to enable lighting
 	*/
 	int set_is_lightable(bool is_lightable) {
-		glUniform1i(internal::program->get_location("is_lightable"), (is_lightable) ? 1 : 0);
+		glUniform1i(get_program()->get_location("is_lightable"), (is_lightable) ? 1 : 0);
 		return 0;
 	}
 
@@ -202,23 +202,23 @@ namespace bee { namespace render {
 			port = glm::vec4(viewport->port.x, viewport->port.y, viewport->port.w, viewport->port.h);
 		}
 
-		glUniformMatrix4fv(internal::program->get_location("view"), 1, GL_FALSE, glm::value_ptr(view));
-		glUniform4fv(internal::program->get_location("port"), 1, glm::value_ptr(port));
-		glUniformMatrix4fv(internal::program->get_location("projection"), 1, GL_FALSE, glm::value_ptr(projection));
+		glUniformMatrix4fv(get_program()->get_location("view"), 1, GL_FALSE, glm::value_ptr(view));
+		glUniform4fv(get_program()->get_location("port"), 1, glm::value_ptr(port));
+		glUniformMatrix4fv(get_program()->get_location("projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
 		return 0;
 	}
 
 	int internal::render_texture(const TextureDrawData& td) {
-		glUniformMatrix4fv(internal::program->get_location("model"), 1, GL_FALSE, glm::value_ptr(td.model));
-		glUniformMatrix4fv(internal::program->get_location("rotation"), 1, GL_FALSE, glm::value_ptr(td.rotation));
-		glUniform4fv(internal::program->get_location("colorize"), 1, glm::value_ptr(td.color));
+		glUniformMatrix4fv(get_program()->get_location("model"), 1, GL_FALSE, glm::value_ptr(td.model));
+		glUniformMatrix4fv(get_program()->get_location("rotation"), 1, GL_FALSE, glm::value_ptr(td.rotation));
+		glUniform4fv(get_program()->get_location("colorize"), 1, glm::value_ptr(td.color));
 
 		// Bind the texture coordinates
-		glEnableVertexAttribArray(internal::program->get_location("v_texcoord"));
+		glEnableVertexAttribArray(get_program()->get_location("v_texcoord"));
 		glBindBuffer(GL_ARRAY_BUFFER, td.buffer);
 		glVertexAttribPointer(
-			internal::program->get_location("v_texcoord"),
+			get_program()->get_location("v_texcoord"),
 			2,
 			GL_FLOAT,
 			GL_FALSE,
@@ -245,7 +245,7 @@ namespace bee { namespace render {
 		for (auto t : internal::textures) {
 			glBindVertexArray(t.second.front().vao); // Bind the VAO for the texture
 
-			glUniform1i(internal::program->get_location("f_texture"), 0);
+			glUniform1i(get_program()->get_location("f_texture"), 0);
 			glBindTexture(GL_TEXTURE_2D, t.second.front().texture);
 
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, t.second.front().ibo);
@@ -257,8 +257,8 @@ namespace bee { namespace render {
 			glBindVertexArray(0); // Unbind the VAO
 		}
 
-		glUniformMatrix4fv(internal::program->get_location("model"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the partial transformation matrix
-		glUniformMatrix4fv(internal::program->get_location("rotation"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the rotation matrix
+		glUniformMatrix4fv(get_program()->get_location("model"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the partial transformation matrix
+		glUniformMatrix4fv(get_program()->get_location("rotation"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the rotation matrix
 
 		internal::textures.clear();
 

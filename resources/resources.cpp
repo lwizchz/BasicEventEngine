@@ -13,59 +13,43 @@
 
 // Define sprites
 bee::Texture* spr_none = nullptr;
-
-bee::Texture* spr_logo = nullptr;
-
-VectorSprite* vs_enemy = nullptr;
-VectorSprite* vs_bee = nullptr;
+bee::Texture* spr_bee = nullptr;
+bee::Texture* spr_dot = nullptr;
 
 // Define backgrounds
-bee::Texture* bk_vortex = nullptr;
+bee::Texture* bk_green = nullptr;
 
 // Define sounds
-bee::Sound* snd_music_main = nullptr;
-
-bee::Sound* snd_shoot = nullptr;
-bee::Sound* snd_super = nullptr;
-bee::Sound* snd_hit = nullptr;
-bee::Sound* snd_gameover = nullptr;
+bee::Sound* snd_chirp = nullptr;
 
 // Define fonts
+bee::Font* font_liberation = nullptr;
 
 // Define paths
+bee::Path* path_bee = nullptr;
 
 // Define timelines
 
 // Define meshes
+bee::Mesh* mesh_monkey = nullptr;
 
 // Define lights
+bee::Light* lt_ambient = nullptr;
+bee::Light* lt_bee = nullptr;
 
-// Define objects
-bee::Object* obj_menu = nullptr;
-
-bee::Object* obj_lattice = nullptr;
-bee::Object* obj_player = nullptr;
-bee::Object* obj_enemy = nullptr;
+// Declare objects
+bee::Object* obj_control = nullptr;
 bee::Object* obj_bee = nullptr;
 
-// Define rooms
-bee::Room* rm_menu = nullptr;
-
-bee::Room* rm_levels = nullptr;
-bee::Room* rm_win = nullptr;
+// Declare rooms
+bee::Room* rm_test = nullptr;
 
 // Include objects
-#include "objects/obj_menu.hpp"
-
-#include "objects/obj_lattice.hpp"
-#include "objects/obj_player.hpp"
-#include "objects/obj_enemy.hpp"
+#include "objects/obj_control.hpp"
 #include "objects/obj_bee.hpp"
 
 // Include rooms
-#include "rooms/rm_menu.hpp"
-#include "rooms/rm_levels.hpp"
-#include "rooms/rm_win.hpp"
+#include "rooms/rm_test.hpp"
 
 /*
 * bee::init_resources() - Initialize all game resources
@@ -76,52 +60,51 @@ int bee::init_resources() {
 		// Init sprites
 		spr_none = new Texture("spr_none", "none.png");
 			spr_none->load();
-
-		spr_logo = new Texture("spr_logo", "menu/logo.png");
-			spr_logo->load();
-
-		vs_enemy = new VectorSprite("resources/sprites/enemy.csv");
-		vs_bee = new VectorSprite("resources/sprites/bee.csv");
+		spr_bee = new Texture("spr_bee", "spr_bee.png");
+			spr_bee->set_subimage_amount(2, 100);
+			spr_bee->set_speed(1.0);
+		spr_dot = new Texture("spr_dot", "spr_dot.png");
 
 		// Init backgrounds
-		bk_vortex = new Texture("bk_vortex", "bk_vortex.png");
-			bk_vortex->load();
+		bk_green = new Texture("bk_green", "bk_green.png");
 
 		// Init sounds
-		snd_music_main = new Sound("snd_music_main", "snd_music_main.wav", false);
-			snd_music_main->load();
-
-		snd_shoot = new Sound("snd_shoot", "snd_shoot.wav", false);
-			snd_shoot->load();
-		snd_super = new Sound("snd_super", "snd_super.wav", false);
-			snd_super->load();
-		snd_hit = new Sound("snd_hit", "snd_hit.wav", false);
-			snd_hit->load();
-		snd_gameover = new Sound("snd_gameover", "snd_gameover.wav", false);
-			snd_gameover->load();
+		snd_chirp = new Sound("snd_chirp", "snd_chirp.wav", false);
 
 		// Init fonts
+		font_liberation = new Font("font_liberation", "liberation_mono.ttf", 24, false);
 
 		// Init paths
+		path_bee = new Path("path_bee", "");
+			path_bee->add_coordinate(0.0, 0.0, 0.0, 1.0);
+			path_bee->add_coordinate(200.0, 400.0, 0.0, 1.0);
+			path_bee->add_coordinate(800.0, 400.0, 0.0, 1.0);
+			path_bee->add_coordinate(500.0, 200.0, 0.0, 1.0);
 
 		// Init timelines
 
 		// Init meshes
+		mesh_monkey = new Mesh("mesh_monkey", "monkey2.obj");
 
 		// Init lights
+		lt_ambient = new Light("lt_ambient", "");
+			//lt_ambient->set_color({255, 255, 255, 192});
+			lt_ambient->set_color({255, 255, 255, 30});
+		lt_bee = new Light("lt_bee", "");
+			lt_bee->set_type(bee::E_LIGHT::POINT);
+			//lt_bee->set_attenuation({2.0, 100.0, 2000.0, 0.0});
+			lt_bee->set_attenuation({2.0, 100.0, 20000.0, 0.0});
+			//lt_bee->set_attenuation({5.0, 1000.0, 40000.0, 0.0});
+			lt_bee->set_color({255, 255, 255, 255});
 
 		// Init objects
-		obj_menu = new ObjMenu();
-
-		obj_lattice = new ObjLattice();
-		obj_player = new ObjPlayer();
-		obj_enemy = new ObjEnemy();
+		obj_control = new ObjControl();
 		obj_bee = new ObjBee();
+			obj_bee->set_is_solid(true);
+			obj_bee->set_sprite(spr_bee);
 
 		// Init rooms
-		rm_menu = new RmMenu();
-		rm_levels = new RmLevels();
-		rm_win = new RmWin();
+		rm_test = new RmTest();
 
 		is_initialized = true; // Set the engine initialization flag
 	} catch (...) {
@@ -137,46 +120,36 @@ int bee::init_resources() {
 */
 int bee::close_resources() {
 	// Destroy sprites
-	DEL(spr_none);
-
-	DEL(spr_logo);
-
-	DEL(vs_enemy);
-	DEL(vs_bee);
+	DEL(spr_bee);
+	DEL(spr_dot);
 
 	// Destroy backgrounds
-	DEL(bk_vortex);
+	DEL(bk_green);
 
 	// Destroy sounds
-	DEL(snd_music_main);
-
-	DEL(snd_shoot);
-	DEL(snd_super);
-	DEL(snd_hit);
-	DEL(snd_gameover);
+	DEL(snd_chirp);
 
 	// Destroy fonts
+	DEL(font_liberation);
 
 	// Destroy paths
+	DEL(path_bee);
 
 	// Destroy timelines
 
 	// Destroy meshes
+	DEL(mesh_monkey);
 
 	// Destroy lights
+	DEL(lt_ambient);
+	DEL(lt_bee);
 
 	// Destroy objects
-	DEL(obj_menu);
-
-	DEL(obj_lattice);
-	DEL(obj_player);
-	DEL(obj_enemy);
+	DEL(obj_control);
 	DEL(obj_bee);
 
 	// Destroy rooms
-	DEL(rm_menu);
-	DEL(rm_levels);
-	DEL(rm_win);
+	DEL(rm_test);
 
 	is_initialized = false; // Unset the engine initialization flag
 

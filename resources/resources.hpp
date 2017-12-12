@@ -12,49 +12,38 @@
 #include "../bee/util.hpp"
 #include "../bee/all.hpp"
 
-#include "extras.hpp"
-
 // Define sprites
 extern bee::Texture* spr_none;
-
-extern bee::Texture* spr_logo;
-
-extern VectorSprite* vs_enemy;
-extern VectorSprite* vs_bee;
+extern bee::Texture* spr_bee;
+extern bee::Texture* spr_dot;
 
 // Define backgrounds
-extern bee::Texture* bk_vortex;
+extern bee::Texture* bk_green;
 
 // Define sounds
-extern bee::Sound* snd_music_main;
-
-extern bee::Sound* snd_shoot;
-extern bee::Sound* snd_super;
-extern bee::Sound* snd_hit;
-extern bee::Sound* snd_gameover;
+extern bee::Sound* snd_chirp;
 
 // Define fonts
+extern bee::Font* font_liberation;
 
 // Define paths
+extern bee::Path* path_bee;
 
 // Define timelines
 
 // Define meshes
+extern bee::Mesh* mesh_monkey;
 
 // Define lights
+extern bee::Light* lt_ambient;
+extern bee::Light* lt_bee;
 
-// Define objects
-extern bee::Object* obj_menu;
-
-extern bee::Object* obj_lattice;
-extern bee::Object* obj_player;
-extern bee::Object* obj_enemy;
+// Declare objects
+extern bee::Object* obj_control;
 extern bee::Object* obj_bee;
 
-// Define rooms
-extern bee::Room* rm_menu;
-extern bee::Room* rm_levels;
-extern bee::Room* rm_win;
+// Declare rooms
+extern bee::Room* rm_test;
 
 namespace bee {
 	int init_resources();

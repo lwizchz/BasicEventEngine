@@ -165,8 +165,6 @@ namespace bee{ namespace console {
 
 		init_commands();
 
-		//run("exec \"config.cfg\"", true, 0); // Configure default binds
-
 		return 0; // Return 0 on success
 	}
 	/*

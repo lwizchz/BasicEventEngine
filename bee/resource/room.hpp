@@ -22,6 +22,7 @@
 
 #include "../render/rgba.hpp"
 
+#include "texture.hpp"
 #include "light.hpp"
 
 namespace bee {
@@ -32,8 +33,6 @@ namespace bee {
 	class Particle;
 	class ParticleSystem;
 
-	class Texture;
-
 	struct NetworkEvent;
 
 	// Declare a function to flip <int,Instance*> to <Instance*,int> for use with instances_sorted
@@ -42,15 +41,12 @@ namespace bee {
 	}
 
 	struct BackgroundData { // The data struct which is used to pass data to the Room class
-		Texture* background; // A pointer to the background to use this data with
+		Texture* texture; // A pointer to the texture to use this data with
 		bool is_visible; // Whether to draw the background
 		bool is_foreground; // Whether to draw the texture above or below the other sprites
-		int x, y; // The coordinates of the desired draw location
-		bool is_horizontal_tile, is_vertical_tile; // Whether the texture should be tiled horizontally and vertically
-		int horizontal_speed, vertical_speed; // The speed with which the texture should move horizontally and vertically in pixels per second
-		bool is_stretched; // Whether the texture should be stretched to the window size, note that stretched textures will not be animated or tiled
+		TextureTransform transform; // The data to transform the texture with
 
-		// See bee/resources/background.cpp for function comments
+		// See bee/resources/room.cpp for function comments
 		BackgroundData();
 		BackgroundData(Texture*, bool, bool, int, int, bool, bool, int, int, bool);
 	};
@@ -155,6 +151,7 @@ namespace bee {
 			int add_light(LightData);
 			int handle_lights();
 			int reset_lights();
+			int clear_lights();
 
 			int reset_properties();
 			int transfer_instances(const Room*);
