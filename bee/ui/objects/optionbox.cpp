@@ -52,7 +52,7 @@ void ObjUIOptionBox::draw(bee::Instance* self) {
 		return;
 	}
 
-	bee::set_is_lightable(false);
+	bee::render::set_is_lightable(false);
 
 	if (_i("adaptive_height")) {
 		(*s)["h"] = static_cast<int>(_v("options").size() * _i("option_height"));
@@ -66,7 +66,7 @@ void ObjUIOptionBox::draw(bee::Instance* self) {
 	c_highlight.add_value(-0.20f);
 
 	int ox = 0, oy = 0;
-	bee::ViewData* v = bee::get_current_room()->get_current_view();
+	bee::ViewPort* v = bee::get_current_room()->get_current_view();
 	if (v != nullptr) {
 		ox = v->view.x;
 		oy = v->view.y;
@@ -96,9 +96,9 @@ void ObjUIOptionBox::draw(bee::Instance* self) {
 				);
 			}
 		} else if (_i("type") == 1) {
-			bee::draw_circle(self->get_corner_x() + 24 - ox, self->get_corner_y() + i*_i("option_height") + 16 - oy, 8, 1, c_border);
+			bee::draw_circle(glm::vec3(self->get_corner_x() + 24 - ox, self->get_corner_y() + i*_i("option_height") + 16 - oy, 0), 8, 1, c_border);
 			if (_ci("option_state", i)) {
-				bee::draw_circle(self->get_corner_x() + 24 - ox, self->get_corner_y() + i*_i("option_height") + 16 - oy, 6, -1, c_border);
+				bee::draw_circle(glm::vec3(self->get_corner_x() + 24 - ox, self->get_corner_y() + i*_i("option_height") + 16 - oy, 0), 6, -1, c_border);
 			}
 		}
 
@@ -109,7 +109,7 @@ void ObjUIOptionBox::draw(bee::Instance* self) {
 		++i;
 	}
 
-	bee::set_is_lightable(true);
+	bee::render::set_is_lightable(true);
 }
 
 void ObjUIOptionBox::set_type(bee::Instance* self, int new_type) {

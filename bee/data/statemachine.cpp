@@ -6,8 +6,8 @@
 * See LICENSE for more details.
 */
 
-#ifndef BEE_CORE_STATEMACHINE
-#define BEE_CORE_STATEMACHINE 1
+#ifndef BEE_DATA_STATEMACHINE
+#define BEE_DATA_STATEMACHINE 1
 
 #include <algorithm>
 
@@ -121,7 +121,7 @@ namespace bee {
 
 		return states;
 	}
-	bool StateMachine::get_has_state(const std::string& name) const {
+	bool StateMachine::has_state(const std::string& name) const {
 		for (auto& s : stack) {
 			if (s == name) {
 				return true;
@@ -194,4 +194,4 @@ namespace bee {
 	}
 }
 
-#endif // BEE_CORE_STATEMACHINE
+#endif // BEE_DATA_STATEMACHINE

@@ -22,9 +22,9 @@
 #include "rooms.hpp"
 
 #include "../render/renderer.hpp"
-#include "../render/viewdata.hpp"
+#include "../render/viewport.hpp"
 
-#include "../resource/sprite.hpp"
+#include "../resource/texture.hpp"
 #include "../resource/object.hpp"
 #include "../resource/room.hpp"
 
@@ -57,11 +57,7 @@ namespace bee {
 		int mx, my;
 		std::tie(mx, my) = get_mouse_global_position(); // Fetch the global coordinates into (mx, my)
 
-		if (!get_current_room()->get_is_views_enabled()) { // If views are disabled, simply return the coordinates relative to the window
-			return std::make_pair(mx, my); // Return the pair on success
-		}
-
-		ViewData* v = get_current_room()->get_current_view(); // Get the current view
+		ViewPort* v = get_current_room()->get_current_view(); // Get the current view
 		if ((v == nullptr)&&(get_current_room()->get_views().size() > 0)) { // If this function is called outside of view drawing then simply use the first view
 			v = get_current_room()->get_views().front();
 		}
@@ -115,7 +111,7 @@ namespace bee {
 	* @instance: the instance to check a collision for
 	*/
 	bool is_mouse_inside(const Instance& instance) {
-		Sprite* m = instance.get_object()->get_mask();
+		Texture* m = instance.get_object()->get_mask();
 		if (m == nullptr) {
 			return false;
 		}
@@ -123,6 +119,19 @@ namespace bee {
 		SDL_Rect inst = {static_cast<int>(instance.get_x()), static_cast<int>(instance.get_y()), m->get_width(), m->get_height()}; // Create a bounding box based on the instance's mask
 		SDL_Rect mouse = {get_mouse_x(), get_mouse_y(), 0, 0};
 		return check_collision(inst, mouse); // Return whether the instance collides with the mouse
+	}
+
+	/*
+	* set_mouse_is_visible() - Change the cursor visibility
+	* @should_show: whether to make the cursor visible or not
+	*/
+	int set_mouse_is_visible(bool should_show) {
+		if (should_show) {
+			SDL_ShowCursor(SDL_ENABLE);
+		} else {
+			SDL_ShowCursor(SDL_DISABLE);
+		}
+		return 0;
 	}
 
 	/*
@@ -997,7 +1006,7 @@ namespace bee {
 	*/
 	std::string keystrings_get_name(SDL_Keycode key) {
 		std::string keystring = keystrings_get_string(key);
-		return string_title(string_replace(keystring.substr(5), "_", " "));
+		return string_upper(string_replace(keystring.substr(5), "_", " "));
 	}
 }
 

@@ -50,9 +50,7 @@ namespace bee {
 		name(),
 		path(),
 
-		lighting(),
-
-		has_drawn_sdl(false)
+		lighting()
 	{}
 	/*
 	* Light::Light() - Construct the light, add it to the light resource list, and set the new name and path
@@ -115,8 +113,6 @@ namespace bee {
 		lighting.position = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 		lighting.direction = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 		lighting.color = {255, 255, 255, 255};
-
-		has_drawn_sdl = false;
 
 		return 0; // Return 0 on success
 	}
@@ -228,13 +224,6 @@ namespace bee {
 	int Light::queue() {
 		if (get_options().is_headless) {
 			return 1; // Return 1 when in headless mode
-		}
-
-		if (get_options().renderer_type == E_RENDERER::SDL) { // If the SDL rendering is being used, output a warning
-			if (!has_drawn_sdl) { // If the SDL draw call hasn't been called before, output a warning
-				messenger::send({"engine", "light"}, E_MESSAGE::WARNING, "Lighting is not fully supported in SDL mode");
-				has_drawn_sdl = true; // Set the SDL drawing boolean
-			}
 		}
 
 		get_current_room()->add_light(lighting); // Add the light to the Room lighting queue

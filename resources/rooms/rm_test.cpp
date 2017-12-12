@@ -6,34 +6,18 @@
 * See LICENSE for more details.
 */
 
-#ifndef RES_ROOM_TEST_H
-#define RES_ROOM_TEST_H 1
+#ifndef RES_ROOM_TEST
+#define RES_ROOM_TEST 1
 
-class RmTest: public bee::Room {
-	public:
-		bee::ViewData vw_main = bee::ViewData(
-			true,
-			{0, 0, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT},
-			{100, 100, 1800, 600},
-			nullptr,
-			50, 50,
-			0, 0
-		);
+#include "../resources.hpp"
 
-		RmTest();
-		void init();
-};
-RmTest::RmTest() : Room("RmTest", "test.hpp") {}
+#include "rm_test.hpp"
+
+RmTest::RmTest() : Room("RmTest", "rm_test.hpp") {}
 void RmTest::init() {
 	Room::init();
 
 	// Set room properties
-	/*set_width(3000);
-	set_height(500);
-
-	set_view(0, &vw_main);
-	set_is_views_enabled(true);*/
-
 	set_width(1920);
 	set_height(1080);
 
@@ -46,7 +30,7 @@ void RmTest::init() {
 
 	// Set up instances
 	if (get_instance_map().empty()) {
-		set_instance_map("resources/rooms/test.csv");
+		set_instance_map("resources/rooms/rm_test.csv");
 	}
 	load_instance_map();
 
@@ -65,4 +49,4 @@ void RmTest::init() {
 	bee::loader::clear();
 }
 
-#endif // RES_ROOM_TEST_H
+#endif // RES_ROOM_TEST

@@ -84,14 +84,14 @@ void ObjUITextEntry::draw(bee::Instance* self) {
 		return;
 	}
 
-	bee::set_is_lightable(false);
+	bee::render::set_is_lightable(false);
 
 	bee::Font* font = bee::engine->font_default;
-	bee::RGBA c_text = bee::get_enum_color(bee::E_RGB::BLACK);
+	bee::RGBA c_text (bee::E_RGB::BLACK);
 	bee::RGBA c_back = {_i("color_r"), _i("color_g"), _i("color_b"), _i("color_a")};
 
 	int ox = 0, oy = 0;
-	bee::ViewData* v = bee::get_current_room()->get_current_view();
+	bee::ViewPort* v = bee::get_current_room()->get_current_view();
 	if (v != nullptr) {
 		ox = v->view.x;
 		oy = v->view.y;
@@ -134,7 +134,7 @@ void ObjUITextEntry::draw(bee::Instance* self) {
 		}
 	}
 
-	bee::set_is_lightable(true);
+	bee::render::set_is_lightable(true);
 }
 
 void ObjUITextEntry::reset(bee::Instance* self) {

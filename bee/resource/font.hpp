@@ -20,21 +20,21 @@
 
 namespace bee {
 	// Forward declaration
-	class Sprite;
+	class Texture;
 
 	struct TextData { // The data struct which is used to pass reusable texture data to Font::draw()
-		std::map<int,Sprite*> sprites; // A map of temporary pre-rendered sprites for each line of the text
+		std::map<int,Texture*> textures; // A map of temporary pre-rendered textures for each line of the text
 		std::string text; // The string of text that has been rendered
 
 		// See bee/resources/font.cpp for function comments
 		TextData();
-		TextData(Sprite*, const std::string&);
+		TextData(Texture*, const std::string&);
 		~TextData();
 
-		Sprite* pop_front();
+		Texture* pop_front();
 	};
 
-	class Font: public Resource { // The font class is used to render all text as sprites
+	class Font: public Resource { // The font class is used to render all text as textures
 			static std::map<int,Font*> list;
 			static int next_id;
 
@@ -49,7 +49,7 @@ namespace bee {
 			bool is_loaded; // Whether the font file was successfully loaded
 			bool has_draw_failed; // Whether the draw function has previously failed, this prevents continuous writes to
 
-			Sprite* sprite_font; // The optional internal sprite font used for rendering
+			Texture* sprite_font; // The optional internal sprite font used for rendering
 			bool is_sprite; // Whether the font is a sprite font
 		public:
 			// See bee/resources/font.cpp for function comments

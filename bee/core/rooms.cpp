@@ -33,8 +33,8 @@
 #include "../render/camera.hpp"
 #include "../render/render.hpp"
 #include "../render/renderer.hpp"
+#include "../render/shader.hpp"
 #include "../render/transition.hpp"
-#include "../render/viewdata.hpp"
 
 #include "../resource/room.hpp"
 
@@ -60,10 +60,10 @@ namespace bee {
 		bool is_game_start = false;
 		if (engine->current_room != nullptr) { // if we are currently in a room
 			if (engine->transition_type != E_TRANSITION::NONE) { // If a transition has been defined then draw the current room into the before buffer
-				set_render_target(engine->texture_before);
-				engine->renderer->render_clear();
+				render::set_target(engine->texture_before);
+				render::clear();
 				engine->current_room->draw();
-				engine->renderer->render();
+				render::render();
 			}
 			if (new_room != nullptr) {
 				engine->current_room->room_end(); // Run the room_end event for the current room
@@ -71,22 +71,20 @@ namespace bee {
 			}
 		} else { // if we are not in a room
 			if (engine->transition_type != E_TRANSITION::NONE) { // If a transition has been defined then draw nothing into the before buffer
-				set_render_target(engine->texture_before);
-				engine->renderer->render_clear();
-				engine->renderer->render();
+				render::set_target(engine->texture_before);
+				render::clear();
+				render::render();
 			}
 			is_game_start = true;
 			engine->first_room = new_room; // Set the new room as the first room
 		}
 
-		sound_stop_loops(); // Stop all looping sounds from the previous room
-
 		if (new_room == nullptr) { // If we're transitioning to a null room, i.e. the game is ending
 			if (engine->transition_type != E_TRANSITION::NONE) { // If a transition has been defined then prepare for drawing an empty room into the after buffer
-				set_render_target(engine->texture_after);
-				engine->renderer->render_clear();
-				engine->renderer->render();
-				reset_render_target();
+				render::set_target(engine->texture_after);
+				render::clear();
+				render::render();
+				render::reset_target();
 				draw_transition(); // Animate the defined transition from the before and after buffers
 			}
 			engine->current_room->reset_properties(); // Reset the current room's properties
@@ -102,16 +100,16 @@ namespace bee {
 		engine->current_room->transfer_instances(old_room); // Transfer the persistent instance from the previous room
 		engine->current_room->init(); // Initialize the room
 
-		set_window_title(engine->current_room->get_name()); // Set the window title to the room's name
+		//set_window_title(engine->current_room->get_name()); // Set the window title to the room's name
 		messenger::send({"engine", "room"}, E_MESSAGE::INFO, "Changed to room \"" + engine->current_room->get_name() + "\"");
 
 		if (engine->transition_type != E_TRANSITION::NONE) { // If a transition has been defined then prepare for drawing the new room into the after buffer
-			set_render_target(engine->texture_after);
+			render::set_target(engine->texture_after);
 		} else { // Otherwise reset the render target just to be sure
-			reset_render_target();
+			render::reset_target();
 		}
 		if (!get_options().is_headless) {
-			engine->renderer->render_clear();
+			render::clear();
 		}
 
 		engine->is_ready = true; // Set the event loop as running
@@ -127,8 +125,8 @@ namespace bee {
 		}
 
 		if ((engine->transition_type != E_TRANSITION::NONE)&&(!get_options().is_headless)) { // If a transition has been defined then finish drawing the new room into the after buffer
-			engine->renderer->render();
-			reset_render_target();
+			render::render();
+			render::reset_target();
 			draw_transition(); // Animate the defined transition from the before and after buffers
 		}
 
@@ -206,46 +204,6 @@ namespace bee {
 	bool is_on_screen(const SDL_Rect& rect) {
 		SDL_Rect screen = {0, 0, get_room_width(), get_room_height()}; // Initialize a rectangle for the window dimensions
 		return check_collision(rect, screen); // Return whether the given rectangle collides with the screen's rectangle
-	}
-
-	/*
-	* set_viewport() - Set the new drawing viewport within the window
-	* ! See https://wiki.libsdl.org/SDL_RenderSetViewport for details
-	* @viewport: the rectangle defining the desired viewport
-	*/
-	int set_viewport(ViewData* viewport) {
-		if (get_options().renderer_type != E_RENDERER::SDL) {
-			glm::mat4 view, projection;
-			glm::vec4 port;
-
-			if (viewport == nullptr) { // If the viewport is not defined then set the drawing area to the entire screen
-				view = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-				port = glm::vec4(0.0f, 0.0f, get_room_width(), get_room_height());
-				projection = render_get_projection();
-			} else { // If the viewport is defined then use it
-				view = glm::translate(glm::mat4(1.0f), glm::vec3(viewport->view.x, viewport->view.y, 0.0f));
-				port = glm::vec4(viewport->port.x, viewport->port.y, viewport->port.w, viewport->port.h);
-				render_set_camera(new Camera(
-					static_cast<float>(viewport->view.w),
-					static_cast<float>(viewport->view.h)
-				));
-				projection = render_get_projection();
-			}
-
-			glUniformMatrix4fv(engine->renderer->view_location, 1, GL_FALSE, glm::value_ptr(view));
-			glUniform4fv(engine->renderer->port_location, 1, glm::value_ptr(port));
-			glUniformMatrix4fv(engine->renderer->projection_location, 1, GL_FALSE, glm::value_ptr(projection));
-
-			return 0;
-		} else {
-			SDL_Rect v;
-			if (viewport == nullptr) { // If the viewport is not defined then set the drawing area to the entire screen
-				v = {0, 0, get_width(), get_height()};
-			} else { // If the viewport is defined then use it
-				v = viewport->port;
-			}
-			return SDL_RenderSetViewport(engine->renderer->sdl_renderer, &v);
-		}
 	}
 
 	/*

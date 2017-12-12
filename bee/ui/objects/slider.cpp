@@ -83,7 +83,7 @@ void ObjUISlider::draw(bee::Instance* self) {
 		return;
 	}
 
-	bee::set_is_lightable(false);
+	bee::render::set_is_lightable(false);
 
 	int w = _i("w");
 	int h = _i("h");
@@ -92,7 +92,7 @@ void ObjUISlider::draw(bee::Instance* self) {
 	bee::RGBA c_slider = {_i("color_r"), _i("color_g"), _i("color_b"), _i("color_a")};
 
 	int ox = 0, oy = 0;
-	bee::ViewData* v = bee::get_current_room()->get_current_view();
+	bee::ViewPort* v = bee::get_current_room()->get_current_view();
 	if (v != nullptr) {
 		ox = v->view.x;
 		oy = v->view.y;
@@ -102,7 +102,7 @@ void ObjUISlider::draw(bee::Instance* self) {
 
 	int slider_size = _i("slider_size");
 	int slider_x = self->get_corner_x() + w * _i("value") / _i("range") - slider_size/2;
-	bee::draw_circle(slider_x + slider_size/2 - ox, self->get_corner_y() + h/2 - oy, slider_size/2, -1, c_slider);
+	bee::draw_circle(glm::vec3(slider_x + slider_size/2 - ox, self->get_corner_y() + h/2 - oy, 0), slider_size/2, -1, c_slider);
 
 	if (_i("show_text")) {
 		bee::Font* font = bee::engine->font_default;
@@ -111,7 +111,7 @@ void ObjUISlider::draw(bee::Instance* self) {
 		font->draw_fast(slider_x + slider_size/2 - 8 - ox, self->get_corner_y() - h/3 - oy, bee_itos(_i("value")));
 	}
 
-	bee::set_is_lightable(true);
+	bee::render::set_is_lightable(true);
 }
 
 int ObjUISlider::get_range(bee::Instance* self) {

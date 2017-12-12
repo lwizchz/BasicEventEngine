@@ -22,6 +22,7 @@
 namespace bee {
 	// Forward declaration
 	struct Camera;
+	class ShaderProgram;
 
 	class Renderer {
 		public:
@@ -32,41 +33,7 @@ namespace bee {
 			// This is the OpenGL renderer context
 			SDL_GLContext context;
 
-			// The following GLint's are all uniforms in the OpenGL shaders
-			GLuint program; // This is the location of the OpenGL program (where the shaders are compiled)
-			GLint vertex_location;
-			GLint normal_location;
-			GLint fragment_location;
-			GLuint target;
-
-			GLint projection_location;
-			GLint view_location;
-			GLint model_location;
-			GLint port_location;
-
-			GLint rotation_location;
-
-			GLint texture_location;
-			GLint colorize_location;
-			GLint primitive_location;
-			GLint flip_location;
-
-			GLint is_lightable_location;
-			GLint light_amount_location;
-			struct {
-				GLint type;
-				GLint position;
-				GLint direction;
-				GLint attenuation;
-				GLint color;
-			} lighting_location[BEE_MAX_LIGHTS];
-
-			GLint lightable_amount_location;
-			struct {
-				GLint position;
-				GLint vertex_amount;
-				GLint mask[BEE_MAX_MASK_VERTICES];
-			} lightable_location[BEE_MAX_LIGHTABLES];
+			ShaderProgram* program;
 
 			bool render_is_3d;
 			Camera* render_camera;
@@ -82,13 +49,10 @@ namespace bee {
 
 			int opengl_init();
 			int opengl_close();
-			std::string opengl_prepend_version(const std::string&);
 			int sdl_renderer_init();
 			int sdl_renderer_close();
 
-			int render_clear();
-			int render() const;
-			int render_reset();
+			int reset();
 	};
 }
 

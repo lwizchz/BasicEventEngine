@@ -17,7 +17,7 @@
 
 #include "../messenger/messagecontents.hpp"
 
-#include "sidp.hpp"
+#include "../data/sidp.hpp"
 
 namespace bee{
 	// Forward declaration
@@ -39,7 +39,8 @@ namespace console {
 		int run_internal(const std::string&, bool, Uint32);
 		int run(const std::string&, bool, Uint32);
 		std::vector<SIDP> complete(Instance*, const std::string&);
-		std::vector<SIDP> parse_parameters(const std::string&);
+		std::vector<SIDP> parse_parameters(const std::string&, bool);
+		std::string replace_vars(const std::string&);
 		int draw();
 	}
 
@@ -54,6 +55,7 @@ namespace console {
 	int bind(SDL_Keycode, KeyBind);
 	int add_keybind(SDL_Keycode, KeyBind, std::function<void (const MessageContents&)>);
 	KeyBind get_keybind(SDL_Keycode);
+	SDL_Keycode get_keycode(const std::string&);
 	int unbind(SDL_Keycode);
 	int unbind(KeyBind, bool);
 	int unbind_all();
@@ -66,6 +68,7 @@ namespace console {
 
 	int run(const std::string&);
 	std::string get_help(const std::string&);
+	int log(E_MESSAGE, const std::string&);
 }}
 
 #endif // BEE_CORE_CONSOLE_H

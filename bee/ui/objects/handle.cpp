@@ -69,22 +69,16 @@ void ObjUIHandle::mouse_input(bee::Instance* self, SDL_Event* e) {
 	}
 
 	if ((e->type == SDL_MOUSEMOTION)&&(e->motion.state & SDL_BUTTON_LMASK)) {
-		SDL_Rect a = self->get_aabb();
-		a.w = _i("w");
-		a.h = _i("h");
-		SDL_Rect b = {e->button.x-10, e->button.y-10, 2, 2};
-		if (check_collision(a, b)) {
-			int new_x = e->button.x + _i("mouse_xoffset");
-			int new_y = e->button.y + _i("mouse_yoffset");
+		int new_x = e->button.x + _i("mouse_xoffset");
+		int new_y = e->button.y + _i("mouse_yoffset");
 
-			self->set_corner_x(new_x);
-			self->set_corner_y(new_y);
+		self->set_corner_x(new_x);
+		self->set_corner_y(new_y);
 
-			bee::Instance* parent_inst = static_cast<bee::Instance*>(_p("parent"));
-			if (parent_inst != nullptr) {
-				parent_inst->set_corner_x(new_x + _i("parent_xoffset"));
-				parent_inst->set_corner_y(new_y + _i("parent_yoffset"));
-			}
+		bee::Instance* parent_inst = static_cast<bee::Instance*>(_p("parent"));
+		if (parent_inst != nullptr) {
+			parent_inst->set_corner_x(new_x + _i("parent_xoffset"));
+			parent_inst->set_corner_y(new_y + _i("parent_yoffset"));
 		}
 	}
 }
@@ -101,7 +95,7 @@ void ObjUIHandle::draw(bee::Instance* self) {
 		return;
 	}
 
-	bee::set_is_lightable(false);
+	bee::render::set_is_lightable(false);
 
 	bee::RGBA c_back = {_i("color_r"), _i("color_g"), _i("color_b"), _i("color_a")};
 	bee::RGBA c_stripe = {255, 255, 255, 255};
@@ -110,7 +104,7 @@ void ObjUIHandle::draw(bee::Instance* self) {
 	}
 
 	int ox = 0, oy = 0;
-	bee::ViewData* v = bee::get_current_room()->get_current_view();
+	bee::ViewPort* v = bee::get_current_room()->get_current_view();
 	if (v != nullptr) {
 		ox = v->view.x;
 		oy = v->view.y;
@@ -130,7 +124,7 @@ void ObjUIHandle::draw(bee::Instance* self) {
 		);
 	}
 
-	bee::set_is_lightable(true);
+	bee::render::set_is_lightable(true);
 }
 
 void ObjUIHandle::bind(bee::Instance* self, bee::Instance* parent_inst) {

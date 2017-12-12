@@ -6,8 +6,8 @@
 * See LICENSE for more details.
 */
 
-#ifndef BEE_CORE_STATEMACHINE_H
-#define BEE_CORE_STATEMACHINE_H 1
+#ifndef BEE_DATA_STATEMACHINE_H
+#define BEE_DATA_STATEMACHINE_H 1
 
 #include <functional>
 #include <deque>
@@ -50,7 +50,7 @@ namespace bee {
 			std::string get_state() const;
 			std::string get_state(int) const;
 			std::string get_states() const;
-			bool get_has_state(const std::string&) const;
+			bool has_state(const std::string&) const;
 
 			int push_state(const std::string&);
 			int pop_state();
@@ -63,4 +63,4 @@ namespace bee {
 	};
 }
 
-#endif // BEE_CORE_STATEMACHINE_H
+#endif // BEE_DATA_STATEMACHINE_H

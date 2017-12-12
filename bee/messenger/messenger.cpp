@@ -12,6 +12,7 @@
 #include <iostream>
 #include <algorithm>
 #include <fstream>
+#include <sstream>
 #include <set>
 
 #include "messenger.hpp"
@@ -26,8 +27,6 @@
 
 #include "messagerecipient.hpp"
 #include "messagecontents.hpp"
-
-#include "../core/enginestate.hpp"
 
 #include "../util/files.hpp"
 #include "../util/windefine.hpp"
@@ -88,7 +87,7 @@ namespace bee { namespace messenger{
 			return 2; // Return 2 when the message got filtered
 		}
 
-		if ((get_options().is_headless)&&(!get_options().is_debug_enabled)) {
+		if ((engine != nullptr)&&((get_options().is_headless)&&(!get_options().is_debug_enabled))) {
 			std::stringstream h; // Combine the message metadata
 			h << msg.tickstamp << "ms> ";
 
@@ -631,7 +630,7 @@ namespace bee { namespace messenger{
 
 		// Print message descriptions
 		for (auto& msg : messages) { // Iterate over the messages
-			if (t < msg.tickstamp) { // If the message should be processed in the future, skip it
+			if ((t < msg.tickstamp)&&(engine != nullptr)) { // If the message should be processed in the future, skip it
 				continue;
 			}
 
@@ -641,7 +640,7 @@ namespace bee { namespace messenger{
 		// Process messages with recipient functions
 		std::exception_ptr ep = nullptr; // Store any thrown values
 		for (auto& msg : messages) { // Iterate over the messages
-			if (t < msg.tickstamp) { // If the message should be processed in the future, skip it
+			if ((t < msg.tickstamp)&&(engine != nullptr)) { // If the message should be processed in the future, skip it
 				internal::messages.push_back(msg); // Append it to the new message list
 				continue;
 			}

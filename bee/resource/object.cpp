@@ -25,7 +25,7 @@
 
 #include "../network/network.hpp"
 
-#include "sprite.hpp"
+#include "texture.hpp"
 
 namespace bee {
 	std::map<int,Object*> Object::list;
@@ -192,11 +192,8 @@ namespace bee {
 	std::string Object::get_path() const {
 		return path;
 	}
-	Sprite* Object::get_sprite() const {
+	Texture* Object::get_sprite() const {
 		return sprite;
-	}
-	int Object::get_sprite_id() const {
-		return sprite->get_id();
 	}
 	bool Object::get_is_solid() const {
 		return is_solid;
@@ -213,14 +210,8 @@ namespace bee {
 	Object* Object::get_parent() const {
 		return parent;
 	}
-	int Object::get_parent_id() const {
-		return parent->get_id();
-	}
-	Sprite* Object::get_mask() const {
+	Texture* Object::get_mask() const {
 		return mask;
-	}
-	int Object::get_mask_id() const {
-		return mask->get_id();
 	}
 	std::pair<int,int> Object::get_mask_offset() const {
 		return std::make_pair(xoffset, yoffset);
@@ -240,7 +231,7 @@ namespace bee {
 		path = "resources/objects/"+new_path; // Append the path to the object directory
 		return 0;
 	}
-	int Object::set_sprite(Sprite* new_sprite) {
+	int Object::set_sprite(Texture* new_sprite) {
 		sprite = new_sprite;
 		if (mask == nullptr) { // If there is no mask, set it to the new sprite
 			mask = new_sprite;
@@ -272,7 +263,7 @@ namespace bee {
 		parent = new_parent;
 		return 0;
 	}
-	int Object::set_mask(Sprite* new_mask) {
+	int Object::set_mask(Texture* new_mask) {
 		mask = new_mask;
 		return 0;
 	}

@@ -31,7 +31,7 @@
 #include "../render/renderer.hpp"
 #include "../render/rgba.hpp"
 
-#include "../resource/sprite.hpp"
+#include "../resource/texture.hpp"
 #include "../resource/font.hpp"
 #include "../resource/room.hpp"
 

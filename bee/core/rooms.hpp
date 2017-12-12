@@ -12,7 +12,6 @@
 namespace bee {
 	// Forward declarations
 	class Room;
-	struct ViewData;
 
 	void restart_room();
 	int change_room(Room*, bool);
@@ -26,8 +25,6 @@ namespace bee {
 	int get_room_width();
 	int get_room_height();
 	bool is_on_screen(const SDL_Rect&);
-
-	int set_viewport(ViewData*);
 
 	bool set_is_paused(bool);
 	bool get_is_paused();

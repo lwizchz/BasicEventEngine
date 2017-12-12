@@ -18,7 +18,7 @@
 namespace bee {
 	// Forward declarations
 	class Instance;
-	struct SpriteDrawData;
+	struct TextureDrawData;
 
 	class Particle;
 	class ParticleData;
@@ -38,10 +38,6 @@ namespace bee {
 			std::vector<ParticleDestroyer*> destroyers;
 			std::vector<ParticleDeflector*> deflectors;
 			std::vector<ParticleChanger*> changers;
-
-			std::map<Particle*,std::list<SpriteDrawData*>> draw_data;
-
-			int clear_draw_data();
 		public:
 			bool is_oldfirst;
 			int depth;

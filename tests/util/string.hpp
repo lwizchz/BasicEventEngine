@@ -27,6 +27,8 @@ TEST_CASE("string/charcode") {
 TEST_CASE("string/alteration") {
 	REQUIRE(string_lower("ABC") == "abc");
 	REQUIRE(string_upper("abc") == "ABC");
+	REQUIRE(string_title("abc") == "Abc");
+	REQUIRE(string_title("abc def") == "Abc Def");
 	REQUIRE(string_letters("ABC123,./") == "ABC");
 	REQUIRE(string_digits("ABC123,./") == "123");
 	REQUIRE(string_lettersdigits("ABC123,./") == "ABC123");

@@ -23,85 +23,13 @@
 #include "../core/enginestate.hpp"
 #include "../core/window.hpp"
 
+#include "../render/render.hpp"
 #include "../render/renderer.hpp"
 
-#include "../resource/sprite.hpp"
-#include "../resource/background.hpp"
+#include "../resource/texture.hpp"
 #include "../resource/room.hpp"
 
 namespace bee {
-	/*
-	* reset_render_target() - Set the rendering target back to the screen
-	* ! See https://wiki.libsdl.org/SDL_SetRenderTarget for details
-	*/
-	int reset_render_target() {
-		if (get_options().is_headless) {
-			return 1; // Return 1 when in headless mode
-		}
-
-		if (get_options().renderer_type != E_RENDERER::SDL) {
-			glBindFramebuffer(GL_FRAMEBUFFER, 0); // Reset the bound framebuffer
-			engine->renderer->target = 0; // Reset the target
-		} else {
-			SDL_SetRenderTarget(engine->renderer->sdl_renderer, nullptr); // Reset the SDL render target
-		}
-
-		return 0;
-	}
-	/*
-	* set_render_target() - Set the given sprite as the render target with the given width and height
-	* @sprite_target: the sprite to use as the render target
-	* @w: the width to use
-	* @h: the height to use
-	*/
-	int set_render_target(Sprite* sprite_target, int w, int h) {
-		if (get_options().is_headless) {
-			return 1; // Return 1 when in headless mode
-		}
-
-		if (sprite_target == nullptr) { // If the given target is nullptr then reset the render target
-			reset_render_target();
-		} else {
-			engine->renderer->target = sprite_target->set_as_target(w, h);
-		}
-
-		return 0;
-	}
-	/*
-	* set_render_target() - Set the given sprite as the render target
-	* ! When the function is called without a width and height, simply call the function again using the width and height of the window
-	* @sprite_target: the sprite to use as the render target
-	*/
-	int set_render_target(Sprite* sprite_target) {
-		return set_render_target(sprite_target, get_width(), get_height());
-	}
-	/*
-	* set_render_target() - Set the given background as the render target with the given width and height
-	* @background_target: the background to use as the render target
-	* @w: the width to use
-	* @h: the height to use
-	*/
-	int set_render_target(Background* background_target, int w, int h) {
-		if (get_options().is_headless) {
-			return 1; // Return 1 when in headless mode
-		}
-
-		if (background_target == nullptr) { // If the given target is nullptr then reset the render target
-			reset_render_target();
-		} else {
-			engine->renderer->target = background_target->set_as_target(w, h);
-		}
-
-		return 0;
-	}
-	/*
-	* set_render_target() - Set the given background as the render target
-	* ! When the function is called without a width and height, simply call the function again using the width and height of the window
-	*/
-	int set_render_target(Background* background_target) {
-		return set_render_target(background_target, get_width(), get_height());
-	}
-
 	/*
 	* get_transition_type() - Return the transition type for draw_transition()
 	*/
@@ -120,7 +48,7 @@ namespace bee {
 	* set_transition_custom() - Set the transition type to a custom function for draw_transition()
 	* @custom_func: the new custom transition type to use
 	*/
-	int set_transition_custom(std::function<void (Sprite*, Sprite*)> custom_func) {
+	int set_transition_custom(std::function<void (Texture*, Texture*)> custom_func) {
 		engine->transition_custom_func = custom_func; // Set the new custom function
 		engine->transition_type = E_TRANSITION::CUSTOM;
 		return 0; // Return 0 on success
@@ -147,11 +75,6 @@ namespace bee {
 			return 1; // Return 1 when in headless mode
 		}
 
-		SDL_RendererFlip f = SDL_FLIP_NONE;
-		if (get_options().renderer_type != E_RENDERER::SDL) {
-			f = SDL_FLIP_VERTICAL;
-		}
-
 		switch (engine->transition_type) {
 			case E_TRANSITION::NONE: { // No transition
 				break;
@@ -162,11 +85,11 @@ namespace bee {
 						break;
 					}
 
-					engine->renderer->render_clear();
-					engine->texture_before->draw(0, 0, 0, f);
+					render::clear();
+					engine->texture_before->draw(0, 0, 0);
 					engine->texture_after->crop_image_width(static_cast<int>(i));
-					engine->texture_after->draw(0, 0, 0, static_cast<int>(i), -1, 0.0, {255, 255, 255, 255}, f);
-					engine->renderer->render();
+					engine->texture_after->draw(0, 0, 0, static_cast<int>(i), -1, 0.0, {255, 255, 255, 255});
+					render::render();
 				}
 				break;
 			}
@@ -176,11 +99,11 @@ namespace bee {
 						break;
 					}
 
-					engine->renderer->render_clear();
-					engine->texture_after->draw(0, 0, 0, f);
+					render::clear();
+					engine->texture_after->draw(0, 0, 0);
 					engine->texture_before->crop_image_width(static_cast<int>(i));
-					engine->texture_before->draw(0, 0, 0, static_cast<int>(i), -1, 0.0, {255, 255, 255, 255}, f);
-					engine->renderer->render();
+					engine->texture_before->draw(0, 0, 0, static_cast<int>(i), -1, 0.0, {255, 255, 255, 255});
+					render::render();
 				}
 				break;
 			}
@@ -190,11 +113,11 @@ namespace bee {
 						break;
 					}
 
-					engine->renderer->render_clear();
-					engine->texture_before->draw(0, 0, 0, f);
+					render::clear();
+					engine->texture_before->draw(0, 0, 0);
 					engine->texture_after->crop_image_height(static_cast<int>(i));
-					engine->texture_after->draw(0, 0, 0, -1, static_cast<int>(i), 0.0, {255, 255, 255, 255}, f);
-					engine->renderer->render();
+					engine->texture_after->draw(0, 0, 0, -1, static_cast<int>(i), 0.0, {255, 255, 255, 255});
+					render::render();
 				}
 				break;
 			}
@@ -204,11 +127,11 @@ namespace bee {
 						break;
 					}
 
-					engine->renderer->render_clear();
-					engine->texture_after->draw(0, 0, 0, f);
+					render::clear();
+					engine->texture_after->draw(0, 0, 0);
 					engine->texture_before->crop_image_height(static_cast<int>(i));
-					engine->texture_before->draw(0, 0, 0, -1, static_cast<int>(i), 0.0, {255, 255, 255, 255}, f);
-					engine->renderer->render();
+					engine->texture_before->draw(0, 0, 0, -1, static_cast<int>(i), 0.0, {255, 255, 255, 255});
+					render::render();
 				}
 				break;
 			}
@@ -219,16 +142,16 @@ namespace bee {
 						break;
 					}
 
-					engine->renderer->render_clear();
-					engine->texture_before->draw(0, 0, 0, f);
+					render::clear();
+					engine->texture_before->draw(0, 0, 0);
 
 					double ih = i/w * h;
 					int x = (w - static_cast<int>(i))/2;
 					int y = (h - static_cast<int>(ih))/2;
 					engine->texture_after->crop_image({x, y, static_cast<int>(i), static_cast<int>(ih)});
-					engine->texture_after->draw(x, y, 0, static_cast<int>(i), static_cast<int>(ih), 0.0, {255, 255, 255, 255}, f);
+					engine->texture_after->draw(x, y, 0, static_cast<int>(i), static_cast<int>(ih), 0.0, {255, 255, 255, 255});
 
-					engine->renderer->render();
+					render::render();
 				}
 				break;
 			}
@@ -238,10 +161,10 @@ namespace bee {
 						break;
 					}
 
-					engine->renderer->render_clear();
-					engine->texture_before->draw(0, 0, 0, f);
-					engine->texture_after->draw(static_cast<int>(i), 0, 0,  f);
-					engine->renderer->render();
+					render::clear();
+					engine->texture_before->draw(0, 0, 0);
+					engine->texture_after->draw(static_cast<int>(i), 0, 0);
+					render::render();
 				}
 				break;
 			}
@@ -251,10 +174,10 @@ namespace bee {
 						break;
 					}
 
-					engine->renderer->render_clear();
-					engine->texture_before->draw(0, 0, 0, f);
-					engine->texture_after->draw(static_cast<int>(i), 0, 0, f);
-					engine->renderer->render();
+					render::clear();
+					engine->texture_before->draw(0, 0, 0);
+					engine->texture_after->draw(static_cast<int>(i), 0, 0);
+					render::render();
 				}
 				break;
 			}
@@ -264,10 +187,10 @@ namespace bee {
 						break;
 					}
 
-					engine->renderer->render_clear();
-					engine->texture_before->draw(0, 0, 0, f);
-					engine->texture_after->draw(0, static_cast<int>(i), 0, f);
-					engine->renderer->render();
+					render::clear();
+					engine->texture_before->draw(0, 0, 0);
+					engine->texture_after->draw(0, static_cast<int>(i), 0);
+					render::render();
 				}
 				break;
 			}
@@ -277,10 +200,10 @@ namespace bee {
 						break;
 					}
 
-					engine->renderer->render_clear();
-					engine->texture_before->draw(0, 0, 0, f);
-					engine->texture_after->draw(0, static_cast<int>(i), 0, f);
-					engine->renderer->render();
+					render::clear();
+					engine->texture_before->draw(0, 0, 0);
+					engine->texture_after->draw(0, static_cast<int>(i), 0);
+					render::render();
 				}
 				break;
 			}
@@ -311,10 +234,10 @@ namespace bee {
 						break;
 					}
 
-					engine->renderer->render_clear();
-					engine->texture_before->draw(static_cast<int>(i)+w, 0, 0, f);
-					engine->texture_after->draw(static_cast<int>(i), 0, 0, f);
-					engine->renderer->render();
+					render::clear();
+					engine->texture_before->draw(static_cast<int>(i)+w, 0, 0);
+					engine->texture_after->draw(static_cast<int>(i), 0, 0);
+					render::render();
 				}
 				break;
 			}
@@ -325,10 +248,10 @@ namespace bee {
 						break;
 					}
 
-					engine->renderer->render_clear();
-					engine->texture_before->draw(static_cast<int>(i)-w, 0, 0, f);
-					engine->texture_after->draw(static_cast<int>(i), 0, 0, f);
-					engine->renderer->render();
+					render::clear();
+					engine->texture_before->draw(static_cast<int>(i)-w, 0, 0);
+					engine->texture_after->draw(static_cast<int>(i), 0, 0);
+					render::render();
 				}
 				break;
 			}
@@ -339,10 +262,10 @@ namespace bee {
 						break;
 					}
 
-					engine->renderer->render_clear();
-					engine->texture_before->draw(0, static_cast<int>(i)+h, 0, f);
-					engine->texture_after->draw(0, static_cast<int>(i), 0, f);
-					engine->renderer->render();
+					render::clear();
+					engine->texture_before->draw(0, static_cast<int>(i)+h, 0);
+					engine->texture_after->draw(0, static_cast<int>(i), 0);
+					render::render();
 				}
 				break;
 			}
@@ -353,10 +276,10 @@ namespace bee {
 						break;
 					}
 
-					engine->renderer->render_clear();
-					engine->texture_before->draw(0, static_cast<int>(i)-h, 0, f);
-					engine->texture_after->draw(0, static_cast<int>(i), 0, f);
-					engine->renderer->render();
+					render::clear();
+					engine->texture_before->draw(0, static_cast<int>(i)-h, 0);
+					engine->texture_after->draw(0, static_cast<int>(i), 0);
+					render::render();
 				}
 				break;
 			}
@@ -368,10 +291,10 @@ namespace bee {
 						break;
 					}
 
-					engine->renderer->render_clear();
-					engine->texture_before->draw(0, 0, 0, -1, -1, -a, {255, 255, 255, 255}, f);
-					engine->texture_after->draw(0, 0, 0, -1, -1, 90.0-a, {255, 255, 255, 255}, f);
-					engine->renderer->render();
+					render::clear();
+					engine->texture_before->draw(0, 0, 0, -1, -1, -a, {255, 255, 255, 255});
+					engine->texture_after->draw(0, 0, 0, -1, -1, 90.0-a, {255, 255, 255, 255});
+					render::render();
 				}
 				break;
 			}
@@ -383,10 +306,10 @@ namespace bee {
 						break;
 					}
 
-					engine->renderer->render_clear();
-					engine->texture_before->draw(0, 0, 0, -1, -1, a, {255, 255, 255, 255}, f);
-					engine->texture_after->draw(0, 0, 0, -1, -1, a-90.0, {255, 255, 255, 255}, f);
-					engine->renderer->render();
+					render::clear();
+					engine->texture_before->draw(0, 0, 0, -1, -1, a, {255, 255, 255, 255});
+					engine->texture_after->draw(0, 0, 0, -1, -1, a-90.0, {255, 255, 255, 255});
+					render::render();
 				}
 				break;
 			}
@@ -396,10 +319,10 @@ namespace bee {
 						break;
 					}
 
-					engine->renderer->render_clear();
-					engine->texture_before->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, static_cast<Uint8>(255.0-a)}, f);
-					engine->texture_after->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, static_cast<Uint8>(a)}, f);
-					engine->renderer->render();
+					render::clear();
+					engine->texture_before->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, static_cast<Uint8>(255.0-a)});
+					engine->texture_after->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, static_cast<Uint8>(a)});
+					render::render();
 				}
 				break;
 			}
@@ -409,18 +332,18 @@ namespace bee {
 						break;
 					}
 
-					engine->renderer->render_clear();
-					engine->texture_before->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, static_cast<Uint8>(255.0-a)}, f);
-					engine->renderer->render();
+					render::clear();
+					engine->texture_before->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, static_cast<Uint8>(255.0-a)});
+					render::render();
 				}
 				for (double a=0.0; a<255.0; a+=engine->transition_speed*get_delta()/5.0) {
 					if ((static_cast<int>(a)%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
 
-					engine->renderer->render_clear();
-					engine->texture_after->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, static_cast<Uint8>(a)}, f);
-					engine->renderer->render();
+					render::clear();
+					engine->texture_after->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, static_cast<Uint8>(a)});
+					render::render();
 				}
 				break;
 			}
@@ -434,10 +357,6 @@ namespace bee {
 				engine->transition_type = E_TRANSITION::NONE;
 				break;
 			}
-		}
-
-		for (auto& b : engine->current_room->get_backgrounds()) {
-			b->background->set_time_update();
 		}
 
 		return 0;

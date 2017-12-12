@@ -34,7 +34,7 @@ namespace bee {
 	class Renderer;
 	struct RGBA;
 
-	class Sprite;
+	class Texture;
 	class Font;
 	class Room;
 
@@ -68,11 +68,11 @@ namespace bee {
 		unsigned int fps_goal, fps_max, fps_unfocused;
 		unsigned int fps_count;
 		Uint32 frame_number;
-		Sprite* texture_before;
-		Sprite* texture_after;
+		Texture* texture_before;
+		Texture* texture_after;
 		E_TRANSITION transition_type;
 		double transition_speed;
-		std::function<void (Sprite*, Sprite*)> transition_custom_func;
+		std::function<void (Texture*, Texture*)> transition_custom_func;
 
 		const Uint8* keystate;
 		std::map<std::string,SDL_Keycode> keystrings_keys;

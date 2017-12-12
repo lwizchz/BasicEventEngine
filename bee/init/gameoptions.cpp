@@ -152,19 +152,13 @@ namespace bee {
 		if (get_options().renderer_type != new_options.renderer_type) {
 			engine->options->renderer_type = new_options.renderer_type;
 
-			if (get_options().renderer_type != E_RENDERER::SDL) { // Enter OpenGL mode
-				engine->renderer->sdl_renderer_close();
-				engine->renderer->render_reset();
-			} else { // Enter SDL rendering mode
-				engine->renderer->opengl_close();
-				engine->renderer->render_reset();
-			}
+			engine->renderer->reset();
 		}
 		// Change vsync state
 		if (get_options().is_vsync_enabled != new_options.is_vsync_enabled) {
 			engine->options->is_vsync_enabled = new_options.is_vsync_enabled;
 
-			engine->renderer->render_reset();
+			engine->renderer->reset();
 		}
 		// Change networking state
 		if (get_options().is_network_enabled != new_options.is_network_enabled) {

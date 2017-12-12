@@ -25,44 +25,46 @@
 
 #include "../core/enginestate.hpp"
 
-#include "sprite.hpp"
+#include "../render/render.hpp"
+
+#include "texture.hpp"
 
 namespace bee {
 	/*
 	* TextData::TextData() - Construct the data struct and initialize the default values
 	*/
 	TextData::TextData() :
-		sprites(),
+		textures(),
 		text()
 	{}
 	/*
 	* TextData::TextData() - Construct the data struct and initialize the provided values
-	* @new_sprite: the sprite for the first line of text
-	* @new_text: the text that has been rendered in the sprite
+	* @new_texture: the texture for the first line of text
+	* @new_text: the text that has been rendered in the texture
 	*/
-	TextData::TextData(Sprite* new_sprite, const std::string& new_text) :
-		sprites(),
+	TextData::TextData(Texture* new_texture, const std::string& new_text) :
+		textures(),
 		text(new_text)
 	{
-		sprites.emplace(0, new_sprite); // Set the provided sprite as the data for the first line
+		textures.emplace(0, new_texture); // Set the provided texture as the data for the first line
 	}
 	/*
-	* TextData::~TextData() - Free the memory for each line's sprite
+	* TextData::~TextData() - Free the memory for each line's texture
 	*/
 	TextData::~TextData() {
-		for (auto& s : sprites) { // Iterate over the sprites and delete each one
+		for (auto& s : textures) { // Iterate over the textures and delete each one
 			delete s.second;
 		}
-		sprites.clear(); // Clear the list
+		textures.clear(); // Clear the list
 		text.clear();
 	}
 	/*
-	* TextData::pop_front() -  Pop the front sprite so it won't be deleted twice
+	* TextData::pop_front() -  Pop the front texture so it won't be deleted twice
 	*/
-	Sprite* TextData::pop_front() {
-		Sprite* s = sprites.begin()->second; // Store a copy of the sprite pointer
-		sprites.erase(sprites.begin()); // Erase the sprite from the list
-		return s; // Return the sprite
+	Texture* TextData::pop_front() {
+		Texture* t = textures.begin()->second; // Store a copy of the texture pointer
+		textures.erase(textures.begin()); // Erase the texture from the list
+		return t; // Return the texture
 	}
 
 	std::map<int,Font*> Font::list;
@@ -278,7 +280,7 @@ namespace bee {
 		}
 
 		if (is_sprite) { // If the font is a sprite font, load it appropriately
-			sprite_font = new Sprite("spr_"+get_name(), path); // Create and load a sprite for the font
+			sprite_font = new Texture("spr_"+get_name(), path); // Create and load a sprite for the font
 			if (!sprite_font->load()) { // If the sprite fails to load, output a warning
 				messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to load the font \"" + path + "\": " + get_sdl_error());
 				has_draw_failed = true;
@@ -289,7 +291,7 @@ namespace bee {
 			is_loaded = true;
 			has_draw_failed = false;
 		} else { // Otherwise load the sprite's TTF file
-			if (get_options().renderer_type != E_RENDERER::SDL) { // If the engine is rendering in OpenGL mode, output a warning about fast font drawing
+			if ((get_options().renderer_type == E_RENDERER::OPENGL3)||(get_options().renderer_type == E_RENDERER::OPENGL4)) { // If the engine is rendering in OpenGL mode, output a warning about fast font drawing
 				messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Please note that TTF fast font rendering is currently broken in OpenGL mode\nThe current behavior is to draw slowly and discard the texture data");
 			}
 
@@ -360,14 +362,14 @@ namespace bee {
 		}
 
 		// Create a temporary sprite to draw the rendered text to the screen
-		Sprite* tmp_sprite = new Sprite();
-		tmp_sprite->load_from_surface(tmp_surface); // Load the rendered text into the sprite
+		Texture* tmp_texture = new Texture();
+		tmp_texture->load_from_surface(tmp_surface); // Load the rendered text into the texture
 		SDL_FreeSurface(tmp_surface); // Free the temporary surface
 
-		tmp_sprite->set_is_lightable(false); // Remove lighting from the text
-		tmp_sprite->draw(x, y, 0, false); // Draw the text
+		tmp_texture->draw(x, y, 0); // Draw the text
+		render::render_textures();
 
-		TextData* textdata = new TextData(tmp_sprite, t); // Store the temporary sprite in a TextData struct
+		TextData* textdata = new TextData(tmp_texture, t); // Store the temporary texture in a TextData struct
 
 		return textdata; // Return the textdata on success
 	}
@@ -400,7 +402,7 @@ namespace bee {
 				if (textdata == nullptr) { // If it's the first line, set it as the entire textdata
 					textdata = r;
 				} else { // Otherwise append its data to the existing textdata
-					textdata->sprites.emplace(textdata->sprites.size(), r->pop_front());
+					textdata->textures.emplace(textdata->textures.size(), r->pop_front());
 					delete r; // Free the temporary data
 				}
 			}
@@ -442,7 +444,7 @@ namespace bee {
 			size_t i = 0;
 			for (auto& l : lines) { // Iterate over the lines and draw each one
 				if (!l.empty()) {
-					textdata->sprites[i]->draw(x, y, 0, false);
+					textdata->textures[i]->draw(x, y, 0);
 				}
 				++i;
 			}
@@ -493,30 +495,27 @@ namespace bee {
 			int w = sprite_font->get_subimage_width();
 			int h = sprite_font->get_height();
 			for (char& c : t) {
-				sprite_font->draw_subimage(x+(i++), y, static_cast<int>(c), w, h, 0.0, {color.r, color.g, color.b, color.a}, SDL_FLIP_NONE);
+				sprite_font->draw_subimage(x+(i++), y, static_cast<int>(c), w, h, 0.0, {color.r, color.g, color.b, color.a});
 			}
 		} else { // Otherwise, draw the font normally
 			// Render the text to a temporary surface
 			SDL_Surface* tmp_surface;
-			if (get_options().renderer_type != E_RENDERER::SDL) { // Since fast font rendering is currently broken in OpenGL, fallback to the slower rendering
-				tmp_surface = TTF_RenderUTF8_Blended(font, t.c_str(), {color.r, color.g, color.b, color.a}); // Use the slow but pretty TTF rendering mode
-			} else {
-				tmp_surface = TTF_RenderUTF8_Solid(font, t.c_str(), {color.r, color.g, color.b, color.a}); // Use the fast but ugly TTF rendering mode
-			}
+			tmp_surface = TTF_RenderUTF8_Blended(font, t.c_str(), {color.r, color.g, color.b, color.a}); // Use the slow but pretty TTF rendering mode
+			//tmp_surface = TTF_RenderUTF8_Solid(font, t.c_str(), {color.r, color.g, color.b, color.a}); // Use the fast but ugly TTF rendering mode
 			if (tmp_surface == nullptr) { // If the text failed to render, output a warning
 				messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to draw with font \"" + name + "\": " + TTF_GetError());
 				return 2; // Return 2 on rendering error
 			}
 
 			// Create a temporary sprite to draw the rendered text to the screen
-			Sprite* tmp_sprite = new Sprite();
-			tmp_sprite->load_from_surface(tmp_surface); // Load the rendered text into the sprite
+			Texture* tmp_texture = new Texture();
+			tmp_texture->load_from_surface(tmp_surface); // Load the rendered text into the texture
 			SDL_FreeSurface(tmp_surface); // Free the temporary surface
 
-			tmp_sprite->set_is_lightable(false); // Remove lighting from the text
-			tmp_sprite->draw(x, y, 0, false); // Draw the text
+			tmp_texture->draw(x, y, 0); // Draw the text
+			render::render_textures();
 
-			delete tmp_sprite; // Free the temporary sprite
+			delete tmp_texture; // Free the temporary texture
 		}
 
 		return 0; // Return 0 on success
@@ -578,14 +577,28 @@ namespace bee {
 
 		int w = 0; // Declare a temporary variable for the width
 		if (size == font_size) { // If the desired size is the same as the currently loaded size, fetch the width appropriately
-			TTF_SizeUTF8(font, text.c_str(), &w, nullptr);
+			std::vector<std::string> lines = splitv(text, '\n', false); // Separate the text by newline
+			int w0 = 0;
+			for (auto& l : lines) {
+				TTF_SizeUTF8(font, l.c_str(), &w0, nullptr);
+				if (w0 > w) {
+					w = w0;
+				}
+			}
 		} else { // Otherwise, load a temporary font
 			TTF_Font* tmp_font = TTF_OpenFont(path.c_str(), size); // Open the same TTF file with the desired font size
 			if (tmp_font == nullptr) { // If the font failed to load, output a warning
 				return -2; // Return -2 when font loading failed
 			}
 
-			TTF_SizeUTF8(font, text.c_str(), &w, nullptr); // Get the temporary width
+			std::vector<std::string> lines = splitv(text, '\n', false); // Separate the text by newline
+			int w0 = 0;
+			for (auto& l : lines) {
+				TTF_SizeUTF8(tmp_font, l.c_str(), &w0, nullptr); // Get the temporary width
+				if (w0 > w) {
+					w = w0;
+				}
+			}
 
 			TTF_CloseFont(tmp_font); // Close the font after getting the width
 		}
@@ -619,14 +632,24 @@ namespace bee {
 
 		int h = 0; // Declare a temporary variable for the height
 		if (size == font_size) {
-			TTF_SizeUTF8(font, text.c_str(), nullptr, &h);
+			std::vector<std::string> lines = splitv(text, '\n', false); // Separate the text by newline
+			int h0 = 0;
+			for (auto& l : lines) {
+				TTF_SizeUTF8(font, l.c_str(), nullptr, &h0);
+				h += h0 + lineskip;
+			}
 		} else { // Otherwise, load a temporary font
 			TTF_Font* tmp_font = TTF_OpenFont(path.c_str(), size); // Open the same TTF file with the desired font size
 			if (tmp_font == nullptr) { // If the font failed to load, output a warning
 				return -2; // Return -2 when font loading failed
 			}
 
-			TTF_SizeUTF8(font, text.c_str(), nullptr, &h); // Get the temporary height
+			std::vector<std::string> lines = splitv(text, '\n', false); // Separate the text by newline
+			int h0 = 0;
+			for (auto& l : lines) {
+				TTF_SizeUTF8(tmp_font, l.c_str(), nullptr, &h0); // Get the temporary height
+				h += h0 + lineskip;
+			}
 
 			TTF_CloseFont(tmp_font); // Close the font after getting the height
 		}

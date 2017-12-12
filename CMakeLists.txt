@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 
 set(ENGINE_VERSION_MAJOR "0")
 set(ENGINE_VERSION_MINOR "1")
-set(ENGINE_VERSION_RELEASE "4")
+set(ENGINE_VERSION_RELEASE "5")
 
 if (GAME_NAME)
 	project("${GAME_NAME}" CXX C)
@@ -27,7 +27,7 @@ if (NOT BEE_GAME_ID)
 endif()
 
 set(engine_defines "-DBEE_VERSION_MAJOR=${ENGINE_VERSION_MAJOR} -DBEE_VERSION_MINOR=${ENGINE_VERSION_MINOR} -DBEE_VERSION_RELEASE=${ENGINE_VERSION_RELEASE}")
-set(game_defines "-DBEE_BUILD_ID=${BEE_BUILD_ID} -DBEE_GAME_ID=${BEE_GAME_ID}")
+#set(game_defines "-DBEE_BUILD_ID=${BEE_BUILD_ID} -DBEE_GAME_ID=${BEE_GAME_ID}")
 set(game_defines "${game_defines} -DGAME_NAME=${PROJECT_NAME} -DGAME_VERSION_MAJOR=${GAME_VERSION_MAJOR} -DGAME_VERSION_MINOR=${GAME_VERSION_MINOR} -DGAME_VERSION_RELEASE=${GAME_VERSION_RELEASE}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${engine_defines}")
 
@@ -50,9 +50,11 @@ if (WIN32) # Include Windows libraries manually
 
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${game_defines}")
 
-	add_executable(${PROJECT_NAME} main.cpp resources/resources.hpp)
+	add_subdirectory("resources")
+	add_executable(${PROJECT_NAME} main.cpp)
 	target_link_libraries(${PROJECT_NAME} BEE)
 	target_link_libraries(${PROJECT_NAME} BEE_Tests)
+	target_link_libraries(${PROJECT_NAME} Resources)
 
 	# Include SDL2 libraries
 	foreach(l SDL2_image SDL2_ttf SDL2_mixer SDL2_net SDL2)
@@ -111,11 +113,13 @@ else() # Include Unix libraries automatically
 
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${game_defines}")
 
-	add_executable(${PROJECT_NAME} main.cpp resources/resources.hpp)
+	add_subdirectory("resources")
+	add_executable(${PROJECT_NAME} main.cpp)
 	target_link_libraries(${PROJECT_NAME} BEE)
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 		target_link_libraries(${PROJECT_NAME} BEE_Tests)
 	endif()
+	target_link_libraries(${PROJECT_NAME} Resources)
 
 	# Include SDL2 related libraries
 	include(FindPkgConfig)

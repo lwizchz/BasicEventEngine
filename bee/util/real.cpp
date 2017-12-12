@@ -402,6 +402,13 @@ T qmod(T x, unsigned int m) {
 		return m;
 	}
 
+	if (x < 0) { // Handle negative modulo
+		while (x < 0) {
+			x += m;
+		}
+		return x;
+	}
+
 	while (x >= 0) {
 		x -= m;
 	}

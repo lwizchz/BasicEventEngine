@@ -21,7 +21,7 @@ namespace bee {
 	std::string get_usage_text() {
 		return
 			bee_get_path() + "\n"
-			"A basic event-driven game engine which renders with either SDL or OpenGL\n"
+			"A basic event-driven OpenGL game engine\n"
 			"\n"
 			"Usage:\n"
 			"	" + file_basename(bee_get_path()) + " [OPTION]...\n"
@@ -34,12 +34,8 @@ namespace bee {
 			"		Set the dimensions of the window to width w and height h\n"
 			"	--fullscreen, -f\n"
 			"		Enable fullscreen mode, this will resize the window to fit the screen\n"
-			"	--opengl, -f\n"
-			"		Use the highest version of OpenGL renderer available (either 4.1 or 3.3)\n"
 			"	--no-assert\n"
 			"		Disable assertion verification for the utility functions\n"
-			"	--sdl\n"
-			"		Use the SDL renderer\n"
 			"	--single-run\n"
 			"		Run the main loop a single time to verify assertions and initialization\n"
 			"	--windowed, -w\n"

@@ -53,7 +53,6 @@ namespace bee {
 	};
 
 	enum class E_RENDERER {
-		SDL,
 		OPENGL3,
 		OPENGL4
 	};

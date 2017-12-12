@@ -6,20 +6,14 @@
 * See LICENSE for more details.
 */
 
-#ifndef RES_OBJ_BEE_H
-#define RES_OBJ_BEE_H 1
+#ifndef RES_OBJ_BEE
+#define RES_OBJ_BEE 1
 
-class ObjBee : public bee::Object {
-	public:
-		ObjBee();
+#include "../resources.hpp"
 
-		void create(bee::Instance*);
-		void destroy(bee::Instance*);
-		void commandline_input(bee::Instance*, const std::string&);
-		void outside_room(bee::Instance*);
-		void draw(bee::Instance*);
-};
-ObjBee::ObjBee() : Object("obj_bee", "bee.hpp") {
+#include "obj_bee.hpp"
+
+ObjBee::ObjBee() : Object("obj_bee", "obj_bee.hpp") {
 	implemented_events.insert({
 		bee::E_EVENT::CREATE,
 		bee::E_EVENT::DESTROY,
@@ -92,7 +86,7 @@ void ObjBee::outside_room(bee::Instance* self) {
 void ObjBee::draw(bee::Instance* self) {
 	int size = 100;
 	double r = radtodeg(self->get_physbody()->get_rotation_z());
-	self->draw(size, size, r, bee::E_RGB::WHITE, SDL_FLIP_NONE);
+	self->draw(size, size, r, bee::RGBA(bee::E_RGB::WHITE));
 
 	(*s)["text_id"] = static_cast<void*>(font_liberation->draw(static_cast<bee::TextData*>(_p("text_id")), self->get_corner_x(), self->get_corner_y(), bee_itos(self->id)));
 
@@ -101,4 +95,4 @@ void ObjBee::draw(bee::Instance* self) {
 	lt_bee->queue();
 }
 
-#endif // RES_OBJ_BEE_H
+#endif // RES_OBJ_BEE

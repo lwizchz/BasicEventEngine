@@ -6,8 +6,8 @@
 * See LICENSE for more details.
 */
 
-#ifndef BEE_SPRITE_H
-#define BEE_SPRITE_H 1
+#ifndef BEE_TEXTURE_H
+#define BEE_TEXTURE_H 1
 
 #include "../defines.hpp"
 
@@ -27,58 +27,74 @@
 #include "../render/rgba.hpp"
 
 namespace bee {
-	struct SpriteDrawData { // The data storage struct which is used in instanced drawing
+	struct TextureTransform { // The data struct which is used to pass transform data to the Texture class
 		int x, y; // The coordinates of the desired draw location
-		Uint32 subimage_time; // The timestamp of the subimage animation
-		int w, h; // The desired width and height of the sprite
-		double angle; // The desired rotation angle of the sprite
+		bool is_horizontal_tile, is_vertical_tile; // Whether the texture should be tiled horizontally and vertically
+		int horizontal_speed, vertical_speed; // The speed with which the texture should move horizontally and vertically in pixels per second
+		bool is_stretched; // Whether the texture should be stretched to the window size, note that stretched textures will not be animated or tiled
 
-		// See bee/resources/sprite.cpp for function comments
-		SpriteDrawData();
-		SpriteDrawData(int, int, Uint32, int, int, double);
+		// See bee/resources/texture.cpp for function comments
+		TextureTransform();
+		TextureTransform(int, int, bool, bool, int, int, bool);
 	};
 
-	class Sprite: public Resource { // The sprite resource class is used to draw all 2D on-screen objects except backgrounds
-			static std::map<int,Sprite*> list;
+	struct TextureDrawData {
+		GLuint vao;
+		GLuint texture;
+		GLuint ibo;
+
+		glm::mat4 model;
+		glm::mat4 rotation;
+		glm::vec4 color;
+		GLuint buffer;
+
+		// See bee/resources/texture.cpp for function comments
+		TextureDrawData(GLuint, GLuint, GLuint);
+		TextureDrawData(GLuint, GLuint, GLuint, glm::mat4, glm::mat4, glm::vec4, GLuint);
+	};
+
+	class Texture: public Resource { // The texture resource class is used to draw all on-screen objects
+			static std::map<int,Texture*> list;
 			static int next_id;
 
 			int id; // The id of the resource
 			std::string name; // An arbitrary name for the resource
-			std::string path; // The path of the image file which is used as the sprite's texture
+			std::string path; // The path of the image file which is used as the texture
 			unsigned int width, height; // The width and height of the texture
 			unsigned int subimage_amount, subimage_width; // The variables which determine how the subimages are divided
-			SDL_Rect crop; // A rectangle which determines how the sprite is cropped before being drawn
+			SDL_Rect crop; // A rectangle which determines how the texture is cropped before being drawn
 			double speed; // The speed at which the subimages animate
-			bool is_animated; // Whether the sprite is currently animating or not
+			bool is_animated; // Whether the texture is currently animating or not
 			int origin_x, origin_y; // The origin from which the texture is drawn
 			double rotate_x, rotate_y; // The origin around which the texture is rotated, scaled from 0.0 to 1.0 in both width and height
 
 			SDL_Texture* texture; // The internal texture storage for SDL mode
 			bool is_loaded; // Whether the image file was successfully loaded into a texture
 			bool has_draw_failed; // Whether the draw function has previously failed, this prevents continuous warning outputs
-			std::vector<SDL_Rect> subimages; // A list of subimage coordinates and dimensions
 
 			GLuint vao; // The Vertex Array Object which contains most of the following data
 			GLuint vbo_vertices; // The Vertex Buffer Object which contains the vertices of the quad
 			GLuint ibo; // The buffer object which contains the order of the vertices for each element
 			GLuint gl_texture; // The internal texture storage for OpenGL mode
 			std::vector<GLuint> vbo_texcoords; // The buffer object which contains the subimage texture coordinates
-			bool is_lightable; // Whether the sprite is affected by the lighting system
 
 			GLuint framebuffer; // The framebuffer object used by set_as_target()
 
-			// See bee/resources/sprite.cpp for function comments
+			// See bee/resources/texture.cpp for function comments
 			int drawing_begin();
 			int drawing_end();
+
+			int tile_horizontal(const SDL_Rect&);
+			int tile_vertical(const SDL_Rect&);
 		public:
-			// See bee/resources/sprite.cpp for function comments
-			Sprite();
-			Sprite(const std::string&, const std::string&);
-			~Sprite();
+			// See bee/resources/texture.cpp for function comments
+			Texture();
+			Texture(const std::string&, const std::string&);
+			~Texture();
 
 			int add_to_resources();
 			static size_t get_amount();
-			static Sprite* get(int);
+			static Texture* get(int);
 			int reset();
 			int print() const;
 
@@ -97,7 +113,6 @@ namespace bee {
 			double get_rotate_y() const;
 			SDL_Texture* get_texture() const;
 			bool get_is_loaded() const;
-			bool get_is_lightable() const;
 
 			int set_name(const std::string&);
 			int set_path(const std::string&);
@@ -110,7 +125,6 @@ namespace bee {
 			int set_rotate_x(double);
 			int set_rotate_y(double);
 			int set_rotate_center();
-			int set_is_lightable(bool);
 			int set_subimage_amount(int, int);
 			int crop_image(SDL_Rect);
 			int crop_image_width(int);
@@ -118,20 +132,15 @@ namespace bee {
 
 			int load_from_surface(SDL_Surface*);
 			int load();
+			int load_as_target(int, int);
 			int free();
 
-			int draw_subimage(int, int, unsigned int, int, int, double, RGBA, SDL_RendererFlip);
-			int draw(int, int, Uint32, int, int, double, RGBA, SDL_RendererFlip);
+			int draw_subimage(int, int, unsigned int, int, int, double, RGBA);
+			int draw(int, int, Uint32, int, int, double, RGBA);
 			int draw(int, int, Uint32);
-			int draw(int, int, Uint32, int, int);
-			int draw(int, int, Uint32, double);
-			int draw(int, int, Uint32, RGBA);
-			int draw(int, int, Uint32, SDL_RendererFlip);
-			int draw_simple(SDL_Rect*, SDL_Rect*);
-			int draw_array(const std::list<SpriteDrawData*>&, const std::vector<glm::mat4>&, RGBA, SDL_RendererFlip);
-			int set_as_target(int, int);
-			int set_as_target();
+			int draw_transform(const TextureTransform&);
+			GLuint set_as_target();
 	};
 }
 
-#endif // BEE_SPRITE_H
+#endif // BEE_TEXTURE_H

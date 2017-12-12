@@ -14,8 +14,6 @@
 #include <vector>
 #include <functional>
 
-#include <SDL2/SDL.h> // Include the required SDL headers
-
 #include "programflags.hpp"
 
 #include "info.hpp"
@@ -167,19 +165,9 @@ namespace bee {
 					engine->options->is_fullscreen = true;
 				}
 			);
-			ProgramFlag* f_opengl = new ProgramFlag(
-				"opengl", '\0', true, E_FLAGARG::NONE, [] (const std::string& arg) -> void {
-					engine->options->renderer_type = E_RENDERER::OPENGL4;
-				}
-			);
 			ProgramFlag* f_noassert = new ProgramFlag(
 				"no-assert", '\0', true, E_FLAGARG::NONE, [] (const std::string& arg) -> void {
 					engine->options->should_assert = false;
-				}
-			);
-			ProgramFlag* f_sdl = new ProgramFlag(
-				"sdl", '\0', true, E_FLAGARG::NONE, [] (const std::string& arg) -> void {
-					engine->options->renderer_type = E_RENDERER::SDL;
 				}
 			);
 			ProgramFlag* f_singlerun = new ProgramFlag(
@@ -198,7 +186,7 @@ namespace bee {
 				}
 			);
 
-			flag_list = {f_help, f_debug, f_dimensions, f_fullscreen, f_opengl, f_noassert, f_sdl, f_singlerun, f_windowed, f_headless};
+			flag_list = {f_help, f_debug, f_dimensions, f_fullscreen, f_noassert, f_singlerun, f_windowed, f_headless};
 		}
 		return flag_list;
 	}

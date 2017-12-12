@@ -6,28 +6,22 @@
 * See LICENSE for more details.
 */
 
-#ifndef RES_OBJ_CONTROL_H
-#define RES_OBJ_CONTROL_H 1
+#ifndef RES_OBJ_CONTROL
+#define RES_OBJ_CONTROL 1
 
-class ObjControl : public bee::Object {
-	public:
-		ObjControl();
+#include "../resources.hpp"
 
-		void create(bee::Instance*);
-		void destroy(bee::Instance*);
-		void step_mid(bee::Instance*);
-		void mouse_press(bee::Instance*, SDL_Event*);
-		void draw(bee::Instance*);
-		void room_start(bee::Instance*);
-};
-ObjControl::ObjControl() : Object("obj_control", "control.hpp") {
+#include "obj_control.hpp"
+
+ObjControl::ObjControl() : Object("obj_control", "obj_control.hpp") {
 	implemented_events.insert({
 		bee::E_EVENT::CREATE,
 		bee::E_EVENT::DESTROY,
 		bee::E_EVENT::STEP_MID,
 		bee::E_EVENT::MOUSE_PRESS,
 		bee::E_EVENT::DRAW,
-		bee::E_EVENT::ROOM_START
+		bee::E_EVENT::ROOM_START,
+		bee::E_EVENT::GAME_START
 	});
 	this->set_is_persistent(true);
 }
@@ -52,7 +46,7 @@ void ObjControl::create(bee::Instance* self) {
 		bee::Particle* part_firework = new bee::Particle(bee::E_PT_SHAPE::SNOW, 0.5, 15000);
 		part_firework->velocity = {100.0, 270.0};
 		part_firework->angle_increase = 0.2;
-		part_firework->color = bee::get_enum_color(bee::E_RGB::ORANGE, 200);
+		part_firework->color = bee::RGBA(bee::E_RGB::ORANGE, 200);
 		//part_firework->set_death_type(part_done);
 		//part_firework->is_sprite_lightable = true;
 		part_system->add_particle_type(part_firework);
@@ -141,10 +135,10 @@ void ObjControl::create(bee::Instance* self) {
 	});
 
 	bee::console::add_keybind(SDLK_n, bee::KeyBind("Start3D"), [] (const bee::MessageContents& msg) {
-		bee::render_set_3d(true);
+		bee::render::set_3d(true);
 	});
 	bee::console::add_keybind(SDLK_m, bee::KeyBind("End3D"), [] (const bee::MessageContents& msg) {
-		bee::render_set_3d(false);
+		bee::render::set_3d(false);
 	});
 }
 void ObjControl::destroy(bee::Instance* self) {
@@ -177,8 +171,8 @@ void ObjControl::destroy(bee::Instance* self) {
 	Object::destroy(self);
 }
 void ObjControl::step_mid(bee::Instance* self) {
-	if (bee::render_get_3d()) {
-		bee::render_set_camera(new bee::Camera(glm::vec3(_d("camx"), _d("camy"), -540.0 + _d("camz")), glm::vec3((-1920.0/2.0+bee::get_mouse_global_x())/1920.0*2.0, (-1080.0/2.0+bee::get_mouse_global_y())/1080.0*2.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
+	if (bee::render::get_3d()) {
+		bee::render::set_camera(new bee::Camera(glm::vec3(_d("camx"), _d("camy"), -540.0 + _d("camz")), glm::vec3((-1920.0/2.0+bee::get_mouse_global_x())/1920.0*2.0, (-1080.0/2.0+bee::get_mouse_global_y())/1080.0*2.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
 	}
 }
 void ObjControl::mouse_press(bee::Instance* self, SDL_Event* e) {
@@ -216,5 +210,8 @@ void ObjControl::room_start(bee::Instance* self) {
 		bee::get_current_room()->add_particle_system(part_system);
 	}
 }
+void ObjControl::game_start(bee::Instance* self) {
+	bee::console::run("exec \"config.cfg\""); // Configure default binds
+}
 
-#endif // RES_OBJ_CONTROL_H
+#endif // RES_OBJ_CONTROL

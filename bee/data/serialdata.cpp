@@ -6,8 +6,8 @@
 * See LICENSE for more details.
 */
 
-#ifndef BEE_CORE_SERIALDATA
-#define BEE_CORE_SERIALDATA 1
+#ifndef BEE_DATA_SERIALDATA
+#define BEE_DATA_SERIALDATA 1
 
 #include "serialdata.hpp" // Include the engine headers
 
@@ -394,4 +394,4 @@ namespace bee {
 	}
 }
 
-#endif // BEE_CORE_SERIALDATA
+#endif // BEE_DATA_SERIALDATA

@@ -35,7 +35,7 @@
 #include "render/render.hpp"
 #include "render/renderer.hpp"
 
-#include "resource/sprite.hpp"
+#include "resource/texture.hpp"
 #include "resource/font.hpp"
 #include "resource/room.hpp"
 
@@ -74,7 +74,7 @@ namespace bee {
 					return 2; // Return 2 when assertions could not be verified
 				}
 			#else
-				messenger::send({"engine", "init"}, E_MESSAGE::WARNING, "Couldn't verify assertions: compiled without debug mode");
+				messenger::send({"engine", "init"}, E_MESSAGE::INFO, "Couldn't verify assertions: compiled without debug mode");
 			#endif
 		}
 
@@ -96,8 +96,8 @@ namespace bee {
 			}
 		}
 
-		engine->texture_before = new Sprite();
-		engine->texture_after = new Sprite();
+		engine->texture_before = new Texture();
+		engine->texture_after = new Texture();
 
 		engine->font_default = new Font("font_default", "liberation_mono.ttf", 16, false);
 			engine->font_default->load();
@@ -210,6 +210,7 @@ namespace bee {
 						break;
 					}
 					case 2: { // Restart game
+						sound_stop_loops(); // Stop all looping sounds from the previous run
 						change_room(engine->first_room, false);
 						break;
 					}
@@ -255,13 +256,13 @@ namespace bee {
 
 		free_standard_flags();
 
-		messenger::handle();
-		messenger::clear();
-
 		if (engine != nullptr) {
 			delete engine;
 			engine = nullptr;
 		}
+
+		messenger::handle();
+		messenger::clear();
 
 		return 0;
 	}
@@ -274,7 +275,8 @@ namespace bee {
 
 		// Use the highest version of OpenGL available
 		switch (get_options().renderer_type) {
-			case E_RENDERER::OPENGL4: {
+			case E_RENDERER::OPENGL4:
+			default: {
 				if (GL_VERSION_4_1) { // FIXME: Properly test for opengl support
 					SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
 					SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
@@ -291,10 +293,6 @@ namespace bee {
 					SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
 					break;
 				}
-			}
-			case E_RENDERER::SDL:
-			default: {
-				engine->options->renderer_type = E_RENDERER::SDL;
 			}
 		}
 
@@ -332,16 +330,9 @@ namespace bee {
 		engine->keystate = SDL_GetKeyboardState(nullptr);
 		keystrings_populate();
 
-		if (get_options().renderer_type != E_RENDERER::SDL) {
-			if (engine->renderer->opengl_init()) {
-				messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Could not initialize the OpenGL renderer");
-				return 5; // Return 5 when the renderer could not be initialized
-			}
-		} else { // if not OpenGL, init an SDL renderer
-			if (engine->renderer->sdl_renderer_init()) {
-				messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Could not initialized the SDL renderer");
-				return 5; // Return 5 when the renderer could not be initialized
-			}
+		if (engine->renderer->opengl_init()) {
+			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Could not initialize the OpenGL renderer");
+			return 5; // Return 5 when the renderer could not be initialized
 		}
 
 		int img_flags = IMG_INIT_PNG | IMG_INIT_JPG;
@@ -376,8 +367,8 @@ namespace bee {
 				case SDL_WINDOWEVENT: {
 					switch (event.window.event) {
 						case SDL_WINDOWEVENT_SHOWN: {
-							render_set_camera(nullptr);
-							engine->renderer->render();
+							render::set_camera(nullptr);
+							render::render();
 							engine->has_focus = true;
 							break;
 						}
@@ -386,7 +377,7 @@ namespace bee {
 							break;
 						}
 						case SDL_WINDOWEVENT_EXPOSED: {
-							engine->renderer->render();
+							render::render();
 							break;
 						}
 						case SDL_WINDOWEVENT_MOVED: {
@@ -395,12 +386,12 @@ namespace bee {
 						case SDL_WINDOWEVENT_RESIZED: {
 							engine->width = event.window.data1;
 							engine->height = event.window.data2;
-							render_set_camera(nullptr);
-							engine->renderer->render();
+							render::set_camera(nullptr);
+							render::render();
 							break;
 						}
 						case SDL_WINDOWEVENT_SIZE_CHANGED: {
-							engine->renderer->render();
+							render::render();
 							break;
 						}
 						case SDL_WINDOWEVENT_MINIMIZED: {
@@ -575,7 +566,11 @@ namespace bee {
 			}
 		} else if (new_tickstamp - engine->tickstamp > 3*frame_ticks) { // If the tick difference is more than 3 frames worth, output a warning
 			Uint32 overtime = (new_tickstamp - engine->tickstamp) - frame_ticks;
-			messenger::send({"engine"}, E_MESSAGE::WARNING, "Engine loop over time by " + bee_itos(overtime) + "ms, " + bee_itos(overtime/frame_ticks) + " frames lost");
+			E_MESSAGE type (E_MESSAGE::INFO);
+			if (overtime/frame_ticks >= 10) {
+				type = E_MESSAGE::WARNING;
+			}
+			messenger::send({"engine"}, type, "Engine loop over time by " + bee_itos(overtime) + "ms, " + bee_itos(overtime/frame_ticks) + " frames lost");
 		}
 		internal::update_delta();
 

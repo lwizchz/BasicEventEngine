@@ -29,6 +29,8 @@ namespace bee {
 
 	bool is_mouse_inside(const Instance&);
 
+	int set_mouse_is_visible(bool);
+
 	bool get_key_state(SDL_Scancode);
 	bool get_key_state(SDL_Keycode);
 	bool get_mod_state(Uint8);

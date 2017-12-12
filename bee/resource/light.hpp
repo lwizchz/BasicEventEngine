@@ -48,8 +48,6 @@ namespace bee {
 			std::string path; // The path of the file to load the light from
 
 			LightData lighting; // The properties that define the light
-
-			bool has_drawn_sdl; // Whether the queue() function has been called while in SDL mode, this prevents continuous warning outputs
 		public:
 			// See bee/resources/light.cpp for function comments
 			Light();

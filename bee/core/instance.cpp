@@ -22,17 +22,17 @@
 #include "../messenger/messenger.hpp"
 
 #include "resources.hpp"
-#include "sidp.hpp"
 #include "rooms.hpp"
-#include "serialdata.hpp"
+
+#include "../data/sidp.hpp"
+#include "../data/serialdata.hpp"
 
 #include "../render/drawing.hpp"
-#include "../render/viewdata.hpp"
 
 #include "../physics/body.hpp"
 #include "../physics/world.hpp"
 
-#include "../resource/sprite.hpp"
+#include "../resource/texture.hpp"
 #include "../resource/path.hpp"
 #include "../resource/object.hpp"
 #include "../resource/room.hpp"
@@ -67,7 +67,7 @@ namespace bee {
 		pos_previous(),
 		path_pos_start()
 	{
-		for (size_t i=0; i<BEE_ALARM_COUNT; i++) {
+		for (size_t i=0; i<BEE_ALARM_COUNT; ++i) {
 			alarm_end[i] = 0xffffffff;
 		}
 	}
@@ -211,7 +211,7 @@ namespace bee {
 		} else {
 			object = get_object_by_name(SIDP_s(m["object"]));
 		}
-		sprite = get_sprite_by_name(SIDP_s(m["sprite"]));
+		sprite = get_texture_by_name(SIDP_s(m["sprite"]));
 
 		subimage_time = SIDP_i(m["subimage_time"]);
 		body->deserialize(SIDP_m(m["body"]), this);
@@ -281,7 +281,7 @@ namespace bee {
 
 		std::string sprite_name;
 		sd.store_string(sprite_name);
-		sprite = get_sprite_by_name(sprite_name);
+		sprite = get_texture_by_name(sprite_name);
 		int s;
 		sd.store_int(s);
 		subimage_time = s;
@@ -321,7 +321,7 @@ namespace bee {
 
 		return 0;
 	}
-	int Instance::set_sprite(Sprite* _sprite) {
+	int Instance::set_sprite(Texture* _sprite) {
 		sprite = _sprite;
 		return 0;
 	}
@@ -439,7 +439,7 @@ namespace bee {
 	Object* Instance::get_object() const {
 		return object;
 	}
-	Sprite* Instance::get_sprite() const {
+	Texture* Instance::get_sprite() const {
 		if (sprite == nullptr) {
 			if (object == nullptr) {
 				return nullptr;
@@ -1071,68 +1071,17 @@ namespace bee {
 		return path_is_pausable;
 	}
 
-	int Instance::draw(int w, int h, double angle, RGBA color, SDL_RendererFlip flip) {
+	int Instance::draw(int w, int h, double angle, RGBA color) {
 		if (get_sprite() == nullptr) {
 			return 1;
 		}
 		int xo=0, yo=0;
 		std::tie(xo, yo) = object->get_mask_offset();
 
-		return get_sprite()->draw(static_cast<int>(get_corner_x())-xo, static_cast<int>(get_corner_y())-yo, subimage_time, w, h, angle, color, flip);
-	}
-	int Instance::draw(int w, int h, double angle, E_RGB color, SDL_RendererFlip flip) {
-		if (get_sprite() == nullptr) {
-			return 1;
-		}
-		return draw(w, h, angle, get_enum_color(color), flip);
+		return get_sprite()->draw(static_cast<int>(get_corner_x())-xo, static_cast<int>(get_corner_y())-yo, subimage_time, w, h, angle, color);
 	}
 	int Instance::draw() {
-		if (get_sprite() == nullptr) {
-			return 1;
-		}
-		int xo=0, yo=0;
-		std::tie(xo, yo) = object->get_mask_offset();
-
-		return get_sprite()->draw(static_cast<int>(get_corner_x())-xo, static_cast<int>(get_corner_y())-yo, subimage_time);
-	}
-	int Instance::draw(int w, int h) {
-		if (get_sprite() == nullptr) {
-			return 1;
-		}
-		int xo=0, yo=0;
-		std::tie(xo, yo) = object->get_mask_offset();
-
-		return get_sprite()->draw(static_cast<int>(get_corner_x())-xo, static_cast<int>(get_corner_y())-yo, subimage_time, w, h);
-	}
-	int Instance::draw(double angle) {
-		if (get_sprite() == nullptr) {
-			return 1;
-		}
-		int xo=0, yo=0;
-		std::tie(xo, yo) = object->get_mask_offset();
-
-		return get_sprite()->draw(static_cast<int>(get_corner_x())-xo, static_cast<int>(get_corner_y())-yo, subimage_time, angle);
-	}
-	int Instance::draw(RGBA color) {
-		if (get_sprite() == nullptr) {
-			return 1;
-		}
-		int xo=0, yo=0;
-		std::tie(xo, yo) = object->get_mask_offset();
-
-		return get_sprite()->draw(static_cast<int>(get_corner_x())-xo, static_cast<int>(get_corner_y())-yo, subimage_time, color);
-	}
-	int Instance::draw(E_RGB color) {
-		return draw(get_enum_color(color));
-	}
-	int Instance::draw(SDL_RendererFlip flip) {
-		if (get_sprite() == nullptr) {
-			return 1;
-		}
-		int xo=0, yo=0;
-		std::tie(xo, yo) = object->get_mask_offset();
-
-		return get_sprite()->draw(static_cast<int>(get_corner_x())-xo, static_cast<int>(get_corner_y())-yo, subimage_time, flip);
+		return draw(-1, -1, 0.0, {255, 255, 255, 255});
 	}
 
 	int Instance::draw_path() {

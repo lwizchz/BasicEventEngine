@@ -382,7 +382,16 @@ namespace bee {
 	int Sound::finished(int channel) {
 		if (!is_music) { // Music cannot be played on multiple channels
 			current_channels.remove(channel); // Remove the channel from the currently playing list
+
+			if (current_channels.empty()) {
+				is_playing = false;
+				is_looping = false;
+			}
+		} else {
+			is_playing = false;
+			is_looping = false;
 		}
+
 		return 0; // Return 0 on success
 	}
 
@@ -431,6 +440,16 @@ namespace bee {
 	*/
 	int Sound::play() {
 		return play((is_music) ? 1 : 0);
+	}
+	/*
+	* Sound::play_once() - Play a sound but only if it is not already playing
+	* ! This can be used to handle multiple instances emitting the same sound at the same time
+	*/
+	int Sound::play_once() {
+		if (!is_playing) {
+			play();
+		}
+		return 0;
 	}
 	/*
 	* Sound::stop() - Stop playing all instances of the sound on every channel

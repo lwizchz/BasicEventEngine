@@ -50,7 +50,7 @@ namespace bee{ namespace console {
 			"help",
 			"Show help text for specified commands",
 			[] (const MessageContents& msg) {
-				std::vector<SIDP> params = parse_parameters(msg.descr); // Parse the parameters from the given command
+				std::vector<SIDP> params = parse_parameters(msg.descr, true); // Parse the parameters from the given command
 
 				if (params.size() > 1) { // If a specific command was specified, output its entire help text
 					messenger::send({"engine", "console"}, E_MESSAGE::INFO, "Command help for \"" + SIDP_s(params[1]) + "\":\n" + get_help(SIDP_s(params[1])));
@@ -70,8 +70,7 @@ namespace bee{ namespace console {
 						"exec \"filename.cfg\"",
 						"wait delay \"command\"",
 						"unwait",
-						"set \"name\" \"value\"",
-						"get \"name\"",
+						"let \"name\" = \"value\"",
 						"screenshot [\"filename.bmp\"]",
 						"debug [\"mode\"]",
 						"volume [\"level\"]",
@@ -79,7 +78,7 @@ namespace bee{ namespace console {
 						"restart_room"
 					};
 					for (auto& c : commands) { // Iterate over the commands
-						std::vector<SIDP> p = parse_parameters(c); // Get the list of command parameters in order to remove the usage string parts
+						std::vector<SIDP> p = parse_parameters(c, false); // Get the list of command parameters in order to remove the usage string parts
 						std::string h = get_help(SIDP_s(p[0])); // Get the command help text
 
 						if (!h.empty()) { // If the help text exists, output the command and its text
@@ -98,7 +97,7 @@ namespace bee{ namespace console {
 			"find",
 			"Output all commands which match a certain string",
 			[] (const MessageContents& msg) {
-				std::vector<SIDP> params = parse_parameters(msg.descr); // Parse the parameters from the given command
+				std::vector<SIDP> params = parse_parameters(msg.descr, true); // Parse the parameters from the given command
 
 				std::string commands = "";
 				std::string search = SIDP_s(params[1]);
@@ -145,7 +144,7 @@ namespace bee{ namespace console {
 			"Output a string to the console\n"
 			"Primarily useful for config scripts",
 			[] (const MessageContents& msg) {
-				std::vector<SIDP> params = parse_parameters(msg.descr); // Parse the parameters from the given command
+				std::vector<SIDP> params = parse_parameters(msg.descr, true); // Parse the parameters from the given command
 
 				std::string output = ""; // Initialize a string to be used as output
 				for (auto it=params.begin()+1; it!= params.end(); ++it) { // Iterate over the arguments
@@ -202,7 +201,7 @@ namespace bee{ namespace console {
 			"Alias multiple commands to a single command\n"
 			"The aliases can be viewed by omitting the commands",
 			[] (const MessageContents& msg) {
-				std::vector<SIDP> params = parse_parameters(msg.descr); // Parse the parameters from the given command
+				std::vector<SIDP> params = parse_parameters(msg.descr, true); // Parse the parameters from the given command
 
 				if (params.size() > 2) {
 					alias(SIDP_s(params[1]), string_unescape(SIDP_s(params[2])));
@@ -234,7 +233,7 @@ namespace bee{ namespace console {
 			"Bind a key to a command\n"
 			"The binds can be viewed by omitting the commands",
 			[] (const MessageContents& msg) {
-				std::vector<SIDP> params = parse_parameters(msg.descr); // Parse the parameters from the given command
+				std::vector<SIDP> params = parse_parameters(msg.descr, true); // Parse the parameters from the given command
 
 				if (params.size() > 2) { // If both a key and command are provided, bind the command to the key
 					SDL_Keycode k (keystrings_get_key(SIDP_s(params[1])));
@@ -256,7 +255,7 @@ namespace bee{ namespace console {
 			"Unbind a key from a command\n"
 			"All keys can be unbound by provided \"all\" as the key",
 			[] (const MessageContents& msg) {
-				std::vector<SIDP> params = parse_parameters(msg.descr); // Parse the parameters from the given command
+				std::vector<SIDP> params = parse_parameters(msg.descr, true); // Parse the parameters from the given command
 
 				if (params.size() > 1) { // If a key is provided, unbind it from any commands
 					if (SIDP_s(params[1]) == "all") {
@@ -279,7 +278,7 @@ namespace bee{ namespace console {
 			"Execute the specified config file\n"
 			"No commands from the specified file will be apended to console history",
 			[] (const MessageContents& msg) {
-				std::vector<SIDP> params = parse_parameters(msg.descr); // Parse the parameters from the given command
+				std::vector<SIDP> params = parse_parameters(msg.descr, true); // Parse the parameters from the given command
 
 				if (params.size() > 1) { // If a filename is provided, execute it
 					std::string fn = "cfg/"+params[1].to_str(); // Construct the path
@@ -310,7 +309,7 @@ namespace bee{ namespace console {
 			"Execute the specified command after the given millisecond delay\n"
 			"The given value is the minimum time before the message will be processed",
 			[] (const MessageContents& msg) {
-				std::vector<SIDP> params = parse_parameters(msg.descr); // Parse the parameters from the given command
+				std::vector<SIDP> params = parse_parameters(msg.descr, true); // Parse the parameters from the given command
 
 				if (params.size() > 2) { // If both required arguments were provided, execute the command
 					run(string_unescape(SIDP_s(params[2])), true, SIDP_i(params[1]));
@@ -336,37 +335,28 @@ namespace bee{ namespace console {
 			}
 		);
 		/*
-		* console_set - Set a console variable to the given  value
+		* console_let - Let a console variable equal the given  value
 		* @name: the name of the variable
 		* @value: the value to set
 		*/
 		add_command(
-			"set",
-			"Set a console variable to the given value",
+			"let",
+			"Let a console variable equal the given value",
 			[] (const MessageContents& msg) {
-				std::vector<SIDP> params = parse_parameters(msg.descr); // Parse the parameters from the given command
+				std::vector<SIDP> params = parse_parameters(msg.descr, true); // Parse the parameters from the given command
 
-				if (params.size() > 2) {
-					set_var(SIDP_s(params[1]), params[2]);
+				if (params.size() > 3) {
+					if (SIDP_s(params[2]) == "=") {
+						set_var(SIDP_s(params[1]), params[3]);
+					} else if (SIDP_s(params[2]) == "+=") {
+						SIDP v = get_var(SIDP_s(params[1]));
+						v += params[3];
+						set_var(SIDP_s(params[1]), v);
+					} else {
+						// TODO: implement other assignment operators
+					}
 				} else {
-					messenger::send({"engine", "console"}, E_MESSAGE::WARNING, "Not enough arguments specified for set");
-				}
-			}
-		);
-		/*
-		* console_get - Output the value of a console variable
-		* @name: the name of the variable
-		*/
-		add_command(
-			"get",
-			"Output the value of a console variable",
-			[] (const MessageContents& msg) {
-				std::vector<SIDP> params = parse_parameters(msg.descr); // Parse the parameters from the given command
-
-				if (params.size() > 1) {
-					messenger::send({"engine", "console"}, E_MESSAGE::INFO, get_var(SIDP_s(params[1])).to_str());
-				} else {
-					messenger::send({"engine", "console"}, E_MESSAGE::WARNING, "Not enough arguments specified for get");
+					messenger::send({"engine", "console"}, E_MESSAGE::WARNING, "Not enough arguments specified for let");
 				}
 			}
 		);
@@ -379,7 +369,7 @@ namespace bee{ namespace console {
 			"screenshot",
 			"Save a screenshot to the given file",
 			[] (const MessageContents& msg) {
-				std::vector<SIDP> params = parse_parameters(msg.descr); // Parse the parameters from the given command
+				std::vector<SIDP> params = parse_parameters(msg.descr, true); // Parse the parameters from the given command
 
 				if (params.size() > 1) { // If a filename is provided, then save the screenshot to it
 					save_screenshot(params[1].to_str());
@@ -398,7 +388,7 @@ namespace bee{ namespace console {
 			"debug",
 			"Enable or disable debug mode",
 			[] (const MessageContents& msg) {
-				std::vector<SIDP> params = parse_parameters(msg.descr); // Parse the parameters from the given command
+				std::vector<SIDP> params = parse_parameters(msg.descr, true); // Parse the parameters from the given command
 
 				if (params.size() > 1) {
 					GameOptions o = get_options();
@@ -418,7 +408,7 @@ namespace bee{ namespace console {
 			"verbosity",
 			"Set the verbosity level of the messenger",
 			[] (const MessageContents& msg) {
-				std::vector<SIDP> params = parse_parameters(msg.descr); // Parse the parameters from the given command
+				std::vector<SIDP> params = parse_parameters(msg.descr, true); // Parse the parameters from the given command
 
 				if (params.size() > 1) {
 					messenger::set_level(static_cast<E_OUTPUT>(SIDP_i(params[1])));
@@ -437,7 +427,7 @@ namespace bee{ namespace console {
 			"volume",
 			"Set the global sound volume from 0.0 to 1.0",
 			[] (const MessageContents& msg) {
-				std::vector<SIDP> params = parse_parameters(msg.descr); // Parse the parameters from the given command
+				std::vector<SIDP> params = parse_parameters(msg.descr, true); // Parse the parameters from the given command
 
 				if (params.size() > 1) {
 					set_volume(SIDP_d(params[1]));

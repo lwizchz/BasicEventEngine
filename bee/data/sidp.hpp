@@ -6,8 +6,8 @@
 * See LICENSE for more details.
 */
 
-#ifndef BEE_CORE_SIDP_H
-#define BEE_CORE_SIDP_H 1
+#ifndef BEE_DATA_SIDP_H
+#define BEE_DATA_SIDP_H 1
 
 #include <map>
 #include <vector>
@@ -104,4 +104,4 @@ namespace bee {
 #define _v(x) (*s)[x].v(__FILE__, __LINE__)
 #define _m(x) (*s)[x].m(__FILE__, __LINE__)
 
-#endif // BEE_CORE_SIDP_H
+#endif // BEE_DATA_SIDP_H

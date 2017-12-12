@@ -56,7 +56,7 @@ void ObjUIButton::draw(bee::Instance* self) {
 		return;
 	}
 
-	bee::set_is_lightable(false);
+	bee::render::set_is_lightable(false);
 
 	int w = _i("w");
 	int h = _i("h");
@@ -73,7 +73,7 @@ void ObjUIButton::draw(bee::Instance* self) {
 	}
 
 	int ox = 0, oy = 0;
-	bee::ViewData* v = bee::get_current_room()->get_current_view();
+	bee::ViewPort* v = bee::get_current_room()->get_current_view();
 	if (v != nullptr) {
 		ox = v->view.x;
 		oy = v->view.y;
@@ -99,7 +99,7 @@ void ObjUIButton::draw(bee::Instance* self) {
 		bee::messenger::log("empty button");
 	}
 
-	bee::set_is_lightable(true);
+	bee::render::set_is_lightable(true);
 }
 
 void ObjUIButton::center_width(bee::Instance* self) {
@@ -109,7 +109,7 @@ void ObjUIButton::center_width(bee::Instance* self) {
 	}
 
 	int ox = 0;
-	bee::ViewData* v = bee::get_current_room()->get_current_view();
+	bee::ViewPort* v = bee::get_current_room()->get_current_view();
 	if (v != nullptr) {
 		ox = v->view.x;
 	}

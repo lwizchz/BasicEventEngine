@@ -11,6 +11,7 @@
 
 #include <sstream>
 #include <algorithm>
+#include <regex>
 
 #include <GL/glew.h> // Include the required OpenGL headers
 #include <SDL2/SDL_opengl.h>
@@ -35,7 +36,7 @@
 #include "../render/drawing.hpp"
 #include "../render/renderer.hpp"
 #include "../render/rgba.hpp"
-#include "../render/viewdata.hpp"
+#include "../render/viewport.hpp"
 
 #include "../resource/font.hpp"
 #include "../resource/room.hpp"
@@ -164,8 +165,6 @@ namespace bee{ namespace console {
 
 		init_commands();
 
-		run("exec \"config.cfg\"", true, 0); // Configure default binds
-
 		return 0; // Return 0 on success
 	}
 	/*
@@ -198,7 +197,7 @@ namespace bee{ namespace console {
 		obj_text_entry->set_color(ui_text_entry, {127, 127, 127, 127});
 
 		bee::ui::add_text_entry_completor(ui_text_entry, [] (Instance* text_entry, const std::string& input) -> std::vector<SIDP> {
-			std::vector<SIDP> params = parse_parameters(input); // Parse the current parameters from the input line
+			std::vector<SIDP> params = parse_parameters(input, true); // Parse the current parameters from the input line
 			if (params.size() == 1) { // Complete the command if it's the only parameter
 				return complete(text_entry, SIDP_s(params[0])); // Find new completion comands
 			} else { // TODO: Complete command arguments
@@ -208,7 +207,8 @@ namespace bee{ namespace console {
 		bee::ui::add_text_entry_handler(ui_text_entry, [] (Instance* text_entry, const std::string& input, const SDL_Event* e) {
 			switch (e->key.keysym.sym) {
 				case SDLK_UP: { // The up arrow cycles through completion commands or reverse history
-					std::vector<SIDP>* completions = static_cast<std::vector<SIDP>*>(SIDP_p(text_entry->get_data("completions")));
+					SIDP c = text_entry->get_data("completions"); // Store the copy returned by get_data()
+					std::vector<SIDP>* completions = static_cast<std::vector<SIDP>*>(SIDP_p(c));
 					if (completions->size() > 1) { // If a command is being completed
 						int completion_index = SIDP_i(text_entry->get_data("completion_index"));
 						if (completion_index > 0) { // If a completion command is already selected, lower the index and set the input line to the given command
@@ -229,7 +229,8 @@ namespace bee{ namespace console {
 					break;
 				}
 				case SDLK_DOWN: { // The down arrow cycles through the forward history
-					std::vector<SIDP>* completions = static_cast<std::vector<SIDP>*>(SIDP_p(text_entry->get_data("completions")));
+					SIDP c = text_entry->get_data("completions"); // Store the copy returned by get_data()
+					std::vector<SIDP>* completions = static_cast<std::vector<SIDP>*>(SIDP_p(c));
 					if (completions->size() > 1) { // If a command is being completed
 						int completion_index = SIDP_i(text_entry->get_data("completion_index"));
 						if (completion_index == -1) { // If not completion command has been selected, store the previous user input
@@ -306,7 +307,7 @@ namespace bee{ namespace console {
 	*/
 	int internal::run_internal(const std::string& command, bool is_urgent, Uint32 delay) {
 		std::string c = trim(command);
-		std::vector<SIDP> params = parse_parameters(c); // Parse the parameters from the given command in order to get the command name as params[0]
+		std::vector<SIDP> params = parse_parameters(c, false); // Parse the parameters from the given command in order to get the command name as params[0]
 
 		// Remove comments from the end of commands
 		size_t compos = c.find("//");
@@ -413,16 +414,92 @@ namespace bee{ namespace console {
 	/*
 	* internal::parse_parameters() - Convert the command to a parameter list
 	* @command: the full command string
+	* @should_replace: whether to substitute variable values for their names
 	*/
-	std::vector<SIDP> internal::parse_parameters(const std::string& command) {
-		std::map<int,std::string> params = split(command, ' ', true); // Split the command parameters by spaces, respecting quotes
+	std::vector<SIDP> internal::parse_parameters(const std::string& command, bool should_replace) {
+		std::vector<std::string> params = splitv(command, ' ', true); // Split the command parameters by spaces, respecting containers
 
 		std::vector<SIDP> param_list; // Create a vector to store each parameter instead of the map from split()
 		for (auto& p : params) { // Iterate over each parameter and store it as a SIDP interpreted type
-			param_list.push_back(SIDP(p.second));
+			if (should_replace) {
+				param_list.push_back(SIDP(replace_vars(p)));
+			} else {
+				param_list.push_back(SIDP(p));
+			}
 		}
 
 		return param_list; // Return the vector of parameters on success
+	}
+	/*
+	* internal::replace_vars() - Replace the variables in a command string with their values
+	* @command: the command to modify
+	*/
+	std::string internal::replace_vars(const std::string& input) {
+		std::string output = "";
+
+		for (size_t i=0; i<input.length(); ++i) {
+			if (
+				(input[i] != '$')
+				||((i>0)&&(input[i-1] == '\\'))
+			) {
+				output += input[i];
+			} else {
+				int containers = 0;
+				std::string var = "";
+				while (++i < input.length()) {
+					var += input[i];
+					if (std::regex_match(var, std::regex("[^[:alnum:]\\[\\]]"))) {
+						--i;
+						var.pop_back();
+						break;
+					}
+
+					if (var.back() == '[') {
+						++containers;
+					} else if (var.back() == ']') {
+						--containers;
+						if (containers < 0) {
+							--i;
+							var.pop_back();
+							break;
+						}
+					}
+				}
+				if (var.empty()) {
+					continue;
+				}
+
+				var = replace_vars(var);
+
+				std::string index = "";
+				for (size_t j=0; j<var.length(); ++j) {
+					if (var[j] == '[') {
+						std::string v (var.substr(0, j));
+						while (++j < var.length()) {
+							if (var[j] == ']') {
+								break;
+							}
+							index += var[j];
+						}
+						var = v;
+						break;
+					}
+				}
+
+				if (!index.empty()) {
+					if (is_str_integer(index)) {
+						output += SIDP_c(get_var(var), std::stoi(index)).to_str(); // Get vector element
+					} else {
+						//output += SIDP_c(get_var(var), SIDP(index)).to_str(); // Get map element
+						output += index;
+					}
+				} else {
+					output += get_var(var).to_str(); // Get non-container variable
+				}
+			}
+		}
+
+		return output;
 	}
 	/*
 	* internal::draw() - Draw the console and its output
@@ -496,7 +573,7 @@ namespace bee{ namespace console {
 		td_log = engine->font_default->draw(td_log, cx, cy, short_log, {0, 0, 0, 255}); // Draw the console log
 
 		// Define several drawing colors
-		RGBA c_text = get_enum_color(E_RGB::BLACK);
+		RGBA c_text (E_RGB::BLACK);
 
 		// Draw the console page number
 		std::string p = std::to_string(page_index+1) + "/" + std::to_string(total_lines/line_amount+1);
@@ -578,7 +655,7 @@ namespace bee{ namespace console {
 	*/
 	int bind(SDL_Keycode key, KeyBind keybind) {
 		if (internal::bindings.find(key) != internal::bindings.end()) { // If the key has already been bound, output a warning
-			messenger::send({"engine", "console"}, E_MESSAGE::WARNING, "Failed to bind key \"" + keystrings_get_string(key) + "\", the key is already in bound.");
+			messenger::send({"engine", "console"}, E_MESSAGE::WARNING, "Failed to bind key \"" + keystrings_get_string(key) + "\", the key is already bound.");
 			return 1;
 		}
 
@@ -596,11 +673,13 @@ namespace bee{ namespace console {
 	*/
 	int add_keybind(SDL_Keycode key, KeyBind keybind, std::function<void (const MessageContents&)> func) {
 		int r = add_command(keybind.command, func);
-		r += bind(key, keybind);
+		if (key != SDLK_UNKNOWN) {
+			r += bind(key, keybind);
+		}
 		return r;
 	}
 	/*
-	* bind() - Return the command that is bound to the given key
+	* get_keybind() - Return the command that is bound to the given key
 	* @key: the keycode to bind to
 	*/
 	KeyBind get_keybind(SDL_Keycode key) {
@@ -608,6 +687,17 @@ namespace bee{ namespace console {
 			return internal::bindings.at(key); // Return the command on success when no command argument is provided
 		}
 		return KeyBind(); // Return an empty string when the provided command is empty and the key has not been bound
+	}
+	/*
+	* get_keycode() - Return the keycode bound to the keybind with the given name
+	*/
+	SDL_Keycode get_keycode(const std::string& keybind) {
+		for (auto& kb : internal::bindings) {
+			if (kb.second.command == keybind) {
+				return kb.second.key;;
+			}
+		}
+		return SDLK_UNKNOWN;
 	}
 	/*
 	* unbind() - Unbind a key from a console command
@@ -693,7 +783,8 @@ namespace bee{ namespace console {
 		if (internal::variables.find(name) != internal::variables.end()) {
 			return internal::variables[name];
 		}
-		return SIDP();
+
+		return internal::replace_vars(name);
 	}
 
 
@@ -719,6 +810,15 @@ namespace bee{ namespace console {
 		}
 
 		return h; // Return the command's description on success
+	}
+	/*
+	* log() - Log a message to the console
+	* @type: the message type
+	* @str: the message to log
+	*/
+	int log(E_MESSAGE type, const std::string& str) {
+		messenger::send({"engine", "console"}, type, str);
+		return 0;
 	}
 }}
 

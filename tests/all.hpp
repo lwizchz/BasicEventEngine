@@ -18,6 +18,6 @@
 #include "util/debug.hpp"
 #include "util/template.hpp"
 
-#include "core/serialdata.hpp"
+#include "data/serialdata.hpp"
 
 #include "render/rgba.hpp"

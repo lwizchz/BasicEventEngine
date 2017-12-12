@@ -22,8 +22,9 @@
 
 #include "../core/instance.hpp"
 #include "../core/rooms.hpp"
-#include "../core/sidp.hpp"
-#include "../core/serialdata.hpp"
+
+#include "../data/sidp.hpp"
+#include "../data/serialdata.hpp"
 
 #include "../resource/room.hpp"
 
