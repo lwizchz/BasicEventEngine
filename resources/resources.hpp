@@ -38,6 +38,9 @@ extern bee::Mesh* mesh_monkey;
 extern bee::Light* lt_ambient;
 extern bee::Light* lt_bee;
 
+// Define scripts
+extern bee::Script* scr_test;
+
 // Declare objects
 extern bee::Object* obj_control;
 extern bee::Object* obj_bee;

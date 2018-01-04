@@ -37,6 +37,9 @@ bee::Mesh* mesh_monkey = nullptr;
 bee::Light* lt_ambient = nullptr;
 bee::Light* lt_bee = nullptr;
 
+// Define scripts
+bee::Script* scr_test = nullptr;
+
 // Declare objects
 bee::Object* obj_control = nullptr;
 bee::Object* obj_bee = nullptr;
@@ -97,6 +100,10 @@ int bee::init_resources() {
 			//lt_bee->set_attenuation({5.0, 1000.0, 40000.0, 0.0});
 			lt_bee->set_color({255, 255, 255, 255});
 
+		// Init scripts
+		scr_test = new Script("scr_test", "scr_test.py");
+			scr_test->load();
+
 		// Init objects
 		obj_control = new ObjControl();
 		obj_bee = new ObjBee();
@@ -143,6 +150,9 @@ int bee::close_resources() {
 	// Destroy lights
 	DEL(lt_ambient);
 	DEL(lt_bee);
+
+	// Destroy scripts
+	DEL(scr_test);
 
 	// Destroy objects
 	DEL(obj_control);

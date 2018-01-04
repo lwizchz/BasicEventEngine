@@ -39,6 +39,8 @@
 #include "resource/font.hpp"
 #include "resource/room.hpp"
 
+#include "python/python.hpp"
+
 #include "ui/ui.hpp"
 
 #include "util/platform.hpp"
@@ -88,6 +90,8 @@ namespace bee {
 				return r; // Return any nonzero values from SDL init
 			}
 		}
+
+		python::init();
 
 		if (!is_initialized) {
 			if (init_resources()) {
@@ -243,6 +247,8 @@ namespace bee {
 
 		console::internal::close();
 		ui::free();
+
+		python::close();
 
 		if (net::get_is_initialized()) {
 			net::close();
@@ -494,16 +500,19 @@ namespace bee {
 					break;
 				}
 
-				#if SDL_VERSION_ATLEAST(2, 0, 4)
-					case SDL_AUDIODEVICEADDED:
-					case SDL_AUDIODEVICEREMOVED:
-				#endif
-				case SDL_DOLLARGESTURE:
-				case SDL_DOLLARRECORD:
-				case SDL_DROPFILE:
-				case SDL_FINGERMOTION:
-				case SDL_FINGERDOWN:
-				case SDL_FINGERUP:
+				// Android, iOS, and WinRT events
+				case SDL_APP_TERMINATING:
+				case SDL_APP_LOWMEMORY:
+				case SDL_APP_WILLENTERBACKGROUND:
+				case SDL_APP_DIDENTERBACKGROUND:
+				case SDL_APP_WILLENTERFOREGROUND:
+				case SDL_APP_DIDENTERFOREGROUND:
+				// System specific window event
+				case SDL_SYSWMEVENT:
+				// Extra keyboard events
+				case SDL_TEXTEDITING:
+				case SDL_TEXTINPUT:
+				// Joystick events
 				case SDL_JOYAXISMOTION:
 				case SDL_JOYBALLMOTION:
 				case SDL_JOYHATMOTION:
@@ -511,11 +520,40 @@ namespace bee {
 				case SDL_JOYBUTTONUP:
 				case SDL_JOYDEVICEADDED:
 				case SDL_JOYDEVICEREMOVED:
+				// Touch events
+				case SDL_FINGERDOWN:
+				case SDL_FINGERUP:
+				case SDL_FINGERMOTION:
+				// Gesture events
+				case SDL_DOLLARGESTURE:
+				case SDL_DOLLARRECORD:
 				case SDL_MULTIGESTURE:
-				case SDL_SYSWMEVENT:
-				case SDL_TEXTEDITING:
-				case SDL_TEXTINPUT:
-				case SDL_USEREVENT: {
+				// Clipboard event
+				case SDL_CLIPBOARDUPDATE:
+				// Drag and drop events
+				case SDL_DROPFILE:
+				case SDL_DROPTEXT:
+				// User specific event
+				case SDL_USEREVENT:
+				#if SDL_VERSION_ATLEAST(2, 0, 2)
+					// Render event
+					case SDL_RENDER_TARGETS_RESET:
+				#endif
+				#if SDL_VERSION_ATLEAST(2, 0, 4)
+					// Extra keyboard event
+					case SDL_KEYMAPCHANGED:
+					// Audio hotplug events
+					case SDL_AUDIODEVICEADDED:
+					case SDL_AUDIODEVICEREMOVED:
+					// Render event
+					case SDL_RENDER_DEVICE_RESET:
+				#endif
+				#if SDL_VERSION_ATLEAST(2, 0, 5)
+					// Drag and drop events
+					case SDL_DROPBEGIN:
+					case SDL_DROPCOMPLETE:
+				#endif
+				{
 					// For events which we don't care about or currently support
 					break;
 				}

@@ -5,5 +5,7 @@
 gmon.out
 
 *.o
+*.pyc
+*.pyo
 
 *.exe

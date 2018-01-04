@@ -23,6 +23,18 @@ build_dependencies()
         cmake .
         make -j5
 
+        # Configure CPython
+        export PYTHONPATH="lib/cpython/Lib"
+        export PYTHONHOME="lib/cpython"
+        cd ../cpython
+        if [ ! -f ./pyconfig.h ]; then
+                ./configure
+                cp ./pyconfig.h ./Include/
+        fi
+        if [ ! -f ./libpython3.7m.a ]; then
+                make -j5
+        fi
+
         cd ../..
 }
 clean_dependencies()
@@ -33,6 +45,12 @@ clean_dependencies()
         cd lib/bullet3
         git clean -fd
         git reset HEAD --hard
+
+        # Clean CPython
+        cd ../cpython
+        git clean -fd
+        git reset HEAD --hard
+        rm ./pyconfig.h ./Include/pyconfig.h ./libpython3.7m.a
 
         cd ../..
 }

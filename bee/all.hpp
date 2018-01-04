@@ -66,8 +66,11 @@
 #include "resource/timeline.hpp"
 #include "resource/mesh.hpp"
 #include "resource/light.hpp"
+#include "resource/script.hpp"
 #include "resource/object.hpp"
 #include "resource/room.hpp"
+
+#include "python/python.hpp"
 
 #include "ui/ui.hpp"
 #include "ui/elements.hpp"

@@ -15,11 +15,13 @@ set(deps_bee_render render/camera.cpp render/drawing.cpp render/render.cpp rende
 
 set(deps_bee_physics physics/body.cpp physics/filter.cpp physics/draw.cpp physics/world.cpp)
 
-set(deps_bee_resource resource/texture.cpp resource/sound.cpp resource/font.cpp resource/path.cpp resource/timeline.cpp resource/mesh.cpp resource/light.cpp resource/object.cpp resource/room.cpp)
+set(deps_bee_resource resource/texture.cpp resource/sound.cpp resource/font.cpp resource/path.cpp resource/timeline.cpp resource/mesh.cpp resource/light.cpp resource/script.cpp resource/object.cpp resource/room.cpp)
+
+set(deps_bee_scripting python/python.cpp)
 
 set(deps_bee_ui ui/ui.cpp ui/objects/element.cpp ui/objects/button.cpp ui/objects/handle.cpp ui/objects/text_entry.cpp ui/objects/gauge.cpp ui/objects/slider.cpp ui/objects/optionbox.cpp)
 
-set(deps ${deps_bee} ${deps_bee_util} ${deps_bee_init} ${deps_bee_messenger} ${deps_bee_core} ${deps_bee_data} ${deps_bee_network} ${deps_bee_render} ${deps_bee_physics} ${deps_bee_resource} ${deps_bee_ui})
+set(deps ${deps_bee} ${deps_bee_util} ${deps_bee_init} ${deps_bee_messenger} ${deps_bee_core} ${deps_bee_data} ${deps_bee_network} ${deps_bee_render} ${deps_bee_physics} ${deps_bee_resource} ${deps_bee_scripting} ${deps_bee_ui})
 
 if (WIN32)
 	set(SRC ${${PROJECT_NAME}_SOURCE_DIR})

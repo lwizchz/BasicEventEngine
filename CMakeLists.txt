@@ -33,7 +33,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${engine_defines}")
 
 set(warns "")
 
-include_directories("lib/doctest/doctest/" "lib/bullet3/src")
+include_directories("lib/doctest/doctest/" "lib/bullet3/src" "lib/cpython/Include")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/lib/")
 
 if (WIN32) # Include Windows libraries manually
@@ -138,9 +138,9 @@ else() # Include Unix libraries automatically
 	find_package(GLUT REQUIRED)
 	find_package(OpenGL REQUIRED)
 	find_package(ASSIMP REQUIRED)
+	find_package(Threads REQUIRED)
 
 	set(BULLET_SRC ${${PROJECT_NAME}_SOURCE_DIR}/lib/bullet3/src)
-
 	set(BULLET_INCLUDE_DIRS ${BULLET_SRC})
 	set(
 		BULLET_LIBRARIES
@@ -150,6 +150,16 @@ else() # Include Unix libraries automatically
 		${BULLET_SRC}/LinearMath/libLinearMath.a
 	)
 
-	include_directories(${GLEW_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRECTORIES} ${OPENGL_INCLUDE_DIRECTORIES} ${ASSIMP_INCLUDE_DIRECTORIES} ${BULLET_INCLUDE_DIRS})
-	target_link_libraries(${PROJECT_NAME} ${GLEW_LIBRARIES} ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES} ${ASSIMP_LIBRARIES} ${BULLET_LIBRARIES})
+	set(CPYTHON_DIR ${${PROJECT_NAME}_SOURCE_DIR}/lib/cpython/)
+	set(
+		CPYTHON_LIBRARIES
+
+		${CPYTHON_DIR}/libpython3.7m.a
+		${CMAKE_DL_LIBS}
+		${CMAKE_THREAD_LIBS_INIT}
+		util
+	)
+
+	include_directories(${GLEW_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRECTORIES} ${OPENGL_INCLUDE_DIRECTORIES} ${ASSIMP_INCLUDE_DIRECTORIES})
+	target_link_libraries(${PROJECT_NAME} ${GLEW_LIBRARIES} ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES} ${ASSIMP_LIBRARIES} ${BULLET_LIBRARIES} ${CPYTHON_LIBRARIES})
 endif()

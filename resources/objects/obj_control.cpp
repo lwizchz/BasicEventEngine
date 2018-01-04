@@ -26,6 +26,8 @@ ObjControl::ObjControl() : Object("obj_control", "obj_control.hpp") {
 	this->set_is_persistent(true);
 }
 void ObjControl::create(bee::Instance* self) {
+	scr_test->run_func("main");
+
 	(*s)["text_fps"] = static_cast<void*>(nullptr);
 
 	(*s)["camx"] = 0.0;
