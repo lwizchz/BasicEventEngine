@@ -23,7 +23,6 @@
 #include "core/instance.hpp"
 #include "core/keybind.hpp"
 #include "core/loader.hpp"
-#include "core/resources.hpp"
 #include "core/rooms.hpp"
 #include "core/window.hpp"
 

@@ -23,7 +23,7 @@
 
 #include "../messenger/messenger.hpp"
 
-#include "../core/resources.hpp"
+#include "../core/enginestate.hpp"
 
 namespace bee {
 	std::map<int,Sound*> Sound::list;
@@ -87,17 +87,6 @@ namespace bee {
 	}
 
 	/*
-	* Sound::add_to_resources() - Add the sound to the appropriate resource list
-	*/
-	int Sound::add_to_resources() {
-		if (id < 0) { // If the resource needs to be added to the resource list
-			id = next_id++;
-			list.emplace(id, this); // Add the resource and with the new id
-		}
-
-		return 0; // Return 0 on success
-	}
-	/*
 	* Sound::get_amount() - Return the amount of sound resources
 	*/
 	size_t Sound::get_amount() {
@@ -112,6 +101,108 @@ namespace bee {
 			return list[id];
 		}
 		return nullptr;
+	}
+	/*
+	* Sound::get_by_name() - Return the sound resource with the given name
+	* @name: the name of the desired sound
+	*/
+	Sound* Sound::get_by_name(const std::string& name) {
+		for (auto& sound : list) { // Iterate over the sounds in order to find the first one with the given name
+			Sound* s = sound.second;
+			if (s != nullptr) {
+				if (s->get_name() == name) {
+					return s; // Return the desired sound on success
+				}
+			}
+		}
+		return nullptr; // Return nullptr on failure
+	}
+	/*
+	* Sound::add() - Initiliaze, load, and return a newly created sound resource
+	* @name: the name to initialize the sound with
+	* @path: the path to initialize the sound with
+	* @is_music: whether the sound should be considered music or not
+	*/
+	Sound* Sound::add(const std::string& name, const std::string& path, bool is_music) {
+		Sound* new_sound = new Sound(name, path, is_music);
+		new_sound->load();
+		return new_sound;
+	}
+
+	/*
+	* Sound::finished() - Called by Mix_ChannelFinished() whenever a channel finishes playback
+	* ! See https://www.libsdl.org/projects/SDL_mixer/docs/SDL_mixer_37.html for details
+	* @channel: the channel which has finished playback
+	*/
+	void Sound::finished(int channel) {
+		for (auto& sound : list) { // Iterate over the sounds in order to remove finished channels from each sound's list
+			Sound* s = sound.second;
+			if (s != nullptr) {
+				if (!s->get_is_music()) { // Music cannot be played on multiple channels
+					s->finish(channel); // Remove the finished channel from the list
+				}
+			}
+		}
+	}
+	/*
+	* Sound::stop_loops() - Immediately stop all looping sounds
+	*/
+	int Sound::stop_loops() {
+		for (auto& sound : list) { // Iterate over the sounds and stop them individually
+			Sound* s = sound.second;
+			if ((s != nullptr)&&(s->get_is_looping())) {
+				s->stop();
+			}
+		}
+
+		return 0; // Return 0 on success
+	}
+	/*
+	* Sound::stop_all() - Immediately stop all sounds
+	*/
+	int Sound::stop_all() {
+		for (auto& sound : list) { // Iterate over the sounds and stop them individually
+			Sound* s = sound.second;
+			if (s != nullptr) {
+				s->stop();
+			}
+		}
+
+		return 0; // Return 0 on success
+	}
+	/*
+	* Sound::get_master_volume() - Return the global sound volume from [0.0, 1.0]
+	*/
+	double Sound::get_master_volume() {
+		return engine->volume;
+	}
+	/*
+	* Sound::set_master_volume() - Set a new global sound volume and update it for all currently playing sounds
+	* @volume: the new volume to use
+	*/
+	int Sound::set_master_volume(double volume) {
+		engine->volume = volume; // Set the volume
+
+		for (auto& sound : list) { // Iterate over the sounds and update them to the new volume
+			Sound* s = sound.second;
+			if (s != nullptr) {
+				s->update_volume();
+			}
+		}
+
+		return 0; // Return 0 on success
+	}
+
+	/*
+	* Sound::add_to_resources() - Add the sound to the appropriate resource list
+	*/
+	int Sound::add_to_resources() {
+		if (id < 0) { // If the resource needs to be added to the resource list
+			id = next_id++;
+			list.emplace(id, this); // Add the resource and with the new id
+		}
+
+		return 0; // Return 0 on success
 	}
 	/*
 	* Sound::reset() - Reset all resource variables for reinitialization
@@ -242,7 +333,7 @@ namespace bee {
 			return 1; // Return 1 when the sound is not loaded
 		}
 
-		int v = static_cast<int>(128*bee::get_volume()*volume); // Get the volume level relative to the global volume
+		int v = static_cast<int>(128*get_master_volume()*volume); // Get the volume level relative to the global volume
 		if (is_music) { // If the sound is music, set the volume appropriately
 			Mix_VolumeMusic(v);
 		} else { // Otherwise set the sound chunk volume
@@ -379,7 +470,7 @@ namespace bee {
 	* ! This is called by sound_finished() whenever a channel finishes playback
 	* @channel: the channel which has finished playback
 	*/
-	int Sound::finished(int channel) {
+	int Sound::finish(int channel) {
 		if (!is_music) { // Music cannot be played on multiple channels
 			current_channels.remove(channel); // Remove the channel from the currently playing list
 

@@ -60,17 +60,6 @@ namespace bee {
 	}
 
 	/*
-	* Script::add_to_resources() - Add the sprite to the appropriate resource list
-	*/
-	int Script::add_to_resources() {
-		if (id < 0) { // If the resource needs to be added to the resource list
-			id = next_id++;
-			list.emplace(id, this); // Add the resource and with the new id
-		}
-
-		return 0; // Return 0 on success
-	}
-	/*
 	* Script::get_amount() - Return the amount of script resources
 	*/
 	size_t Script::get_amount() {
@@ -85,6 +74,43 @@ namespace bee {
 			return list[id];
 		}
 		return nullptr;
+	}
+	/*
+	* Script::get_by_name() - Return the script resource with the given name
+	* @name: the name of the desired script
+	*/
+	Script* Script::get_by_name(const std::string& name) {
+		for (auto& script : list) { // Iterate over the scripts in order to find the first one with the given name
+			Script* s = script.second;
+			if (s != nullptr) {
+				if (s->get_name() == name) {
+					return s; // Return the desired script on success
+				}
+			}
+		}
+		return nullptr; // Return nullptr on failure
+	}
+	/*
+	* Script::add() - Initiliaze, load, and return a newly created script resource
+	* @name: the name to initialize the script with
+	* @path: the path to initialize the script with
+	*/
+	Script* Script::add(const std::string& name, const std::string& path) {
+		Script* new_script = new Script(name, path);
+		new_script->load();
+		return new_script;
+	}
+
+	/*
+	* Script::add_to_resources() - Add the sprite to the appropriate resource list
+	*/
+	int Script::add_to_resources() {
+		if (id < 0) { // If the resource needs to be added to the resource list
+			id = next_id++;
+			list.emplace(id, this); // Add the resource and with the new id
+		}
+
+		return 0; // Return 0 on success
 	}
 	/*
 	* Script::reset() - Reset all resource variables for reinitialization

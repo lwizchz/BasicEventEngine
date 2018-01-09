@@ -9,6 +9,8 @@
 #ifndef BEE_CORE_ROOMS_H
 #define BEE_CORE_ROOMS_H 1
 
+#include <utility>
+
 namespace bee {
 	// Forward declarations
 	class Room;
@@ -16,14 +18,10 @@ namespace bee {
 	void restart_room();
 	int change_room(Room*, bool);
 	int change_room(Room*);
-	int room_goto(int);
-	int room_goto_previous();
-	int room_goto_next();
 
 	Room* get_current_room();
 	bool get_is_ready();
-	int get_room_width();
-	int get_room_height();
+	std::pair<int,int> get_room_size();
 	bool is_on_screen(const SDL_Rect&);
 
 	bool set_is_paused(bool);

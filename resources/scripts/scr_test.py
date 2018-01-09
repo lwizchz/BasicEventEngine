@@ -1,9 +1,19 @@
 #!/bin/python
 
-from . import scr_test1
+import bee
+
+import random
 
 def step():
-    print("stepping...")
+    bee.set_window_pos(random.randint(0, 20), random.randint(0, 20))
 
 def main():
-    print("testing python script: a=={}".format(scr_test1.a))
+    bee.messenger.set_level(bee.E_OUTPUT["VERBOSE"])
+
+    def log(tickstamp, tags, type, descr):
+        print("{}: {}".format(type, descr))
+    bee.messenger.register_recipient("pylog", ["python", "log"], True, log)
+
+    bee.messenger.log("python logging...")
+    bee.messenger.send(["python", "log"], bee.E_MESSAGE["WARNING"], "warning!")
+    bee.messenger.send(["python", "log"], bee.E_MESSAGE["INTERNAL"], "internal python message")

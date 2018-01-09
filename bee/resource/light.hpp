@@ -40,44 +40,47 @@ namespace bee {
 	};
 
 	class Light: public Resource { // The light resource class is used to draw all lighting effects
-			static std::map<int,Light*> list;
-			static int next_id;
+		static std::map<int,Light*> list;
+		static int next_id;
 
-			int id; // The id of the resource
-			std::string name; // An arbitrary name for the resource
-			std::string path; // The path of the file to load the light from
+		int id; // The id of the resource
+		std::string name; // An arbitrary name for the resource
+		std::string path; // The path of the file to load the light from
 
-			LightData lighting; // The properties that define the light
-		public:
-			// See bee/resources/light.cpp for function comments
-			Light();
-			Light(const std::string&, const std::string&);
-			~Light();
+		LightData lighting; // The properties that define the light
+	public:
+		// See bee/resources/light.cpp for function comments
+		Light();
+		Light(const std::string&, const std::string&);
+		~Light();
 
-			int add_to_resources();
-			static size_t get_amount();
-			static Light* get(int);
-			int reset();
-			int print() const;
+		static size_t get_amount();
+		static Light* get(int);
+		static Light* get_by_name(const std::string&);
+		static Light* add(const std::string&, const std::string&);
 
-			int get_id() const;
-			std::string get_name() const;
-			std::string get_path() const;
-			E_LIGHT get_type() const;
-			glm::vec4 get_position() const;
-			glm::vec4 get_direction() const;
-			glm::vec4 get_attenuation() const;
-			RGBA get_color() const;
+		int add_to_resources();
+		int reset();
+		int print() const;
 
-			int set_name(const std::string&);
-			int set_path(const std::string&);
-			int set_type(E_LIGHT);
-			int set_position(const glm::vec4&);
-			int set_direction(const glm::vec4&);
-			int set_attenuation(const glm::vec4&);
-			int set_color(RGBA);
+		int get_id() const;
+		std::string get_name() const;
+		std::string get_path() const;
+		E_LIGHT get_type() const;
+		glm::vec4 get_position() const;
+		glm::vec4 get_direction() const;
+		glm::vec4 get_attenuation() const;
+		RGBA get_color() const;
 
-			int queue();
+		int set_name(const std::string&);
+		int set_path(const std::string&);
+		int set_type(E_LIGHT);
+		int set_position(const glm::vec4&);
+		int set_direction(const glm::vec4&);
+		int set_attenuation(const glm::vec4&);
+		int set_color(RGBA);
+
+		int queue();
 	};
 }
 

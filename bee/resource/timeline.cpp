@@ -71,17 +71,6 @@ namespace bee {
 	}
 
 	/*
-	* Timeline::add_to_resources() - Add the timeline to the appropriate resource list
-	*/
-	int Timeline::add_to_resources() {
-		if (id < 0) { // If the resource needs to be added to the resource list
-			id = next_id++;
-			list.emplace(id, this); // Add the resource and with the new id
-		}
-
-		return 0; // Return 0 on success
-	}
-	/*
 	* Timeline::get_amount() - Return the amount of timeline resources
 	*/
 	size_t Timeline::get_amount() {
@@ -96,6 +85,42 @@ namespace bee {
 			return list[id];
 		}
 		return nullptr;
+	}
+	/*
+	* Timeline::get_by_name() - Return the timeline resource with the given name
+	* @name: the name of the desired timeline
+	*/
+	Timeline* Timeline::get_by_name(const std::string& name) {
+		for (auto& tl : list) { // Iterate over the timelines in order to find the first one with the given name
+			Timeline* t = tl.second;
+			if (t != nullptr) {
+				if (t->get_name() == name) {
+					return t; // Return the desired timeline on success
+				}
+			}
+		}
+		return nullptr; // Return nullptr on failure
+	}
+	/*
+	* Timeline::add() - Initiliaze and return a newly created timeline resource
+	* @name: the name to initialize the timeline with
+	* @path: the path to initialize the timeline with
+	*/
+	Timeline* Timeline::add(const std::string& name, const std::string& path) {
+		Timeline* new_timeline = new Timeline(name, path);
+		return new_timeline;
+	}
+
+	/*
+	* Timeline::add_to_resources() - Add the timeline to the appropriate resource list
+	*/
+	int Timeline::add_to_resources() {
+		if (id < 0) { // If the resource needs to be added to the resource list
+			id = next_id++;
+			list.emplace(id, this); // Add the resource and with the new id
+		}
+
+		return 0; // Return 0 on success
 	}
 	/*
 	* Timeline::reset() - Reset all resource variables for reinitialization

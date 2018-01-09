@@ -42,7 +42,7 @@ namespace bee {
 
 		shader(nullptr)
 	{
-		texture->load_as_target(get_width(), get_height());
+		texture->load_as_target(get_window().w, get_window().h);
 	}
 	ViewPort::~ViewPort() {
 		delete texture;

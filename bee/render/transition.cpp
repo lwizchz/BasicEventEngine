@@ -80,7 +80,7 @@ namespace bee {
 				break;
 			}
 			case E_TRANSITION::CREATE_LEFT: { // Create from left
-				for (double i=0; i<get_width(); i+=engine->transition_speed*get_delta()) {
+				for (double i=0; i<get_window().w; i+=engine->transition_speed*get_delta()) {
 					if ((static_cast<int>(i)%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
@@ -94,7 +94,7 @@ namespace bee {
 				break;
 			}
 			case E_TRANSITION::CREATE_RIGHT: { // Create from right
-				for (double i=get_width(); i>=0; i-=engine->transition_speed*get_delta()) {
+				for (double i=get_window().w; i>=0; i-=engine->transition_speed*get_delta()) {
 					if ((static_cast<int>(i)%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
@@ -108,7 +108,7 @@ namespace bee {
 				break;
 			}
 			case E_TRANSITION::CREATE_TOP: { // Create from top
-				for (double i=0; i<get_height(); i+=engine->transition_speed*get_delta()) {
+				for (double i=0; i<get_window().h; i+=engine->transition_speed*get_delta()) {
 					if ((static_cast<int>(i)%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
@@ -122,7 +122,7 @@ namespace bee {
 				break;
 			}
 			case E_TRANSITION::CREATE_BOTTOM: { // Create from bottom
-				for (double i=get_height(); i>=0; i-=engine->transition_speed*get_delta()) {
+				for (double i=get_window().h; i>=0; i-=engine->transition_speed*get_delta()) {
 					if ((static_cast<int>(i)%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
@@ -136,7 +136,7 @@ namespace bee {
 				break;
 			}
 			case E_TRANSITION::CREATE_CENTER: { // Create from center
-				const int w = get_width(), h = get_height();
+				const int w = get_window().w, h = get_window().h;
 				for (double i=0; i<w; i+=engine->transition_speed*get_delta()) {
 					if ((static_cast<int>(i)%10 == 0)&&(compute_check_quit())) {
 						break;
@@ -156,7 +156,7 @@ namespace bee {
 				break;
 			}
 			case E_TRANSITION::SHIFT_LEFT: { // Shift from left
-				for (double i=-get_width(); i<0; i+=engine->transition_speed*get_delta()) {
+				for (double i=-get_window().w; i<0; i+=engine->transition_speed*get_delta()) {
 					if ((static_cast<int>(i)%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
@@ -169,7 +169,7 @@ namespace bee {
 				break;
 			}
 			case E_TRANSITION::SHIFT_RIGHT: { // Shift from right
-				for (double i=get_width(); i>=0; i-=engine->transition_speed*get_delta()) {
+				for (double i=get_window().h; i>=0; i-=engine->transition_speed*get_delta()) {
 					if ((static_cast<int>(i)%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
@@ -182,7 +182,7 @@ namespace bee {
 				break;
 			}
 			case E_TRANSITION::SHIFT_TOP: { // Shift from top
-				for (double i=-get_height(); i<0; i+=engine->transition_speed*get_delta()) {
+				for (double i=-get_window().h; i<0; i+=engine->transition_speed*get_delta()) {
 					if ((static_cast<int>(i)%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
@@ -195,7 +195,7 @@ namespace bee {
 				break;
 			}
 			case E_TRANSITION::SHIFT_BOTTOM: { // Shift from bottom
-				for (double i=get_height(); i>=0; i-=engine->transition_speed*get_delta()) {
+				for (double i=get_window().h; i>=0; i-=engine->transition_speed*get_delta()) {
 					if ((static_cast<int>(i)%10 == 0)&&(compute_check_quit())) {
 						break;
 					}
@@ -228,7 +228,7 @@ namespace bee {
 				break;
 			}
 			case E_TRANSITION::PUSH_LEFT: { // Push from left
-				const int w = get_width();
+				const int w = get_window().w;
 				for (double i=-w; i<0; i+=engine->transition_speed*get_delta()) {
 					if ((static_cast<int>(i)%10 == 0)&&(compute_check_quit())) {
 						break;
@@ -242,7 +242,7 @@ namespace bee {
 				break;
 			}
 			case E_TRANSITION::PUSH_RIGHT: { // Push from right
-				const int w = get_width();
+				const int w = get_window().w;
 				for (double i=w; i>=0; i-=engine->transition_speed*get_delta()) {
 					if ((static_cast<int>(i)%10 == 0)&&(compute_check_quit())) {
 						break;
@@ -256,7 +256,7 @@ namespace bee {
 				break;
 			}
 			case E_TRANSITION::PUSH_TOP: { // Push from top
-				const int h = get_height();
+				const int h = get_window().h;
 				for (double i=-h; i<0; i+=engine->transition_speed*get_delta()) {
 					if ((static_cast<int>(i)%10 == 0)&&(compute_check_quit())) {
 						break;
@@ -270,7 +270,7 @@ namespace bee {
 				break;
 			}
 			case E_TRANSITION::PUSH_BOTTOM: { // Push from bottom
-				const int h = get_height();
+				const int h = get_window().h;
 				for (double i=h; i>=0; i-=engine->transition_speed*get_delta()) {
 					if ((static_cast<int>(i)%10 == 0)&&(compute_check_quit())) {
 						break;

@@ -30,7 +30,6 @@
 #include "enginestate.hpp"
 #include "input.hpp"
 #include "keybind.hpp"
-#include "resources.hpp"
 #include "rooms.hpp"
 
 #include "../render/drawing.hpp"

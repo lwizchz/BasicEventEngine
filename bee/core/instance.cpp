@@ -21,7 +21,6 @@
 
 #include "../messenger/messenger.hpp"
 
-#include "resources.hpp"
 #include "rooms.hpp"
 
 #include "../data/sidp.hpp"
@@ -209,9 +208,9 @@ namespace bee {
 		if (_object != nullptr) {
 			object = _object;
 		} else {
-			object = get_object_by_name(SIDP_s(m["object"]));
+			object = Object::get_by_name(SIDP_s(m["object"]));
 		}
-		sprite = get_texture_by_name(SIDP_s(m["sprite"]));
+		sprite = Texture::get_by_name(SIDP_s(m["sprite"]));
 
 		subimage_time = SIDP_i(m["subimage_time"]);
 		body->deserialize(SIDP_m(m["body"]), this);
@@ -228,7 +227,7 @@ namespace bee {
 			btScalar(SIDP_cd(m["pos_previous"], 2))
 		);
 
-		path = get_path_by_name(SIDP_s(m["path"]));
+		path = Path::get_by_name(SIDP_s(m["path"]));
 		path_speed = SIDP_d(m["path_speed"]);
 		path_end_action = static_cast<E_PATH_END>(SIDP_i(m["path_end_action"]));
 		path_current_node = SIDP_i(m["path_current_node"]);
@@ -281,7 +280,7 @@ namespace bee {
 
 		std::string sprite_name;
 		sd.store_string(sprite_name);
-		sprite = get_texture_by_name(sprite_name);
+		sprite = Texture::get_by_name(sprite_name);
 		int s;
 		sd.store_int(s);
 		subimage_time = s;

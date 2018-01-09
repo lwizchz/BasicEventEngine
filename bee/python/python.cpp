@@ -9,9 +9,8 @@
 #ifndef BEE_PYTHON
 #define BEE_PYTHON 1
 
+#include <cstdlib>
 #include <vector>
-
-#include <Python.h>
 
 #include "python.hpp"
 
@@ -21,6 +20,8 @@
 #include "../core/enginestate.hpp"
 
 #include "../messenger/messenger.hpp"
+
+#include "beemodule.hpp"
 
 namespace bee { namespace python {
         namespace internal {
@@ -49,8 +50,14 @@ namespace bee { namespace python {
                         internal::argv.push_back(arg);
                 }
 
+                internal::init_module();
+
+                setenv("PYTHONPATH", "lib/cpython/build/lib.linux-x86_64-3.7:lib/cpython/Lib", 1);
+                setenv("PYTHONHOME", "lib/cpython", 1);
+
                 Py_SetProgramName(internal::program);
                 Py_Initialize();
+
                 PySys_SetArgv(internal::argv.size(), internal::argv.data());
 
                 return 0;

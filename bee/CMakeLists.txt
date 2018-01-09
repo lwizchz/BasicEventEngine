@@ -5,7 +5,7 @@ set(deps_bee_init init/info.cpp init/gameoptions.cpp init/programflags.cpp)
 
 set(deps_bee_messenger messenger/messenger.cpp messenger/messagecontents.cpp messenger/messagerecipient.cpp)
 
-set(deps_bee_core core/console.cpp core/display.cpp core/enginestate.cpp core/input.cpp core/instance.cpp core/keybind.cpp core/loader.cpp core/resources.cpp core/rooms.cpp core/window.cpp)
+set(deps_bee_core core/console.cpp core/display.cpp core/enginestate.cpp core/input.cpp core/instance.cpp core/keybind.cpp core/loader.cpp core/rooms.cpp core/window.cpp)
 set(deps_bee_data data/sidp.cpp data/serialdata.cpp data/statemachine.cpp)
 
 set(deps_bee_network network/network.cpp network/client.cpp network/connection.cpp network/packet.cpp network/data.cpp network/event.cpp)
@@ -17,7 +17,8 @@ set(deps_bee_physics physics/body.cpp physics/filter.cpp physics/draw.cpp physic
 
 set(deps_bee_resource resource/texture.cpp resource/sound.cpp resource/font.cpp resource/path.cpp resource/timeline.cpp resource/mesh.cpp resource/light.cpp resource/script.cpp resource/object.cpp resource/room.cpp)
 
-set(deps_bee_scripting python/python.cpp)
+set(deps_bee_python python/python.cpp python/beemodule.cpp python/messenger.cpp python/console.cpp)
+set(deps_bee_scripting ${deps_bee_python})
 
 set(deps_bee_ui ui/ui.cpp ui/objects/element.cpp ui/objects/button.cpp ui/objects/handle.cpp ui/objects/text_entry.cpp ui/objects/gauge.cpp ui/objects/slider.cpp ui/objects/optionbox.cpp)
 

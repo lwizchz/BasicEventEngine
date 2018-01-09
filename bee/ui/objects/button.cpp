@@ -119,7 +119,7 @@ void ObjUIButton::center_width(bee::Instance* self) {
 	(*s)["w"] = w;
 	(*s)["h"] = h*1.25;
 
-	self->set_corner_x((bee::get_width() - w)/2 - ox);
+	self->set_corner_x((bee::get_window().w - w)/2 - ox);
 }
 
 #endif // BEE_UI_OBJ_BUTTON

@@ -64,8 +64,8 @@ namespace bee { // The engine namespace
 	Uint32 get_tick_delta();
 	unsigned int get_fps_goal();
 
-	int restart_game();
-	int end_game();
+	void restart_game();
+	void end_game();
 }
 
 #endif // BEE_ENGINE_H

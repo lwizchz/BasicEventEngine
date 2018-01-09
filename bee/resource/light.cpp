@@ -75,17 +75,6 @@ namespace bee {
 	}
 
 	/*
-	* Light::add_to_resources() - Add the sprite to the appropriate resource list
-	*/
-	int Light::add_to_resources() {
-		if (id < 0) { // If the resource needs to be added to the resource list
-			id = next_id++;
-			list.emplace(id, this); // Add the resource and with the new id
-		}
-
-		return 0; // Return 0 on success
-	}
-	/*
 	* Light::get_amount() - Return the amount of light resources
 	*/
 	size_t Light::get_amount() {
@@ -100,6 +89,42 @@ namespace bee {
 			return list[id];
 		}
 		return nullptr;
+	}
+	/*
+	* Light::get_by_name() - Return the light resource with the given name
+	* @name: the name of the desired light
+	*/
+	Light* Light::get_by_name(const std::string& name) {
+		for (auto& light : list) { // Iterate over the lights in order to find the first one with the given name
+			Light* l = light.second;
+			if (l != nullptr) {
+				if (l->get_name() == name) {
+					return l; // Return the desired light on success
+				}
+			}
+		}
+		return nullptr; // Return nullptr on failure
+	}
+	/*
+	* Light::add() - Initiliaze and return a newly created light resource
+	* @name: the name to initialize the light with
+	* @path: the path to initialize the light with
+	*/
+	Light* Light::add(const std::string& name, const std::string& path) {
+		Light* new_light = new Light(name, path);
+		return new_light;
+	}
+
+	/*
+	* Light::add_to_resources() - Add the light to the appropriate resource list
+	*/
+	int Light::add_to_resources() {
+		if (id < 0) { // If the resource needs to be added to the resource list
+			id = next_id++;
+			list.emplace(id, this); // Add the resource and with the new id
+		}
+
+		return 0; // Return 0 on success
 	}
 	/*
 	* Light::reset() - Reset all resource variables for reinitialization

@@ -543,6 +543,11 @@ namespace bee { namespace messenger{
 			return 1;
 		}
 
+		if (internal::logfiles.find(filename) != internal::logfiles.end()) {
+			internal::logfiles.at(filename).first = level;
+			return 0;
+		}
+
 		std::ofstream* logfile = new std::ofstream(filename);
 		if (!logfile->is_open()) {
 			send({"engine", "messenger"}, E_MESSAGE::ERROR, "Failed to open log file \"" + filename + "\"");

@@ -23,7 +23,6 @@
 
 #include "../../messenger/messenger.hpp"
 
-#include "../../core/resources.hpp"
 #include "../../core/rooms.hpp"
 
 #include "particledata.hpp"
@@ -64,71 +63,68 @@ namespace bee {
 			init();
 		}
 	}
-	Particle::Particle(E_PT_SHAPE _shape, double _scale, Uint32 _max_time, unsigned int _deviation) :
+	Particle::Particle(E_PT_SHAPE shape, double _scale, Uint32 _max_time, unsigned int _deviation) :
 		Particle(nullptr, _scale, _max_time, _deviation)
 	{
 		has_own_texture = true;
 
-		switch (_shape) {
+		switch (shape) {
 			case E_PT_SHAPE::PIXEL: {
-				texture = add_texture("pt_texture_pixel", "particles/00_pixel.png");
+				texture = Texture::add("pt_texture_pixel", "particles/00_pixel.png");
 				break;
 			}
 			case E_PT_SHAPE::DISK: {
-				texture = add_texture("pt_texture_disk", "particles/01_disk.png");
+				texture = Texture::add("pt_texture_disk", "particles/01_disk.png");
 				break;
 			}
 			case E_PT_SHAPE::SQUARE: {
-				texture = add_texture("pt_texture_square", "particles/02_square.png");
+				texture = Texture::add("pt_texture_square", "particles/02_square.png");
 				break;
 			}
 			case E_PT_SHAPE::LINE: {
-				texture = add_texture("pt_texture_line", "particles/03_line.png");
+				texture = Texture::add("pt_texture_line", "particles/03_line.png");
 				break;
 			}
 			case E_PT_SHAPE::STAR: {
-				texture = add_texture("pt_texture_star", "particles/04_star.png");
+				texture = Texture::add("pt_texture_star", "particles/04_star.png");
 				break;
 			}
 			case E_PT_SHAPE::CIRCLE: {
-				texture = add_texture("pt_texture_circle", "particles/05_circle.png");
+				texture = Texture::add("pt_texture_circle", "particles/05_circle.png");
 				break;
 			}
 			case E_PT_SHAPE::RING: {
-				texture = add_texture("pt_texture_ring", "particles/06_ring.png");
+				texture = Texture::add("pt_texture_ring", "particles/06_ring.png");
 				break;
 			}
 			case E_PT_SHAPE::SPHERE: {
-				texture = add_texture("pt_texture_sphere", "particles/07_sphere.png");
+				texture = Texture::add("pt_texture_sphere", "particles/07_sphere.png");
 				break;
 			}
 			case E_PT_SHAPE::FLARE: {
-				texture = add_texture("pt_texture_flare", "particles/08_flare.png");
+				texture = Texture::add("pt_texture_flare", "particles/08_flare.png");
 				break;
 			}
 			case E_PT_SHAPE::SPARK: {
-				texture = add_texture("pt_texture_spark", "particles/09_spark.png");
+				texture = Texture::add("pt_texture_spark", "particles/09_spark.png");
 				break;
 			}
 			case E_PT_SHAPE::EXPLOSION: {
-				texture = add_texture("pt_texture_explosion", "particles/10_explosion.png");
+				texture = Texture::add("pt_texture_explosion", "particles/10_explosion.png");
 				break;
 			}
 			case E_PT_SHAPE::CLOUD: {
-				texture = add_texture("pt_texture_cloud", "particles/11_cloud.png");
+				texture = Texture::add("pt_texture_cloud", "particles/11_cloud.png");
 				break;
 			}
 			case E_PT_SHAPE::SMOKE: {
-				texture = add_texture("pt_texture_smoke", "particles/12_smoke.png");
+				texture = Texture::add("pt_texture_smoke", "particles/12_smoke.png");
 				break;
 			}
 			case E_PT_SHAPE::SNOW: {
-				texture = add_texture("pt_sprite_snow", "particles/13_snow.png");
+				texture = Texture::add("pt_sprite_snow", "particles/13_snow.png");
 				break;
 			}
-			default: // This should never happen
-				messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Couldn't initialize particle: unknown particle type " + bee_itos(static_cast<int>(_shape)));
-				return;
 		}
 
 		init();

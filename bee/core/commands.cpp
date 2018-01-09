@@ -22,6 +22,8 @@
 
 #include "../render/transition.hpp"
 
+#include "../resource/sound.hpp"
+
 namespace bee{ namespace console {
 	/*
 	* internal::init_commands() - Initialize the default console commands
@@ -430,9 +432,9 @@ namespace bee{ namespace console {
 				std::vector<SIDP> params = parse_parameters(msg.descr, true); // Parse the parameters from the given command
 
 				if (params.size() > 1) {
-					set_volume(SIDP_d(params[1]));
+					Sound::set_master_volume(SIDP_d(params[1]));
 				} else {
-					messenger::send({"engine", "console"}, E_MESSAGE::INFO, std::to_string(get_volume()));
+					messenger::send({"engine", "console"}, E_MESSAGE::INFO, std::to_string(Sound::get_master_volume()));
 				}
 			}
 		);

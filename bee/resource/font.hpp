@@ -35,68 +35,71 @@ namespace bee {
 	};
 
 	class Font: public Resource { // The font class is used to render all text as textures
-			static std::map<int,Font*> list;
-			static int next_id;
+		static std::map<int,Font*> list;
+		static int next_id;
 
-			int id; // The id of the resource
-			std::string name; // An arbitrary name for the resource
-			std::string path; // The path of the TrueType font file or the sprite font image to be used for rendering
-			int font_size; // The size of the font to render
-			int style; // The style of the font, see Font::set_style() for more information
-			int lineskip; // The spacing between lines of the font
+		int id; // The id of the resource
+		std::string name; // An arbitrary name for the resource
+		std::string path; // The path of the TrueType font file or the sprite font image to be used for rendering
+		int font_size; // The size of the font to render
+		int style; // The style of the font, see Font::set_style() for more information
+		int lineskip; // The spacing between lines of the font
 
-			TTF_Font* font; // The internal TTF font used for rendering
-			bool is_loaded; // Whether the font file was successfully loaded
-			bool has_draw_failed; // Whether the draw function has previously failed, this prevents continuous writes to
+		TTF_Font* font; // The internal TTF font used for rendering
+		bool is_loaded; // Whether the font file was successfully loaded
+		bool has_draw_failed; // Whether the draw function has previously failed, this prevents continuous writes to
 
-			Texture* sprite_font; // The optional internal sprite font used for rendering
-			bool is_sprite; // Whether the font is a sprite font
-		public:
-			// See bee/resources/font.cpp for function comments
-			Font();
-			Font(const std::string&, const std::string&, int, bool);
-			~Font();
+		Texture* sprite_font; // The optional internal sprite font used for rendering
+		bool is_sprite; // Whether the font is a sprite font
+	public:
+		// See bee/resources/font.cpp for function comments
+		Font();
+		Font(const std::string&, const std::string&, int, bool);
+		~Font();
 
-			int add_to_resources();
-			static size_t get_amount();
-			static Font* get(int);
-			int reset();
-			int print() const;
+		static size_t get_amount();
+		static Font* get(int);
+		static Font* get_by_name(const std::string&);
+		static Font* add(const std::string&, const std::string&, int, bool);
 
-			int get_id() const;
-			std::string get_name() const;
-			std::string get_path() const;
-			int get_font_size() const;
-			int get_style() const;
-			int get_lineskip() const;
-			int get_lineskip_default();
-			std::string get_fontname();
+		int add_to_resources();
+		int reset();
+		int print() const;
 
-			int set_name(const std::string&);
-			int set_path(const std::string&);
-			int set_font_size(int);
-			int set_style(int);
-			int set_lineskip(int);
+		int get_id() const;
+		std::string get_name() const;
+		std::string get_path() const;
+		int get_font_size() const;
+		int get_style() const;
+		int get_lineskip() const;
+		int get_lineskip_default();
+		std::string get_fontname();
 
-			int load();
-			int free();
+		int set_name(const std::string&);
+		int set_path(const std::string&);
+		int set_font_size(int);
+		int set_style(int);
+		int set_lineskip(int);
 
-			TextData* draw_internal(int, int, const std::string&, RGBA);
-			TextData* draw(int, int, const std::string&, RGBA);
-			TextData* draw(int, int, const std::string&);
-			TextData* draw(TextData*, int, int, const std::string&, RGBA);
-			TextData* draw(TextData*, int, int, const std::string&);
+		int load();
+		int free();
 
-			int draw_fast_internal(int, int, const std::string&, RGBA);
-			int draw_fast(int, int, const std::string&, RGBA);
-			int draw_fast(int, int, const std::string&);
+		TextData* draw_internal(int, int, const std::string&, RGBA);
+		TextData* draw(int, int, const std::string&, RGBA);
+		TextData* draw(int, int, const std::string&);
+		TextData* draw(TextData*, int, int, const std::string&, RGBA);
+		TextData* draw(TextData*, int, int, const std::string&);
 
-			int get_string_width(const std::string&, int) const;
-			int get_string_width(const std::string&) const;
-			int get_string_width() const;
-			int get_string_height(const std::string&, int) const;
-			int get_string_height(const std::string&) const;
-			int get_string_height() const;
+		int draw_fast_internal(int, int, const std::string&, RGBA);
+		int draw_fast(int, int, const std::string&, RGBA);
+		int draw_fast(int, int, const std::string&);
+
+		int get_string_width(const std::string&, int) const;
+		int get_string_width(const std::string&) const;
+		int get_string_width() const;
+		int get_string_height(const std::string&, int) const;
+		int get_string_height(const std::string&) const;
+		int get_string_height() const;
 	};
 }
 

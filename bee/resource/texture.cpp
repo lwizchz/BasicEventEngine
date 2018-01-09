@@ -136,17 +136,6 @@ namespace bee {
 	}
 
 	/*
-	* Texture::add_to_resources() - Add the texture to the appropriate resource list
-	*/
-	int Texture::add_to_resources() {
-		if (id < 0) { // If the resource needs to be added to the resource list
-			id = next_id++;
-			list.emplace(id, this); // Add the resource and with the new id
-		}
-
-		return id; // Return the id on success
-	}
-	/*
 	* Texture::get_amount() - Return the amount of texture resources
 	*/
 	size_t Texture::get_amount() {
@@ -161,6 +150,43 @@ namespace bee {
 			return list[id];
 		}
 		return nullptr;
+	}
+	/*
+	* Texture::get_by_name() - Return the texture resource with the given name
+	* @name: the name of the desired texture
+	*/
+	Texture* Texture::get_by_name(const std::string& name) {
+		for (auto& tex : list) { // Iterate over the textures in order to find the first one with the given name
+			Texture* t = tex.second;
+			if (t != nullptr) {
+				if (t->get_name() == name) {
+					return t; // Return the desired texture on success
+				}
+			}
+		}
+		return nullptr; // Return nullptr on failure
+	}
+	/*
+	* Texture::add() - Initiliaze, load, and return a newly created texture resource
+	* @name: the name to initialize the texture with
+	* @path: the path to initialize the texture with
+	*/
+	Texture* Texture::add(const std::string& name, const std::string& path) {
+		Texture* new_texture = new Texture(name, path);
+		new_texture->load();
+		return new_texture;
+	}
+
+	/*
+	* Texture::add_to_resources() - Add the texture to the appropriate resource list
+	*/
+	int Texture::add_to_resources() {
+		if (id < 0) { // If the resource needs to be added to the resource list
+			id = next_id++;
+			list.emplace(id, this); // Add the resource and with the new id
+		}
+
+		return id; // Return the id on success
 	}
 	/*
 	* Texture::reset() - Reset all resource variables for reinitialization
@@ -818,7 +844,7 @@ namespace bee {
 		}
 
 		if (tr.is_stretched) { // If the background should be stretched, then draw it without animation
-			draw(0, 0, 0, get_room_width(), get_room_height(), 0.0, {255, 255, 255, 255});
+			draw(0, 0, 0, get_room_size().first, get_room_size().second, 0.0, {255, 255, 255, 255});
 		} else {
 			const int dt_fps = get_ticks()/engine->fps_goal;
 			int dx = tr.horizontal_speed*dt_fps;
@@ -827,7 +853,7 @@ namespace bee {
 			SDL_Rect rect = {tr.x+dx, tr.y+dy, static_cast<int>(width), static_cast<int>(height)};
 
 			if ((tr.is_horizontal_tile)&&(tr.is_vertical_tile)) {
-				const int rh = get_room_height();
+				const int rh = get_room_size().second;
 				while (rect.y-rect.h < rh) { // Tile as many horizontal lines as necessary to fill the window to the bottom
 					tile_horizontal(rect); // Tile the background across the row
 					rect.y += rect.h; // Move to the below row
@@ -850,7 +876,7 @@ namespace bee {
 	}
 	int Texture::tile_horizontal(const SDL_Rect& r) {
 		SDL_Rect dest (r);
-		const int rw = get_room_width();
+		const int rw = get_room_size().first;
 
 		while (dest.x < rw) { // Continue drawing to the right until the rectangle is past the right side of the window
 			draw(dest.x, dest.y, 0);
@@ -867,7 +893,7 @@ namespace bee {
 	}
 	int Texture::tile_vertical(const SDL_Rect& r) {
 		SDL_Rect dest (r);
-		const int rh = get_room_height();
+		const int rh = get_room_size().second;
 
 		while (dest.y < rh) { // Continue drawing to the bottom until the rectnagle is past the bottom of the window
 			draw(dest.x, dest.y, 0);

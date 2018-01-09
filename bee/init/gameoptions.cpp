@@ -104,8 +104,8 @@ namespace bee {
 				SDL_SetWindowMaximumSize(engine->renderer->window, 16384, 16384);
 				SDL_SetWindowMinimumSize(engine->renderer->window, 128, 128);
 			} else {
-				SDL_SetWindowMaximumSize(engine->renderer->window, get_width(), get_height());
-				SDL_SetWindowMinimumSize(engine->renderer->window, get_width(), get_height());
+				SDL_SetWindowMaximumSize(engine->renderer->window, get_window().w, get_window().h);
+				SDL_SetWindowMinimumSize(engine->renderer->window, get_window().w, get_window().h);
 			}
 		}
 		// Change maximized state

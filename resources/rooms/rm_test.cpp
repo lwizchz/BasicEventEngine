@@ -13,7 +13,7 @@
 
 #include "rm_test.hpp"
 
-RmTest::RmTest() : Room("RmTest", "rm_test.hpp") {}
+RmTest::RmTest() : Room("rm_test", "rm_test.hpp") {}
 void RmTest::init() {
 	Room::init();
 

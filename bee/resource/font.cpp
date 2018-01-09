@@ -121,17 +121,6 @@ namespace bee {
 	}
 
 	/*
-	* Font::add_to_resources() - Add the font to the appropriate resource list
-	*/
-	int Font::add_to_resources() {
-		if (id < 0) { // If the resource needs to be added to the resource list
-			id = next_id++;
-			list.emplace(id, this); // Add the resource and with the new id
-		}
-
-		return 0; // Return 0 on success
-	}
-	/*
 	* Font::get_amount() - Return the amount of font resources
 	*/
 	size_t Font::get_amount() {
@@ -146,6 +135,45 @@ namespace bee {
 			return list[id];
 		}
 		return nullptr;
+	}
+	/*
+	* Font::get_by_name() - Return the font resource with the given name
+	* @name: the name of the desired font
+	*/
+	Font* Font::get_by_name(const std::string& name) {
+		for (auto& font : list) { // Iterate over the fonts in order to find the first one with the given name
+			Font* f = font.second;
+			if (f != nullptr) {
+				if (f->get_name() == name) {
+					return f; // Return the desired font on success
+				}
+			}
+		}
+		return nullptr; // Return nullptr on failure
+	}
+	/*
+	* Font::add() - Initiliaze, load, and return a newly created font resource
+	* @name: the name to initialize the font with
+	* @path: the path to initialize the font with
+	* @size: the font size to initialize the font with
+	* @is_sprite: whether the font is a bitmap or not (i.e. ttf)
+	*/
+	Font* Font::add(const std::string& name, const std::string& path, int size, bool is_sprite) {
+		Font* new_font = new Font(name, path, size, is_sprite);
+		new_font->load();
+		return new_font;
+	}
+
+	/*
+	* Font::add_to_resources() - Add the font to the appropriate resource list
+	*/
+	int Font::add_to_resources() {
+		if (id < 0) { // If the resource needs to be added to the resource list
+			id = next_id++;
+			list.emplace(id, this); // Add the resource and with the new id
+		}
+
+		return 0; // Return 0 on success
 	}
 	/*
 	* Font::reset() - Reset all resource variables for reinitialization

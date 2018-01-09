@@ -26,7 +26,6 @@
 #include "core/console.hpp"
 #include "core/enginestate.hpp"
 #include "core/input.hpp"
-#include "core/resources.hpp"
 #include "core/rooms.hpp"
 
 #include "network/network.hpp"
@@ -36,6 +35,7 @@
 #include "render/renderer.hpp"
 
 #include "resource/texture.hpp"
+#include "resource/sound.hpp"
 #include "resource/font.hpp"
 #include "resource/room.hpp"
 
@@ -214,7 +214,7 @@ namespace bee {
 						break;
 					}
 					case 2: { // Restart game
-						sound_stop_loops(); // Stop all looping sounds from the previous run
+						Sound::stop_loops(); // Stop all looping sounds from the previous run
 						change_room(engine->first_room, false);
 						break;
 					}
@@ -357,7 +357,7 @@ namespace bee {
 			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't init SDL_mixer: " + std::string(Mix_GetError()));
 			return 8; // Return 8 when SDL_mixer could not be initialized
 		}
-		Mix_ChannelFinished(sound_finished);
+		Mix_ChannelFinished(Sound::finished);
 		Mix_AllocateChannels(128); // Probably overkill
 
 		return 0;
@@ -530,9 +530,8 @@ namespace bee {
 				case SDL_MULTIGESTURE:
 				// Clipboard event
 				case SDL_CLIPBOARDUPDATE:
-				// Drag and drop events
+				// Drag and drop event
 				case SDL_DROPFILE:
-				case SDL_DROPTEXT:
 				// User specific event
 				case SDL_USEREVENT:
 				#if SDL_VERSION_ATLEAST(2, 0, 2)
@@ -550,6 +549,7 @@ namespace bee {
 				#endif
 				#if SDL_VERSION_ATLEAST(2, 0, 5)
 					// Drag and drop events
+					case SDL_DROPTEXT:
 					case SDL_DROPBEGIN:
 					case SDL_DROPCOMPLETE:
 				#endif
@@ -621,32 +621,56 @@ namespace bee {
 
 		return 0;
 	}
+	/**
+	* @returns the millisecond ticks elapsed since initialization
+	*/
 	Uint32 get_ticks() {
 		return SDL_GetTicks();
 	}
+	/**
+	* @returns the seconds elapsed since initialization
+	*/
 	Uint32 get_seconds() {
 		return get_ticks()/1000;
 	}
+	/**
+	* @returns the frames elapsed since initialization
+	*/
 	Uint32 get_frame() {
 		return engine->frame_number;
 	}
+	/**
+	* @returns the seconds elapsed since last frame
+	*/
 	double get_delta() {
 		return static_cast<double>(std::max(get_tick_delta(), 1u)) / 1000;
 	}
+	/**
+	* @returns the millisecond ticks elapsed since last frame
+	*/
 	Uint32 get_tick_delta() {
 		return engine->tick_delta;
 	}
+	/**
+	* @returns the goal frames per second, e.g. 60fps
+	*/
 	unsigned int get_fps_goal() {
 		return engine->fps_goal;
 	}
 
-	int restart_game() {
+	/**
+	* Restart the game without reinitializaing.
+	* @throws int(2) Jump to loop end and reload the first room
+	*/
+	void restart_game() {
 		throw 2;
-		return 0;
 	}
-	int end_game() {
+	/**
+	* End the game.
+	* @throws int(1) Jump to loop end and quit
+	*/
+	void end_game() {
 		throw 1;
-		return 0;
 	}
 }
 

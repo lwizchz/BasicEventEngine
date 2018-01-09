@@ -24,12 +24,10 @@ build_dependencies()
         make -j5
 
         # Configure CPython
-        export PYTHONPATH="lib/cpython/Lib"
-        export PYTHONHOME="lib/cpython"
         cd ../cpython
         if [ ! -f ./pyconfig.h ]; then
                 ./configure
-                cp ./pyconfig.h ./Include/
+                cp pyconfig.h Include/pyconfig.h
         fi
         if [ ! -f ./libpython3.7m.a ]; then
                 make -j5
@@ -48,9 +46,10 @@ clean_dependencies()
 
         # Clean CPython
         cd ../cpython
+        rm pyconfig.h Include/pyconfig.h libpython3.7m.a python
+        rm -r build
         git clean -fd
         git reset HEAD --hard
-        rm ./pyconfig.h ./Include/pyconfig.h ./libpython3.7m.a
 
         cd ../..
 }

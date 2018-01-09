@@ -95,17 +95,7 @@ namespace bee {
 		this->free(); // Free all the mesh data
 		list.erase(id); // Remove the mesh from the resource list
 	}
-	/*
-	* Mesh::add_to_resources() - Add the mesh to the appropriate resource list
-	*/
-	int Mesh::add_to_resources() {
-		if (id < 0) { // If the resource needs to be added to the resource list
-			id = next_id++;
-			list.emplace(id, this); // Add the resource and with the new id
-		}
 
-		return 0; // Return 0 on success
-	}
 	/*
 	* Mesh::get_amount() - Return the amount of mesh resources
 	*/
@@ -121,6 +111,42 @@ namespace bee {
 			return list[id];
 		}
 		return nullptr;
+	}
+	/*
+	* Mesh::get_by_name() - Return the mesh resource with the given name
+	* @name: the name of the desired mesh
+	*/
+	Mesh* Mesh::get_by_name(const std::string& name) {
+		for (auto& mesh : list) { // Iterate over the meshes in order to find the first one with the given name
+			Mesh* m = mesh.second;
+			if (m != nullptr) {
+				if (m->get_name() == name) {
+					return m; // Return the desired mesh on success
+				}
+			}
+		}
+		return nullptr; // Return nullptr on failure
+	}
+	/*
+	* Mesh::add() - Initiliaze and return a newly created mesh resource
+	* @name: the name to initialize the mesh with
+	* @path: the path to initialize the mesh with
+	*/
+	Mesh* Mesh::add(const std::string& name, const std::string& path) {
+		Mesh* new_mesh = new Mesh(name, path);
+		return new_mesh;
+	}
+
+	/*
+	* Mesh::add_to_resources() - Add the mesh to the appropriate resource list
+	*/
+	int Mesh::add_to_resources() {
+		if (id < 0) { // If the resource needs to be added to the resource list
+			id = next_id++;
+			list.emplace(id, this); // Add the resource and with the new id
+		}
+
+		return 0; // Return 0 on success
 	}
 	/*
 	* Mesh::reset() - Reset all resource variables for reinitialization

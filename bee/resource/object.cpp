@@ -86,18 +86,6 @@ namespace bee {
 		list.erase(id); // Remove the object from the resource list
 	}
 
-
-	/*
-	* Object::add_to_resources() - Add the object to the appropriate resource list
-	*/
-	int Object::add_to_resources() {
-		if (id < 0) { // If the resource needs to be added to the resource list
-			id = next_id++;
-			list.emplace(id, this); // Add the resource and with the new id
-		}
-
-		return 0; // Return 0 on success
-	}
 	/*
 	* Object::get_amount() - Return the amount of object resources
 	*/
@@ -113,6 +101,44 @@ namespace bee {
 			return list[id];
 		}
 		return nullptr;
+	}
+	/*
+	* Object::get_by_name() - Return the object resource with the given name
+	* @name: the name of the desired object
+	*/
+	Object* Object::get_by_name(const std::string& name) {
+		for (auto& obj : list) { // Iterate over the objects in order to find the first one with the given name
+			Object* o = obj.second;
+			if (o != nullptr) {
+				if (o->get_name() == name) {
+					return o; // Return the desired object on success
+				}
+			}
+		}
+		return nullptr; // Return nullptr on failure
+	}
+	/*
+	* Object::add() - Initiliaze and return a newly created object resource
+	* @name: the name to initialize the object with
+	* @path: the path to initialize the object with
+	*/
+	Object* Object::add(const std::string& name, const std::string& path) {
+		/*Object* new_object = new Object(name, path);
+		return new_object;*/
+
+		return nullptr; // It doesn't really make sense to add a generic object on the fly
+	}
+
+	/*
+	* Object::add_to_resources() - Add the object to the appropriate resource list
+	*/
+	int Object::add_to_resources() {
+		if (id < 0) { // If the resource needs to be added to the resource list
+			id = next_id++;
+			list.emplace(id, this); // Add the resource and with the new id
+		}
+
+		return 0; // Return 0 on success
 	}
 	/*
 	* Object::reset() - Reset all resource variables for reinitialization

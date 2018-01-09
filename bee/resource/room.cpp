@@ -36,7 +36,6 @@
 
 #include "../core/console.hpp"
 #include "../core/enginestate.hpp"
-#include "../core/resources.hpp"
 #include "../core/rooms.hpp"
 
 #include "../render/drawing.hpp"
@@ -194,14 +193,6 @@ namespace bee {
 		list.erase(id); // Remove the room from the resource list
 	}
 
-	int Room::add_to_resources() {
-		if (id < 0) { // If the resource needs to be added to the resource list
-			id = next_id++;
-			list.emplace(id, this); // Add the resource and with the new id
-		}
-
-		return 0;
-	}
 	/*
 	* Room::get_amount() - Return the amount of room resources
 	*/
@@ -217,6 +208,45 @@ namespace bee {
 			return list[id];
 		}
 		return nullptr;
+	}
+	/*
+	* Room::get_by_name() - Return the room resource with the given name
+	* @name: the name of the desired room
+	*/
+	Room* Room::get_by_name(const std::string& name) {
+		for (auto& room : list) { // Iterate over the rooms in order to find the first one with the given name
+			Room* r = room.second;
+			if (r != nullptr) {
+				if (r->get_name() == name) {
+					return r; // Return the desired room on success
+				}
+			}
+		}
+		return nullptr; // Return nullptr on failure
+	}
+	/*
+	* Room::add() - Initiliaze, load, and return a newly created room resource
+	* @name: the name to initialize the room with
+	* @path: the path to initialize the room with
+	*/
+	Room* Room::add(const std::string& name, const std::string& path) {
+		/*Room* new_room = new Room(name, path);
+		new_room->load();
+		return new_room;*/
+
+		return nullptr; // Right now rooms cannot be added on the fly because they must be compiled
+	}
+
+	/*
+	* Room::add_to_resources() - Add the room to the appropriate resource list
+	*/
+	int Room::add_to_resources() {
+		if (id < 0) { // If the resource needs to be added to the resource list
+			id = next_id++;
+			list.emplace(id, this); // Add the resource and with the new id
+		}
+
+		return 0;
 	}
 	int Room::reset() {
 		name = "";
@@ -713,7 +743,7 @@ namespace bee {
 	}
 	int Room::transfer_instances(const Room* old_room) {
 		if (old_room == nullptr) {
-			Object* obj_control = get_object_by_name("obj_control");
+			Object* obj_control = Object::get_by_name("obj_control");
 			if (obj_control == nullptr) {
 				return 2;
 			}
@@ -816,7 +846,7 @@ namespace bee {
 					double grid_x = std::stod(params[2]);
 
 					std::string o = params[3];
-					Object* object = get_object_by_name(o);
+					Object* object = Object::get_by_name(o);
 
 					if (object == nullptr) {
 						messenger::send({"engine", "room"}, E_MESSAGE::WARNING, "Error while loading instance map: unknown object " + o);
@@ -837,7 +867,7 @@ namespace bee {
 					double grid_y = std::stod(params[2]);
 
 					std::string o = params[3];
-					Object* object = get_object_by_name(o);
+					Object* object = Object::get_by_name(o);
 
 					if (object == nullptr) {
 						messenger::send({"engine", "room"}, E_MESSAGE::WARNING, "Error while loading instance map: unknown object " + o);
@@ -858,7 +888,7 @@ namespace bee {
 					double grid_z = std::stod(params[2]);
 
 					std::string o = params[3];
-					Object* object = get_object_by_name(o);
+					Object* object = Object::get_by_name(o);
 
 					if (object == nullptr) {
 						messenger::send({"engine", "room"}, E_MESSAGE::WARNING, "Error while loading instance map: unknown object " + o);
@@ -876,7 +906,7 @@ namespace bee {
 					continue;
 				} else if (v == "!set") {
 					std::string o = params[1];
-					Object* object = get_object_by_name(o);
+					Object* object = Object::get_by_name(o);
 
 					double x = std::stod(params[2]);
 					double y = std::stod(params[3]);
@@ -896,7 +926,7 @@ namespace bee {
 
 						if (set_params[0][0] == '@') {
 							if (set_params[0] == "@sprite") {
-								inst->set_sprite(get_texture_by_name(set_params[1]));
+								inst->set_sprite(Texture::get_by_name(set_params[1]));
 							} else if (set_params[0] == "@solid") {
 								inst->set_is_solid(SIDP_i(SIDP(set_params[1])));
 							} else if (set_params[0] == "@depth") {
@@ -925,7 +955,7 @@ namespace bee {
 				double y = std::stod(params[2]);
 				double z = std::stod(params[3]);
 
-				Object* object = get_object_by_name(v);
+				Object* object = Object::get_by_name(v);
 				if (object == nullptr) {
 					messenger::send({"engine", "room"}, E_MESSAGE::WARNING, "Error while loading instance map: unknown object " + v);
 					continue;

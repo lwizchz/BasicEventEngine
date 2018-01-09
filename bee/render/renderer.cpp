@@ -24,7 +24,6 @@
 #include "../messenger/messenger.hpp"
 
 #include "../core/enginestate.hpp"
-#include "../core/resources.hpp"
 
 #include "camera.hpp"
 #include "drawing.hpp"

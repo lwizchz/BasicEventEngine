@@ -9,14 +9,13 @@
 #ifndef BEE_CORE_DISPLAY_H
 #define BEE_CORE_DISPLAY_H 1
 
+#include <utility>
+
 #include <SDL2/SDL.h> // Include the required SDL headers
 
 namespace bee {
 	SDL_DisplayMode get_display();
-	Uint32 get_display_format();
-	int get_display_width();
-	int get_display_height();
-	int get_display_refresh_rate();
+	std::pair<int,int> get_display_size();
 	int set_display(int, int, int);
 	int set_display_size(int, int);
 	int set_display_refresh_rate(int);

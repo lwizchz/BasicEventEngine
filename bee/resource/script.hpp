@@ -40,9 +40,12 @@ namespace bee {
 		Script(const std::string&, const std::string&);
 		~Script();
 
-		int add_to_resources();
 		static size_t get_amount();
 		static Script* get(int);
+		static Script* get_by_name(const std::string&);
+		static Script* add(const std::string&, const std::string&);
+
+		int add_to_resources();
 		int reset();
 		int print() const;
 

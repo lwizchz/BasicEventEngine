@@ -67,17 +67,6 @@ namespace bee {
 	}
 
 	/*
-	* Path::add_to_resources() - Add the path to the appropriate resource list
-	*/
-	int Path::add_to_resources() {
-		if (id < 0) { // If the resource needs to be added to the resource list
-			id = next_id++;
-			list.emplace(id, this); // Add the resource and with the new id
-		}
-
-		return 0; // Return 0 on success
-	}
-	/*
 	* Path::get_amount() - Return the amount of path resources
 	*/
 	size_t Path::get_amount() {
@@ -92,6 +81,42 @@ namespace bee {
 			return list[id];
 		}
 		return nullptr;
+	}
+	/*
+	* Path::get_by_name() - Return the path resource with the given name
+	* @name: the name of the desired path
+	*/
+	Path* Path::get_by_name(const std::string& name) {
+		for (auto& path : list) { // Iterate over the paths in order to find the first one with the given name
+			Path* p = path.second;
+			if (p != nullptr) {
+				if (p->get_name() == name) {
+					return p; // Return the desired path on success
+				}
+			}
+		}
+		return nullptr; // Return nullptr on failure
+	}
+	/*
+	* Path::add() - Initiliaze and return a newly created path resource
+	* @name: the name to initialize the path with
+	* @path: the path to initialize the path with
+	*/
+	Path* Path::add(const std::string& name, const std::string& path) {
+		Path* new_path = new Path(name, path);
+		return new_path;
+	}
+
+	/*
+	* Path::add_to_resources() - Add the path to the appropriate resource list
+	*/
+	int Path::add_to_resources() {
+		if (id < 0) { // If the resource needs to be added to the resource list
+			id = next_id++;
+			list.emplace(id, this); // Add the resource and with the new id
+		}
+
+		return 0; // Return 0 on success
 	}
 	/*
 	* Path::reset() - Reset all resource variables for reinitialization

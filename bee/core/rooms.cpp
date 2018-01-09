@@ -27,7 +27,6 @@
 #include "../messenger/messenger.hpp"
 
 #include "enginestate.hpp"
-#include "resources.hpp"
 #include "window.hpp"
 
 #include "../render/camera.hpp"
@@ -39,22 +38,28 @@
 #include "../resource/room.hpp"
 
 namespace bee {
-	/*
-	* restart_room() - Throw an exception in order to jump to the end of the event loop
+	/**
+	* Change to the current room again.
+	* @note An exception is thrown in order to jump to the end of the event loop.
+	* @throws int(3) Jump to loop end and reload the room
 	*/
 	void restart_room() {
-		throw 3; // Throw the exception
+		throw 3;
 	}
-	/*
-	* change_room() - Handle room transitions and resource changes between rooms
-	* ! Currently transitions are drawn even if none is set because without it nothing will draw for some reason
-	* @new_room: the room to change to
-	* @should_jump: whether we should jump to the end of the event loop or not when we finish setting up the new room
+	/**
+	* Handle room transitions and resource changes between rooms.
+	* @note Currently transitions are drawn even if none is set because without it nothing will draw for some reason.
+	*
+	* @param new_room the room to change to
+	* @param should_jump whether to should jump to the end of the event loop when finished setting up the new room
+	*
+	* @retval 0 success
+	* @throws int(0) Jump to loop end and continue
 	*/
 	int change_room(Room* new_room, bool should_jump) {
 		if (((engine->quit)^(new_room != nullptr)) == false) { // Abort the room change if either the quit flag is set without a null room or if the quit flag is unset with a null room
 			throw 0; // Throw an exception to jump to the end of the event loop
-			return 1; // Return 1 to satisfy the compiler
+			return 0;
 		}
 
 		bool is_game_start = false;
@@ -134,89 +139,63 @@ namespace bee {
 			throw 0; // Throw an exception
 		}
 
-		return 0; // Return 0 on success
+		return 0;
 	}
-	/*
-	* change_room() - Handle room transitions and resource changes between rooms
-	* ! When the function is called without the should_jump flag, then simply call the function again with it set to true
-	* @new_room: the room to change to
+	/**
+	* Handle room transitions and resource changes between rooms.
+	* @note If the function is called without the should_jump flag, then let it be true.
+	* @param new_room the room to change to
+	*
+	* @retval 0 success
 	*/
 	int change_room(Room* new_room) {
 		return change_room(new_room, true);
 	}
-	/*
-	* room_goto() - Change to the room with the given id
-	* @id: the id of the room to change to
-	*/
-	int room_goto(int id) {
-		if (Room::get(id) != nullptr) { // If the room exists, change to it
-			return change_room(Room::get(id));
-		}
-		return 3; // Return 3 on non-existent room
-	}
-	/*
-	* room_goto_previous() - Change to the room which was added to the resource list before the current room
-	*/
-	int room_goto_previous() {
-		return room_goto(get_current_room()->get_id()-1);
-	}
-	/*
-	* room_goto_next() - Change to the room which was added to the resource list after the current room
-	*/
-	int room_goto_next() {
-		return room_goto(get_current_room()->get_id()+1);
-	}
 
-	/*
-	* get_current_room() - Return the current room resource
-	* ! While it is possible for this to return nullptr, in practice this should never happen because the event loop will refuse to run
+	/**
+	* @note While it is possible for this to return nullptr, in normal practice this should never happen because the event loop will refuse to run.
+	* @returns the current Room resource
 	*/
 	Room* get_current_room() {
 		return engine->current_room;
 	}
-	/*
-	* get_is_ready() - Return whether the event loop is currently processing events
+	/**
+	* @returns whether the event loop is currently processing events
 	*/
 	bool get_is_ready() {
 		return engine->is_ready;
 	}
-	/*
-	* get_room_width() - Return the width of the current room
+	/**
+	* @returns the size of the current room
 	*/
-	int get_room_width() {
-		if (engine->current_room != nullptr) {
-			return engine->current_room->get_width();
+	std::pair<int,int> get_room_size() {
+		if (engine->current_room == nullptr) {
+			return std::make_pair(-1, -1);
 		}
-		return -1;
+		return std::make_pair(engine->current_room->get_width(), engine->current_room->get_height());
 	}
-	/*
-	* get_room_height() - Return the height of the current room
-	*/
-	int get_room_height() {
-		if (engine->current_room != nullptr) {
-			return engine->current_room->get_height();
-		}
-		return -1;
-	}
-	/*
-	* is_on_screen() - Return whether the given rectangle will appear on screen
+	/**
+	* @returns whether the given rectangle will appear on screen
 	*/
 	bool is_on_screen(const SDL_Rect& rect) {
-		SDL_Rect screen = {0, 0, get_room_width(), get_room_height()}; // Initialize a rectangle for the window dimensions
+		SDL_Rect screen = {0, 0, get_room_size().first, get_room_size().second}; // Initialize a rectangle for the window dimensions
 		return check_collision(rect, screen); // Return whether the given rectangle collides with the screen's rectangle
 	}
 
-	/*
-	* set_is_paused() - Set the pause state of the engine and return the previous state
-	* ! Note that this will stop processing non-draw events for all objects which have is_pausable set to true
+	/**
+	* Set the pause state of the engine and return the previous state.
+	* @note This will stop processing non-draw events for all objects which have is_pausable set to true.
+	* @param is_paused whether to pause or not
+	*
+	* @returns the previous pause state
 	*/
 	bool set_is_paused(bool is_paused) {
 		bool p = engine->is_paused;
 		engine->is_paused = is_paused;
 		return p;
 	}
-	/*
-	* get_is_paused() - Return the pause state of the engine
+	/**
+	* @returns the pause state of the engine
 	*/
 	bool get_is_paused() {
 		return engine->is_paused;

@@ -117,17 +117,17 @@ namespace bee { namespace render {
 			if (engine->renderer->render_is_3d) {
 				engine->renderer->render_camera = new Camera(glm::vec3(0.0f, 0.0f, -540.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 			} else {
-				engine->renderer->render_camera = new Camera(static_cast<float>(get_width()), static_cast<float>(get_height()));
+				engine->renderer->render_camera = new Camera(static_cast<float>(get_window().w), static_cast<float>(get_window().h));
 			}
 		} else {
 			engine->renderer->render_camera = camera;
 		}
 
 		if (engine->renderer->render_camera->width == 0.0) {
-			engine->renderer->render_camera->width = static_cast<float>(get_width());
+			engine->renderer->render_camera->width = static_cast<float>(get_window().w);
 		}
 		if (engine->renderer->render_camera->height == 0.0) {
-			engine->renderer->render_camera->height = static_cast<float>(get_height());
+			engine->renderer->render_camera->height = static_cast<float>(get_window().h);
 		}
 
 		calc_projection();
@@ -196,7 +196,7 @@ namespace bee { namespace render {
 
 		if (viewport == nullptr) { // If the viewport is not defined then set the drawing area to the entire screen
 			view = glm::mat4(1.0f);
-			port = glm::vec4(0.0f, 0.0f, get_width(), get_height());
+			port = glm::vec4(0.0f, 0.0f, get_window().w, get_window().h);
 		} else { // If the viewport is defined then use it
 			view = glm::translate(glm::mat4(1.0f), glm::vec3(viewport->view.x, viewport->view.y, 0.0f));
 			port = glm::vec4(viewport->port.x, viewport->port.y, viewport->port.w, viewport->port.h);
