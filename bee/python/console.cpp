@@ -11,6 +11,8 @@
 
 #include "console.hpp"
 
+#include "commands.hpp"
+
 #include "../core/console.hpp"
 
 namespace bee { namespace python { namespace internal {
@@ -43,7 +45,12 @@ namespace bee { namespace python { namespace internal {
         };
 
         PyObject* PyInit_bee_console() {
-                return PyModule_Create(&BEEConsoleModule);
+                PyObject* module = PyModule_Create(&BEEConsoleModule);
+
+                // Add submodules
+                PyModule_AddObject(module, "commands", PyInit_bee_commands());
+
+                return module;
         }
 
         PyObject* console_open(PyObject* self, PyObject* args) {

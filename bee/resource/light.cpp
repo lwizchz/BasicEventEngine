@@ -219,7 +219,11 @@ namespace bee {
 		return 0;
 	}
 	int Light::set_path(const std::string& new_path) {
-		path = "resources/lights/"+new_path; // Append the path to the light directory
+		if (new_path.front() == '/') {
+			path = new_path.substr(1);
+		} else {
+			path = "resources/lights/"+new_path; // Append the path to the light directory if no root
+		}
 		return 0;
 	}
 	int Light::set_type(E_LIGHT new_type) {

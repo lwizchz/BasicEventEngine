@@ -66,9 +66,9 @@ void ObjBee::create(bee::Instance* self) {
 void ObjBee::destroy(bee::Instance* self) {
 	// Unbind keybindings
 	if (self == obj_bee->get_instance(0)) {
-		bee::console::unbind(bee::KeyBind("StartPath"), true);
-		bee::console::unbind(bee::KeyBind("StartSerialize"), true);
-		bee::console::unbind(bee::KeyBind("StartDeserialize"), true);
+		bee::console::unbind(bee::KeyBind("StartPath"));
+		bee::console::unbind(bee::KeyBind("StartSerialize"));
+		bee::console::unbind(bee::KeyBind("StartDeserialize"));
 	}
 
 	delete static_cast<bee::TextData*>(_p("text_id"));

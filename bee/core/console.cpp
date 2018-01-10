@@ -38,6 +38,7 @@
 #include "../render/viewport.hpp"
 
 #include "../resource/font.hpp"
+#include "../resource/script.hpp"
 #include "../resource/room.hpp"
 
 #include "../ui/ui.hpp"
@@ -47,9 +48,7 @@ namespace bee{ namespace console {
 	namespace internal {
 		bool is_open = false;
 
-		std::unordered_map<std::string,std::pair<std::string,std::function<void (const MessageContents&)>>> commands;
-		std::unordered_map<std::string,std::string> aliases;
-		std::unordered_map<std::string,SIDP> variables;
+		Script* scr_console = nullptr;
 
 		std::unordered_map<SDL_Keycode,KeyBind> bindings;
 
@@ -67,19 +66,11 @@ namespace bee{ namespace console {
 		Instance* ui_handle = nullptr;
 		Instance* ui_text_entry = nullptr;
 	}
-}}
 
-#include "commands.cpp"
-
-namespace bee{ namespace console {
-	/*
-	* reset() - Reset the console log
+	/**
+	* Reset the console log.
 	*/
-	int reset() {
-		internal::commands.clear();
-		internal::aliases.clear();
-		internal::variables.clear();
-
+	void reset() {
 		internal::bindings.clear();
 
 		internal::history.clear();
@@ -101,60 +92,19 @@ namespace bee{ namespace console {
 			delete internal::td_log;
 			internal::td_log = nullptr;
 		}
-
-		return 0;
 	}
 
-	/*
-	* internal::handle_input() - Handle the input as a console keypress
-	* @e: the keyboard input event
-	*/
-	int internal::handle_input(SDL_Event* e) {
-		// If the console is closed, handle keybindings
-		if (!get_is_open()) {
-			KeyBind kb = get_keybind(e->key.keysym.sym); // Fetch the command that's bound to the key
-			if ((!e->key.repeat)||(kb.is_repeatable)) {
-				if (!kb.command.empty()) { // If the command is set
-					run(kb.command, true, 0); // Run the command without storing it in history
-				}
-			}
-
-			return 1; // Return 1 on successful handling of binds
-		}
-
-		if (e->key.repeat != 0) { // On some platforms, repeat keys are sent on keyboard input
-			return -1; // Return -1 on incorrect input
-		}
-
-		// Handle certain key presses in order to manipulate history or the command line
-		switch (e->key.keysym.sym) {
-			case SDLK_PAGEUP: { // The pageup key scrolls backward through the console log
-				if (handle_newlines(log.str()).size()/((rect.h-30)/line_height + 1) > page_index) { // If the page index is lower than the full amount of pages in the log, increment the index
-					++page_index;
-				}
-				break;
-			}
-			case SDLK_PAGEDOWN: { // The pagedown key scrolls forward through the console log
-				if (page_index > 0) { // Limit the page index to greater than 0
-					--page_index;
-				}
-				break;
-			}
-
-			case SDLK_BACKQUOTE: { // The tilde key toggles the console open state
-				// TODO: allow different keys to open the console
-				//input.pop_back(); // Remove the backquote from input
-				toggle(); // Toggle the console
-				break;
-			}
-		}
-
-		return 0; // Return 0 on successful handling of console input
-	}
-	/*
-	* internal::init() - Initialize the console and the default commands
+	/**
+	* Initialize the console and the default commands.
+	* @retval 0 success
+	* @retval 1 failed to load console Script
 	*/
 	int internal::init() {
+		scr_console = Script::add("scr_console", "/bee/resources/scripts/console.py");
+		if (scr_console == nullptr) {
+			return 1;
+		}
+
 		line_height = engine->font_default->get_string_height(); // Store the default drawing line height for later console drawing operations
 
 		// Register the console logger
@@ -162,15 +112,18 @@ namespace bee{ namespace console {
 			log << msg.descr << "\n";
 		});
 
-		init_commands();
-
-		return 0; // Return 0 on success
+		return 0;
 	}
-	/*
-	* internal::init_ui() - Init the console ui
+	/**
+	* Init the console ui.
+	* @retval 0 success
+	* @retval 1 failed to create a UI element
 	*/
 	int internal::init_ui() {
 		ui_handle = bee::ui::create_handle(rect.x, rect.y, rect.w, 10, nullptr);
+		if (ui_handle == nullptr) {
+			return 1;
+		}
 
 		ui_handle->set_is_persistent(true);
 		ObjUIHandle* obj_handle = static_cast<ObjUIHandle*>(ui_handle->get_object());
@@ -187,6 +140,9 @@ namespace bee{ namespace console {
 			obj_text_entry->set_focus(text_entry, true);
 			page_index = 0;
 		});
+		if (ui_text_entry == nullptr) {
+			return 1;
+		}
 
 		ui_text_entry->set_is_persistent(true);
 		ui_text_entry->set_data("input_tmp", std::string());
@@ -195,14 +151,9 @@ namespace bee{ namespace console {
 		obj_text_entry->set_is_visible(ui_text_entry, is_open);
 		obj_text_entry->set_color(ui_text_entry, {127, 127, 127, 127});
 
-		bee::ui::add_text_entry_completor(ui_text_entry, [] (Instance* text_entry, const std::string& input) -> std::vector<SIDP> {
-			std::vector<SIDP> params = parse_parameters(input, true); // Parse the current parameters from the input line
-			if (params.size() == 1) { // Complete the command if it's the only parameter
-				return complete(text_entry, SIDP_s(params[0])); // Find new completion comands
-			} else { // TODO: Complete command arguments
-				return std::vector<SIDP>();
-			}
-		});
+		/*bee::ui::add_text_entry_completor(ui_text_entry, [] (Instance* text_entry, const std::string& input) -> std::vector<Variant> {
+			return complete(text_entry, input);
+		});*/
 		bee::ui::add_text_entry_handler(ui_text_entry, [] (Instance* text_entry, const std::string& input, const SDL_Event* e) {
 			switch (e->key.keysym.sym) {
 				case SDLK_UP: { // The up arrow cycles through completion commands or reverse history
@@ -263,10 +214,15 @@ namespace bee{ namespace console {
 
 		return 0;
 	}
-	/*
-	* internal::close() - Close the console and free its memory
+	/**
+	* Close the console and free its memory.
 	*/
-	int internal::close() {
+	void internal::close() {
+		if (scr_console == nullptr) {
+			delete scr_console;
+			scr_console = nullptr;
+		}
+
 		Room* room = get_current_room();
 		if (room != nullptr) {
 			ui_handle->set_is_persistent(false);
@@ -279,13 +235,12 @@ namespace bee{ namespace console {
 			ui_handle = nullptr;
 			ui_text_entry = nullptr;
 		}
-		return 0;
 	}
 
-	/*
-	* internal::update_ui() - Update the UI visibility to match the console visibility
+	/**
+	* Update the UI visibility to match the console visibility.
 	*/
-	int internal::update_ui() {
+	void internal::update_ui() {
 		ObjUIHandle* obj_handle = static_cast<ObjUIHandle*>(ui_handle->get_object());
 		obj_handle->update(ui_handle);
 		obj_handle->set_is_visible(ui_handle, is_open);
@@ -294,66 +249,55 @@ namespace bee{ namespace console {
 		obj_text_entry->update(ui_text_entry);
 		obj_text_entry->set_focus(ui_text_entry, is_open);
 		obj_text_entry->set_is_visible(ui_text_entry, is_open);
-
-		return 0;
 	}
 
-	/*
-	* internal::run_internal() - Run a command in the console, silently or urgently if requested
-	* @command: the command string to run, including the arguments
-	* @is_urgent: whether to Immediately send the command or to wait until the end of the frame
-	* @delay: the amount of milliseconds to delay command execution
+	/**
+	* Handle the input as a console keypress.
+	* @param e the keyboard input event
 	*/
-	int internal::run_internal(const std::string& command, bool is_urgent, Uint32 delay) {
-		std::string c = trim(command);
-		std::vector<SIDP> params = parse_parameters(c, false); // Parse the parameters from the given command in order to get the command name as params[0]
+	void internal::handle_input(SDL_Event* e) {
+		if (!get_is_open()) { // If the console is closed, handle keybindings
+			KeyBind kb = get_keybind(e->key.keysym.sym); // Fetch the command that's bound to the key
+			if ((!e->key.repeat)||(kb.is_repeatable)) {
+				if (!kb.command.empty()) { // If the command is set
+					run(kb.command, true); // Run the command without storing it in history
+				}
+			}
+		} else if (e->key.repeat == 0) { // Avoid repeat keys sent on some platforms
+			// Handle certain key presses in order to manipulate history or the command line
+			switch (e->key.keysym.sym) {
+				case SDLK_PAGEUP: { // The pageup key scrolls backward through the console log
+					if (handle_newlines(log.str()).size()/((rect.h-30)/line_height + 1) > page_index) { // If the page index is lower than the full amount of pages in the log, increment the index
+						++page_index;
+					}
+					break;
+				}
+				case SDLK_PAGEDOWN: { // The pagedown key scrolls forward through the console log
+					if (page_index > 0) { // Limit the page index to greater than 0
+						--page_index;
+					}
+					break;
+				}
 
-		// Remove comments from the end of commands
-		size_t compos = c.find("//");
-		if (compos != std::string::npos) {
-			c = c.substr(0, compos);
-		}
-
-		if (c.empty()) { // Check whether the provided command is empty
-			return 1; // Return 1 on an empty command
-		}
-
-		if (commands.find(SIDP_s(params[0])) == commands.end()) { // If the command or alias does not exist, then output a warning
-			if (aliases.find(SIDP_s(params[0])) == aliases.end()) {
-				messenger::send({"engine", "console"}, E_MESSAGE::WARNING, "Failed to run command \"" + SIDP_s(params[0]) + "\", the command does not exist.");
-				return 2; // Return 2 on non-existent command
-			} else { // Otherwise if the alias exists, run it
-				return run(aliases[SIDP_s(params[0])], true, delay);
+				case SDLK_BACKQUOTE: { // The tilde key toggles the console open state
+					// TODO: allow different keys to open the console
+					toggle(); // Toggle the console
+					break;
+				}
 			}
 		}
-
-		if (is_urgent) { // If the command is urgent, send it immediately
-			messenger::internal::send_urgent(
-				{"engine", "console", SIDP_s(params[0])},
-				E_MESSAGE::GENERAL,
-				c,
-				nullptr
-			);
-		} else { // Otherwise, send it normally
-			messenger::send(MessageContents(
-				get_ticks()+delay,
-				{"engine", "console", SIDP_s(params[0])},
-				E_MESSAGE::GENERAL,
-				c,
-				nullptr
-			));
-		}
-
-		return 0; // Return 0 on success
 	}
-	/*
-	* internal::run() - Run a command in the console
-	* @command: the command string to run, including the arguments
-	* @is_silent: whether to append the command to history and display it in console
-	* @delay: the amount of milliseconds to delay command execution
+	/**
+	* Run a command in the console
+	* @param command the command string to run, including the arguments
+	* @param is_silent whether to append the command to history and display it in console
+	*
+	* @returns the script's return value
+	* @see Script::run_string() and PythonScriptInterface::run_string()
 	*/
-	int internal::run(const std::string& command, bool is_silent, Uint32 delay) {
-		if (!is_silent) { // If the command is not silent, then log it
+	int internal::run(const std::string& command, bool is_silent) {
+		// If the command is not silent, then log it
+		if (!is_silent) {
 			if (command[0] != ' ') { // If the first character is not a space, then add it to the console history
 				// Fetch the last command if one exists
 				std::string last_command = "";
@@ -365,36 +309,24 @@ namespace bee{ namespace console {
 					history.push_back(command);
 				}
 			}
+
 			if (!get_options().is_headless) {
 				messenger::send({"engine", "console"}, E_MESSAGE::INFO, "> " + trim(command)); // Output the command to the messenger log
 			}
 		}
 		history_index = -1; // Reset the history index
 
-		std::map<int,std::string> cmultiple = split(command, ';', true); // Split the command on any semicolons
-		if (cmultiple.size() > 1) { // If there are multiple commands in the input
-			bool has_failed = false;
-			for (auto& c : cmultiple) { // Iterate over each command
-				int r = run_internal(trim(c.second), false, delay); // Run the command
-				if (r == -1) {
-					break;
-				} else if (r) {
-					has_failed = true; // Store whether the command fails to run
-				}
-			}
-			return (has_failed) ? -2 : 0; // Return -2 on command run failure, return 0 on success
-		} else if (cmultiple.size() == 1) { // If there is only one command, run it
-			return run_internal(command, false, delay); // Return the command run status
-		} else { // If there are no commands to run
-			return -1; // Return -1 on command parse failure
-		}
+		// Run the command
+		return scr_console->run_string(command);
 	}
 	/*
-	* internal::complete() - Complete console commands
-	* @command: the command to complete
+	* Complete console commands.
+	* @param command the command to complete
+	*
+	* @returns the vector of possible command completions
 	*/
-	std::vector<SIDP> internal::complete(Instance* textentry, const std::string& command) {
-		std::vector<SIDP> completions;
+	/*std::vector<Variant> internal::complete(Instance* textentry, const std::string& command) {
+		std::vector<Variant> completions;
 
 		// Find any command matches
 		for (auto& c : commands) { // Iterate over the possible commands
@@ -408,102 +340,12 @@ namespace bee{ namespace console {
 
 		std::sort(completions.begin(), completions.end()); // Sort the completion commands alphabetically
 
-		return completions; // Return the vector on success
-	}
-	/*
-	* internal::parse_parameters() - Convert the command to a parameter list
-	* @command: the full command string
-	* @should_replace: whether to substitute variable values for their names
+		return completions;
+	}*/
+	/**
+	* Draw the console and its output.
 	*/
-	std::vector<SIDP> internal::parse_parameters(const std::string& command, bool should_replace) {
-		std::vector<std::string> params = splitv(command, ' ', true); // Split the command parameters by spaces, respecting containers
-
-		std::vector<SIDP> param_list; // Create a vector to store each parameter instead of the map from split()
-		for (auto& p : params) { // Iterate over each parameter and store it as a SIDP interpreted type
-			if (should_replace) {
-				param_list.push_back(SIDP(replace_vars(p)));
-			} else {
-				param_list.push_back(SIDP(p));
-			}
-		}
-
-		return param_list; // Return the vector of parameters on success
-	}
-	/*
-	* internal::replace_vars() - Replace the variables in a command string with their values
-	* @command: the command to modify
-	*/
-	std::string internal::replace_vars(const std::string& input) {
-		std::string output = "";
-
-		for (size_t i=0; i<input.length(); ++i) {
-			if (
-				(input[i] != '$')
-				||((i>0)&&(input[i-1] == '\\'))
-			) {
-				output += input[i];
-			} else {
-				int containers = 0;
-				std::string var = "";
-				while (++i < input.length()) {
-					var += input[i];
-					if (std::regex_match(var, std::regex("[^[:alnum:]\\[\\]]"))) {
-						--i;
-						var.pop_back();
-						break;
-					}
-
-					if (var.back() == '[') {
-						++containers;
-					} else if (var.back() == ']') {
-						--containers;
-						if (containers < 0) {
-							--i;
-							var.pop_back();
-							break;
-						}
-					}
-				}
-				if (var.empty()) {
-					continue;
-				}
-
-				var = replace_vars(var);
-
-				std::string index = "";
-				for (size_t j=0; j<var.length(); ++j) {
-					if (var[j] == '[') {
-						std::string v (var.substr(0, j));
-						while (++j < var.length()) {
-							if (var[j] == ']') {
-								break;
-							}
-							index += var[j];
-						}
-						var = v;
-						break;
-					}
-				}
-
-				if (!index.empty()) {
-					if (is_str_integer(index)) {
-						output += SIDP_c(get_var(var), std::stoi(index)).to_str(); // Get vector element
-					} else {
-						//output += SIDP_c(get_var(var), SIDP(index)).to_str(); // Get map element
-						output += index;
-					}
-				} else {
-					output += get_var(var).to_str(); // Get non-container variable
-				}
-			}
-		}
-
-		return output;
-	}
-	/*
-	* internal::draw() - Draw the console and its output
-	*/
-	int internal::draw() {
+	void internal::draw() {
 		// Get the view offset
 		int cx = static_cast<int>(ui_handle->get_corner_x());
 		int cy = static_cast<int>(ui_handle->get_corner_y());
@@ -577,80 +419,70 @@ namespace bee{ namespace console {
 		// Draw the console page number
 		std::string p = std::to_string(page_index+1) + "/" + std::to_string(total_lines/line_amount+1);
 		engine->font_default->draw_fast(cx + rect.w - 10 * p.length(), cy + rect.h - line_height, p, c_text);
-
-		return 0; // Return 0 on success
 	}
 
-	/*
-	* open() - Open the console
+	/**
+	* Open the console.
 	*/
-	int open() {
+	void open() {
 		internal::is_open = true;
 
 		internal::update_ui();
-
-		return 0;
 	}
-	/*
-	* close() - Close the console
+	/**
+	* Close the console.
 	*/
-	int close() {
+	void close() {
 		internal::is_open = false;
 
 		internal::update_ui();
-
-		return 0;
 	}
-	/*
-	* toggle() - Toggle the open/close state of the console
+	/**
+	* Toggle the open/close state of the console.
 	*/
-	int toggle() {
+	void toggle() {
 		internal::is_open = !internal::is_open;
 
 		internal::update_ui();
-
-		return 0;
 	}
-	/*
-	* get_is_open() - Return whether the console is open or not
+	/**
+	* Return whether the console is open or not.
 	*/
 	bool get_is_open() {
 		return internal::is_open;
 	}
+	/**
+	* Clear the console log and reset the page index.
+	*/
+	void clear() {
+		internal::log.str(std::string());
+                internal::log.clear();
+                internal::page_index = 0;
+	}
 
-	/*
-	* add_command() - Add a function which will handle a certain command
-	* @command: the command name to handle
-	* @descr: the command description that will be displayed when the user runs `help command_name` in this console subsystem
-	* @func: the function to call that will handle the command
+	/**
+	* Add a function which will handle a certain command.
+	* @param command the command name to handle
+	* @param descr the command description that will be displayed when the user runs `help command_name` in this console subsystem
+	* @param func the function to call that will handle the command
+	*
+	* @retval 0 success
 	*/
 	int add_command(const std::string& command, const std::string& descr, std::function<void (const MessageContents&)> func) {
-		if (internal::commands.find(command) != internal::commands.end()) { // If the command already exists, then output a warning
-			messenger::send({"engine", "console"}, E_MESSAGE::WARNING, "Failed to register new command \"" + command + "\", the command name is already in use.");
-			return 1; // Return 1 on command existence
-		}
+		// TODO: add python functions
 
-		internal::commands.emplace(command, std::make_pair(descr, func)); // Add the command to the console command map
-
-		messenger::internal::register_protected(command, {"engine", "console", command}, true, func); // Register the command with the messaging system
+		//messenger::internal::register_protected(command, {"engine", "console", command}, true, func); // Register the command with the messaging system
 
 		return 0; // Return 0 on success
 	}
-	/*
-	* add_command() - Add a function which will handle a certain command
-	* ! When the function is called without a description, simply call it with an empty description
-	* @command: the command name to handle
-	* @func: the function to call that will handle the command
-	*/
-	int add_command(const std::string& command, std::function<void (const MessageContents&)> func) {
-		return add_command(command, "", func);
-	}
 
-	/*
-	* bind() - Bind a key to a console command
-	* ! Console commands should generally be in snakecase but rebindable commands should be in camelcase
-	* @key: the keycode to bind to
-	* @keybind: the keybind to bind to
+	/**
+	* Bind a key to a console command.
+	* @param key the keycode to bind to
+	* @param keybind the keybind to bind to
+	*
+	* @retval 0 success
+	* @retval 1 failed since key is already bound
 	*/
 	int bind(SDL_Keycode key, KeyBind keybind) {
 		if (internal::bindings.find(key) != internal::bindings.end()) { // If the key has already been bound, output a warning
@@ -664,31 +496,36 @@ namespace bee{ namespace console {
 
 		return 0;
 	}
-	/*
-	* add_keybind() - Add a keybind's command and bind it to the given key
-	* @key: the key to bind to
-	* @keybind: the keybind to add
-	* @func: the function to add as a command
+	/**
+	* Add a keybind's command and bind it to the given key.
+	* @param key the key to bind to
+	* @param keybind the keybind to add
+	* @param func the function to add as a command
+	*
+	* @returns the sum of add_command() and bind()
 	*/
 	int add_keybind(SDL_Keycode key, KeyBind keybind, std::function<void (const MessageContents&)> func) {
-		int r = add_command(keybind.command, func);
-		if (key != SDLK_UNKNOWN) {
-			r += bind(key, keybind);
-		}
+		int r = add_command(keybind.command, "", func);
+		r += bind(key, keybind);
 		return r;
 	}
-	/*
-	* get_keybind() - Return the command that is bound to the given key
-	* @key: the keycode to bind to
+	/**
+	* Return the command that is bound to the given key.
+	* @param key the keycode to find the bind of
+	*
+	* @returns the bound keybind or an empty bind if none was found
 	*/
 	KeyBind get_keybind(SDL_Keycode key) {
-		if (internal::bindings.find(key) != internal::bindings.end()) { // If the key has been bound, then return its command
-			return internal::bindings.at(key); // Return the command on success when no command argument is provided
+		if (internal::bindings.find(key) == internal::bindings.end()) { // If the key has not been bound, then return an empty bind
+			return KeyBind();
 		}
-		return KeyBind(); // Return an empty string when the provided command is empty and the key has not been bound
+		return internal::bindings.at(key);
 	}
-	/*
-	* get_keycode() - Return the keycode bound to the keybind with the given name
+	/**
+	* Return the keycode bound to the keybind with the given name.
+	* @param keybind the name of the keybind to find the key of
+	*
+	* @returns the bound keycode or SDLK_UNKNOWN if none was found
 	*/
 	SDL_Keycode get_keycode(const std::string& keybind) {
 		for (auto& kb : internal::bindings) {
@@ -698,73 +535,43 @@ namespace bee{ namespace console {
 		}
 		return SDLK_UNKNOWN;
 	}
-	/*
-	* unbind() - Unbind a key from a console command
-	* @key: the keycode to unbind
+	/**
+	* Unbind a key from a command.
+	* @param key the keycode to unbind
 	*/
-	int unbind(SDL_Keycode key) {
-		if (internal::bindings.find(key) != internal::bindings.end()) { // If the key has been bound, then unbind it
-			internal::bindings.erase(key);
-		}
-		return 0; // Return 0 on success
+	void unbind(SDL_Keycode key) {
+		internal::bindings.erase(key);
 	}
-	/*
-	* unbind() - Unbind a keybind from a console command
-	* @keybind: the keybind to unbind
+	/**
+	* Unbind a keybind command from a key.
+	* @param keybind the keybind to unbind
+	*
+	* @retval 0 success
+	* @retval 1 failed to unbind since no key was bound
 	*/
-	int unbind(KeyBind keybind, bool should_remove_command) {
+	int unbind(KeyBind keybind) {
 		for (auto& bind : internal::bindings) {
 			if (bind.second.command == keybind.command) {
 				internal::bindings.erase(bind.first);
-
-				if (should_remove_command) {
-					internal::commands.erase(keybind.command);
-				}
-
 				return 0;
 			}
 		}
 
-		//messenger::send({"engine", "console"}, E_MESSAGE::WARNING, "Failed to unbind keybinding for \"" + keybind.command + "\": no key found");
-
 		return 1;
 	}
-	/*
-	* unbind_all() - Unbind all keys from the console
+	/**
+	* Unbind all keys from their commands.
 	*/
-	int unbind_all() {
+	void unbind_all() {
 		internal::bindings.clear();
-		return 0;
 	}
 
 	/*
-	* alias() - Add a console alias to multiple commands
-	* @alias: the alias to use
-	* @commands: the commands to run when the alias is called
+	* Set a console variable.
+	* @param name the name of the variable
+	* @param value the value to set it to
 	*/
-	int alias(const std::string& alias, const std::string& commands) {
-		if (internal::commands.find(alias) != internal::commands.end()) { // If a command already exists, then return a warning
-			messenger::send({"engine", "console"}, E_MESSAGE::WARNING, "Failed to add alias \"" + alias + "\", a command with the same name exists.");
-			return 1;
-		}
-
-		internal::aliases[alias] = commands; // Set the alias
-
-		return 0; // Return 0 on success
-	}
-	/*
-	* get_aliases() - Return the map of all the current aliases
-	*/
-	const std::unordered_map<std::string,std::string>& get_aliases() {
-		return internal::aliases;
-	}
-
-	/*
-	* set_var() - Set a console variable
-	* @name: the name of the variable
-	* @value: the value to set
-	*/
-	int set_var(const std::string& name, const SIDP& value) {
+	/*int set_var(const std::string& name, const SIDP& value) {
 		if (internal::commands.find(name) != internal::commands.end()) { // If a command already exists, then return a warning
 			messenger::send({"engine", "console"}, E_MESSAGE::WARNING, "Failed to set variable \"" + name + "\", a command with the same name exists.");
 			return 1;
@@ -773,33 +580,38 @@ namespace bee{ namespace console {
 		internal::variables[name] = value;
 
 		return 0;
-	}
+	}*/
 	/*
-	* get_var() - Return the value of a console variable
-	* @name: the name of the variable
+	* Return the value of a console variable.
+	* @param name the name of the variable
+	*
+	* @returns the variable value
 	*/
-	SIDP get_var(const std::string& name) {
+	/*Variant get_var(const std::string& name) {
 		if (internal::variables.find(name) != internal::variables.end()) {
 			return internal::variables[name];
 		}
 
 		return internal::replace_vars(name);
-	}
+	}*/
 
-
-	/*
-	* run() - Run a command in the console
-	* @command: the command string to run, including the arguments
+	/**
+	* Run a command in the console.
+	* @param command the command string to run including the arguments
+	*
+	* @returns the script's return value
+	* @see internal::run()
 	*/
 	int run(const std::string& command) {
-		return internal::run(command, false, 0); // Return the status of running a non-silent command with no requested delay
+		return internal::run(command, false); // Run the command in non-silent mode
 	}
-	/*
-	* get_help() - Return the description string of the given command
-	* @command: the command to get the description for
+	/**
+	* @param command the command to get the description for
+	*
+	* @returns the description string of the given command
 	*/
 	std::string get_help(const std::string& command) {
-		if (internal::commands.find(command) == internal::commands.end()) { // If the command does not exist, then return a warning
+		/*if (internal::commands.find(command) == internal::commands.end()) { // If the command does not exist, then return a warning
 			return "No available help for non-existent \"" + command + "\"";
 		}
 
@@ -808,16 +620,16 @@ namespace bee{ namespace console {
 			return "No available help for \"" + command + "\"";
 		}
 
-		return h; // Return the command's description on success
+		return h; // Return the command's description on success*/
+		return "";
 	}
-	/*
-	* log() - Log a message to the console
-	* @type: the message type
-	* @str: the message to log
+	/**
+	* Log a message to the console.
+	* @param type the message type
+	* @param str the message to log
 	*/
-	int log(E_MESSAGE type, const std::string& str) {
+	void log(E_MESSAGE type, const std::string& str) {
 		messenger::send({"engine", "console"}, type, str);
-		return 0;
 	}
 }}
 

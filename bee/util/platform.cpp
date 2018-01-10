@@ -134,7 +134,7 @@ bool bee_has_commandline_input() {
 * ! See http://www.tldp.org/HOWTO/Bash-Prompt-HOWTO/x329.html for information on the color codes
 * @color: the new color to use defined according to the Linux terminal color codes
 */
-int bee_commandline_color(int color) {
+int bee_commandline_color(std::ostream* o, int color) {
 	std::string code = "";
 	switch (color) {
 		case 0: { // Black
@@ -202,17 +202,17 @@ int bee_commandline_color(int color) {
 			break;
 		}
 		default: {
-			bee_commandline_color_reset();
+			bee_commandline_color_reset(o);
 		}
 	}
-	std::cout << code;
+	*o << code;
 	return 0;
 }
 /*
 * bee_commandline_color_reset() - Reset the commandline color to the default value
 */
-int bee_commandline_color_reset() {
-	std::cout << "\033[0m";
+int bee_commandline_color_reset(std::ostream* o) {
+	*o << "\033[0m";
 	return 0;
 }
 /*
@@ -355,9 +355,10 @@ bool bee_has_commandline_input() {
 /*
 * bee_commandline_color() - Change the color that commandline output will appear in
 * ! See http://www.tldp.org/HOWTO/Bash-Prompt-HOWTO/x329.html for information on the color codes
+* ! The given ostream is ignored on Windows
 * @color: the new color to use defined according to the Linux terminal color codes
 */
-int bee_commandline_color(int color) {
+int bee_commandline_color(std::ostream* o, int color) {
 	switch (color) {
 		case 0: { // Black
 			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 16*7);
@@ -431,8 +432,9 @@ int bee_commandline_color(int color) {
 }
 /*
 * bee_commandline_color_reset() - Reset the commandline color to the default value
+* ! The given ostream is ignored on Windows
 */
-int bee_commandline_color_reset() {
+int bee_commandline_color_reset(std::ostream* o) {
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
 	return 0;
 }
@@ -602,7 +604,7 @@ bool bee_has_commandline_input() {
 * ! See http://www.tldp.org/HOWTO/Bash-Prompt-HOWTO/x329.html for information on the color codes
 * @color: the new color to use defined according to the Linux terminal color codes
 */
-int bee_commandline_color(int color) {
+int bee_commandline_color(std::ostream* o, int color) {
 	std::string code = "";
 	switch (color) {
 		case 0: { // Black
@@ -670,17 +672,17 @@ int bee_commandline_color(int color) {
 			break;
 		}
 		default: {
-			bee_commandline_color_reset();
+			bee_commandline_color_reset(o);
 		}
 	}
-	std::cout << code;
+	*o << code;
 	return 0;
 }
 /*
 * bee_commandline_color_reset() - Reset the commandline color to the default value
 */
-int bee_commandline_color_reset() {
-	std::cout << "\033[0m";
+int bee_commandline_color_reset(std::ostream* o) {
+	*o << "\033[0m";
 	return 0;
 }
 /*
@@ -782,13 +784,13 @@ bool bee_has_commandline_input() {
 * ! See http://www.tldp.org/HOWTO/Bash-Prompt-HOWTO/x329.html for information on the color codes
 * @color: the new color to use defined according to the Linux terminal color codes
 */
-int bee_commandline_color(int color) {
+int bee_commandline_color(std::ostream* o, int color) {
 	return 1;
 }
 /*
 * bee_commandline_color_reset() - Reset the commandline color to the default value
 */
-int bee_commandline_color_reset() {
+int bee_commandline_color_reset(std::ostream* o) {
 	return 1;
 }
 /*

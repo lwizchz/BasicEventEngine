@@ -30,8 +30,8 @@ std::string bee_mkdtemp(const std::string&);
 std::string bee_inet_ntop(const void* src);
 
 bool bee_has_commandline_input();
-int bee_commandline_color(int);
-int bee_commandline_color_reset();
+int bee_commandline_color(std::ostream*, int);
+int bee_commandline_color_reset(std::ostream*);
 int bee_commandline_clear();
 
 #endif // BEE_UTIL_PLATFORM_H

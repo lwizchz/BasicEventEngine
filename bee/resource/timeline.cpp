@@ -213,7 +213,11 @@ namespace bee {
 		return 0;
 	}
 	int Timeline::set_path(const std::string& new_path) {
-		path = "resources/timelines/"+new_path; // Append the path to the timeline directory
+		if (new_path.front() == '/') {
+			path = new_path.substr(1);
+		} else {
+			path = "resources/timelines/"+new_path; // Append the path to the timelines directory if no root
+		}
 		return 0;
 	}
 	int Timeline::add_action(Uint32 frame_number, const std::string& func_name, std::function<void()> callback) {

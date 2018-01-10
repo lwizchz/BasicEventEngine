@@ -19,8 +19,10 @@ namespace bee {
 	public:
 		virtual ~ScriptInterface() {};
 		virtual int load() =0;
-		virtual int free() =0;
+		virtual void free() =0;
+		virtual void release() =0;
 		virtual int run_string(const std::string&) =0;
+		virtual int run_file(const std::string&) =0;
 		virtual int run_func(const std::string&) =0;
 	};
 
@@ -59,6 +61,7 @@ namespace bee {
 		int load();
 		int free();
 		int run_string(const std::string&);
+		int run_file(const std::string&);
 		int run_func(const std::string&);
 	};
 }

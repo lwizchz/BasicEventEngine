@@ -28,11 +28,15 @@ namespace bee { namespace python {
                 PyObject* module;
         public:
                 PythonScriptInterface(const std::string&);
+                PythonScriptInterface(PyObject*);
                 ~PythonScriptInterface();
 
                 int load();
-                int free();
+                void free();
+                void release();
+
                 int run_string(const std::string&);
+                int run_file(const std::string&);
                 int run_func(const std::string&);
         };
 }

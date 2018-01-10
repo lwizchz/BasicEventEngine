@@ -302,7 +302,11 @@ namespace bee {
 		return 0;
 	}
 	int Texture::set_path(const std::string& new_path) {
-		path = "resources/textures/"+new_path; // Append the path to the texture directory
+		if (new_path.front() == '/') {
+			path = new_path.substr(1);
+		} else {
+			path = "resources/textures/"+new_path; // Append the path to the texture directory if no root
+		}
 		return 0;
 	}
 	int Texture::set_speed(double new_speed) {

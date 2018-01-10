@@ -166,7 +166,11 @@ namespace bee {
 		if (new_path == ".py") { // If the path is "empty," use the script type as the path
 			path = new_path;
 		} else {
-			path = "resources/scripts/"+new_path; // Append the path to the script directory
+			if (new_path.front() == '/') {
+				path = new_path.substr(1);
+			} else {
+				path = "resources/scripts/"+new_path; // Append the path to the script directory if no root
+			}
 		}
 		return 0;
 	}
@@ -209,9 +213,15 @@ namespace bee {
 			return 1;
 		}
 
-		script->run_string(code);
+		return script->run_string(code);
+	}
+	int Script::run_file(const std::string& filename) {
+		if (!is_loaded) {
+			messenger::send({"engine", "script"}, E_MESSAGE::WARNING, "Failed to run script \"" + name + "\" because it is not loaded");
+			return 1;
+		}
 
-		return 0;
+		return script->run_file(filename);
 	}
 	int Script::run_func(const std::string& funcname) {
 		if (!is_loaded) {
@@ -219,9 +229,7 @@ namespace bee {
 			return 1;
 		}
 
-		script->run_func(funcname);
-
-		return 0;
+		return script->run_func(funcname);
 	}
 }
 

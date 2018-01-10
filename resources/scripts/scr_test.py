@@ -8,8 +8,6 @@ def step():
     bee.set_window_pos(random.randint(0, 20), random.randint(0, 20))
 
 def main():
-    bee.messenger.set_level(bee.E_OUTPUT["VERBOSE"])
-
     def log(tickstamp, tags, type, descr):
         print("{}: {}".format(type, descr))
     bee.messenger.register_recipient("pylog", ["python", "log"], True, log)

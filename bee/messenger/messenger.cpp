@@ -120,17 +120,17 @@ namespace bee { namespace messenger{
 			std::ostream* o = lf.second.second;
 
 			if (lf.first == "stdout") {
-				// Change the output color depending on the message type
-				if (msg.type == E_MESSAGE::WARNING) {
-					bee_commandline_color(11); // Yellow
-				} else if (msg.type == E_MESSAGE::ERROR) {
-					bee_commandline_color(9); // Red
-				}
-
 				// Output to the appropriate stream
 				o = &std::cout;
 				if ((msg.type == E_MESSAGE::WARNING)||(msg.type == E_MESSAGE::ERROR)) {
 					o = &std::cerr;
+				}
+
+				// Change the output color depending on the message type
+				if (msg.type == E_MESSAGE::WARNING) {
+					bee_commandline_color(o, 11); // Yellow
+				} else if (msg.type == E_MESSAGE::ERROR) {
+					bee_commandline_color(o, 9); // Red
 				}
 			}
 
@@ -145,7 +145,9 @@ namespace bee { namespace messenger{
 				*o << msg.descr << "\n";
 			}
 
-			bee_commandline_color_reset(); // Reset the output color
+			if ((msg.type == E_MESSAGE::WARNING)||(msg.type == E_MESSAGE::ERROR)) {
+				bee_commandline_color_reset(o); // Reset the output color
+			}
 
 			std::flush(*o); // Flush the output buffer after printing
 		}
@@ -376,9 +378,9 @@ namespace bee { namespace messenger{
 		for (auto& tag : recv.tags) { // Iterate over the requested tags
 			if (internal::protected_tags.find(tag) != internal::protected_tags.end()) { // If the requested tag is protected, deny registration
 				// Output an error message
-				bee_commandline_color(11);
+				bee_commandline_color(&std::cerr, 11);
 				std::cerr << "MSG failed to register recipient \"" << recv.name << "\" with protected tag \"" << tag << "\".\n";
-				bee_commandline_color_reset();
+				bee_commandline_color_reset(&std::cerr);
 
 				r++; // Increment the protection counter
 
@@ -432,9 +434,9 @@ namespace bee { namespace messenger{
 
 		if (!protected_tag.empty()) {
 			// Output an error message
-			bee_commandline_color(11);
+			bee_commandline_color(&std::cerr, 11);
 			std::cerr << "MSG failed to unregister recipient \"" << name << "\" because of protected tag \"" << protected_tag << "\".\n";
-			bee_commandline_color_reset();
+			bee_commandline_color_reset(&std::cerr);
 
 			return 1; // Return 1 on denial by protected tag
 		}

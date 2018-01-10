@@ -268,7 +268,11 @@ namespace bee {
 		return 0;
 	}
 	int Font::set_path(const std::string& new_path) {
-		path = "resources/fonts/"+new_path; // Append the path to the font directory
+		if (new_path.front() == '/') {
+			path = new_path.substr(1);
+		} else {
+			path = "resources/fonts/"+new_path; // Append the path to the font directory if no root
+		}
 		return 0;
 	}
 	int Font::set_font_size(int new_font_size) {

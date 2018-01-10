@@ -313,7 +313,11 @@ namespace bee {
 		return 0;
 	}
 	int Sound::set_path(const std::string& new_path) {
-		path = "resources/sounds/"+new_path; // Append the path to the sound directory
+		if (new_path.front() == '/') {
+			path = new_path.substr(1);
+		} else {
+			path = "resources/sounds/"+new_path; // Append the path to the sound directory if no root
+		}
 		return 0;
 	}
 	int Sound::set_is_music(bool new_is_music) {

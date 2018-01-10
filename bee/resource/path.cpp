@@ -201,7 +201,11 @@ namespace bee {
 		return 0;
 	}
 	int Path::set_path(const std::string& new_path) {
-		path = "resources/paths/"+new_path; // Append the filename to the path directory
+		if (new_path.front() == '/') {
+			path = new_path.substr(1);
+		} else {
+			path = "resources/paths/"+new_path; // Append the path to the path directory if no root
+		}
 		return 0;
 	}
 	int Path::set_is_curved(bool new_is_curved) {

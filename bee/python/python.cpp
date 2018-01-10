@@ -52,7 +52,7 @@ namespace bee { namespace python {
 
                 internal::init_module();
 
-                setenv("PYTHONPATH", "lib/cpython/build/lib.linux-x86_64-3.7:lib/cpython/Lib", 1);
+                setenv("PYTHONPATH", "lib/cpython/build/lib.linux-x86_64-3.7:lib/cpython/Lib:bee/resources", 1);
                 setenv("PYTHONHOME", "lib/cpython", 1);
 
                 Py_SetProgramName(internal::program);
@@ -111,6 +111,10 @@ namespace bee { namespace python {
                 path(_path),
                 module(nullptr)
         {}
+        PythonScriptInterface::PythonScriptInterface(PyObject* _module) :
+                path(),
+                module(_module)
+        {}
         PythonScriptInterface::~PythonScriptInterface() {
                 if (module != nullptr) {
                         this->free();
@@ -133,6 +137,10 @@ namespace bee { namespace python {
                 }
 
                 std::string fname = path;
+                const std::string prefix ("bee/resources/");
+                if (fname.rfind(prefix, 0) == 0) {
+                        fname = fname.substr(prefix.length());
+                }
                 fname = string_replace(fname, ".py", "");
                 fname = string_replace(fname, "/", ".");
 
@@ -151,17 +159,19 @@ namespace bee { namespace python {
 
                 return 0;
         }
-        int PythonScriptInterface::free() {
+        void PythonScriptInterface::free() {
                 if (module == nullptr) {
-                        return 0;
+                        return;
                 }
 
                 if (module != PyImport_AddModule("__main__")) {
                         Py_DECREF(module);
                 }
                 module = nullptr;
-
-                return 0;
+        }
+        void PythonScriptInterface::release() {
+                path.clear();
+                module = nullptr;
         }
         int PythonScriptInterface::run_string(const std::string& code) {
                 if (module == nullptr) {
@@ -170,14 +180,49 @@ namespace bee { namespace python {
                 }
 
                 PyObject* codeobj = Py_CompileString(code.c_str(), "<string>", Py_file_input);
-                PyObject* global_dict = PyModule_GetDict(module);
+                if (codeobj == nullptr) {
+                        PyErr_Print();
+                        messenger::send({"engine", "python"}, E_MESSAGE::ERROR, "Python script codestring \"" + code + "\" compile failed for \"" + path + "\"");
 
+                        return 2;
+                }
+
+                PyObject* global_dict = PyModule_GetDict(module);
                 PyObject* value = PyEval_EvalCode(codeobj, global_dict, global_dict);
                 if (value == nullptr) {
                         Py_DECREF(codeobj);
 
                         PyErr_Print();
                         messenger::send({"engine", "python"}, E_MESSAGE::ERROR, "Python script codestring \"" + code + "\" failed for \"" + path + "\"");
+
+                        return 2;
+                }
+
+                Py_DECREF(codeobj);
+
+                return 0;
+        }
+        int PythonScriptInterface::run_file(const std::string& filename) {
+                if (module == nullptr) {
+                        messenger::send({"engine", "python"}, E_MESSAGE::ERROR, "Failed to run python script \"" + filename + "\": module is not loaded");
+                        return 1;
+                }
+
+                PyObject* codeobj = Py_CompileString(file_get_contents(filename).c_str(), filename.c_str(), Py_file_input);
+                if (codeobj == nullptr) {
+                        PyErr_Print();
+                        messenger::send({"engine", "python"}, E_MESSAGE::ERROR, "Python script compile failed for \"" + filename + "\" in module \"" + std::string(PyModule_GetName(module)) + "\"");
+
+                        return 2;
+                }
+
+                PyObject* global_dict = PyModule_GetDict(module);
+                PyObject* value = PyEval_EvalCode(codeobj, global_dict, global_dict);
+                if (value == nullptr) {
+                        Py_DECREF(codeobj);
+
+                        PyErr_Print();
+                        messenger::send({"engine", "python"}, E_MESSAGE::ERROR, "Python script failed for \"" + filename + "\" in module \"" + std::string(PyModule_GetName(module)) + "\"");
 
                         return 2;
                 }

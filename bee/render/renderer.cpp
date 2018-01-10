@@ -100,21 +100,21 @@ namespace bee {
 		}
 
 		// Get shader filenames
-		const std::string vs_fn_default = "bee/render/shader/default.vertex.glsl";
+		const std::string vs_fn_default = "bee/resources/shaders/default.vertex.glsl";
 		const std::string vs_fn_user = "resources/vertex.glsl";
 		std::string vs_fn (vs_fn_default);
 		if (file_exists(vs_fn_user)) {
 			vs_fn = vs_fn_user;
 		}
-		const std::string gs_fn_default = "bee/render/shader/default.geometry.glsl";
+		const std::string gs_fn_default = "bee/resources/shaders/default.geometry.glsl";
 		const std::string gs_fn_user = "resources/geometry.glsl";
 		std::string gs_fn (gs_fn_default);
 		if (file_exists(gs_fn_user)) {
 			gs_fn = gs_fn_user;
 		}
-		const std::string fs_fn_default = "bee/render/shader/default.fragment.glsl";
+		const std::string fs_fn_default = "bee/resources/shaders/default.fragment.glsl";
 		const std::string fs_fn_user = "resources/fragment.glsl";
-		const std::string fs_fn_basic_default = "bee/render/shader/basic.fragment.glsl";
+		const std::string fs_fn_basic_default = "bee/resources/shaders/basic.fragment.glsl";
 		const std::string fs_fn_basic_user = "resources/basic.fragment.glsl";
 		std::string fs_fn (fs_fn_default);
 		if (get_options().is_basic_shaders_enabled == true) {

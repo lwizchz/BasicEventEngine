@@ -145,20 +145,20 @@ void ObjControl::create(bee::Instance* self) {
 }
 void ObjControl::destroy(bee::Instance* self) {
 	//Unbind keybindings
-	bee::console::unbind(bee::KeyBind("RoomRestart"), true);
-	bee::console::unbind(bee::KeyBind("MoveForward"), true);
-	bee::console::unbind(bee::KeyBind("MoveBackward"), true);
-	bee::console::unbind(bee::KeyBind("MoveLeft"), true);
-	bee::console::unbind(bee::KeyBind("MoveRight"), true);
-	bee::console::unbind(bee::KeyBind("MoveDown"), true);
-	bee::console::unbind(bee::KeyBind("MoveUp"), true);
-	bee::console::unbind(bee::KeyBind("NetworkStartSession"), true);
-	bee::console::unbind(bee::KeyBind("NetworkJoinSession"), true);
-	bee::console::unbind(bee::KeyBind("NetworkFindSessions"), true);
-	bee::console::unbind(bee::KeyBind("StartSound"), true);
-	bee::console::unbind(bee::KeyBind("StartSoundEcho"), true);
-	bee::console::unbind(bee::KeyBind("Start3D"), true);
-	bee::console::unbind(bee::KeyBind("End3D"), true);
+	bee::console::unbind(bee::KeyBind("RoomRestart"));
+	bee::console::unbind(bee::KeyBind("MoveForward"));
+	bee::console::unbind(bee::KeyBind("MoveBackward"));
+	bee::console::unbind(bee::KeyBind("MoveLeft"));
+	bee::console::unbind(bee::KeyBind("MoveRight"));
+	bee::console::unbind(bee::KeyBind("MoveDown"));
+	bee::console::unbind(bee::KeyBind("MoveUp"));
+	bee::console::unbind(bee::KeyBind("NetworkStartSession"));
+	bee::console::unbind(bee::KeyBind("NetworkJoinSession"));
+	bee::console::unbind(bee::KeyBind("NetworkFindSessions"));
+	bee::console::unbind(bee::KeyBind("StartSound"));
+	bee::console::unbind(bee::KeyBind("StartSoundEcho"));
+	bee::console::unbind(bee::KeyBind("Start3D"));
+	bee::console::unbind(bee::KeyBind("End3D"));
 
 	if (_p("part_system") != nullptr) {
 		delete static_cast<bee::ParticleSystem*>(_p("part_system"));
@@ -213,7 +213,7 @@ void ObjControl::room_start(bee::Instance* self) {
 	}
 }
 void ObjControl::game_start(bee::Instance* self) {
-	bee::console::run("exec \"config.cfg\""); // Configure default binds
+	bee::console::run("execfile(\"cfg/config.py\")"); // Configure default binds
 }
 
 #endif // RES_OBJ_CONTROL
