@@ -50,10 +50,15 @@ namespace bee { namespace mouse {
 	/**
 	* @returns the mouse coordinates relative to the display.
 	* @see https://wiki.libsdl.org/SDL_GetMouseState for details
+	* @note If the SDL version is less than 2.0.4, the returned coordinates will be (-1, -1)
 	*/
 	std::pair<int,int> get_display_pos() {
-		int mx, my;
-		SDL_GetGlobalMouseState(&mx, &my); // Fetch the mouse coordinates into (mx, my)
+		int mx = -1, my = -1;
+
+		#if SDL_VERSION_ATLEAST(2, 0, 4)
+			SDL_GetGlobalMouseState(&mx, &my); // Fetch the mouse coordinates into (mx, my)
+		#endif
+
 		return std::make_pair(mx, my);
 	}
 	/**
