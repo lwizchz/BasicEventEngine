@@ -545,6 +545,14 @@ namespace bee {
 
 		return 0; // Return 0 on success
 	}
+	SDL_Surface* Texture::load_surface() const {
+		SDL_Surface* surface = IMG_Load(path.c_str());
+		if (surface == nullptr) { // If the surface could not be loaded, output a warning
+			messenger::send({"engine", "texture"}, E_MESSAGE::WARNING, "Failed to load texture surface \"" + name + "\": " + IMG_GetError());
+			return nullptr;
+		}
+		return surface;
+	}
 	/*
 	* Texture::load() - Load the texture from its given filename
 	*/
@@ -558,14 +566,11 @@ namespace bee {
 			return 2; // Return 2 when texture rendering is not applicable
 		}
 
-		// Load the texture into a temporary surface
-		SDL_Surface* tmp_surface;
-		tmp_surface = IMG_Load(path.c_str());
-		if (tmp_surface == nullptr) { // If the surface could not be loaded, output a warning
-			messenger::send({"engine", "texture"}, E_MESSAGE::WARNING, "Failed to load texture \"" + name + "\": " + IMG_GetError());
-			return 3; // Return 3 on loding failure
+		SDL_Surface* tmp_surface = load_surface(); // Load the texture into a temporary surface
+		if (tmp_surface == nullptr) {
+			return 3;
 		}
-
+		
 		load_from_surface(tmp_surface); // Load the surface into a texture
 		SDL_FreeSurface(tmp_surface); // Free the temporary surface
 

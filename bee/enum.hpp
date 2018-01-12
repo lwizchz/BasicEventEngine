@@ -9,11 +9,11 @@
 #ifndef BEE_ENUM_H
 #define BEE_ENUM_H 1
 
+#include "defines.hpp"
+
 #include "util/windefine.hpp"
 
 namespace bee {
-	#define BIT(x) (1u << x)
-
 	enum class E_FLAGARG {
 		NONE,
 		OPTIONAL,
@@ -253,8 +253,6 @@ namespace bee {
 		LOOK,
 		ALL
 	};
-
-	#undef BIT
 }
 
 #endif // BEE_ENUM_H

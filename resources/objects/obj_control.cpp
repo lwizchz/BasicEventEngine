@@ -174,7 +174,8 @@ void ObjControl::destroy(bee::Instance* self) {
 }
 void ObjControl::step_mid(bee::Instance* self) {
 	if (bee::render::get_3d()) {
-		bee::render::set_camera(new bee::Camera(glm::vec3(_d("camx"), _d("camy"), -540.0 + _d("camz")), glm::vec3((-1920.0/2.0+bee::get_mouse_global_x())/1920.0*2.0, (-1080.0/2.0+bee::get_mouse_global_y())/1080.0*2.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
+		const std::pair<int,int> mpos (bee::mouse::get_pos());
+		bee::render::set_camera(new bee::Camera(glm::vec3(_d("camx"), _d("camy"), -540.0 + _d("camz")), glm::vec3((-1920.0/2.0+mpos.first)/1920.0*2.0, (-1080.0/2.0+mpos.second)/1080.0*2.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
 	}
 }
 void ObjControl::mouse_press(bee::Instance* self, SDL_Event* e) {

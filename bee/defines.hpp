@@ -31,4 +31,6 @@
 	#define BEE_GAME_ID 4294967295 // pow(2,32)-1, the maximum value
 #endif // BEE_GAME_ID
 
+#define BIT(x) (1u << x)
+
 #endif // BEE_DEFINES_H

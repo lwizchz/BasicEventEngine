@@ -36,7 +36,7 @@ void ObjUITextEntry::keyboard_press(bee::Instance* self, SDL_Event* e) {
 	}
 
 	std::string input = _s("input");
-	char c = bee::append_input(&input, &e->key);
+	char c = bee::kb::append_input(&input, &e->key);
 
 	switch (e->key.keysym.sym) {
 		case SDLK_TAB: {

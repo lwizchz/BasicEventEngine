@@ -6,8 +6,8 @@
 * See LICENSE for more details.
 */
 
-#ifndef BEE_CORE_KEYBIND_H
-#define BEE_CORE_KEYBIND_H 1
+#ifndef BEE_INPUT_KEYBIND_H
+#define BEE_INPUT_KEYBIND_H 1
 
 #include <string>
 
@@ -26,4 +26,4 @@ namespace bee {
 	};
 }
 
-#endif // BEE_CORE_KEYBIND_H
+#endif // BEE_INPUT_KEYBIND_H

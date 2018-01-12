@@ -16,6 +16,8 @@
 
 #include "messenger.hpp"
 #include "console.hpp"
+#include "mouse.hpp"
+#include "kb.hpp"
 
 #include "../engine.hpp"
 
@@ -60,7 +62,6 @@ namespace bee { namespace python { namespace internal {
                 {"get_window_pos", core_get_window_pos, METH_NOARGS, "Return the x- and y-coordinates of the game window"},
                 {"get_window_size", core_get_window_size, METH_NOARGS, "Return the size of the game window"},
                 {"set_window_title", core_set_window_title, METH_VARARGS, "Set the title string of the current window"},
-                {"set_show_cursor", core_set_show_cursor, METH_VARARGS, "Set whether to show the cursor or not"},
                 {"set_window_pos", core_set_window_pos, METH_VARARGS, "Set the game window position"},
                 {"set_window_center", core_set_window_center, METH_NOARGS, "Center the game window on the screen"},
                 {"set_window_size", core_set_window_size, METH_VARARGS, "Set the size of the game window"},
@@ -113,7 +114,8 @@ namespace bee { namespace python { namespace internal {
                 //PyModule_AddObject(module, "init", PyInit_bee_init());
                 PyModule_AddObject(module, "messenger", PyInit_bee_messenger());
                 PyModule_AddObject(module, "console", PyInit_bee_console());
-                //PyModule_AddObject(module, "input", PyInit_bee_input());
+                PyModule_AddObject(module, "mouse", PyInit_bee_mouse());
+                PyModule_AddObject(module, "kb", PyInit_bee_kb());
                 //PyModule_AddObject(module, "loader", PyInit_bee_loader());
                 //PyModule_AddObject(module, "network", PyInit_bee_network());
                 //PyModule_AddObject(module, "physics", PyInit_bee_physics());
@@ -521,17 +523,6 @@ namespace bee { namespace python { namespace internal {
                 std::string _title (PyUnicode_AsUTF8(title));
 
                 set_window_title(_title);
-
-                Py_RETURN_NONE;
-        }
-        PyObject* core_set_show_cursor(PyObject* self, PyObject* args) {
-                bool show_cursor;
-
-                if (!PyArg_ParseTuple(args, "p", &show_cursor)) {
-                        return nullptr;
-                }
-
-                set_show_cursor(show_cursor);
 
                 Py_RETURN_NONE;
         }

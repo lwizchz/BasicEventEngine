@@ -22,9 +22,10 @@
 #include "../messenger/messenger.hpp"
 
 #include "../core/console.hpp"
-#include "../core/input.hpp"
-#include "../core/keybind.hpp"
 #include "../core/rooms.hpp"
+
+#include "../input/kb.hpp"
+#include "../input/keybind.hpp"
 
 #include "../network/network.hpp"
 
@@ -130,7 +131,7 @@ namespace bee { namespace python { namespace internal {
 
                 keystring = PyTuple_GetItem(args, 0);
                 std::string _keystring (PyUnicode_AsUTF8(keystring));
-                SDL_Keycode k (keystrings_get_key(_keystring));
+                SDL_Keycode k (kb::keystrings_get_key(_keystring));
 
                 if (command == nullptr) {
                         std::string _command (console::get_keybind(k).command);
@@ -156,7 +157,7 @@ namespace bee { namespace python { namespace internal {
                 if (_keystring == "all") {
                         console::unbind_all();
                 } else {
-                        console::unbind(keystrings_get_key(_keystring));
+                        console::unbind(kb::keystrings_get_key(_keystring));
                 }
 
                 Py_RETURN_NONE;

@@ -6,12 +6,10 @@
 * See LICENSE for more details.
 */
 
-#ifndef BEE_CORE_KEYBIND
-#define BEE_CORE_KEYBIND 1
+#ifndef BEE_INPUT_KEYBIND
+#define BEE_INPUT_KEYBIND 1
 
-#include "keybind.hpp" // Include the engine headers
-
-#include "../util/string.hpp"
+#include "keybind.hpp"
 
 namespace bee {
 	KeyBind::KeyBind(SDL_Keycode _key, const std::string& _command, bool _is_repeatable) :
@@ -30,4 +28,4 @@ namespace bee {
 	{}
 }
 
-#endif // BEE_CORE_KEYBIND
+#endif // BEE_INPUT_KEYBIND

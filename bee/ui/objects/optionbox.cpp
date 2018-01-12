@@ -39,7 +39,8 @@ void ObjUIOptionBox::mouse_release(bee::Instance* self, SDL_Event* e) {
 	ObjUIElement::mouse_release(self, e);
 
 	if (_i("has_focus")) {
-		int index = get_option_at(self, bee::get_mouse_global_x(), bee::get_mouse_global_y());
+		const std::pair<int,int> mpos (bee::mouse::get_pos());
+		int index = get_option_at(self, mpos.first, mpos.second);
 
 		if (index >= 0) {
 			bool state = _ci("option_state", index);
@@ -74,7 +75,8 @@ void ObjUIOptionBox::draw(bee::Instance* self) {
 
 	bee::draw_rectangle(self->get_corner_x() - ox, self->get_corner_y() - oy, w, h, -1, c_back);
 	if (_i("has_hover")) {
-		bee::draw_rectangle(self->get_corner_x() - ox, self->get_corner_y() + get_option_at(self, bee::get_mouse_global_x(), bee::get_mouse_global_y())*_i("option_height") - oy, w, _i("option_height"), -1, c_highlight);
+		const std::pair<int,int> mpos (bee::mouse::get_pos());
+		bee::draw_rectangle(self->get_corner_x() - ox, self->get_corner_y() + get_option_at(self, mpos.first, mpos.second)*_i("option_height") - oy, w, _i("option_height"), -1, c_highlight);
 	}
 	bee::draw_rectangle(self->get_corner_x() - ox, self->get_corner_y() - oy, w, h, 6, c_border);
 

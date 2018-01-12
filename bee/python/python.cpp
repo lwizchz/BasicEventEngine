@@ -29,6 +29,11 @@ namespace bee { namespace python {
                 std::vector<wchar_t*> argv;
         }
 
+        /**
+        * Initialize the Python scripting system.
+        * @retval 0 success
+        * @retval 1 failed to decode argv[0] for the program name
+        */
         int init() {
                 if (internal::program != nullptr) {
                         return 0; // Return 0 if Python is already initialized
@@ -62,6 +67,11 @@ namespace bee { namespace python {
 
                 return 0;
         }
+        /**
+        * Close the Python scripting system.
+        * @retval 0 success
+        * @retval 1 failed to finalize and flush memory buffers
+        */
         int close() {
                 if (internal::program == nullptr) {
                         return 0; // Return 0 if Python is already closed
@@ -84,10 +94,28 @@ namespace bee { namespace python {
                 return 0;
         }
 
+        /**
+        * Run the given string in the __main__ module
+        * @param code the code string to run
+        *
+        * @retval 0 success
+        * @retval 1 a Python exception was raised during execution
+        */
         int run_string(const std::string& code) {
-                PyRun_SimpleString(code.c_str());
+                if (PyRun_SimpleString(code.c_str()) < 0) {
+                        return 1;
+                }
                 return 0;
         }
+        /**
+        * Run the given file in the __main__ module
+        * @param filename the file to run
+        *
+        * @retval 0 success
+        * @retval 1 failed to find file
+        * @retval 2 failed to open file
+        * @retval 3 a Python exception was raised during execution
+        */
         int run_file(const std::string& filename) {
                 if (!file_exists(filename)) {
                         messenger::send({"engine", "python"}, E_MESSAGE::ERROR, "Failed to run file \"" + filename + "\": file does not exist");
@@ -101,7 +129,9 @@ namespace bee { namespace python {
                         return 2;
                 }
 
-                PyRun_SimpleFileEx(file, filename.c_str(), 1);
+                if (PyRun_SimpleFileEx(file, filename.c_str(), 1) < 0) {
+                        return 3;
+                }
 
                 return 0;
         }
@@ -116,10 +146,15 @@ namespace bee { namespace python {
                 module(_module)
         {}
         PythonScriptInterface::~PythonScriptInterface() {
-                if (module != nullptr) {
-                        this->free();
-                }
+                this->free();
         }
+        /**
+        * Load the module from the path.
+        * @retval 0 success
+        * @retval 1 failed since it is already loaded
+        * @retval 2 failed since the path does not exist
+        * @retval 3 failed to import, see the Python exception for more info
+        */
         int PythonScriptInterface::load() {
                 if (module != nullptr) {
                         messenger::send({"engine", "python"}, E_MESSAGE::ERROR, "Failed to load python script \"" + path + "\": script is already loaded");
@@ -159,6 +194,9 @@ namespace bee { namespace python {
 
                 return 0;
         }
+        /**
+        * DecRef the module and remove it from this interface.
+        */
         void PythonScriptInterface::free() {
                 if (module == nullptr) {
                         return;
@@ -169,10 +207,22 @@ namespace bee { namespace python {
                 }
                 module = nullptr;
         }
+        /**
+        * Remove the module from this interface without DecRefing it.
+        */
         void PythonScriptInterface::release() {
                 path.clear();
                 module = nullptr;
         }
+        /**
+        * Run the given string in the loaded module.
+        * @param code the code string to run
+        *
+        * @retval 0 success
+        * @retval 1 failed since module is not loaded
+        * @retval 2 failed to compile the code string, see the Python exception for more info
+        * @retval 3 failed to evaluate the code, see the Python exception for more info
+        */
         int PythonScriptInterface::run_string(const std::string& code) {
                 if (module == nullptr) {
                         messenger::send({"engine", "python"}, E_MESSAGE::ERROR, "Failed to run python string \"" + path + "\": script is not loaded");
@@ -195,13 +245,22 @@ namespace bee { namespace python {
                         PyErr_Print();
                         messenger::send({"engine", "python"}, E_MESSAGE::ERROR, "Python script codestring \"" + code + "\" failed for \"" + path + "\"");
 
-                        return 2;
+                        return 3;
                 }
 
                 Py_DECREF(codeobj);
 
                 return 0;
         }
+        /**
+        * Run the given file in the loaded module.
+        * @param filename the file to run
+        *
+        * @retval 0 success
+        * @retval 1 failed since module is not loaded
+        * @retval 2 failed to compile the file, see the Python exception for more info
+        * @retval 3 failed to evaluate the file, see the Python exception for more info
+        */
         int PythonScriptInterface::run_file(const std::string& filename) {
                 if (module == nullptr) {
                         messenger::send({"engine", "python"}, E_MESSAGE::ERROR, "Failed to run python script \"" + filename + "\": module is not loaded");
@@ -224,13 +283,22 @@ namespace bee { namespace python {
                         PyErr_Print();
                         messenger::send({"engine", "python"}, E_MESSAGE::ERROR, "Python script failed for \"" + filename + "\" in module \"" + std::string(PyModule_GetName(module)) + "\"");
 
-                        return 2;
+                        return 3;
                 }
 
                 Py_DECREF(codeobj);
 
                 return 0;
         }
+        /**
+        * Run the given function in the loaded module.
+        * @param funcname the function to run
+        *
+        * @retval 0 success
+        * @retval 1 failed since module is not loaded
+        * @retval 2 failed to a callable object with the given function name
+        * @retval 3 failed to call the function, see the Python exception for more info
+        */
         int PythonScriptInterface::run_func(const std::string& funcname) {
                 if (module == nullptr) {
                         messenger::send({"engine", "python"}, E_MESSAGE::ERROR, "Failed to run python function \"" + path + "\": script is not loaded");

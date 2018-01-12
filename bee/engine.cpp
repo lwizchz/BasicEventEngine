@@ -25,8 +25,10 @@
 
 #include "core/console.hpp"
 #include "core/enginestate.hpp"
-#include "core/input.hpp"
 #include "core/rooms.hpp"
+
+#include "input/mouse.hpp"
+#include "input/kb.hpp"
 
 #include "network/network.hpp"
 
@@ -103,8 +105,7 @@ namespace bee {
 		engine->texture_before = new Texture();
 		engine->texture_after = new Texture();
 
-		engine->font_default = new Font("font_default", "liberation_mono.ttf", 16, false);
-			engine->font_default->load();
+		engine->font_default = Font::add("font_default", "liberation_mono.ttf", 16, false);
 
 		messenger::handle();
 		console::internal::init(); // Initialize the default console commands
@@ -254,6 +255,7 @@ namespace bee {
 			net::close();
 		}
 
+		mouse::close();
 		engine->free();
 
 		if (!get_options().is_headless) {
@@ -330,11 +332,8 @@ namespace bee {
 			SDL_MinimizeWindow(engine->renderer->window);
 		}
 
-		engine->cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
-		SDL_SetCursor(engine->cursor);
-
-		engine->keystate = SDL_GetKeyboardState(nullptr);
-		keystrings_populate();
+		mouse::init();
+		kb::init();
 
 		if (engine->renderer->opengl_init()) {
 			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Could not initialize the OpenGL renderer");

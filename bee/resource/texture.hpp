@@ -134,6 +134,7 @@ namespace bee {
 		int crop_image_height(int);
 
 		int load_from_surface(SDL_Surface*);
+		SDL_Surface* load_surface() const;
 		int load();
 		int load_as_target(int, int);
 		int free();

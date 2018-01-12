@@ -50,7 +50,6 @@ namespace bee {
 		Room *first_room, *current_room;
 
 		unsigned int width, height;
-		SDL_Cursor* cursor;
 
 		Renderer* renderer;
 
@@ -73,10 +72,6 @@ namespace bee {
 		E_TRANSITION transition_type;
 		double transition_speed;
 		std::function<void (Texture*, Texture*)> transition_custom_func;
-
-		const Uint8* keystate;
-		std::map<std::string,SDL_Keycode> keystrings_keys;
-		std::map<SDL_Keycode,std::string> keystrings_strings;
 
 		std::vector<std::string> commandline_input;
 		unsigned int commandline_current;

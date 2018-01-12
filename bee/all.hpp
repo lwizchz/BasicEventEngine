@@ -19,12 +19,14 @@
 #include "core/console.hpp"
 #include "core/display.hpp"
 #include "core/enginestate.hpp"
-#include "core/input.hpp"
 #include "core/instance.hpp"
-#include "core/keybind.hpp"
 #include "core/loader.hpp"
 #include "core/rooms.hpp"
 #include "core/window.hpp"
+
+#include "input/mouse.hpp"
+#include "input/kb.hpp"
+#include "input/keybind.hpp"
 
 #include "data/serialdata.hpp"
 #include "data/sidp.hpp"

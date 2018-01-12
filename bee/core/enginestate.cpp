@@ -51,7 +51,6 @@ namespace bee {
 
 		width(DEFAULT_WINDOW_WIDTH),
 		height(DEFAULT_WINDOW_HEIGHT),
-		cursor(nullptr),
 
 		renderer(new Renderer()),
 
@@ -78,10 +77,6 @@ namespace bee {
 		transition_type(E_TRANSITION::NONE),
 		transition_speed(1024.0/DEFAULT_GAME_FPS),
 		transition_custom_func(nullptr),
-
-		keystate(nullptr),
-		keystrings_keys(),
-		keystrings_strings(),
 
 		commandline_input(),
 		commandline_current(0),
@@ -117,10 +112,6 @@ namespace bee {
 		if (renderer != nullptr) {
 			delete renderer;
 			renderer = nullptr;
-		}
-		if (cursor != nullptr) {
-			SDL_FreeCursor(cursor);
-			cursor = nullptr;
 		}
 
 		return 0;

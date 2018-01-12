@@ -28,9 +28,10 @@
 #include "../messenger/messenger.hpp"
 
 #include "enginestate.hpp"
-#include "input.hpp"
-#include "keybind.hpp"
 #include "rooms.hpp"
+
+#include "../input/kb.hpp"
+#include "../input/keybind.hpp"
 
 #include "../render/drawing.hpp"
 #include "../render/renderer.hpp"
@@ -215,7 +216,8 @@ namespace bee{ namespace console {
 		return 0;
 	}
 	/**
-	* Close the console and free its memory.
+	* Close the console subsystem and free its memory.
+	* @note For some reason this function has documentation from other functions below.
 	*/
 	void internal::close() {
 		if (scr_console == nullptr) {
@@ -223,6 +225,7 @@ namespace bee{ namespace console {
 			scr_console = nullptr;
 		}
 
+		// Destroy the UI elements
 		Room* room = get_current_room();
 		if (room != nullptr) {
 			ui_handle->set_is_persistent(false);
@@ -485,8 +488,12 @@ namespace bee{ namespace console {
 	* @retval 1 failed since key is already bound
 	*/
 	int bind(SDL_Keycode key, KeyBind keybind) {
+		if ((get_options().is_headless)&&(key == SDLK_UNKNOWN)) {
+			return 0;
+		}
+
 		if (internal::bindings.find(key) != internal::bindings.end()) { // If the key has already been bound, output a warning
-			messenger::send({"engine", "console"}, E_MESSAGE::WARNING, "Failed to bind key \"" + keystrings_get_string(key) + "\", the key is already bound.");
+			messenger::send({"engine", "console"}, E_MESSAGE::WARNING, "Failed to bind key \"" + kb::keystrings_get_string(key) + "\", the key is already bound.");
 			return 1;
 		}
 

@@ -15,14 +15,11 @@
 
 namespace bee {
 	std::string get_window_title();
-	SDL_Cursor* get_cursor();
 	SDL_Rect get_window();
 	std::pair<int,int> get_window_pos();
 	std::pair<int,int> get_window_size();
 
 	void set_window_title(const std::string&);
-	int set_cursor(SDL_SystemCursor);
-	int set_show_cursor(bool);
 	void set_window_position(int, int);
 	void set_window_center();
 	void set_window_size(int, int);

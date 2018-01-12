@@ -29,12 +29,6 @@ namespace bee {
 		return SDL_GetWindowTitle(engine->renderer->window);
 	}
 	/**
-	* @returns the current window cursor
-	*/
-	SDL_Cursor* get_cursor()  {
-		return engine->cursor;
-	}
-	/**
 	* @returns the window coordinates and dimensions
 	*/
 	SDL_Rect get_window() {
@@ -65,39 +59,6 @@ namespace bee {
 		SDL_SetWindowTitle(engine->renderer->window, title.c_str());
 	}
 	/**
-	* Change the current window cursor to the given type.
-	* @see https://wiki.libsdl.org/SDL_CreateSystemCursor for details
-	* @param cid the SDL system cursor enum id
-	*
-	* @retval 0 success
-	* @retval 1 failed to create cursor
-	*/
-	int set_cursor(SDL_SystemCursor cid) {
-		SDL_Cursor* cursor = SDL_CreateSystemCursor(cid);
-		if (cursor == nullptr) {
-			return 1;
-		}
-
-		SDL_FreeCursor(engine->cursor);
-		engine->cursor = cursor;
-		SDL_SetCursor(engine->cursor);
-
-		return 0;
-	}
-	/**
-	* Set whether to show the cursor or not.
-	* @param show_cursor whether the cursor should be visible or not
-	*
-	* @retval 0 success
-	* @retval 1 failed to change the cursor visibility
-	*/
-	int set_show_cursor(bool show_cursor) {
-		if (SDL_ShowCursor((show_cursor) ? SDL_ENABLE : SDL_DISABLE) < 0) {
-			return 1;
-		}
-		return 0;
-	}
-	/**
 	* Set the game window position.
 	* @note Give -1 for a coordinate in order to leave it unchanged.
 	* @param x the new x-coordinate to move the window to
@@ -121,7 +82,7 @@ namespace bee {
 	}
 	/**
 	* Set the size of the game window.
-	* @note Give -1 for a dimension in order to leave it unchanged
+	* @note Give -1 for a dimension in order to leave it unchanged.
 	* @param width the new width to change the window to
 	* @param height the new height to change the window to
 	*/
