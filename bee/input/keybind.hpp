@@ -10,19 +10,24 @@
 #define BEE_INPUT_KEYBIND_H 1
 
 #include <string>
+#include <functional>
 
 #include <SDL2/SDL.h>
 
 namespace bee {
 	struct KeyBind {
+		std::string name;
 		SDL_Keycode key;
-		std::string command;
+		std::function<void (const SDL_Event*)> func;
 		bool is_repeatable;
 
-		KeyBind(SDL_Keycode, const std::string&, bool);
+		KeyBind(const std::string&, SDL_Keycode, bool, std::function<void (const SDL_Event*)>);
 		KeyBind();
-		explicit KeyBind(const std::string&);
-		KeyBind(const std::string&, bool);
+		KeyBind(const std::string&);
+		KeyBind(const std::string&, std::function<void (const SDL_Event*)>);
+		KeyBind(const std::string&, bool, std::function<void (const SDL_Event*)>);
+
+		void call(const SDL_Event*);
 	};
 }
 

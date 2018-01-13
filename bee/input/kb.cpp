@@ -9,18 +9,35 @@
 #ifndef BEE_INPUT_KB
 #define BEE_INPUT_KB 1
 
+#include <unordered_map>
+#include <algorithm>
+
 #include <GL/glew.h> // Include the required OpenGL headers
 #include <SDL2/SDL_opengl.h>
 
 #include "kb.hpp"
 
+#include "../engine.hpp"
+
 #include "../util/string.hpp"
 
+#include "../init/gameoptions.hpp"
+
+#include "../messenger/messenger.hpp"
+
+#include "../core/console.hpp"
 #include "../core/enginestate.hpp"
+
+#include "keybind.hpp"
+
+#include "../render/transition.hpp"
 
 namespace bee { namespace kb {
 	namespace internal {
 		const Uint8* keystate;
+
+		std::map<std::string,KeyBind> allbinds;
+		std::unordered_multimap<SDL_Keycode,KeyBind> bindings;
 	}
 
 	/**
@@ -28,6 +45,15 @@ namespace bee { namespace kb {
 	*/
 	void init() {
 		internal::keystate = SDL_GetKeyboardState(nullptr);
+
+		bee::kb::bind(SDLK_BACKQUOTE, bee::KeyBind("ConsoleToggle", [] (const SDL_Event* e) {
+			console::toggle();
+		}));
+		bee::kb::bind(SDLK_ESCAPE, bee::KeyBind("Quit", [] (const SDL_Event* e) {
+			messenger::send({"engine"}, E_MESSAGE::INFO, "Quitting...");
+	                set_transition_type(E_TRANSITION::NONE);
+	                end_game();
+		}));
 	}
 
 	/**
@@ -67,7 +93,7 @@ namespace bee { namespace kb {
 	* @param k the keyboard event to append
 	* @returns the newly added character
 	*/
-	char append_input(std::string* output, SDL_KeyboardEvent* k) {
+	char append_input(std::string* output, const SDL_KeyboardEvent* k) {
 		std::string s = "";
 		switch (k->keysym.sym) {
 			// Handle capitalization for all alphabetical characters based on shift and caps lock
@@ -373,6 +399,10 @@ namespace bee { namespace kb {
 	* @returns the string of the given SDL keycode
 	*/
 	std::string keystrings_get_string(SDL_Keycode key) {
+		if (key == SDLK_UNKNOWN) {
+			return "SDLK_UNKNOWN";
+		}
+
 		std::string name (SDL_GetKeyName(key));
 		return "SDLK_" + ((name.length() > 1) ? string_upper(name) : string_lower(name));
 	}
@@ -383,6 +413,126 @@ namespace bee { namespace kb {
 	std::string keystrings_get_name(SDL_Keycode key) {
 		std::string keystring = keystrings_get_string(key);
 		return string_upper(string_replace(keystring.substr(5), "_", " "));
+	}
+
+	/**
+	* Run the KeyBind callbacks for all bindings of the given event's key
+	* @param e the key event to handle
+	*/
+	void internal::handle_input(const SDL_Event* e) {
+		if (console::get_is_open()) {
+			console::internal::handle_input(e);
+			return;
+		}
+
+		auto binds = internal::bindings.equal_range(e->key.keysym.sym);
+		std::for_each(binds.first, binds.second, [e] (auto& kb) {
+			if ((!e->key.repeat)||(kb.second.is_repeatable)) {
+				kb.second.call(e);
+			}
+		});
+	}
+
+	/**
+	* Bind a key to a given KeyBind.
+	* @param key the keycode to bind to
+	* @param keybind the keybind to bind to
+	*
+	* @retval 0 success
+	* @retval 1 failed since key is already bound
+	*/
+	int bind(SDL_Keycode key, KeyBind keybind) {
+		internal::allbinds.emplace(keybind.name, keybind);
+
+		if (key == SDLK_UNKNOWN) {
+			return 0;
+		}
+
+		if (internal::bindings.find(key) != internal::bindings.end()) { // If the key has already been bound, output a warning
+			messenger::send({"engine", "kb"}, E_MESSAGE::WARNING, "Failed to bind key \"" + kb::keystrings_get_string(key) + "\", the key is already bound.");
+			return 1;
+		}
+
+		keybind.key = key;
+
+		internal::bindings.emplace(key, keybind);
+
+		return 0;
+	}
+	/**
+	* Return a KeyBind that is bound to the given key.
+	* @note Since multiple KeyBinds are allowed to be bound to the same key, this function may not return the same KeyBind everytime.
+	* @param key the keycode to find the bind of
+	*
+	* @returns the bound keybind or an empty bind if none was found
+	*/
+	KeyBind get_keybind(SDL_Keycode key) {
+		if (internal::bindings.find(key) == internal::bindings.end()) { // If the key has not been bound, then return an empty bind
+			return KeyBind();
+		}
+		return internal::bindings.find(key)->second;
+	}
+	/**
+	* Return the Keybind with the given name.
+	* @param name the name of the keybind to find
+	*
+	* @returns the keybind or an empty bind if none was found
+	*/
+	KeyBind get_keybind(const std::string& name) {
+		for (auto& kb : internal::bindings) {
+			if (kb.second.name == name) {
+				return kb.second;
+			}
+		}
+
+		if (internal::allbinds.find(name) != internal::allbinds.end()) {
+			return internal::allbinds.at(name);
+		}
+
+		return KeyBind();
+	}
+	/**
+	* Unbind a key from a KeyBind.
+	* @param key the keycode to unbind
+	*/
+	void unbind(SDL_Keycode key) {
+		if (internal::bindings.find(key) != internal::bindings.end()) {
+			auto binds = internal::bindings.equal_range(key);
+			std::for_each(binds.first, binds.second, [] (auto& kb) {
+				internal::allbinds.at(kb.second.name).key = SDLK_UNKNOWN;
+			});
+
+			internal::bindings.erase(key);
+		}
+	}
+	/**
+	* Unbind a KeyBind from a key.
+	* @param keybind the keybind to unbind
+	*
+	* @retval 0 success
+	* @retval 1 failed to unbind since no key was bound
+	*/
+	int unbind(KeyBind keybind) {
+		for (auto it=internal::bindings.begin(); it!=internal::bindings.end(); ++it) {
+			if (it->second.name == keybind.name) {
+				internal::allbinds.at(it->second.name).key = SDLK_UNKNOWN;
+
+				internal::bindings.erase(it);
+				return 0;
+			}
+		}
+
+		return 1;
+	}
+	/**
+	* Unbind all keys from their KeyBinds.
+	*/
+	void unbind_all() {
+		for (auto& kb : internal::allbinds) {
+			kb.second.key = SDLK_UNKNOWN;
+		}
+
+		internal::bindings.clear();
 	}
 }}
 

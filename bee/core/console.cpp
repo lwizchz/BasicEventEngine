@@ -51,8 +51,6 @@ namespace bee{ namespace console {
 
 		Script* scr_console = nullptr;
 
-		std::unordered_map<SDL_Keycode,KeyBind> bindings;
-
 		std::vector<std::string> history;
 		int history_index = -1;
 
@@ -72,8 +70,6 @@ namespace bee{ namespace console {
 	* Reset the console log.
 	*/
 	void reset() {
-		internal::bindings.clear();
-
 		internal::history.clear();
 		internal::history_index = -1;
 
@@ -209,7 +205,15 @@ namespace bee{ namespace console {
 					obj_entry->reset_completion(text_entry);
 					break;
 				}
-				default: {}
+				default: {
+					// Remove bind key from the input
+					if (e->key.keysym.sym == kb::get_keybind("ConsoleToggle").key) {
+						if (!input.empty()) {
+							ObjUITextEntry* obj_entry = static_cast<ObjUITextEntry*>(text_entry->get_object());
+							obj_entry->set_input(text_entry, input.substr(0, input.length()-1));
+						}
+					}
+				}
 			}
 		});
 
@@ -258,15 +262,8 @@ namespace bee{ namespace console {
 	* Handle the input as a console keypress.
 	* @param e the keyboard input event
 	*/
-	void internal::handle_input(SDL_Event* e) {
-		if (!get_is_open()) { // If the console is closed, handle keybindings
-			KeyBind kb = get_keybind(e->key.keysym.sym); // Fetch the command that's bound to the key
-			if ((!e->key.repeat)||(kb.is_repeatable)) {
-				if (!kb.command.empty()) { // If the command is set
-					run(kb.command, true); // Run the command without storing it in history
-				}
-			}
-		} else if (e->key.repeat == 0) { // Avoid repeat keys sent on some platforms
+	void internal::handle_input(const SDL_Event* e) {
+		if (e->key.repeat == 0) { // Avoid repeat keys sent on some platforms
 			// Handle certain key presses in order to manipulate history or the command line
 			switch (e->key.keysym.sym) {
 				case SDLK_PAGEUP: { // The pageup key scrolls backward through the console log
@@ -281,12 +278,11 @@ namespace bee{ namespace console {
 					}
 					break;
 				}
+			}
 
-				case SDLK_BACKQUOTE: { // The tilde key toggles the console open state
-					// TODO: allow different keys to open the console
-					toggle(); // Toggle the console
-					break;
-				}
+			// Handle the console toggle KeyBind
+			if (e->key.keysym.sym == kb::get_keybind("ConsoleToggle").key) {
+				toggle();
 			}
 		}
 	}
@@ -463,7 +459,7 @@ namespace bee{ namespace console {
                 internal::page_index = 0;
 	}
 
-	/**
+	/*
 	* Add a function which will handle a certain command.
 	* @param command the command name to handle
 	* @param descr the command description that will be displayed when the user runs `help command_name` in this console subsystem
@@ -471,107 +467,13 @@ namespace bee{ namespace console {
 	*
 	* @retval 0 success
 	*/
-	int add_command(const std::string& command, const std::string& descr, std::function<void (const MessageContents&)> func) {
+	/*int add_command(const std::string& command, const std::string& descr, std::function<void (const MessageContents&)> func) {
 		// TODO: add python functions
 
 		//messenger::internal::register_protected(command, {"engine", "console", command}, true, func); // Register the command with the messaging system
 
 		return 0; // Return 0 on success
-	}
-
-	/**
-	* Bind a key to a console command.
-	* @param key the keycode to bind to
-	* @param keybind the keybind to bind to
-	*
-	* @retval 0 success
-	* @retval 1 failed since key is already bound
-	*/
-	int bind(SDL_Keycode key, KeyBind keybind) {
-		if ((get_options().is_headless)&&(key == SDLK_UNKNOWN)) {
-			return 0;
-		}
-
-		if (internal::bindings.find(key) != internal::bindings.end()) { // If the key has already been bound, output a warning
-			messenger::send({"engine", "console"}, E_MESSAGE::WARNING, "Failed to bind key \"" + kb::keystrings_get_string(key) + "\", the key is already bound.");
-			return 1;
-		}
-
-		keybind.key = key;
-
-		internal::bindings.emplace(key, keybind);
-
-		return 0;
-	}
-	/**
-	* Add a keybind's command and bind it to the given key.
-	* @param key the key to bind to
-	* @param keybind the keybind to add
-	* @param func the function to add as a command
-	*
-	* @returns the sum of add_command() and bind()
-	*/
-	int add_keybind(SDL_Keycode key, KeyBind keybind, std::function<void (const MessageContents&)> func) {
-		int r = add_command(keybind.command, "", func);
-		r += bind(key, keybind);
-		return r;
-	}
-	/**
-	* Return the command that is bound to the given key.
-	* @param key the keycode to find the bind of
-	*
-	* @returns the bound keybind or an empty bind if none was found
-	*/
-	KeyBind get_keybind(SDL_Keycode key) {
-		if (internal::bindings.find(key) == internal::bindings.end()) { // If the key has not been bound, then return an empty bind
-			return KeyBind();
-		}
-		return internal::bindings.at(key);
-	}
-	/**
-	* Return the keycode bound to the keybind with the given name.
-	* @param keybind the name of the keybind to find the key of
-	*
-	* @returns the bound keycode or SDLK_UNKNOWN if none was found
-	*/
-	SDL_Keycode get_keycode(const std::string& keybind) {
-		for (auto& kb : internal::bindings) {
-			if (kb.second.command == keybind) {
-				return kb.second.key;;
-			}
-		}
-		return SDLK_UNKNOWN;
-	}
-	/**
-	* Unbind a key from a command.
-	* @param key the keycode to unbind
-	*/
-	void unbind(SDL_Keycode key) {
-		internal::bindings.erase(key);
-	}
-	/**
-	* Unbind a keybind command from a key.
-	* @param keybind the keybind to unbind
-	*
-	* @retval 0 success
-	* @retval 1 failed to unbind since no key was bound
-	*/
-	int unbind(KeyBind keybind) {
-		for (auto& bind : internal::bindings) {
-			if (bind.second.command == keybind.command) {
-				internal::bindings.erase(bind.first);
-				return 0;
-			}
-		}
-
-		return 1;
-	}
-	/**
-	* Unbind all keys from their commands.
-	*/
-	void unbind_all() {
-		internal::bindings.clear();
-	}
+	}*/
 
 	/*
 	* Set a console variable.

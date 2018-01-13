@@ -17,7 +17,7 @@ class ObjUITextEntry : public ObjUIElement {
 
 		void create(bee::Instance*);
 		void destroy(bee::Instance*);
-		void keyboard_press(bee::Instance*, SDL_Event*);
+		void keyboard_input(bee::Instance*, SDL_Event*);
 		void draw(bee::Instance*);
 
 		void reset(bee::Instance*);

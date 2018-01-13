@@ -454,7 +454,7 @@ namespace bee {
 				}
 
 				case SDL_KEYDOWN: {
-					console::internal::handle_input(&event);
+					kb::internal::handle_input(&event);
 
 					if (event.key.repeat == 0) {
 						engine->current_room->keyboard_press(&event);
@@ -601,7 +601,7 @@ namespace bee {
 				//messenger::log("FPS delay: " + bee_itos(delay) + "ms, " + bee_itos(100*delay/fps_desired) + "% of the frame");
 				SDL_Delay(delay);
 			}
-		} else if (new_tickstamp - engine->tickstamp > 3*frame_ticks) { // If the tick difference is more than 3 frames worth, output a warning
+		} else if (new_tickstamp - engine->tickstamp > 5*frame_ticks) { // If the tick difference is more than 5 frames worth, output a warning
 			Uint32 overtime = (new_tickstamp - engine->tickstamp) - frame_ticks;
 			E_MESSAGE type (E_MESSAGE::INFO);
 			if (overtime/frame_ticks >= 10) {

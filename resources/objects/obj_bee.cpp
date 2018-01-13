@@ -39,36 +39,36 @@ void ObjBee::create(bee::Instance* self) {
 	if (self == obj_bee->get_instance(0)) {
 		(*s)["serialdata"] = self->serialize();
 
-		bee::console::add_keybind(SDLK_y, bee::KeyBind("StartPath"), [this, self] (const bee::MessageContents& msg) mutable {
+		bee::kb::bind(SDLK_y, bee::KeyBind("StartPath", [this, self] (const SDL_Event* e) mutable {
 			self = obj_bee->get_instance(0);
 			s = &self->get_data();
 
 			self->set_mass(1.0);
 			self->path_start(path_bee, 100.0, bee::E_PATH_END::STOP, true);
 			self->set_path_drawn(true);
-		});
+		}));
 
-		bee::console::add_keybind(SDLK_b, bee::KeyBind("StartSerialize"), [this, self] (const bee::MessageContents& msg) mutable {
+		bee::kb::bind(SDLK_b, bee::KeyBind("StartSerialize", [this, self] (const SDL_Event* e) mutable {
 			self = obj_bee->get_instance(0);
 			s = &self->get_data();
 
 			bee::messenger::send({"bee"}, bee::E_MESSAGE::INFO, self->serialize(true));
 			(*s)["serialdata"] = self->serialize();
-		});
-		bee::console::add_keybind(SDLK_v, bee::KeyBind("StartDeserialize"), [this, self] (const bee::MessageContents& msg) mutable {
+		}));
+		bee::kb::bind(SDLK_v, bee::KeyBind("StartDeserialize", [this, self] (const SDL_Event* e) mutable {
 			self = obj_bee->get_instance(0);
 			s = &self->get_data();
 
 			self->deserialize(_s("serialdata"));
-		});
+		}));
 	}
 }
 void ObjBee::destroy(bee::Instance* self) {
 	// Unbind keybindings
 	if (self == obj_bee->get_instance(0)) {
-		bee::console::unbind(bee::KeyBind("StartPath"));
-		bee::console::unbind(bee::KeyBind("StartSerialize"));
-		bee::console::unbind(bee::KeyBind("StartDeserialize"));
+		bee::kb::unbind(bee::KeyBind("StartPath"));
+		bee::kb::unbind(bee::KeyBind("StartSerialize"));
+		bee::kb::unbind(bee::KeyBind("StartDeserialize"));
 	}
 
 	delete static_cast<bee::TextData*>(_p("text_id"));

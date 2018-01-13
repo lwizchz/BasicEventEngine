@@ -20,12 +20,6 @@ namespace bee { namespace python { namespace internal {
         PyObject* console_get_is_open(PyObject*, PyObject*);
 
         PyObject* console_add_command(PyObject*, PyObject*);
-        PyObject* console_bind(PyObject*, PyObject*);
-        PyObject* console_add_keybind(PyObject*, PyObject*);
-        PyObject* console_get_keybind(PyObject*, PyObject*);
-        PyObject* console_get_keycode(PyObject*, PyObject*);
-        PyObject* console_unbind_key(PyObject*, PyObject*);
-        PyObject* console_unbind(PyObject*, PyObject*);
 
         PyObject* console_set_var(PyObject*, PyObject*);
         PyObject* console_get_var(PyObject*, PyObject*);

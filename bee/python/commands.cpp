@@ -9,12 +9,15 @@
 #ifndef BEE_PYTHON_COMMANDS
 #define BEE_PYTHON_COMMANDS 1
 
+#include <iostream>
+
 #include "commands.hpp"
 
 #include "python.hpp"
 
 #include "../engine.hpp"
 
+#include "../util/debug.hpp"
 #include "../util/platform.hpp"
 
 #include "../init/gameoptions.hpp"
@@ -30,7 +33,6 @@
 #include "../network/network.hpp"
 
 #include "../render/drawing.hpp"
-#include "../render/transition.hpp"
 
 #include "../resource/sound.hpp"
 #include "../resource/room.hpp"
@@ -72,13 +74,34 @@ namespace bee { namespace python { namespace internal {
         }
 
         PyObject* commands_quit(PyObject* self, PyObject* args) {
-                messenger::send({"engine", "console"}, E_MESSAGE::INFO, "Quitting...");
-                set_transition_type(E_TRANSITION::NONE);
-                end_game();
+                kb::get_keybind("Quit").call(nullptr);
 
                 Py_RETURN_NONE;
         }
         PyObject* commands_find(PyObject* self, PyObject* args) {
+                PyObject* object;
+
+                if (!PyArg_ParseTuple(args, "U", &object)) {
+                        return nullptr;
+                }
+
+                std::string _object (PyUnicode_AsUTF8(object));
+
+                PyObject* dict = PyModule_GetDict(self);
+                PyObject *key, *value;
+                Py_ssize_t pos = 0;
+                while (PyDict_Next(dict, &pos, &key, &value)) {
+                        std::string _key (PyUnicode_AsUTF8(key));
+                        if (_key.find(_object) != std::string::npos) {
+                                std::cout << _key << "\n";
+                                if (PyObject_HasAttrString(value, "__doc__")) {
+                                        PyObject* doc (PyObject_GetAttrString(value, "__doc__"));
+                                        std::string _doc (PyUnicode_AsUTF8(doc));
+                                        std::cout << debug_indent(_doc, 1);
+                                }
+                        }
+                }
+
                 Py_RETURN_NONE;
         }
         PyObject* commands_clear(PyObject* self, PyObject* args) {
@@ -134,13 +157,20 @@ namespace bee { namespace python { namespace internal {
                 SDL_Keycode k (kb::keystrings_get_key(_keystring));
 
                 if (command == nullptr) {
-                        std::string _command (console::get_keybind(k).command);
-                        return Py_BuildValue("N", PyUnicode_FromString(_command.c_str()));
+                        std::string _name (kb::get_keybind(k).name);
+                        return Py_BuildValue("N", PyUnicode_FromString(_name.c_str()));
                 } else {
                         std::string _command (PyUnicode_AsUTF8(command));
 
-                        KeyBind kb (k, _command, false);
-                        console::bind(k, kb);
+                        KeyBind kb;
+                        if (_command.front() == '$') { // Bind to an existing KeyBind with the given name
+                                kb = kb::get_keybind(_command.substr(1));
+                        } else { // Otherwise bind to the console string
+                                kb = KeyBind(_command, k, false, [_command] (const SDL_Event* e) {
+                                        console::internal::run(_command, false);
+                                });
+                        }
+                        kb::bind(k, kb);
                 }
 
                 Py_RETURN_NONE;
@@ -155,9 +185,11 @@ namespace bee { namespace python { namespace internal {
                 std::string _keystring (PyUnicode_AsUTF8(keystring));
 
                 if (_keystring == "all") {
-                        console::unbind_all();
+                        kb::unbind_all();
+                } else if (_keystring.rfind("SDLK_", 0) == 0) {
+                        kb::unbind(kb::keystrings_get_key(_keystring));
                 } else {
-                        console::unbind(kb::keystrings_get_key(_keystring));
+                        kb::unbind(KeyBind(_keystring));
                 }
 
                 Py_RETURN_NONE;

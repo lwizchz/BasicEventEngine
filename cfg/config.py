@@ -1,6 +1,4 @@
 # Bind keys
-bind("SDLK_BACKQUOTE", "bee.console.toggle()")
-bind("SDLK_ESCAPE", "quit()")
 bind("SDLK_F12", "screenshot()")
 bind("SDLK_HOME", "pause()")
 

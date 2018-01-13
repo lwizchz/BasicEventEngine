@@ -23,12 +23,6 @@ namespace bee { namespace python { namespace internal {
                 {"get_is_open", console_get_is_open, METH_NOARGS, "Return whether the console is open or not"},
 
                 {"add_command", console_add_command, METH_VARARGS, ""},
-                {"bind", console_bind, METH_VARARGS, ""},
-                {"add_keybind", console_add_keybind, METH_VARARGS, ""},
-                {"get_keybind", console_get_keybind, METH_VARARGS, ""},
-                {"get_keycode", console_get_keycode, METH_VARARGS, ""},
-                {"unbind_key", console_unbind_key, METH_VARARGS, ""},
-                {"unbind", console_unbind, METH_VARARGS, ""},
 
                 {"set_var", console_set_var, METH_VARARGS, ""},
                 {"get_var", console_get_var, METH_VARARGS, ""},
@@ -73,7 +67,7 @@ namespace bee { namespace python { namespace internal {
         }
 
         PyObject* console_add_command(PyObject* self, PyObject* args) {
-                PyObject* command;
+                /*PyObject* command;
                 PyObject* descr;
                 PyObject* callback;
 
@@ -107,26 +101,8 @@ namespace bee { namespace python { namespace internal {
 
                         Py_DECREF(arg_tup);
                         Py_DECREF(msg_tags);
-                });
+                });*/
 
-                Py_RETURN_NONE;
-        }
-        PyObject* console_bind(PyObject* self, PyObject* args) {
-                Py_RETURN_NONE;
-        }
-        PyObject* console_add_keybind(PyObject* self, PyObject* args) {
-                Py_RETURN_NONE;
-        }
-        PyObject* console_get_keybind(PyObject* self, PyObject* args) {
-                Py_RETURN_NONE;
-        }
-        PyObject* console_get_keycode(PyObject* self, PyObject* args) {
-                Py_RETURN_NONE;
-        }
-        PyObject* console_unbind_key(PyObject* self, PyObject* args) {
-                Py_RETURN_NONE;
-        }
-        PyObject* console_unbind(PyObject* self, PyObject* args) {
                 Py_RETURN_NONE;
         }
 

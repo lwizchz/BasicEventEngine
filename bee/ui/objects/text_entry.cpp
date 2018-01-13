@@ -18,7 +18,7 @@ ObjUITextEntry::ObjUITextEntry() : ObjUIElement("obj_ui_text_entry", "/ui/object
 	implemented_events.insert({
 		bee::E_EVENT::CREATE,
 		bee::E_EVENT::DESTROY,
-		bee::E_EVENT::KEYBOARD_PRESS,
+		bee::E_EVENT::KEYBOARD_INPUT,
 		bee::E_EVENT::DRAW
 	});
 }
@@ -30,7 +30,7 @@ void ObjUITextEntry::destroy(bee::Instance* self) {
 	delete static_cast<bee::TextData*>(_p("input_td"));
 	ObjUIElement::destroy(self);
 }
-void ObjUITextEntry::keyboard_press(bee::Instance* self, SDL_Event* e) {
+void ObjUITextEntry::keyboard_input(bee::Instance* self, SDL_Event* e) {
 	if (!_i("has_focus")) {
 		return;
 	}

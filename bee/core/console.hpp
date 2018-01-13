@@ -9,11 +9,7 @@
 #ifndef BEE_CORE_CONSOLE_H
 #define BEE_CORE_CONSOLE_H 1
 
-#include <unordered_map>
-#include <unordered_set>
 #include <functional>
-#include <memory>
-#include <sstream>
 
 #include "../messenger/messagecontents.hpp"
 
@@ -22,7 +18,6 @@
 namespace bee{
 	// Forward declaration
 	class Instance;
-	struct KeyBind;
 
 namespace console {
 	void reset();
@@ -34,7 +29,7 @@ namespace console {
 
 		void update_ui();
 
-		void handle_input(SDL_Event*);
+		void handle_input(const SDL_Event*);
 		int run(const std::string&, bool);
 		//std::vector<Variant> complete(Instance*, const std::string&);
 		void draw();
@@ -46,15 +41,7 @@ namespace console {
 	bool get_is_open();
 	void clear();
 
-	int add_command(const std::string&, const std::string&, std::function<void (const MessageContents&)>);
-
-	int bind(SDL_Keycode, KeyBind);
-	int add_keybind(SDL_Keycode, KeyBind, std::function<void (const MessageContents&)>);
-	KeyBind get_keybind(SDL_Keycode);
-	SDL_Keycode get_keycode(const std::string&);
-	void unbind(SDL_Keycode);
-	int unbind(KeyBind);
-	void unbind_all();
+	//int add_command(const std::string&, const std::string&, std::function<void (const MessageContents&)>);
 
 	//int set_var(const std::string&, const Variant&);
 	//Variant get_var(const std::string&);

@@ -77,39 +77,39 @@ void ObjControl::create(bee::Instance* self) {
 		(*s)["part_system"] = part_system;
 	}
 
-	bee::console::add_keybind(SDLK_RETURN, bee::KeyBind("RoomRestart"), [] (const bee::MessageContents& msg) {
+	bee::kb::bind(SDLK_RETURN, bee::KeyBind("RoomRestart", [] (const SDL_Event* e) {
 		bee::set_transition_type(static_cast<bee::E_TRANSITION>(static_cast<int>(bee::get_transition_type())+1));
 		bee::restart_room();
-	});
+	}));
 
-	bee::console::add_keybind(SDLK_w, bee::KeyBind("MoveForward", true), [this] (const bee::MessageContents& msg) {
+	bee::kb::bind(SDLK_w, bee::KeyBind("MoveForward", true, [this] (const SDL_Event* e) {
 		(*s)["camz"] += (*s)["camspeed"];
-	});
-	bee::console::add_keybind(SDLK_s, bee::KeyBind("MoveBackward", true), [this] (const bee::MessageContents& msg) {
+	}));
+	bee::kb::bind(SDLK_s, bee::KeyBind("MoveBackward", true, [this] (const SDL_Event* e) {
 		(*s)["camz"] -= (*s)["camspeed"];
-	});
-	bee::console::add_keybind(SDLK_a, bee::KeyBind("MoveLeft", true), [this] (const bee::MessageContents& msg) {
+	}));
+	bee::kb::bind(SDLK_a, bee::KeyBind("MoveLeft", true, [this] (const SDL_Event* e) {
 		(*s)["camx"] -= (*s)["camspeed"];
-	});
-	bee::console::add_keybind(SDLK_d, bee::KeyBind("MoveRight", true), [this] (const bee::MessageContents& msg) {
+	}));
+	bee::kb::bind(SDLK_d, bee::KeyBind("MoveRight", true, [this] (const SDL_Event* e) {
 		(*s)["camx"] += (*s)["camspeed"];
-	});
-	bee::console::add_keybind(SDLK_q, bee::KeyBind("MoveDown", true), [this] (const bee::MessageContents& msg) {
+	}));
+	bee::kb::bind(SDLK_q, bee::KeyBind("MoveDown", true, [this] (const SDL_Event* e) {
 		(*s)["camy"] += (*s)["camspeed"];
-	});
-	bee::console::add_keybind(SDLK_e, bee::KeyBind("MoveUp", true), [this] (const bee::MessageContents& msg) {
+	}));
+	bee::kb::bind(SDLK_e, bee::KeyBind("MoveUp", true, [this] (const SDL_Event* e) {
 		(*s)["camy"] -= (*s)["camspeed"];
-	});
+	}));
 
 
-	bee::console::add_keybind(SDLK_z, bee::KeyBind("NetworkStartSession"), [] (const bee::MessageContents& msg) {
+	bee::kb::bind(SDLK_z, bee::KeyBind("NetworkStartSession", [] (const SDL_Event* e) {
 		bee::net::session_start("test_session", 4, "hostplayer");
-	});
-	bee::console::add_keybind(SDLK_x, bee::KeyBind("NetworkJoinSession"), [] (const bee::MessageContents& msg) {
+	}));
+	bee::kb::bind(SDLK_x, bee::KeyBind("NetworkJoinSession", [] (const SDL_Event* e) {
 		//bee::net::session_join("127.0.0.1", "clientplayer");
 		bee::net::session_join("192.168.1.155", "clientplayer");
-	});
-	bee::console::add_keybind(SDLK_c, bee::KeyBind("NetworkFindSessions"), [] (const bee::MessageContents& msg) {
+	}));
+	bee::kb::bind(SDLK_c, bee::KeyBind("NetworkFindSessions", [] (const SDL_Event* e) {
 		const std::map<std::string,std::string>& servers = bee::net::session_find();
 		if (!servers.empty()) {
 			std::cerr << "Available servers:\n";
@@ -119,9 +119,9 @@ void ObjControl::create(bee::Instance* self) {
 		} else {
 			std::cerr << "No servers available\n";
 		}
-	});
+	}));
 
-	bee::console::add_keybind(SDLK_1, bee::KeyBind("StartSound"), [] (const bee::MessageContents& msg) {
+	bee::kb::bind(SDLK_1, bee::KeyBind("StartSound", [] (const SDL_Event* e) {
 		snd_chirp->effect_set(static_cast<int>(bee::E_SOUNDEFFECT::NONE));
 
 		if (snd_chirp->get_is_playing()) {
@@ -129,36 +129,36 @@ void ObjControl::create(bee::Instance* self) {
 		} else {
 			snd_chirp->play();
 		}
-	});
-	bee::console::add_keybind(SDLK_2, bee::KeyBind("StartSoundEcho"), [] (const bee::MessageContents& msg) {
+	}));
+	bee::kb::bind(SDLK_2, bee::KeyBind("StartSoundEcho", [] (const SDL_Event* e) {
 		snd_chirp->stop();
 		snd_chirp->effect_set(static_cast<int>(bee::E_SOUNDEFFECT::ECHO));
 		snd_chirp->play();
-	});
+	}));
 
-	bee::console::add_keybind(SDLK_n, bee::KeyBind("Start3D"), [] (const bee::MessageContents& msg) {
+	bee::kb::bind(SDLK_n, bee::KeyBind("Start3D", [] (const SDL_Event* e) {
 		bee::render::set_3d(true);
-	});
-	bee::console::add_keybind(SDLK_m, bee::KeyBind("End3D"), [] (const bee::MessageContents& msg) {
+	}));
+	bee::kb::bind(SDLK_m, bee::KeyBind("End3D", [] (const SDL_Event* e) {
 		bee::render::set_3d(false);
-	});
+	}));
 }
 void ObjControl::destroy(bee::Instance* self) {
-	//Unbind keybindings
-	bee::console::unbind(bee::KeyBind("RoomRestart"));
-	bee::console::unbind(bee::KeyBind("MoveForward"));
-	bee::console::unbind(bee::KeyBind("MoveBackward"));
-	bee::console::unbind(bee::KeyBind("MoveLeft"));
-	bee::console::unbind(bee::KeyBind("MoveRight"));
-	bee::console::unbind(bee::KeyBind("MoveDown"));
-	bee::console::unbind(bee::KeyBind("MoveUp"));
-	bee::console::unbind(bee::KeyBind("NetworkStartSession"));
-	bee::console::unbind(bee::KeyBind("NetworkJoinSession"));
-	bee::console::unbind(bee::KeyBind("NetworkFindSessions"));
-	bee::console::unbind(bee::KeyBind("StartSound"));
-	bee::console::unbind(bee::KeyBind("StartSoundEcho"));
-	bee::console::unbind(bee::KeyBind("Start3D"));
-	bee::console::unbind(bee::KeyBind("End3D"));
+	// Unbind keybindings
+	bee::kb::unbind(bee::KeyBind("RoomRestart"));
+	bee::kb::unbind(bee::KeyBind("MoveForward"));
+	bee::kb::unbind(bee::KeyBind("MoveBackward"));
+	bee::kb::unbind(bee::KeyBind("MoveLeft"));
+	bee::kb::unbind(bee::KeyBind("MoveRight"));
+	bee::kb::unbind(bee::KeyBind("MoveDown"));
+	bee::kb::unbind(bee::KeyBind("MoveUp"));
+	bee::kb::unbind(bee::KeyBind("NetworkStartSession"));
+	bee::kb::unbind(bee::KeyBind("NetworkJoinSession"));
+	bee::kb::unbind(bee::KeyBind("NetworkFindSessions"));
+	bee::kb::unbind(bee::KeyBind("StartSound"));
+	bee::kb::unbind(bee::KeyBind("StartSoundEcho"));
+	bee::kb::unbind(bee::KeyBind("Start3D"));
+	bee::kb::unbind(bee::KeyBind("End3D"));
 
 	if (_p("part_system") != nullptr) {
 		delete static_cast<bee::ParticleSystem*>(_p("part_system"));
