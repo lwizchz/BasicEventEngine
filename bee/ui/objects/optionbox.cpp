@@ -25,10 +25,10 @@ ObjUIOptionBox::ObjUIOptionBox() : ObjUIElement("obj_ui_optionbox", "/ui/objects
 void ObjUIOptionBox::create(bee::Instance* self) {
 	ObjUIElement::create(self);
 
-	(*s)["type"] = 0; // 0=checkbox, 1=radiobox
-	(*s)["option_height"] = 32;
+	_i("type") = 0; // 0=checkbox, 1=radiobox
+	_i("option_height") = 32;
 
-	(*s)["adaptive_height"] = false;
+	_i("adaptive_height") = false;
 
 	reset_options(self);
 }
@@ -43,7 +43,7 @@ void ObjUIOptionBox::mouse_release(bee::Instance* self, SDL_Event* e) {
 		int index = get_option_at(self, mpos.first, mpos.second);
 
 		if (index >= 0) {
-			bool state = _ci("option_state", index);
+			bool state = _v("option_state")[index].i;
 			set_option_state(self, index, !state);
 		}
 	}
@@ -56,7 +56,7 @@ void ObjUIOptionBox::draw(bee::Instance* self) {
 	bee::render::set_is_lightable(false);
 
 	if (_i("adaptive_height")) {
-		(*s)["h"] = static_cast<int>(_v("options").size() * _i("option_height"));
+		_i("h") = _v("options").size() * _i("option_height");
 	}
 	int w = _i("w");
 	int h = _i("h");
@@ -85,7 +85,7 @@ void ObjUIOptionBox::draw(bee::Instance* self) {
 	for (auto& option : _v("options")) {
 		if (_i("type") == 0) {
 			bee::draw_rectangle(self->get_corner_x() + 16 - ox, self->get_corner_y() + i*_i("option_height") + 8 - oy, 16, 16, 1, c_border);
-			if (_ci("option_state", i)) {
+			if (_v("option_state")[i].i) {
 				bee::draw_line(
 					self->get_corner_x() + 18 - ox, self->get_corner_y() + i*_i("option_height") + 16 - oy,
 					self->get_corner_x() + 22 - ox, self->get_corner_y() + i*_i("option_height") + 22 - oy,
@@ -99,12 +99,12 @@ void ObjUIOptionBox::draw(bee::Instance* self) {
 			}
 		} else if (_i("type") == 1) {
 			bee::draw_circle(glm::vec3(self->get_corner_x() + 24 - ox, self->get_corner_y() + i*_i("option_height") + 16 - oy, 0), 8, 1, c_border);
-			if (_ci("option_state", i)) {
+			if (_v("option_state")[i].i) {
 				bee::draw_circle(glm::vec3(self->get_corner_x() + 24 - ox, self->get_corner_y() + i*_i("option_height") + 16 - oy, 0), 6, -1, c_border);
 			}
 		}
 
-		font->draw_fast(self->get_corner_x() + 40 - ox, self->get_corner_y() + i*_i("option_height") + 8 - oy, SIDP_s(option), c_border);
+		font->draw_fast(self->get_corner_x() + 40 - ox, self->get_corner_y() + i*_i("option_height") + 8 - oy, option.s, c_border);
 
 		bee::draw_line(self->get_corner_x() - ox, self->get_corner_y() + (i+1)*_i("option_height") - oy, self->get_corner_x() + _i("w") - ox, self->get_corner_y() + (i+1)*_i("option_height") - oy, c_border);
 
@@ -115,16 +115,16 @@ void ObjUIOptionBox::draw(bee::Instance* self) {
 }
 
 void ObjUIOptionBox::set_type(bee::Instance* self, int new_type) {
-	(*s)["type"] = new_type;
+	_i("type") = new_type;
 
 }
 void ObjUIOptionBox::reset_options(bee::Instance* self) {
-	(*s)["options"].vector(new std::vector<bee::SIDP>());
-	(*s)["option_state"].vector(new std::vector<bee::SIDP>());
+	_a("options") = bee::Variant(bee::E_DATA_TYPE::VECTOR);
+	_a("option_state") = bee::Variant(bee::E_DATA_TYPE::VECTOR);
 }
 void ObjUIOptionBox::push_option(bee::Instance* self, const std::string& option, bool initial_state, std::function<void (bee::Instance*, bool)> callback) {
-	_v("options").push_back(option);
-	_v("option_state").push_back(initial_state);
+	_v("options").push_back(bee::Variant(option));
+	_v("option_state").push_back(bee::Variant(initial_state));
 	bee::ui::push_optionbox_option(self, callback);
 }
 void ObjUIOptionBox::pop_option(bee::Instance* self) {
@@ -134,14 +134,14 @@ void ObjUIOptionBox::pop_option(bee::Instance* self) {
 }
 
 std::string ObjUIOptionBox::get_option(bee::Instance* self, size_t index) {
-	return _cs("options", index);
+	return _v("options")[index].s;
 }
 bool ObjUIOptionBox::get_option_state(bee::Instance* self, size_t index) {
-	return _ci("option_state", index);
+	return _v("option_state")[index].i;
 }
 int ObjUIOptionBox::get_option_at(bee::Instance* self, int mx, int my) {
 	if (_i("adaptive_height")) {
-		(*s)["h"] = static_cast<int>(_v("options").size() * _i("option_height"));
+		_i("h") = _v("options").size() * _i("option_height");
 	}
 
 	if (
@@ -158,7 +158,7 @@ int ObjUIOptionBox::get_option_at(bee::Instance* self, int mx, int my) {
 std::vector<int> ObjUIOptionBox::get_selected_options(bee::Instance* self) {
 	std::vector<int> v;
 	for (size_t i=0; i<_v("option_state").size(); ++i) {
-		if (_ci("option_state", i)) {
+		if (_v("option_state")[i].i) {
 			v.push_back(i);
 		}
 	}
@@ -176,13 +176,13 @@ void ObjUIOptionBox::set_option_state(bee::Instance* self, size_t index, bool ne
 					continue;
 				}
 
-				if (_ci("option_state", i)) {
+				if (_v("option_state")[i].i) {
 					_v("option_state")[i] = false;
 					bee::ui::optionbox_callback(self, i, false);
 				}
 			}
 
-			if (!_ci("option_state", index)) {
+			if (!_v("option_state")[index].i) {
 				_v("option_state")[index] = true;
 				bee::ui::optionbox_callback(self, index, true);
 			}

@@ -29,17 +29,17 @@ void ObjBee::create(bee::Instance* self) {
 
 	// create event
 	std::cout << "u r a b " << self->id << "\n";
-	(*s)["text_id"] = static_cast<void*>(nullptr);
+	_p("text_id") = nullptr;
 
 	bee::Instance* ui_handle = bee::ui::create_handle(self->get_corner_x(), self->get_corner_y(), 100, 100, self);
 	ObjUIHandle* obj_ui_handle = static_cast<ObjUIHandle*>(ui_handle->get_object());
 	obj_ui_handle->set_is_visible(ui_handle, false);
-	(*s)["ui_handle"] = static_cast<void*>(ui_handle);
+	_p("ui_handle") = ui_handle;
 
 	if (self == obj_bee->get_instance(0)) {
-		(*s)["serialdata"] = self->serialize();
+		_s("serialdata") = self->serialize();
 
-		bee::kb::bind(SDLK_y, bee::KeyBind("StartPath", [this, self] (const SDL_Event* e) mutable {
+		bee::kb::bind(SDLK_UNKNOWN, bee::KeyBind("StartPath", [this, self] (const SDL_Event* e) mutable {
 			self = obj_bee->get_instance(0);
 			s = &self->get_data();
 
@@ -48,14 +48,14 @@ void ObjBee::create(bee::Instance* self) {
 			self->set_path_drawn(true);
 		}));
 
-		bee::kb::bind(SDLK_b, bee::KeyBind("StartSerialize", [this, self] (const SDL_Event* e) mutable {
+		bee::kb::bind(SDLK_UNKNOWN, bee::KeyBind("StartSerialize", [this, self] (const SDL_Event* e) mutable {
 			self = obj_bee->get_instance(0);
 			s = &self->get_data();
 
 			bee::messenger::send({"bee"}, bee::E_MESSAGE::INFO, self->serialize(true));
-			(*s)["serialdata"] = self->serialize();
+			_s("serialdata") = self->serialize();
 		}));
-		bee::kb::bind(SDLK_v, bee::KeyBind("StartDeserialize", [this, self] (const SDL_Event* e) mutable {
+		bee::kb::bind(SDLK_UNKNOWN, bee::KeyBind("StartDeserialize", [this, self] (const SDL_Event* e) mutable {
 			self = obj_bee->get_instance(0);
 			s = &self->get_data();
 
@@ -64,13 +64,6 @@ void ObjBee::create(bee::Instance* self) {
 	}
 }
 void ObjBee::destroy(bee::Instance* self) {
-	// Unbind keybindings
-	if (self == obj_bee->get_instance(0)) {
-		bee::kb::unbind(bee::KeyBind("StartPath"));
-		bee::kb::unbind(bee::KeyBind("StartSerialize"));
-		bee::kb::unbind(bee::KeyBind("StartDeserialize"));
-	}
-
 	delete static_cast<bee::TextData*>(_p("text_id"));
 
 	bee::ui::destroy_parent(self);
@@ -88,7 +81,7 @@ void ObjBee::draw(bee::Instance* self) {
 	double r = radtodeg(self->get_physbody()->get_rotation_z());
 	self->draw(size, size, r, bee::RGBA(bee::E_RGB::WHITE));
 
-	(*s)["text_id"] = static_cast<void*>(font_liberation->draw(static_cast<bee::TextData*>(_p("text_id")), self->get_corner_x(), self->get_corner_y(), bee_itos(self->id)));
+	_p("text_id") = font_liberation->draw(static_cast<bee::TextData*>(_p("text_id")), self->get_corner_x(), self->get_corner_y(), bee_itos(self->id));
 
 	lt_bee->set_position(glm::vec4(self->get_x(), self->get_y(), 0.0, 1.0));
 	lt_bee->set_color({static_cast<Uint8>(self->id*50), static_cast<Uint8>(self->id*20), 255, 255});

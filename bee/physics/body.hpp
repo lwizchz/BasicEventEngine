@@ -21,7 +21,7 @@
 
 namespace bee {
 	// Forward declarations
-	class SIDP;
+	class Variant;
 	class Instance;
 	class PhysicsWorld;
 	class PhysicsDraw;
@@ -52,7 +52,7 @@ namespace bee {
 
 			std::string serialize(bool) const;
 			std::string serialize() const;
-			int deserialize(std::map<SIDP,SIDP>&, Instance*);
+			int deserialize(std::map<Variant,Variant>&, Instance*);
 			int deserialize(const std::string&, Instance*);
 			int deserialize(const std::string&);
 

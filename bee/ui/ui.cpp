@@ -44,7 +44,7 @@ namespace bee { namespace ui {
 		std::map<Instance*,std::set<Instance*>> parents;
 		std::map<Instance*,std::function<void (Instance*)>> button_callbacks;
 		std::map<Instance*,std::function<void (Instance*, const std::string&)>> text_entry_callbacks;
-		std::map<Instance*,std::function<std::vector<SIDP> (Instance*, const std::string&)>> text_entry_completors;
+		std::map<Instance*,std::function<std::vector<Variant> (Instance*, const std::string&)>> text_entry_completors;
 		std::map<Instance*,std::function<void (Instance*, const std::string&, const SDL_Event*)>> text_entry_handlers;
 		std::map<Instance*,std::function<void (Instance*, int)>> slider_callbacks;
 		std::map<Instance*,std::vector<std::function<void (Instance*, bool)>>> optionbox_callbacks;
@@ -119,7 +119,7 @@ namespace bee { namespace ui {
 		button->set_corner_x(x);
 		button->set_corner_y(y);
 
-		button->set_data("font", SIDP(font));
+		button->set_data("font", static_cast<void*>(font));
 		button->set_data("text", str);
 
 		ObjUIButton* obj_button = static_cast<ObjUIButton*>(internal::obj_button);
@@ -172,7 +172,7 @@ namespace bee { namespace ui {
 		return handle;
 	}
 	int destroy_handle(Instance* handle) {
-		Instance* parent = static_cast<Instance*>(SIDP_p(handle->get_data("parent")));
+		Instance* parent = static_cast<Instance*>(handle->get_data("parent").p);
 		if (parent != nullptr) {
 			if (internal::parents.find(parent) != internal::parents.end()) {
 				internal::parents.at(parent).erase(handle);
@@ -199,7 +199,7 @@ namespace bee { namespace ui {
 
 		return text_entry;
 	}
-	int add_text_entry_completor(Instance* text_entry, std::function<std::vector<SIDP> (Instance*, const std::string&)> func) {
+	int add_text_entry_completor(Instance* text_entry, std::function<std::vector<Variant> (Instance*, const std::string&)> func) {
 		if (!internal::is_loaded) {
 			messenger::send({"engine", "ui"}, E_MESSAGE::WARNING, "UI not initialized: text entry completor not added");
 			return 1;
@@ -238,8 +238,8 @@ namespace bee { namespace ui {
 
 		return 0;
 	}
-	std::vector<SIDP> text_entry_completor(Instance* text_entry, const std::string& input) {
-		std::vector<SIDP> uncomplete = {input};
+	std::vector<Variant> text_entry_completor(Instance* text_entry, const std::string& input) {
+		std::vector<Variant> uncomplete = {Variant(input)};
 
 		if (!internal::is_loaded) {
 			messenger::send({"engine", "ui"}, E_MESSAGE::WARNING, "UI not initialized: text entry completor not run");
@@ -250,7 +250,7 @@ namespace bee { namespace ui {
 			return uncomplete;
 		}
 
-		std::function<std::vector<SIDP> (Instance*, const std::string&)> func = internal::text_entry_completors[text_entry];
+		std::function<std::vector<Variant> (Instance*, const std::string&)> func = internal::text_entry_completors[text_entry];
 		if (func == nullptr) {
 			return uncomplete;
 		}

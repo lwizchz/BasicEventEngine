@@ -205,8 +205,9 @@ namespace bee {
 		DELTA
 	};
 
-	enum class E_DATA_TYPE : unsigned int {
-		CHAR = 0,
+	enum class E_DATA_TYPE : unsigned char {
+		NONE = 0,
+		CHAR,
 		INT,
 		FLOAT,
 		DOUBLE,

@@ -42,6 +42,8 @@
 #include "../resource/script.hpp"
 #include "../resource/room.hpp"
 
+#include "../python/python.hpp"
+
 #include "../ui/ui.hpp"
 #include "../ui/elements.hpp"
 
@@ -142,58 +144,56 @@ namespace bee{ namespace console {
 		}
 
 		ui_text_entry->set_is_persistent(true);
-		ui_text_entry->set_data("input_tmp", std::string());
+		ui_text_entry->set_data("input_tmp", Variant(""));
 
 		ObjUITextEntry* obj_text_entry = static_cast<ObjUITextEntry*>(ui_text_entry->get_object());
 		obj_text_entry->set_is_visible(ui_text_entry, is_open);
 		obj_text_entry->set_color(ui_text_entry, {127, 127, 127, 127});
 
-		/*bee::ui::add_text_entry_completor(ui_text_entry, [] (Instance* text_entry, const std::string& input) -> std::vector<Variant> {
+		bee::ui::add_text_entry_completor(ui_text_entry, [] (Instance* text_entry, const std::string& input) -> std::vector<Variant> {
 			return complete(text_entry, input);
-		});*/
+		});
 		bee::ui::add_text_entry_handler(ui_text_entry, [] (Instance* text_entry, const std::string& input, const SDL_Event* e) {
 			switch (e->key.keysym.sym) {
 				case SDLK_UP: { // The up arrow cycles through completion commands or reverse history
-					SIDP c = text_entry->get_data("completions"); // Store the copy returned by get_data()
-					std::vector<SIDP>* completions = static_cast<std::vector<SIDP>*>(SIDP_p(c));
-					if (completions->size() > 1) { // If a command is being completed
-						int completion_index = SIDP_i(text_entry->get_data("completion_index"));
+					std::vector<Variant> completions = text_entry->get_data("completions").v;
+					if (completions.size() > 1) { // If a command is being completed
+						int completion_index = text_entry->get_data("completion_index").i;
 						if (completion_index > 0) { // If a completion command is already selected, lower the index and set the input line to the given command
-							completion_index = fit_bounds(completion_index-1, 0, static_cast<int>(completions->size())-1);
-							text_entry->set_data("input", *(completions->begin()+completion_index));
-							text_entry->set_data("completion_index", completion_index);
+							completion_index = fit_bounds(completion_index-1, 0, static_cast<int>(completions.size())-1);
+							text_entry->set_data("input", *(completions.begin()+completion_index));
+							text_entry->set_data("completion_index", Variant(completion_index));
 						} else { // If the first completion command is selected, reset the input line to the previous user input
-							text_entry->set_data("completion_index", -1);
+							text_entry->set_data("completion_index", Variant(-1));
 							text_entry->set_data("input", text_entry->get_data("input_tmp"));
 						}
 					} else { // If a command is not being completed, cycle through history
 						if (history.size() > 0) { // If there is a history to look up
 							history_index = fit_bounds(history_index+1, 0, static_cast<int>(history.size())-1); // Prevent the index from going past the end
 							// Replace the command line with the history item
-							text_entry->set_data("input", *(history.rbegin()+history_index));
+							text_entry->set_data("input", Variant(*(history.rbegin()+history_index)));
 						}
 					}
 					break;
 				}
 				case SDLK_DOWN: { // The down arrow cycles through the forward history
-					SIDP c = text_entry->get_data("completions"); // Store the copy returned by get_data()
-					std::vector<SIDP>* completions = static_cast<std::vector<SIDP>*>(SIDP_p(c));
-					if (completions->size() > 1) { // If a command is being completed
-						int completion_index = SIDP_i(text_entry->get_data("completion_index"));
+					std::vector<Variant> completions = text_entry->get_data("completions").v;
+					if (completions.size() > 1) { // If a command is being completed
+						int completion_index = text_entry->get_data("completion_index").i;
 						if (completion_index == -1) { // If not completion command has been selected, store the previous user input
-							text_entry->set_data("input_tmp", input);
+							text_entry->set_data("input_tmp", Variant(input));
 						}
 						// Raise the index and set the input line to the given command
-						completion_index = fit_bounds(completion_index+1, 0, static_cast<int>(completions->size())-1);
-						text_entry->set_data("input", *(completions->begin()+completion_index));
-						text_entry->set_data("completion_index", completion_index);
+						completion_index = fit_bounds(completion_index+1, 0, static_cast<int>(completions.size())-1);
+						text_entry->set_data("input", Variant(*(completions.begin()+completion_index)));
+						text_entry->set_data("completion_index", Variant(completion_index));
 					} else { // If a command is not being completed, cycle through history
 						if (history_index > 0) { // If the index is in previous history
 							history_index = fit_bounds(history_index-1, 0, static_cast<int>(history.size())-1); // Prevent the index from going past the front
 							// Replace the command line with the history item
-							text_entry->set_data("input", *(history.rbegin()+history_index));
+							text_entry->set_data("input", Variant(*(history.rbegin()+history_index)));
 						} else { // If the index is new history
-							text_entry->set_data("input", std::string());
+							text_entry->set_data("input", Variant(""));
 							history_index = -1;
 						}
 					}
@@ -324,23 +324,14 @@ namespace bee{ namespace console {
 	*
 	* @returns the vector of possible command completions
 	*/
-	/*std::vector<Variant> internal::complete(Instance* textentry, const std::string& command) {
-		std::vector<Variant> completions;
-
-		// Find any command matches
-		for (auto& c : commands) { // Iterate over the possible commands
-			if (c.first.find(command) == 0) { // If the given command begins with the completion string
-				completions.push_back(c.first); // Add the given command to the completion list
-			}
-		}
-		if (completions.size() <= 1) { // If there was one or none matches, return the vector
-			return completions;
-		}
+	std::vector<Variant> internal::complete(Instance* textentry, const std::string& input) {
+		PythonScriptInterface* psi (static_cast<PythonScriptInterface*>(scr_console->get_interface()));
+		std::vector<Variant> completions = psi->complete(input);
 
 		std::sort(completions.begin(), completions.end()); // Sort the completion commands alphabetically
 
 		return completions;
-	}*/
+	}
 	/**
 	* Draw the console and its output.
 	*/
@@ -459,50 +450,23 @@ namespace bee{ namespace console {
                 internal::page_index = 0;
 	}
 
-	/*
-	* Add a function which will handle a certain command.
-	* @param command the command name to handle
-	* @param descr the command description that will be displayed when the user runs `help command_name` in this console subsystem
-	* @param func the function to call that will handle the command
-	*
-	* @retval 0 success
-	*/
-	/*int add_command(const std::string& command, const std::string& descr, std::function<void (const MessageContents&)> func) {
-		// TODO: add python functions
-
-		//messenger::internal::register_protected(command, {"engine", "console", command}, true, func); // Register the command with the messaging system
-
-		return 0; // Return 0 on success
-	}*/
-
-	/*
+	/**
 	* Set a console variable.
 	* @param name the name of the variable
 	* @param value the value to set it to
 	*/
-	/*int set_var(const std::string& name, const SIDP& value) {
-		if (internal::commands.find(name) != internal::commands.end()) { // If a command already exists, then return a warning
-			messenger::send({"engine", "console"}, E_MESSAGE::WARNING, "Failed to set variable \"" + name + "\", a command with the same name exists.");
-			return 1;
-		}
-
-		internal::variables[name] = value;
-
-		return 0;
-	}*/
-	/*
+	void set_var(const std::string& name, const Variant& value) {
+		internal::scr_console->get_interface()->set_var(name, value);
+	}
+	/**
 	* Return the value of a console variable.
 	* @param name the name of the variable
 	*
 	* @returns the variable value
 	*/
-	/*Variant get_var(const std::string& name) {
-		if (internal::variables.find(name) != internal::variables.end()) {
-			return internal::variables[name];
-		}
-
-		return internal::replace_vars(name);
-	}*/
+	Variant get_var(const std::string& name) {
+		return internal::scr_console->get_interface()->get_var(name);
+	}
 
 	/**
 	* Run a command in the console.
@@ -513,24 +477,6 @@ namespace bee{ namespace console {
 	*/
 	int run(const std::string& command) {
 		return internal::run(command, false); // Run the command in non-silent mode
-	}
-	/**
-	* @param command the command to get the description for
-	*
-	* @returns the description string of the given command
-	*/
-	std::string get_help(const std::string& command) {
-		/*if (internal::commands.find(command) == internal::commands.end()) { // If the command does not exist, then return a warning
-			return "No available help for non-existent \"" + command + "\"";
-		}
-
-		std::string h = internal::commands[command].first; // Get the command description
-		if (h.empty()) { // If the description is empty, then return a diagnostic message
-			return "No available help for \"" + command + "\"";
-		}
-
-		return h; // Return the command's description on success*/
-		return "";
 	}
 	/**
 	* Log a message to the console.

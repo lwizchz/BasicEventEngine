@@ -13,7 +13,7 @@
 
 #include "../messenger/messagecontents.hpp"
 
-#include "../data/sidp.hpp"
+#include "../data/variant.hpp"
 
 namespace bee{
 	// Forward declaration
@@ -31,7 +31,7 @@ namespace console {
 
 		void handle_input(const SDL_Event*);
 		int run(const std::string&, bool);
-		//std::vector<Variant> complete(Instance*, const std::string&);
+		std::vector<Variant> complete(Instance*, const std::string&);
 		void draw();
 	}
 
@@ -41,13 +41,10 @@ namespace console {
 	bool get_is_open();
 	void clear();
 
-	//int add_command(const std::string&, const std::string&, std::function<void (const MessageContents&)>);
-
-	//int set_var(const std::string&, const Variant&);
-	//Variant get_var(const std::string&);
+	void set_var(const std::string&, const Variant&);
+	Variant get_var(const std::string&);
 
 	int run(const std::string&);
-	std::string get_help(const std::string&);
 	void log(E_MESSAGE, const std::string&);
 }}
 

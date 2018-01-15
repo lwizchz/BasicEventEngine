@@ -26,11 +26,11 @@ ObjUIButton::ObjUIButton() : ObjUIElement("obj_ui_button", "/ui/objects/button.c
 void ObjUIButton::create(bee::Instance* self) {
 	ObjUIElement::create(self);
 
-	(*s)["font"] = static_cast<void*>(nullptr);
-	(*s)["text"] = "";
-	(*s)["text_td"] = static_cast<void*>(nullptr);
+	_p("font") = nullptr;
+	_s("text") = "";
+	_p("text_td") = nullptr;
 
-	(*s)["press_func"] = static_cast<void*>(nullptr);
+	_p("press_func") = nullptr;
 }
 void ObjUIButton::destroy(bee::Instance* self) {
 	delete static_cast<bee::TextData*>(_p("text_td"));
@@ -89,12 +89,12 @@ void ObjUIButton::draw(bee::Instance* self) {
 			font = bee::engine->font_default;
 		}
 
-		(*s)["text_td"] = static_cast<void*>(font->draw(
+		_p("text_td") = font->draw(
 			static_cast<bee::TextData*>(_p("text_td")),
 			self->get_corner_x() + (w-font->get_string_width(_s("text")))/2 - ox,
 			self->get_corner_y()+press_offset + (h-h/1.25)/2 - oy,
 			text
-		));
+		);
 	} else {
 		bee::messenger::log("empty button");
 	}
@@ -116,8 +116,8 @@ void ObjUIButton::center_width(bee::Instance* self) {
 
 	int w = font->get_string_width(" "+_s("text")+" ");
 	int h = font->get_string_height(_s("text"));
-	(*s)["w"] = w;
-	(*s)["h"] = h*1.25;
+	_i("w") = w;
+	_i("h") = h*1.25;
 
 	self->set_corner_x((bee::get_window().w - w)/2 - ox);
 }

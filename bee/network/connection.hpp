@@ -15,7 +15,7 @@
 
 #include <SDL2/SDL_net.h>
 
-#include "../data/sidp.hpp"
+#include "../data/variant.hpp"
 
 namespace bee {
 	// Forward declarations
@@ -39,7 +39,7 @@ namespace bee {
 		std::map<int,NetworkClient> players;
 
 		std::map<Uint16,std::unique_ptr<NetworkPacket>> buffer;
-		std::map<std::string,SIDP> data;
+		std::map<std::string,Variant> data;
 		std::map<std::string,Instance*> instances;
 
 		NetworkConnection();

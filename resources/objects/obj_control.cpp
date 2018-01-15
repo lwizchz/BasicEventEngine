@@ -28,14 +28,14 @@ ObjControl::ObjControl() : Object("obj_control", "obj_control.hpp") {
 void ObjControl::create(bee::Instance* self) {
 	scr_test->run_func("main");
 
-	(*s)["text_fps"] = static_cast<void*>(nullptr);
+	_p("text_fps") = nullptr;
 
-	(*s)["camx"] = 0.0;
-	(*s)["camy"] = 0.0;
-	(*s)["camz"] = 0.0;
-	(*s)["camspeed"] = 2.0;
+	_d("camx") = 0.0;
+	_d("camy") = 0.0;
+	_d("camz") = 0.0;
+	_d("camspeed") = 2.0;
 
-	(*s)["part_system"] = static_cast<void*>(nullptr);
+	_p("part_system") = nullptr;
 	bool enable_partsys = true;
 	//bool enable_partsys = false;
 	if (enable_partsys) {
@@ -74,42 +74,42 @@ void ObjControl::create(bee::Instance* self) {
 		part_attr->set_max_distance(500);
 		part_system->add_attractor(part_attr);
 
-		(*s)["part_system"] = part_system;
+		_p("part_system") = part_system;
 	}
 
-	bee::kb::bind(SDLK_RETURN, bee::KeyBind("RoomRestart", [] (const SDL_Event* e) {
+	bee::kb::bind(SDLK_UNKNOWN, bee::KeyBind("RoomRestart", [] (const SDL_Event* e) {
 		bee::set_transition_type(static_cast<bee::E_TRANSITION>(static_cast<int>(bee::get_transition_type())+1));
 		bee::restart_room();
 	}));
 
-	bee::kb::bind(SDLK_w, bee::KeyBind("MoveForward", true, [this] (const SDL_Event* e) {
-		(*s)["camz"] += (*s)["camspeed"];
+	bee::kb::bind(SDLK_UNKNOWN, bee::KeyBind("MoveForward", true, [this] (const SDL_Event* e) {
+		_d("camz") += _d("camspeed");
 	}));
-	bee::kb::bind(SDLK_s, bee::KeyBind("MoveBackward", true, [this] (const SDL_Event* e) {
-		(*s)["camz"] -= (*s)["camspeed"];
+	bee::kb::bind(SDLK_UNKNOWN, bee::KeyBind("MoveBackward", true, [this] (const SDL_Event* e) {
+		_d("camz") -= _d("camspeed");
 	}));
-	bee::kb::bind(SDLK_a, bee::KeyBind("MoveLeft", true, [this] (const SDL_Event* e) {
-		(*s)["camx"] -= (*s)["camspeed"];
+	bee::kb::bind(SDLK_UNKNOWN, bee::KeyBind("MoveLeft", true, [this] (const SDL_Event* e) {
+		_d("camx") -= _d("camspeed");
 	}));
-	bee::kb::bind(SDLK_d, bee::KeyBind("MoveRight", true, [this] (const SDL_Event* e) {
-		(*s)["camx"] += (*s)["camspeed"];
+	bee::kb::bind(SDLK_UNKNOWN, bee::KeyBind("MoveRight", true, [this] (const SDL_Event* e) {
+		_d("camx") += _d("camspeed");
 	}));
-	bee::kb::bind(SDLK_q, bee::KeyBind("MoveDown", true, [this] (const SDL_Event* e) {
-		(*s)["camy"] += (*s)["camspeed"];
+	bee::kb::bind(SDLK_UNKNOWN, bee::KeyBind("MoveDown", true, [this] (const SDL_Event* e) {
+		_d("camy") += _d("camspeed");
 	}));
-	bee::kb::bind(SDLK_e, bee::KeyBind("MoveUp", true, [this] (const SDL_Event* e) {
-		(*s)["camy"] -= (*s)["camspeed"];
+	bee::kb::bind(SDLK_UNKNOWN, bee::KeyBind("MoveUp", true, [this] (const SDL_Event* e) {
+		_d("camy") -= _d("camspeed");
 	}));
 
 
-	bee::kb::bind(SDLK_z, bee::KeyBind("NetworkStartSession", [] (const SDL_Event* e) {
+	bee::kb::bind(SDLK_UNKNOWN, bee::KeyBind("NetworkStartSession", [] (const SDL_Event* e) {
 		bee::net::session_start("test_session", 4, "hostplayer");
 	}));
-	bee::kb::bind(SDLK_x, bee::KeyBind("NetworkJoinSession", [] (const SDL_Event* e) {
+	bee::kb::bind(SDLK_UNKNOWN, bee::KeyBind("NetworkJoinSession", [] (const SDL_Event* e) {
 		//bee::net::session_join("127.0.0.1", "clientplayer");
 		bee::net::session_join("192.168.1.155", "clientplayer");
 	}));
-	bee::kb::bind(SDLK_c, bee::KeyBind("NetworkFindSessions", [] (const SDL_Event* e) {
+	bee::kb::bind(SDLK_UNKNOWN, bee::KeyBind("NetworkFindSessions", [] (const SDL_Event* e) {
 		const std::map<std::string,std::string>& servers = bee::net::session_find();
 		if (!servers.empty()) {
 			std::cerr << "Available servers:\n";
@@ -121,7 +121,7 @@ void ObjControl::create(bee::Instance* self) {
 		}
 	}));
 
-	bee::kb::bind(SDLK_1, bee::KeyBind("StartSound", [] (const SDL_Event* e) {
+	bee::kb::bind(SDLK_UNKNOWN, bee::KeyBind("StartSound", [] (const SDL_Event* e) {
 		snd_chirp->effect_set(static_cast<int>(bee::E_SOUNDEFFECT::NONE));
 
 		if (snd_chirp->get_is_playing()) {
@@ -130,36 +130,20 @@ void ObjControl::create(bee::Instance* self) {
 			snd_chirp->play();
 		}
 	}));
-	bee::kb::bind(SDLK_2, bee::KeyBind("StartSoundEcho", [] (const SDL_Event* e) {
+	bee::kb::bind(SDLK_UNKNOWN, bee::KeyBind("StartSoundEcho", [] (const SDL_Event* e) {
 		snd_chirp->stop();
 		snd_chirp->effect_set(static_cast<int>(bee::E_SOUNDEFFECT::ECHO));
 		snd_chirp->play();
 	}));
 
-	bee::kb::bind(SDLK_n, bee::KeyBind("Start3D", [] (const SDL_Event* e) {
+	bee::kb::bind(SDLK_UNKNOWN, bee::KeyBind("Start3D", [] (const SDL_Event* e) {
 		bee::render::set_3d(true);
 	}));
-	bee::kb::bind(SDLK_m, bee::KeyBind("End3D", [] (const SDL_Event* e) {
+	bee::kb::bind(SDLK_UNKNOWN, bee::KeyBind("End3D", [] (const SDL_Event* e) {
 		bee::render::set_3d(false);
 	}));
 }
 void ObjControl::destroy(bee::Instance* self) {
-	// Unbind keybindings
-	bee::kb::unbind(bee::KeyBind("RoomRestart"));
-	bee::kb::unbind(bee::KeyBind("MoveForward"));
-	bee::kb::unbind(bee::KeyBind("MoveBackward"));
-	bee::kb::unbind(bee::KeyBind("MoveLeft"));
-	bee::kb::unbind(bee::KeyBind("MoveRight"));
-	bee::kb::unbind(bee::KeyBind("MoveDown"));
-	bee::kb::unbind(bee::KeyBind("MoveUp"));
-	bee::kb::unbind(bee::KeyBind("NetworkStartSession"));
-	bee::kb::unbind(bee::KeyBind("NetworkJoinSession"));
-	bee::kb::unbind(bee::KeyBind("NetworkFindSessions"));
-	bee::kb::unbind(bee::KeyBind("StartSound"));
-	bee::kb::unbind(bee::KeyBind("StartSoundEcho"));
-	bee::kb::unbind(bee::KeyBind("Start3D"));
-	bee::kb::unbind(bee::KeyBind("End3D"));
-
 	if (_p("part_system") != nullptr) {
 		delete static_cast<bee::ParticleSystem*>(_p("part_system"));
 	}
@@ -204,7 +188,7 @@ void ObjControl::draw(bee::Instance* self) {
 	float a = 180.0f + radtodeg(sin(t));
 	mesh_monkey->draw(glm::vec3(1000.0f+500.0f*cos(t), 500.0f+300.0f*sin(t), 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, a, 180.0f), {255, 255, 0, 255}, false);
 
-	(*s)["text_fps"] = static_cast<void*>(font_liberation->draw(static_cast<bee::TextData*>(_p("text_fps")), 0, 0, "FPS: " + bee_itos(bee::engine->fps_stable)));
+	_p("text_fps") = font_liberation->draw(static_cast<bee::TextData*>(_p("text_fps")), 0, 0, "FPS: " + bee_itos(bee::engine->fps_stable));
 }
 void ObjControl::room_start(bee::Instance* self) {
 	bee::ParticleSystem* part_system = static_cast<bee::ParticleSystem*>(_p("part_system"));

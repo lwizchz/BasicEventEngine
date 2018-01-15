@@ -23,7 +23,7 @@
 #include "../core/instance.hpp"
 #include "../core/rooms.hpp"
 
-#include "../data/sidp.hpp"
+#include "../data/variant.hpp"
 #include "../data/serialdata.hpp"
 
 #include "../resource/room.hpp"
@@ -152,57 +152,57 @@ namespace bee {
 	}
 
 	std::string PhysicsBody::serialize(bool should_pretty_print) const {
-		std::vector<SIDP>* sp = new std::vector<SIDP>();
+		std::vector<Variant> sp;
 		for (size_t i=0; i<shape_param_amount; ++i) {
-			sp->push_back(shape_params[i]);
+			sp.push_back(Variant(shape_params[i]));
 		}
 
-		std::vector<SIDP>* cons = new std::vector<SIDP>();
+		std::vector<Variant> cons;
 		for (auto& c : constraints) {
 			size_t constraint_param_amount = attached_world->get_constraint_param_amount(std::get<0>(c));
-			std::vector<SIDP>* con = new std::vector<SIDP>();
+			std::vector<Variant> con;
 
 			for (size_t i=0; i<constraint_param_amount; ++i) {
-				con->push_back(std::get<1>(c)[i]);
+				con.push_back(Variant(std::get<1>(c)[i]));
 			}
 
-			cons->push_back(SIDP(con));
+			cons.push_back(Variant(con));
 		}
 
-		std::map<std::string,SIDP> data;
+		std::map<std::string,Variant> data;
 		data["type"] = static_cast<int>(type);
 		data["mass"] = mass;
 		data["scale"] = scale;
 		data["friction"] = friction;
-		data["shape_params"].vector(sp);
+		data["shape_params"] = sp;
 
 		data["attached_instance"] = attached_instance->id;
-		data["position"].vector(new std::vector<SIDP>({get_position().x(), get_position().y(), get_position().z()}));
-		data["rotation"].vector(new std::vector<SIDP>({get_rotation_x(), get_rotation_y(), get_rotation_z()}));
+		data["position"] = {Variant(get_position().x()), Variant(get_position().y()), Variant(get_position().z())};
+		data["rotation"] = {Variant(get_rotation_x()), Variant(get_rotation_y()), Variant(get_rotation_z())};
 
-		data["gravity"].vector(new std::vector<SIDP>({body->getGravity().x(), body->getGravity().y(), body->getGravity().z()}));
-		data["velocity"].vector(new std::vector<SIDP>({body->getLinearVelocity().x(), body->getLinearVelocity().y(), body->getLinearVelocity().z()}));
-		data["velocity_ang"].vector(new std::vector<SIDP>({body->getAngularVelocity().x(), body->getAngularVelocity().y(), body->getAngularVelocity().z()}));
+		data["gravity"] = {Variant(body->getGravity().x()), Variant(body->getGravity().y()), Variant(body->getGravity().z())};
+		data["velocity"] = {Variant(body->getLinearVelocity().x()), Variant(body->getLinearVelocity().y()), Variant(body->getLinearVelocity().z())};
+		data["velocity_ang"] = {Variant(body->getAngularVelocity().x()), Variant(body->getAngularVelocity().y()), Variant(body->getAngularVelocity().z())};
 
 		data["collision_flags"] = body->getCollisionFlags();
-		data["constraints"].vector(cons);
+		data["constraints"] = cons;
 
 		return map_serialize(data, should_pretty_print);
 	}
 	std::string PhysicsBody::serialize() const {
 		return serialize(false);
 	}
-	int PhysicsBody::deserialize(std::map<SIDP,SIDP>& m, Instance* inst) {
-		mass = SIDP_d(m["mass"]);
-		scale = SIDP_d(m["scale"]);
-		friction = SIDP_d(m["friction"]);
+	int PhysicsBody::deserialize(std::map<Variant,Variant>& m, Instance* inst) {
+		mass = m["mass"].d;
+		scale = m["scale"].d;
+		friction = m["friction"].d;
 
 		E_PHYS_SHAPE previous_type = type;
-		type = static_cast<E_PHYS_SHAPE>(SIDP_i(m["type"]));
+		type = static_cast<E_PHYS_SHAPE>(m["type"].i);
 		if (type != previous_type) {
 			shape_param_amount = get_shape_param_amount(type);
 			if ((type == E_PHYS_SHAPE::MULTISPHERE)||(type == E_PHYS_SHAPE::CONVEX_HULL)) {
-				shape_param_amount = get_shape_param_amount(type, static_cast<int>(SIDP_cd(m["shape_params"], 0)));
+				shape_param_amount = get_shape_param_amount(type, static_cast<int>(m["shape_params"].v[0].d));
 			}
 
 			if (shape_params != nullptr) {
@@ -212,7 +212,7 @@ namespace bee {
 			if (shape_param_amount > 0) {
 				shape_params = new double[shape_param_amount];
 				for (size_t i=0; i<shape_param_amount; ++i) {
-					shape_params[i] = SIDP_cd(m["shape_params"], i);
+					shape_params[i] = m["shape_params"].v[i].d;
 				}
 			}
 
@@ -220,17 +220,17 @@ namespace bee {
 		}
 
 		attached_instance = inst;
-		body->setCollisionFlags(SIDP_i(m["collision_flags"]));
+		body->setCollisionFlags(m["collision_flags"].i);
 
 		btVector3 position = btVector3(
-			btScalar(SIDP_cd(m["position"], 0)),
-			btScalar(SIDP_cd(m["position"], 1)),
-			btScalar(SIDP_cd(m["position"], 2))
+			btScalar(m["position"].v[0].f),
+			btScalar(m["position"].v[1].f),
+			btScalar(m["position"].v[2].f)
 		);
 		btVector3 rotation = btVector3(
-			btScalar(SIDP_cd(m["rotation"], 0)),
-			btScalar(SIDP_cd(m["rotation"], 1)),
-			btScalar(SIDP_cd(m["rotation"], 2))
+			btScalar(m["rotation"].v[0].f),
+			btScalar(m["rotation"].v[1].f),
+			btScalar(m["rotation"].v[2].f)
 		);
 
 		btTransform transform;
@@ -242,21 +242,21 @@ namespace bee {
 		body->setCenterOfMassTransform(transform);
 
 		btVector3 gravity = btVector3(
-			btScalar(SIDP_cd(m["gravity"], 0)),
-			btScalar(SIDP_cd(m["gravity"], 1)),
-			btScalar(SIDP_cd(m["gravity"], 2))
+			btScalar(m["gravity"].v[0].f),
+			btScalar(m["gravity"].v[1].f),
+			btScalar(m["gravity"].v[2].f)
 		);
 		body->setGravity(gravity);
 
 		btVector3 velocity = btVector3(
-			btScalar(SIDP_cd(m["velocity"], 0)),
-			btScalar(SIDP_cd(m["velocity"], 1)),
-			btScalar(SIDP_cd(m["velocity"], 2))
+			btScalar(m["velocity"].v[0].f),
+			btScalar(m["velocity"].v[1].f),
+			btScalar(m["velocity"].v[2].f)
 		);
 		btVector3 velocity_ang = btVector3(
-			btScalar(SIDP_cd(m["velocity_ang"], 0)),
-			btScalar(SIDP_cd(m["velocity_ang"], 1)),
-			btScalar(SIDP_cd(m["velocity_ang"], 2))
+			btScalar(m["velocity_ang"].v[0].f),
+			btScalar(m["velocity_ang"].v[1].f),
+			btScalar(m["velocity_ang"].v[2].f)
 		);
 		body->setLinearVelocity(velocity);
 		body->setAngularVelocity(velocity_ang);
@@ -264,7 +264,7 @@ namespace bee {
 		return 0;
 	}
 	int PhysicsBody::deserialize(const std::string& data, Instance* inst) {
-		std::map<SIDP,SIDP> m;
+		std::map<Variant,Variant> m;
 		if (map_deserialize(data, &m)) {
 			messenger::send({"engine", "physics"}, E_MESSAGE::WARNING, "Failed to deserialize physics body");
 			return 1;
@@ -273,13 +273,13 @@ namespace bee {
 		return deserialize(m, inst);
 	}
 	int PhysicsBody::deserialize(const std::string& data) {
-		std::map<std::string,SIDP> m;
+		std::map<std::string,Variant> m;
 		map_deserialize(data, &m);
 
 		auto instances = get_current_room()->get_instances();
 		Instance* inst = nullptr;
-		if (instances.find(SIDP_i(m["attached_instance"])) != instances.end()) {
-			inst = instances.at(SIDP_i(m["attached_instance"]));
+		if (instances.find(m["attached_instance"].i) != instances.end()) {
+			inst = instances.at(m["attached_instance"].i);
 		}
 
 		return deserialize(data, inst);

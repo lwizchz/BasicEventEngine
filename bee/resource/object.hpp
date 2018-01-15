@@ -19,7 +19,7 @@
 
 #include "../enum.hpp"
 
-#include "../data/sidp.hpp"
+#include "../data/variant.hpp"
 
 namespace bee {
 	// Forward declarations
@@ -47,7 +47,7 @@ namespace bee {
 
 		std::map<int,Instance*> instances; // A list of all the instances of this object type
 	protected:
-		std::map<std::string,SIDP>* s; // A pointer to the data map for the instance that is currently being processed
+		std::map<std::string,Variant>* s; // A pointer to the data map for the instance that is currently being processed
 		Instance* current_instance; // A pointer to the instance that is currently being processed
 
 		// See bee/resources/object.cpp for function comments

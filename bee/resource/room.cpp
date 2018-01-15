@@ -932,9 +932,9 @@ namespace bee {
 							if (set_params[0] == "@sprite") {
 								inst->set_sprite(Texture::get_by_name(set_params[1]));
 							} else if (set_params[0] == "@solid") {
-								inst->set_is_solid(SIDP_i(SIDP(set_params[1])));
+								inst->set_is_solid(std::stoi(set_params[1]));
 							} else if (set_params[0] == "@depth") {
-								inst->depth = SIDP_i(SIDP(set_params[1]));
+								inst->depth = std::stoi(set_params[1]);
 							} else {
 								messenger::send({"engine", "room"}, E_MESSAGE::WARNING, "Error while loading instance map: unknown setter \"" + v + "\"");
 								continue;
@@ -942,7 +942,7 @@ namespace bee {
 						} else if (set_params[0] == "!setend") {
 							break;
 						} else {
-							inst->set_data(set_params[1], SIDP(set_params[2]));
+							inst->set_data(set_params[1], Variant(set_params[2], true));
 						}
 					}
 

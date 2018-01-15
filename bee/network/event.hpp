@@ -15,13 +15,13 @@
 
 #include "../enum.hpp"
 
-#include "../data/sidp.hpp"
+#include "../data/variant.hpp"
 
 namespace bee {
 	struct NetworkEvent {
 		E_NETEVENT type;
 		int id;
-		std::map<std::string,SIDP> data;
+		std::map<std::string,Variant> data;
 		std::map<std::string,std::vector<Uint8>> instances;
 
 		NetworkEvent();

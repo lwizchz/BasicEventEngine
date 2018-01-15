@@ -905,7 +905,7 @@ namespace bee { namespace net {
 
 						/*internal::connection->data.clear();
 						SerialData(buffer[packet->get_packet_id()]->get_raw()).store_map(internal::connection->data); // Decode the data map directly
-						e.data = std::map<std::string,SIDP>(internal::connection->data);*/
+						e.data = std::map<std::string,Variant>(internal::connection->data);*/
 						SerialData(buffer[packet->get_packet_id()]->get_raw()).store_serial_m(e.instances);
 
 						buffer[packet->get_packet_id()].reset();

@@ -9,9 +9,9 @@
 #ifndef BEE_DATA_SERIALDATA
 #define BEE_DATA_SERIALDATA 1
 
-#include "serialdata.hpp" // Include the engine headers
-
 #include <sstream>
+
+#include "serialdata.hpp" // Include the engine headers
 
 namespace bee {
 	SerialData::SerialData() :
@@ -334,13 +334,6 @@ namespace bee {
 		}
 		return 3;
 	}
-	int SerialData::store(SIDP d) {
-		if (is_writing) {
-			std::string s = d.to_str();
-			return store_string(s);
-		}
-		return 3;
-	}
 
 	int SerialData::get(unsigned char& d) {
 		if (!is_writing) {
@@ -369,15 +362,6 @@ namespace bee {
 	int SerialData::get(std::string& d) {
 		if (!is_writing) {
 			return store_string(d);
-		}
-		return 3;
-	}
-	int SerialData::get(SIDP& d) {
-		if (!is_writing) {
-			std::string s;
-			int r = store_string(s);
-			d.interpret(s);
-			return r;
 		}
 		return 3;
 	}

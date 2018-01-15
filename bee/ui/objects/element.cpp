@@ -34,8 +34,8 @@ void ObjUIElement::destroy(bee::Instance* self) {
 	Object::destroy(self);
 }
 void ObjUIElement::mouse_press(bee::Instance* self, SDL_Event* e) {
-	(*s)["is_pressed"] = false;
-	(*s)["has_focus"] = false;
+	_i("is_pressed") = false;
+	_i("has_focus") = false;
 
 	switch (e->button.button) {
 		case SDL_BUTTON_LEFT: {
@@ -44,7 +44,7 @@ void ObjUIElement::mouse_press(bee::Instance* self, SDL_Event* e) {
 			a.h = _i("h");
 			SDL_Rect b = {e->button.x-1, e->button.y-1, 2, 2};
 			if (check_collision(a, b)) {
-				(*s)["is_pressed"] = true;
+				_i("is_pressed") = true;
 			}
 			break;
 		}
@@ -55,18 +55,18 @@ void ObjUIElement::mouse_input(bee::Instance* self, SDL_Event* e) {
 		return;
 	}
 
-	(*s)["has_hover"] = false;
+	_i("has_hover") = false;
 
 	SDL_Rect a = self->get_aabb();
 	a.w = _i("w");
 	a.h = _i("h");
 	SDL_Rect b = {e->motion.x-1, e->motion.y-1, 2, 2};
 	if (check_collision(a, b)) {
-		(*s)["has_hover"] = true;
+		_i("has_hover") = true;
 	}
 }
 void ObjUIElement::mouse_release(bee::Instance* self, SDL_Event* e) {
-	(*s)["has_focus"] = false;
+	_i("has_focus") = false;
 
 	switch (e->button.button) {
 		case SDL_BUTTON_LEFT: {
@@ -76,47 +76,47 @@ void ObjUIElement::mouse_release(bee::Instance* self, SDL_Event* e) {
 			SDL_Rect b = {e->button.x-1, e->button.y-1, 2, 2};
 			if (check_collision(a, b)) {
 				if (_i("is_pressed")) {
-					(*s)["has_focus"] = true;
+					_i("has_focus") = true;
 				}
 			}
 			break;
 		}
 	}
 
-	(*s)["is_pressed"] = false;
+	_i("is_pressed") = false;
 }
 
 void ObjUIElement::reset(bee::Instance* self) {
-	(*s)["color_r"] = 255;
-	(*s)["color_g"] = 255;
-	(*s)["color_b"] = 255;
-	(*s)["color_a"] = 255;
+	_i("color_r") = 255;
+	_i("color_g") = 255;
+	_i("color_b") = 255;
+	_i("color_a") = 255;
 
-	(*s)["w"] = 0;
-	(*s)["h"] = 0;
+	_i("w") = 0;
+	_i("h") = 0;
 
 	bee::Texture* spr = self->get_sprite();
 	if (spr != nullptr) {
-		(*s)["w"] = spr->get_width();
-		(*s)["h"] = spr->get_height();
+		_i("w") = spr->get_width();
+		_i("h") = spr->get_height();
 	}
 
-	(*s)["is_visible"] = true;
-	(*s)["is_pressed"] = false;
-	(*s)["has_focus"] = false;
-	(*s)["has_hover"] = false;
+	_i("is_visible") = true;
+	_i("is_pressed") = false;
+	_i("has_focus") = false;
+	_i("has_hover") = false;
 }
 void ObjUIElement::set_focus(bee::Instance* self, bool new_has_focus) {
-	(*s)["has_focus"] = new_has_focus;
+	_i("has_focus") = new_has_focus;
 }
 void ObjUIElement::set_is_visible(bee::Instance* self, bool new_is_visibile) {
-	(*s)["is_visible"] = new_is_visibile;
+	_i("is_visible") = new_is_visibile;
 }
 void ObjUIElement::set_color(bee::Instance* self, const bee::RGBA& new_color) {
-	(*s)["color_r"] = new_color.r;
-	(*s)["color_g"] = new_color.g;
-	(*s)["color_b"] = new_color.b;
-	(*s)["color_a"] = new_color.a;
+	_i("color_r") = new_color.r;
+	_i("color_g") = new_color.g;
+	_i("color_b") = new_color.b;
+	_i("color_a") = new_color.a;
 }
 
 #endif // BEE_UI_OBJ_ELEMENT

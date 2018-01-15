@@ -16,8 +16,6 @@
 
 #include "../enum.hpp"
 
-#include "sidp.hpp"
-
 #include "../messenger/messenger.hpp"
 
 namespace bee {
@@ -47,7 +45,6 @@ namespace bee {
 			int store(float);
 			int store(double);
 			int store(std::string);
-			int store(SIDP);
 
 			template <typename A>
 			int store_vector(std::vector<A>&);
@@ -66,7 +63,6 @@ namespace bee {
 			int get(float&);
 			int get(double&);
 			int get(std::string&);
-			int get(SIDP&);
 
 			std::vector<Uint8> get() const;
 			Uint8 peek() const;

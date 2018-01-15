@@ -18,7 +18,7 @@
 #include "../defines.hpp"
 #include "../enum.hpp"
 
-#include "../data/sidp.hpp"
+#include "../data/variant.hpp"
 
 #include "../render/rgba.hpp"
 
@@ -49,7 +49,7 @@ namespace bee {
 		bool path_is_pausable;
 		double path_previous_mass;
 
-		std::map<std::string,SIDP> data;
+		std::map<std::string,Variant> data;
 	public:
 		int id;
 		Uint32 subimage_time;
@@ -71,7 +71,7 @@ namespace bee {
 
 		std::string serialize(bool) const;
 		std::string serialize() const;
-		int deserialize(std::map<SIDP,SIDP>&, Object*);
+		int deserialize(std::map<Variant,Variant>&, Object*);
 		int deserialize(const std::string&, Object*);
 		int deserialize(const std::string&);
 
@@ -88,11 +88,13 @@ namespace bee {
 		int set_computation_type(E_COMPUTATION);
 		int set_is_persistent(bool);
 
-		std::map<std::string,SIDP>& get_data();
-		const SIDP& get_data(const std::string&, const SIDP&, bool) const;
-		SIDP get_data(const std::string&) const;
-		int set_data(const std::map<std::string,SIDP>&);
-		int set_data(const std::string&, const SIDP&);
+		std::map<std::string,Variant>& get_data();
+		const Variant& get_data(const std::string&, const Variant&, bool) const;
+		Variant get_data(const std::string&) const;
+		int set_data(const std::map<std::string,Variant>&);
+
+		template <typename T>
+		int set_data(const std::string&, T);
 
 		btVector3 get_position() const;
 		double get_x() const;
@@ -192,6 +194,17 @@ namespace bee {
 
 		int draw_path();
 	};
+
+	/*
+	* Instance::set_data() - Set the requested data field
+	* @field: the name of the field to set
+	* @value: the value to set the field to
+	*/
+	template <typename T>
+	int Instance::set_data(const std::string& field, T value) {
+		data[field] = Variant(value);
+		return 0;
+	}
 }
 
 #endif // BEE_CORE_INSTANCE_H

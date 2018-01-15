@@ -29,8 +29,8 @@
 #include "input/keybind.hpp"
 
 #include "data/serialdata.hpp"
-#include "data/sidp.hpp"
 #include "data/statemachine.hpp"
+#include "data/variant.hpp"
 
 #include "network/network.hpp"
 #include "network/connection.hpp"

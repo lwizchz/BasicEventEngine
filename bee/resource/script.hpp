@@ -11,19 +11,27 @@
 
 #include <string> // Include the required library headers
 #include <map>
+#include <functional>
 
 #include "resource.hpp"
+
+#include "../data/variant.hpp"
 
 namespace bee {
 	class ScriptInterface {
 	public:
 		virtual ~ScriptInterface() {};
+
 		virtual int load() =0;
 		virtual void free() =0;
 		virtual void release() =0;
+
 		virtual int run_string(const std::string&) =0;
 		virtual int run_file(const std::string&) =0;
 		virtual int run_func(const std::string&) =0;
+
+		virtual int set_var(const std::string&, const Variant&) =0;
+		virtual Variant get_var(const std::string&) =0;
 	};
 
 	class Script: public Resource { // The script resource class is used to execute python scripts
@@ -54,6 +62,7 @@ namespace bee {
 		int get_id() const;
 		std::string get_name() const;
 		std::string get_path() const;
+		ScriptInterface* get_interface() const;
 
 		int set_name(const std::string&);
 		int set_path(const std::string&);

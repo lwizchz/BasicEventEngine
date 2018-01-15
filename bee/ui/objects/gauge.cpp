@@ -23,14 +23,14 @@ ObjUIGauge::ObjUIGauge() : ObjUIElement("obj_ui_gauge", "/ui/objects/gauge.cpp")
 void ObjUIGauge::create(bee::Instance* self) {
 	ObjUIElement::create(self);
 
-	(*s)["range"] = 100;
-	(*s)["value"] = 0;
-	(*s)["pulse_state"] = 0;
+	_i("range") = 100;
+	_i("value") = 0;
+	_i("pulse_state") = 0;
 
-	(*s)["color_back_r"] = 0;
-	(*s)["color_back_g"] = 0;
-	(*s)["color_back_b"] = 0;
-	(*s)["color_back_a"] = 255;
+	_i("color_back_r") = 0;
+	_i("color_back_g") = 0;
+	_i("color_back_b") = 0;
+	_i("color_back_a") = 255;
 }
 void ObjUIGauge::draw(bee::Instance* self) {
 	if (!_i("is_visible")) {
@@ -65,21 +65,21 @@ void ObjUIGauge::draw(bee::Instance* self) {
 			&&(_i("value") + pulse_width + inc >= _i("range"))
 		) { // If the pulse is increasing and has reached the maximum value, reverse the pulse
 			if (_i("value") + pulse_width == _i("range")) {
-				(*s)["pulse_state"] = -1;
+				_i("pulse_state") = -1;
 			} else {
-				(*s)["value"] = _i("range") - pulse_width;
+				_i("value") = _i("range") - pulse_width;
 			}
 		} else if (
 			(_i("pulse_state") < 0)
 			&&(_i("value") + inc <= 0)
 		) { // If the pulse is decreasing and has reached the minimum value, reverse the pulse
 			if (_i("value") == 0) {
-				(*s)["pulse_state"] = 1;
+				_i("pulse_state") = 1;
 			} else {
-				(*s)["value"] = 0;
+				_i("value") = 0;
 			}
 		} else { // Increment the pulse in its current direction
-			(*s)["value"] += inc;
+			_i("value") += inc;
 		}
 	} else {
 		bee::draw_rectangle(self->get_corner_x() - ox, self->get_corner_y() - oy, w * _i("value") / _i("range"), h, -1, c_front);
@@ -97,26 +97,26 @@ int ObjUIGauge::get_value(bee::Instance* self) {
 	return _i("value");
 }
 void ObjUIGauge::set_range(bee::Instance* self, int new_range) {
-	(*s)["range"] = new_range;
+	_i("range") = new_range;
 }
 void ObjUIGauge::set_value(bee::Instance* self, int new_value) {
-	(*s)["value"] = new_value;
+	_i("value") = new_value;
 }
 void ObjUIGauge::start_pulse(bee::Instance* self) {
-	(*s)["range"] = 100;
-	(*s)["value"] = 0;
-	(*s)["pulse_state"] = 1;
+	_i("range") = 100;
+	_i("value") = 0;
+	_i("pulse_state") = 1;
 }
 void ObjUIGauge::stop_pulse(bee::Instance* self) {
-	(*s)["value"] = 0;
-	(*s)["pulse_state"] = 0;
+	_i("value") = 0;
+	_i("pulse_state") = 0;
 }
 
 void ObjUIGauge::set_color_back(bee::Instance* self, bee::RGBA new_color) {
-	(*s)["color_back_r"] = new_color.r;
-	(*s)["color_back_g"] = new_color.g;
-	(*s)["color_back_b"] = new_color.b;
-	(*s)["color_back_a"] = new_color.a;
+	_i("color_back_r") = new_color.r;
+	_i("color_back_g") = new_color.g;
+	_i("color_back_b") = new_color.b;
+	_i("color_back_a") = new_color.a;
 }
 
 #endif // BEE_UI_OBJ_GAUGE

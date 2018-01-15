@@ -21,6 +21,9 @@ namespace bee { namespace python {
 
         int run_string(const std::string&);
         int run_file(const std::string&);
+
+        Variant pyobj_to_variant(PyObject*);
+        PyObject* variant_to_pyobj(Variant);
 }
 
         class PythonScriptInterface: public ScriptInterface {
@@ -38,6 +41,11 @@ namespace bee { namespace python {
                 int run_string(const std::string&);
                 int run_file(const std::string&);
                 int run_func(const std::string&);
+
+                int set_var(const std::string&, const Variant&);
+		Variant get_var(const std::string&);
+
+                std::vector<Variant> complete(const std::string&);
         };
 }
 

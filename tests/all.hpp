@@ -19,5 +19,6 @@
 #include "util/template.hpp"
 
 #include "data/serialdata.hpp"
+#include "data/variant.hpp"
 
 #include "render/rgba.hpp"

@@ -154,6 +154,9 @@ namespace bee {
 	std::string Script::get_path() const {
 		return path;
 	}
+	ScriptInterface* Script::get_interface() const {
+		return script;
+	}
 
 	/*
 	* Script::set_*() - Set the requested resource data

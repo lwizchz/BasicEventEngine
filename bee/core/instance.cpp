@@ -23,7 +23,6 @@
 
 #include "rooms.hpp"
 
-#include "../data/sidp.hpp"
 #include "../data/serialdata.hpp"
 
 #include "../render/drawing.hpp"
@@ -166,7 +165,7 @@ namespace bee {
 	}
 
 	std::string Instance::serialize(bool should_pretty_print) const {
-		std::map<std::string,SIDP> instance_info;
+		std::map<std::string,Variant> instance_info;
 		instance_info["id"] = id;
 		instance_info["object"] = object->get_name();
 		instance_info["sprite"] = "";
@@ -183,8 +182,8 @@ namespace bee {
 
 		instance_info["is_solid"] = is_solid;
 		instance_info["depth"] = depth;
-		instance_info["pos_start"].vector(new std::vector<SIDP>({pos_start.x(), pos_start.y(), pos_start.z()}));
-		instance_info["pos_previous"].vector(new std::vector<SIDP>({pos_previous.x(), pos_previous.y(), pos_previous.z()}));
+		instance_info["pos_start"] = {Variant(pos_start.x()), Variant(pos_start.y()), Variant(pos_start.z())};
+		instance_info["pos_previous"] = {Variant(pos_previous.x()), Variant(pos_previous.y()), Variant(pos_previous.z())};
 
 		instance_info["path"] = "";
 		if (path != nullptr) {
@@ -196,54 +195,54 @@ namespace bee {
 		instance_info["path_is_drawn"] = path_is_drawn;
 		instance_info["path_is_pausable"] = path_is_pausable;
 		instance_info["path_previous_mass"] = path_previous_mass;
-		instance_info["path_pos_start"].vector(new std::vector<SIDP>({path_pos_start.x(), path_pos_start.y(), path_pos_start.z()}));
+		instance_info["path_pos_start"] = {Variant(path_pos_start.x()), Variant(path_pos_start.y()), Variant(path_pos_start.z())};
 
 		return map_serialize(instance_info, should_pretty_print);
 	}
 	std::string Instance::serialize() const {
 		return serialize(false);
 	}
-	int Instance::deserialize(std::map<SIDP,SIDP>& m, Object* _object) {
-		id = SIDP_i(m["id"]);
+	int Instance::deserialize(std::map<Variant,Variant>& m, Object* _object) {
+		id = m["id"].i;
 		if (_object != nullptr) {
 			object = _object;
 		} else {
-			object = Object::get_by_name(SIDP_s(m["object"]));
+			object = Object::get_by_name(m["object"].s);
 		}
-		sprite = Texture::get_by_name(SIDP_s(m["sprite"]));
+		sprite = Texture::get_by_name(m["sprite"].s);
 
-		subimage_time = SIDP_i(m["subimage_time"]);
-		body->deserialize(SIDP_m(m["body"]), this);
-		is_solid = SIDP_i(m["is_solid"]);
-		depth = SIDP_i(m["depth"]);
+		subimage_time = m["subimage_time"].i;
+		body->deserialize(m["body"].m, this);
+		is_solid = m["is_solid"].i;
+		depth = m["depth"].i;
 		pos_start = btVector3(
-			btScalar(SIDP_cd(m["pos_start"], 0)),
-			btScalar(SIDP_cd(m["pos_start"], 1)),
-			btScalar(SIDP_cd(m["pos_start"], 2))
+			btScalar(m["pos_start"].v[0].f),
+			btScalar(m["pos_start"].v[1].f),
+			btScalar(m["pos_start"].v[2].f)
 		);
 		pos_previous = btVector3(
-			btScalar(SIDP_cd(m["pos_previous"], 0)),
-			btScalar(SIDP_cd(m["pos_previous"], 1)),
-			btScalar(SIDP_cd(m["pos_previous"], 2))
+			btScalar(m["pos_previous"].v[0].f),
+			btScalar(m["pos_previous"].v[1].f),
+			btScalar(m["pos_previous"].v[2].f)
 		);
 
-		path = Path::get_by_name(SIDP_s(m["path"]));
-		path_speed = SIDP_d(m["path_speed"]);
-		path_end_action = static_cast<E_PATH_END>(SIDP_i(m["path_end_action"]));
-		path_current_node = SIDP_i(m["path_current_node"]);
-		path_is_drawn = SIDP_i(m["path_is_drawn"]);
-		path_is_pausable = SIDP_i(m["path_is_pausable"]);
-		path_previous_mass = SIDP_d(m["path_previous_mass"]);
+		path = Path::get_by_name(m["path"].s);
+		path_speed = m["path_speed"].d;
+		path_end_action = static_cast<E_PATH_END>(m["path_end_action"].i);
+		path_current_node = m["path_current_node"].i;
+		path_is_drawn = m["path_is_drawn"].i;
+		path_is_pausable = m["path_is_pausable"].i;
+		path_previous_mass = m["path_previous_mass"].d;
 		path_pos_start = btVector3(
-			btScalar(SIDP_cd(m["path_pos_start"], 0)),
-			btScalar(SIDP_cd(m["path_pos_start"], 1)),
-			btScalar(SIDP_cd(m["path_pos_start"], 2))
+			btScalar(m["path_pos_start"].v[0].f),
+			btScalar(m["path_pos_start"].v[1].f),
+			btScalar(m["path_pos_start"].v[2].f)
 		);
 
 		return 0;
 	}
 	int Instance::deserialize(const std::string& instance_info, Object* _object) {
-		std::map<SIDP,SIDP> m;
+		std::map<Variant,Variant> m;
 		if (map_deserialize(instance_info, &m)) {
 			messenger::send({"engine", "instance"}, E_MESSAGE::WARNING, "Failed to deserialize instance");
 			return 1;
@@ -359,7 +358,7 @@ namespace bee {
 	/*
 	* Instance::get_data() - Return a reference to the data map
 	*/
-	std::map<std::string,SIDP>& Instance::get_data() {
+	std::map<std::string,Variant>& Instance::get_data() {
 		return data;
 	}
 	/*
@@ -368,10 +367,10 @@ namespace bee {
 	* @default_value: the value to return if the field doesn't exist
 	* @should_output: whether a warning should be output if the field doesn't exist
 	*/
-	const SIDP& Instance::get_data(const std::string& field, const SIDP& default_value, bool should_output) const {
+	const Variant& Instance::get_data(const std::string& field, const Variant& default_value, bool should_output) const {
 		if (data.find(field) == data.end()) { // If the data field doesn't exist, output a warning and return the default value
 			if (should_output) {
-				messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to get the data field \"" + field + "\" from the instance of object \"" + get_object()->get_name() + "\", returning SIDP(0)");
+				messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to get the data field \"" + field + "\" from the instance of object \"" + get_object()->get_name() + "\", returning Variant(0)");
 			}
 			return default_value;
 		}
@@ -384,24 +383,15 @@ namespace bee {
 	* ! This function cannot return a const reference because the default value would be out of scope
 	* @field: the name of the field to fetch
 	*/
-	SIDP Instance::get_data(const std::string& field) const {
-		return get_data(field, 0, true);
+	Variant Instance::get_data(const std::string& field) const {
+		return get_data(field, Variant(0), true);
 	}
 	/*
 	* Instance::set_data() - Replace the data map
 	* @_data: the new data map to use
 	*/
-	int Instance::set_data(const std::map<std::string,SIDP>& _data) {
+	int Instance::set_data(const std::map<std::string,Variant>& _data) {
 		data = _data;
-		return 0;
-	}
-	/*
-	* Instance::set_data() - Set the requested data field
-	* @field: the name of the field to set
-	* @value: the value to set the field to
-	*/
-	int Instance::set_data(const std::string& field, const SIDP& value) {
-		data[field] = value;
 		return 0;
 	}
 
