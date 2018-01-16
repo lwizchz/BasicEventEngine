@@ -42,6 +42,7 @@ namespace bee {
 			"		Disable fullscreen mode\n"
 			"	--headless\n"
 			"		Run the engine in headless mode without any SDL/OpenGL initialization\n"
+			"	Other options may be added prior to initialization."
 			"Exit Status:\n"
 			"	0       Success\n"
 			"	1       Failure to initialize the engine\n"

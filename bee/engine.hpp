@@ -53,7 +53,7 @@ namespace bee { // The engine namespace
 	int close_resources();
 
 	// bee/engine.cpp
-	int init(int, char**, const std::list<ProgramFlag*>&, Room**, GameOptions*);
+	int init(int, char**, Room**, const std::list<ProgramFlag*>&, GameOptions*);
 	int loop();
 	int close();
 

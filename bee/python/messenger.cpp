@@ -82,9 +82,7 @@ namespace bee { namespace python { namespace internal {
 
                         PyObject* arg_tup = Py_BuildValue("(kNbN)", msg.tickstamp, msg_tags, msg.type, PyUnicode_FromString(msg.descr.c_str()));
                         if (PyEval_CallObject(callback, arg_tup) == nullptr) {
-                                if (PyErr_Occurred()) {
-                                        PyErr_Print();
-                                }
+                                PyErr_Print();
                         }
 
                         Py_DECREF(arg_tup);

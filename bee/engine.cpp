@@ -59,10 +59,14 @@ namespace bee {
 	EngineState* engine = nullptr;
 	bool is_initialized = false;
 
-	int init(int argc, char** argv, const std::list<ProgramFlag*>& _flags, Room** _first_room, GameOptions* _options) {
+	int init(int argc, char** argv, Room** _first_room, const std::list<ProgramFlag*>& extra_flags, GameOptions* _options) {
 		engine = new EngineState(argc, argv, _options);
 
-		if (handle_flags(_flags, true) < 0) {
+		init_standard_flags();
+		for (auto& flag : extra_flags) {
+			add_flag(flag);
+		}
+		if (handle_flags(true) < 0) {
 			return 1; // Return 1 when the flags request to exit
 		}
 
@@ -122,7 +126,7 @@ namespace bee {
 
 		console::internal::init_ui();
 
-		if (handle_flags(_flags, false) < 0) {
+		if (handle_flags(false) < 0) {
 			return 1; // Return 1 when the flags request to exit
 		}
 		messenger::handle();

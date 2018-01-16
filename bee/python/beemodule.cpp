@@ -21,6 +21,8 @@
 
 #include "../engine.hpp"
 
+#include "../init/programflags.hpp"
+
 #include "../core/display.hpp"
 #include "../core/rooms.hpp"
 #include "../core/window.hpp"
@@ -38,6 +40,11 @@ namespace bee { namespace python { namespace internal {
 
                 {"restart_game", restart_game, METH_NOARGS, "Restart the game without reinitializaing"},
                 {"end_game", end_game, METH_NOARGS, "End the game"},
+
+                {nullptr, nullptr, 0, nullptr}
+        };
+        PyMethodDef BEEInitMethods[] = {
+                {"add_flag", init_add_flag, METH_VARARGS, "Add a program flag for post-init parsing"},
 
                 {nullptr, nullptr, 0, nullptr}
         };
@@ -110,8 +117,8 @@ namespace bee { namespace python { namespace internal {
                 PyObject* module = PyModule_Create(&BEEModule);
 
                 // Add submodules
+                PyModule_AddFunctions(module, BEEInitMethods);
                 PyModule_AddFunctions(module, BEECoreMethods);
-                //PyModule_AddObject(module, "init", PyInit_bee_init());
                 PyModule_AddObject(module, "messenger", PyInit_bee_messenger());
                 PyModule_AddObject(module, "console", PyInit_bee_console());
                 PyModule_AddObject(module, "mouse", PyInit_bee_mouse());
@@ -297,16 +304,17 @@ namespace bee { namespace python { namespace internal {
                 PyDict_SetItemString(netsig1, "INVALID", PyLong_FromLong(255));
                 PyModule_AddObject(module, "E_NETSIG1", netsig1);
                 PyObject* netsig2 (make_enum({
+                        "=NONE",
                         "KEEPALIVE",
                         "NAME",
                         "PLAYERS",
                         "KEYFRAME",
                         "DELTA",
                 }));
-                PyDict_SetItemString(netsig2, "NONE", PyLong_FromLong(0));
                 PyDict_SetItemString(netsig2, "INVALID", PyLong_FromLong(255));
                 PyModule_AddObject(module, "E_NETSIG2", netsig2);
                 PyModule_AddObject(module, "E_DATA_TYPE", make_enum({
+                        "NONE",
                         "CHAR",
                         "INT",
                         "FLOAT",
@@ -382,6 +390,40 @@ namespace bee { namespace python { namespace internal {
         }
         PyObject* end_game(PyObject* self, PyObject* args) {
                 bee::end_game();
+
+                Py_RETURN_NONE;
+        }
+
+        PyObject* init_add_flag(PyObject* self, PyObject* args) {
+                PyObject* longopt;
+                int shortopt;
+                unsigned long arg_type;
+                PyObject* callback;
+
+                if (!PyArg_ParseTuple(args, "UCkO", &longopt, &shortopt, &arg_type, &callback)) {
+                        return nullptr;
+                }
+
+                longopt = PyTuple_GetItem(args, 0);
+                std::string _longopt (PyUnicode_AsUTF8(longopt));
+
+                char _shortopt = shortopt;
+
+                E_FLAGARG _arg_type = static_cast<E_FLAGARG>(arg_type);
+
+                if (!PyCallable_Check(callback)) {
+                        PyErr_SetString(PyExc_TypeError, "parameter must be callable");
+                        return nullptr;
+                }
+                Py_INCREF(callback);
+
+                add_flag(new ProgramFlag(_longopt, _shortopt, false, _arg_type, [callback] (const std::string& arg) {
+                        PyObject* arg_tup = Py_BuildValue("(N)", PyUnicode_FromString(arg.c_str()));
+                        if (PyEval_CallObject(callback, arg_tup) == nullptr) {
+                                PyErr_Print();
+                        }
+                        Py_DECREF(arg_tup);
+                }));
 
                 Py_RETURN_NONE;
         }

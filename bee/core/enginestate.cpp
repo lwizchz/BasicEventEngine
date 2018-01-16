@@ -39,7 +39,6 @@ namespace bee {
 	EngineState::EngineState(int _argc, char** _argv, GameOptions* _options) :
 		argc(_argc),
 		argv(_argv),
-		flags(),
 		options(_options),
 
 		quit(false),

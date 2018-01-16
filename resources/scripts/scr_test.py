@@ -1,5 +1,3 @@
-#!/bin/python
-
 import bee
 
 import random
@@ -15,3 +13,8 @@ def main():
     bee.messenger.log("python logging...")
     bee.messenger.send(["python", "log"], bee.E_MESSAGE["WARNING"], "warning!")
     bee.messenger.send(["python", "log"], bee.E_MESSAGE["INTERNAL"], "internal python message")
+
+    def pyflag(arg):
+        import sys
+        bee.messenger.log("python version: {0.major}.{0.minor}".format(sys.version_info))
+    bee.add_flag("python", "p", bee.E_FLAGARG["NONE"], pyflag)

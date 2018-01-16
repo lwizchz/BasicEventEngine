@@ -206,7 +206,7 @@ namespace bee {
 	};
 
 	enum class E_DATA_TYPE : unsigned char {
-		NONE = 0,
+		NONE,
 		CHAR,
 		INT,
 		FLOAT,

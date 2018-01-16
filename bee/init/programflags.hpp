@@ -26,15 +26,14 @@ namespace bee {
 	};
 
 	namespace internal {
-		std::list<ProgramFlag*>& get_standard_flags();
-
-		ProgramFlag* get_long_flag(const std::list<ProgramFlag*>&, const std::string&);
-		ProgramFlag* get_short_flag(const std::list<ProgramFlag*>&, char);
+		ProgramFlag* get_long_flag(const std::string&);
+		ProgramFlag* get_short_flag(char);
 	}
 
-	int handle_flags(const std::list<ProgramFlag*>&, bool);
+	void add_flag(ProgramFlag*);
+	int handle_flags(bool);
 
-	std::list<ProgramFlag*> get_standard_flags();
+	void init_standard_flags();
 	int free_standard_flags();
 }
 

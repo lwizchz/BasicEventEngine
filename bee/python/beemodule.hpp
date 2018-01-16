@@ -25,6 +25,8 @@ namespace bee { namespace python { namespace internal {
 		PyObject* restart_game(PyObject*, PyObject*);
 		PyObject* end_game(PyObject*, PyObject*);
 
+		PyObject* init_add_flag(PyObject*, PyObject*);
+
 		PyObject* core_get_display(PyObject*, PyObject*);
 		PyObject* core_get_display_size(PyObject*, PyObject*);
 		PyObject* core_get_display_refresh_rate(PyObject*, PyObject*);

@@ -324,7 +324,9 @@ namespace bee {
 			has_draw_failed = false;
 		} else { // Otherwise load the sprite's TTF file
 			if ((get_options().renderer_type == E_RENDERER::OPENGL3)||(get_options().renderer_type == E_RENDERER::OPENGL4)) { // If the engine is rendering in OpenGL mode, output a warning about fast font drawing
-				messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Please note that TTF fast font rendering is currently broken in OpenGL mode\nThe current behavior is to draw slowly and discard the texture data");
+				if (this == Font::list.at(0)) { // Only output the warning for the first loaded font
+					messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Please note that TTF fast font rendering is currently broken in OpenGL mode\nThe current behavior is to draw slowly and discard the texture data");
+				}
 			}
 
 			font = TTF_OpenFont(path.c_str(), font_size); // Open the TTF file with the desired font size
