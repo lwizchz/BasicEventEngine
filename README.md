@@ -1,4 +1,4 @@
-Copyright (c) 2015-17 Luke Montalvo <lukemontalvo@gmail.com>
+Copyright (c) 2015-18 Luke Montalvo <lukemontalvo@gmail.com>
 
 [![Build Status](https://travis-ci.org/piluke/BasicEventEngine.svg?branch=master)](https://travis-ci.org/piluke/BasicEventEngine)
 

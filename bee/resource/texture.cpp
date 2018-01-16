@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-17 Luke Montalvo <lukemontalvo@gmail.com>
+* Copyright (c) 2015-18 Luke Montalvo <lukemontalvo@gmail.com>
 *
 * This file is part of BEE.
 * BEE is free software and comes with ABSOLUTELY NO WARANTY.
@@ -570,7 +570,7 @@ namespace bee {
 		if (tmp_surface == nullptr) {
 			return 3;
 		}
-		
+
 		load_from_surface(tmp_surface); // Load the surface into a texture
 		SDL_FreeSurface(tmp_surface); // Free the temporary surface
 
