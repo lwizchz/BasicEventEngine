@@ -63,7 +63,7 @@ namespace bee {
 
 		SDL_Rect a = pd->get_rect();
 		SDL_Rect b = {static_cast<int>(dx+x), static_cast<int>(dy+y), static_cast<int>(w), static_cast<int>(h)};
-		if (check_collision(a, b)) {
+		if (util::check_collision(a, b)) {
 			return true;
 		}
 

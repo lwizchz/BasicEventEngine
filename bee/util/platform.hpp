@@ -15,23 +15,24 @@
 	typedef int mode_t;
 #endif
 
-int bee_get_platform();
+namespace util { namespace platform {
 
-std::string bee_get_path();
+int get_platform();
 
-std::string bee_itos(int);
-int bee_stoi(const std::string&);
+std::string get_path();
 
-int bee_remove(const std::string&);
-int bee_dir_exists(const std::string&);
-int bee_mkdir(const std::string&, mode_t);
-std::string bee_mkdtemp(const std::string&);
+int remove(const std::string&);
+int dir_exists(const std::string&);
+int mkdir(const std::string&, mode_t);
+std::string mkdtemp(const std::string&);
 
-std::string bee_inet_ntop(const void* src);
+std::string inet_ntop(const void* src);
 
-bool bee_has_commandline_input();
-int bee_commandline_color(std::ostream*, int);
-int bee_commandline_color_reset(std::ostream*);
-int bee_commandline_clear();
+bool has_commandline_input();
+void commandline_color(std::ostream*, int);
+void commandline_color_reset(std::ostream*);
+void commandline_clear();
+
+}}
 
 #endif // BEE_UTIL_PLATFORM_H

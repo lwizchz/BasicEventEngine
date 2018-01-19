@@ -154,7 +154,7 @@ namespace bee {
 		"\n	start_frame    " << start_frame <<
 		"\n	position_frame " << position_frame <<
 		"\n	is_looping     " << is_looping <<
-		"\n	action_list\n" << debug_indent(action_string, 2) <<
+		"\n	action_list\n" << util::debug_indent(action_string, 2) <<
 		"\n}\n";
 		messenger::send({"engine", "resource"}, E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for output
 
@@ -185,10 +185,10 @@ namespace bee {
 		table.push_back({"(frame", "func_name)"}); // Append the table header
 
 		for (auto& a : action_list) { // Iterate over the actions and add each one of them to the table
-			table.push_back({bee_itos(a.first), a.second.first});
+			table.push_back({std::to_string(a.first), a.second.first});
 		}
 
-		return string_tabulate(table); // Return the table as a properly spaced string
+		return util::string::tabulate(table); // Return the table as a properly spaced string
 	}
 	bool Timeline::get_is_running() const {
 		if (is_paused) {

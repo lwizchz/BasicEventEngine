@@ -76,7 +76,7 @@ namespace bee {
 		float h_prime = 0.f;
 		if (chroma != 0.f) {
 			if (M == red) {
-				h_prime = qmod((green-blue) / chroma, 6);
+				h_prime = util::qmod((green-blue) / chroma, 6);
 			} else if (M == green) {
 				h_prime = (blue-red) / chroma + 2.f;
 			} else if (M == blue) {
@@ -115,7 +115,7 @@ namespace bee {
 
 		const float chroma = v * s;
 		const float h_prime = h / 60.f;
-		const float x_color = chroma * (1.f - abs(qmod(h_prime, 2) - 1.f));
+		const float x_color = chroma * (1.f - abs(util::qmod(h_prime, 2) - 1.f));
 
 		float component_1 = 0.f;
 		float component_2 = 0.f;

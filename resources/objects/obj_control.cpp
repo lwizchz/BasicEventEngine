@@ -171,7 +171,7 @@ void ObjControl::mouse_press(bee::Instance* self, SDL_Event* e) {
 		case SDL_BUTTON_LEFT: {
 			SDL_Rect a = self->get_aabb();
 			SDL_Rect b = {e->button.x-10, e->button.y-10, 20, 20};
-			if ((self->id == 0)&&(!check_collision(a, b))) {
+			if ((self->id == 0)&&(!util::check_collision(a, b))) {
 				if (self->is_place_empty(e->button.x, e->button.y)) {
 					bee::Instance* bee = bee::get_current_room()->add_instance(-1, obj_bee, e->button.x, e->button.y, 0.0);
 					bee->set_mass(1.0);
@@ -185,10 +185,10 @@ void ObjControl::draw(bee::Instance* self) {
 	lt_ambient->queue();
 
 	float t = static_cast<float>(bee::get_ticks())/1000.0f;
-	float a = 180.0f + radtodeg(sin(t));
+	float a = 180.0f + util::radtodeg(sin(t));
 	mesh_monkey->draw(glm::vec3(1000.0f+500.0f*cos(t), 500.0f+300.0f*sin(t), 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, a, 180.0f), {255, 255, 0, 255}, false);
 
-	_p("text_fps") = font_liberation->draw(static_cast<bee::TextData*>(_p("text_fps")), 0, 0, "FPS: " + bee_itos(bee::engine->fps_stable));
+	_p("text_fps") = font_liberation->draw(static_cast<bee::TextData*>(_p("text_fps")), 0, 0, "FPS: " + std::to_string(bee::engine->fps_stable));
 }
 void ObjControl::room_start(bee::Instance* self) {
 	bee::ParticleSystem* part_system = static_cast<bee::ParticleSystem*>(_p("part_system"));

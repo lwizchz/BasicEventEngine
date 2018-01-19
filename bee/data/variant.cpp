@@ -209,15 +209,15 @@ namespace bee {
 			} else if ((ns[0] == '[')&&(ns[ns.length()-1] == ']')) { // Array
 				type = E_DATA_TYPE::VECTOR;
 				new (&v) std::vector<Variant>;
-				vector_deserialize(ns, &v);
+				util::vector_deserialize(ns, &v);
 			} else if ((ns[0] == '{')&&(ns[ns.length()-1] == '}')) { // Map
 				type = E_DATA_TYPE::MAP;
 				new (&m) std::map<Variant,Variant>;
-				map_deserialize(ns, &m);
-			} else if (is_str_integer(ns)) { // Integer
+				util::map_deserialize(ns, &m);
+			} else if (util::string::is_integer(ns)) { // Integer
 				type = E_DATA_TYPE::INT;
 				i = std::stoi(ns);
-			} else if (is_str_floating(ns)) { // Double
+			} else if (util::string::is_floating(ns)) { // Double
 				type = E_DATA_TYPE::DOUBLE;
 				d = std::stod(ns);
 			} else if ((ns == "true")||(ns == "false")) { // Boolean
@@ -264,13 +264,13 @@ namespace bee {
 				return s;
 			}
 			case E_DATA_TYPE::VECTOR: {
-				return vector_serialize(v, false);
+				return util::vector_serialize(v, false);
 			}
 			case E_DATA_TYPE::MAP: {
-				return map_serialize(m, false);
+				return util::map_serialize(m, false);
 			}
 			case E_DATA_TYPE::SERIAL: {
-				return vector_serialize(sd.get(), false);
+				return util::vector_serialize(sd.get(), false);
 			}
 			default: {
 				throw std::runtime_error("Error: Attempt to stringify Variant of invalid type");

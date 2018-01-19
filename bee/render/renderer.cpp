@@ -81,7 +81,7 @@ namespace bee {
 
 		context = SDL_GL_CreateContext(window);
 		if (context == nullptr) {
-			messenger::send({"engine", "renderer"}, E_MESSAGE::ERROR, "Couldn't create OpenGL context: " + get_sdl_error() + "\n");
+			messenger::send({"engine", "renderer"}, E_MESSAGE::ERROR, "Couldn't create OpenGL context: " + util::get_sdl_error() + "\n");
 			return 1; // Return 1 when the OpenGL context could not be created
 		}
 
@@ -103,13 +103,13 @@ namespace bee {
 		const std::string vs_fn_default = "bee/resources/shaders/default.vertex.glsl";
 		const std::string vs_fn_user = "resources/vertex.glsl";
 		std::string vs_fn (vs_fn_default);
-		if (file_exists(vs_fn_user)) {
+		if (util::file_exists(vs_fn_user)) {
 			vs_fn = vs_fn_user;
 		}
 		const std::string gs_fn_default = "bee/resources/shaders/default.geometry.glsl";
 		const std::string gs_fn_user = "resources/geometry.glsl";
 		std::string gs_fn (gs_fn_default);
-		if (file_exists(gs_fn_user)) {
+		if (util::file_exists(gs_fn_user)) {
 			gs_fn = gs_fn_user;
 		}
 		const std::string fs_fn_default = "bee/resources/shaders/default.fragment.glsl";
@@ -119,11 +119,11 @@ namespace bee {
 		std::string fs_fn (fs_fn_default);
 		if (get_options().is_basic_shaders_enabled == true) {
 			fs_fn = fs_fn_basic_default;
-			if (file_exists(fs_fn_basic_user)) {
+			if (util::file_exists(fs_fn_basic_user)) {
 				fs_fn = fs_fn_basic_user;
 			}
 		} else {
-			if (file_exists(fs_fn_user)) {
+			if (util::file_exists(fs_fn_user)) {
 				fs_fn = fs_fn_user;
 			}
 		}
@@ -160,19 +160,19 @@ namespace bee {
 		program->add_uniform("is_lightable", false);
 		program->add_uniform("light_amount", false);
 		for (size_t i=0; i<BEE_MAX_LIGHTS; i++) {
-			program->add_uniform("lighting[" + bee_itos(i) + "].type", false);
-			program->add_uniform("lighting[" + bee_itos(i) + "].position", false);
-			program->add_uniform("lighting[" + bee_itos(i) + "].direction", false);
-			program->add_uniform("lighting[" + bee_itos(i) + "].attenuation", false);
-			program->add_uniform("lighting[" + bee_itos(i) + "].color", false);
+			program->add_uniform("lighting[" + std::to_string(i) + "].type", false);
+			program->add_uniform("lighting[" + std::to_string(i) + "].position", false);
+			program->add_uniform("lighting[" + std::to_string(i) + "].direction", false);
+			program->add_uniform("lighting[" + std::to_string(i) + "].attenuation", false);
+			program->add_uniform("lighting[" + std::to_string(i) + "].color", false);
 		}
 
 		program->add_uniform("lightable_amount", false);
 		for (size_t i=0; i<BEE_MAX_LIGHTABLES; i++) {
-			program->add_uniform("lightable[" + bee_itos(i) + "].position", false);
-			program->add_uniform("lightable[" + bee_itos(i) + "].vertex_amount", false);
+			program->add_uniform("lightable[" + std::to_string(i) + "].position", false);
+			program->add_uniform("lightable[" + std::to_string(i) + "].vertex_amount", false);
 			for (size_t j=0; j<BEE_MAX_MASK_VERTICES; j++) {
-				program->add_uniform("lightable[" + bee_itos(i) + "].mask[" + bee_itos(j) + "]", false);
+				program->add_uniform("lightable[" + std::to_string(i) + "].mask[" + std::to_string(j) + "]", false);
 			}
 		}
 
@@ -200,7 +200,7 @@ namespace bee {
 		) {
 			messenger::send({"engine", "renderer"}, E_MESSAGE::INFO, "Now rendering with OpenGL 3.3");
 		} else {
-			messenger::send({"engine", "renderer"}, E_MESSAGE::INFO, "Now rendering with OpenGL " + bee_itos(va) + "." + bee_itos(vi));
+			messenger::send({"engine", "renderer"}, E_MESSAGE::INFO, "Now rendering with OpenGL " + std::to_string(va) + "." + std::to_string(vi));
 		}
 
 		projection_cache = new glm::mat4(1.0f);
@@ -247,7 +247,7 @@ namespace bee {
 
 		sdl_renderer = SDL_CreateRenderer(window, -1, renderer_flags);
 		if (sdl_renderer == nullptr) {
-			messenger::send({"engine", "renderer"}, E_MESSAGE::ERROR, "Couldn't create SDL renderer: " + get_sdl_error());
+			messenger::send({"engine", "renderer"}, E_MESSAGE::ERROR, "Couldn't create SDL renderer: " + util::get_sdl_error());
 			return 1; // Return 1 when the SDL renderer could not be created
 		}
 

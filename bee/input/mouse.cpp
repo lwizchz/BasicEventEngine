@@ -120,14 +120,9 @@ namespace bee { namespace mouse {
 	* @returns whether the mouse collides with the instance's bounding box
 	*/
 	bool is_inside(const Instance* instance) {
-		Texture* m = instance->get_object()->get_mask();
-		if (m == nullptr) {
-			return false;
-		}
-
-		SDL_Rect inst = {static_cast<int>(instance->get_x()), static_cast<int>(instance->get_y()), m->get_width(), m->get_height()}; // Create a bounding box based on the instance's mask
+		SDL_Rect inst = instance->get_aabb();
 		SDL_Rect mouse = {get_pos().first, get_pos().second, 1, 1};
-		return check_collision(inst, mouse); // Return whether the instance collides with the mouse
+		return util::check_collision(inst, mouse); // Return whether the instance collides with the mouse
 	}
 
 	/**

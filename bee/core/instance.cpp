@@ -176,7 +176,7 @@ namespace bee {
 
 		std::string b = body->serialize(should_pretty_print);
 		if (should_pretty_print) {
-			b = debug_indent(b, 1);
+			b = util::debug_indent(b, 1);
 		}
 		instance_info["body"] = b;
 
@@ -197,7 +197,7 @@ namespace bee {
 		instance_info["path_previous_mass"] = path_previous_mass;
 		instance_info["path_pos_start"] = {Variant(path_pos_start.x()), Variant(path_pos_start.y()), Variant(path_pos_start.z())};
 
-		return map_serialize(instance_info, should_pretty_print);
+		return util::map_serialize(instance_info, should_pretty_print);
 	}
 	std::string Instance::serialize() const {
 		return serialize(false);
@@ -243,7 +243,7 @@ namespace bee {
 	}
 	int Instance::deserialize(const std::string& instance_info, Object* _object) {
 		std::map<Variant,Variant> m;
-		if (map_deserialize(instance_info, &m)) {
+		if (util::map_deserialize(instance_info, &m)) {
 			messenger::send({"engine", "instance"}, E_MESSAGE::WARNING, "Failed to deserialize instance");
 			return 1;
 		}
@@ -513,25 +513,25 @@ namespace bee {
 		return move(btScalar(magnitude)*direction);
 	}
 	int Instance::move(double magnitude, double direction) {
-		direction = absolute_angle(direction);
+		direction = util::absolute_angle(direction);
 		return move(magnitude, btVector3(
-			btScalar(cos(degtorad(direction))),
-			btScalar(-sin(degtorad(direction))),
+			btScalar(cos(util::degtorad(direction))),
+			btScalar(-sin(util::degtorad(direction))),
 			btScalar(0.0)
 		));
 	}
 	int Instance::move_to(double magnitude, double other_x, double other_y, double other_z) {
-		if (distance(get_x(), get_y(), get_z(), other_x, other_y, other_z) < magnitude) {
+		if (util::distance(get_x(), get_y(), get_z(), other_x, other_y, other_z) < magnitude) {
 			return 1;
 		}
-		move(magnitude, direction_of(get_x(), get_y(), get_z(), other_x, other_y, other_z));
+		move(magnitude, util::direction_of(get_x(), get_y(), get_z(), other_x, other_y, other_z));
 		return 0;
 	}
 	int Instance::move_to(double magnitude, double other_x, double other_y) {
 		return move_to(magnitude, other_x, other_y, 0.0);
 	}
 	int Instance::move_away(double magnitude, double other_x, double other_y, double other_z) {
-		move(magnitude, direction_of(other_x, other_y, other_z, get_x(), get_y(), get_z()));
+		move(magnitude, util::direction_of(other_x, other_y, other_z, get_x(), get_y(), get_z()));
 		return 0;
 	}
 	int Instance::move_away(double magnitude, double other_x, double other_y) {
@@ -551,33 +551,6 @@ namespace bee {
 			btScalar(gy),
 			btScalar(gz)
 		));
-	}
-	int Instance::move_outside(btVector3 dir) {
-		/*double dist = distance(l.x1, l.y1, l.x2, l.y2);
-		double dir = direction_of(l.x1, l.y1, l.x2, l.y2);
-		x = l.x1;
-		y = l.y1;
-
-		int max_attempts = 10;
-		double delta = 1.0/((double)max_attempts);
-		int attempts = 0;
-
-		mask.x = x; mask.y = y;
-		while ((check_collision_polygon(mask, m))&&(attempts++ < max_attempts)) {
-			x += cos(degtorad(dir)) * delta*dist * get_delta();
-			y += -sin(degtorad(dir)) * delta*dist * get_delta();
-			mask.x = x;
-			mask.y = y;
-		}
-
-		if (check_collision_polygon(mask, m)) {
-			x -= cos(degtorad(dir)) * delta*dist * get_delta();
-			y -= -sin(degtorad(dir)) * delta*dist * get_delta();
-			mask.x = x;
-			mask.y = y;
-		}*/
-
-		return 1;
 	}
 	int Instance::set_is_solid(bool _is_solid) {
 		is_solid = _is_solid;
@@ -599,10 +572,10 @@ namespace bee {
 			direction -= 180.0;
 			magnitude = fabs(magnitude);
 		}
-		direction = absolute_angle(direction);
+		direction = util::absolute_angle(direction);
 		return set_velocity(btVector3(
-			btScalar(magnitude*cos(degtorad(direction))),
-			btScalar(magnitude*-sin(degtorad(direction))),
+			btScalar(magnitude*cos(util::degtorad(direction))),
+			btScalar(magnitude*-sin(util::degtorad(direction))),
 			btScalar(0.0)
 		) / btScalar(body->get_scale()));
 	}
@@ -614,17 +587,17 @@ namespace bee {
 			direction -= 180.0;
 			magnitude = fabs(magnitude);
 		}
-		direction = absolute_angle(direction);
+		direction = util::absolute_angle(direction);
 		return set_velocity(get_velocity() + btVector3(
-			btScalar(magnitude*cos(degtorad(direction))),
-			btScalar(magnitude*-sin(degtorad(direction))),
+			btScalar(magnitude*cos(util::degtorad(direction))),
+			btScalar(magnitude*-sin(util::degtorad(direction))),
 			btScalar(0.0)
 		) / btScalar(body->get_scale()));
 	}
 	int Instance::limit_velocity(double limit) {
 		btVector3 v = get_velocity();
 		double speed_sqr = v.length2();
-		if (speed_sqr > sqr(limit)) {
+		if (speed_sqr > util::sqr(limit)) {
 			set_velocity(btScalar(limit) * v.normalize());
 			return 1;
 		}
@@ -633,7 +606,7 @@ namespace bee {
 	int Instance::limit_velocity_x(double x_limit) {
 		btVector3 v = get_velocity();
 		if (abs(v.x()) > x_limit) {
-			v.setX(btScalar(x_limit) * sign(v.x()));
+			v.setX(btScalar(x_limit) * util::sign(v.x()));
 			set_velocity(v);
 			return 1;
 		}
@@ -642,7 +615,7 @@ namespace bee {
 	int Instance::limit_velocity_y(double y_limit) {
 		btVector3 v = get_velocity();
 		if (abs(v.y()) > y_limit) {
-			v.setY(btScalar(y_limit) * sign(v.y()));
+			v.setY(btScalar(y_limit) * util::sign(v.y()));
 			set_velocity(v);
 			return 1;
 		}
@@ -651,7 +624,7 @@ namespace bee {
 	int Instance::limit_velocity_z(double z_limit) {
 		btVector3 v = get_velocity();
 		if (abs(v.z()) > z_limit) {
-			v.setZ(btScalar(z_limit) * sign(v.z()));
+			v.setZ(btScalar(z_limit) * util::sign(v.z()));
 			set_velocity(v);
 			return 1;
 		}
@@ -687,7 +660,7 @@ namespace bee {
 			SDL_Rect other = i.second->get_aabb();
 
 			if (i.second->object->get_is_solid()) {
-				if (check_collision(mask, other)) {
+				if (util::check_collision(mask, other)) {
 					if (object->check_collision_filter(this, i.second)) {
 						if (i.second->object->check_collision_filter(i.second, this)) {
 							return false;
@@ -711,7 +684,7 @@ namespace bee {
 
 			SDL_Rect other = i.second->get_aabb();
 
-			if (check_collision(mask, other)) {
+			if (util::check_collision(mask, other)) {
 				return false;
 			}
 		}
@@ -730,7 +703,7 @@ namespace bee {
 
 			SDL_Rect other_rect = i.second->get_aabb();
 
-			if (check_collision(mask, other_rect)) {
+			if (util::check_collision(mask, other_rect)) {
 				return true;
 			}
 		}
@@ -754,7 +727,7 @@ namespace bee {
 
 			SDL_Rect other_rect = i.second->get_aabb();
 
-			if (check_collision(mask, other_rect)) {
+			if (util::check_collision(mask, other_rect)) {
 				r = true;
 				func(this, i.second);
 			}
@@ -763,8 +736,8 @@ namespace bee {
 		return r;
 	}
 	bool Instance::is_move_free(double magnitude, double direction) {
-		double dx = cos(degtorad(direction)) * magnitude;
-		double dy = -sin(degtorad(direction)) * magnitude;
+		double dx = cos(util::degtorad(direction)) * magnitude;
+		double dy = -sin(util::degtorad(direction)) * magnitude;
 		return is_place_free(
 			static_cast<int>(get_x()+dx),
 			static_cast<int>(get_y()+dy)
@@ -809,8 +782,8 @@ namespace bee {
 		return get_snapped(get_sprite()->get_width(), get_sprite()->get_height());
 	}
 	int Instance::move_random(int hsnap, int vsnap) {
-		double rx = random(get_current_room()->get_width());
-		double ry = random(get_current_room()->get_height());
+		double rx = util::random::get(get_current_room()->get_width());
+		double ry = util::random::get(get_current_room()->get_height());
 
 		set_position(rx, ry, get_z());
 
@@ -858,7 +831,7 @@ namespace bee {
 	}
 
 	double Instance::get_distance(int dx, int dy, int dz) const {
-		return distance(get_x(), get_y(), get_z(), dx, dy, dz);
+		return util::distance(get_x(), get_y(), get_z(), dx, dy, dz);
 	}
 	double Instance::get_distance(Instance* other) const {
 		return get_position().distance(other->get_position());
@@ -876,17 +849,17 @@ namespace bee {
 		return shortest_distance;
 	}
 	double Instance::get_direction_of(int dx, int dy) const {
-		return direction_of(get_x(), get_y(), dx, dy);
+		return util::direction_of(get_x(), get_y(), dx, dy);
 	}
 	double Instance::get_direction_of(Instance* other) const {
-		return direction_of(get_x(), get_y(), other->get_x(), other->get_y());
+		return util::direction_of(get_x(), get_y(), other->get_x(), other->get_y());
 	}
 	double Instance::get_direction_of(Object* other) const {
 		double shortest_distance = 0.0, current_distance = 0.0;
 		Instance* closest_instance = nullptr;
 		for (auto& i : get_current_room()->get_instances()) {
 			if (i.second->object->get_id() == other->get_id()) {
-				current_distance = distance(get_x(), get_y(), i.second->get_x(), i.second->get_y());
+				current_distance = util::distance(get_x(), get_y(), i.second->get_x(), i.second->get_y());
 				if (current_distance < shortest_distance) {
 					shortest_distance = current_distance;
 					closest_instance = i.second;
@@ -895,7 +868,7 @@ namespace bee {
 		}
 
 		if (closest_instance != nullptr) {
-			return direction_of(get_x(), get_y(), closest_instance->get_x(), closest_instance->get_y());
+			return util::direction_of(get_x(), get_y(), closest_instance->get_x(), closest_instance->get_y());
 		}
 		return 0.0;
 	}
@@ -967,7 +940,7 @@ namespace bee {
 				if (path_current_node+1 < static_cast<int>(path->get_coordinate_list().size())) {
 					path_coord_t c = path->get_coordinate_list().at(path_current_node+1);
 					if (
-						distance(
+						util::distance(
 							get_x(), get_y(), get_z(),
 							path_pos_start.x()+std::get<0>(c), path_pos_start.y()+std::get<1>(c), path_pos_start.z()+std::get<2>(c)
 						) < std::get<3>(c)*path_speed
@@ -978,7 +951,7 @@ namespace bee {
 			} else {
 				path_coord_t c = path->get_coordinate_list().at(path_current_node);
 				if (
-					distance(
+					util::distance(
 						get_x(), get_y(), get_z(),
 						path_pos_start.x()+std::get<0>(c), path_pos_start.y()+std::get<1>(c), path_pos_start.z()+std::get<2>(c)
 					) < std::get<3>(c)*-path_speed

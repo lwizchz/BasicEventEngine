@@ -240,7 +240,7 @@ namespace bee {
 		// Generate a string for the current number of channels
 		std::string channels;
 		for (auto& c : current_channels) {
-			channels.append(bee_itos(c));
+			channels.append(std::to_string(c));
 			channels.append(", ");
 		}
 		if (!channels.empty()) {

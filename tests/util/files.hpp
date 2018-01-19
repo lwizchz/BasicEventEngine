@@ -16,24 +16,30 @@
 TEST_SUITE_BEGIN("util");
 
 TEST_CASE("files") {
-	std::string tmpdir = directory_get_temp();
+	std::string tmpdir = util::directory_get_temp();
 	REQUIRE(tmpdir != "");
-	REQUIRE(directory_exists(tmpdir) == true);
-	REQUIRE(directory_create(tmpdir+"log/") == 0);
-	REQUIRE(file_put_contents(tmpdir+"test.txt", tmpdir) == tmpdir.size());
-	REQUIRE(file_get_contents(tmpdir+"test.txt") == tmpdir);
-	REQUIRE(file_rename(tmpdir+"test.txt", tmpdir+"log/test.txt") == 0);
-	REQUIRE(file_copy(tmpdir+"log/test.txt", tmpdir+"test.txt") == 0);
-	REQUIRE(file_exists(tmpdir+"log/test.txt") == true);
-	REQUIRE(file_delete(tmpdir+"log/test.txt") == 0);
-	REQUIRE(file_delete(tmpdir+"log/") == 0);
-	REQUIRE(file_delete(tmpdir+"test.txt") == 0);
-	REQUIRE(file_delete(tmpdir) == 0);
+	REQUIRE(util::directory_exists(tmpdir) == true);
+	REQUIRE(util::directory_create(tmpdir+"log/") == 0);
+	REQUIRE(util::file_put_contents(tmpdir+"test.txt", tmpdir) == tmpdir.size());
+	REQUIRE(util::file_get_contents(tmpdir+"test.txt") == tmpdir);
+	REQUIRE(util::file_rename(tmpdir+"test.txt", tmpdir+"log/test.txt") == 0);
+	REQUIRE(util::file_copy(tmpdir+"log/test.txt", tmpdir+"test.txt") == 0);
+	REQUIRE(util::file_exists(tmpdir+"log/test.txt") == true);
+	REQUIRE(util::file_delete(tmpdir+"log/test.txt") == 0);
+	REQUIRE(util::file_delete(tmpdir+"log/") == 0);
+	REQUIRE(util::file_delete(tmpdir+"test.txt") == 0);
+	REQUIRE(util::file_delete(tmpdir) == 0);
 
-	REQUIRE(file_basename(tmpdir+"log/test.txt") == "test.txt");
-	REQUIRE(file_dirname(tmpdir+"log/test.txt") == tmpdir+"log/");
-	REQUIRE(file_plainname(tmpdir+"log/test.txt") == tmpdir+"log/test");
-	REQUIRE(file_extname(tmpdir+"log/test.txt") == ".txt");
+	REQUIRE(util::file_basename(tmpdir+"log/test.txt") == "test.txt");
+	REQUIRE(util::file_dirname(tmpdir+"log/test.txt") == tmpdir+"log");
+	REQUIRE(util::file_plainname(tmpdir+"log/test.txt") == tmpdir+"log/test");
+	REQUIRE(util::file_extname(tmpdir+"log/test.txt") == ".txt");
+
+	REQUIRE(util::file_basename("test.txt") == "test.txt");
+	REQUIRE(util::file_basename("/tmp/log/") == "");
+	REQUIRE(util::file_dirname("test.txt") == ".");
+	REQUIRE(util::file_plainname("/tmp/test") == "/tmp/test");
+	REQUIRE(util::file_extname("test") == "");
 }
 
 TEST_SUITE_END();

@@ -13,17 +13,19 @@
 
 #include <string> // Include the required library headers
 #include <vector>
-#include <algorithm>
 #include <sstream>
 #include <map>
-#include <iostream>
 
 #include "../string.hpp"
 
-/*
-* vector_serialize() - Convert a vector into a serialized string
-* @v: the vector to serialize
-* @should_pretty_print: whether the vector shold be printed in a human readable format
+namespace util {
+
+/**
+* Convert a vector into a serialized string.
+* @param v the vector to serialize
+* @param should_pretty_print whether the vector shold be printed in a human readable format
+*
+* @returns the serialized string
 */
 template <typename A>
 std::string vector_serialize(const std::vector<A>& v, bool should_pretty_print) {
@@ -36,28 +38,31 @@ std::string vector_serialize(const std::vector<A>& v, bool should_pretty_print) 
 		pp_newline.clear();
 	}
 
-	std::stringstream s;
-	s << "[" << pp_newline;
+	std::ostringstream ss;
+	ss << "[" << pp_newline;
 
 	size_t i = 0;
 	for (auto& e : v) {
-		s << pp_indent << e;
+		ss << pp_indent << e;
 
 		if (i < v.size()-1) {
-			s << pp_field_sep;
+			ss << pp_field_sep;
 		}
-		s << pp_newline;
+		ss << pp_newline;
 		++i;
 	}
 
-	s << "]";
+	ss << "]";
 
-	return s.str();
+	return ss.str();
 }
-/*
-* vector_deserialize() - Convert a serialized string into a vector
-* @s: the string to deserialize
-* @v: the vector to store the data in
+/**
+* Convert a serialized string into a vector.
+* @param s the string to deserialize
+* @param v the vector to store the data in
+*
+* @retval 0 success
+* @retval 1 invalid input string
 */
 template <typename A>
 int vector_deserialize(const std::string& s, std::vector<A>* v) {
@@ -79,10 +84,12 @@ int vector_deserialize(const std::string& s, std::vector<A>* v) {
 	return 0;
 }
 
-/*
-* map_serialize() - Convert a map into a serialized string
-* @m: the map to serialize
-* @should_pretty_print: whether the map should be printed in a human readable format
+/**
+* Convert a map into a serialized string.
+* @param m the map to serialize
+* @param should_pretty_print whether the map should be printed in a human readable format
+*
+* @returns the serialized string
 */
 template <typename A, typename B>
 std::string map_serialize(const std::map<A,B>& m, bool should_pretty_print) {
@@ -97,28 +104,31 @@ std::string map_serialize(const std::map<A,B>& m, bool should_pretty_print) {
 		pp_newline.clear();
 	}
 
-	std::stringstream s;
-	s << "{" << pp_newline;
+	std::ostringstream ss;
+	ss << "{" << pp_newline;
 
 	size_t i = 0;
 	for (auto& e : m) {
-		s << pp_indent << e.first << pp_set << e.second;
+		ss << pp_indent << e.first << pp_set << e.second;
 
 		if (i < m.size()-1) {
-			s << pp_field_sep;
+			ss << pp_field_sep;
 		}
-		s << pp_newline;
+		ss << pp_newline;
 		++i;
 	}
 
-	s << "}";
+	ss << "}";
 
-	return s.str();
+	return ss.str();
 }
-/*
-* map_deserialize() - Convert a serialized string into a map
-* @s: the string to deserialize
-* @m: the map to store the data in
+/**
+* Convert a serialized string into a map.
+* @param s the string to deserialize
+* @param m the map to store the data in
+*
+* @retval 0 success
+* @retval 1 invalid input string
 */
 template <typename A, typename B>
 int map_deserialize(const std::string& s, std::map<A,B>* m) {
@@ -161,6 +171,8 @@ std::ostream& operator<<(std::ostream& os, const std::map<A,B>& m)
 {
 	os << map_serialize(m, true);
 	return os;
+}
+
 }
 
 #endif // BEE_UTIL_TEMPLATE_STRING_H

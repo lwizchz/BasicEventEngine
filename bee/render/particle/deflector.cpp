@@ -67,8 +67,8 @@ namespace bee {
 
 		SDL_Rect a = pd->get_rect();
 		SDL_Rect b = {static_cast<int>(dx+x), static_cast<int>(dy+y), static_cast<int>(w), static_cast<int>(h)};
-		if (check_collision(a, b)) {
-			double dir = direction_of(old_px, old_py, pd->x, pd->y);
+		if (util::check_collision(a, b)) {
+			double dir = util::direction_of(old_px, old_py, pd->x, pd->y);
 			pd->set_velocity(pd->velocity.first * friction * -1, dir);
 		}
 

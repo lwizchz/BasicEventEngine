@@ -6,6 +6,8 @@
 * See LICENSE for more details.
 */
 
+#include <iostream>
+
 #include "engine.hpp"
 
 #include "init/gameoptions.hpp"

@@ -164,10 +164,22 @@ namespace bee { namespace render {
 
 		glm::mat4 projection = glm::mat4(1.0f);
 		if (engine->renderer->render_is_3d) {
-			projection = glm::perspective(static_cast<float>(degtorad(engine->renderer->render_camera->fov)), engine->renderer->render_camera->width/engine->renderer->render_camera->height, engine->renderer->render_camera->z_near, engine->renderer->render_camera->z_far);
-			projection *= glm::lookAt(engine->renderer->render_camera->position, engine->renderer->render_camera->position+engine->renderer->render_camera->direction, engine->renderer->render_camera->orientation);
+			projection = glm::perspective(
+				static_cast<float>(util::degtorad(engine->renderer->render_camera->fov)),
+				engine->renderer->render_camera->width/engine->renderer->render_camera->height,
+				engine->renderer->render_camera->z_near, engine->renderer->render_camera->z_far
+			);
+			projection *= glm::lookAt(
+				engine->renderer->render_camera->position,
+				engine->renderer->render_camera->position+engine->renderer->render_camera->direction,
+				engine->renderer->render_camera->orientation
+			);
 		} else {
-			projection = glm::ortho(0.0f, engine->renderer->render_camera->width, engine->renderer->render_camera->height, 0.0f, 0.0f, engine->renderer->render_camera->z_far);
+			projection = glm::ortho(
+				0.0f, engine->renderer->render_camera->width,
+				engine->renderer->render_camera->height, 0.0f,
+				0.0f, engine->renderer->render_camera->z_far
+			);
 		}
 
 		if (engine->renderer->projection_cache == nullptr) {

@@ -443,13 +443,13 @@ namespace bee {
 		// This is not included in the above transformation matrix because it is faster to rotate everything in the geometry shader
 		glm::mat4 rotation = glm::mat4(1.0f);
 		if (rotate.x != 0.0) { // Rotate around the x-axis if necessary
-			rotation = glm::rotate(rotation, static_cast<float>(degtorad(rotate.x)), glm::vec3(1.0f, 0.0f, 0.0f));
+			rotation = glm::rotate(rotation, static_cast<float>(util::degtorad(rotate.x)), glm::vec3(1.0f, 0.0f, 0.0f));
 		}
 		if (rotate.y != 0.0) { // Rotate around the y-axis if necessary
-			rotation = glm::rotate(rotation, static_cast<float>(degtorad(rotate.y)), glm::vec3(0.0f, 1.0f, 0.0f));
+			rotation = glm::rotate(rotation, static_cast<float>(util::degtorad(rotate.y)), glm::vec3(0.0f, 1.0f, 0.0f));
 		}
 		if (rotate.z != 0.0) { // Rotate around the z-axis if necessary
-			rotation = glm::rotate(rotation, static_cast<float>(degtorad(rotate.z)), glm::vec3(0.0f, 0.0f, 1.0f));
+			rotation = glm::rotate(rotation, static_cast<float>(util::degtorad(rotate.z)), glm::vec3(0.0f, 0.0f, 1.0f));
 		}
 		glUniformMatrix4fv(render::get_program()->get_location("rotation"), 1, GL_FALSE, glm::value_ptr(rotation)); // Send the rotation matrix to the shader
 

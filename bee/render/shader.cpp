@@ -45,7 +45,7 @@ namespace bee {
 
 	int Shader::compile() {
 		shader = glCreateShader(type);
-		std::string sh = file_get_contents(filename);
+		std::string sh = util::file_get_contents(filename);
 		sh = render::opengl_prepend_version(sh);
 		const GLchar* shader_source[] = {sh.c_str()};
 		glShaderSource(shader, 1, shader_source, nullptr);
@@ -57,8 +57,8 @@ namespace bee {
 		if (is_shader_compiled != GL_TRUE) {
 			glDeleteShader(shader);
 			messenger::send({"engine", "renderer"}, E_MESSAGE::ERROR,
-				"Couldn't compile OpenGL shader: " + bee_itos(shader) + "\n"
-				+ get_shader_error(shader)
+				"Couldn't compile OpenGL shader: " + std::to_string(shader) + "\n"
+				+ util::get_shader_error(shader)
 			);
 			shader = -1;
 			return 1; // Return 1 when the shader could not be compiled
@@ -110,8 +110,8 @@ namespace bee {
 			delete_shaders();
 
 			messenger::send({"engine", "renderer"}, E_MESSAGE::ERROR,
-				"Couldn't link OpenGL program: " + bee_itos(program) + "\n"
-				+ get_program_error(program)
+				"Couldn't link OpenGL program: " + std::to_string(program) + "\n"
+				+ util::get_program_error(program)
 			);
 
 			return 1; // Return 1 when the program could not be linked

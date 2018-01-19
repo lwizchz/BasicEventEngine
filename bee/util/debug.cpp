@@ -15,48 +15,54 @@
 
 #include "debug.hpp" // Include the function declarations
 
-/*
-* debug_indent() - Format the given string with a certain amount of indentation and a delimiter prepended to each line
-* @input: the string to format
-* @amount: the amount of tabs '\t' to prepend
-* @delimiter: the string to prepend each line with
+namespace util {
+
+/**
+* Format the given string with a certain amount of indentation and a delimiter prepended to each line.
+* @param input the string to format
+* @param amount the amount of tabs '\t' to prepend
+* @param delimiter the string to prepend each line with
+*
+* @returns the formatted string
 */
 std::string debug_indent(const std::string& input, int amount, const std::string& delimiter) {
-	if (!input.empty()) { // if the given string contains text
-		//input.pop_back(); // Remove the last character which should be a newline '\n'
-
-		std::istringstream input_stream (input); // Create a stream from the string to allow line-by-line modification
-		std::string output; // Declare the return string
-
-		while (!input_stream.eof()) { // Continue as long as the stream has not reached the end
-			std::string tmp;
-			getline(input_stream, tmp); // Get the next line of the stream
-
-			tmp.append("\n"); // Re-add each newline which is removed in getline()
-
-			// Append the delimiter, a tab '\t', and the line to the return string
-			output.append(delimiter);
-			output.append(amount, '\t');
-			output.append(tmp);
-		}
-
-		return output; // Return the indented string
+	if (input.empty()) {
+		return "\n";
 	}
-	return "\n"; // Return a newline when the given string is empty
+
+	std::istringstream input_stream (input); // Create a stream from the string to allow line-by-line modification
+	std::string output; // Declare the return string
+
+	while (!input_stream.eof()) { // Continue as long as the stream has not reached the end
+		std::string tmp;
+		getline(input_stream, tmp); // Get the next line of the stream
+
+		tmp.append("\n"); // Re-add each newline which is removed in getline()
+
+		// Append the delimiter, a tab '\t', and the line to the return string
+		output.append(delimiter);
+		output.append(amount, '\t');
+		output.append(tmp);
+	}
+
+	return output;
 }
-/*
-* debug_indent() - Format the given string with a certain amount of indentation and a delimiter prepended to each line
-* ! When the function is called without a delimiter, simply call it with an empty delimiter
-* @input: the string to format
-* @amount: the amount of tabs '\t' to prepend
+/**
+* Format the given string with a certain amount of indentation and a delimiter prepended to each line.
+* @note If the function is called without a delimiter, then let it be an empty string.
+* @param input the string to format
+* @param amount the amount of tabs '\t' to prepend
+*
+* @returns the formatted string
 */
 std::string debug_indent(const std::string& input, int amount) {
 	return debug_indent(input, amount, "");
 }
 
-/*
-* get_shader_error() - Return the error string from when an OpenGL shader fails to compile
-* @shader: the OpenGL index of the given shader
+/**
+* @param shader the OpenGL index of the given shader
+*
+* @returns the error string from when an OpenGL shader fails to compile
 */
 std::string get_shader_error(GLuint shader) {
 	int length = 0;
@@ -70,11 +76,12 @@ std::string get_shader_error(GLuint shader) {
 	std::string s (log); // Convert the char array into a string in order to return it more easily
 	delete[] log; // Free the memory of the char array
 
-	return s; // Return the error string
+	return s;
 }
-/*
-* get_program_error() - Return the error string from when an OpenGL program fails to link
-* @program: the OpenGL index of the given program
+/**
+* @param program the OpenGL index of the given program
+*
+* @returns the error string from when an OpenGL program fails to link
 */
 std::string get_program_error(GLuint program) {
 	int length = 0;
@@ -88,14 +95,16 @@ std::string get_program_error(GLuint program) {
 	std::string s (log); // Convert the char array into a string in order to return it more easily
 	delete[] log; // Free the memory of the char array
 
-	return s; // Return the error string
+	return s;
 }
 
-/*
-* get_sdl_error() - Return the SDL error string as a C++ string
+/**
+* @returns the SDL error string as a C++ string
 */
 std::string get_sdl_error() {
 	return std::string(SDL_GetError());
+}
+
 }
 
 #endif // BEE_DEBUG

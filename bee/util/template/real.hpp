@@ -15,25 +15,27 @@
 
 #include "../real.hpp"
 
-/*
-* choose() - Return a random value from the given arguments
-* @args: the arguments to choose from
+namespace util {
+
+/**
+* @param args the arguments to choose from
+* @returns a random value from the given arguments
 */
 template <typename T>
 T choose(std::initializer_list<T> args) {
-	size_t index = random(args.size());
+	size_t index = random::get(args.size());
 	size_t i = 0;
 	for (auto& e : args) {
 		if (i == index) {
 			return e;
 		}
 	}
-	return *args.begin();
+	return *(args.begin());
 }
 
-/*
-* mean() - Return the mean average of the given arguments
-* @args: the arguments to evaluate
+/**
+* @param args the arguments to evaluate
+* @returns the mean average of the given arguments
 */
 template <typename T>
 T mean(std::initializer_list<T> args) {
@@ -43,9 +45,9 @@ T mean(std::initializer_list<T> args) {
 	}
 	return sum/args.size();
 }
-/*
-* median() - Return the median average of the given arguments
-* @args: the arguments to evaluate
+/**
+* @param args the arguments to evaluate
+* @returns the median average of the given arguments
 */
 template <typename T>
 T median(std::initializer_list<T> args) {
@@ -58,6 +60,8 @@ T median(std::initializer_list<T> args) {
 	} else {
 		return (arguments[s/2-1] + arguments[s/2])/2;
 	}
+}
+
 }
 
 #endif // BEE_UTIL_TEMPLATE_REAL_H

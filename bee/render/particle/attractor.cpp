@@ -70,8 +70,8 @@ namespace bee {
 		int ax = static_cast<int>(get_following_x(system_x));
 		int ay = static_cast<int>(get_following_y(system_y));
 
-		double ds = dist_sqr(pd->x, pd->y, ax+x+w/2, ay+y+h/2);
-		if (ds < sqr(max_distance)) {
+		double ds = util::dist_sqr(pd->x, pd->y, ax+x+w/2, ay+y+h/2);
+		if (ds < util::sqr(max_distance)) {
 			double f = 0.0;
 			switch (force_type) {
 				case E_PS_FORCE::CONSTANT: {
@@ -80,16 +80,16 @@ namespace bee {
 				}
 				case E_PS_FORCE::LINEAR:
 				default: {
-					f = force * pd->get_deviation_percent() * (sqr(max_distance) - ds) / sqr(max_distance);
+					f = force * pd->get_deviation_percent() * (util::sqr(max_distance) - ds) / util::sqr(max_distance);
 					break;
 				}
 				case E_PS_FORCE::QUADRATIC: {
-					f = force * pd->get_deviation_percent() * sqr((sqr(max_distance) - ds) / sqr(max_distance));
+					f = force * pd->get_deviation_percent() * util::sqr((util::sqr(max_distance) - ds) / util::sqr(max_distance));
 					break;
 				}
 			}
 
-			pd->set_position(coord_approach(pd->x, pd->y, ax+x+w/2, ay+y+h/2, f, delta));
+			pd->set_position(util::coord_approach(pd->x, pd->y, ax+x+w/2, ay+y+h/2, f, delta));
 		}
 
 		return 0;

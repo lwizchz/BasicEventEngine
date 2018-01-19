@@ -56,6 +56,7 @@ namespace bee {
 	* Script::~Script() - Remove the script from the resouce list
 	*/
 	Script::~Script() {
+		this->free();
 		list.erase(id); // Remove the script from the resource list
 	}
 

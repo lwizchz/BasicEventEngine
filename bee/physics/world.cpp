@@ -174,7 +174,7 @@ namespace bee {
 			}
 
 			if (a > 0) {
-				messenger::send({"engine", "physics"}, E_MESSAGE::WARNING, "Scale change occurred with " + bee_itos(a) + " non-removed objects and constraints, they have been deleted\n");
+				messenger::send({"engine", "physics"}, E_MESSAGE::WARNING, "Scale change occurred with " + std::to_string(a) + " non-removed objects and constraints, they have been deleted\n");
 			}
 		}
 

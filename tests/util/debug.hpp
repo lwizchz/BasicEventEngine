@@ -17,7 +17,7 @@ TEST_SUITE_BEGIN("util");
 
 TEST_CASE("debug") {
 	std::string abc = "a\nb\nc";
-	REQUIRE(debug_indent(abc, 1) == "\ta\n\tb\n\tc\n");
+	REQUIRE(util::debug_indent(abc, 1) == "\ta\n\tb\n\tc\n");
 }
 
 TEST_SUITE_END();

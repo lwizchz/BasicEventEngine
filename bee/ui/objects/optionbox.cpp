@@ -153,7 +153,7 @@ int ObjUIOptionBox::get_option_at(bee::Instance* self, int mx, int my) {
 		return -1;
 	}
 
-	return fit_bounds<int>((my - self->get_corner_y()) / _i("option_height"), 0, _v("options").size()-1);
+	return util::fit_bounds<int>((my - self->get_corner_y()) / _i("option_height"), 0, _v("options").size()-1);
 }
 std::vector<int> ObjUIOptionBox::get_selected_options(bee::Instance* self) {
 	std::vector<int> v;

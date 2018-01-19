@@ -97,7 +97,7 @@ namespace bee { namespace python { namespace internal {
                                 if (PyObject_HasAttrString(value, "__doc__")) {
                                         PyObject* doc (PyObject_GetAttrString(value, "__doc__"));
                                         std::string _doc (PyUnicode_AsUTF8(doc));
-                                        std::cout << debug_indent(_doc, 1);
+                                        std::cout << util::debug_indent(_doc, 1);
                                 }
                         }
                 }
@@ -108,7 +108,7 @@ namespace bee { namespace python { namespace internal {
                 console::clear();
 
                 if (get_options().is_headless) {
-                        bee_commandline_clear();
+                        util::platform::commandline_clear();
                 }
 
                 Py_RETURN_NONE;

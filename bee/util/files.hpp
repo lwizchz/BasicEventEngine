@@ -11,6 +11,8 @@
 
 #include <string> // Include the required library headers
 
+namespace util {
+
 bool file_exists(const std::string&);
 int file_delete(const std::string&);
 int file_rename(const std::string&, const std::string&);
@@ -26,5 +28,7 @@ std::string file_basename(const std::string&);
 std::string file_dirname(const std::string&);
 std::string file_plainname(const std::string&);
 std::string file_extname(const std::string&);
+
+}
 
 #endif // BEE_UTIL_FILES_H

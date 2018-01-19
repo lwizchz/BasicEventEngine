@@ -211,7 +211,7 @@ namespace bee {
 		data[2] = -1;
 		data[3] = -1;
 
-		bool r = verify_checksum(data, checksum);
+		bool r = util::checksum::verify(data, checksum);
 
 		data[0] = checksum >> 24;
 		data[1] = checksum >> 16;
@@ -254,7 +254,7 @@ namespace bee {
 			packet.push_back(e);
 		}
 
-		Uint32 checksum = get_checksum(packet);
+		Uint32 checksum = util::checksum::get(packet);
 		packet[0] = checksum >> 24;
 		packet[1] = checksum >> 16;
 		packet[2] = checksum >> 8;
@@ -313,7 +313,7 @@ namespace bee {
 				p.push_back(d[i-META_SIZE + multi_packet.size()*MAX_SIZE]);
 			}
 
-			Uint32 checksum = get_checksum(p);
+			Uint32 checksum = util::checksum::get(p);
 			p[0] = checksum >> 24;
 			p[1] = checksum >> 16;
 			p[2] = checksum >> 8;
@@ -352,7 +352,7 @@ namespace bee {
 			}
 
 			if (!has_found_data) {
-				messenger::send({"engine", "network"}, E_MESSAGE::ERROR, "Failed to assemble packet sequence: missing piece " + bee_itos(i) + " of " + bee_itos(amount));
+				messenger::send({"engine", "network"}, E_MESSAGE::ERROR, "Failed to assemble packet sequence: missing piece " + std::to_string(i) + " of " + std::to_string(amount));
 				return nullptr;
 			}
 		}
@@ -404,14 +404,14 @@ namespace net {
 		if (packet->get_size() > NetworkPacket::MAX_SIZE) {
 			const std::vector<std::vector<Uint8>>& packets = packet->get_multi();
 			for (auto& p : packets) {
-				network_udp_send(client.sock, client.channel, p.size(), p.data());
+				util::network::udp_send(client.sock, client.channel, p.size(), p.data());
 			}
 			int r = packets.size();
 			packet->free_multi();
 			return r;
 		}
 
-		return network_udp_send(client.sock, client.channel, packet->get_size(), packet->get().data());
+		return util::network::udp_send(client.sock, client.channel, packet->get_size(), packet->get().data());
 	}
 	/*
 	* recv_packet() - Attempt to receive a packet from the UDP socket
@@ -421,12 +421,12 @@ namespace net {
 			return nullptr;
 		}
 
-		connection->udp_data = network_packet_realloc(connection->udp_data, NetworkPacket::MAX_SIZE); // Attempt to allocate more space to receive data
+		connection->udp_data = util::network::packet_realloc(connection->udp_data, NetworkPacket::MAX_SIZE); // Attempt to allocate more space to receive data
 		if (connection->udp_data == nullptr) {
 			return nullptr; // Return nullptr when failed to allocate
 		}
 
-		int r = network_udp_recv(connection->udp_sock, connection->udp_data); // Attempt to receive data over the UDP socket
+		int r = util::network::udp_recv(connection->udp_sock, connection->udp_data); // Attempt to receive data over the UDP socket
 		if (r == 0) {
 			return nullptr; // Return nullptr when there is no message to receive
 		}

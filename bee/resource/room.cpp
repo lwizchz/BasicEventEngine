@@ -320,9 +320,9 @@ namespace bee {
 			s << "\n	background_color            " << static_cast<int>(background_color.r) << ", " << static_cast<int>(background_color.g) << ", " << static_cast<int>(background_color.b);
 		}
 		s <<
-		"\n	backgrounds\n" << debug_indent(background_string, 2) <<
-		"\n	views\n" << debug_indent(view_string, 2) <<
-		"	instances\n" << debug_indent(instance_string, 2) <<
+		"\n	backgrounds\n" << util::debug_indent(background_string, 2) <<
+		"\n	views\n" << util::debug_indent(view_string, 2) <<
+		"	instances\n" << util::debug_indent(instance_string, 2) <<
 		"}\n";
 
 		return s.str();
@@ -366,13 +366,13 @@ namespace bee {
 			for (auto& b : backgrounds) {
 				const TextureTransform& tr = b->transform;
 				table.push_back({
-					b->texture->get_name(), booltostring(b->is_visible), booltostring(b->is_foreground),
-					bee_itos(tr.x), bee_itos(tr.y), booltostring(tr.is_horizontal_tile), booltostring(tr.is_vertical_tile),
-					bee_itos(tr.horizontal_speed), bee_itos(tr.vertical_speed), booltostring(tr.is_stretched)
+					b->texture->get_name(), util::string::frombool(b->is_visible), util::string::frombool(b->is_foreground),
+					std::to_string(tr.x), std::to_string(tr.y), util::string::frombool(tr.is_horizontal_tile), util::string::frombool(tr.is_vertical_tile),
+					std::to_string(tr.horizontal_speed), std::to_string(tr.vertical_speed), util::string::frombool(tr.is_stretched)
 				});
 			}
 
-			return string_tabulate(table);
+			return util::string::tabulate(table);
 		}
 		return "none\n";
 	}
@@ -386,15 +386,15 @@ namespace bee {
 
 			for (auto& v : views) {
 				table.push_back({
-					booltostring(v->is_active),
-					bee_itos(v->view.x), bee_itos(v->view.y),
-					bee_itos(v->view.w), bee_itos(v->view.h),
-					bee_itos(v->port.x), bee_itos(v->port.y),
-					bee_itos(v->port.w), bee_itos(v->port.h)
+					util::string::frombool(v->is_active),
+					std::to_string(v->view.x), std::to_string(v->view.y),
+					std::to_string(v->view.w), std::to_string(v->view.h),
+					std::to_string(v->port.x), std::to_string(v->port.y),
+					std::to_string(v->port.w), std::to_string(v->port.h)
 				});
 			}
 
-			return string_tabulate(table);
+			return util::string::tabulate(table);
 		}
 		return "none\n";
 	}
@@ -408,15 +408,15 @@ namespace bee {
 
 			for (auto& i : instances_sorted) {
 				table.push_back({
-					bee_itos(i.first->id),
+					std::to_string(i.first->id),
 					i.first->get_object()->get_name(),
-					bee_itos(static_cast<int>(i.first->get_x())),
-					bee_itos(static_cast<int>(i.first->get_y())),
-					bee_itos(static_cast<int>(i.first->get_z()))
+					std::to_string(static_cast<int>(i.first->get_x())),
+					std::to_string(static_cast<int>(i.first->get_y())),
+					std::to_string(static_cast<int>(i.first->get_z()))
 				});
 			}
 
-			return string_tabulate(table);
+			return util::string::tabulate(table);
 		}
 		return "none\n";
 	}
@@ -575,7 +575,7 @@ namespace bee {
 			Instance* inst = instances[index];
 
 			if (inst->get_physbody() == nullptr) {
-				messenger::send({"engine", "room"}, E_MESSAGE::WARNING, "Null physbody for " + inst->get_object()->get_name() + ":" + bee_itos(index) + "\n");
+				messenger::send({"engine", "room"}, E_MESSAGE::WARNING, "Null physbody for " + inst->get_object()->get_name() + ":" + std::to_string(index) + "\n");
 			} else {
 				remove_physbody(inst->get_physbody());
 			}
@@ -635,18 +635,18 @@ namespace bee {
 				break;
 			}
 
-			glUniform4fv(render::get_program()->get_location("lightable[" + bee_itos(i) + "].position"), 1, glm::value_ptr(l->position));
+			glUniform4fv(render::get_program()->get_location("lightable[" + std::to_string(i) + "].position"), 1, glm::value_ptr(l->position));
 			int j = 0;
 			for (auto& v : l->mask) {
 				if (j >= BEE_MAX_MASK_VERTICES) {
 					break;
 				}
 
-				glUniform4fv(render::get_program()->get_location("lightable[" + bee_itos(i) + "].mask[" + bee_itos(j) + "]"), 1, glm::value_ptr(v));
+				glUniform4fv(render::get_program()->get_location("lightable[" + std::to_string(i) + "].mask[" + std::to_string(j) + "]"), 1, glm::value_ptr(v));
 
 				j++;
 			}
-			glUniform1i(render::get_program()->get_location("lightable[" + bee_itos(i) + "].vertex_amount"), j);
+			glUniform1i(render::get_program()->get_location("lightable[" + std::to_string(i) + "].vertex_amount"), j);
 
 			i++;
 		}
@@ -661,11 +661,11 @@ namespace bee {
 			glm::vec4 c (l.color.r, l.color.g, l.color.b, l.color.a);
 			c /= 255.0f;
 
-			glUniform1i(render::get_program()->get_location("lighting[" + bee_itos(i) + "].type"), static_cast<int>(l.type));
-			glUniform4fv(render::get_program()->get_location("lighting[" + bee_itos(i) + "].position"), 1, glm::value_ptr(l.position));
-			glUniform4fv(render::get_program()->get_location("lighting[" + bee_itos(i) + "].direction"), 1, glm::value_ptr(l.direction));
-			glUniform4fv(render::get_program()->get_location("lighting[" + bee_itos(i) + "].attenuation"), 1, glm::value_ptr(l.attenuation));
-			glUniform4fv(render::get_program()->get_location("lighting[" + bee_itos(i) + "].color"), 1, glm::value_ptr(c));
+			glUniform1i(render::get_program()->get_location("lighting[" + std::to_string(i) + "].type"), static_cast<int>(l.type));
+			glUniform4fv(render::get_program()->get_location("lighting[" + std::to_string(i) + "].position"), 1, glm::value_ptr(l.position));
+			glUniform4fv(render::get_program()->get_location("lighting[" + std::to_string(i) + "].direction"), 1, glm::value_ptr(l.direction));
+			glUniform4fv(render::get_program()->get_location("lighting[" + std::to_string(i) + "].attenuation"), 1, glm::value_ptr(l.attenuation));
+			glUniform4fv(render::get_program()->get_location("lighting[" + std::to_string(i) + "].color"), 1, glm::value_ptr(c));
 
 			i++;
 		}
@@ -816,7 +816,7 @@ namespace bee {
 			return 0;
 		}
 
-		std::string datastr = file_get_contents(fname);
+		std::string datastr = util::file_get_contents(fname);
 		if (datastr.empty()) {
 			messenger::send({"engine", "room"}, E_MESSAGE::WARNING, "No instances loaded");
 			return 1;
@@ -832,11 +832,11 @@ namespace bee {
 				continue;
 			}
 
-			std::map<int,std::string> p = split(trim(tmp), '\t');
-			std::map<int,std::string> params;
+			std::vector<std::string> p = util::splitv(util::trim(tmp), '\t', true);
+			std::vector<std::string> params;
 			for (auto& e : p) { // Remove empty values
-				if (!e.second.empty()) {
-					params.emplace(params.size(), e.second);
+				if (!e.empty()) {
+					params.push_back(e);
 				}
 			}
 			p.clear();
@@ -926,7 +926,7 @@ namespace bee {
 							continue;
 						}
 
-						std::map<int,std::string> set_params = split(trim(tmp_set), '\t');
+						std::vector<std::string> set_params = util::splitv(util::trim(tmp_set), '\t', true);
 
 						if (set_params[0][0] == '@') {
 							if (set_params[0] == "@sprite") {
@@ -1095,7 +1095,7 @@ namespace bee {
 				i.first->set_position(
 					i.first->get_position()
 					+ btScalar(std::get<3>(c)*abs(i.first->get_path_speed()))
-					* direction_of(
+					* util::direction_of(
 						i.first->get_x(), i.first->get_y(), i.first->get_z(),
 						i.first->path_pos_start.x()+std::get<0>(c), i.first->path_pos_start.y()+std::get<1>(c), i.first->path_pos_start.z()+std::get<2>(c)
 					) * btScalar(get_delta())
@@ -1290,7 +1290,7 @@ namespace bee {
 			if (i.first->get_object()->get_mask() != nullptr) {
 				SDL_Rect a = i.first->get_aabb();
 				SDL_Rect b = {0, 0, get_width(), get_height()};
-				if (!check_collision(a, b)) {
+				if (!util::check_collision(a, b)) {
 					i.first->get_object()->update(i.first);
 					i.first->get_object()->outside_room(i.first);
 				}

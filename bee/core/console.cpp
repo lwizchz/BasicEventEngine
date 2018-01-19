@@ -160,7 +160,7 @@ namespace bee{ namespace console {
 					if (completions.size() > 1) { // If a command is being completed
 						int completion_index = text_entry->get_data("completion_index").i;
 						if (completion_index > 0) { // If a completion command is already selected, lower the index and set the input line to the given command
-							completion_index = fit_bounds(completion_index-1, 0, static_cast<int>(completions.size())-1);
+							completion_index = util::fit_bounds(completion_index-1, 0, static_cast<int>(completions.size())-1);
 							text_entry->set_data("input", *(completions.begin()+completion_index));
 							text_entry->set_data("completion_index", Variant(completion_index));
 						} else { // If the first completion command is selected, reset the input line to the previous user input
@@ -169,7 +169,7 @@ namespace bee{ namespace console {
 						}
 					} else { // If a command is not being completed, cycle through history
 						if (history.size() > 0) { // If there is a history to look up
-							history_index = fit_bounds(history_index+1, 0, static_cast<int>(history.size())-1); // Prevent the index from going past the end
+							history_index = util::fit_bounds(history_index+1, 0, static_cast<int>(history.size())-1); // Prevent the index from going past the end
 							// Replace the command line with the history item
 							text_entry->set_data("input", Variant(*(history.rbegin()+history_index)));
 						}
@@ -184,12 +184,12 @@ namespace bee{ namespace console {
 							text_entry->set_data("input_tmp", Variant(input));
 						}
 						// Raise the index and set the input line to the given command
-						completion_index = fit_bounds(completion_index+1, 0, static_cast<int>(completions.size())-1);
+						completion_index = util::fit_bounds(completion_index+1, 0, static_cast<int>(completions.size())-1);
 						text_entry->set_data("input", Variant(*(completions.begin()+completion_index)));
 						text_entry->set_data("completion_index", Variant(completion_index));
 					} else { // If a command is not being completed, cycle through history
 						if (history_index > 0) { // If the index is in previous history
-							history_index = fit_bounds(history_index-1, 0, static_cast<int>(history.size())-1); // Prevent the index from going past the front
+							history_index = util::fit_bounds(history_index-1, 0, static_cast<int>(history.size())-1); // Prevent the index from going past the front
 							// Replace the command line with the history item
 							text_entry->set_data("input", Variant(*(history.rbegin()+history_index)));
 						} else { // If the index is new history
@@ -267,7 +267,7 @@ namespace bee{ namespace console {
 			// Handle certain key presses in order to manipulate history or the command line
 			switch (e->key.keysym.sym) {
 				case SDLK_PAGEUP: { // The pageup key scrolls backward through the console log
-					if (handle_newlines(log.str()).size()/((rect.h-30)/line_height + 1) > page_index) { // If the page index is lower than the full amount of pages in the log, increment the index
+					if (util::splitv(log.str(), '\n', false).size()/((rect.h-30)/line_height + 1) > page_index) { // If the page index is lower than the full amount of pages in the log, increment the index
 						++page_index;
 					}
 					break;
@@ -310,7 +310,7 @@ namespace bee{ namespace console {
 			}
 
 			if (!get_options().is_headless) {
-				messenger::send({"engine", "console"}, E_MESSAGE::INFO, "> " + trim(command)); // Output the command to the messenger log
+				messenger::send({"engine", "console"}, E_MESSAGE::INFO, "> " + util::trim(command)); // Output the command to the messenger log
 			}
 		}
 		history_index = -1; // Reset the history index
@@ -356,7 +356,7 @@ namespace bee{ namespace console {
 
 		// Remove the top of the console log if it doesn't fit
 		size_t line_amount = input_line_y/line_height+1; // Calculate the total lines that can be stored in the console window
-		std::vector<std::string> lines = splitv(log.str(), '\n', false); // Separate the console log by each newline
+		std::vector<std::string> lines = util::splitv(log.str(), '\n', false); // Separate the console log by each newline
 		size_t total_lines = lines.size(); // Store the total line number for the below page number calculation
 
 		// Split lines if they are wider than the console window
@@ -397,9 +397,9 @@ namespace bee{ namespace console {
 			}
 		}
 
-		std::string short_log = joinv(lines, '\n'); // Create a shorter log from the cropped log
+		std::string short_log = util::joinv(lines, '\n'); // Create a shorter log from the cropped log
 		if ((page_index > 0)&&(lines.size() < line_amount)) { // If the console page has less lines than are renderable (e.g. it's the first page), then prepend extra newlines
-			short_log = string_repeat(line_amount - lines.size() + 1, "\n") + short_log;
+			short_log = util::string::repeat(line_amount - lines.size() + 1, "\n") + short_log;
 		}
 		td_log = engine->font_default->draw(td_log, cx, cy, short_log, {0, 0, 0, 255}); // Draw the console log
 

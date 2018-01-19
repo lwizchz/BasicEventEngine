@@ -75,8 +75,8 @@ namespace bee { namespace net {
 			return 1; // Return 1 if networking is disabled
 		}
 
-		if (network_init()) { // Attempt to initialize networking
-			messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Error initializing network functionality: " + get_sdl_error());
+		if (util::network::init()) { // Attempt to initialize networking
+			messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Error initializing network functionality: " + util::get_sdl_error());
 			return 2; // Return 2 on failure to init
 		}
 
@@ -111,7 +111,7 @@ namespace bee { namespace net {
 
 		session_end();
 
-		network_close(); // Close networking
+		util::network::close(); // Close networking
 		internal::is_initialized = false; // Mark the network as not ready
 
 		return 0; // Return 0 on success
@@ -170,13 +170,13 @@ namespace bee { namespace net {
 		session_end();
 		internal::connection = new NetworkConnection();
 
-		internal::connection->udp_sock = network_udp_open(internal::port); // Open a UDP listening socket to receive from all clients
+		internal::connection->udp_sock = util::network::udp_open(internal::port); // Open a UDP listening socket to receive from all clients
 		if (internal::connection->udp_sock == nullptr) {
 			messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Failed to start new session \"" + session_name + "\"");
 			return 1; // Return 1 if the socket failed to open
 		}
 
-		messenger::send({"engine", "network"}, E_MESSAGE::INFO, "Started new session \"" + session_name + "\" with " + bee_itos(max_players) + " max players");
+		messenger::send({"engine", "network"}, E_MESSAGE::INFO, "Started new session \"" + session_name + "\" with " + std::to_string(max_players) + " max players");
 
 		// Set the session info
 		internal::connection->name = session_name;
@@ -205,8 +205,8 @@ namespace bee { namespace net {
 		session_end();
 		internal::connection = new NetworkConnection();
 
-		internal::connection->udp_sock = network_udp_open(internal::port);
-		internal::connection->channel = network_udp_bind(&internal::connection->udp_sock, 0, "192.168.1.255", internal::port); // Bind a sending socket to the broadcast IP 192.168.1.255
+		internal::connection->udp_sock = util::network::udp_open(internal::port);
+		internal::connection->channel = util::network::udp_bind(&internal::connection->udp_sock, 0, "192.168.1.255", internal::port); // Bind a sending socket to the broadcast IP 192.168.1.255
 		if (internal::connection->channel == -1) {
 			messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "net::session_find() : UDP broadcast socket failed to bind");
 			return internal::servers; // Return an empty map if the sending socket failed to bind
@@ -220,23 +220,23 @@ namespace bee { namespace net {
 		);
 
 		if (send_packet(c, p) == 0) { // Send a server name info request
-			network_udp_close(&internal::connection->udp_sock);
+			util::network::udp_close(&internal::connection->udp_sock);
 
-			messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "net::session_find() : Failed to send request on port " + bee_itos(internal::port));
+			messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "net::session_find() : Failed to send request on port " + std::to_string(internal::port));
 			return internal::servers; // Return an empty map if the message failed to send
 		}
 		p.reset();
 
-		internal::connection->udp_data = network_packet_realloc(internal::connection->udp_data, NetworkPacket::MAX_SIZE);
+		internal::connection->udp_data = util::network::packet_realloc(internal::connection->udp_data, NetworkPacket::MAX_SIZE);
 		if (internal::connection->udp_data == nullptr) { // Attempt to allocate space to receive data
-			network_udp_close(&internal::connection->udp_sock); // Close the socket
+			util::network::udp_close(&internal::connection->udp_sock); // Close the socket
 
 			messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "net::session_find() : Failed to allocate space to receive data");
 			return internal::servers; // Return an empty map if the allocation failed
 		}
 
 		Uint32 t = get_ticks(); // Get the current time
-		int r = network_udp_recv(internal::connection->udp_sock, internal::connection->udp_data); // Attempt to receive data
+		int r = util::network::udp_recv(internal::connection->udp_sock, internal::connection->udp_data); // Attempt to receive data
 		while (get_ticks() - t < internal::timeout) { // Continue receiving until we timeout
 			if (
 				(r == 1)
@@ -250,15 +250,15 @@ namespace bee { namespace net {
 					(p->get_signal1() == E_NETSIG1::SERVER_INFO)
 					&&(p->get_signal2() == E_NETSIG2::NAME)
 				) {
-					std::string name = chra(p->get_raw()); // Get the server name from the data
-					internal::servers.emplace(network_get_address(internal::connection->udp_data->address.host), name); // Add the server to the list of available servers
+					std::string name = util::chra(p->get_raw()); // Get the server name from the data
+					internal::servers.emplace(util::network::get_address(internal::connection->udp_data->address.host), name); // Add the server to the list of available servers
 				}
 			}
 
-			r = network_udp_recv(internal::connection->udp_sock, internal::connection->udp_data); // Attempt to receive more data
+			r = util::network::udp_recv(internal::connection->udp_sock, internal::connection->udp_data); // Attempt to receive more data
 		}
 
-		network_udp_close(&internal::connection->udp_sock); // Close the socket
+		util::network::udp_close(&internal::connection->udp_sock); // Close the socket
 		return internal::servers; // Return the filled map on success
 	}
 	/*
@@ -278,10 +278,10 @@ namespace bee { namespace net {
 
 		internal::connection->players.clear(); // Clear the previous player map
 
-		internal::connection->udp_sock = network_udp_open(internal::port);
-		internal::connection->channel = network_udp_bind(&internal::connection->udp_sock, 0, ip, internal::port); // Bind a sending socket to the given server IP address
+		internal::connection->udp_sock = util::network::udp_open(internal::port);
+		internal::connection->channel = util::network::udp_bind(&internal::connection->udp_sock, 0, ip, internal::port); // Bind a sending socket to the given server IP address
 		if (internal::connection->channel == -1) {
-			messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "net::session_join() : Failed to bind to " + ip + " on port " + bee_itos(internal::port));
+			messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "net::session_join() : Failed to bind to " + ip + " on port " + std::to_string(internal::port));
 			return 2; // Return 2 if the socket failed to bind
 		}
 
@@ -290,13 +290,13 @@ namespace bee { namespace net {
 			0,
 			E_NETSIG1::CONNECT,
 			E_NETSIG2::NONE,
-			orda(player_name)
+			util::orda(player_name)
 		);
 
 		if (send_packet(c, p) == 0) { // Send a server connection request
-			network_udp_close(&internal::connection->udp_sock); // Close the socket
+			util::network::udp_close(&internal::connection->udp_sock); // Close the socket
 
-			messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "net::session_join() : Failed to send request to " + ip + " on port " + bee_itos(internal::port));
+			messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "net::session_join() : Failed to send request to " + ip + " on port " + std::to_string(internal::port));
 			return 3; // Return 3 if the messsage failed to send
 		}
 
@@ -323,20 +323,20 @@ namespace bee { namespace net {
 
 		if (internal::connection->is_connected) {
 			if (internal::connection->is_host) { // If we are the host
-				messenger::send({"engine", "network"}, E_MESSAGE::INFO, "Disconnecting " + bee_itos(internal::connection->players.size()-1) + " clients...");
+				messenger::send({"engine", "network"}, E_MESSAGE::INFO, "Disconnecting " + std::to_string(internal::connection->players.size()-1) + " clients...");
 
 				auto packet = std::make_unique<NetworkPacket>(
 					internal::connection->self_id,
 					E_NETSIG1::DISCONNECT,
 					E_NETSIG2::NONE,
-					orda("Server shutting down")
+					util::orda("Server shutting down")
 				);
 
 				for (auto& player : internal::connection->players) { // Iterate over the clients to disconnect them
 					if (player.first != 0) { // Only disconnect clients that aren't us
 						send_packet(player.second, packet); // Send a disconnection signal
-						network_udp_unbind(&player.second.sock, player.second.channel); // Unbind the socket
-						network_udp_close(&player.second.sock); // Close the socket
+						util::network::udp_unbind(&player.second.sock, player.second.channel); // Unbind the socket
+						util::network::udp_close(&player.second.sock); // Close the socket
 					}
 				}
 
@@ -355,11 +355,11 @@ namespace bee { namespace net {
 
 		// Close socket and free data
 		if (internal::connection->udp_sock != nullptr) {
-			network_udp_close(&internal::connection->udp_sock);
+			util::network::udp_close(&internal::connection->udp_sock);
 			internal::connection->udp_sock = nullptr;
 		}
 		if (internal::connection->udp_data != nullptr) {
-			network_packet_free(internal::connection->udp_data);
+			util::network::packet_free(internal::connection->udp_data);
 			internal::connection->udp_data = nullptr;
 		}
 
@@ -402,7 +402,7 @@ namespace bee { namespace net {
 		}
 
 		//internal::connection->data["inst_"+bee_itos(inst->id)] = inst->serialize();
-		internal::connection->instances["inst_"+bee_itos(inst->id)] = inst;
+		internal::connection->instances["inst_"+std::to_string(inst->id)] = inst;
 		internal::has_data_update = true;
 
 		return 0;
@@ -417,7 +417,7 @@ namespace bee { namespace net {
 			return 1; // Return 1 when there is no session
 		}
 
-		internal::connection->instances["player_"+bee_itos(id)] = inst;
+		internal::connection->instances["player_"+std::to_string(id)] = inst;
 		internal::has_data_update = true;
 
 		return 0;
@@ -469,7 +469,7 @@ namespace bee { namespace net {
 					c.id = internal::connection->get_new_player_id(); // Get an id for the client
 
 					int port = -1;
-					std::tie(port, c.sock) = network_udp_open_range(internal::port, internal::connection->max_players);
+					std::tie(port, c.sock) = util::network::udp_open_range(internal::port, internal::connection->max_players);
 					if (c.sock == nullptr) {
 						messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not accept client");
 						break;
@@ -477,15 +477,15 @@ namespace bee { namespace net {
 
 					IPaddress ipa = internal::connection->udp_data->address;
 					//ipa.port = port;
-					c.channel = network_udp_bind(&c.sock, c.id, &ipa); // Bind a sending socket to the client who is requesting a connection
+					c.channel = util::network::udp_bind(&c.sock, c.id, &ipa); // Bind a sending socket to the client who is requesting a connection
 					if (c.channel == -1) {
-						network_udp_close(&c.sock);
+						util::network::udp_close(&c.sock);
 
 						messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not accept client");
 						break;
 					}
 
-					c.name = chra(packet->get_raw());
+					c.name = util::chra(packet->get_raw());
 
 					std::vector<Uint8> data;
 					data.push_back(c.id);
@@ -497,7 +497,7 @@ namespace bee { namespace net {
 					);
 
 					if (send_packet(c, p) == 0) { // Send the client their id
-						network_udp_close(&c.sock);
+						util::network::udp_close(&c.sock);
 
 						messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not accept client");
 						break;
@@ -511,7 +511,7 @@ namespace bee { namespace net {
 					e.data.emplace("username", c.name);
 					get_current_room()->network(e);
 
-					messenger::send({"engine", "network"}, E_MESSAGE::INFO, "Client " + bee_itos(c.id) + ":" + c.name + " accepted");
+					messenger::send({"engine", "network"}, E_MESSAGE::INFO, "Client " + std::to_string(c.id) + ":" + c.name + " accepted");
 
 					// Send player update to clients
 					internal::host_send_players(-1);
@@ -519,7 +519,7 @@ namespace bee { namespace net {
 					NetworkClient c;
 
 					int port = -1;
-					std::tie(port, c.sock) = network_udp_open_range(internal::port, internal::connection->max_players);
+					std::tie(port, c.sock) = util::network::udp_open_range(internal::port, internal::connection->max_players);
 					if (c.sock == nullptr) {
 						messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not accept client");
 						break;
@@ -529,12 +529,12 @@ namespace bee { namespace net {
 						internal::connection->self_id,
 						E_NETSIG1::DISCONNECT,
 						E_NETSIG2::NONE,
-						orda("Server full")
+						util::orda("Server full")
 					);
 
 					send_packet(c, p);
 
-					network_udp_close(&c.sock);
+					util::network::udp_close(&c.sock);
 
 					messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not accept client: server full");
 				}
@@ -542,10 +542,10 @@ namespace bee { namespace net {
 			}
 			case E_NETSIG1::DISCONNECT: {
 				NetworkClient c = internal::connection->players[packet->id];
-				network_udp_unbind(&c.sock, c.channel); // Unbind the socket to the client who has disconnected
-				network_udp_close(&c.sock); // Close the socket
+				util::network::udp_unbind(&c.sock, c.channel); // Unbind the socket to the client who has disconnected
+				util::network::udp_close(&c.sock); // Close the socket
 
-				internal::connection->instances.erase("player_"+bee_itos(c.id));
+				internal::connection->instances.erase("player_"+std::to_string(c.id));
 				internal::connection->players.erase(c.id); // Remove them from the list of clients
 
 				NetworkEvent e (E_NETEVENT::DISCONNECT);
@@ -553,7 +553,7 @@ namespace bee { namespace net {
 				e.data.emplace("username", c.name);
 				get_current_room()->network(e);
 
-				messenger::send({"engine", "network"}, E_MESSAGE::INFO, "Client " + bee_itos(c.id) + " disconnected");
+				messenger::send({"engine", "network"}, E_MESSAGE::INFO, "Client " + std::to_string(c.id) + " disconnected");
 
 				// Send player update to clients
 				internal::host_send_players(-1);
@@ -569,13 +569,13 @@ namespace bee { namespace net {
 					}
 					case E_NETSIG2::NAME: {
 						NetworkClient c;
-						std::tie(std::ignore, c.sock) = network_udp_open_range(internal::port, internal::connection->max_players+1);
+						std::tie(std::ignore, c.sock) = util::network::udp_open_range(internal::port, internal::connection->max_players+1);
 						if (c.sock == nullptr) {
 							messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not open socket");
 							break;
 						}
 
-						std::vector<Uint8> name = orda(internal::connection->name); // Convert the server name to Uint8's
+						std::vector<Uint8> name = util::orda(internal::connection->name); // Convert the server name to Uint8's
 
 						// See Network Message Format at the top of this file for details
 						auto p = std::make_unique<NetworkPacket>(
@@ -586,13 +586,13 @@ namespace bee { namespace net {
 						);
 
 						if (send_packet(c, p) == 0) { // Send the entire message
-							network_udp_close(&c.sock);
+							util::network::udp_close(&c.sock);
 
 							messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Could not send server info");
 							break;
 						}
 
-						network_udp_close(&c.sock);
+						util::network::udp_close(&c.sock);
 
 						break;
 					}
@@ -605,7 +605,7 @@ namespace bee { namespace net {
 						break;
 					}
 					default: {
-						messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Unknown network signal: 3." + bee_itos(static_cast<int>(packet->get_signal2())));
+						messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Unknown network signal: 3." + std::to_string(static_cast<int>(packet->get_signal2())));
 					}
 				}
 				break; // Break from signal1: 3, server info request
@@ -643,7 +643,7 @@ namespace bee { namespace net {
 						internal::has_data_update = true;
 						internal::connection->players[packet->id].last_recv = get_ticks();
 
-						messenger::send({"engine", "network"}, E_MESSAGE::INTERNAL, "Received data map:\n" + map_serialize(e.instances, true));
+						messenger::send({"engine", "network"}, E_MESSAGE::INTERNAL, "Received data map:\n" + util::map_serialize(e.instances, true));
 
 						get_current_room()->network(e);
 
@@ -653,13 +653,13 @@ namespace bee { namespace net {
 						break;
 					}
 					default: {
-						messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Unknown network signal: 3." + bee_itos(static_cast<int>(packet->get_signal2())));
+						messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Unknown network signal: 3." + std::to_string(static_cast<int>(packet->get_signal2())));
 					}
 				}
 				break; // Break from signal1: 4, client info update
 			}
 			default: {
-				messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Unknown network signal: " + bee_itos(static_cast<int>(packet->get_signal1())) + ".x");
+				messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Unknown network signal: " + std::to_string(static_cast<int>(packet->get_signal1())) + ".x");
 			}
 		}
 
@@ -702,8 +702,8 @@ namespace bee { namespace net {
 			NetworkClient& c = internal::connection->players[i];
 
 			if (send_packet(c, p) == 0) { // Send the entire message
-				network_udp_close(&c.sock);
-				internal::connection->instances.erase("player_"+bee_itos(i));
+				util::network::udp_close(&c.sock);
+				internal::connection->instances.erase("player_"+std::to_string(i));
 				internal::connection->players.erase(i);
 				has_failed = true;
 
@@ -720,7 +720,6 @@ namespace bee { namespace net {
 	* @id: the id of the given client, -1 will send to all clients
 	*/
 	int internal::host_send_data(int id) {
-		//std::vector<Uint8> data_map = network_map_encode(internal::connection->data); // Encode the data map as a series of Uint8's
 		std::map<std::string,std::vector<Uint8>> instances;
 		for (auto& inst : internal::connection->instances) {
 			instances.emplace(inst.first, inst.second->serialize_net());
@@ -752,8 +751,8 @@ namespace bee { namespace net {
 			NetworkClient& c = internal::connection->players[i];
 
 			if (send_packet(c, p) == 0) { // Send the entire message
-				network_udp_close(&c.sock);
-				internal::connection->instances.erase("player_"+bee_itos(i));
+				util::network::udp_close(&c.sock);
+				internal::connection->instances.erase("player_"+std::to_string(i));
 				internal::connection->players.erase(i);
 				has_failed = true;
 
@@ -774,7 +773,7 @@ namespace bee { namespace net {
 			internal::connection->self_id,
 			E_NETSIG1::DISCONNECT,
 			E_NETSIG2::NONE,
-			orda("Timed out after " + bee_itos(internal::timeout) + "ms")
+			util::orda("Timed out after " + std::to_string(internal::timeout) + "ms")
 		);
 		auto p_keepalive = std::make_unique<NetworkPacket>(
 			internal::connection->self_id,
@@ -786,12 +785,12 @@ namespace bee { namespace net {
 			if (it->first != 0) { // Don't disconnect ourselves
 				if (now - it->second.last_recv > internal::timeout) { // Only disconnect clients that have timed out
 					send_packet(it->second, p_disconnect); // Send a disconnection signal
-					network_udp_unbind(&it->second.sock, it->second.channel); // Unbind the socket
-					network_udp_close(&it->second.sock); // Close the socket
+					util::network::udp_unbind(&it->second.sock, it->second.channel); // Unbind the socket
+					util::network::udp_close(&it->second.sock); // Close the socket
 
-					messenger::send({"engine", "network"}, E_MESSAGE::INFO, "Client " + bee_itos(it->first) + " timed out");
+					messenger::send({"engine", "network"}, E_MESSAGE::INFO, "Client " + std::to_string(it->first) + " timed out");
 
-					internal::connection->instances.erase("player_"+bee_itos(it->first));
+					internal::connection->instances.erase("player_"+std::to_string(it->first));
 					it = internal::connection->players.erase(it); // Remove the client from the map
 					continue;
 				} else if (now - it->second.last_recv > internal::timeout/2) { // Send a keep alive to clients that might be timing out
@@ -825,14 +824,14 @@ namespace bee { namespace net {
 				e.data.emplace("self_id", internal::connection->self_id);
 				get_current_room()->network(e);
 
-				messenger::send({"engine", "network"}, E_MESSAGE::INFO, "Connected to server with id " + bee_itos(internal::connection->self_id));
+				messenger::send({"engine", "network"}, E_MESSAGE::INFO, "Connected to server with id " + std::to_string(internal::connection->self_id));
 				break;
 			}
 			case E_NETSIG1::DISCONNECT: { // Disconnected by host
 				session_end(); // Reset session
 
 				NetworkEvent e (E_NETEVENT::DISCONNECT);
-				e.data.emplace("reason", chra(packet->get_raw()));
+				e.data.emplace("reason", util::chra(packet->get_raw()));
 				get_current_room()->network(e);
 
 				messenger::send({"engine", "network"}, E_MESSAGE::INFO, "Disconnected by server");
@@ -857,8 +856,8 @@ namespace bee { namespace net {
 						break;
 					}
 					case E_NETSIG2::NAME: {
-						std::string ip = network_get_address(internal::connection->udp_data->address.host); // Get the server IP
-						std::string name = chra(packet->get_raw()); // Get the server name from the data
+						std::string ip = util::network::get_address(internal::connection->udp_data->address.host); // Get the server IP
+						std::string name = util::chra(packet->get_raw()); // Get the server name from the data
 
 						internal::servers.emplace(ip, name); // Add the server to the list of available servers
 
@@ -875,7 +874,7 @@ namespace bee { namespace net {
 							c.name = p.second;
 
 							internal::connection->players.emplace(p.first, c); // Insert the player's id and IP address into our copy of the player map
-							e.data.emplace(bee_itos(p.first), p.second);
+							e.data.emplace(std::to_string(p.first), p.second);
 						}
 
 						get_current_room()->network(e);
@@ -911,7 +910,7 @@ namespace bee { namespace net {
 						buffer[packet->get_packet_id()].reset();
 						buffer.erase(packet->get_packet_id());
 
-						messenger::send({"engine", "network"}, E_MESSAGE::INTERNAL, "Received data map:\n" + map_serialize(e.instances, true));
+						messenger::send({"engine", "network"}, E_MESSAGE::INTERNAL, "Received data map:\n" + util::map_serialize(e.instances, true));
 
 						get_current_room()->network(e);
 
@@ -921,13 +920,13 @@ namespace bee { namespace net {
 						break;
 					}
 					default: {
-						messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Unknown network signal: 3." + bee_itos(static_cast<int>(packet->get_signal2())));
+						messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Unknown network signal: 3." + std::to_string(static_cast<int>(packet->get_signal2())));
 					}
 				}
 				break; // Break from signal1: 3 info received
 			}
 			default: {
-				messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Unknown network signal: " + bee_itos(static_cast<int>(packet->get_signal1())) + ".x");
+				messenger::send({"engine", "network"}, E_MESSAGE::WARNING, "Unknown network signal: " + std::to_string(static_cast<int>(packet->get_signal1())) + ".x");
 			}
 		}
 
@@ -937,7 +936,6 @@ namespace bee { namespace net {
 	* internal::client_send_data() - Send the client data map to the server
 	*/
 	int internal::client_send_data() {
-		//std::vector<Uint8> data_map = network_map_encode(internal::connection->data); // Encode the data map as a series of Uint8's
 		std::map<std::string,std::vector<Uint8>> instances;
 		for (auto& inst : internal::connection->instances) {
 			instances.emplace(inst.first, inst.second->serialize_net());
@@ -985,8 +983,8 @@ namespace bee { namespace net {
 			return 1; // Return 1 when there is no session
 		}
 
-		if (internal::connection->instances.find("inst_"+bee_itos(inst->id)) != internal::connection->instances.end()) {
-			internal::connection->instances.erase("inst_"+bee_itos(inst->id));
+		if (internal::connection->instances.find("inst_"+std::to_string(inst->id)) != internal::connection->instances.end()) {
+			internal::connection->instances.erase("inst_"+std::to_string(inst->id));
 		}
 
 		return 0;

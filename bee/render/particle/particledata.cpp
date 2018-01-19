@@ -46,7 +46,7 @@ namespace bee {
 		y = _y;
 
 		unsigned int d = particle_type->get_deviation();
-		deviation = random(d) + d/2;
+		deviation = util::random::get(d) + d/2;
 		double s = particle_type->scale * get_deviation_percent();
 
 		w = static_cast<int>(particle_type->get_texture()->get_subimage_width() * s);
@@ -77,8 +77,8 @@ namespace bee {
 		double m = velocity.first * (get_deviation_percent());
 		double dir = velocity.second;
 
-		x += cos(degtorad(dir)) * m * delta;
-		y += -sin(degtorad(dir)) * m * delta;
+		x += cos(util::degtorad(dir)) * m * delta;
+		y += -sin(util::degtorad(dir)) * m * delta;
 
 		return 0;
 	}
@@ -152,7 +152,7 @@ namespace bee {
 	int ParticleData::draw(double system_x, double system_y, Uint32 ticks) {
 		RGBA c (particle_type->color);
 		c.a = get_alpha(ticks);
-		return particle_type->get_texture()->draw(static_cast<int>(system_x+x) - w/2, static_cast<int>(system_y+y) - h/2, creation_time, w, h, absolute_angle(get_angle(ticks)), c);
+		return particle_type->get_texture()->draw(static_cast<int>(system_x+x) - w/2, static_cast<int>(system_y+y) - h/2, creation_time, w, h, util::absolute_angle(get_angle(ticks)), c);
 	}
 	int ParticleData::draw_debug(double system_x, double system_y, E_RGB color) {
 		return draw_rectangle(static_cast<int>(system_x+x) - w/2, static_cast<int>(system_y+y) - h/2, w, h, 1, RGBA(color));

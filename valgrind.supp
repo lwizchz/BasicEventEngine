@@ -1,0 +1,61 @@
+{
+	pymalloc_free/address_in_range
+	Memcheck:Value8
+	fun:address_in_range
+	fun:pymalloc_free
+}
+{
+	pymalloc_free/address_in_range
+	Memcheck:Cond
+	fun:address_in_range
+	fun:pymalloc_free
+}
+{
+	pymalloc_free/address_in_range
+	Memcheck:Addr4
+	fun:address_in_range
+	fun:pymalloc_free
+}
+
+{
+	pymalloc_realloc/address_in_range
+	Memcheck:Value8
+	fun:address_in_range
+	fun:pymalloc_realloc
+}
+{
+	pymalloc_realloc/address_in_range
+	Memcheck:Cond
+	fun:address_in_range
+	fun:pymalloc_realloc
+}
+{
+	pymalloc_realloc/address_in_range
+	Memcheck:Addr4
+	fun:address_in_range
+	fun:pymalloc_realloc
+}
+
+{
+	Py_EncodeLocale/gconv_transform_internal_utf8
+	Memcheck:Cond
+	fun:__gconv_transform_internal_utf8
+	fun:wcsrtombs
+	fun:wcstombs
+	fun:Py_EncodeLocale
+}
+{
+	Py_EncodeLocale/__wcsnlen_avx2
+	Memcheck:Cond
+	fun:__wcsnlen_avx2
+	fun:wcsrtombs
+	fun:wcstombs
+	fun:Py_EncodeLocale
+}
+
+{
+	PyMem_RawMalloc
+	Memcheck:Leak
+	fun:malloc
+	fun:PyMem_RawMalloc
+}

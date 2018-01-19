@@ -43,7 +43,7 @@ void ObjUIElement::mouse_press(bee::Instance* self, SDL_Event* e) {
 			a.w = _i("w");
 			a.h = _i("h");
 			SDL_Rect b = {e->button.x-1, e->button.y-1, 2, 2};
-			if (check_collision(a, b)) {
+			if (util::check_collision(a, b)) {
 				_i("is_pressed") = true;
 			}
 			break;
@@ -61,7 +61,7 @@ void ObjUIElement::mouse_input(bee::Instance* self, SDL_Event* e) {
 	a.w = _i("w");
 	a.h = _i("h");
 	SDL_Rect b = {e->motion.x-1, e->motion.y-1, 2, 2};
-	if (check_collision(a, b)) {
+	if (util::check_collision(a, b)) {
 		_i("has_hover") = true;
 	}
 }
@@ -74,7 +74,7 @@ void ObjUIElement::mouse_release(bee::Instance* self, SDL_Event* e) {
 			a.w = _i("w");
 			a.h = _i("h");
 			SDL_Rect b = {e->button.x-1, e->button.y-1, 2, 2};
-			if (check_collision(a, b)) {
+			if (util::check_collision(a, b)) {
 				if (_i("is_pressed")) {
 					_i("has_focus") = true;
 				}

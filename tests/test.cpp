@@ -18,10 +18,12 @@
 
 #include "all.hpp"
 
-/*
-* verify_assertions() - Run the doctest unit tests to verify that all utility functions are working correctly
-* @argc: the argc from main()
-* @argv: the argv from main()
+/**
+* Run the doctest unit tests to verify that all utility functions are working correctly.
+* @param argc the argc from main()
+* @param argv the argv from main()
+*
+* @returns whether the assertions ran successfully or not
 */
 bool verify_assertions(int argc, char** argv) {
 	bee::messenger::send({"tests"}, bee::E_MESSAGE::INFO, "Verifying assertions...");
@@ -29,9 +31,11 @@ bool verify_assertions(int argc, char** argv) {
 	return (doctest::Context(argc, argv).run() == 0);
 }
 
-/*
-* verify_assertions() - Run the doctest unit tests to verify that all utility functions are working correctly
-* ! When the main() arguments are not provided, simply call the function with an empty set
+/**
+* Run the doctest unit tests to verify that all utility functions are working correctly.
+* @note If the main() arguments are not provided, they will be left empty.
+*
+* @returns whether the assertions ran successfully or not
 */
 bool verify_assertions() {
 	return verify_assertions(0, static_cast<char**>(nullptr));

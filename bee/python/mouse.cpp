@@ -112,7 +112,7 @@ namespace bee { namespace python { namespace internal {
                         }
 
                         std::string _sys_cursor (PyUnicode_AsUTF8(sys_cursor));
-                        _sys_cursor = string_lower(_sys_cursor);
+                        _sys_cursor = util::string::lower(_sys_cursor);
 
                         SDL_SystemCursor cursor = SDL_SYSTEM_CURSOR_ARROW;
                         if (_sys_cursor == "ibeam") {

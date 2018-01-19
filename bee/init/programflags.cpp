@@ -150,8 +150,8 @@ namespace bee {
 			));
 			add_flag(new ProgramFlag(
 				"dimensions", '\0', true, E_FLAGARG::REQUIRED, [] (const std::string& arg) {
-					engine->width = bee_stoi(arg.substr(0, arg.find("x")));
-					engine->height = bee_stoi(arg.substr(arg.find("x")+1));
+					engine->width = std::stoi(arg.substr(0, arg.find("x")));
+					engine->height = std::stoi(arg.substr(arg.find("x")+1));
 					engine->options->is_resizable = false;
 				}
 			));

@@ -143,7 +143,7 @@ namespace bee {
 		"\n	id              " << id <<
 		"\n	name            " << name <<
 		"\n	path            " << path <<
-		"\n	coordinate_list\n" << debug_indent(coordinate_string, 2) <<
+		"\n	coordinate_list\n" << util::debug_indent(coordinate_string, 2) <<
 		"	is_curved	" << is_curved <<
 		"\n	is_closed       " << is_closed <<
 		"\n}\n";
@@ -177,14 +177,14 @@ namespace bee {
 
 		for (auto it = coordinate_list.begin(); it != coordinate_list.end(); ++it) { // Iterate over the coordinates and add each of them to the table
 			table.push_back({
-				bee_itos(static_cast<int>(std::get<0>(*it))),
-				bee_itos(static_cast<int>(std::get<1>(*it))),
-				bee_itos(static_cast<int>(std::get<2>(*it))),
-				bee_itos(static_cast<int>(std::get<3>(*it)))
+				std::to_string(static_cast<int>(std::get<0>(*it))),
+				std::to_string(static_cast<int>(std::get<1>(*it))),
+				std::to_string(static_cast<int>(std::get<2>(*it))),
+				std::to_string(static_cast<int>(std::get<3>(*it)))
 			});
 		}
 
-		return string_tabulate(table); // Return the table as a properly spaced string
+		return util::string::tabulate(table); // Return the table as a properly spaced string
 	}
 	bool Path::get_is_curved() const {
 		return is_curved;

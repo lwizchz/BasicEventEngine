@@ -20,13 +20,21 @@
 
 #include "debug.hpp"
 
-/*
-* show_message() - Display a modal message box with the given information and buttons
-* ! This is an entirely separate function from the previous show_message() because it is much more complicated
-* @str: the string to display
-* @button1: the text on the first button
-* @button2: the text on the second button
-* @button3: the text on the third button
+namespace util {
+
+/**
+* Display a modal message box with the given information and buttons.
+* @see https://wiki.libsdl.org/SDL_ShowMessageBox for details
+* @param str the string to display
+* @param button1 the text on the first button
+* @param button2 the text on the second button
+* @param button3 the text on the third button
+*
+* @retval 0 button1 was selected
+* @retval 1 button2 was selected
+* @retval 2 button3 was selected
+* @retval -1 no button was selected
+* @retval -2 failed to display the message box
 */
 int show_message(const std::string& str, const std::string& button1, const std::string& button2, const std::string& button3) {
 	SDL_MessageBoxButtonData buttons[3]; // Initialize a new array of SDL message box buttons
@@ -59,58 +67,54 @@ int show_message(const std::string& str, const std::string& button1, const std::
 
 	int brid = -1; // The index of the selected button
 	if (SDL_ShowMessageBox(&data, &brid) < 0) { // If the message box does not display correctly
-		std::cerr << "Failed to display message box: " << get_sdl_error() << "\n"; // Output the error
+		std::cerr << "Failed to display message box: " << util::get_sdl_error() << "\n"; // Output the error
 		return -2; // Return -2 on display failure
 	}
 	return brid; // Return the pressed button value on success
 }
-/*
-* show_question() - Display a modal messagebox with the given yes/no question
-* @str: the question to display
+/**
+* Display a modal messagebox with a yes/no question.
+* @param str the question to display
+*
+* @returns whether "Yes" was selected or not
 */
 bool show_question(const std::string& str) {
-	return (show_message(str, "Yes", "No", "") == 0) ? true : false; // Return whether the user selected the yes button or not
+	return (show_message(str, "Yes", "No", "") == 0) ? true : false;
 }
 
-/*
-* show_message() - Display a modal message box with the given information
-* ! When the function is called without the button text, simply provide it with a single "OK" button
+/**
+* Display a modal message box with the given information.
+* @note If the function is called with no button text, then an "OK" button will be used.
 * @str: the string to display
+*
+* @retval 0 the "OK" button was selected
+* @retval -1 no button was selected
+* @retval -2 failed to display the message box
 */
 int show_message(const std::string& str) {
-	std::cout << "UTIL Messagebox: " << str << "\n"; // Output the message
 	return show_message(str, "OK", "", "");
 }
-/*
-* show_warning() - Display a modal message box with the given warning
-* @str: the string to display
+/**
+* Display a modal message box with the given warning.
+* @param str the string to display
+*
+* @retval 0 success
+* @retval <0 failed to display the message box
 */
 int show_warning(const std::string& str) {
-	std::cerr << "UTIL Messagebox: " << str << "\n"; // Output the message
-	return SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "Warning", str.c_str(), nullptr); // Return the status of the message box
+	return SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "Warning", str.c_str(), nullptr);
 }
-/*
-* show_error() - Display a modal message box with the given error
-* @str: the string to display
-* @is_fatal: whether to abort the program after displaying the message
-*/
-int show_error(const std::string& str, bool is_fatal) {
-	std::cerr << str << "\n"; // Output the message
-	int r = SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", str.c_str(), nullptr); // Display the message box
-
-	if (is_fatal) { // If the error should be considered fatal, throw an exception
-		throw 1;
-	}
-
-	return r; // Otherwise return the status of the message box
-}
-/*
-* show_error() - Display a modal message box with the given error
-* ! When the function is called without the fatality, simply treat it as non-fatal
-* @str: the string to display
+/**
+* Display a modal message box with the given error.
+* @param str the string to display
+*
+* @retval 0 success
+* @retval <0 failed to display the message box
 */
 int show_error(const std::string& str) {
-	return show_error(str, false);
+	return SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", str.c_str(), nullptr);
+}
+
 }
 
 #endif // BEE_UTIL_MESSAGEBOX

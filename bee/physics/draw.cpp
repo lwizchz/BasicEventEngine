@@ -38,7 +38,7 @@ namespace bee {
 				static_cast<int>(color1.z()),
 				255
 			);
-			draw_line(bt_to_glm3(v1*s), bt_to_glm3(v2*s), c);
+			draw_line(util::bt_to_glm3(v1*s), util::bt_to_glm3(v2*s), c);
 		}
 	}
 	void PhysicsDraw::drawLine(const btVector3& v1, const btVector3& v2, const btVector3& color) {
@@ -50,7 +50,7 @@ namespace bee {
 				static_cast<int>(color.z()),
 				255
 			);
-			draw_line(bt_to_glm3(v1*s), bt_to_glm3(v2*s), c);
+			draw_line(util::bt_to_glm3(v1*s), util::bt_to_glm3(v2*s), c);
 		}
 	}
 	void PhysicsDraw::drawSphere(const btVector3& center, const btVector3& radius, const btVector3& color) {
@@ -63,7 +63,7 @@ namespace bee {
 				static_cast<int>(color.z()),
 				255
 			);
-			draw_line(bt_to_glm3(v1*s), bt_to_glm3(v2*s), c);
+			draw_line(util::bt_to_glm3(v1*s), util::bt_to_glm3(v2*s), c);
 			*/
 		}
 	}
@@ -76,7 +76,7 @@ namespace bee {
 				static_cast<int>(color.z()),
 				255
 			);
-			draw_triangle(bt_to_glm3(v1*s), bt_to_glm3(v2*s), bt_to_glm3(v3*s), c, false);
+			draw_triangle(util::bt_to_glm3(v1*s), util::bt_to_glm3(v2*s), util::bt_to_glm3(v3*s), c, false);
 		}
 	}
 	void PhysicsDraw::drawContactPoint(const btVector3& v1, const btVector3& normal, btScalar distance, int lifetime, const btVector3& color) {
@@ -88,12 +88,12 @@ namespace bee {
 				static_cast<int>(color.z()),
 				255
 			);
-			draw_line(bt_to_glm3(v1*s), bt_to_glm3(distance*normal*s), c);
+			draw_line(util::bt_to_glm3(v1*s), util::bt_to_glm3(distance*normal*s), c);
 		}
 	}
 
 	void PhysicsDraw::reportErrorWarning(const char* str) {
-		messenger::send({"engine", "physics", "draw"}, E_MESSAGE::WARNING, std::string(str));
+		messenger::send({"engine", "physics", "draw"}, E_MESSAGE::WARNING, str);
 	}
 
 	void PhysicsDraw::draw3dText(const btVector3& center, const char* str) {
@@ -101,7 +101,7 @@ namespace bee {
 			/*
 			btScalar s = btScalar(attached_world->get_scale());
 			RGBA c (0, 0, 0, 255);
-			draw_line(bt_to_glm3(v1*s), bt_to_glm3(v2*s), c);
+			draw_line(util::bt_to_glm3(v1*s), util::bt_to_glm3(v2*s), c);
 			*/
 		}
 	}

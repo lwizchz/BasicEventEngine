@@ -133,7 +133,7 @@ namespace bee { namespace kb {
 					should_capitalize = !should_capitalize;
 				}
 				if (!should_capitalize) {
-					s = string_lower(s);
+					s = util::string::lower(s);
 				}
 
 				break;
@@ -404,7 +404,7 @@ namespace bee { namespace kb {
 		}
 
 		std::string name (SDL_GetKeyName(key));
-		return "SDLK_" + ((name.length() > 1) ? string_upper(name) : string_lower(name));
+		return "SDLK_" + ((name.length() > 1) ? util::string::upper(name) : util::string::lower(name));
 	}
 	/**
 	* @param key the keycode
@@ -412,7 +412,7 @@ namespace bee { namespace kb {
 	*/
 	std::string keystrings_get_name(SDL_Keycode key) {
 		std::string keystring = keystrings_get_string(key);
-		return string_upper(string_replace(keystring.substr(5), "_", " "));
+		return util::string::upper(util::string::replace(keystring.substr(5), "_", " "));
 	}
 
 	/**

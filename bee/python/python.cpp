@@ -117,7 +117,7 @@ namespace bee { namespace python {
         * @retval 3 a Python exception was raised during execution
         */
         int run_file(const std::string& filename) {
-                if (!file_exists(filename)) {
+                if (!util::file_exists(filename)) {
                         messenger::send({"engine", "python"}, E_MESSAGE::ERROR, "Failed to run file \"" + filename + "\": file does not exist");
                         return 1;
                 }
@@ -261,7 +261,7 @@ namespace bee { namespace python {
                         return 0;
                 }
 
-                if (!file_exists(path)) {
+                if (!util::file_exists(path)) {
                         messenger::send({"engine", "python"}, E_MESSAGE::ERROR, "Failed to load python script \"" + path + "\": file does not exist");
                         return 2;
                 }
@@ -271,8 +271,8 @@ namespace bee { namespace python {
                 if (fname.rfind(prefix, 0) == 0) {
                         fname = fname.substr(prefix.length());
                 }
-                fname = string_replace(fname, ".py", "");
-                fname = string_replace(fname, "/", ".");
+                fname = util::string::replace(fname, ".py", "");
+                fname = util::string::replace(fname, "/", ".");
 
                 PyObject* scr_name = PyUnicode_DecodeFSDefault(fname.c_str());
                 PyObject* _module = PyImport_Import(scr_name);
@@ -363,7 +363,7 @@ namespace bee { namespace python {
                         return 1;
                 }
 
-                PyObject* codeobj = Py_CompileString(file_get_contents(filename).c_str(), filename.c_str(), Py_file_input);
+                PyObject* codeobj = Py_CompileString(util::file_get_contents(filename).c_str(), filename.c_str(), Py_file_input);
                 if (codeobj == nullptr) {
                         PyErr_Print();
                         messenger::send({"engine", "python"}, E_MESSAGE::ERROR, "Python script compile failed for \"" + filename + "\" in module \"" + std::string(PyModule_GetName(module)) + "\"");

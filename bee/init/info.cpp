@@ -20,11 +20,11 @@ namespace bee {
 	*/
 	std::string get_usage_text() {
 		return
-			bee_get_path() + "\n"
+			util::platform::get_path() + "\n"
 			"A basic event-driven OpenGL game engine\n"
 			"\n"
 			"Usage:\n"
-			"	" + file_basename(bee_get_path()) + " [OPTION]...\n"
+			"	" + util::file_basename(util::platform::get_path()) + " [OPTION]...\n"
 			"Options:\n"
 			"	--help, -h\n"
 			"		Output this help text\n"

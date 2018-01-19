@@ -794,7 +794,7 @@ namespace bee {
 		// This is not included in the above transformation matrix because it is faster to rotate everything in the geometry shader
 		if (angle != 0.0) {
 			td.rotation = glm::translate(glm::mat4(1.0f), glm::vec3(rotate_x*rect_width, rotate_y*height, 0.0f));
-			td.rotation = glm::rotate(td.rotation, static_cast<float>(degtorad(angle)), glm::vec3(0.0f, 0.0f, 1.0f)); // Rotate the subimage on the z-axis around the texture's rotation origin at (rotate_x, rotate_y)
+			td.rotation = glm::rotate(td.rotation, static_cast<float>(util::degtorad(angle)), glm::vec3(0.0f, 0.0f, 1.0f)); // Rotate the subimage on the z-axis around the texture's rotation origin at (rotate_x, rotate_y)
 			td.rotation = glm::translate(td.rotation, glm::vec3(-rotate_x*rect_width, -rotate_y*height, 0.0f));
 		}
 

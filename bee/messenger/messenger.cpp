@@ -52,7 +52,7 @@ namespace bee { namespace messenger{
 				get_ticks(),
 				{"engine", "close"},
 				E_MESSAGE::WARNING,
-				"Messenger closing with "+bee_itos(internal::messages.size())+" messages left in the queue",
+				"Messenger closing with " + std::to_string(internal::messages.size()) + " messages left in the queue",
 				nullptr
 			));
 		}
@@ -97,7 +97,7 @@ namespace bee { namespace messenger{
 		}
 
 		// Create a string of the message's tags
-		std::string tags = joinv(msg.tags, ',');
+		std::string tags = util::joinv(msg.tags, ',');
 
 		std::stringstream h; // Combine the message metadata
 		h << "MSG (" << msg.tickstamp << "ms)[" << get_type_string(msg.type) << "]<" << tags << ">: ";
@@ -128,9 +128,9 @@ namespace bee { namespace messenger{
 
 				// Change the output color depending on the message type
 				if (msg.type == E_MESSAGE::WARNING) {
-					bee_commandline_color(o, 11); // Yellow
+					util::platform::commandline_color(o, 11); // Yellow
 				} else if (msg.type == E_MESSAGE::ERROR) {
-					bee_commandline_color(o, 9); // Red
+					util::platform::commandline_color(o, 9); // Red
 				}
 			}
 
@@ -140,13 +140,13 @@ namespace bee { namespace messenger{
 			// Output the message description
 			if (msg.descr.find("\n") != std::string::npos) { // If the description is multiple liness, indent it as necessary
 				*o << "\n";
-				*o << debug_indent(msg.descr, 1);
+				*o << util::debug_indent(msg.descr, 1);
 			} else { // Otherwise, output it as normal
 				*o << msg.descr << "\n";
 			}
 
 			if ((msg.type == E_MESSAGE::WARNING)||(msg.type == E_MESSAGE::ERROR)) {
-				bee_commandline_color_reset(o); // Reset the output color
+				util::platform::commandline_color_reset(o); // Reset the output color
 			}
 
 			std::flush(*o); // Flush the output buffer after printing
@@ -378,9 +378,9 @@ namespace bee { namespace messenger{
 		for (auto& tag : recv.tags) { // Iterate over the requested tags
 			if (internal::protected_tags.find(tag) != internal::protected_tags.end()) { // If the requested tag is protected, deny registration
 				// Output an error message
-				bee_commandline_color(&std::cerr, 11);
+				util::platform::commandline_color(&std::cerr, 11);
 				std::cerr << "MSG failed to register recipient \"" << recv.name << "\" with protected tag \"" << tag << "\".\n";
-				bee_commandline_color_reset(&std::cerr);
+				util::platform::commandline_color_reset(&std::cerr);
 
 				r++; // Increment the protection counter
 
@@ -434,9 +434,9 @@ namespace bee { namespace messenger{
 
 		if (!protected_tag.empty()) {
 			// Output an error message
-			bee_commandline_color(&std::cerr, 11);
+			util::platform::commandline_color(&std::cerr, 11);
 			std::cerr << "MSG failed to unregister recipient \"" << name << "\" because of protected tag \"" << protected_tag << "\".\n";
-			bee_commandline_color_reset(&std::cerr);
+			util::platform::commandline_color_reset(&std::cerr);
 
 			return 1; // Return 1 on denial by protected tag
 		}
@@ -581,7 +581,7 @@ namespace bee { namespace messenger{
 		internal::logfiles.erase(filename);
 
 		if (should_delete) {
-			file_delete(filename);
+			util::file_delete(filename);
 		}
 
 		return 0;
@@ -601,7 +601,7 @@ namespace bee { namespace messenger{
 			delete it->second.second;
 
 			if (should_delete) {
-				file_delete(it->first);
+				util::file_delete(it->first);
 			}
 
 			internal::logfiles.erase(it++);

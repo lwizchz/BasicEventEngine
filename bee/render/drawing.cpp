@@ -11,8 +11,6 @@
 
 #include "../defines.hpp"
 
-#include <time.h> // Required for Windows time()
-
 #include <GL/glew.h> // Include the required OpenGL headers
 #include <SDL2/SDL_opengl.h>
 #include <glm/gtc/type_ptr.hpp>
@@ -21,6 +19,7 @@
 
 #include "../util/real.hpp"
 #include "../util/files.hpp"
+#include "../util/dates.hpp"
 #include "../util/platform.hpp"
 
 #include "../init/gameoptions.hpp"
@@ -197,8 +196,8 @@ namespace bee {
 	* @c: the color with which to draw the polygon
 	*/
 	int draw_polygon(glm::vec3 center, double radius, double ang_start, double ang_span, unsigned int segment_amount, int border_width, const RGBA& c) {
-		double angle_start = degtorad(ang_start);
-		double angle_span = degtorad(ang_span);
+		double angle_start = util::degtorad(ang_start);
+		double angle_span = util::degtorad(ang_span);
 
 		double x_0 = radius * cos(angle_start);
 		double y_0 = radius * sin(angle_start);
@@ -319,9 +318,9 @@ namespace bee {
 		}
 
 		std::string fn (filename);
-		if (file_exists(fn)) { // If the file already exists, append a timestamp
-			fn = file_plainname(fn) + "-" + bee_itos(static_cast<int>(time(nullptr))) + file_extname(fn);
-			if (file_exists(fn)) { // If the appended file already exists, abort
+		if (util::file_exists(fn)) { // If the file already exists, append a timestamp
+			fn = util::file_plainname(fn) + "-" + std::to_string(static_cast<int>(util::date::current_datetime())) + util::file_extname(fn);
+			if (util::file_exists(fn)) { // If the appended file already exists, abort
 				messenger::send({"engine"}, E_MESSAGE::WARNING, "Failed to save screenshot: files already exist: \"" + filename + "\" and \"" + fn + "\"");
 				return -2; // Return -2 on filename error
 			}

@@ -69,7 +69,7 @@ namespace bee {
 	}
 
 	int ParticleEmitter::emit(ParticleSystem* sys, double xoffset, double yoffset) {
-		return sys->add_particle(particle_type, static_cast<int>(xoffset + x) + random(w), static_cast<int>(yoffset + y) + random(h));
+		return sys->add_particle(particle_type, static_cast<int>(xoffset + x) + util::random::get(w), static_cast<int>(yoffset + y) + util::random::get(h));
 	}
 	int ParticleEmitter::handle(ParticleSystem* sys, double system_x, double system_y) {
 		double ex = get_following_x(system_x);

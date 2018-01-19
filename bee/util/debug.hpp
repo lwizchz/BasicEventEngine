@@ -14,6 +14,8 @@
 #include <GL/glew.h> // Include the required OpenGL headers
 #include <SDL2/SDL_opengl.h>
 
+namespace util {
+
 // Format indentions for debug output
 std::string debug_indent(const std::string&, int, const std::string&);
 std::string debug_indent(const std::string&, int);
@@ -24,5 +26,7 @@ std::string get_program_error(GLuint);
 
 // Return the SDL error string as a C++ string
 std::string get_sdl_error();
+
+}
 
 #endif // BEE_DEBUG_H

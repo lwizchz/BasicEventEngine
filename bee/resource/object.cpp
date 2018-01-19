@@ -199,7 +199,7 @@ namespace bee {
 		}
 		ss <<
 		"\n	is_pausable   " << is_pausable <<
-		"\n	instances\n" << debug_indent(instance_string, 2) <<
+		"\n	instances\n" << util::debug_indent(instance_string, 2) <<
 		"\n}\n";
 		messenger::send({"engine", "resource"}, E_MESSAGE::INFO, ss.str()); // Send the info to the messaging system for output
 
@@ -368,15 +368,15 @@ namespace bee {
 
 		for (auto& i : instances) { // Iterate over the instances and add each of them to the table
 			table.push_back({
-				bee_itos(i.second->id),
+				std::to_string(i.second->id),
 				i.second->get_object()->get_name(),
-				bee_itos(static_cast<int>(i.second->get_position()[0])),
-				bee_itos(static_cast<int>(i.second->get_position()[1])),
-				bee_itos(static_cast<int>(i.second->get_position()[2]))
+				std::to_string(static_cast<int>(i.second->get_position()[0])),
+				std::to_string(static_cast<int>(i.second->get_position()[1])),
+				std::to_string(static_cast<int>(i.second->get_position()[2]))
 			});
 		}
 
-		return string_tabulate(table); // Return the table as a properly spaced string
+		return util::string::tabulate(table); // Return the table as a properly spaced string
 	}
 
 	/*

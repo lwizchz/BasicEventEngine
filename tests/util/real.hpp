@@ -15,103 +15,99 @@
 
 TEST_SUITE_BEGIN("util");
 
-TEST_CASE("real/random") {
-	REQUIRE(random(20) < static_cast<unsigned int>(20));
-	REQUIRE(is_between(static_cast<int>(random_range(20, 40)), 20, 40));
-	REQUIRE(random_set_seed(5) == static_cast<unsigned int>(5));
-	REQUIRE(random_reset_seed() != static_cast<unsigned int>(DEFAULT_RANDOM_SEED));
-	REQUIRE(randomize() != static_cast<unsigned int>(DEFAULT_RANDOM_SEED));
-}
-TEST_CASE("real/random") {
-	REQUIRE(random(20) < static_cast<unsigned int>(20));
-	REQUIRE(is_between(static_cast<int>(random_range(20, 40)), 20, 40));
-	REQUIRE(random_set_seed(5) == static_cast<unsigned int>(5));
-	REQUIRE(random_reset_seed() != static_cast<unsigned int>(DEFAULT_RANDOM_SEED));
-	REQUIRE(randomize() != static_cast<unsigned int>(DEFAULT_RANDOM_SEED));
-}
 TEST_CASE("real/math") {
-	REQUIRE(sign(5) == 1);
-	REQUIRE(sign(0) == 0);
-	REQUIRE(sign(-5) == -1);
-	REQUIRE(sign(5.0) == 1);
-	REQUIRE(sign(0.0) == 0);
-	REQUIRE(sign(-5.0) == -1);
-	REQUIRE(sqr(5) == 25);
-	REQUIRE(sqr(5.0) == 25.0);
-	REQUIRE(logn(5.0, 1.0) == 0.0);
-	REQUIRE(logn(5.0, 5.0) == doctest::Approx(1.0));
-	REQUIRE(logn(5.0, 10.0) == doctest::Approx(1.431).epsilon(0.001));
-	REQUIRE(degtorad(90.0) == doctest::Approx(PI/2.0));
-	REQUIRE(degtorad(360.0) == doctest::Approx(2.0*PI));
-	REQUIRE(radtodeg(PI) == doctest::Approx(180.0));
-	REQUIRE(radtodeg(PI/3.0) == doctest::Approx(60.0));
-	REQUIRE(opposite_angle(0.0) == 180.0);
-	REQUIRE(opposite_angle(60.0) == 240.0);
-	REQUIRE(opposite_angle(270.0) == 90.0);
-	REQUIRE(opposite_angle(360.0) == 180.0);
-	REQUIRE(opposite_angle(-90.0) == 90.0);
+	REQUIRE(util::sign(5) == 1);
+	REQUIRE(util::sign(0) == 0);
+	REQUIRE(util::sign(-5) == -1);
+	REQUIRE(util::sign(5.0) == 1);
+	REQUIRE(util::sign(0.0) == 0);
+	REQUIRE(util::sign(-5.0) == -1);
+	REQUIRE(util::sqr(5) == 25);
+	REQUIRE(util::sqr(5.0) == 25.0);
+	REQUIRE(util::logn(5.0, 1.0) == 0.0);
+	REQUIRE(util::logn(5.0, 5.0) == doctest::Approx(1.0));
+	REQUIRE(util::logn(5.0, 10.0) == doctest::Approx(1.431).epsilon(0.001));
+	REQUIRE(util::degtorad(90.0) == doctest::Approx(PI/2.0));
+	REQUIRE(util::degtorad(360.0) == doctest::Approx(2.0*PI));
+	REQUIRE(util::radtodeg(PI) == doctest::Approx(180.0));
+	REQUIRE(util::radtodeg(PI/3.0) == doctest::Approx(60.0));
+	REQUIRE(util::opposite_angle(0.0) == 180.0);
+	REQUIRE(util::opposite_angle(60.0) == 240.0);
+	REQUIRE(util::opposite_angle(270.0) == 90.0);
+	REQUIRE(util::opposite_angle(360.0) == 180.0);
+	REQUIRE(util::opposite_angle(-90.0) == 90.0);
+	REQUIRE(util::absolute_angle(0.0) == 0.0);
+	REQUIRE(util::absolute_angle(360.0) == 0.0);
+	REQUIRE(util::absolute_angle(-90.0) == 270.0);
+	REQUIRE(util::absolute_angle(810.0) == 90.0);
+	REQUIRE(util::absolute_angle(-810.0) == 270.0);
 }
 TEST_CASE("real/movement") {
-	REQUIRE(direction_of(1.0, 2.0, 3.0, 4.0) == doctest::Approx(opposite_angle(direction_of(3.0, 4.0, 1.0, 2.0))));
-	REQUIRE(direction_of(0.0, 0.0, 1.0, 0.0) == doctest::Approx(0.0));
-	REQUIRE(direction_of(0.0, 0.0, 0.0, 1.0) == doctest::Approx(90.0));
-	REQUIRE(direction_of(0.0, 0.0, -1.0, 0.0) == doctest::Approx(180.0));
-	REQUIRE(direction_of(0.0, 0.0, 0.0, -1.0) == doctest::Approx(270.0));
-	REQUIRE(distance(0.0, 0.0, 1.0, 0.0) == 1.0);
-	REQUIRE(distance(0.0, 0.0, 3.0, 4.0) == 5.0);
-	REQUIRE(distance(0.0, 0.0, 0.0, 0.0) == 0.0);
+	REQUIRE(util::direction_of(1.0, 2.0, 3.0, 4.0) == doctest::Approx(util::opposite_angle(util::direction_of(3.0, 4.0, 1.0, 2.0))));
+	REQUIRE(util::direction_of(0.0, 0.0, 1.0, 0.0) == doctest::Approx(0.0));
+	REQUIRE(util::direction_of(0.0, 0.0, 0.0, 1.0) == doctest::Approx(90.0));
+	REQUIRE(util::direction_of(0.0, 0.0, -1.0, 0.0) == doctest::Approx(180.0));
+	REQUIRE(util::direction_of(0.0, 0.0, 0.0, -1.0) == doctest::Approx(270.0));
+	REQUIRE(util::distance(0.0, 0.0, 1.0, 0.0) == 1.0);
+	REQUIRE(util::distance(0.0, 0.0, 3.0, 4.0) == 5.0);
+	REQUIRE(util::distance(0.0, 0.0, 0.0, 0.0) == 0.0);
 
-	REQUIRE(bt_to_glm3(btVector3(0.0, 1.0, 2.0)) == glm::vec3(0.0, 1.0, 2.0));
-	REQUIRE(glm_to_bt3(glm::vec3(0.0, 1.0, 2.0)) == btVector3(0.0, 1.0, 2.0));
-	REQUIRE(bt_to_glm3(glm_to_bt3(glm::vec3(0.0, 1.0, 2.0))) == glm::vec3(0.0, 1.0, 2.0));
-}
-TEST_CASE("real/dot_product") {
-	REQUIRE(dot_product(1, 2, 3, 4) == 11);
-	REQUIRE(dot_product(1.0, 2.0, 3.0, 4.0) == 11.0);
-	REQUIRE(dot_product(std::make_pair(1, 2), std::make_pair(3, 4)) == 11);
+	REQUIRE(util::bt_to_glm3(btVector3(0.0, 1.0, 2.0)) == glm::vec3(0.0, 1.0, 2.0));
+	REQUIRE(util::glm_to_bt3(glm::vec3(0.0, 1.0, 2.0)) == btVector3(0.0, 1.0, 2.0));
+	REQUIRE(util::bt_to_glm3(util::glm_to_bt3(glm::vec3(0.0, 1.0, 2.0))) == glm::vec3(0.0, 1.0, 2.0));
 }
 TEST_CASE("real/bounds") {
-	REQUIRE(is_between(5, 3, 6) == true);
-	REQUIRE(is_between(6, 3, 6) == true);
-	REQUIRE(is_between(7, 3, 6) == false);
-	REQUIRE(is_between(5, 6, 3) == true);
-	REQUIRE(is_between(5.0, 3.0, 6.0) == true);
-	REQUIRE(is_angle_between(90, 0, 180) == true);
-	REQUIRE(is_angle_between(180, 0, 180) == true);
-	REQUIRE(is_angle_between(270, 0, 180) == false);
-	REQUIRE(is_angle_between(90.0, 0.0, 180.0) == true);
-	REQUIRE(is_angle_between(0, 270, 90) == true);
-	REQUIRE(is_angle_between(360, 270, 90) == true);
-	REQUIRE(fit_bounds(5, 3, 6) == 5);
-	REQUIRE(fit_bounds(6, 3, 6) == 6);
-	REQUIRE(fit_bounds(7, 3, 6) == 6);
-	REQUIRE(fit_bounds(5, 6, 3) == 5);
-	REQUIRE(fit_bounds(5.0, 3.0, 6.0) == 5.0);
-	REQUIRE(qmod(5, 3) == 2);
-	REQUIRE(qmod(3, 3) == 0);
-	REQUIRE(qmod(2, 3) == 2);
-	REQUIRE(qmod(5.f, 3) == 2.f);
-	REQUIRE(qmod(5.f, 3) == fmod(5.f, 3.f));
-	REQUIRE(qmod(5.0, 3) == 2.0);
-	REQUIRE(qmod(5.0, 3) == fmod(5.0, 3.0));
+	REQUIRE(util::is_between(5, 3, 6) == true);
+	REQUIRE(util::is_between(6, 3, 6) == true);
+	REQUIRE(util::is_between(7, 3, 6) == false);
+	REQUIRE(util::is_between(5, 6, 3) == false);
+	REQUIRE(util::is_between(5.0, 3.0, 6.0) == true);
+	REQUIRE(util::is_angle_between(90, 0, 180) == true);
+	REQUIRE(util::is_angle_between(180, 0, 180) == true);
+	REQUIRE(util::is_angle_between(270, 0, 180) == false);
+	REQUIRE(util::is_angle_between(90.0, 0.0, 180.0) == true);
+	REQUIRE(util::is_angle_between(0, 270, 90) == true);
+	REQUIRE(util::is_angle_between(360, 270, 90) == true);
+	REQUIRE(util::fit_bounds(5, 3, 6) == 5);
+	REQUIRE(util::fit_bounds(6, 3, 6) == 6);
+	REQUIRE(util::fit_bounds(7, 3, 6) == 6);
+	REQUIRE(util::fit_bounds(10, 6, 3) == 10);
+	REQUIRE(util::fit_bounds(5, 6, 3) == 6);
+	REQUIRE(util::fit_bounds(5.0, 3.0, 6.0) == 5.0);
+	REQUIRE(util::qmod(5, 3) == 2);
+	REQUIRE(util::qmod(3, 3) == 0);
+	REQUIRE(util::qmod(2, 3) == 2);
+	REQUIRE(util::qmod(5.f, 3) == 2.f);
+	REQUIRE(util::qmod(5.f, 3) == fmod(5.f, 3.f));
+	REQUIRE(util::qmod(5.0, 3) == 2.0);
+	REQUIRE(util::qmod(5.0, 3) == fmod(5.0, 3.0));
+}
+TEST_CASE("real/random") {
+	REQUIRE(util::random::get(20) < 20u);
+	REQUIRE(util::is_between(static_cast<int>(util::random::get_range(20, 40)), 20, 40));
+	REQUIRE(util::random::set_seed(5) == 5u);
+	REQUIRE(util::random::get(0) == 953453411u);
+	REQUIRE(util::random::reset_seed() != 1u);
+	REQUIRE(util::random::randomize() != 1u);
 }
 TEST_CASE("real/checksum") {
-	REQUIRE(checksum_internal_table(0) == 0);
-	REQUIRE(checksum_internal_table(2) == 3993919788);
-	REQUIRE(checksum_internal_reflect(0, 8) == 0);
-	REQUIRE(checksum_internal_reflect(2, 8) == 128);
-	REQUIRE(checksum_internal_reflect(0, 32) == 0);
-	REQUIRE(checksum_internal_reflect(2, 32) == 2147483648);
+	REQUIRE(util::checksum::internal::reflect(0, 8) == 0);
+	REQUIRE(util::checksum::internal::reflect(2, 8) == 128);
+	REQUIRE(util::checksum::internal::reflect(0, 32) == 0);
+	REQUIRE(util::checksum::internal::reflect(2, 32) == 2147483648);
+
+	REQUIRE(util::checksum::internal::table(0) == 0);
+	REQUIRE(util::checksum::internal::table(2) == 3993919788);
 
 	std::vector<unsigned char> v1 = {65, 66, 67};
-	unsigned int crc1 = get_checksum(v1);
+	unsigned int crc1 = util::checksum::get(v1);
 	REQUIRE(crc1 == 1625830473);
-	REQUIRE(verify_checksum(v1, crc1) == true);
+	REQUIRE(util::checksum::verify(v1, crc1) == true);
 
 	std::vector<unsigned char> v2 = {120, 121, 122};
-	unsigned int crc2 = get_checksum(v2);
+	unsigned int crc2 = util::checksum::get(v2);
 	REQUIRE(crc2 == 1178330758);
-	REQUIRE(verify_checksum(v2, crc2) == true);
+	REQUIRE(util::checksum::verify(v2, crc2) == true);
 }
 
 TEST_SUITE_END();

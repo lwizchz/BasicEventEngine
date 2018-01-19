@@ -314,7 +314,7 @@ namespace bee {
 		if (is_sprite) { // If the font is a sprite font, load it appropriately
 			sprite_font = new Texture("spr_"+get_name(), path); // Create and load a sprite for the font
 			if (!sprite_font->load()) { // If the sprite fails to load, output a warning
-				messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to load the font \"" + path + "\": " + get_sdl_error());
+				messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to load the font \"" + path + "\": " + util::get_sdl_error());
 				has_draw_failed = true;
 				return 3; // Return 3 on loading failure
 			}
@@ -386,7 +386,7 @@ namespace bee {
 			return nullptr; // Return nullptr when no text was provided
 		}
 
-		std::string t = string_replace(text, "\t", "    "); // Replace all tabs with 4 spaces for proper rendering
+		std::string t = util::string::replace(text, "\t", "    "); // Replace all tabs with 4 spaces for proper rendering
 
 		// Render the text to a temporary surface
 		SDL_Surface* tmp_surface = TTF_RenderUTF8_Blended(font, t.c_str(), {color.r, color.g, color.b, color.a}); // Use the slow but pretty TTF rendering mode
@@ -428,9 +428,10 @@ namespace bee {
 		}
 
 		TextData *textdata = nullptr, *r = nullptr; // Create a pointer for the entire textdata and a temporary one for each line
-		std::map<int,std::string> lines = handle_newlines(text); // Separate the text by newline
+		std::vector<std::string> lines = util::splitv(text, '\n', false); // Separate the text by newline
+		size_t i = 0;
 		for (auto& l : lines) { // Iterate over the lines and draw each one
-			r = draw_internal(x, y+lineskip*l.first, l.second, color); // Draw the line at the appropriate coordinates
+			r = draw_internal(x, y+lineskip*i, l, color); // Draw the line at the appropriate coordinates
 
 			if (r != nullptr) { // If the line was successfully drawn, append its textdata
 				if (textdata == nullptr) { // If it's the first line, set it as the entire textdata
@@ -474,7 +475,7 @@ namespace bee {
 		}
 
 		if ((textdata != nullptr)&&(textdata->text == text)) { // If the prerendered text matches the given text, draw it as-is
-			std::vector<std::string> lines = splitv(text, '\n', false); // Separate the text by newline
+			std::vector<std::string> lines = util::splitv(text, '\n', false); // Separate the text by newline
 			size_t i = 0;
 			for (auto& l : lines) { // Iterate over the lines and draw each one
 				if (!l.empty()) {
@@ -522,7 +523,7 @@ namespace bee {
 			return 0; // Return 0 when no text was provided
 		}
 
-		std::string t = string_replace(text, "\t", "    "); // Replace all tabs with 4 spaces for proper rendering
+		std::string t = util::string::replace(text, "\t", "    "); // Replace all tabs with 4 spaces for proper rendering
 
 		if (is_sprite) { // If the font is a sprite font, draw it appropriately
 			int i = 0;
@@ -578,13 +579,15 @@ namespace bee {
 			}
 		}
 
-		std::map<int,std::string> lines = handle_newlines(text); // Split the text by newline
+		std::vector<std::string> lines = util::splitv(text, '\n', false); // Split the text by newline
 		int r = 0; // Define a return value
+		size_t i = 0;
 		for (auto& l : lines) { // Iterate over the lines and draw each one
-			int ri = draw_fast_internal(x, y+lineskip*l.first, l.second, color); // Draw the line at the appropriate coordinates
+			int ri = draw_fast_internal(x, y+lineskip*i, l, color); // Draw the line at the appropriate coordinates
 			if (ri > r) { // Only store the return value if it's higher than the previous value
 				r = ri;
 			}
+			++i;
 		}
 		return r; // Return the highest error value from draw_fast_internal() above
 	}
@@ -611,7 +614,7 @@ namespace bee {
 
 		int w = 0; // Declare a temporary variable for the width
 		if (size == font_size) { // If the desired size is the same as the currently loaded size, fetch the width appropriately
-			std::vector<std::string> lines = splitv(text, '\n', false); // Separate the text by newline
+			std::vector<std::string> lines = util::splitv(text, '\n', false); // Separate the text by newline
 			int w0 = 0;
 			for (auto& l : lines) {
 				TTF_SizeUTF8(font, l.c_str(), &w0, nullptr);
@@ -625,7 +628,7 @@ namespace bee {
 				return -2; // Return -2 when font loading failed
 			}
 
-			std::vector<std::string> lines = splitv(text, '\n', false); // Separate the text by newline
+			std::vector<std::string> lines = util::splitv(text, '\n', false); // Separate the text by newline
 			int w0 = 0;
 			for (auto& l : lines) {
 				TTF_SizeUTF8(tmp_font, l.c_str(), &w0, nullptr); // Get the temporary width
@@ -666,7 +669,7 @@ namespace bee {
 
 		int h = 0; // Declare a temporary variable for the height
 		if (size == font_size) {
-			std::vector<std::string> lines = splitv(text, '\n', false); // Separate the text by newline
+			std::vector<std::string> lines = util::splitv(text, '\n', false); // Separate the text by newline
 			int h0 = 0;
 			for (auto& l : lines) {
 				TTF_SizeUTF8(font, l.c_str(), nullptr, &h0);
@@ -678,7 +681,7 @@ namespace bee {
 				return -2; // Return -2 when font loading failed
 			}
 
-			std::vector<std::string> lines = splitv(text, '\n', false); // Separate the text by newline
+			std::vector<std::string> lines = util::splitv(text, '\n', false); // Separate the text by newline
 			int h0 = 0;
 			for (auto& l : lines) {
 				TTF_SizeUTF8(tmp_font, l.c_str(), nullptr, &h0); // Get the temporary height

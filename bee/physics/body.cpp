@@ -187,7 +187,7 @@ namespace bee {
 		data["collision_flags"] = body->getCollisionFlags();
 		data["constraints"] = cons;
 
-		return map_serialize(data, should_pretty_print);
+		return util::map_serialize(data, should_pretty_print);
 	}
 	std::string PhysicsBody::serialize() const {
 		return serialize(false);
@@ -265,7 +265,7 @@ namespace bee {
 	}
 	int PhysicsBody::deserialize(const std::string& data, Instance* inst) {
 		std::map<Variant,Variant> m;
-		if (map_deserialize(data, &m)) {
+		if (util::map_deserialize(data, &m)) {
 			messenger::send({"engine", "physics"}, E_MESSAGE::WARNING, "Failed to deserialize physics body");
 			return 1;
 		}
@@ -274,7 +274,7 @@ namespace bee {
 	}
 	int PhysicsBody::deserialize(const std::string& data) {
 		std::map<std::string,Variant> m;
-		map_deserialize(data, &m);
+		util::map_deserialize(data, &m);
 
 		auto instances = get_current_room()->get_instances();
 		Instance* inst = nullptr;

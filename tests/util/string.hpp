@@ -16,69 +16,66 @@
 TEST_SUITE_BEGIN("util");
 
 TEST_CASE("string/charcode") {
-	REQUIRE(chr(65) == "A");
-	REQUIRE(ord('A') == 65);
-	REQUIRE(ord("ABC") == 65);
+	REQUIRE(util::chr(65) == "A");
 	Uint8 ca1[] = {65, 66, 67};
-	REQUIRE(chra(3, ca1) == std::string("ABC"));
-	std::vector<Uint8> ca2 = orda("ABC");
-	REQUIRE(chra(ca2) == chra(ca2.size(), ca1));
+	REQUIRE(util::chra(3, ca1) == std::string("ABC"));
+	std::vector<Uint8> ca2 = util::orda("ABC");
+	REQUIRE(util::chra(ca2) == util::chra(ca2.size(), ca1));
 }
-TEST_CASE("string/alteration") {
-	REQUIRE(string_lower("ABC") == "abc");
-	REQUIRE(string_upper("abc") == "ABC");
-	REQUIRE(string_title("abc") == "Abc");
-	REQUIRE(string_title("abc def") == "Abc Def");
-	REQUIRE(string_letters("ABC123,./") == "ABC");
-	REQUIRE(string_digits("ABC123,./") == "123");
-	REQUIRE(string_lettersdigits("ABC123,./") == "ABC123");
+TEST_CASE("string/vector") {
+	std::vector<std::string> v1 = {"ab", "1.0", "\"c d\"", "test"};
+	REQUIRE(util::splitv("ab 1.0 \"c d\" test", ' ', true) == v1);
 
-	std::map<int,std::string> m1 = {{0, "ab"}, {1, "1.0"}, {2, "\"c d\""}, {3, "test"}};
-	REQUIRE(split("ab 1.0 \"c d\" test", ' ', true) == m1);
+	std::vector<std::string> v2 = {"ab", "1.0", "test"};
+	REQUIRE(util::splitv("ab 1.0 test", ' ', true) == v2);
 
-	std::map<int,std::string> m2 = {{0, "ab"}, {1, "1.0"}, {2, "test"}};
-	REQUIRE(split("ab 1.0 test", ' ', true) == m2);
+	std::vector<std::string> v3 = {"a", "b", "c"};
+	REQUIRE(util::splitv("a,b,c", ',', true) == v3);
+	REQUIRE(util::joinv(v3, ',') == "a,b,c");
+	REQUIRE(util::splitv(util::joinv(v3, ','), ',', true) == v3);
 
-	std::map<int,std::string> m3 = {{0, "a"}, {1, "b"}, {2, "c"}};
-	REQUIRE(split("a,b,c", ',') == m3);
-	REQUIRE(handle_newlines("a\nb\nc") == m3);
-	REQUIRE(join(m3, ',') == "a,b,c");
-	REQUIRE(split(join(m3, ','), ',') == m3);
+	std::vector<std::string> v4 = {"\"a", "b\"", "c"};
+	std::vector<std::string> vr4 = {"\"a,b\"", "c"};
+	REQUIRE(util::splitv(util::joinv(v4, ','), ',', true) == vr4);
 
-	std::map<int,std::string> m4 = {{0, "\"a"}, {1, "b\""}, {2, "c"}};
-	std::map<int,std::string> mr4 = {{0, "\"a,b\""}, {1, "c"}};
-	REQUIRE(split(join(m4, ','), ',', true) == mr4);
-
-	std::map<int,std::string> m5 = {{0, "ab \"a;b\" \"b\""}, {1, " cd ef"}, {2, " \"g;\""}, {3, " h"}};
-	REQUIRE(split("ab \"a;b\" \"b\"; cd ef; \"g;\"; h", ';', true) == m5);
-
-	REQUIRE(ltrim("  ABC  ") == "ABC  ");
-	REQUIRE(rtrim("  ABC  ") == "  ABC");
-	REQUIRE(trim("  ABC  ") == "ABC");
+	std::vector<std::string> v5 = {"ab \"a;b\" \"b\"", " cd ef", " \"g;\"", " h"};
+	REQUIRE(util::splitv("ab \"a;b\" \"b\"; cd ef; \"g;\"; h", ';', true) == v5);
 }
-TEST_CASE("string/misc") {
-	REQUIRE(stringtobool("true") == true);
-	REQUIRE(stringtobool("false") == false);
-	REQUIRE(stringtobool("0") == false);
-	REQUIRE(stringtobool("1") == true);
-	REQUIRE(stringtobool("True") == true);
-	REQUIRE(stringtobool("False") == false);
-	REQUIRE(stringtobool("random text") == true);
-	REQUIRE(stringtobool("20") == true);
+TEST_CASE("string/manipulation") {
+	REQUIRE(util::ltrim("  ABC  ") == "ABC  ");
+	REQUIRE(util::rtrim("  ABC  ") == "  ABC");
+	REQUIRE(util::trim("  ABC  ") == "ABC");
 
-	REQUIRE(booltostring(true) == "true");
-	REQUIRE(booltostring(false) == "false");
+	/*REQUIRE(util::clipboard_set_text("test") == 0); // These functions require SDL to be initialized
+	REQUIRE(util::clipboard_get_text() == "test");
+	REQUIRE(util::clipboard_has_text() == true);*/
 
-	REQUIRE(string_replace("a,b,c", ",", ":") == "a:b:c");
-	REQUIRE(string_replace("a:test:b:test:c", ":test:", ",") == "a,b,c");
+	REQUIRE(util::string::lower("ABC") == "abc");
+	REQUIRE(util::string::upper("abc") == "ABC");
+	REQUIRE(util::string::title("abc") == "Abc");
+	REQUIRE(util::string::title("abc def") == "Abc Def");
+	REQUIRE(util::string::letters("ABC123,./") == "ABC");
+	REQUIRE(util::string::digits("ABC123,./") == "123");
+	REQUIRE(util::string::lettersdigits("ABC123,./") == "ABC123");
 
-	REQUIRE(string_escape("\"Test\"/\\test") == "\\\"Test\\\"/\\\\test");
-	REQUIRE(string_unescape("\\\"Test\\\"/\\\\test") == "\"Test\"/\\test");
-	REQUIRE(string_unescape(string_escape("\"Test\"/\\test")) == "\"Test\"/\\test");
+	REQUIRE(util::string::tobool("true") == true);
+	REQUIRE(util::string::tobool("false") == false);
+	REQUIRE(util::string::tobool("0") == false);
+	REQUIRE(util::string::tobool("1") == true);
+	REQUIRE(util::string::tobool("True") == true);
+	REQUIRE(util::string::tobool("False") == false);
+	REQUIRE(util::string::tobool("random text") == true);
+	REQUIRE(util::string::tobool("20") == true);
 
-	/*REQUIRE(clipboard_set_text("test") == 0); // These functions require SDL to be initialized
-	REQUIRE(clipboard_get_text() == "test");
-	REQUIRE(clipboard_has_text() == true);*/
+	REQUIRE(util::string::frombool(true) == "true");
+	REQUIRE(util::string::frombool(false) == "false");
+
+	REQUIRE(util::string::replace("a,b,c", ",", ":") == "a:b:c");
+	REQUIRE(util::string::replace("a:test:b:test:c", ":test:", ",") == "a,b,c");
+
+	REQUIRE(util::string::escape("\"Test\"/\\test") == "\\\"Test\\\"/\\\\test");
+	REQUIRE(util::string::unescape("\\\"Test\\\"/\\\\test") == "\"Test\"/\\test");
+	REQUIRE(util::string::unescape(util::string::escape("\"Test\"/\\test")) == "\"Test\"/\\test");
 }
 
 TEST_SUITE_END();

@@ -57,7 +57,7 @@ namespace bee { namespace loader {
 		}
 
 		if (next_resource != resources.end()) {
-			messenger::send({"engine", "loader", "lazysignal"}, E_MESSAGE::INTERNAL, "Lazily loading the next " + bee_itos(lazy_amount) + " resources");
+			messenger::send({"engine", "loader", "lazysignal"}, E_MESSAGE::INTERNAL, "Lazily loading the next " + std::to_string(lazy_amount) + " resources");
 		}
 
 		return 0;

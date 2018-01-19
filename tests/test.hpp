@@ -9,7 +9,6 @@
 #ifndef TESTS_TEST_H
 #define TESTS_TEST_H 1
 
-// General utility functions bee/util.cpp
 bool verify_assertions(int, char**);
 bool verify_assertions();
 

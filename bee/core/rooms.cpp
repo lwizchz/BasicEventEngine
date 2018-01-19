@@ -179,7 +179,7 @@ namespace bee {
 	*/
 	bool is_on_screen(const SDL_Rect& rect) {
 		SDL_Rect screen = {0, 0, get_room_size().first, get_room_size().second}; // Initialize a rectangle for the window dimensions
-		return check_collision(rect, screen); // Return whether the given rectangle collides with the screen's rectangle
+		return util::check_collision(rect, screen); // Return whether the given rectangle collides with the screen's rectangle
 	}
 
 	/**

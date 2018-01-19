@@ -78,10 +78,10 @@ void ObjBee::outside_room(bee::Instance* self) {
 }
 void ObjBee::draw(bee::Instance* self) {
 	int size = 100;
-	double r = radtodeg(self->get_physbody()->get_rotation_z());
+	double r = util::radtodeg(self->get_physbody()->get_rotation_z());
 	self->draw(size, size, r, bee::RGBA(bee::E_RGB::WHITE));
 
-	_p("text_id") = font_liberation->draw(static_cast<bee::TextData*>(_p("text_id")), self->get_corner_x(), self->get_corner_y(), bee_itos(self->id));
+	_p("text_id") = font_liberation->draw(static_cast<bee::TextData*>(_p("text_id")), self->get_corner_x(), self->get_corner_y(), std::to_string(self->id));
 
 	lt_bee->set_position(glm::vec4(self->get_x(), self->get_y(), 0.0, 1.0));
 	lt_bee->set_color({static_cast<Uint8>(self->id*50), static_cast<Uint8>(self->id*20), 255, 255});

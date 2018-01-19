@@ -135,7 +135,6 @@ namespace bee {
 		int set_friction(double);
 		int set_gravity(btVector3);
 		int set_gravity(double, double, double);
-		int move_outside(btVector3);
 		int set_is_solid(bool);
 		int set_velocity(btVector3);
 		int set_velocity(double, double);

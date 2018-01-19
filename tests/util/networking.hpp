@@ -16,26 +16,26 @@
 TEST_SUITE_BEGIN("util");
 
 TEST_CASE("networking") {
-	REQUIRE(network_init() == 0);
+	REQUIRE(util::network::init() == 0);
 	int port = 3054;
-	IPaddress* ipa = network_resolve_host("127.0.0.1", port);
+	IPaddress* ipa = util::network::resolve_host("127.0.0.1", port);
 	REQUIRE(ipa != nullptr);
-	REQUIRE(network_get_address(ipa->host) == "127.0.0.1");
+	REQUIRE(util::network::get_address(ipa->host) == "127.0.0.1");
 	delete ipa;
 
-	TCPsocket tcp = network_tcp_open("", port);
+	TCPsocket tcp = util::network::tcp_open("", port);
 	REQUIRE(tcp != static_cast<TCPsocket>(nullptr));
-	REQUIRE(network_tcp_close(&tcp) == 0);
+	util::network::tcp_close(&tcp);
 	REQUIRE(tcp == static_cast<TCPsocket>(nullptr));
 
-	UDPsocket udp = network_udp_open(port);
+	UDPsocket udp = util::network::udp_open(port);
 	REQUIRE(udp != static_cast<UDPsocket>(nullptr));
-	REQUIRE(network_udp_bind(&udp, -1, "127.0.0.1", port) != -1);
-	REQUIRE(network_udp_unbind(&udp, -1) == 0);
-	REQUIRE(network_udp_close(&udp) == 0);
+	REQUIRE(util::network::udp_bind(&udp, -1, "127.0.0.1", port) != -1);
+	util::network::udp_unbind(&udp, -1);
+	util::network::udp_close(&udp);
 	REQUIRE(udp == static_cast<UDPsocket>(nullptr));
 
-	REQUIRE(network_close() == 0);
+	util::network::close();
 }
 
 TEST_SUITE_END();

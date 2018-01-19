@@ -169,7 +169,7 @@ namespace bee {
 					internal::handle_sdl_events();
 				}
 
-				if (bee_has_commandline_input()) {
+				if (util::platform::has_commandline_input()) {
 					engine->commandline_input.push_back("");
 					std::getline(std::cin, engine->commandline_input[engine->commandline_current]);
 					if (engine->commandline_input[engine->commandline_current] == "") {
@@ -228,7 +228,7 @@ namespace bee {
 						break;
 					}
 					default: {
-						messenger::send({"engine"}, E_MESSAGE::ERROR, "Unknown error code: " + bee_itos(e));
+						messenger::send({"engine"}, E_MESSAGE::ERROR, "Unknown error code: " + std::to_string(e));
 						return e;
 					}
 				}
@@ -281,7 +281,7 @@ namespace bee {
 
 	int internal::init_sdl() {
 		if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't init SDL: " + get_sdl_error());
+			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't init SDL: " + util::get_sdl_error());
 			return 3; // Return 3 when SDL couldn't be initialized
 		}
 
@@ -329,7 +329,7 @@ namespace bee {
 		}
 		engine->renderer->window = SDL_CreateWindow("BasicEventEngine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, engine->width, engine->height, window_flags);
 		if (engine->renderer->window == nullptr) {
-			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't create SDL window: " + get_sdl_error());
+			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't create SDL window: " + util::get_sdl_error());
 			return 4; // Return 4 when the window could not be created
 		}
 		if (get_options().is_minimized) {
@@ -449,7 +449,7 @@ namespace bee {
 								break;
 						#endif
 						default: {
-							messenger::send({"engine"}, E_MESSAGE::WARNING, "Unknown window event: " + bee_itos(event.window.event));
+							messenger::send({"engine"}, E_MESSAGE::WARNING, "Unknown window event: " + std::to_string(event.window.event));
 							break;
 						}
 					}
@@ -561,7 +561,7 @@ namespace bee {
 					break;
 				}
 				default:
-					messenger::send({"engine"}, E_MESSAGE::WARNING, "Unknown event type: " + bee_itos(event.type));
+					messenger::send({"engine"}, E_MESSAGE::WARNING, "Unknown event type: " + std::to_string(event.type));
 					break;
 			}
 		}
@@ -611,7 +611,7 @@ namespace bee {
 			if (overtime/frame_ticks >= 10) {
 				type = E_MESSAGE::WARNING;
 			}
-			messenger::send({"engine"}, type, "Engine loop over time by " + bee_itos(overtime) + "ms, " + bee_itos(overtime/frame_ticks) + " frames lost");
+			messenger::send({"engine"}, type, "Engine loop over time by " + std::to_string(overtime) + "ms, " + std::to_string(overtime/frame_ticks) + " frames lost");
 		}
 		internal::update_delta();
 
