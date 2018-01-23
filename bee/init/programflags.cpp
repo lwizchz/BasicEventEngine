@@ -145,39 +145,39 @@ namespace bee {
 			));
 			add_flag(new ProgramFlag(
 				"debug", 'd', true, E_FLAGARG::NONE, [] (const std::string& arg) {
-					engine->options->is_debug_enabled = true;
+					set_option("is_debug_enabled", true);
 				}
 			));
 			add_flag(new ProgramFlag(
 				"dimensions", '\0', true, E_FLAGARG::REQUIRED, [] (const std::string& arg) {
 					engine->width = std::stoi(arg.substr(0, arg.find("x")));
 					engine->height = std::stoi(arg.substr(arg.find("x")+1));
-					engine->options->is_resizable = false;
+					set_option("is_debug_enabled", false);
 				}
 			));
 			add_flag(new ProgramFlag(
 				"fullscreen", 'f', true, E_FLAGARG::NONE, [] (const std::string& arg) {
-					engine->options->is_fullscreen = true;
+					set_option("is_fullscreen", true);
 				}
 			));
 			add_flag(new ProgramFlag(
 				"no-assert", '\0', true, E_FLAGARG::NONE, [] (const std::string& arg) {
-					engine->options->should_assert = false;
+					set_option("should_assert", false);
 				}
 			));
 			add_flag(new ProgramFlag(
 				"single-run", '\0', true, E_FLAGARG::NONE, [] (const std::string& arg) {
-					engine->options->single_run = true;
+					set_option("single_run", true);
 				}
 			));
 			add_flag(new ProgramFlag(
 				"windowed", 'w', true, E_FLAGARG::NONE, [] (const std::string& arg) {
-					engine->options->is_fullscreen = false;
+					set_option("is_fullscreen", false);
 				}
 			));
 			add_flag(new ProgramFlag(
 				"headless", '\0', true, E_FLAGARG::NONE, [] (const std::string& arg) {
-					engine->options->is_headless = true;
+					set_option("is_headless", true);
 				}
 			));
 		}

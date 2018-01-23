@@ -14,6 +14,7 @@
 
 #include "beemodule.hpp"
 
+#include "python.hpp"
 #include "messenger.hpp"
 #include "console.hpp"
 #include "mouse.hpp"
@@ -21,6 +22,7 @@
 
 #include "../engine.hpp"
 
+#include "../init/gameoptions.hpp"
 #include "../init/programflags.hpp"
 
 #include "../core/display.hpp"
@@ -45,6 +47,9 @@ namespace bee { namespace python { namespace internal {
         };
         PyMethodDef BEEInitMethods[] = {
                 {"add_flag", init_add_flag, METH_VARARGS, "Add a program flag for post-init parsing"},
+
+                {"get_option", init_get_option, METH_VARARGS, "Return the option value"},
+                {"set_option", init_set_option, METH_VARARGS, "Assign a value and setter callback to the given option"},
 
                 {nullptr, nullptr, 0, nullptr}
         };
@@ -426,6 +431,59 @@ namespace bee { namespace python { namespace internal {
                 }));
 
                 Py_RETURN_NONE;
+        }
+
+        PyObject* init_get_option(PyObject* self, PyObject* args) {
+                PyObject* name;
+
+                if (!PyArg_ParseTuple(args, "U", &name)) {
+                        return nullptr;
+                }
+
+                std::string _name (PyUnicode_AsUTF8(name));
+
+                return Py_BuildValue("N", variant_to_pyobj(get_option(_name)));
+        }
+        PyObject* init_set_option(PyObject* self, PyObject* args) {
+                PyObject* name;
+                PyObject* value;
+                PyObject* setter = nullptr;
+
+                if (!PyArg_ParseTuple(args, "UO|O", &name, &value, &setter)) {
+                        return nullptr;
+                }
+
+                std::string _name (PyUnicode_AsUTF8(name));
+
+                Variant _value (pyobj_to_variant(value));
+
+                if (setter == nullptr) {
+                        return Py_BuildValue("i", set_option(_name, _value));
+                }
+
+                if (!PyCallable_Check(setter)) {
+                        PyErr_SetString(PyExc_TypeError, "parameter must be callable");
+                        return nullptr;
+                }
+                Py_INCREF(setter);
+
+                return Py_BuildValue("i", set_option(_name, _value, [setter] (GameOption* option, Variant new_value) {
+                        PyObject* arg_tup = Py_BuildValue("(N)", variant_to_pyobj(new_value));
+                        PyObject* ret = PyEval_CallObject(setter, arg_tup);
+
+                        if (ret == nullptr) {
+                                PyErr_Print();
+                                Py_DECREF(arg_tup);
+                                return 2;
+                        } else if (ret == Py_None) {
+                                Py_DECREF(arg_tup);
+                                return 1;
+                        } else {
+                                option->value = pyobj_to_variant(ret);
+                                Py_DECREF(arg_tup);
+                                return 0;
+                        }
+                }));
         }
 
         PyObject* core_get_display(PyObject* self, PyObject* args) {

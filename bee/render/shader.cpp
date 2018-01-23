@@ -146,13 +146,18 @@ namespace bee {
 	GLuint ShaderProgram::get_program() const {
 		return program;
 	}
-	GLint ShaderProgram::get_location(const std::string& input) const {
+	GLint ShaderProgram::get_location(const std::string& input, bool should_print) const {
 		if (inputs.find(input) == inputs.end()) {
-			messenger::send({"engine", "renderer"}, E_MESSAGE::WARNING, "Shader input \"" + input + "\" not found");
+			if (should_print) {
+				messenger::send({"engine", "renderer"}, E_MESSAGE::WARNING, "Shader input \"" + input + "\" not found");
+			}
 			return -1;
 		}
 
 		return inputs.at(input).location;
+	}
+	GLint ShaderProgram::get_location(const std::string& input) const {
+		return get_location(input, true);
 	}
 
 	int ShaderProgram::apply() {

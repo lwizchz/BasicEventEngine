@@ -19,14 +19,16 @@
 
 int main(int argc, char* argv[]) {
 	// Declare some game options, see bee/init/gameoptions.hpp for the struct definition
-	bee::GameOptions options;
-	//options.is_debug_enabled = true;
+	std::list<bee::GameOption> options = {
+		//{"is_debug_enabled", bee::Variant(true)},
+		{"is_network_enabled", bee::Variant(true)}
+	};
 
 	// Add a logfile to the messenger
 	bee::messenger::add_log(MACRO_TO_STR(GAME_NAME) + std::string(".log"), bee::E_OUTPUT::NORMAL);
 
 	// Initialize the game engine
-	if (bee::init(argc, argv, &rm_test, {}, &options)) {
+	if (bee::init(argc, argv, &rm_test, {}, options)) {
 		bee::messenger::handle();
 		return 1; // Return 1 on initialization failure
 	}

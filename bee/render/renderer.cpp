@@ -71,6 +71,7 @@ namespace bee {
 			sdl_renderer_close();
 		}
 		if (window != nullptr) {
+			set_option("is_fullscreen", false);
 			SDL_DestroyWindow(window);
 			window = nullptr;
 		}
@@ -93,7 +94,7 @@ namespace bee {
 			return 2; // Return 2 when GLEW could not be initialized
 		}
 
-		if (get_options().is_vsync_enabled) {
+		if (get_option("is_vsync_enabled").i) {
 			SDL_GL_SetSwapInterval(1);
 		} else {
 			SDL_GL_SetSwapInterval(0);
@@ -117,7 +118,7 @@ namespace bee {
 		const std::string fs_fn_basic_default = "bee/resources/shaders/basic.fragment.glsl";
 		const std::string fs_fn_basic_user = "resources/basic.fragment.glsl";
 		std::string fs_fn (fs_fn_default);
-		if (get_options().is_basic_shaders_enabled == true) {
+		if (get_option("is_basic_shaders_enabled").i) {
 			fs_fn = fs_fn_basic_default;
 			if (util::file_exists(fs_fn_basic_user)) {
 				fs_fn = fs_fn_basic_user;
@@ -190,12 +191,12 @@ namespace bee {
 		SDL_GL_GetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, &vi);
 
 		if (
-			(get_options().renderer_type == E_RENDERER::OPENGL4)
+			(get_option("renderer_type").i == static_cast<int>(E_RENDERER::OPENGL4))
 			&&(va == 4)&&(vi == 1)
 		) {
 			messenger::send({"engine", "renderer"}, E_MESSAGE::INFO, "Now rendering with OpenGL 4.1");
 		} else if (
-			(get_options().renderer_type == E_RENDERER::OPENGL3)
+			(get_option("renderer_type").i == static_cast<int>(E_RENDERER::OPENGL3))
 			&&(va == 3)&&(vi == 3)
 		) {
 			messenger::send({"engine", "renderer"}, E_MESSAGE::INFO, "Now rendering with OpenGL 3.3");
@@ -241,7 +242,7 @@ namespace bee {
 		messenger::send({"engine", "renderer"}, E_MESSAGE::ERROR, "The SDL renderer is deprecated and will be removed soon");
 
 		int renderer_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE;
-		if (get_options().is_vsync_enabled) {
+		if (get_option("is_vsync_enabled").i) {
 			renderer_flags |= SDL_RENDERER_PRESENTVSYNC;
 		}
 

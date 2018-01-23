@@ -353,7 +353,7 @@ namespace bee {
 	* @new_subimage_width: the width of each subimage
 	*/
 	int Texture::set_subimage_amount(int new_subimage_amount, int new_subimage_width) {
-		if (get_options().is_headless) {
+		if (get_option("is_headless").i) {
 			return 1; // Return 1 when in headless mode
 		}
 
@@ -398,7 +398,7 @@ namespace bee {
 	* @new_crop: the rectangle to crop the image to
 	*/
 	int Texture::crop_image(SDL_Rect new_crop) {
-		if (get_options().is_headless) {
+		if (get_option("is_headless").i) {
 			return 1; // Return 1 when in headless mode
 		}
 
@@ -562,7 +562,7 @@ namespace bee {
 		       return 1; // Return 1 when already loaded
 		}
 
-		if (get_options().is_headless) {
+		if (get_option("is_headless").i) {
 			return 2; // Return 2 when texture rendering is not applicable
 		}
 
@@ -587,7 +587,7 @@ namespace bee {
 		       return 1; // Return 1 when already loaded
 		}
 
-		if (get_options().is_headless) {
+		if (get_option("is_headless").i) {
 			return 2; // Return 2 when texture rendering is not applicable
 		}
 

@@ -61,7 +61,7 @@ namespace bee { namespace render {
 	}
 
 	std::string opengl_prepend_version(const std::string& shader) {
-		switch (get_options().renderer_type) {
+		switch (static_cast<E_RENDERER>(get_option("renderer_type").i)) {
 			case E_RENDERER::OPENGL4: {
 				if (GL_VERSION_4_1) {
 					return "#version 410 core\n" + shader;
@@ -282,7 +282,7 @@ namespace bee { namespace render {
 	* ! See https://wiki.libsdl.org/SDL_SetRenderTarget for details
 	*/
 	int reset_target() {
-		if (get_options().is_headless) {
+		if (get_option("is_headless").i) {
 			return 1; // Return 1 when in headless mode
 		}
 
@@ -296,7 +296,7 @@ namespace bee { namespace render {
 	* @target: the Texture to use as the render target
 	*/
 	int set_target(Texture* target) {
-		if (get_options().is_headless) {
+		if (get_option("is_headless").i) {
 			return 1; // Return 1 when in headless mode
 		}
 

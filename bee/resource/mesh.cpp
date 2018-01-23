@@ -223,7 +223,7 @@ namespace bee {
 			return 1; // Return 1 when already loaded
 		}
 
-		if (get_options().is_headless) {
+		if (get_option("is_headless").i) {
 			return 2; // Return 2 when in headless mode
 		}
 

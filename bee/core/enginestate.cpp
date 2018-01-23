@@ -21,8 +21,6 @@
 
 #include "../enum.hpp"
 
-#include "../init/gameoptions.hpp"
-
 #include "console.hpp"
 
 #include "../network/network.hpp"
@@ -36,10 +34,9 @@
 #include "../resource/room.hpp"
 
 namespace bee {
-	EngineState::EngineState(int _argc, char** _argv, GameOptions* _options) :
+	EngineState::EngineState(int _argc, char** _argv) :
 		argc(_argc),
 		argv(_argv),
-		options(_options),
 
 		quit(false),
 		is_ready(false),
@@ -93,12 +90,10 @@ namespace bee {
 		}
 
 		if (texture_before != nullptr) {
-			texture_before->free();
 			delete texture_before;
 			texture_before = nullptr;
 		}
 		if (texture_after != nullptr) {
-			texture_after->free();
 			delete texture_after;
 			texture_after = nullptr;
 		}

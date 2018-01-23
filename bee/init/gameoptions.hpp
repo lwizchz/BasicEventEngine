@@ -9,36 +9,37 @@
 #ifndef BEE_INIT_GAMEOPTIONS_H
 #define BEE_INIT_GAMEOPTIONS_H 1
 
+#include <functional>
+
 #include "../enum.hpp"
 
+#include "../data/variant.hpp"
+
 namespace bee {
-	struct GameOptions {
-		// Window options
-		bool is_fullscreen, is_borderless;
-		bool is_resizable, is_maximized;
-		bool is_highdpi, is_visible;
-		bool is_minimized;
+	struct GameOption {
+		std::string name;
+		Variant value;
+		std::function<int (GameOption*, Variant)> setter;
 
-		// Renderer options
-		bee::E_RENDERER renderer_type;
-		bool is_vsync_enabled;
-		bool is_basic_shaders_enabled;
+		GameOption(const std::string&, Variant);
+		GameOption(const std::string&, Variant, std::function<int (GameOption*, Variant)>);
 
-		// Miscellaneous options
-		bool is_network_enabled;
-		bool is_debug_enabled;
-
-		// Commandline flags
-		bool should_assert;
-		bool single_run;
-		bool is_headless;
-
-		GameOptions();
-		GameOptions(bool, bool, bool, bool, bool, bool, bee::E_RENDERER, bool, bool, bool, bool);
+		int set(Variant);
 	};
 
-	const GameOptions& get_options();
-	int set_options(const GameOptions&);
+	Variant get_option(const std::string&);
+	int set_option(const std::string&, Variant);
+	int set_option(const std::string&, Variant, std::function<int (GameOption*, Variant)>);
+
+
+	template <typename T>
+	int set_option(const std::string& name, T value) {
+		return set_option(name, Variant(value));
+	}
+	template <typename T>
+	int set_option(const std::string& name, T value, std::function<int (GameOption*, Variant)> setter) {
+		return set_option(name, Variant(value), setter);
+	}
 }
 
 #endif // BEE_INIT_GAMEOPTIONS_H

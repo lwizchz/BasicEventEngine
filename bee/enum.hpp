@@ -52,7 +52,7 @@ namespace bee {
 		YELLOW
 	};
 
-	enum class E_RENDERER {
+	enum class E_RENDERER : int {
 		OPENGL3,
 		OPENGL4
 	};

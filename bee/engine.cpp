@@ -59,8 +59,12 @@ namespace bee {
 	EngineState* engine = nullptr;
 	bool is_initialized = false;
 
-	int init(int argc, char** argv, Room** _first_room, const std::list<ProgramFlag*>& extra_flags, GameOptions* _options) {
-		engine = new EngineState(argc, argv, _options);
+	int init(int argc, char** argv, Room** _first_room, const std::list<ProgramFlag*>& extra_flags, const std::list<GameOption>& extra_options) {
+		engine = new EngineState(argc, argv);
+
+		for (auto& opt : extra_options) {
+			set_option(opt.name, opt.value, opt.setter);
+		}
 
 		init_standard_flags();
 		for (auto& flag : extra_flags) {
@@ -75,7 +79,7 @@ namespace bee {
 			std::to_string(BEE_VERSION_MAJOR) + "." + std::to_string(BEE_VERSION_MINOR) + "." + std::to_string(BEE_VERSION_RELEASE)
 		);
 
-		if (get_options().should_assert) {
+		if (get_option("should_assert").i) {
 			#ifndef NDEBUG
 				if (!verify_assertions(argc, argv)) {
 					messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Assertion verification failed");
@@ -86,11 +90,11 @@ namespace bee {
 			#endif
 		}
 
-		if (get_options().is_network_enabled) {
+		if (get_option("is_network_enabled").i) {
 			net::init();
 		}
 
-		if (!get_options().is_headless) {
+		if (!get_option("is_headless").i) {
 			int r = internal::init_sdl(); // Initialize SDL
 			if (r) {
 				return r; // Return any nonzero values from SDL init
@@ -141,7 +145,7 @@ namespace bee {
 		messenger::handle();
 
 		// Register the logging system
-		if (get_options().is_headless) {
+		if (get_option("is_headless").i) {
 			messenger::internal::register_protected("cmdconsole", {"engine", "commandline"}, true, [] (const MessageContents& msg) {
 				bee::console::run(msg.descr);
 			});
@@ -165,7 +169,7 @@ namespace bee {
 				engine->current_room->step_begin();
 				engine->current_room->check_alarms();
 
-				if (!get_options().is_headless) {
+				if (!get_option("is_headless").i) {
 					internal::handle_sdl_events();
 				}
 
@@ -187,7 +191,7 @@ namespace bee {
 				engine->current_room->collision();
 
 				engine->current_room->step_end();
-				if (!get_options().is_headless) {
+				if (!get_option("is_headless").i) {
 					internal::handle_drawing();
 				}
 				engine->current_room->destroy();
@@ -198,8 +202,8 @@ namespace bee {
 				internal::frame_delay();
 
 				// If the single_run flag option is used, exit the game loop after saving a screenshot
-				if (get_options().single_run) {
-					if (!get_options().is_headless) {
+				if (get_option("single_run").i) {
+					if (!get_option("is_headless").i) {
 						engine->current_room->draw();
 						save_screenshot("single_run.bmp");
 					}
@@ -262,7 +266,7 @@ namespace bee {
 		mouse::close();
 		engine->free();
 
-		if (!get_options().is_headless) {
+		if (!get_option("is_headless").i) {
 			internal::close_sdl();
 		}
 
@@ -286,7 +290,7 @@ namespace bee {
 		}
 
 		// Use the highest version of OpenGL available
-		switch (get_options().renderer_type) {
+		switch (static_cast<E_RENDERER>(get_option("renderer_type").i)) {
 			case E_RENDERER::OPENGL4:
 			default: {
 				if (GL_VERSION_4_1) { // FIXME: Properly test for opengl support
@@ -309,22 +313,22 @@ namespace bee {
 		}
 
 		int window_flags = SDL_WINDOW_OPENGL;
-		if (get_options().is_fullscreen) {
+		if (get_option("is_fullscreen").i) {
 			window_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 		}
-		if (get_options().is_borderless) {
+		if (get_option("is_borderless").i) {
 			window_flags |= SDL_WINDOW_BORDERLESS;
 		}
-		if (get_options().is_resizable) {
+		if (get_option("is_resizable").i) {
 			window_flags |= SDL_WINDOW_RESIZABLE;
 		}
-		if (get_options().is_maximized) {
+		if (get_option("is_maximized").i) {
 			window_flags |= SDL_WINDOW_MAXIMIZED;
 		}
-		if (get_options().is_highdpi) {
+		if (get_option("is_highdpi").i) {
 			window_flags |= SDL_WINDOW_ALLOW_HIGHDPI;
 		}
-		if (get_options().is_visible) {
+		if (get_option("is_visible").i) {
 			window_flags |= SDL_WINDOW_SHOWN;
 		}
 		engine->renderer->window = SDL_CreateWindow("BasicEventEngine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, engine->width, engine->height, window_flags);
@@ -332,7 +336,7 @@ namespace bee {
 			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't create SDL window: " + util::get_sdl_error());
 			return 4; // Return 4 when the window could not be created
 		}
-		if (get_options().is_minimized) {
+		if (get_option("is_minimized").i) {
 			SDL_MinimizeWindow(engine->renderer->window);
 		}
 
@@ -404,18 +408,18 @@ namespace bee {
 							break;
 						}
 						case SDL_WINDOWEVENT_MINIMIZED: {
-							engine->options->is_minimized = true;
+							set_option("is_minimized", true);
 							engine->has_mouse = false;
 							engine->has_focus = false;
 							break;
 						}
 						case SDL_WINDOWEVENT_MAXIMIZED: {
-							engine->options->is_minimized = false;
+							set_option("is_minimized", false);
 							engine->has_focus = true;
 							break;
 						}
 						case SDL_WINDOWEVENT_RESTORED: {
-							engine->options->is_minimized = false;
+							set_option("is_minimized", false);
 							engine->has_focus = true;
 							break;
 						}
@@ -600,7 +604,7 @@ namespace bee {
 
 		Uint32 frame_ticks = 1000/fps_desired;
 		if (new_tickstamp - engine->tickstamp < frame_ticks) {
-			if ((!get_options().is_vsync_enabled)||(!engine->has_focus)) {
+			if ((!get_option("is_vsync_enabled").i)||(!engine->has_focus)) {
 				Uint32 delay = frame_ticks - (new_tickstamp - engine->tickstamp);
 				//messenger::log("FPS delay: " + bee_itos(delay) + "ms, " + bee_itos(100*delay/fps_desired) + "% of the frame");
 				SDL_Delay(delay);

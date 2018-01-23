@@ -27,6 +27,9 @@ namespace bee { namespace python { namespace internal {
 
 		PyObject* init_add_flag(PyObject*, PyObject*);
 
+		PyObject* init_get_option(PyObject*, PyObject*);
+		PyObject* init_set_option(PyObject*, PyObject*);
+
 		PyObject* core_get_display(PyObject*, PyObject*);
 		PyObject* core_get_display_size(PyObject*, PyObject*);
 		PyObject* core_get_display_refresh_rate(PyObject*, PyObject*);

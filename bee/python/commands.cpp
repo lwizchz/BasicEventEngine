@@ -107,7 +107,7 @@ namespace bee { namespace python { namespace internal {
         PyObject* commands_clear(PyObject* self, PyObject* args) {
                 console::clear();
 
-                if (get_options().is_headless) {
+                if (get_option("is_headless").i) {
                         util::platform::commandline_clear();
                 }
 

@@ -18,3 +18,7 @@ def main():
         import sys
         bee.messenger.log("python version: {0.major}.{0.minor}".format(sys.version_info))
     bee.add_flag("python", "p", bee.E_FLAGARG["NONE"], pyflag)
+
+    def pyopt(value):
+        print("changing pyopt to: {}".format(value))
+    bee.set_option("pyopt", "a string value", pyopt)

@@ -309,7 +309,7 @@ namespace bee{ namespace console {
 				}
 			}
 
-			if (!get_options().is_headless) {
+			if (!get_option("is_headless").i) {
 				messenger::send({"engine", "console"}, E_MESSAGE::INFO, "> " + util::trim(command)); // Output the command to the messenger log
 			}
 		}

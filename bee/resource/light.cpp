@@ -251,7 +251,7 @@ namespace bee {
 	* Light::queue() - Queue the light for drawing in the Room rendering loop
 	*/
 	int Light::queue() {
-		if (get_options().is_headless) {
+		if (get_option("is_headless").i) {
 			return 1; // Return 1 when in headless mode
 		}
 

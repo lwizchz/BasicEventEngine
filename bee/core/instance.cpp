@@ -394,6 +394,15 @@ namespace bee {
 		data = _data;
 		return 0;
 	}
+	/*
+	* Instance::set_data() - Set the requested data field
+	* @field: the name of the field to set
+	* @value: the value to set the field to
+	*/
+	int Instance::set_data(const std::string& field, Variant value) {
+		data[field] = value;
+		return 0;
+	}
 
 	btVector3 Instance::get_position() const {
 		return body->get_position();

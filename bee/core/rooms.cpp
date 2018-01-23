@@ -113,7 +113,7 @@ namespace bee {
 		} else { // Otherwise reset the render target just to be sure
 			render::reset_target();
 		}
-		if (!get_options().is_headless) {
+		if (!get_option("is_headless").i) {
 			render::clear();
 		}
 
@@ -125,11 +125,11 @@ namespace bee {
 		}
 		engine->current_room->room_start(); // Run the room_start event for the new room
 
-		if (!get_options().is_headless) {
+		if (!get_option("is_headless").i) {
 			engine->current_room->draw(); // Run the draw event for the new room
 		}
 
-		if ((engine->transition_type != E_TRANSITION::NONE)&&(!get_options().is_headless)) { // If a transition has been defined then finish drawing the new room into the after buffer
+		if ((engine->transition_type != E_TRANSITION::NONE)&&(!get_option("is_headless").i)) { // If a transition has been defined then finish drawing the new room into the after buffer
 			render::render();
 			render::reset_target();
 			draw_transition(); // Animate the defined transition from the before and after buffers

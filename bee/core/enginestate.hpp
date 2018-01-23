@@ -25,7 +25,6 @@
 namespace bee {
 	// Forward declarations
 	struct ProgramFlag;
-	struct GameOptions;
 
 	class Messenger;
 	class Console;
@@ -42,7 +41,6 @@ namespace bee {
 		// These contain data about the engine initialization
 		int argc;
 		char** argv; // The provided commandline flags
-		GameOptions* options; // The engine options
 
 		// These contain data about the event loop
 		bool quit, is_ready, is_paused;
@@ -77,7 +75,7 @@ namespace bee {
 
 		unsigned int fps_stable;
 
-		EngineState(int, char**, GameOptions*);
+		EngineState(int, char**);
 		~EngineState();
 
 		int free(); // Must be called to free data before closing SDL

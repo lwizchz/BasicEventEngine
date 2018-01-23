@@ -92,6 +92,7 @@ namespace bee {
 		const Variant& get_data(const std::string&, const Variant&, bool) const;
 		Variant get_data(const std::string&) const;
 		int set_data(const std::map<std::string,Variant>&);
+		int set_data(const std::string&, Variant);
 
 		template <typename T>
 		int set_data(const std::string&, T);
@@ -194,15 +195,9 @@ namespace bee {
 		int draw_path();
 	};
 
-	/*
-	* Instance::set_data() - Set the requested data field
-	* @field: the name of the field to set
-	* @value: the value to set the field to
-	*/
 	template <typename T>
 	int Instance::set_data(const std::string& field, T value) {
-		data[field] = Variant(value);
-		return 0;
+		return set_data(field, Variant(value));
 	}
 }
 

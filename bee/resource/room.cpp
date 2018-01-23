@@ -510,7 +510,7 @@ namespace bee {
 			if (
 				(!object->get_sprite()->get_is_loaded())
 				&&(get_is_ready())
-				&&(!get_options().is_headless)
+				&&(!get_option("is_headless").i)
 			) {
 				messenger::send({"engine", "room"}, E_MESSAGE::WARNING, "An instance of " + object->get_name() + " has been created but its sprite has not been loaded");
 			}
@@ -618,17 +618,33 @@ namespace bee {
 		return 0;
 	}
 	int Room::add_lightable(LightableData* lightable) {
+		if (render::get_program()->get_location("lightable_amount", false) == -1) {
+			return 1;
+		}
+
 		lightables.push_back(lightable);
+
 		return 0;
 	}
 	int Room::add_light(LightData lighting) {
+		if (render::get_program()->get_location("light_amount", false) == -1) {
+			return 1;
+		}
+
 		lighting.attenuation.x = 10000.f/lighting.attenuation.x;
 		lighting.attenuation.y = 1000.f/lighting.attenuation.y;
 		lighting.attenuation.z = 1000.f/lighting.attenuation.z;
+
 		lights.push_back(lighting);
+
 		return 0;
 	}
 	int Room::handle_lights() {
+		if (render::get_program()->get_location("light_amount", false) == -1) {
+			reset_lights();
+			return 1;
+		}
+
 		int i = 0;
 		for (auto& l : lightables) {
 			if (i >= BEE_MAX_LIGHTABLES) {
@@ -684,8 +700,13 @@ namespace bee {
 		return 0;
 	}
 	int Room::clear_lights() {
+		if (render::get_program()->get_location("light_amount", false) == -1) {
+			return 1;
+		}
+
 		glUniform1i(render::get_program()->get_location("lightable_amount"), 0);
 		glUniform1i(render::get_program()->get_location("light_amount"), 0);
+
 		return 0;
 	}
 
@@ -1476,13 +1497,13 @@ namespace bee {
 		// Draw instance paths
 		for (auto& i : instances_sorted) {
 			if (i.first->has_path()) {
-				if ((get_options().is_debug_enabled)||(i.first->get_path_drawn())) {
+				if ((get_option("is_debug_enabled").i)||(i.first->get_path_drawn())) {
 					i.first->draw_path();
 				}
 			}
 		}
 
-		if (get_options().is_debug_enabled) {
+		if (get_option("is_debug_enabled").i) {
 			// Draw room outline
 			draw_rectangle(0, 0, get_width(), get_height(), 1, RGBA(E_RGB::RED));
 

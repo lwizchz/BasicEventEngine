@@ -13,9 +13,15 @@
 
 #include "../../bee/util/networking.hpp"
 
+#include "../../bee/init/gameoptions.hpp"
+
 TEST_SUITE_BEGIN("util");
 
 TEST_CASE("networking") {
+	if (!bee::get_option("is_network_enabled").i) {
+		return;
+	}
+
 	REQUIRE(util::network::init() == 0);
 	int port = 3054;
 	IPaddress* ipa = util::network::resolve_host("127.0.0.1", port);

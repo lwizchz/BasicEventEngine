@@ -207,8 +207,9 @@ namespace bee { namespace python {
 			}
 			case E_DATA_TYPE::VECTOR: {
                                 PyObject* obj = PyList_New(var.v.size());
+                                Py_ssize_t i = 0;
                                 for (auto& e : var.v) {
-                                        PyList_Append(obj, variant_to_pyobj(e));
+                                        PyList_SetItem(obj, i++, variant_to_pyobj(e));
                                 }
 				return obj;
 			}
@@ -222,8 +223,9 @@ namespace bee { namespace python {
 			case E_DATA_TYPE::SERIAL: {
                                 std::vector<Uint8> sdv (var.sd.get());
                                 PyObject* obj = PyList_New(sdv.size());
+                                Py_ssize_t i = 0;
                                 for (auto& e : sdv) {
-                                        PyList_Append(obj, PyLong_FromLong(e));
+                                        PyList_SetItem(obj, i++, PyLong_FromLong(e));
                                 }
 				return obj;
 			}

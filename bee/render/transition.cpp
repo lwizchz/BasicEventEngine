@@ -71,7 +71,7 @@ namespace bee {
 	* draw_transition() - Draw the defined transition type
 	*/
 	int draw_transition() {
-		if (get_options().is_headless) {
+		if (get_option("is_headless").i) {
 			return 1; // Return 1 when in headless mode
 		}
 

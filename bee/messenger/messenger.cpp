@@ -87,7 +87,7 @@ namespace bee { namespace messenger{
 			return 2; // Return 2 when the message got filtered
 		}
 
-		if ((engine != nullptr)&&((get_options().is_headless)&&(!get_options().is_debug_enabled))) {
+		if ((engine != nullptr)&&((get_option("is_headless").i)&&(!get_option("is_debug_enabled").i))) {
 			std::stringstream h; // Combine the message metadata
 			h << msg.tickstamp << "ms> ";
 

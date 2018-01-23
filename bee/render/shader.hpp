@@ -58,6 +58,7 @@ namespace bee {
 			int link();
 
 			GLuint get_program() const;
+			GLint get_location(const std::string&, bool) const;
 			GLint get_location(const std::string&) const;
 
 			int apply();

@@ -71,7 +71,7 @@ namespace bee { namespace net {
 	* init() - Initialize the networking utilities
 	*/
 	int init() {
-		if (!get_options().is_network_enabled) {
+		if (!get_option("is_network_enabled").i) {
 			return 1; // Return 1 if networking is disabled
 		}
 
@@ -101,7 +101,7 @@ namespace bee { namespace net {
 	* close() - Close and clean up the networking utilities
 	*/
 	int close() {
-		if (!get_options().is_network_enabled) {
+		if (!get_option("is_network_enabled").i) {
 			return 1; // Return 1 if networking is disabled
 		}
 
@@ -122,7 +122,7 @@ namespace bee { namespace net {
 	*/
 	int handle_events() {
 		if (
-			(!get_options().is_network_enabled)
+			(!get_option("is_network_enabled").i)
 			||(!internal::is_initialized)
 			||(internal::connection == nullptr)
 		) {
