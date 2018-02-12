@@ -211,13 +211,13 @@ namespace bee {
 
 		return 0;
 	}
-	int Script::run_string(const std::string& code) {
+	int Script::run_string(const std::string& code, Variant* retval) {
 		if (!is_loaded) {
 			messenger::send({"engine", "script"}, E_MESSAGE::WARNING, "Failed to run script \"" + name + "\" because it is not loaded");
 			return 1;
 		}
 
-		return script->run_string(code);
+		return script->run_string(code, retval);
 	}
 	int Script::run_file(const std::string& filename) {
 		if (!is_loaded) {
@@ -227,13 +227,13 @@ namespace bee {
 
 		return script->run_file(filename);
 	}
-	int Script::run_func(const std::string& funcname) {
+	int Script::run_func(const std::string& funcname, Variant* retval) {
 		if (!is_loaded) {
 			messenger::send({"engine", "script"}, E_MESSAGE::WARNING, "Failed to run script \"" + name + "\" because it is not loaded");
 			return 1;
 		}
 
-		return script->run_func(funcname);
+		return script->run_func(funcname, retval);
 	}
 }
 

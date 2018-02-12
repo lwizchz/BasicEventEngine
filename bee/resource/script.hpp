@@ -26,12 +26,12 @@ namespace bee {
 		virtual void free() =0;
 		virtual void release() =0;
 
-		virtual int run_string(const std::string&) =0;
+		virtual int run_string(const std::string&, Variant*) =0;
 		virtual int run_file(const std::string&) =0;
-		virtual int run_func(const std::string&) =0;
+		virtual int run_func(const std::string&, Variant*) =0;
 
 		virtual int set_var(const std::string&, const Variant&) =0;
-		virtual Variant get_var(const std::string&) =0;
+		virtual Variant get_var(const std::string&) const =0;
 	};
 
 	class Script: public Resource { // The script resource class is used to execute python scripts
@@ -69,9 +69,9 @@ namespace bee {
 
 		int load();
 		int free();
-		int run_string(const std::string&);
+		int run_string(const std::string&, Variant*);
 		int run_file(const std::string&);
-		int run_func(const std::string&);
+		int run_func(const std::string&, Variant*);
 	};
 }
 

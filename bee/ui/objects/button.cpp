@@ -79,8 +79,11 @@ void ObjUIButton::draw(bee::Instance* self) {
 		oy = v->view.y;
 	}
 
-	bee::draw_rectangle(self->get_corner_x() - ox, self->get_corner_y()+press_offset - oy, w, h, -1, c_back);
-	bee::draw_rectangle(self->get_corner_x() - ox, self->get_corner_y()+press_offset - oy, w, h, 6, c_border);
+	int cx, cy;
+	std::tie(cx, cy) = self->get_corner();
+
+	bee::draw_rectangle(cx-ox, cy+press_offset - oy, w, h, -1, c_back);
+	bee::draw_rectangle(cx-ox, cy+press_offset - oy, w, h, 6, c_border);
 
 	std::string text = _s("text");
 	if (!text.empty()) {
@@ -91,8 +94,8 @@ void ObjUIButton::draw(bee::Instance* self) {
 
 		_p("text_td") = font->draw(
 			static_cast<bee::TextData*>(_p("text_td")),
-			self->get_corner_x() + (w-font->get_string_width(_s("text")))/2 - ox,
-			self->get_corner_y()+press_offset + (h-h/1.25)/2 - oy,
+			cx + (w-font->get_string_width(_s("text")))/2 - ox,
+			cy+press_offset + (h-h/1.25)/2 - oy,
 			text
 		);
 	} else {
@@ -119,7 +122,7 @@ void ObjUIButton::center_width(bee::Instance* self) {
 	_i("w") = w;
 	_i("h") = h*1.25;
 
-	self->set_corner_x((bee::get_window().w - w)/2 - ox);
+	self->set_corner((bee::get_window().w - w)/2 - ox, self->get_corner().second);
 }
 
 #endif // BEE_UI_OBJ_BUTTON

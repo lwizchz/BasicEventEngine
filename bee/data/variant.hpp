@@ -55,6 +55,7 @@ namespace bee {
 		E_DATA_TYPE get_type() const;
 
 		int interpret(const std::string&);
+		std::string to_str(bool) const;
 		std::string to_str() const;
 
 		Variant& operator=(const Variant&);

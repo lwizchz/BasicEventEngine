@@ -202,6 +202,10 @@ namespace bee {
 
 	int Variant::interpret(const std::string& ns) {
 		reset();
+		if (ns.empty()) {
+			return 0;
+		}
+
 		try {
 			if ((ns[0] == '"')&&(ns[ns.length()-1] == '"')) { // String
 				type = E_DATA_TYPE::STRING;
@@ -241,7 +245,7 @@ namespace bee {
 
 		return 0; // Return 0 on success
 	}
-	std::string Variant::to_str() const {
+	std::string Variant::to_str(bool should_pretty_print) const {
 		switch (type) {
 			case E_DATA_TYPE::NONE: {
 				std::stringstream ss;
@@ -264,18 +268,21 @@ namespace bee {
 				return s;
 			}
 			case E_DATA_TYPE::VECTOR: {
-				return util::vector_serialize(v, false);
+				return util::vector_serialize(v, should_pretty_print);
 			}
 			case E_DATA_TYPE::MAP: {
-				return util::map_serialize(m, false);
+				return util::map_serialize(m, should_pretty_print);
 			}
 			case E_DATA_TYPE::SERIAL: {
-				return util::vector_serialize(sd.get(), false);
+				return util::vector_serialize(sd.get(), should_pretty_print);
 			}
 			default: {
 				throw std::runtime_error("Error: Attempt to stringify Variant of invalid type");
 			}
 		}
+	}
+	std::string Variant::to_str() const {
+		return to_str(false);
 	}
 
 	Variant& Variant::operator=(const Variant& rhs) {

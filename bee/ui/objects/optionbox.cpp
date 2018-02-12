@@ -73,40 +73,43 @@ void ObjUIOptionBox::draw(bee::Instance* self) {
 		oy = v->view.y;
 	}
 
-	bee::draw_rectangle(self->get_corner_x() - ox, self->get_corner_y() - oy, w, h, -1, c_back);
+	int cx, cy;
+	std::tie(cx, cy) = self->get_corner();
+
+	bee::draw_rectangle(cx-ox, cy-oy, w, h, -1, c_back);
 	if (_i("has_hover")) {
 		const std::pair<int,int> mpos (bee::mouse::get_pos());
-		bee::draw_rectangle(self->get_corner_x() - ox, self->get_corner_y() + get_option_at(self, mpos.first, mpos.second)*_i("option_height") - oy, w, _i("option_height"), -1, c_highlight);
+		bee::draw_rectangle(cx-ox, cy+get_option_at(self, mpos.first, mpos.second)*_i("option_height") - oy, w, _i("option_height"), -1, c_highlight);
 	}
-	bee::draw_rectangle(self->get_corner_x() - ox, self->get_corner_y() - oy, w, h, 6, c_border);
+	bee::draw_rectangle(cx-ox, cy-oy, w, h, 6, c_border);
 
 	bee::Font* font = bee::engine->font_default;
 	size_t i = 0;
 	for (auto& option : _v("options")) {
 		if (_i("type") == 0) {
-			bee::draw_rectangle(self->get_corner_x() + 16 - ox, self->get_corner_y() + i*_i("option_height") + 8 - oy, 16, 16, 1, c_border);
+			bee::draw_rectangle(cx + 16 - ox, cy + i*_i("option_height") + 8 - oy, 16, 16, 1, c_border);
 			if (_v("option_state")[i].i) {
 				bee::draw_line(
-					self->get_corner_x() + 18 - ox, self->get_corner_y() + i*_i("option_height") + 16 - oy,
-					self->get_corner_x() + 22 - ox, self->get_corner_y() + i*_i("option_height") + 22 - oy,
+					cx + 18 - ox, cy + i*_i("option_height") + 16 - oy,
+					cx + 22 - ox, cy + i*_i("option_height") + 22 - oy,
 					c_border
 				);
 				bee::draw_line(
-					self->get_corner_x() + 22 - ox, self->get_corner_y() + i*_i("option_height") + 22 - oy,
-					self->get_corner_x() + 30 - ox, self->get_corner_y() + i*_i("option_height") + 10 - oy,
+					cx + 22 - ox, cy + i*_i("option_height") + 22 - oy,
+					cx + 30 - ox, cy + i*_i("option_height") + 10 - oy,
 					c_border
 				);
 			}
 		} else if (_i("type") == 1) {
-			bee::draw_circle(glm::vec3(self->get_corner_x() + 24 - ox, self->get_corner_y() + i*_i("option_height") + 16 - oy, 0), 8, 1, c_border);
+			bee::draw_circle(glm::vec3(cx + 24 - ox, cy + i*_i("option_height") + 16 - oy, 0), 8, 1, c_border);
 			if (_v("option_state")[i].i) {
-				bee::draw_circle(glm::vec3(self->get_corner_x() + 24 - ox, self->get_corner_y() + i*_i("option_height") + 16 - oy, 0), 6, -1, c_border);
+				bee::draw_circle(glm::vec3(cx + 24 - ox, cy + i*_i("option_height") + 16 - oy, 0), 6, -1, c_border);
 			}
 		}
 
-		font->draw_fast(self->get_corner_x() + 40 - ox, self->get_corner_y() + i*_i("option_height") + 8 - oy, option.s, c_border);
+		font->draw_fast(cx + 40 - ox, cy + i*_i("option_height") + 8 - oy, option.s, c_border);
 
-		bee::draw_line(self->get_corner_x() - ox, self->get_corner_y() + (i+1)*_i("option_height") - oy, self->get_corner_x() + _i("w") - ox, self->get_corner_y() + (i+1)*_i("option_height") - oy, c_border);
+		bee::draw_line(cx - ox, cy + (i+1)*_i("option_height") - oy, cx + _i("w") - ox, cy + (i+1)*_i("option_height") - oy, c_border);
 
 		++i;
 	}
@@ -144,16 +147,19 @@ int ObjUIOptionBox::get_option_at(bee::Instance* self, int mx, int my) {
 		_i("h") = _v("options").size() * _i("option_height");
 	}
 
+	int cx, cy;
+	std::tie(cx, cy) = self->get_corner();
+
 	if (
-		(mx < self->get_corner_x()-1)
-		||(my < self->get_corner_y()-1)
-		||(mx > self->get_corner_x()+1 + _i("w"))
-		||(my > self->get_corner_y()+1 + _i("h"))
+		(mx < cx-1)
+		||(my < cy-1)
+		||(mx > cx+1 + _i("w"))
+		||(my > cy+1 + _i("h"))
 	) {
 		return -1;
 	}
 
-	return util::fit_bounds<int>((my - self->get_corner_y()) / _i("option_height"), 0, _v("options").size()-1);
+	return util::fit_bounds<int>((my-cy) / _i("option_height"), 0, _v("options").size()-1);
 }
 std::vector<int> ObjUIOptionBox::get_selected_options(bee::Instance* self) {
 	std::vector<int> v;

@@ -43,16 +43,18 @@ void ObjUIHandle::destroy(bee::Instance* self) {
 void ObjUIHandle::step_end(bee::Instance* self) {
 	bee::Instance* parent_inst = static_cast<bee::Instance*>(_p("parent"));
 	if (parent_inst != nullptr) {
-		self->set_corner_x(parent_inst->get_corner_x() - _i("parent_xoffset"));
-		self->set_corner_y(parent_inst->get_corner_y() - _i("parent_yoffset"));
+		self->set_corner(
+			parent_inst->get_corner().first - _i("parent_xoffset"),
+			parent_inst->get_corner().second - _i("parent_yoffset")
+		);
 	}
 }
 void ObjUIHandle::mouse_press(bee::Instance* self, SDL_Event* e) {
 	ObjUIElement::mouse_press(self, e);
 
 	if (_i("is_pressed")) {
-		_i("mouse_xoffset") = static_cast<int>(self->get_corner_x()) - e->button.x;
-		_i("mouse_yoffset") = static_cast<int>(self->get_corner_y()) - e->button.y;
+		_i("mouse_xoffset") = self->get_corner().first - e->button.x;
+		_i("mouse_yoffset") = self->get_corner().second - e->button.y;
 
 		bee::Instance* parent_inst = static_cast<bee::Instance*>(_p("parent"));
 		if (parent_inst != nullptr) {
@@ -72,13 +74,11 @@ void ObjUIHandle::mouse_input(bee::Instance* self, SDL_Event* e) {
 		int new_x = e->button.x + _i("mouse_xoffset");
 		int new_y = e->button.y + _i("mouse_yoffset");
 
-		self->set_corner_x(new_x);
-		self->set_corner_y(new_y);
+		self->set_corner(new_x, new_y);
 
 		bee::Instance* parent_inst = static_cast<bee::Instance*>(_p("parent"));
 		if (parent_inst != nullptr) {
-			parent_inst->set_corner_x(new_x + _i("parent_xoffset"));
-			parent_inst->set_corner_y(new_y + _i("parent_yoffset"));
+			parent_inst->set_corner(new_x + _i("parent_xoffset"), new_y + _i("parent_yoffset"));
 		}
 	}
 }
@@ -110,16 +110,19 @@ void ObjUIHandle::draw(bee::Instance* self) {
 		oy = v->view.y;
 	}
 
-	bee::draw_rectangle(self->get_corner_x() - ox, self->get_corner_y() - oy, _i("w"), _i("h"), -1, c_back); // Draw a box to contain the completions
+	int cx, cy;
+	std::tie(cx, cy) = self->get_corner();
+
+	bee::draw_rectangle(cx-ox, cy-oy, _i("w"), _i("h"), -1, c_back); // Draw a box to contain the completions
 
 	int stripe_width = 10;
 	size_t stripe_amount = _i("w") / stripe_width;
 	for (size_t i=0; i<stripe_amount; ++i) {
 		bee::draw_line(
-			self->get_corner_x() + i*stripe_width - ox,
-			self->get_corner_y() + _i("h") - oy,
-			self->get_corner_x() + (i+1)*stripe_width - ox,
-			self->get_corner_y() - oy,
+			cx + i*stripe_width - ox,
+			cy + _i("h") - oy,
+			cx + (i+1)*stripe_width - ox,
+			cy - oy,
 			c_stripe
 		);
 	}
@@ -130,8 +133,8 @@ void ObjUIHandle::draw(bee::Instance* self) {
 void ObjUIHandle::bind(bee::Instance* self, bee::Instance* parent_inst) {
 	_p("parent") = parent_inst;
 	if (parent_inst != nullptr) {
-		_i("parent_xoffset") = parent_inst->get_corner_x() - self->get_corner_x();
-		_i("parent_yoffset") = parent_inst->get_corner_y() - self->get_corner_y();
+		_i("parent_xoffset") = parent_inst->get_corner().first - self->get_corner().first;
+		_i("parent_yoffset") = parent_inst->get_corner().second - self->get_corner().second;
 	} else {
 		_i("parent_xoffset") = 0;
 		_i("parent_yoffset") = 0;

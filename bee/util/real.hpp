@@ -31,11 +31,9 @@ double radtodeg(double);
 double opposite_angle(double);
 double absolute_angle(double);
 
+btVector3 direction_of(btVector3, btVector3);
 double direction_of(double, double, double, double);
-btVector3 direction_of(double, double, double, double, double, double);
-double dist_sqr(double, double, double, double, double, double);
 double dist_sqr(double, double, double, double);
-double distance(double, double, double, double, double, double);
 double distance(double, double, double, double);
 std::pair<double,double> coord_approach(double, double, double, double, double, double);
 glm::vec3 bt_to_glm3(const btVector3&);
@@ -49,6 +47,15 @@ template <typename T>
 extern T fit_bounds(T, T, T);
 template <typename T>
 extern T qmod(T, unsigned int);
+
+template <typename T>
+int bitmask(std::vector<T> v) {
+	int mask = 0;
+	for (auto& e : v) {
+		mask |= static_cast<int>(e);
+	}
+	return mask;
+}
 
 namespace random {
 	unsigned int get_range(unsigned int, unsigned int);

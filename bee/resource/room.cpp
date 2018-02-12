@@ -80,38 +80,6 @@ namespace bee {
 		transform(_x, _y, _is_horizontal_tile, _is_vertical_tile, _horizontal_speed, _vertical_speed, _is_stretched)
 	{}
 
-	const std::list<E_EVENT> Room::event_list = {
-		E_EVENT::CREATE,
-		E_EVENT::DESTROY,
-		E_EVENT::ALARM,
-		E_EVENT::STEP_BEGIN,
-		E_EVENT::STEP_MID,
-		E_EVENT::STEP_END,
-		E_EVENT::KEYBOARD_PRESS,
-		E_EVENT::MOUSE_PRESS,
-		E_EVENT::KEYBOARD_INPUT,
-		E_EVENT::MOUSE_INPUT,
-		E_EVENT::KEYBOARD_RELEASE,
-		E_EVENT::MOUSE_RELEASE,
-		E_EVENT::CONTROLLER_AXIS,
-		E_EVENT::CONTROLLER_PRESS,
-		E_EVENT::CONTROLLER_RELEASE,
-		E_EVENT::CONTROLLER_MODIFY,
-		E_EVENT::COMMANDLINE_INPUT,
-		E_EVENT::PATH_END,
-		E_EVENT::OUTSIDE_ROOM,
-		E_EVENT::INTERSECT_BOUNDARY,
-		E_EVENT::COLLISION,
-		E_EVENT::DRAW,
-		E_EVENT::ANIMATION_END,
-		E_EVENT::ROOM_START,
-		E_EVENT::ROOM_END,
-		E_EVENT::GAME_START,
-		E_EVENT::GAME_END,
-		E_EVENT::WINDOW,
-		E_EVENT::NETWORK
-	};
-
 	std::map<int,Room*> Room::list;
 	int Room::next_id = 0;
 
@@ -825,7 +793,8 @@ namespace bee {
 		}
 
 		for (auto& i : instances) {
-			savefile << i.second->get_object()->get_name() << "\t" << i.second->get_xstart() << "\t" << i.second->get_ystart() << "\t" << i.second->get_zstart() << "\n";
+			const btVector3 start (i.second->get_start());
+			savefile << i.second->get_object()->get_name() << "\t" << start.x() << "\t" << start.y() << "\t" << start.z() << "\n";
 		}
 		savefile.close();
 		return 0;
@@ -952,8 +921,6 @@ namespace bee {
 						if (set_params[0][0] == '@') {
 							if (set_params[0] == "@sprite") {
 								inst->set_sprite(Texture::get_by_name(set_params[1]));
-							} else if (set_params[0] == "@solid") {
-								inst->set_is_solid(std::stoi(set_params[1]));
 							} else if (set_params[0] == "@depth") {
 								inst->depth = std::stoi(set_params[1]);
 							} else {
@@ -1056,13 +1023,13 @@ namespace bee {
 			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
 				continue;
 			}
-			for (size_t e=0; e<BEE_ALARM_COUNT; ++e) {
-				if (i.first->alarm_end[e] != 0xffffffff) {
-					if (get_ticks() >= i.first->alarm_end[e]) {
-						i.first->alarm_end[e] = 0xffffffff; // Reset alarm
-						i.first->get_object()->update(i.first);
-						i.first->get_object()->alarm(i.first, e);
-					}
+
+			Variant alarms = i.first->get_data("alarms");
+			for (auto& a : alarms.m) {
+				if (get_ticks() >= static_cast<unsigned int>(a.second.i)) {
+					i.first->set_alarm(a.first.s, -1);
+					i.first->get_object()->update(i.first);
+					i.first->get_object()->alarm(i.first, a.first.s);
 				}
 			}
 		}
@@ -1113,13 +1080,14 @@ namespace bee {
 					c = i.first->get_path_coords().at(i.first->get_path_node());
 				}
 
-				i.first->set_position(
-					i.first->get_position()
+				btVector3 node_pos (i.first->path_pos_start);
+				node_pos += btVector3(std::get<0>(c), std::get<1>(c), std::get<2>(c));
+
+				i.first->set_pos(
+					i.first->get_pos()
 					+ btScalar(std::get<3>(c)*abs(i.first->get_path_speed()))
-					* util::direction_of(
-						i.first->get_x(), i.first->get_y(), i.first->get_z(),
-						i.first->path_pos_start.x()+std::get<0>(c), i.first->path_pos_start.y()+std::get<1>(c), i.first->path_pos_start.z()+std::get<2>(c)
-					) * btScalar(get_delta())
+					* util::direction_of(i.first->get_pos(), node_pos)
+					* btScalar(get_delta())
 				);
 			}
 		}

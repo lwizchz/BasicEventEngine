@@ -97,25 +97,18 @@ void ObjUITextEntry::draw(bee::Instance* self) {
 		oy = v->view.y;
 	}
 
-	bee::draw_rectangle(self->get_corner_x() - ox, self->get_corner_y() - oy, _i("w"), _i("h"), -1, c_back); // Draw a box to contain the completions
+	int cx, cy;
+	std::tie(cx, cy) = self->get_corner();
+
+	bee::draw_rectangle(cx-ox, cy-oy, _i("w"), _i("h"), -1, c_back); // Draw a box to contain the completions
 
 	std::string input = _s("input");
 	if (!input.empty()) {
-		_p("input_td") = font->draw(
-			static_cast<bee::TextData*>(_p("input_td")),
-			self->get_corner_x() - ox,
-			self->get_corner_y() - oy,
-			input
-		);
+		_p("input_td") = font->draw(static_cast<bee::TextData*>(_p("input_td")), cx-ox, cy-oy, input);
 	}
 	if (_i("has_focus")) {
 		if (bee::get_ticks()/500 % 2) { // Draw a blinking cursor that changes every 500 ticks
-			font->draw_fast(
-				self->get_corner_x() - ox + font->get_string_width(input),
-				self->get_corner_y() - oy,
-				"_",
-				c_text
-			);
+			font->draw_fast(cx-ox + font->get_string_width(input), cy-oy, "_", c_text);
 		}
 	}
 
@@ -123,13 +116,13 @@ void ObjUITextEntry::draw(bee::Instance* self) {
 		// Draw any completions in a box below the input line
 		const std::vector<bee::Variant>& completions = _v("completions");
 		if (completions.size() > 1) { // If completions exist, draw them
-			bee::draw_rectangle(self->get_corner_x(), self->get_corner_y() + _i("h"), _i("w"), completions.size()*_i("h"), -1, c_back); // Draw a box to contain the completions
+			bee::draw_rectangle(cx, cy+_i("h"), _i("w"), completions.size()*_i("h"), -1, c_back); // Draw a box to contain the completions
 			for (size_t i=0; i<completions.size(); ++i) { // Iterate over the completions
 				std::string cmd = " " + completions.at(i).s; // Prepend each completion with a space
 				if (static_cast<int>(i) == _i("completion_index")) { // If the completion is selected, replace the space with a cursor
 					cmd[0] = '>';
 				}
-				font->draw_fast(self->get_corner_x(), self->get_corner_y() + _i("h") + _i("h")*i, cmd, c_text); // Draw the completions
+				font->draw_fast(cx, cy+_i("h") + _i("h")*i, cmd, c_text); // Draw the completions
 			}
 		}
 	}

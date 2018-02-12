@@ -50,11 +50,8 @@ namespace bee {
 
 			PhysicsBody& operator=(const PhysicsBody&);
 
-			std::string serialize(bool) const;
-			std::string serialize() const;
+			std::map<Variant,Variant> serialize() const;
 			int deserialize(std::map<Variant,Variant>&, Instance*);
-			int deserialize(const std::string&, Instance*);
-			int deserialize(const std::string&);
 
 			std::vector<Uint8> serialize_net();
 			int deserialize_net(std::vector<Uint8>);
@@ -67,10 +64,11 @@ namespace bee {
 			btVector3 get_inertia() const;
 			btRigidBody* get_body() const;
 			PhysicsWorld* get_world() const;
+			Instance* get_instance() const;
 			const std::vector<std::tuple<E_PHYS_CONSTRAINT,double*,btTypedConstraint*>>& get_constraints() const;
 
 			btDefaultMotionState* get_motion() const;
-			btVector3 get_position() const;
+			btVector3 get_pos() const;
 			btQuaternion get_rotation() const;
 			double get_rotation_x() const;
 			double get_rotation_y() const;

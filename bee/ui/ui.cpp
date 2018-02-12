@@ -116,8 +116,7 @@ namespace bee { namespace ui {
 		}
 
 		bee::Instance* button = bee::get_current_room()->add_instance(-1, internal::obj_button, x, y, 0.0);
-		button->set_corner_x(x);
-		button->set_corner_y(y);
+		button->set_corner(x, y);
 
 		button->set_data("font", static_cast<void*>(font));
 		button->set_data("text", str);
@@ -157,8 +156,7 @@ namespace bee { namespace ui {
 		}
 
 		bee::Instance* handle = bee::get_current_room()->add_instance(-1, internal::obj_handle, x, y, 0.0);
-		handle->set_corner_x(x);
-		handle->set_corner_y(y);
+		handle->set_corner(x, y);
 
 		handle->set_data("w", w);
 		handle->set_data("h", h);
@@ -188,8 +186,7 @@ namespace bee { namespace ui {
 		}
 
 		bee::Instance* text_entry = bee::get_current_room()->add_instance(-1, internal::obj_text_entry, x, y, 0.0);
-		text_entry->set_corner_x(x);
-		text_entry->set_corner_y(y);
+		text_entry->set_corner(x, y);
 
 		ObjUITextEntry* obj_text_entry = static_cast<ObjUITextEntry*>(internal::obj_text_entry);
 		obj_text_entry->update(text_entry);
@@ -284,8 +281,7 @@ namespace bee { namespace ui {
 		}
 
 		bee::Instance* gauge = bee::get_current_room()->add_instance(-1, internal::obj_gauge, x, y, 0.0);
-		gauge->set_corner_x(x);
-		gauge->set_corner_y(y);
+		gauge->set_corner(x, y);
 
 		gauge->set_data("w", w);
 		gauge->set_data("h", h);
@@ -308,8 +304,7 @@ namespace bee { namespace ui {
 		}
 
 		bee::Instance* slider = bee::get_current_room()->add_instance(-1, internal::obj_slider, x, y, 0.0);
-		slider->set_corner_x(x);
-		slider->set_corner_y(y);
+		slider->set_corner(x, y);
 
 		slider->set_data("w", w);
 		slider->set_data("h", h);
@@ -351,8 +346,7 @@ namespace bee { namespace ui {
 		}
 
 		bee::Instance* optionbox = bee::get_current_room()->add_instance(-1, internal::obj_optionbox, x, y, 0.0);
-		optionbox->set_corner_x(x);
-		optionbox->set_corner_y(y);
+		optionbox->set_corner(x, y);
 
 		optionbox->set_data("w", w);
 		optionbox->set_data("h", h);

@@ -108,6 +108,19 @@ double absolute_angle(double a) {
 }
 
 /**
+* @param v1 the position vector of the first point
+* @param v2 the position vector of the second point
+*
+* @returns the direction as a unit vector from v1 to v2
+*/
+btVector3 direction_of(btVector3 v1, btVector3 v2) {
+	return btVector3(
+		v2.x()-v1.x(),
+		v2.y()-v1.y(),
+		v2.z()-v1.z()
+	).normalized();
+}
+/**
 * @param (x1, y1) the coordinates of the first point
 * @param (x2, y2) the coordinates of the second point
 *
@@ -117,38 +130,6 @@ double direction_of(double x1, double y1, double x2, double y2) {
 	return absolute_angle(radtodeg(atan2(y2-y1, x2-x1)));
 }
 /**
-* @param (x1, y1, z1) the coordinates of the first point
-* @param (x2, y2, z2) the coordinates of the second point
-*
-* @returns the direction as a unit vector from (x1, y1, z1) to (x2, y2, z2)
-*/
-btVector3 direction_of(double x1, double y1, double z1, double x2, double y2, double z2) {
-	btVector3 v1 = btVector3(
-		btScalar(x1),
-		btScalar(y1),
-		btScalar(z1)
-	);
-	btVector3 v2 = btVector3(
-		btScalar(x2),
-		btScalar(y2),
-		btScalar(z2)
-	);
-	return btVector3(
-		v2.x()-v1.x(),
-		v2.y()-v1.y(),
-		v2.z()-v1.z()
-	).normalized();
-}
-/**
-* @param (x1, y1, z1) the coordinates of the first point
-* @param (x2, y2, z2) the coordinates of the second point
-*
-* @returns the square of the distance from (x1, y1, z1) to (x2, y2, z2) in order to avoid a costly square root
-*/
-double dist_sqr(double x1, double y1, double z1, double x2, double y2, double z2) {
-	return sqr(x1-x2) + sqr(y1-y2) + sqr(z1-z2);
-}
-/**
 * @note If the function is called without the z-coordinates, then let them equal 0.0
 * @param (x1, y1) the coordinates of the first point
 * @param (x2, y2) the coordinates of the second point
@@ -156,16 +137,9 @@ double dist_sqr(double x1, double y1, double z1, double x2, double y2, double z2
 * @returns the square of the distance from (x1, y1, 0.0) to (x2, y2, 0.0) in order to avoid a costly square root
 */
 double dist_sqr(double x1, double y1, double x2, double y2) {
-	return dist_sqr(x1, y1, 0.0, x2, y2, 0.0);
-}
-/**
-* @param (x1, y1, z1) the coordinates of the first point
-* @param (x2, y2, z2) the coordinates of the second point
-*
-* @returns the distance from (x1, y1, z1) to (x2, y2, z2)
-*/
-double distance(double x1, double y1, double z1, double x2, double y2, double z2) {
-	return sqrt(dist_sqr(x1, y1, z1, x2, y2, z2));
+	btVector3 v1 (static_cast<float>(x1), static_cast<float>(y1), 0.0f);
+	btVector3 v2 (static_cast<float>(x2), static_cast<float>(y2), 0.0f);
+	return v1.distance2(v2);
 }
 /**
 * @note If the function is called without the z-coordinates, then let them equal 0.0
@@ -175,7 +149,10 @@ double distance(double x1, double y1, double z1, double x2, double y2, double z2
 * @returns the distance from (x1, y1) to (x2, y2)
 */
 double distance(double x1, double y1, double x2, double y2) {
-	return distance(x1, y1, 0.0, x2, y2, 0.0);
+	return sqrt(dist_sqr(
+		static_cast<float>(x1), static_cast<float>(y1),
+		static_cast<float>(x2), static_cast<float>(y2)
+	));
 }
 /**
 * @param (x1, y1) the coordinates of the first point

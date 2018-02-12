@@ -58,11 +58,12 @@ void ObjUISlider::mouse_input(bee::Instance* self, SDL_Event* e) {
 	}
 
 	if ((e->type == SDL_MOUSEMOTION)&&(e->motion.state & SDL_BUTTON_LMASK)) {
+		int cx = self->get_corner().first;
 		if (
-			(e->button.x >= self->get_corner_x() - _i("slider_size")/2)
-			&&(e->button.x <= self->get_corner_x() + _i("w") + _i("slider_size")/2)
+			(e->button.x >= cx - _i("slider_size")/2)
+			&&(e->button.x <= cx + _i("w") + _i("slider_size")/2)
 		) {
-			int v = (e->button.x - self->get_corner_x()) * _i("range") / _i("w");
+			int v = (e->button.x - cx) * _i("range") / _i("w");
 			(*s)["value"] = util::fit_bounds(v, 0, _i("range"));
 
 			if (_i("is_continuous")) {
@@ -98,17 +99,20 @@ void ObjUISlider::draw(bee::Instance* self) {
 		oy = v->view.y;
 	}
 
-	bee::draw_rectangle(self->get_corner_x() - ox, self->get_corner_y() + h/2 - oy, w, 2, -1, c_track);
+	int cx, cy;
+	std::tie(cx, cy) = self->get_corner();
+
+	bee::draw_rectangle(cx-ox, cy + h/2 - oy, w, 2, -1, c_track);
 
 	int slider_size = _i("slider_size");
-	int slider_x = self->get_corner_x() + w * _i("value") / _i("range") - slider_size/2;
-	bee::draw_circle(glm::vec3(slider_x + slider_size/2 - ox, self->get_corner_y() + h/2 - oy, 0), slider_size/2, -1, c_slider);
+	int slider_x = cx + w * _i("value") / _i("range") - slider_size/2;
+	bee::draw_circle(glm::vec3(slider_x + slider_size/2 - ox, cy + h/2 - oy, 0), slider_size/2, -1, c_slider);
 
 	if (_i("show_text")) {
 		bee::Font* font = bee::engine->font_default;
-		font->draw_fast(self->get_corner_x() - ox, self->get_corner_y() + h*2/3 - oy, "0");
-		font->draw_fast(self->get_corner_x() + w-16 - ox, self->get_corner_y() + h*2/3 - oy, std::to_string(_i("range")));
-		font->draw_fast(slider_x + slider_size/2 - 8 - ox, self->get_corner_y() - h/3 - oy, std::to_string(_i("value")));
+		font->draw_fast(cx-ox, cy + h*2/3 - oy, "0");
+		font->draw_fast(cx + w-16 - ox, cy + h*2/3 - oy, std::to_string(_i("range")));
+		font->draw_fast(slider_x + slider_size/2 - 8 - ox, cy - h/3 - oy, std::to_string(_i("value")));
 	}
 
 	bee::render::set_is_lightable(true);

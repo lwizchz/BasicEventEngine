@@ -316,9 +316,19 @@ namespace bee{ namespace console {
 		history_index = -1; // Reset the history index
 
 		// Run the command
-		return scr_console->run_string(command);
+		Variant value;
+		int r = scr_console->run_string(command, &value);
+		if (r == 0) {
+			if (value.get_type() != E_DATA_TYPE::NONE) {
+				messenger::send({"engine", "console"}, E_MESSAGE::INFO, value.to_str());
+			}
+		} else if (r > 1) {
+			messenger::send({"engine", "console"}, E_MESSAGE::ERROR, python::get_traceback());
+		}
+
+		return r;
 	}
-	/*
+	/**
 	* Complete console commands.
 	* @param command the command to complete
 	*
@@ -337,11 +347,10 @@ namespace bee{ namespace console {
 	*/
 	void internal::draw() {
 		// Get the view offset
-		int cx = static_cast<int>(ui_handle->get_corner_x());
-		int cy = static_cast<int>(ui_handle->get_corner_y());
+		int cx, cy;
+		std::tie(cx, cy) = ui_handle->get_corner();
 
-		ui_text_entry->set_corner_x(cx);
-		ui_text_entry->set_corner_y(cy+rect.h);
+		ui_text_entry->set_corner(cx, cy+rect.h);
 
 		if (get_current_room()->get_current_view() != nullptr) {
 			cx -= get_current_room()->get_current_view()->view.x;

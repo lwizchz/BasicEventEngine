@@ -53,11 +53,14 @@ void ObjUIGauge::draw(bee::Instance* self) {
 		oy = v->view.y;
 	}
 
-	bee::draw_rectangle(self->get_corner_x() - ox, self->get_corner_y() - oy, w, h, -1, c_back);
+	int cx, cy;
+	std::tie(cx, cy) = self->get_corner();
+
+	bee::draw_rectangle(cx-ox, cy-oy, w, h, -1, c_back);
 
 	if (_i("pulse_state") != 0) {
 		int pulse_width = 20;
-		bee::draw_rectangle(self->get_corner_x() + w * _i("value") / _i("range") - ox, self->get_corner_y() - oy, w * pulse_width / _i("range"), h, -1, c_front);
+		bee::draw_rectangle(cx + w * _i("value") / _i("range") - ox, cy - oy, w * pulse_width / _i("range"), h, -1, c_front);
 
 		int inc = _i("pulse_state") * 100.0 * bee::get_delta();
 		if (
@@ -82,10 +85,10 @@ void ObjUIGauge::draw(bee::Instance* self) {
 			_i("value") += inc;
 		}
 	} else {
-		bee::draw_rectangle(self->get_corner_x() - ox, self->get_corner_y() - oy, w * _i("value") / _i("range"), h, -1, c_front);
+		bee::draw_rectangle(cx-ox, cy-oy, w * _i("value") / _i("range"), h, -1, c_front);
 	}
 
-	bee::draw_rectangle(self->get_corner_x() - ox, self->get_corner_y() - oy, w, h, 2, c_border);
+	bee::draw_rectangle(cx-ox, cy-oy, w, h, 2, c_border);
 
 	bee::render::set_is_lightable(true);
 }

@@ -105,7 +105,7 @@ namespace bee {
 		virtual void update(Instance*);
 		virtual void create(Instance*) =0;
 		virtual void destroy(Instance*);
-		virtual void alarm(Instance*, size_t) {};
+		virtual void alarm(Instance*, const std::string&) {};
 		virtual void step_begin(Instance*);
 		virtual void step_mid(Instance*) {};
 		virtual void step_end(Instance*) {};
@@ -124,7 +124,7 @@ namespace bee {
 		virtual void outside_room(Instance*) {};
 		virtual void intersect_boundary(Instance*) {};
 		virtual void collision(Instance*, Instance*) {};
-		virtual bool check_collision_filter(const Instance*, const Instance*) const {return true;};
+		virtual bool check_collision_filter(const Instance*, const Instance*) const;
 		virtual void draw(Instance*) {};
 		virtual void animation_end(Instance*) {};
 		virtual void room_start(Instance*) {};

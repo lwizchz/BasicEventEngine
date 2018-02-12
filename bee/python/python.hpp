@@ -22,6 +22,11 @@ namespace bee { namespace python {
         int run_string(const std::string&);
         int run_file(const std::string&);
 
+        std::string get_traceback();
+
+        void set_displayhook(PyObject*);
+        std::string get_displayhook();
+
         Variant pyobj_to_variant(PyObject*);
         PyObject* variant_to_pyobj(Variant);
 }
@@ -38,14 +43,15 @@ namespace bee { namespace python {
                 void free();
                 void release();
 
-                int run_string(const std::string&);
+                int run_string(const std::string&, Variant*, int);
+                int run_string(const std::string&, Variant*);
                 int run_file(const std::string&);
-                int run_func(const std::string&);
+                int run_func(const std::string&, Variant*);
 
                 int set_var(const std::string&, const Variant&);
-		Variant get_var(const std::string&);
+		Variant get_var(const std::string&) const;
 
-                std::vector<Variant> complete(const std::string&);
+                std::vector<Variant> complete(const std::string&) const;
         };
 }
 

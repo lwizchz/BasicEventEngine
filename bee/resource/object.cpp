@@ -370,9 +370,9 @@ namespace bee {
 			table.push_back({
 				std::to_string(i.second->id),
 				i.second->get_object()->get_name(),
-				std::to_string(static_cast<int>(i.second->get_position()[0])),
-				std::to_string(static_cast<int>(i.second->get_position()[1])),
-				std::to_string(static_cast<int>(i.second->get_position()[2]))
+				std::to_string(static_cast<int>(i.second->get_pos()[0])),
+				std::to_string(static_cast<int>(i.second->get_pos()[1])),
+				std::to_string(static_cast<int>(i.second->get_pos()[2]))
 			});
 		}
 
@@ -399,7 +399,20 @@ namespace bee {
 	* @inst: the instance to update
 	*/
 	void Object::step_begin(Instance* inst) {
-		inst->pos_previous = inst->get_position();
+		inst->pos_previous = inst->get_pos();
+	}
+	bool Object::check_collision_filter(const Instance* self, const Instance* other) const {
+		int self_mask = self->get_data("collision_mask").i;
+		int self_comp = static_cast<int>(self->get_computation_type());
+		int other_mask = other->get_data("collision_mask").i;
+		int other_comp = static_cast<int>(other->get_computation_type());
+
+		if ((self_mask & other_comp) != 0) {
+			if ((other_mask & self_comp) != 0) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
 

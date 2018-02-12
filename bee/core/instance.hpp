@@ -37,7 +37,6 @@ namespace bee {
 		Texture* sprite;
 
 		PhysicsBody* body;
-		bool is_solid;
 		E_COMPUTATION computation_type;
 		bool is_persistent;
 
@@ -53,7 +52,6 @@ namespace bee {
 	public:
 		int id;
 		Uint32 subimage_time;
-		Uint32 alarm_end[BEE_ALARM_COUNT];
 		int depth;
 
 		btVector3 pos_previous;
@@ -63,50 +61,41 @@ namespace bee {
 		Instance(int, Object*, double, double, double);
 		Instance(const Instance&);
 		virtual ~Instance();
-		int init(int, Object*, double, double, double);
+		void init(int, Object*, double, double, double);
 		int print();
 
 		bool operator<(const Instance&) const;
 		Instance& operator=(const Instance&);
 
-		std::string serialize(bool) const;
-		std::string serialize() const;
-		int deserialize(std::map<Variant,Variant>&, Object*);
-		int deserialize(const std::string&, Object*);
-		int deserialize(const std::string&);
+		std::map<Variant,Variant> serialize() const;
+		int deserialize(std::map<Variant,Variant>&);
 
 		std::vector<Uint8> serialize_net();
 		int deserialize_net(std::vector<Uint8>);
 
-		int remove();
+		void set_alarm(const std::string&, int);
 
-		int set_alarm(size_t, Uint32);
-
-		int set_object(Object*);
-		int set_sprite(Texture*);
-		int add_physbody();
-		int set_computation_type(E_COMPUTATION);
-		int set_is_persistent(bool);
+		void set_object(Object*);
+		void set_sprite(Texture*);
+		void add_physbody();
+		void set_computation_type(E_COMPUTATION);
+		void set_is_persistent(bool);
 
 		std::map<std::string,Variant>& get_data();
 		const Variant& get_data(const std::string&, const Variant&, bool) const;
 		Variant get_data(const std::string&) const;
-		int set_data(const std::map<std::string,Variant>&);
-		int set_data(const std::string&, Variant);
+		void set_data(const std::map<std::string,Variant>&);
+		void set_data(const std::string&, Variant);
 
 		template <typename T>
-		int set_data(const std::string&, T);
+		void set_data(const std::string&, T);
 
-		btVector3 get_position() const;
+		btVector3 get_pos() const;
 		double get_x() const;
 		double get_y() const;
 		double get_z() const;
-		double get_corner_x() const;
-		double get_corner_y() const;
+		std::pair<double,double> get_corner() const;
 		btVector3 get_start() const;
-		double get_xstart() const;
-		double get_ystart() const;
-		double get_zstart() const;
 
 		Object* get_object() const;
 		Texture* get_sprite() const;
@@ -120,31 +109,25 @@ namespace bee {
 		int get_height() const;
 		SDL_Rect get_aabb() const;
 
-		int set_position(btVector3);
-		int set_position(double, double, double);
-		int set_to_start();
-		int set_corner_x(double);
-		int set_corner_y(double);
-		int set_mass(double);
-		int move(btVector3);
-		int move(double, btVector3);
-		int move(double, double);
-		int move_to(double, double, double, double);
-		int move_to(double, double, double);
-		int move_away(double, double, double, double);
-		int move_away(double, double, double);
-		int set_friction(double);
-		int set_gravity(btVector3);
-		int set_gravity(double, double, double);
-		int set_is_solid(bool);
-		int set_velocity(btVector3);
-		int set_velocity(double, double);
-		int add_velocity(btVector3);
-		int add_velocity(double, double);
+		void set_pos(btVector3);
+		void set_pos(double, double, double);
+		void set_to_start();
+		void set_corner(double, double);
+		void set_mass(double);
+		void move(btVector3);
+		void move(double, btVector3);
+		void move(double, double);
+		void move_to(double, btVector3);
+		void move_away(double, btVector3);
+		void set_friction(double);
+		void set_gravity(btVector3);
+		void set_is_solid(bool);
+		void set_velocity(btVector3);
+		void set_velocity(double, double);
+		void add_velocity(btVector3);
+		void add_velocity(double, double);
+		btVector3 limit_velocity(btVector3);
 		int limit_velocity(double);
-		int limit_velocity_x(double);
-		int limit_velocity_y(double);
-		int limit_velocity_z(double);
 
 		double get_speed() const;
 		btVector3 get_velocity() const;
@@ -155,24 +138,23 @@ namespace bee {
 		bool is_place_free(int, int) const;
 		bool is_place_empty(int, int) const;
 		bool is_place_meeting(int, int, Object*) const;
-		bool is_place_meeting(int, int, int) const;
-		bool is_place_meeting(int, int, Object*, std::function<void(Instance*,Instance*)>);
+		bool is_place_meeting(int, int, Object*, std::function<void(Instance*, Instance*)>);
 		bool is_move_free(double, double);
 		bool is_snapped(int, int) const;
 
 		std::pair<int,int> get_snapped(int, int) const;
 		std::pair<int,int> get_snapped() const;
-		int move_random(int, int);
-		int move_snap(int, int);
-		int move_snap();
-		int move_wrap(bool, bool, int);
+		void move_random(int, int);
+		void move_snap(int, int);
+		void move_snap();
+		void move_wrap(bool, bool, int);
 
-		double get_distance(int, int, int) const;
+		double get_distance(btVector3) const;
 		double get_distance(Instance*) const;
 		double get_distance(Object*) const;
-		double get_direction_of(int, int) const;
-		double get_direction_of(Instance*) const;
-		double get_direction_of(Object*) const;
+		btVector3 get_direction_of(btVector3) const;
+		btVector3 get_direction_of(Instance*) const;
+		btVector3 get_direction_of(Object*) const;
 		int get_relation(Instance*) const;
 
 		int path_start(Path*, double, E_PATH_END, bool);
@@ -196,8 +178,8 @@ namespace bee {
 	};
 
 	template <typename T>
-	int Instance::set_data(const std::string& field, T value) {
-		return set_data(field, Variant(value));
+	void Instance::set_data(const std::string& field, T value) {
+		set_data(field, Variant(value));
 	}
 }
 

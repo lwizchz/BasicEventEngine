@@ -20,6 +20,8 @@
 #include "mouse.hpp"
 #include "kb.hpp"
 
+#include "instance.hpp"
+
 #include "../engine.hpp"
 
 #include "../init/gameoptions.hpp"
@@ -33,6 +35,8 @@
 
 namespace bee { namespace python { namespace internal {
         PyMethodDef BEEMethods[] = {
+                {"_displayhook", displayhook, METH_O, "Store the last evaluated Python object in an internal buffer"},
+
                 {"get_ticks", get_ticks, METH_NOARGS, "Return the millisecond ticks elapsed since initialization"},
                 {"get_seconds", get_seconds, METH_NOARGS, "Return the seconds elapsed since initialization"},
                 {"get_frame", get_frame, METH_NOARGS, "Return the frames elapsed since initialization"},
@@ -120,6 +124,9 @@ namespace bee { namespace python { namespace internal {
         }
         PyObject* PyInit_bee() {
                 PyObject* module = PyModule_Create(&BEEModule);
+                if (module == nullptr) {
+                        return nullptr;
+                }
 
                 // Add submodules
                 PyModule_AddFunctions(module, BEEInitMethods);
@@ -134,7 +141,11 @@ namespace bee { namespace python { namespace internal {
                 //PyModule_AddObject(module, "render", PyInit_bee_render());
                 //PyModule_AddObject(module, "resource", PyInit_bee_resource());
                 //PyModule_AddObject(module, "ui", PyInit_bee_ui());
-                //PyModule_AddObject(module, "util", PyInit_bee_util());
+
+                // Add classes
+                if (PyInit_bee_instance(module) == nullptr) {
+                        return nullptr;
+                }
 
                 // Add enums
                 PyModule_AddObject(module, "E_FLAGARG", make_enum({
@@ -367,6 +378,11 @@ namespace bee { namespace python { namespace internal {
                 }));
 
                 return module;
+        }
+
+        PyObject* displayhook(PyObject* self, PyObject* arg) {
+                python::set_displayhook(arg);
+                Py_RETURN_NONE;
         }
 
         PyObject* get_ticks(PyObject* self, PyObject* args) {

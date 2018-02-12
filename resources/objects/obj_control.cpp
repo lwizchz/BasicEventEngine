@@ -26,7 +26,7 @@ ObjControl::ObjControl() : Object("obj_control", "obj_control.hpp") {
 	this->set_is_persistent(true);
 }
 void ObjControl::create(bee::Instance* self) {
-	scr_test->run_func("main");
+	scr_test->run_func("main", nullptr);
 
 	_p("text_fps") = nullptr;
 
@@ -174,6 +174,7 @@ void ObjControl::mouse_press(bee::Instance* self, SDL_Event* e) {
 			if ((self->id == 0)&&(!util::check_collision(a, b))) {
 				if (self->is_place_empty(e->button.x, e->button.y)) {
 					bee::Instance* bee = bee::get_current_room()->add_instance(-1, obj_bee, e->button.x, e->button.y, 0.0);
+					bee->set_computation_type(bee::E_COMPUTATION::SEMIPLAYER);
 					bee->set_mass(1.0);
 				}
 			}

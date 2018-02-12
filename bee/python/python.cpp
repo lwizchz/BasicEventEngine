@@ -27,6 +27,8 @@ namespace bee { namespace python {
         namespace internal {
                 wchar_t* program = nullptr;
                 std::vector<wchar_t*> argv;
+
+                std::string dh_str;
         }
 
         /**
@@ -134,6 +136,86 @@ namespace bee { namespace python {
                 }
 
                 return 0;
+        }
+
+        /**
+        * @returns a string of the last Python traceback
+        */
+        std::string get_traceback() {
+                PyObject* sys = PyImport_AddModule("sys");
+
+                PyObject* dict = PyModule_GetDict(sys);
+
+                PyObject* type = PyDict_GetItemString(dict, "last_type");
+                PyObject* value = PyDict_GetItemString(dict, "last_value");
+                PyObject* traceback = PyDict_GetItemString(dict, "last_traceback");
+
+                std::string _traceback;
+                if (traceback != Py_None) {
+                        _traceback += "Traceback (most recent call last):\n";
+                        while (traceback != Py_None) {
+                                PyObject* frame = PyObject_GetAttrString(traceback, "tb_frame");
+                                PyObject* code = PyObject_GetAttrString(frame, "f_code");
+
+                                _traceback += "File \"";
+                                _traceback += PyUnicode_AsUTF8(PyObject_Str(
+                                        PyObject_GetAttrString(code, "co_filename")
+                                ));
+                                _traceback += "\", line ";
+                                _traceback += PyUnicode_AsUTF8(PyObject_Str(
+                                        PyObject_GetAttrString(frame, "f_lineno")
+                                ));
+                                _traceback += ", in ";
+                                _traceback += PyUnicode_AsUTF8(PyObject_Str(
+                                        PyObject_GetAttrString(code, "co_name")
+                                ));
+                                _traceback += "\n";
+
+                                if (PyObject_GetAttrString(traceback, "tb_next") == Py_None) {
+                                        break;
+                                }
+                                traceback = PyObject_GetAttrString(traceback, "tb_next");
+                        }
+
+                        _traceback += PyUnicode_AsUTF8(PyObject_GetAttrString(type, "__name__"));
+                        _traceback += ": ";
+                        _traceback += PyUnicode_AsUTF8(PyObject_Str(value));
+                } else {
+                        _traceback += "File \"";
+                        _traceback += PyUnicode_AsUTF8(PyObject_GetAttrString(value, "filename"));
+                        _traceback += "\", line ";
+                        _traceback += PyUnicode_AsUTF8(PyObject_Str(PyObject_GetAttrString(value, "lineno")));
+                        _traceback += "\n  ";
+                        _traceback += PyUnicode_AsUTF8(PyObject_GetAttrString(value, "text"));
+                        _traceback += "\n";
+                        long i = 2 + PyLong_AsLong(PyObject_GetAttrString(value, "offset"));
+                        _traceback += util::string::repeat(std::max(i-1l, 0l), " ");
+                        _traceback += "^\n";
+
+                        _traceback += PyUnicode_AsUTF8(PyObject_GetAttrString(type, "__name__"));
+                        _traceback += ": ";
+                        _traceback += PyUnicode_AsUTF8(PyObject_GetAttrString(value, "msg"));
+                }
+
+                return _traceback;
+        }
+
+        /**
+        * Store the last evaluated Python object in the internal displayhook string.
+        * @param obj the object to store
+        */
+        void set_displayhook(PyObject* obj) {
+                if (obj == Py_None) {
+                        internal::dh_str.clear();
+                } else {
+                        internal::dh_str = PyUnicode_AsUTF8(PyObject_Str(obj));
+                }
+        }
+        /**
+        * @returns the internal displayhook string
+        */
+        std::string get_displayhook() {
+                return internal::dh_str;
         }
 
         /**
@@ -314,19 +396,47 @@ namespace bee { namespace python {
         /**
         * Run the given string in the loaded module.
         * @param code the code string to run
+        * @param retval the pointer to store the code return value in
+        * @param start the start point of the Python interpreter, either Py_file_input or Py_single_input
         *
         * @retval 0 success
         * @retval 1 failed since the module is not loaded
         * @retval 2 failed to compile the code string, see the Python exception for more info
         * @retval 3 failed to evaluate the code, see the Python exception for more info
         */
-        int PythonScriptInterface::run_string(const std::string& code) {
+        int PythonScriptInterface::run_string(const std::string& code, Variant* retval, int start) {
                 if (module == nullptr) {
                         messenger::send({"engine", "python"}, E_MESSAGE::ERROR, "Failed to run python string \"" + path + "\": script is not loaded");
                         return 1;
                 }
 
-                PyObject* codeobj = Py_CompileString(code.c_str(), "<string>", Py_file_input);
+                if (start != Py_file_input) {
+                        std::vector<std::string> _code (util::splitv(code, '\n', true));
+                        if (_code.size() > 1) {
+                                // Check whether the code should be ran as a file
+                                for (auto& l : _code) {
+                                        if ((l[0] == '\t')||(l[0] == ' ')) {
+                                                start = Py_file_input;
+                                                break;
+                                        }
+                                }
+
+                                if (start != Py_file_input) {
+                                        for (auto& l : _code) {
+                                                int r = run_string(l, retval);
+                                                if (r != 0) {
+                                                        if (retval != nullptr) {
+                                                                *retval = Variant();
+                                                        }
+                                                        return r;
+                                                }
+                                        }
+                                        return 0;
+                                }
+                        }
+                }
+
+                PyObject* codeobj = Py_CompileString(code.c_str(), "<string>", start);
                 if (codeobj == nullptr) {
                         PyErr_Print();
                         messenger::send({"engine", "python"}, E_MESSAGE::ERROR, "Python script codestring \"" + code + "\" compile failed for \"" + path + "\"");
@@ -344,61 +454,50 @@ namespace bee { namespace python {
 
                         return 3;
                 }
+
+                if (retval != nullptr) {
+                        if (value == Py_None) {
+                                *retval = Variant(python::get_displayhook(), true);
+                        } else {
+                                *retval = python::pyobj_to_variant(value);
+                        }
+                }
                 Py_DECREF(value);
 
                 Py_DECREF(codeobj);
 
                 return 0;
+        }
+        /**
+        * Run the given string as a single input.
+        * @param code the code string to run
+        * @param retval the pointer to store the code return value in
+        *
+        * @see run_string() for return values
+        */
+        int PythonScriptInterface::run_string(const std::string& code, Variant* retval) {
+                return run_string(code, retval, Py_single_input);
         }
         /**
         * Run the given file in the loaded module.
         * @param filename the file to run
         *
-        * @retval 0 success
-        * @retval 1 failed since the module is not loaded
-        * @retval 2 failed to compile the file, see the Python exception for more info
-        * @retval 3 failed to evaluate the file, see the Python exception for more info
+        * @see run_string() for return values
         */
         int PythonScriptInterface::run_file(const std::string& filename) {
-                if (module == nullptr) {
-                        messenger::send({"engine", "python"}, E_MESSAGE::ERROR, "Failed to run python script \"" + filename + "\": module is not loaded");
-                        return 1;
-                }
-
-                PyObject* codeobj = Py_CompileString(util::file_get_contents(filename).c_str(), filename.c_str(), Py_file_input);
-                if (codeobj == nullptr) {
-                        PyErr_Print();
-                        messenger::send({"engine", "python"}, E_MESSAGE::ERROR, "Python script compile failed for \"" + filename + "\" in module \"" + std::string(PyModule_GetName(module)) + "\"");
-
-                        return 2;
-                }
-
-                PyObject* global_dict = PyModule_GetDict(module);
-                PyObject* value = PyEval_EvalCode(codeobj, global_dict, global_dict);
-                if (value == nullptr) {
-                        Py_DECREF(codeobj);
-
-                        PyErr_Print();
-                        messenger::send({"engine", "python"}, E_MESSAGE::ERROR, "Python script failed for \"" + filename + "\" in module \"" + std::string(PyModule_GetName(module)) + "\"");
-
-                        return 3;
-                }
-                Py_DECREF(value);
-
-                Py_DECREF(codeobj);
-
-                return 0;
+                return run_string(util::file_get_contents(filename), nullptr, Py_file_input);
         }
         /**
         * Run the given function in the loaded module.
         * @param funcname the function to run
+        * @param retval the pointer to store the function return value in
         *
         * @retval 0 success
         * @retval 1 failed since the module is not loaded
         * @retval 2 failed to find a callable object with the given function name
         * @retval 3 failed to call the function, see the Python exception for more info
         */
-        int PythonScriptInterface::run_func(const std::string& funcname) {
+        int PythonScriptInterface::run_func(const std::string& funcname, Variant* retval) {
                 if (module == nullptr) {
                         messenger::send({"engine", "python"}, E_MESSAGE::ERROR, "Failed to run python function \"" + path + "\": script is not loaded");
                         return 1;
@@ -423,6 +522,10 @@ namespace bee { namespace python {
 
                         return 3;
                 }
+
+                if (retval != nullptr) {
+                        *retval = python::pyobj_to_variant(value);
+                }
                 Py_DECREF(value);
 
                 Py_DECREF(func);
@@ -430,7 +533,7 @@ namespace bee { namespace python {
                 return 0;
         }
 
-        /*
+        /**
         * Set the given Python name to the given value.
         * @param name the name to set
         * @param value the value to set the name to
@@ -454,12 +557,12 @@ namespace bee { namespace python {
 
                 return 0;
         }
-        /*
+        /**
         * @param name the name of the variable to get
         *
         * @returns the variable with the given name or an empty variable when the name does not exist
         */
-        Variant PythonScriptInterface::get_var(const std::string& name) {
+        Variant PythonScriptInterface::get_var(const std::string& name) const {
                 if (module == nullptr) {
                         messenger::send({"engine", "python"}, E_MESSAGE::ERROR, "Failed to get python variable \"" + name + "\": script \"" + path + "\" is not loaded");
                         return Variant();
@@ -480,13 +583,13 @@ namespace bee { namespace python {
                 return v;
         }
 
-        /*
+        /**
         * Find all attributes which match the given string.
         * @param input the string to match against
         *
         * @returns a vector of possible matches
         */
-        std::vector<Variant> PythonScriptInterface::complete(const std::string& input) {
+        std::vector<Variant> PythonScriptInterface::complete(const std::string& input) const {
                 std::vector<Variant> vec;
 
                 if (module == nullptr) {

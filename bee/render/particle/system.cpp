@@ -257,7 +257,7 @@ namespace bee {
 		}
 
 		for (auto& p : particles) {
-			p->draw_debug(system_x, system_y, E_RGB::AQUA);
+			p->draw_debug(system_x, system_y, E_RGB::CYAN);
 		}
 		for (auto& e : emitters) {
 			e->draw_debug(system_x, system_y, E_RGB::GREEN);

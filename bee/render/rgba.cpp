@@ -26,17 +26,14 @@ namespace bee {
 		RGBA()
 	{
 		switch (_c) {
-			//case E_RGB::CYAN:
-			case E_RGB::AQUA:           *this = {0, 255, 255, _a}; break;
+			case E_RGB::CYAN:           *this = {0, 255, 255, _a}; break;
 			case E_RGB::BLUE:           *this = {0, 0, 255, _a}; break;
 			case E_RGB::DKGRAY:         *this = {64, 64, 64, _a}; break;
-			//case E_RGB::MAGENTA:
-			case E_RGB::FUCHSIA:        *this = {255, 0, 255, _a}; break;
+			case E_RGB::MAGENTA:        *this = {255, 0, 255, _a}; break;
 			case E_RGB::GRAY:           *this = {128, 128, 128, _a}; break;
 			case E_RGB::GREEN:          *this = {0, 128, 0, _a}; break; // Even though green is technically g=255, that color is called lime because it is quite bright
 			case E_RGB::LIME:           *this = {0, 255, 0, _a}; break;
-			//case E_RGB::LTGRAY:
-			case E_RGB::SILVER:         *this = {192, 192, 192, _a}; break;
+			case E_RGB::LTGRAY:         *this = {192, 192, 192, _a}; break;
 			case E_RGB::MAROON:         *this = {128, 0, 0, _a}; break;
 			case E_RGB::NAVY:           *this = {0, 0, 128, _a}; break;
 			case E_RGB::OLIVE:          *this = {128, 128, 0, _a}; break;

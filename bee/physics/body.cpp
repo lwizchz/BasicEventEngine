@@ -151,7 +151,7 @@ namespace bee {
 		return *this;
 	}
 
-	std::string PhysicsBody::serialize(bool should_pretty_print) const {
+	std::map<Variant,Variant> PhysicsBody::serialize() const {
 		std::vector<Variant> sp;
 		for (size_t i=0; i<shape_param_amount; ++i) {
 			sp.push_back(Variant(shape_params[i]));
@@ -169,15 +169,19 @@ namespace bee {
 			cons.push_back(Variant(con));
 		}
 
-		std::map<std::string,Variant> data;
+		std::map<Variant,Variant> data;
+
 		data["type"] = static_cast<int>(type);
 		data["mass"] = mass;
 		data["scale"] = scale;
 		data["friction"] = friction;
 		data["shape_params"] = sp;
 
-		data["attached_instance"] = attached_instance->id;
-		data["position"] = {Variant(get_position().x()), Variant(get_position().y()), Variant(get_position().z())};
+		data["attached_instance"] = -1;
+		if (attached_instance != nullptr) {
+			data["attached_instance"] = attached_instance->id;
+		}
+		data["position"] = {Variant(get_pos().x()), Variant(get_pos().y()), Variant(get_pos().z())};
 		data["rotation"] = {Variant(get_rotation_x()), Variant(get_rotation_y()), Variant(get_rotation_z())};
 
 		data["gravity"] = {Variant(body->getGravity().x()), Variant(body->getGravity().y()), Variant(body->getGravity().z())};
@@ -187,10 +191,7 @@ namespace bee {
 		data["collision_flags"] = body->getCollisionFlags();
 		data["constraints"] = cons;
 
-		return util::map_serialize(data, should_pretty_print);
-	}
-	std::string PhysicsBody::serialize() const {
-		return serialize(false);
+		return data;
 	}
 	int PhysicsBody::deserialize(std::map<Variant,Variant>& m, Instance* inst) {
 		mass = m["mass"].d;
@@ -220,7 +221,12 @@ namespace bee {
 		}
 
 		attached_instance = inst;
-		body->setCollisionFlags(m["collision_flags"].i);
+		if (attached_instance == nullptr) {
+			auto instances = get_current_room()->get_instances();
+			if (instances.find(m["attached_instance"].i) != instances.end()) {
+				attached_instance = instances.at(m["attached_instance"].i);
+			}
+		}
 
 		btVector3 position = btVector3(
 			btScalar(m["position"].v[0].f),
@@ -263,27 +269,6 @@ namespace bee {
 
 		return 0;
 	}
-	int PhysicsBody::deserialize(const std::string& data, Instance* inst) {
-		std::map<Variant,Variant> m;
-		if (util::map_deserialize(data, &m)) {
-			messenger::send({"engine", "physics"}, E_MESSAGE::WARNING, "Failed to deserialize physics body");
-			return 1;
-		}
-
-		return deserialize(m, inst);
-	}
-	int PhysicsBody::deserialize(const std::string& data) {
-		std::map<std::string,Variant> m;
-		util::map_deserialize(data, &m);
-
-		auto instances = get_current_room()->get_instances();
-		Instance* inst = nullptr;
-		if (instances.find(m["attached_instance"].i) != instances.end()) {
-			inst = instances.at(m["attached_instance"].i);
-		}
-
-		return deserialize(data, inst);
-	}
 
 	std::vector<Uint8> PhysicsBody::serialize_net() {
 		SerialData data (128);
@@ -291,7 +276,7 @@ namespace bee {
 		data.store_double(mass);
 		data.store_double(friction);
 
-		std::vector<double> pos = {get_position().x(), get_position().y(), get_position().z()};
+		std::vector<double> pos = {get_pos().x(), get_pos().y(), get_pos().z()};
 		std::vector<double> rot = {get_rotation_x(), get_rotation_y(), get_rotation_z()};
 		data.store_vector(pos);
 		data.store_vector(rot);
@@ -412,6 +397,9 @@ namespace bee {
 	PhysicsWorld* PhysicsBody::get_world() const {
 		return attached_world;
 	}
+	Instance* PhysicsBody::get_instance() const {
+		return attached_instance;
+	}
 	const std::vector<std::tuple<E_PHYS_CONSTRAINT,double*,btTypedConstraint*>>& PhysicsBody::get_constraints() const {
 		return constraints;
 	}
@@ -419,7 +407,7 @@ namespace bee {
 	btDefaultMotionState* PhysicsBody::get_motion() const {
 		return motion_state;
 	}
-	btVector3 PhysicsBody::get_position() const {
+	btVector3 PhysicsBody::get_pos() const {
 		return body->getCenterOfMassPosition()*btScalar(scale);
 	}
 	btQuaternion PhysicsBody::get_rotation() const {
@@ -602,8 +590,6 @@ namespace bee {
 		PhysicsWorld* tmp_world = attached_world;
 		remove();
 
-		int cflags = body->getCollisionFlags();
-
 		delete body;
 		body = nullptr;
 
@@ -613,7 +599,6 @@ namespace bee {
 		body = new btRigidBody(rb_info);
 
 		body->setSleepingThresholds(body->getLinearSleepingThreshold()/btScalar(scale), body->getAngularSleepingThreshold());
-		body->setCollisionFlags(body->getCollisionFlags() | (cflags & btCollisionObject::CF_NO_CONTACT_RESPONSE));
 
 		attached_world = tmp_world;
 		if (attached_world != nullptr) {

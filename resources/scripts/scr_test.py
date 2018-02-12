@@ -22,3 +22,7 @@ def main():
     def pyopt(value):
         print("changing pyopt to: {}".format(value))
     bee.set_option("pyopt", "a string value", pyopt)
+
+    inst = bee.Instance("obj_bee")
+    inst.set_data("py", [1, 2, 3])
+    print(inst.get_data("py"))
