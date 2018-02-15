@@ -11,16 +11,14 @@
 
 #include "../../enum.hpp"
 
+#include "region.hpp"
+
 namespace bee {
 	// Forward declaration
-	class Instance;
 	class ParticleData;
 
 	class ParticleAttractor {
-			Instance* following;
-
-			double x, y;
-			unsigned int w, h;
+			ParticleRegion region;
 
 			double force;
 			double max_distance;
@@ -29,7 +27,6 @@ namespace bee {
 			double get_following_x(double);
 			double get_following_y(double);
 		public:
-			ParticleAttractor();
 			ParticleAttractor(double, double, unsigned int, unsigned int);
 
 			int set_following(Instance*);

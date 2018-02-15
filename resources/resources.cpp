@@ -65,7 +65,6 @@ int bee::init_resources() {
 			spr_none->load();
 		spr_bee = new Texture("spr_bee", "spr_bee.png");
 			spr_bee->set_subimage_amount(2, 100);
-			spr_bee->set_speed(1.0);
 		spr_dot = new Texture("spr_dot", "spr_dot.png");
 
 		// Init backgrounds
@@ -121,7 +120,7 @@ int bee::init_resources() {
 	return 0; // Return 0 on success
 }
 
-#define DEL(x) delete x; x=nullptr
+#define DEL(x) if (x!=nullptr) {delete x; x=nullptr;}
 /*
 * bee::close_resources() - Destroy all game resources
 */

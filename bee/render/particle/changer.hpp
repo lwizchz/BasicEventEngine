@@ -11,20 +11,18 @@
 
 #include "../../enum.hpp"
 
+#include "region.hpp"
+
 namespace bee {
 	// Forward declarations
-	class Instance;
 	class Particle;
 	class ParticleData;
 
 	class ParticleChanger {
-			Instance* following;
+			ParticleRegion region;
 
 			Particle* particle_before;
 			Particle* particle_after;
-
-			double x, y;
-			unsigned int w, h;
 
 			E_PS_SHAPE shape;
 
@@ -33,7 +31,6 @@ namespace bee {
 			double get_following_x(double);
 			double get_following_y(double);
 		public:
-			ParticleChanger();
 			ParticleChanger(double, double, unsigned int, unsigned int, Particle*, Particle*);
 
 			int set_following(Instance*);

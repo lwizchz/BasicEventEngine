@@ -68,61 +68,62 @@ namespace bee {
 	{
 		has_own_texture = true;
 
+		const std::string root ("/bee/resources/textures/particles");
 		switch (shape) {
 			case E_PT_SHAPE::PIXEL: {
-				texture = Texture::add("pt_texture_pixel", "particles/00_pixel.png");
+				texture = Texture::add("pt_texture_pixel", root+"/00_pixel.png");
 				break;
 			}
 			case E_PT_SHAPE::DISK: {
-				texture = Texture::add("pt_texture_disk", "particles/01_disk.png");
+				texture = Texture::add("pt_texture_disk", root+"/01_disk.png");
 				break;
 			}
 			case E_PT_SHAPE::SQUARE: {
-				texture = Texture::add("pt_texture_square", "particles/02_square.png");
+				texture = Texture::add("pt_texture_square", root+"/02_square.png");
 				break;
 			}
 			case E_PT_SHAPE::LINE: {
-				texture = Texture::add("pt_texture_line", "particles/03_line.png");
+				texture = Texture::add("pt_texture_line", root+"/03_line.png");
 				break;
 			}
 			case E_PT_SHAPE::STAR: {
-				texture = Texture::add("pt_texture_star", "particles/04_star.png");
+				texture = Texture::add("pt_texture_star", root+"/04_star.png");
 				break;
 			}
 			case E_PT_SHAPE::CIRCLE: {
-				texture = Texture::add("pt_texture_circle", "particles/05_circle.png");
+				texture = Texture::add("pt_texture_circle", root+"/05_circle.png");
 				break;
 			}
 			case E_PT_SHAPE::RING: {
-				texture = Texture::add("pt_texture_ring", "particles/06_ring.png");
+				texture = Texture::add("pt_texture_ring", root+"/06_ring.png");
 				break;
 			}
 			case E_PT_SHAPE::SPHERE: {
-				texture = Texture::add("pt_texture_sphere", "particles/07_sphere.png");
+				texture = Texture::add("pt_texture_sphere", root+"/07_sphere.png");
 				break;
 			}
 			case E_PT_SHAPE::FLARE: {
-				texture = Texture::add("pt_texture_flare", "particles/08_flare.png");
+				texture = Texture::add("pt_texture_flare", root+"/08_flare.png");
 				break;
 			}
 			case E_PT_SHAPE::SPARK: {
-				texture = Texture::add("pt_texture_spark", "particles/09_spark.png");
+				texture = Texture::add("pt_texture_spark", root+"/09_spark.png");
 				break;
 			}
 			case E_PT_SHAPE::EXPLOSION: {
-				texture = Texture::add("pt_texture_explosion", "particles/10_explosion.png");
+				texture = Texture::add("pt_texture_explosion", root+"/10_explosion.png");
 				break;
 			}
 			case E_PT_SHAPE::CLOUD: {
-				texture = Texture::add("pt_texture_cloud", "particles/11_cloud.png");
+				texture = Texture::add("pt_texture_cloud", root+"/11_cloud.png");
 				break;
 			}
 			case E_PT_SHAPE::SMOKE: {
-				texture = Texture::add("pt_texture_smoke", "particles/12_smoke.png");
+				texture = Texture::add("pt_texture_smoke", root+"/12_smoke.png");
 				break;
 			}
 			case E_PT_SHAPE::SNOW: {
-				texture = Texture::add("pt_sprite_snow", "particles/13_snow.png");
+				texture = Texture::add("pt_sprite_snow", root+"/13_snow.png");
 				break;
 			}
 		}

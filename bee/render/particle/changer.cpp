@@ -19,34 +19,19 @@
 #include "particledata.hpp"
 
 namespace bee {
-	ParticleChanger::ParticleChanger() :
-		following(nullptr),
+	ParticleChanger::ParticleChanger(double x, double y, unsigned int w, unsigned int h, Particle* _particle_before, Particle* _particle_after) :
+		region(nullptr, x, y, w, h),
 
-		particle_before(nullptr),
-		particle_after(nullptr),
-
-		x(0.0),
-		y(0.0),
-		w(1), h(1),
+		particle_before(_particle_before),
+		particle_after(_particle_after),
 
 		shape(E_PS_SHAPE::RECTANGLE),
 
 		change_type(E_PS_CHANGE::ALL)
 	{}
-	ParticleChanger::ParticleChanger(double _x, double _y, unsigned int _w, unsigned int _h, Particle* _part_before, Particle* _part_after) :
-		ParticleChanger()
-	{
-		x = _x;
-		y = _y;
-		w = (_w < 1) ? 1 : _w;
-		h = (_h < 1) ? 1 : _h;
-
-		particle_before = _part_before;
-		particle_after = _part_after;
-	}
 
 	int ParticleChanger::set_following(Instance* inst) {
-		following = inst;
+		region.following = inst;
 		return 0;
 	}
 	int ParticleChanger::set_part_before(Particle* part) {
@@ -59,14 +44,14 @@ namespace bee {
 	}
 
 	double ParticleChanger::get_following_x(double default_x) {
-		if (following != nullptr) {
-			return following->get_x();
+		if (region.following != nullptr) {
+			return region.following->get_x();
 		}
 		return default_x;
 	}
 	double ParticleChanger::get_following_y(double default_y) {
-		if (following != nullptr) {
-			return following->get_y();
+		if (region.following != nullptr) {
+			return region.following->get_y();
 		}
 		return default_y;
 	}
@@ -82,7 +67,7 @@ namespace bee {
 		double cy = get_following_y(system_y);
 
 		SDL_Rect a = pd->get_rect();
-		SDL_Rect b = {static_cast<int>(cx+x), static_cast<int>(cy+y), static_cast<int>(w), static_cast<int>(h)};
+		SDL_Rect b = {static_cast<int>(cx+region.x), static_cast<int>(cy+region.y), static_cast<int>(region.w), static_cast<int>(region.h)};
 		if (util::check_collision(a, b)) {
 			if (pd->get_type() == get_part_before()) {
 				pd->set_type(get_part_after());
@@ -96,7 +81,7 @@ namespace bee {
 		double cx = get_following_x(system_x);
 		double cy = get_following_y(system_y);
 
-		return draw_rectangle(static_cast<int>(cx+x), static_cast<int>(cy+y), w, h, 1, RGBA(color));
+		return draw_rectangle(static_cast<int>(cx+region.x), static_cast<int>(cy+region.y), region.w, region.h, 1, RGBA(color));
 	}
 }
 

@@ -19,29 +19,16 @@
 #include "particledata.hpp"
 
 namespace bee {
-	ParticleAttractor::ParticleAttractor() :
-		following(nullptr),
-
-		x(0.0),
-		y(0.0),
-		w(1),
-		h(1),
+	ParticleAttractor::ParticleAttractor(double x, double y, unsigned int w, unsigned int h) :
+		region(nullptr, x, y, w, h),
 
 		force(50.0),
 		max_distance(100.0),
 		force_type(E_PS_FORCE::LINEAR)
 	{}
-	ParticleAttractor::ParticleAttractor(double _x, double _y, unsigned int _w, unsigned int _h) :
-		ParticleAttractor()
-	{
-		x = _x;
-		y = _y;
-		w = (_w < 1) ? 1 : _w;
-		h = (_h < 1) ? 1 : _h;
-	}
 
 	int ParticleAttractor::set_following(Instance* inst) {
-		following = inst;
+		region.following = inst;
 		return 0;
 	}
 	int ParticleAttractor::set_force(double _force) {
@@ -54,23 +41,26 @@ namespace bee {
 	}
 
 	double ParticleAttractor::get_following_x(double default_x) {
-		if (following != nullptr) {
-			return following->get_x();
+		if (region.following != nullptr) {
+			return region.following->get_x();
 		}
 		return default_x;
 	}
 	double ParticleAttractor::get_following_y(double default_y) {
-		if (following != nullptr) {
-			return following->get_y();
+		if (region.following != nullptr) {
+			return region.following->get_y();
 		}
 		return default_y;
 	}
 
 	int ParticleAttractor::handle(ParticleData* pd, double system_x, double system_y, double delta) {
-		int ax = static_cast<int>(get_following_x(system_x));
-		int ay = static_cast<int>(get_following_y(system_y));
+		double ax = get_following_x(system_x);
+		double ay = get_following_y(system_y);
 
-		double ds = util::dist_sqr(pd->x, pd->y, ax+x+w/2, ay+y+h/2);
+		int rel_x = ax + region.x + region.w/2;
+		int rel_y = ay + region.y + region.h/2;
+
+		double ds = util::dist_sqr(pd->x, pd->y, rel_x, rel_y);
 		if (ds < util::sqr(max_distance)) {
 			double f = 0.0;
 			switch (force_type) {
@@ -89,7 +79,7 @@ namespace bee {
 				}
 			}
 
-			pd->set_position(util::coord_approach(pd->x, pd->y, ax+x+w/2, ay+y+h/2, f, delta));
+			pd->set_position(util::coord_approach(pd->x, pd->y, rel_x, rel_y, f, delta));
 		}
 
 		return 0;
@@ -99,7 +89,7 @@ namespace bee {
 		double ax = get_following_x(system_x);
 		double ay = get_following_y(system_y);
 
-		return draw_rectangle(static_cast<int>(ax+x), static_cast<int>(ay+y), w, h, 1, RGBA(color));
+		return draw_rectangle(static_cast<int>(ax + region.x), static_cast<int>(ay + region.y), region.w, region.h, 1, RGBA(color));
 	}
 }
 

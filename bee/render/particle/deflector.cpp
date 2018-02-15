@@ -20,27 +20,14 @@
 #include "particledata.hpp"
 
 namespace bee {
-	ParticleDeflector::ParticleDeflector() :
-		following(nullptr),
-
-		x(0.0),
-		y(0.0),
-		w(1),
-		h(1),
+	ParticleDeflector::ParticleDeflector(double x, double y, unsigned int w, unsigned int h) :
+		region(nullptr, x, y, w, h),
 
 		friction(1.0)
 	{}
-	ParticleDeflector::ParticleDeflector(double _x, double _y, unsigned int _w, unsigned int _h) :
-		ParticleDeflector()
-	{
-		x = _x;
-		y = _y;
-		w = (_w < 1) ? 1 : _w;
-		h = (_h < 1) ? 1 : _h;
-	}
 
 	int ParticleDeflector::set_following(Instance* inst) {
-		following = inst;
+		region.following = inst;
 		return 0;
 	}
 	int ParticleDeflector::set_friction(double _friction) {
@@ -49,14 +36,14 @@ namespace bee {
 	}
 
 	double ParticleDeflector::get_following_x(double default_x) {
-		if (following != nullptr) {
-			return following->get_x();
+		if (region.following != nullptr) {
+			return region.following->get_x();
 		}
 		return default_x;
 	}
 	double ParticleDeflector::get_following_y(double default_y) {
-		if (following != nullptr) {
-			return following->get_y();
+		if (region.following != nullptr) {
+			return region.following->get_y();
 		}
 		return default_y;
 	}
@@ -66,7 +53,7 @@ namespace bee {
 		double dy = get_following_y(system_y);
 
 		SDL_Rect a = pd->get_rect();
-		SDL_Rect b = {static_cast<int>(dx+x), static_cast<int>(dy+y), static_cast<int>(w), static_cast<int>(h)};
+		SDL_Rect b = {static_cast<int>(dx+region.x), static_cast<int>(dy+region.y), static_cast<int>(region.w), static_cast<int>(region.h)};
 		if (util::check_collision(a, b)) {
 			double dir = util::direction_of(old_px, old_py, pd->x, pd->y);
 			pd->set_velocity(pd->velocity.first * friction * -1, dir);
@@ -79,7 +66,7 @@ namespace bee {
 		double dx = get_following_x(system_x);
 		double dy = get_following_y(system_y);
 
-		return draw_rectangle(static_cast<int>(dx+x), static_cast<int>(dy+y), w, h, 1, RGBA(color));
+		return draw_rectangle(static_cast<int>(dx+region.x), static_cast<int>(dy+region.y), region.w, region.h, 1, RGBA(color));
 	}
 }
 

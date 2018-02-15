@@ -92,7 +92,7 @@ namespace bee {
 		subimage_amount(1),
 		subimage_width(0),
 		crop({0,0,0,0}),
-		speed(0.0),
+		speed(1.0),
 		is_animated(false),
 		origin_x(0),
 		origin_y(0),

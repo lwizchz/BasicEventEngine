@@ -19,35 +19,20 @@
 #include "system.hpp"
 
 namespace bee {
-	ParticleEmitter::ParticleEmitter() :
-		following(nullptr),
-
-		x(0.0),
-		y(0.0),
-		w(1),
-		h(1),
+	ParticleEmitter::ParticleEmitter(double x, double y, unsigned int w, unsigned int h, Particle* _particle_type) :
+		region(nullptr, x, y, w, h),
 
 		shape(E_PS_SHAPE::RECTANGLE),
 		distribution(E_PS_DISTR::LINEAR),
 
-		particle_type(nullptr),
+		particle_type(_particle_type),
 
 		number(1),
 		number_count(0)
 	{}
-	ParticleEmitter::ParticleEmitter(double _x, double _y, unsigned int _w, unsigned int _h, Particle* _type) :
-		ParticleEmitter()
-	{
-		x = _x;
-		y = _y;
-		w = (_w < 1) ? 1 : _w;
-		h = (_h < 1) ? 1 : _h;
-
-		particle_type = _type;
-	}
 
 	int ParticleEmitter::set_following(Instance* inst) {
-		following = inst;
+		region.following = inst;
 		return 0;
 	}
 	int ParticleEmitter::set_number(int _number) {
@@ -56,20 +41,20 @@ namespace bee {
 	}
 
 	double ParticleEmitter::get_following_x(double default_x) {
-		if (following != nullptr) {
-			return following->get_x();
+		if (region.following != nullptr) {
+			return region.following->get_x();
 		}
 		return default_x;
 	}
 	double ParticleEmitter::get_following_y(double default_y) {
-		if (following != nullptr) {
-			return following->get_y();
+		if (region.following != nullptr) {
+			return region.following->get_y();
 		}
 		return default_y;
 	}
 
 	int ParticleEmitter::emit(ParticleSystem* sys, double xoffset, double yoffset) {
-		return sys->add_particle(particle_type, static_cast<int>(xoffset + x) + util::random::get(w), static_cast<int>(yoffset + y) + util::random::get(h));
+		return sys->add_particle(particle_type, static_cast<int>(xoffset + region.x) + util::random::get(region.w), static_cast<int>(yoffset + region.y) + util::random::get(region.h));
 	}
 	int ParticleEmitter::handle(ParticleSystem* sys, double system_x, double system_y) {
 		double ex = get_following_x(system_x);
@@ -93,7 +78,7 @@ namespace bee {
 		double ex = get_following_x(system_x);
 		double ey = get_following_y(system_y);
 
-		return draw_rectangle(static_cast<int>(ex+x), static_cast<int>(ey+y), w, h, 1, RGBA(color));
+		return draw_rectangle(static_cast<int>(ex+region.x), static_cast<int>(ey+region.y), region.w, region.h, 1, RGBA(color));
 	}
 }
 

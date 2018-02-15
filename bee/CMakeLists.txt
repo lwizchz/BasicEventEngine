@@ -11,7 +11,7 @@ set(deps_bee_data data/serialdata.cpp data/statemachine.cpp data/variant.cpp)
 
 set(deps_bee_network network/network.cpp network/client.cpp network/connection.cpp network/packet.cpp network/data.cpp network/event.cpp)
 
-set(deps_bee_render_particle render/particle/attractor.cpp render/particle/changer.cpp render/particle/deflector.cpp render/particle/destroyer.cpp render/particle/emitter.cpp render/particle/particle.cpp render/particle/particledata.cpp render/particle/system.cpp)
+set(deps_bee_render_particle render/particle/region.cpp render/particle/attractor.cpp render/particle/changer.cpp render/particle/deflector.cpp render/particle/destroyer.cpp render/particle/emitter.cpp render/particle/particle.cpp render/particle/particledata.cpp render/particle/system.cpp)
 set(deps_bee_render render/camera.cpp render/drawing.cpp render/render.cpp render/renderer.cpp render/rgba.cpp render/shader.cpp render/transition.cpp render/viewport.cpp ${deps_bee_render_particle})
 
 set(deps_bee_physics physics/body.cpp physics/filter.cpp physics/draw.cpp physics/world.cpp)
