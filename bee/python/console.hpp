@@ -19,13 +19,10 @@ namespace bee { namespace python { namespace internal {
         PyObject* console_toggle(PyObject*, PyObject*);
         PyObject* console_get_is_open(PyObject*, PyObject*);
 
-        PyObject* console_add_command(PyObject*, PyObject*);
-
         PyObject* console_set_var(PyObject*, PyObject*);
         PyObject* console_get_var(PyObject*, PyObject*);
 
         PyObject* console_run(PyObject*, PyObject*);
-        PyObject* console_get_help(PyObject*, PyObject*);
         PyObject* console_log(PyObject*, PyObject*);
 }}}
 

@@ -23,49 +23,49 @@
 
 namespace bee { namespace python { namespace internal {
         PyMethodDef InstanceMethods[] = {
-                {"print", reinterpret_cast<PyCFunction>(Instance_print), METH_NOARGS, "Print info about the instance"},
+                {"print", reinterpret_cast<PyCFunction>(Instance_print), METH_NOARGS, "Print info about the Instance"},
 
-                {"set_alarm", reinterpret_cast<PyCFunction>(Instance_set_alarm), METH_VARARGS, ""},
+                {"set_alarm", reinterpret_cast<PyCFunction>(Instance_set_alarm), METH_VARARGS, "Set the alarm with the given name"},
 
-                {"set_sprite", reinterpret_cast<PyCFunction>(Instance_set_sprite), METH_VARARGS, ""},
-                {"set_computation_type", reinterpret_cast<PyCFunction>(Instance_set_computation_type), METH_VARARGS, ""},
-                {"set_is_persistent", reinterpret_cast<PyCFunction>(Instance_set_is_persistent), METH_VARARGS, ""},
+                {"set_sprite", reinterpret_cast<PyCFunction>(Instance_set_sprite), METH_VARARGS, "Change the sprite"},
+                {"set_computation_type", reinterpret_cast<PyCFunction>(Instance_set_computation_type), METH_VARARGS, "Change the computation type and collision mask"},
+                {"set_is_persistent", reinterpret_cast<PyCFunction>(Instance_set_is_persistent), METH_VARARGS, "Change whether the Instance will persist between Rooms"},
 
-                {"get_data", reinterpret_cast<PyCFunction>(Instance_get_data), METH_VARARGS, ""},
-                {"set_data", reinterpret_cast<PyCFunction>(Instance_set_data), METH_VARARGS, ""},
+                {"get_data", reinterpret_cast<PyCFunction>(Instance_get_data), METH_VARARGS, "Return the requested data field from the data map"},
+                {"set_data", reinterpret_cast<PyCFunction>(Instance_set_data), METH_VARARGS, "Set the requested data field"},
 
-                {"get_pos", reinterpret_cast<PyCFunction>(Instance_get_pos), METH_NOARGS, ""},
-                {"get_corner", reinterpret_cast<PyCFunction>(Instance_get_corner), METH_NOARGS, ""},
-                {"get_start", reinterpret_cast<PyCFunction>(Instance_get_start), METH_NOARGS, ""},
+                {"get_pos", reinterpret_cast<PyCFunction>(Instance_get_pos), METH_NOARGS, "Return the 3D position of the attached PhysicsBody"},
+                {"get_corner", reinterpret_cast<PyCFunction>(Instance_get_corner), METH_NOARGS, "Return the top-left corner of the 2D AABB"},
+                {"get_start", reinterpret_cast<PyCFunction>(Instance_get_start), METH_NOARGS, "Return the starting position"},
 
-                {"get_sprite", reinterpret_cast<PyCFunction>(Instance_get_sprite), METH_NOARGS, ""},
-                {"get_mass", reinterpret_cast<PyCFunction>(Instance_get_mass), METH_NOARGS, ""},
-                {"get_computation_type", reinterpret_cast<PyCFunction>(Instance_get_computation_type), METH_NOARGS, ""},
-                {"get_is_persistent", reinterpret_cast<PyCFunction>(Instance_get_is_persistent), METH_NOARGS, ""},
-                {"get_aabb", reinterpret_cast<PyCFunction>(Instance_get_aabb), METH_NOARGS, ""},
+                {"get_sprite", reinterpret_cast<PyCFunction>(Instance_get_sprite), METH_NOARGS, "Return the sprite"},
+                {"get_mass", reinterpret_cast<PyCFunction>(Instance_get_mass), METH_NOARGS, "Return the mass of the attached PhysicsBody"},
+                {"get_computation_type", reinterpret_cast<PyCFunction>(Instance_get_computation_type), METH_NOARGS, "Return the computation type"},
+                {"get_is_persistent", reinterpret_cast<PyCFunction>(Instance_get_is_persistent), METH_NOARGS, "Return whether the Instance will persist between Rooms"},
+                {"get_aabb", reinterpret_cast<PyCFunction>(Instance_get_aabb), METH_NOARGS, "Return the AABB for the sprite mask"},
 
-                {"set_pos", reinterpret_cast<PyCFunction>(Instance_set_pos), METH_VARARGS, ""},
-                {"set_to_start", reinterpret_cast<PyCFunction>(Instance_set_to_start), METH_NOARGS, ""},
-                {"set_corner", reinterpret_cast<PyCFunction>(Instance_set_corner), METH_VARARGS, ""},
-                {"set_mass", reinterpret_cast<PyCFunction>(Instance_set_mass), METH_VARARGS, ""},
-                {"move", reinterpret_cast<PyCFunction>(Instance_move), METH_VARARGS, ""},
-                {"set_friction", reinterpret_cast<PyCFunction>(Instance_set_friction), METH_VARARGS, ""},
-                {"set_gravity", reinterpret_cast<PyCFunction>(Instance_set_gravity), METH_VARARGS, ""},
-                {"set_velocity", reinterpret_cast<PyCFunction>(Instance_set_velocity), METH_VARARGS, ""},
-                {"add_velocity", reinterpret_cast<PyCFunction>(Instance_add_velocity), METH_VARARGS, ""},
-                {"limit_velocity", reinterpret_cast<PyCFunction>(Instance_limit_velocity), METH_VARARGS | METH_KEYWORDS, ""},
+                {"set_pos", reinterpret_cast<PyCFunction>(Instance_set_pos), METH_VARARGS, "Set the center position of the attached PhysicsBody"},
+                {"set_to_start", reinterpret_cast<PyCFunction>(Instance_set_to_start), METH_NOARGS, "Set the position back to the starting position"},
+                {"set_corner", reinterpret_cast<PyCFunction>(Instance_set_corner), METH_VARARGS, "Set the corner position of the AABB"},
+                {"set_mass", reinterpret_cast<PyCFunction>(Instance_set_mass), METH_VARARGS, "Set the mass of the attached PhysicsBody"},
+                {"move", reinterpret_cast<PyCFunction>(Instance_move), METH_VARARGS, "Move with the given impulse"},
+                {"set_friction", reinterpret_cast<PyCFunction>(Instance_set_friction), METH_VARARGS, "Set the friction of the attached PhysicsBody"},
+                {"set_gravity", reinterpret_cast<PyCFunction>(Instance_set_gravity), METH_VARARGS, "Set the gravity vector of the attached PhysicsBody"},
+                {"set_velocity", reinterpret_cast<PyCFunction>(Instance_set_velocity), METH_VARARGS, "Set the velocity of the attached PhysicsBody"},
+                {"add_velocity", reinterpret_cast<PyCFunction>(Instance_add_velocity), METH_VARARGS, "Add the given velocityy to the velocity of the attached PhysicsBody"},
+                {"limit_velocity", reinterpret_cast<PyCFunction>(Instance_limit_velocity), METH_VARARGS | METH_KEYWORDS, "Limit the velocity of the attached PhysicsBody along the given axes"},
 
-                {"get_speed", reinterpret_cast<PyCFunction>(Instance_get_speed), METH_NOARGS, ""},
-                {"get_velocity", reinterpret_cast<PyCFunction>(Instance_get_velocity), METH_NOARGS, ""},
-                {"get_velocity_ang", reinterpret_cast<PyCFunction>(Instance_get_velocity_ang), METH_NOARGS, ""},
-                {"get_friction", reinterpret_cast<PyCFunction>(Instance_get_friction), METH_NOARGS, ""},
-                {"get_gravity", reinterpret_cast<PyCFunction>(Instance_get_gravity), METH_NOARGS, ""},
+                {"get_speed", reinterpret_cast<PyCFunction>(Instance_get_speed), METH_NOARGS, "Return the speed of the attached PhysicsBody"},
+                {"get_velocity", reinterpret_cast<PyCFunction>(Instance_get_velocity), METH_NOARGS, "Return the velocity of the attached PhysicsBody"},
+                {"get_velocity_ang", reinterpret_cast<PyCFunction>(Instance_get_velocity_ang), METH_NOARGS, "Return the angular velocity of the attached PhysicsBody"},
+                {"get_friction", reinterpret_cast<PyCFunction>(Instance_get_friction), METH_NOARGS, "Return the friction of the attached PhysicsBody"},
+                {"get_gravity", reinterpret_cast<PyCFunction>(Instance_get_gravity), METH_NOARGS, "Return the gravity vector of the attached PhysicsBody"},
 
                 {nullptr, nullptr, 0, nullptr}
         };
 
         PyMemberDef InstanceMembers[] = {
-                {"object", T_OBJECT_EX, offsetof(InstanceObject, object), 0, "The object name"},
+                {"name", T_OBJECT_EX, offsetof(InstanceObject, name), 0, "The object name"},
                 {"num", T_INT, offsetof(InstanceObject, num), 0, "The instance number"},
                 {nullptr, 0, 0, 0, nullptr}
         };
@@ -125,17 +125,17 @@ namespace bee { namespace python { namespace internal {
         }
 
         Instance* as_instance(InstanceObject* self) {
-                if (self->object == nullptr) {
-                        PyErr_SetString(PyExc_AttributeError, "object");
+                if (self->name == nullptr) {
+                        PyErr_SetString(PyExc_AttributeError, "name");
                         return nullptr;
                 }
-                std::string _object (PyUnicode_AsUTF8(self->object));
+                std::string _name (PyUnicode_AsUTF8(self->name));
 
-                return Object::get_by_name(_object)->get_instance(self->num);
+                return Object::get_by_name(_name)->get_instance(self->num);
         }
 
         void Instance_dealloc(InstanceObject* self) {
-                Py_XDECREF(self->object);
+                Py_XDECREF(self->name);
                 Py_TYPE(self)->tp_free(self);
         }
         PyObject* Instance_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
@@ -143,8 +143,8 @@ namespace bee { namespace python { namespace internal {
 
                 self = reinterpret_cast<InstanceObject*>(type->tp_alloc(type, 0));
                 if (self != nullptr) {
-                        self->object = PyUnicode_FromString("");
-                        if (self->object == nullptr) {
+                        self->name = PyUnicode_FromString("");
+                        if (self->name == nullptr) {
                                 Py_DECREF(self);
                                 return nullptr;
                         }
@@ -155,17 +155,17 @@ namespace bee { namespace python { namespace internal {
                 return reinterpret_cast<PyObject*>(self);
         }
         int Instance_init(InstanceObject* self, PyObject* args, PyObject* kwds) {
-                PyObject* object = nullptr;
+                PyObject* name = nullptr;
 
-                const char* kwlist[] = {"object", "num", nullptr};
-                if (!PyArg_ParseTupleAndKeywords(args, kwds, "|Oi", const_cast<char**>(kwlist), &object, &self->num)) {
+                const char* kwlist[] = {"name", "num", nullptr};
+                if (!PyArg_ParseTupleAndKeywords(args, kwds, "|Oi", const_cast<char**>(kwlist), &name, &self->num)) {
                         return -1;
                 }
 
-                if (object != nullptr) {
-                        PyObject* tmp = self->object;
-                        Py_INCREF(object);
-                        self->object = object;
+                if (name != nullptr) {
+                        PyObject* tmp = self->name;
+                        Py_INCREF(name);
+                        self->name = name;
                         Py_XDECREF(tmp);
                 }
 
@@ -173,13 +173,7 @@ namespace bee { namespace python { namespace internal {
         }
 
         PyObject* Instance_repr(InstanceObject* self, PyObject* args) {
-                Instance* inst = as_instance(self);
-                if (inst == nullptr) {
-                        return nullptr;
-                }
-
-                std::string s = std::string("bee.Instance(\"") + PyUnicode_AsUTF8(self->object) + "\", " + std::to_string(self->num) + ")";
-
+                std::string s = std::string("bee.Instance(\"") + PyUnicode_AsUTF8(self->name) + "\", " + std::to_string(self->num) + ")";
                 return Py_BuildValue("N", PyUnicode_FromString(s.c_str()));
         }
         PyObject* Instance_str(InstanceObject* self, PyObject* args) {

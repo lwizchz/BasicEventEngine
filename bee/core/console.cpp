@@ -468,10 +468,9 @@ namespace bee{ namespace console {
 		internal::scr_console->get_interface()->set_var(name, value);
 	}
 	/**
-	* Return the value of a console variable.
 	* @param name the name of the variable
 	*
-	* @returns the variable value
+	* @returns the value of a console variable
 	*/
 	Variant get_var(const std::string& name) {
 		return internal::scr_console->get_interface()->get_var(name);

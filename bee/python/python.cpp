@@ -576,7 +576,7 @@ namespace bee { namespace python {
                         return Variant();
                 }
 
-                Variant v = python::pyobj_to_variant(var);
+                Variant v (python::pyobj_to_variant(var));
 
                 Py_DECREF(var);
 

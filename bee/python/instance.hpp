@@ -16,7 +16,7 @@
 namespace bee { namespace python { namespace internal {
         typedef struct {
                 PyObject_HEAD
-                PyObject* object;
+                PyObject* name;
                 int num;
         } InstanceObject;
 

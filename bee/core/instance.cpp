@@ -36,6 +36,9 @@
 #include "../resource/room.hpp"
 
 namespace bee {
+	/**
+	* Default construct the Instance.
+	*/
 	Instance::Instance() :
 		pos_start(),
 
@@ -54,7 +57,10 @@ namespace bee {
 		path_is_pausable(false),
 		path_previous_mass(0.0),
 
-		data(),
+		data({
+			{"object", Variant(std::string())},
+			{"alarms", Variant(std::map<Variant,Variant>())}
+		}),
 
 		id(-1),
 		subimage_time(0),
@@ -62,16 +68,14 @@ namespace bee {
 
 		pos_previous(),
 		path_pos_start()
-	{
-		set_data("alarms", std::map<Variant,Variant>());
-	}
+	{}
 	/**
-	* Construct an Instance with the given object and position.
-	* @param _id the instance ID
-	* @param _object the type of Object of the instance
-	* @param x the x-coordinate of the instance
-	* @param y the y-coordinate of the instance
-	* @param z the z-coordinate of the instance
+	* Construct the Instance with the given object and position.
+	* @param _id the Instance ID
+	* @param _object the type of Object of the Instance
+	* @param x the x-coordinate of the Instance
+	* @param y the y-coordinate of the Instance
+	* @param z the z-coordinate of the Instance
 	*/
 	Instance::Instance(int _id, Object* _object, double x, double y, double z) :
 		Instance()
@@ -80,7 +84,7 @@ namespace bee {
 	}
 	/**
 	* Copy an Instance along with its internal data.
-	* @param other the instance to copy
+	* @param other the Instance to copy
 	*/
 	Instance::Instance(const Instance& other) :
 		Instance(other.id, other.object, other.get_x(), other.get_y(), other.get_z())
@@ -92,12 +96,12 @@ namespace bee {
 		data.clear();
 	}
 	/**
-	* Initialize the instance with the given object and position.
-	* @param _id the instance ID
-	* @param _object the type of Object of the instance
-	* @param x the x-coordinate of the instance
-	* @param y the y-coordinate of the instance
-	* @param z the z-coordinate of the instance
+	* Initialize the Instance with the given object and position.
+	* @param _id the Instance ID
+	* @param _object the type of Object of the Instance
+	* @param x the x-coordinate of the Instance
+	* @param y the y-coordinate of the Instance
+	* @param z the z-coordinate of the Instance
 	*/
 	void Instance::init(int _id, Object* _object, double x, double y, double z) {
 		id = _id;
@@ -126,7 +130,7 @@ namespace bee {
 		set_data("alarms", std::map<Variant,Variant>());
 	}
 	/**
-	* Send a string of the serialized instance to the messenger.
+	* Send a string of the serialized Instance to the messenger.
 	*/
 	int Instance::print() {
 		Variant m (serialize());
@@ -135,7 +139,7 @@ namespace bee {
 	}
 
 	/**
-	* Compare instances first by depths, then by IDs.
+	* Compare Instances first by depths, then by IDs.
 	* @param rhs the right-hand side of the operator expression
 	*
 	* @retval true this is less than rhs
@@ -148,10 +152,10 @@ namespace bee {
 		return (depth > rhs.depth);
 	}
 	/**
-	* Copy the position and data from one instance to another.
-	* @param rhs the instance to copy the data from
+	* Copy the position and data from one Instance to another.
+	* @param rhs the Instance to copy the data from
 	*
-	* @returns a reference to the modified instance
+	* @returns a reference to the modified Instance
 	*/
 	Instance& Instance::operator=(const Instance& rhs) {
 		if (this != &rhs) {
@@ -163,7 +167,7 @@ namespace bee {
 	}
 
 	/**
-	* @returns a map of all the information required to restore an instance
+	* @returns a map of all the information required to restore an Instance
 	*/
 	std::map<Variant,Variant> Instance::serialize() const {
 		std::map<Variant,Variant> instance_info;
@@ -241,7 +245,7 @@ namespace bee {
 	}
 
 	/**
-	* @returns a map of the minimal data for synchronizing instance positions over the network
+	* @returns a map of the minimal data for synchronizing Instance positions over the network
 	*/
 	std::vector<Uint8> Instance::serialize_net() {
 		SerialData sd (256);
@@ -372,8 +376,8 @@ namespace bee {
 		}
 	}
 	/**
-	* Change whether the instance will persist between rooms.
-	* @param _is_persistent whether the instance will remain after a room change
+	* Change whether the Instance will persist between rooms.
+	* @param _is_persistent whether the Instance will remain after a room change
 	*/
 	void Instance::set_is_persistent(bool _is_persistent) {
 		is_persistent = _is_persistent;
@@ -428,6 +432,9 @@ namespace bee {
 		data[field] = value;
 	}
 
+	/**
+	* @returns the 3D position of the Instance's PhysicsBody
+	*/
 	btVector3 Instance::get_pos() const {
 		return body->get_pos();
 	}
@@ -787,7 +794,7 @@ namespace bee {
 	* Run a callback if a move to the given coordinates would overlap with a certain Object.
 	* @param (x, y) the 2D coordinates to check
 	* @param other_obj the object to check for
-	* @param func the callback to run for each overlapped instance
+	* @param func the callback to run for each overlapped Instance
 	*
 	* @retval true an overlap will not occur
 	* @retval false an overlap will occur
