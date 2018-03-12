@@ -30,15 +30,16 @@ namespace bee {
 	class Object;
 	class PhysicsBody;
 
+ 	/// Used to hold Object instantiation data
 	class Instance {
-		btVector3 pos_start;
+		btVector3 pos_start; ///< The starting position
 
-		Object* object;
-		Texture* sprite;
+		Object* object; ///< The Object type
+		Texture* sprite; ///< The sprite to draw
 
-		PhysicsBody* body;
-		E_COMPUTATION computation_type;
-		bool is_persistent;
+		PhysicsBody* body; ///< The associated PhysicsBody
+		E_COMPUTATION computation_type; ///< Determines the desired amount of processing
+		bool is_persistent; ///< Whether to persist between Rooms
 
 		Path* path;
 		double path_speed;
@@ -48,27 +49,28 @@ namespace bee {
 		bool path_is_pausable;
 		double path_previous_mass;
 
-		std::map<std::string,Variant> data;
+		std::map<std::string,Variant> data; ///< The Instance-specific data
 	public:
-		int id;
-		Uint32 subimage_time;
-		int depth;
+		int id; ///< Semi-unique identifier, old IDs may be reused
+		Uint32 subimage_time; ///< The timestamp of the animation start
+		int depth; ///< Determines the order of event processing, higher depths first
 
-		btVector3 pos_previous;
-		btVector3 path_pos_start;
+		btVector3 pos_previous; ///< The previous position, currently unimplemented
+		btVector3 path_pos_start; ///< The offset to the Path starting position
 
+		// See bee/core/instance.cpp for function comments
 		Instance();
 		Instance(int, Object*, double, double, double);
 		Instance(const Instance&);
 		virtual ~Instance();
 		void init(int, Object*, double, double, double);
-		int print();
 
 		bool operator<(const Instance&) const;
 		Instance& operator=(const Instance&);
 
 		std::map<Variant,Variant> serialize() const;
 		int deserialize(std::map<Variant,Variant>&);
+		int print();
 
 		std::vector<Uint8> serialize_net();
 		int deserialize_net(std::vector<Uint8>);
@@ -94,6 +96,7 @@ namespace bee {
 		double get_x() const;
 		double get_y() const;
 		double get_z() const;
+		SDL_Rect get_aabb() const;
 		std::pair<double,double> get_corner() const;
 		btVector3 get_start() const;
 
@@ -104,10 +107,6 @@ namespace bee {
 		double get_mass() const;
 		E_COMPUTATION get_computation_type() const;
 		bool get_is_persistent() const;
-
-		int get_width() const;
-		int get_height() const;
-		SDL_Rect get_aabb() const;
 
 		void set_pos(btVector3);
 		void set_pos(double, double, double);

@@ -29,22 +29,36 @@
 
 namespace bee { namespace mouse {
 	namespace internal {
+		SDL_Surface* surface = nullptr;
 		SDL_Cursor* cursor = nullptr;
+
+		void swap_cursor(SDL_Surface* _surface, SDL_Cursor* _cursor) {
+			if (internal::surface != nullptr) {
+				SDL_FreeSurface(internal::surface);
+			}
+			internal::surface = _surface;
+
+			if (internal::cursor != nullptr) {
+				SDL_FreeCursor(internal::cursor);
+			}
+			internal::cursor = _cursor;
+			if (internal::cursor != nullptr) {
+				SDL_SetCursor(internal::cursor);
+			}
+		}
 	}
 
 	/**
 	* Initialize the mouse cursor to the standard arrow.
 	*/
 	void init() {
-		internal::cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
-		SDL_SetCursor(internal::cursor);
+		internal::swap_cursor(nullptr, SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW));
 	}
 	/**
 	* Free the mouse cursor.
 	*/
 	void close() {
-		SDL_FreeCursor(internal::cursor);
-		internal::cursor = nullptr;
+		internal::swap_cursor(nullptr, nullptr);
 	}
 
 	/**
@@ -170,9 +184,7 @@ namespace bee { namespace mouse {
 			return 1;
 		}
 
-		SDL_FreeCursor(internal::cursor);
-		internal::cursor = cursor;
-		SDL_SetCursor(internal::cursor);
+		internal::swap_cursor(nullptr, cursor);
 
 		return 0;
 	}
@@ -201,9 +213,7 @@ namespace bee { namespace mouse {
 			return 2;
 		}
 
-		SDL_FreeCursor(internal::cursor);
-		internal::cursor = cursor;
-		SDL_SetCursor(internal::cursor);
+		internal::swap_cursor(surface, cursor);
 
 		return 0;
 	}

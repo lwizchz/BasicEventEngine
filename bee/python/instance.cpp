@@ -23,7 +23,7 @@
 
 namespace bee { namespace python { namespace internal {
         PyMethodDef InstanceMethods[] = {
-                {"print", reinterpret_cast<PyCFunction>(Instance_print), METH_NOARGS, "Print info about the Instance"},
+                {"print", reinterpret_cast<PyCFunction>(Instance_print), METH_NOARGS, "Print all relevant information about the Instance"},
 
                 {"set_alarm", reinterpret_cast<PyCFunction>(Instance_set_alarm), METH_VARARGS, "Set the alarm with the given name"},
 
@@ -35,6 +35,7 @@ namespace bee { namespace python { namespace internal {
                 {"set_data", reinterpret_cast<PyCFunction>(Instance_set_data), METH_VARARGS, "Set the requested data field"},
 
                 {"get_pos", reinterpret_cast<PyCFunction>(Instance_get_pos), METH_NOARGS, "Return the 3D position of the attached PhysicsBody"},
+                {"get_aabb", reinterpret_cast<PyCFunction>(Instance_get_aabb), METH_NOARGS, "Return the AABB for the sprite mask"},
                 {"get_corner", reinterpret_cast<PyCFunction>(Instance_get_corner), METH_NOARGS, "Return the top-left corner of the 2D AABB"},
                 {"get_start", reinterpret_cast<PyCFunction>(Instance_get_start), METH_NOARGS, "Return the starting position"},
 
@@ -42,7 +43,6 @@ namespace bee { namespace python { namespace internal {
                 {"get_mass", reinterpret_cast<PyCFunction>(Instance_get_mass), METH_NOARGS, "Return the mass of the attached PhysicsBody"},
                 {"get_computation_type", reinterpret_cast<PyCFunction>(Instance_get_computation_type), METH_NOARGS, "Return the computation type"},
                 {"get_is_persistent", reinterpret_cast<PyCFunction>(Instance_get_is_persistent), METH_NOARGS, "Return whether the Instance will persist between Rooms"},
-                {"get_aabb", reinterpret_cast<PyCFunction>(Instance_get_aabb), METH_NOARGS, "Return the AABB for the sprite mask"},
 
                 {"set_pos", reinterpret_cast<PyCFunction>(Instance_set_pos), METH_VARARGS, "Set the center position of the attached PhysicsBody"},
                 {"set_to_start", reinterpret_cast<PyCFunction>(Instance_set_to_start), METH_NOARGS, "Set the position back to the starting position"},
@@ -315,6 +315,16 @@ namespace bee { namespace python { namespace internal {
 
                 return Py_BuildValue("(ddd)", pos.x(), pos.y(), pos.z());
         }
+        PyObject* Instance_get_aabb(InstanceObject* self, PyObject* args) {
+                Instance* inst = as_instance(self);
+                if (inst == nullptr) {
+                        return nullptr;
+                }
+
+                SDL_Rect aabb (inst->get_aabb());
+
+                return Py_BuildValue("(iiii)", aabb.x, aabb.y, aabb.w, aabb.h);
+        }
         PyObject* Instance_get_corner(InstanceObject* self, PyObject* args) {
                 Instance* inst = as_instance(self);
                 if (inst == nullptr) {
@@ -368,15 +378,6 @@ namespace bee { namespace python { namespace internal {
                 }
 
                 return Py_BuildValue("p", inst->get_is_persistent());
-        }
-        PyObject* Instance_get_aabb(InstanceObject* self, PyObject* args) {
-                Instance* inst = as_instance(self);
-                if (inst == nullptr) {
-                        return nullptr;
-                }
-                SDL_Rect aabb = inst->get_aabb();
-
-                return Py_BuildValue("(iiii)", aabb.x, aabb.y, aabb.w, aabb.h);
         }
 
         PyObject* Instance_set_pos(InstanceObject* self, PyObject* args) {

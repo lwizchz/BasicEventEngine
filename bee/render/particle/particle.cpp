@@ -147,9 +147,9 @@ namespace bee {
 	int Particle::init() {
 		rotation_cache.reserve(360);
 		for (int a=0; a<360; a++) {
-			glm::mat4 r = glm::translate(glm::mat4(1.0f), glm::vec3(static_cast<float>(texture->get_subimage_width())/2.0f, static_cast<float>(texture->get_height())/2.0f, 0.0f));
+			glm::mat4 r = glm::translate(glm::mat4(1.0f), glm::vec3(static_cast<float>(texture->get_subimage_width())/2.0f, static_cast<float>(texture->get_size().first)/2.0f, 0.0f));
 			r = glm::rotate(r, static_cast<float>(util::degtorad(a)), glm::vec3(0.0f, 0.0f, 1.0f));
-			r = glm::translate(r, glm::vec3(-static_cast<float>(texture->get_subimage_width())/2.0f, -static_cast<float>(texture->get_height())/2.0f, 0.0f));
+			r = glm::translate(r, glm::vec3(-static_cast<float>(texture->get_subimage_width())/2.0f, -static_cast<float>(texture->get_size().first)/2.0f, 0.0f));
 			rotation_cache.push_back(r);
 		}
 

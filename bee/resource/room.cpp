@@ -530,9 +530,9 @@ namespace bee {
 				xg = width + x*object->get_sprite()->get_subimage_width();
 			}
 			if (y >= 0.0) {
-				yg = y*object->get_sprite()->get_height();
+				yg = y*object->get_sprite()->get_size().second;
 			} else {
-				yg = height + y*object->get_sprite()->get_height();
+				yg = height + y*object->get_sprite()->get_size().second;
 			}
 		}
 

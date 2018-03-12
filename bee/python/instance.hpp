@@ -41,6 +41,7 @@ namespace bee { namespace python { namespace internal {
         PyObject* Instance_set_data(InstanceObject*, PyObject*);
 
         PyObject* Instance_get_pos(InstanceObject*, PyObject*);
+        PyObject* Instance_get_aabb(InstanceObject*, PyObject*);
         PyObject* Instance_get_corner(InstanceObject*, PyObject*);
         PyObject* Instance_get_start(InstanceObject*, PyObject*);
 
@@ -48,7 +49,6 @@ namespace bee { namespace python { namespace internal {
         PyObject* Instance_get_mass(InstanceObject*, PyObject*);
         PyObject* Instance_get_computation_type(InstanceObject*, PyObject*);
         PyObject* Instance_get_is_persistent(InstanceObject*, PyObject*);
-        PyObject* Instance_get_aabb(InstanceObject*, PyObject*);
 
         PyObject* Instance_set_pos(InstanceObject*, PyObject*);
         PyObject* Instance_set_to_start(InstanceObject*, PyObject*);

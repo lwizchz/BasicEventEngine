@@ -87,7 +87,7 @@ namespace bee {
 
 					render::clear();
 					engine->texture_before->draw(0, 0, 0);
-					engine->texture_after->crop_image_width(static_cast<int>(i));
+					engine->texture_after->crop_image({-1, -1, static_cast<int>(i), -1});
 					engine->texture_after->draw(0, 0, 0, static_cast<int>(i), -1, 0.0, {255, 255, 255, 255});
 					render::render();
 				}
@@ -101,7 +101,7 @@ namespace bee {
 
 					render::clear();
 					engine->texture_after->draw(0, 0, 0);
-					engine->texture_before->crop_image_width(static_cast<int>(i));
+					engine->texture_after->crop_image({-1, -1, static_cast<int>(i), -1});
 					engine->texture_before->draw(0, 0, 0, static_cast<int>(i), -1, 0.0, {255, 255, 255, 255});
 					render::render();
 				}
@@ -115,7 +115,7 @@ namespace bee {
 
 					render::clear();
 					engine->texture_before->draw(0, 0, 0);
-					engine->texture_after->crop_image_height(static_cast<int>(i));
+					engine->texture_after->crop_image({-1, -1, -1, static_cast<int>(i)});
 					engine->texture_after->draw(0, 0, 0, -1, static_cast<int>(i), 0.0, {255, 255, 255, 255});
 					render::render();
 				}
@@ -129,7 +129,7 @@ namespace bee {
 
 					render::clear();
 					engine->texture_after->draw(0, 0, 0);
-					engine->texture_before->crop_image_height(static_cast<int>(i));
+					engine->texture_after->crop_image({-1, -1, -1, static_cast<int>(i)});
 					engine->texture_before->draw(0, 0, 0, -1, static_cast<int>(i), 0.0, {255, 255, 255, 255});
 					render::render();
 				}
@@ -284,8 +284,8 @@ namespace bee {
 				break;
 			}
 			case E_TRANSITION::ROTATE_LEFT: { // Rotate to left
-				engine->texture_before->set_rotate_xy(0.0, 1.0);
-				engine->texture_after->set_rotate_xy(0.0, 1.0);
+				engine->texture_before->set_rotate(0.0, 1.0);
+				engine->texture_after->set_rotate(0.0, 1.0);
 				for (double a=0.0; a<90.0; a+=engine->transition_speed*get_delta()/20.0) {
 					if ((static_cast<int>(a)%10 == 0)&&(compute_check_quit())) {
 						break;
@@ -299,8 +299,8 @@ namespace bee {
 				break;
 			}
 			case E_TRANSITION::ROTATE_RIGHT: { // Rotate to right
-				engine->texture_before->set_rotate_xy(1.0, 1.0);
-				engine->texture_after->set_rotate_xy(1.0, 1.0);
+				engine->texture_before->set_rotate(1.0, 1.0);
+				engine->texture_after->set_rotate(1.0, 1.0);
 				for (double a=0.0; a<90.0; a+=engine->transition_speed*get_delta()/20.0) {
 					if ((static_cast<int>(a)%10 == 0)&&(compute_check_quit())) {
 						break;

@@ -41,14 +41,21 @@
 #include "room.hpp"
 
 namespace bee {
-	/*
-	* TextureTransform::TextureTransform() - Construct the data struct and initiliaze all values
+	/**
+	* Construct the data struct and initiliaze all values.
 	*/
 	TextureTransform::TextureTransform() :
 		TextureTransform(0, 0, false, false, 0, 0, false)
 	{}
-	/*
-	* TextureTransform::TextureTransform() - Construct the data struct and initiliaze with all the given values
+	/**
+	* Construct the data struct and initiliaze it with all the given values.
+	* @param _x the top-left x-coordinate
+	* @param _y the top-left y-coordinate
+	* @param _is_horizontal_tile whether the texture should be tiled horizontally
+	* @param _is_vertical_tile whether the texture should be tiled vertically
+	* @param _horizontal_speed the speed at which the texture should move horizontally in pixels per second
+	* @param _vertical_speed the speed with which the texture should move vertically in pixels per second
+	* @param _is_stretched whether to stretch the texture to fit the screen, which will cause some of the above values to be ignored
 	*/
 	TextureTransform::TextureTransform(int _x, int _y, bool _is_horizontal_tile, bool _is_vertical_tile, int _horizontal_speed, int _vertical_speed, bool _is_stretched) :
 		x(_x),
@@ -60,9 +67,25 @@ namespace bee {
 		is_stretched(_is_stretched)
 	{}
 
+	/**
+	* Construct the data struct and initialize the given values.
+	* @param _vao the Vertex Array %Object
+	* @param _texture the OpenGL texture
+	* @param _ibo the Index Buffer %Object
+	*/
 	TextureDrawData::TextureDrawData(GLuint _vao, GLuint _texture, GLuint _ibo) :
 		TextureDrawData(_vao, _texture, _ibo, glm::mat4(1.0f), glm::mat4(1.0f), glm::vec4(1.0f), -1)
 	{}
+	/**
+	* Construct the data struct and initialize it with the given values.
+	* @param _vao the Vertex Array %Object
+	* @param _texture the OpenGL texture
+	* @param _ibo the Index Buffer %Object
+	* @param _model the model transform
+	* @param _rotation the rotational transform
+	* @param _color the colorization to use
+	* @param _buffer the texcoord buffer
+	*/
 	TextureDrawData::TextureDrawData(GLuint _vao, GLuint _texture, GLuint _ibo, glm::mat4 _model, glm::mat4 _rotation, glm::vec4 _color, GLuint _buffer) :
 		vao(_vao),
 		texture(_texture),
@@ -77,9 +100,9 @@ namespace bee {
 	std::map<int,Texture*> Texture::list;
 	int Texture::next_id = 0;
 
-	/*
-	* Texture::Texture() - Default construct the texture
-	* ! This constructor should only be directly used for temporary textures (e.g. framebuffers), the other constructor should be used for all other cases
+	/**
+	* Default construct the texture.
+	* @note This constructor should only be directly used for temporary textures, e.g. framebuffers.
 	*/
 	Texture::Texture() :
 		Resource(),
@@ -94,10 +117,8 @@ namespace bee {
 		crop({0,0,0,0}),
 		speed(1.0),
 		is_animated(false),
-		origin_x(0),
-		origin_y(0),
-		rotate_x(0.5),
-		rotate_y(0.5),
+		origin({0, 0}),
+		rotate({0.5, 0.5}),
 
 		texture(nullptr),
 		is_loaded(false),
@@ -111,39 +132,40 @@ namespace bee {
 
 		framebuffer(-1)
 	{}
-	/*
-	* Texture::Texture() - Construct the texture, add it to the texture resource list, and set the new name and path
-	* @new_name: the name of the texture to use
-	* @new_path: the path of the texture's image
+	/**
+	* Construct the Texture, add it to the Texture resource list, and set the new name and path.
+	* @param _name the name of the Texture to use
+	* @param _path the path of the Texture's image
 	*/
-	Texture::Texture(const std::string& new_name, const std::string& new_path) :
+	Texture::Texture(const std::string& _name, const std::string& _path) :
 		Texture() // Default initialize all variables
 	{
-		if (add_to_resources() < 0) { // Attempt to add the texture to its resource list
-			messenger::send({"engine", "resource"}, E_MESSAGE::ERROR, "Failed to add texture resource: \"" + new_name + "\" from " + new_path);
+		if (add_to_resources() < 0) { // Attempt to add the Texture to its resource list
+			messenger::send({"engine", "resource"}, E_MESSAGE::ERROR, "Failed to add texture resource: \"" + _name + "\" from " + _path);
 			throw(-1); // Throw an exception if it could not be added
 		}
 
-		set_name(new_name);
-		set_path(new_path);
+		set_name(_name);
+		set_path(_path);
 	}
-	/*
-	* Texture::~Texture() - Free the texture data and remove it from the resource list
+	/**
+	* Free the texture data and remove it from the resource list.
 	*/
 	Texture::~Texture() {
 		this->free(); // Free all texture data
 		list.erase(id); // Remove the texture from the resource list
 	}
 
-	/*
-	* Texture::get_amount() - Return the amount of texture resources
+	/**
+	* @returns the number of Texture resources
 	*/
 	size_t Texture::get_amount() {
 		return list.size();
 	}
-	/*
-	* Texture::get() - Return the resource with the given id
-	* @id: the resource to get
+	/**
+	* @param id the resource to get
+	*
+	* @returns the resource with the given id
 	*/
 	Texture* Texture::get(int id) {
 		if (list.find(id) != list.end()) {
@@ -151,9 +173,10 @@ namespace bee {
 		}
 		return nullptr;
 	}
-	/*
-	* Texture::get_by_name() - Return the texture resource with the given name
-	* @name: the name of the desired texture
+	/**
+	* @param name the name of the desired Texture
+	*
+	* @returns the Texture resource with the given name
 	*/
 	Texture* Texture::get_by_name(const std::string& name) {
 		for (auto& tex : list) { // Iterate over the textures in order to find the first one with the given name
@@ -166,10 +189,12 @@ namespace bee {
 		}
 		return nullptr; // Return nullptr on failure
 	}
-	/*
-	* Texture::add() - Initiliaze, load, and return a newly created texture resource
-	* @name: the name to initialize the texture with
-	* @path: the path to initialize the texture with
+	/**
+	* Initiliaze, load, and return a newly created Texture resource.
+	* @param name the name to initialize the Texture with
+	* @param path the path to initialize the Texture with
+	*
+	* @returns the newly loaded Texture
 	*/
 	Texture* Texture::add(const std::string& name, const std::string& path) {
 		Texture* new_texture = new Texture(name, path);
@@ -177,8 +202,10 @@ namespace bee {
 		return new_texture;
 	}
 
-	/*
-	* Texture::add_to_resources() - Add the texture to the appropriate resource list
+	/**
+	* Add the Texture to the appropriate resource list.
+	*
+	* @returns the Texture id
 	*/
 	int Texture::add_to_resources() {
 		if (id < 0) { // If the resource needs to be added to the resource list
@@ -188,8 +215,8 @@ namespace bee {
 
 		return id; // Return the id on success
 	}
-	/*
-	* Texture::reset() - Reset all resource variables for reinitialization
+	/**
+	* Reset all resource variables for reinitialization.
 	*/
 	int Texture::reset() {
 		this->free(); // Free all memory used by this resource
@@ -204,50 +231,93 @@ namespace bee {
 		crop = {0, 0, 0, 0};
 		speed = 0.0;
 		is_animated = false;
-		origin_x = 0;
-		origin_y = 0;
-		rotate_x = 0.5;
-		rotate_y = 0.5;
+		origin = {0, 0};
+		rotate = {0.5, 0.5};
 
 		// Reset texture data
 		texture = nullptr;
 		is_loaded = false;
 		has_draw_failed = false;
 
-		return 0; // Return 0 on success
+		return 0;
 	}
-	/*
-	* Texture::print() - Print all relevant information about the resource
+
+	/**
+	* @returns a map of all the information required to restore a Texture
+	*/
+	std::map<Variant,Variant> Texture::serialize() const {
+		std::map<Variant,Variant> info;
+
+		info["id"] = id;
+		info["name"] = name;
+		info["path"] = path;
+
+		info["width"] = static_cast<int>(width);
+		info["height"] = static_cast<int>(height);
+		info["subimage_amount"] = static_cast<int>(subimage_amount);
+		info["subimage_width"] = static_cast<int>(subimage_width);
+
+		info["crop"] = {Variant(crop.x), Variant(crop.y), Variant(crop.w), Variant(crop.h)};
+		info["speed"] = speed;
+		info["origin_x"] = origin.first;
+		info["origin_y"] = origin.second;
+		info["rotate_x"] = rotate.first;
+		info["rotate_y"] = rotate.second;
+
+		info["texture"] = texture;
+		info["is_loaded"] = is_loaded;
+		info["has_draw_failed"] = has_draw_failed;
+
+		return info;
+	}
+	/**
+	* Restore a Texture from its serialized data.
+	* @param m the map of data to use
+	*
+	* @retval 0 success
+	* @retval 1 failed to load the image
+	*/
+	int Texture::deserialize(std::map<Variant,Variant>& m) {
+		id = m["id"].i;
+		name = m["name"].s;
+		path = m["name"].s;
+
+		width = m["width"].i;
+		height = m["height"].i;
+		subimage_amount = m["subimage_amount"].i;
+		subimage_width = m["subimage_width"].i;
+
+		crop = {
+			m["crop"].v[0].i,
+			m["crop"].v[1].i,
+			m["crop"].v[2].i,
+			m["crop"].v[3].i,
+		};
+		speed = m["speed"].d;
+		origin.first = m["origin_x"].i;
+		origin.second = m["origin_y"].i;
+		rotate.first = m["rotate_x"].d;
+		rotate.second = m["rotate_y"].d;
+
+		texture = nullptr;
+		is_loaded = false;
+		has_draw_failed = m["has_draw_failed"].i;
+
+		if ((m["is_loaded"].i)&&(load())) {
+			return 1;
+		}
+
+		return 0;
+	}
+	/**
+	* Print all relevant information about the resource.
 	*/
 	int Texture::print() const {
-		std::stringstream s; // Declare the output stream
-		s << // Append all info to the output
-		"Texture { "
-		"\n	id              " << id <<
-		"\n	name            " << name <<
-		"\n	path            " << path <<
-		"\n	width           " << width <<
-		"\n	height          " << height <<
-		"\n	subimage_amount " << subimage_amount <<
-		"\n	subimage_width  " << subimage_width <<
-		"\n	crop            {" << crop.x << "x, " << crop.y << "y, " << crop.w << "w, " << crop.h << "h}" <<
-		"\n	speed           " << speed <<
-		"\n	origin_x        " << origin_x <<
-		"\n	origin_y        " << origin_y <<
-		"\n	rotate_x        " << rotate_x <<
-		"\n	rotate_y        " << rotate_y <<
-		"\n	texture         " << texture <<
-		"\n	is_loaded       " << is_loaded <<
-		"\n	has_draw_failed " << has_draw_failed <<
-		"\n}\n";
-		messenger::send({"engine", "resource"}, E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for output
-
-		return 0; // Return 0 on success
+		Variant m (serialize());
+		messenger::send({"engine", "texture"}, E_MESSAGE::INFO, "Texture " + m.to_str(true));
+		return 0;
 	}
 
-	/*
-	* Texture::get_*() - Return the requested resource information
-	*/
 	int Texture::get_id() const {
 		return id;
 	}
@@ -257,11 +327,8 @@ namespace bee {
 	std::string Texture::get_path() const {
 		return path;
 	}
-	int Texture::get_width() const {
-		return width;
-	}
-	int Texture::get_height() const {
-		return height;
+	std::pair<int,int> Texture::get_size() const {
+		return std::make_pair(width, height);
 	}
 	int Texture::get_subimage_amount() const {
 		return subimage_amount;
@@ -275,17 +342,11 @@ namespace bee {
 	bool Texture::get_is_animated() const {
 		return is_animated;
 	}
-	int Texture::get_origin_x() const {
-		return origin_x;
+	std::pair<int,int> Texture::get_origin() const {
+		return origin;
 	}
-	int Texture::get_origin_y() const {
-		return origin_y;
-	}
-	double Texture::get_rotate_x() const {
-		return rotate_x;
-	}
-	double Texture::get_rotate_y() const {
-		return rotate_y;
+	std::pair<double,double> Texture::get_rotate() const {
+		return rotate;
 	}
 	SDL_Texture* Texture::get_texture() const {
 		return texture;
@@ -294,72 +355,71 @@ namespace bee {
 		return is_loaded;
 	}
 
-	/*
-	* Texture::set_*() - Set the requested resource data
-	*/
-	int Texture::set_name(const std::string& new_name) {
-		name = new_name;
-		return 0;
+	void Texture::set_name(const std::string& _name) {
+		name = _name;
 	}
-	int Texture::set_path(const std::string& new_path) {
-		if (new_path.front() == '/') {
-			path = new_path.substr(1);
-		} else {
-			path = "resources/textures/"+new_path; // Append the path to the texture directory if no root
+	/**
+	* Set the relative or absolute resource path.
+	* @param _path the new path to use
+	* @note If the first character is '/' then the path will be relative to
+	*       the executable directory, otherwise it will be relative to the
+	*       textures resource directory.
+	*/
+	void Texture::set_path(const std::string& _path) {
+		if (_path.front() == '/') {
+			path = _path.substr(1);
+		} else { // Append the path to the texture directory if not root
+			path = "resources/textures/"+_path;
 		}
-		return 0;
 	}
-	int Texture::set_speed(double new_speed) {
-		speed = new_speed;
-		return 0;
+	void Texture::set_speed(double _speed) {
+		speed = _speed;
 	}
-	int Texture::set_origin_xy(int new_origin_x, int new_origin_y) {
-		origin_x = new_origin_x;
-		origin_y = new_origin_y;
-		return 0;
-	}
-	int Texture::set_origin_x(int new_origin_x) {
-		return set_origin_xy(new_origin_x, get_origin_y());
-	}
-	int Texture::set_origin_y(int new_origin_y) {
-		return set_origin_xy(get_origin_x(), new_origin_y);
-	}
-	int Texture::set_origin_center() {
-		return set_origin_xy(subimage_width/2, height/2);
-	}
-	/*
-	* Texture::set_rotate_xy() - Set both coordinates of the rotation origin
-	* ! Note that all x- and y-coordinates of the rotation origin are given as a percentage of the width and height of the image
-	* @new_rotate_x: the new x-coordinate to rotate the texture around
-	* @new_rotate_y: the new y-coordinate to rotate the texture around
+	/**
+	* Set the coordinates of the drawing origin.
+	* @note Provide a negative value for either argument in order to leave it unchanged.
+	* @param origin_x the new x-coordinate to draw from
+	* @param origin_y the new y-coordinate to draw from
 	*/
-	int Texture::set_rotate_xy(double new_rotate_x, double new_rotate_y) {
-		rotate_x = new_rotate_x;
-		rotate_y = new_rotate_y;
-		return 0;
-	}
-	int Texture::set_rotate_x(double new_rotate_x) {
-		return set_rotate_xy(new_rotate_x, get_rotate_y());
-	}
-	int Texture::set_rotate_y(double new_rotate_y) {
-		return set_rotate_xy(get_rotate_x(), new_rotate_y);
-	}
-	int Texture::set_rotate_center() {
-		return set_rotate_xy(0.5, 0.5);
-	}
-	/*
-	* Texture::set_subimage_amount() - Set subimage coordinates and generate OpenGL buffers if necessary
-	* @new_subimage_amount: the amount of subimages to use
-	* @new_subimage_width: the width of each subimage
-	*/
-	int Texture::set_subimage_amount(int new_subimage_amount, int new_subimage_width) {
-		if (get_option("is_headless").i) {
-			return 1; // Return 1 when in headless mode
+	void Texture::set_origin(int origin_x, int origin_y) {
+		if (origin_x >= 0) {
+			origin.first = origin_x;
 		}
-
+		if (origin_y >= 0) {
+			origin.second = origin_y;
+		}
+	}
+	void Texture::set_origin_center() {
+		set_origin(subimage_width/2, height/2);
+	}
+	/**
+	* Set the coordinates of the rotation origin.
+	* @note All x- and y-coordinates of the rotation origin are given as a percentage from 0.0 to 1.0 of the image dimensions.
+	* @note Provide a negative value for either argument in order to leave it unchanged.
+	* @param rotate_x the new x-coordinate to rotate the texture around
+	* @param rotate_y the new y-coordinate to rotate the texture around
+	*/
+	void Texture::set_rotate(double rotate_x, double rotate_y) {
+		if (rotate_x >= 0.0) {
+			rotate.first = rotate_x;
+		}
+		if (rotate_y >= 0.0) {
+			rotate.second = rotate_y;
+		}
+	}
+	/**
+	* Set subimage coordinates and generate OpenGL buffers if necessary.
+	* @param _subimage_amount the amount of subimages to use
+	* @param _subimage_width the width of each subimage
+	*/
+	void Texture::set_subimage_amount(int _subimage_amount, int _subimage_width) {
 		// Reset the subimage properties
-		subimage_amount = new_subimage_amount;
-		subimage_width = new_subimage_width;
+		subimage_amount = _subimage_amount;
+		subimage_width = _subimage_width;
+
+		if (get_option("is_headless").i) {
+			return;
+		}
 
 		// Destroy all old texcoords
 		if (!vbo_texcoords.empty()) {
@@ -376,39 +436,41 @@ namespace bee {
 		}
 		// Generate the texcoords for each individual subimage
 		for (size_t i=0; i<subimage_amount; i++) {
-			GLuint new_texcoord;
+			GLuint _texcoord;
 			GLfloat texcoords[] = {
 				w*i,     0.0,
 				w*(i+1), 0.0,
 				w*(i+1), 1.0,
 				w*i,     1.0,
 			};
-			glGenBuffers(1, &new_texcoord);
-			glBindBuffer(GL_ARRAY_BUFFER, new_texcoord);
+			glGenBuffers(1, &_texcoord);
+			glBindBuffer(GL_ARRAY_BUFFER, _texcoord);
 			glBufferData(GL_ARRAY_BUFFER, sizeof(texcoords), texcoords, GL_STATIC_DRAW);
 
-			vbo_texcoords.push_back(new_texcoord); // Add the texcoord to the list of subimages
+			vbo_texcoords.push_back(_texcoord); // Add the texcoord to the list of subimages
 		}
-
-		return 0; // Return 0 on success
 	}
-	/*
-	* Texture::crop_image() - Set a rectangle specifying the cropped size and generate a OpenGL buffers for it if necessary
-	* ! Currently cropped images only support a single subimage
-	* @new_crop: the rectangle to crop the image to
+	/**
+	* Set a rectangle specifying the cropped size and generate OpenGL buffers for it if necessary.
+	* @note Cropped images only support a single subimage.
+	* @param _crop the rectangle to crop the image to
 	*/
-	int Texture::crop_image(SDL_Rect new_crop) {
+	void Texture::crop_image(SDL_Rect _crop) {
 		if (get_option("is_headless").i) {
-			return 1; // Return 1 when in headless mode
+			crop = _crop;
+			return;
 		}
 
-		crop = new_crop; // Set the crop properties
-
-		// Reset the subimage properties if the image is being uncropped
-		if ((crop.w == -1)&&(crop.h == -1)) {
+		if ((_crop.w == -1)&&(_crop.h == -1)) { // Reset the subimage properties if the image is being uncropped
 			set_subimage_amount(1, width);
 			crop = {0, 0, static_cast<int>(width), static_cast<int>(height)};
-			return 0;
+			return;
+		} else if (_crop.w == -1) {
+			crop.h = _crop.h;
+		} else if (_crop.h == -1) {
+			crop.w = _crop.w;
+		} else {
+			crop = _crop;
 		}
 
 		// Set the subimage properties to the crop properties
@@ -443,34 +505,19 @@ namespace bee {
 		glBufferData(GL_ARRAY_BUFFER, sizeof(texcoords), texcoords, GL_STATIC_DRAW);
 
 		vbo_texcoords.push_back(new_texcoord); // Add the texcoord to the list of subimages
-
-		return 0; // Return 0 on success
-	}
-	/*
-	* Texture::crop_image_width() - Crop the image to the given width
-	* @new_crop_width: the new width to crop the image to
-	*/
-	int Texture::crop_image_width(int new_crop_width) {
-		crop.w = new_crop_width;
-		return crop_image(crop); // Return the status of the cropping
-	}
-	/*
-	* Texture::crop_image_height() - Crop the image to the given height
-	* @new_crop_height: the new height to crop the image to
-	*/
-	int Texture::crop_image_height(int new_crop_height) {
-		crop.h = new_crop_height;
-		return crop_image(crop); // Return the status of the cropping
 	}
 
-	/*
-	* Texture::load_from_surface() - Load a texture from the given surface
-	* @tmp_surface: the temporary surface to load from
+	/**
+	* Load a texture from the given surface.
+	* @param tmp_surface the temporary surface to load from
+	*
+	* @retval 0 success
+	* @retval 1 failed to load since it's already been loaded
 	*/
 	int Texture::load_from_surface(SDL_Surface* tmp_surface) {
 		if (is_loaded) { // If the texture has already been loaded, output a warning
 			messenger::send({"engine", "texture"}, E_MESSAGE::WARNING, "Failed to load texture \"" + name + "\" from surface because it has already been loaded");
-			return 1; // Return 1 when not loaded
+			return 1;
 		}
 
 		// Set the texture dimensions
@@ -543,8 +590,14 @@ namespace bee {
 		is_loaded = true;
 		has_draw_failed = false;
 
-		return 0; // Return 0 on success
+		return 0;
 	}
+	/**
+	* Load the SDL surface from the Texture's path.
+	* @note The caller is responsible for freeing the surface.
+	*
+	* @returns the surface on success or nullptr on failure
+	*/
 	SDL_Surface* Texture::load_surface() const {
 		SDL_Surface* surface = IMG_Load(path.c_str());
 		if (surface == nullptr) { // If the surface could not be loaded, output a warning
@@ -553,17 +606,22 @@ namespace bee {
 		}
 		return surface;
 	}
-	/*
-	* Texture::load() - Load the texture from its given filename
+	/**
+	* Load the Texture from its filename.
+	*
+	* @retval 0 success
+	* @retval 1 failed to load since it's already loaded
+	* @retval 2 failed to load since the engine is in headless mode
+	* @retval 3 failed to load temporary surface
 	*/
 	int Texture::load() {
 		if (is_loaded) { // Do not attempt to load the texture if it has already been loaded
 		       messenger::send({"engine", "texture"}, E_MESSAGE::WARNING, "Failed to load texture \"" + name + "\" because it has already been loaded");
-		       return 1; // Return 1 when already loaded
+		       return 1;
 		}
 
 		if (get_option("is_headless").i) {
-			return 2; // Return 2 when texture rendering is not applicable
+			return 2;
 		}
 
 		SDL_Surface* tmp_surface = load_surface(); // Load the texture into a temporary surface
@@ -574,21 +632,26 @@ namespace bee {
 		load_from_surface(tmp_surface); // Load the surface into a texture
 		SDL_FreeSurface(tmp_surface); // Free the temporary surface
 
-		return 0; // Return 0 on success
+		return 0;
 	}
-	/*
-	* Texture::load_as_target() - Setup the texture for use as a render target
-	* @w: the target width to use
-	* @h: the target height to use
+	/**
+	* Setup the texture for use as a render target.
+	* @param w the target width to use
+	* @param h the target height to use
+	*
+	* @retval 0 success
+	* @retval 1 failed to set as target since it's already loaded
+	* @retval 2 failed to set as target since the engine is in headless mode
+	* @retval 3 failed to initialize framebuffer
 	*/
 	int Texture::load_as_target(int w, int h) {
 		if (is_loaded) { // Do not attempt to load the texture if it has already been loaded
-		       messenger::send({"engine", "texture"}, E_MESSAGE::WARNING, "Failed to load texture \"" + name + "\" because it has already been loaded");
-		       return 1; // Return 1 when already loaded
+			messenger::send({"engine", "texture"}, E_MESSAGE::WARNING, "Failed to load texture \"" + name + "\" because it has already been loaded");
+			return 1;
 		}
 
 		if (get_option("is_headless").i) {
-			return 2; // Return 2 when texture rendering is not applicable
+			return 2;
 		}
 
 		// Set the texture dimensions and remove all cropping
@@ -663,7 +726,7 @@ namespace bee {
 			messenger::send({"engine", "texture"}, E_MESSAGE::WARNING, "Failed to create a new framebuffer");
 			glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind the frame buffer to switch back to the default
 			this->free(); // Free the old data
-			return 3; // Return 0 on failure to initialize the framebuffer
+			return 3;
 		}
 
 		glBindVertexArray(0); // Unbind VAO when done loading
@@ -672,14 +735,16 @@ namespace bee {
 		is_loaded = true;
 		has_draw_failed = false;
 
-		return 0; // Return 0 on success
+		return 0;
 	}
-	/*
-	* Texture::free() - Free the texture texture and delete all of its buffers
+	/**
+	* Free the Texture and delete all of its buffers.
+	*
+	* @retval 0 success
 	*/
 	int Texture::free() {
 		if (!is_loaded) { // Do not attempt to free the textures if the texture has not been loaded
-			return 0; // Return 0 on success
+			return 0;
 		}
 
 		// Delete the vertex and index buffer
@@ -710,10 +775,18 @@ namespace bee {
 
 		return 0; // Return 0 on success
 	}
-	/*
-	* Texture::drawing_begin() - Enable all required buffers
+
+	/**
+	* Enable all required drawing buffers.
+	*
+	* @retval 0 success
+	* @retval 1 failed to enable buffers since it's not loaded
 	*/
 	int Texture::drawing_begin() {
+		if (!is_loaded) {
+			return 1;
+		}
+
 		glBindVertexArray(vao); // Bind the VAO for the texture
 
 		// Bind the texture texture
@@ -722,38 +795,48 @@ namespace bee {
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 
-		return 0; // Return 0 on success
+		return 0;
 	}
-	/*
-	* Texture::drawing_end() - Disable all required buffers
+	/**
+	* Disable all required drawing buffers.
+	*
+	* @retval 0 success
+	* @retval 1 failed to enable buffers since it's not loaded
 	*/
 	int Texture::drawing_end() {
+		if (!is_loaded) {
+			return 1;
+		}
+
 		glUniformMatrix4fv(engine->renderer->program->get_location("model"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the partial transformation matrix
 		glUniformMatrix4fv(engine->renderer->program->get_location("rotation"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the rotation matrix
 		glUniform1i(engine->renderer->program->get_location("flip"), 0); // Reset the flip type
 
 		glBindVertexArray(0); // Unbind the VAO
 
-		return 0; // Return 0 on success
+		return 0;
 	}
 
-	/*
-	* Texture::draw_subimage() - Draw a given subimage of the texture with the given attributes
-	* @x: the x-coordinate to draw the subimage at
-	* @y: the y-coordinate to draw the subimage at
-	* @current_subimage: the subimage of the texture to draw
-	* @w: the width to scale the subimage to
-	* @h: the height to scale the subimage to
-	* @angle: the number of degrees to rotate the subimage clockwise
-	* @new_color: the color to paint the subimage in
+	/**
+	* Draw a given subimage of the Texture with the given attributes.
+	* @param x the x-coordinate to draw the subimage at
+	* @param y the y-coordinate to draw the subimage at
+	* @param subimage the subimage of the texture to draw
+	* @param w the width to scale the subimage to
+	* @param h the height to scale the subimage to
+	* @param angle the number of degrees to rotate the subimage clockwise
+	* @param color the color to paint the subimage in
+	*
+	* @retval 0 success
+	* @retval 1 failed to draw since it's not loaded
 	*/
-	int Texture::draw_subimage(int x, int y, unsigned int current_subimage, int w, int h, double angle, RGBA new_color) {
+	int Texture::draw_subimage(int x, int y, unsigned int subimage, int w, int h, double angle, RGBA color) {
 		if (!is_loaded) { // Do not attempt to draw the subimage if it has not been loaded
 			if (!has_draw_failed) { // If the draw call hasn't failed before, output a warning
 				messenger::send({"engine", "texture"}, E_MESSAGE::WARNING, "Failed to draw texture \"" + name + "\" because it is not loaded");
 				has_draw_failed = true; // Set the draw failure boolean
 			}
-			return 1; // Return 1 when not loaded
+			return 1;
 		}
 
 		SDL_Rect drect = {x, y, 0, 0}; // Create a rectangle to define the position and dimensions of the destination render
@@ -793,66 +876,81 @@ namespace bee {
 		// Generate the rotation matrix for the subimage
 		// This is not included in the above transformation matrix because it is faster to rotate everything in the geometry shader
 		if (angle != 0.0) {
-			td.rotation = glm::translate(glm::mat4(1.0f), glm::vec3(rotate_x*rect_width, rotate_y*height, 0.0f));
+			td.rotation = glm::translate(glm::mat4(1.0f), glm::vec3(rotate.first*rect_width, rotate.second*height, 0.0f));
 			td.rotation = glm::rotate(td.rotation, static_cast<float>(util::degtorad(angle)), glm::vec3(0.0f, 0.0f, 1.0f)); // Rotate the subimage on the z-axis around the texture's rotation origin at (rotate_x, rotate_y)
-			td.rotation = glm::translate(td.rotation, glm::vec3(-rotate_x*rect_width, -rotate_y*height, 0.0f));
+			td.rotation = glm::translate(td.rotation, glm::vec3(-rotate.first*rect_width, -rotate.second*height, 0.0f));
 		}
 
 		// Colorize the texture with the given color
-		td.color = glm::vec4(new_color.r, new_color.g, new_color.b, new_color.a); // Normalize the color values from 0.0 to 1.0
+		td.color = glm::vec4(color.r, color.g, color.b, color.a); // Normalize the color values from 0.0 to 1.0
 		td.color /= 255.0f;
 
 		// Bind the texture coordinates of the current subimage
-		td.buffer = vbo_texcoords[current_subimage];
+		td.buffer = vbo_texcoords[subimage];
 
 		render::queue_texture(this, td);
 
 		// If the texture has reached the end of its subimage cycle, set the animation boolean
-		if ((is_animated)&&(current_subimage == subimage_amount-1)) {
+		if ((is_animated)&&(subimage == subimage_amount-1)) {
 			is_animated = false;
 		}
 
-		return 0; // Return 0 on success
+		return 0;
 	}
-	/*
-	* Texture::draw() - Draw the texture with a given subimage timing using the given attributes
-	* @x: the x-coordinate to draw the texture at
-	* @y: the y-coordinate to draw the texture at
-	* @subimage_time: the frame of animation to choose the subimage from
-	* @w: the width to scale the texture to
-	* @h: the height to scale the texture to
-	* @angle: the number of degrees to rotate the texture clockwise
-	* @new_color: the color to paint the texture in
+	/**
+	* Draw the Texture with a given subimage timing using the given attributes.
+	* @param x the x-coordinate to draw the texture at
+	* @param y the y-coordinate to draw the texture at
+	* @param subimage_time the frame of animation to choose the subimage from
+	* @param w the width to scale the texture to
+	* @param h the height to scale the texture to
+	* @param angle the number of degrees to rotate the texture clockwise
+	* @param color the color to paint the texture in
+	*
+	* @returns whether the draw call failed or not
+	* @see draw_subimage() for details
 	*/
-	int Texture::draw(int x, int y, Uint32 subimage_time, int w, int h, double angle, RGBA new_color) {
+	int Texture::draw(int x, int y, Uint32 subimage_time, int w, int h, double angle, RGBA color) {
 		// Calculate the current subimage to draw from the given animation frame
 		unsigned int current_subimage = static_cast<unsigned int>(round(speed*(get_ticks()-subimage_time)/engine->fps_goal)) % subimage_amount;
 		if (current_subimage == 0) { // If the first frame is being drawn, set the animation boolean
 			is_animated = true;
 		}
 
-		return draw_subimage(x, y, current_subimage, w, h, angle, new_color); // Return the result of drawing the subimage
+		return draw_subimage(x, y, current_subimage, w, h, angle, color);
 	}
-	/*
-	* Texture::draw() - Draw the texture with a given subimage timing using the given attributes
-	* ! When the function is called with no other attributes, simply call it with values that will not affect the render
-	* @x: the x-coordinate to draw the texture at
-	* @y: the y-coordinate to draw the texture at
-	* @subimage_time: the frame of animation to choose the subimage from
+	/**
+	* Draw the Texture with a given subimage timing using the given attributes.
+	* @note When the function is called with no other attributes, let them be values that will not affect the render.
+	* @param x the x-coordinate to draw the texture at
+	* @param y the y-coordinate to draw the texture at
+	* @param subimage_time the frame of animation to choose the subimage from
+	*
+	* @returns whether the draw call failed or not
+	* @see draw_subimage() for details
 	*/
 	int Texture::draw(int x, int y, Uint32 subimage_time) {
-		return draw(x, y, subimage_time, -1, -1, 0.0, {255, 255, 255, 255}); // Return the result of drawing the texture
+		return draw(x, y, subimage_time, -1, -1, 0.0, {255, 255, 255, 255});
 	}
+	/**
+	* Draw the Texture with the given TextureTransform.
+	* @note Transforms were originally implemented to replace Backgrounds.
+	* @param tr the transform data to use
+	*
+	* @retval 0 success
+	* @retval 1 failed to draw since it's not loaded
+	* @retval <0 a tile call failed
+	*/
 	int Texture::draw_transform(const TextureTransform& tr) {
 		if (!is_loaded) { // Do not attempt to draw the texture if it has not been loaded
 			if (!has_draw_failed) { // If the draw call hasn't failed before, output a warning
 				messenger::send({"engine", "texture"}, E_MESSAGE::WARNING, "Failed to draw texture \"" + name + "\" because it is not loaded");
 				has_draw_failed = true; // Set the draw failure boolean
 			}
-			return 1; // Return 1 on failure
+			return 1;
 		}
 
-		if (tr.is_stretched) { // If the background should be stretched, then draw it without animation
+		if (tr.is_stretched) { // If the texture should be stretched, then draw it without animation
 			draw(0, 0, 0, get_room_size().first, get_room_size().second, 0.0, {255, 255, 255, 255});
 		} else {
 			const int dt_fps = get_ticks()/engine->fps_goal;
@@ -862,63 +960,87 @@ namespace bee {
 			SDL_Rect rect = {tr.x+dx, tr.y+dy, static_cast<int>(width), static_cast<int>(height)};
 
 			if ((tr.is_horizontal_tile)&&(tr.is_vertical_tile)) {
+				int ret = 0;
+
 				const int rh = get_room_size().second;
 				while (rect.y-rect.h < rh) { // Tile as many horizontal lines as necessary to fill the window to the bottom
-					tile_horizontal(rect); // Tile the background across the row
+					ret += tile_horizontal(rect); // Tile the texture across the row
 					rect.y += rect.h; // Move to the below row
 				}
 				rect.y = tr.y + dy - rect.h; // Reset the row to above the first
 				while (rect.y+rect.h > 0) { // Tile as many horizontal lines as necessary to fill the window to the top
-					tile_horizontal(rect); // Tile the background across the row
+					ret += tile_horizontal(rect); // Tile the texture across the row
 					rect.y -= rect.h; // Move to the above row
 				}
+
+				return -ret;
 			} else if (tr.is_horizontal_tile) {
-				tile_horizontal(rect);
+				return -tile_horizontal(rect);
 			} else if (tr.is_vertical_tile) {
-				tile_vertical(rect);
+				return -tile_vertical(rect);
 			} else {
-				draw(rect.x, rect.y, 0);
+				return draw(rect.x, rect.y, 0);
 			}
 		}
 
 		return 0;
 	}
+	/**
+	* Repeatedly draw the Texture horizontally across the screen.
+	* @param r the rectangle to draw
+	*
+	* @retval 0 success
+	* @retval nonzero a draw call failed
+	*/
 	int Texture::tile_horizontal(const SDL_Rect& r) {
+		int ret = 0;
+
 		SDL_Rect dest (r);
 		const int rw = get_room_size().first;
 
 		while (dest.x < rw) { // Continue drawing to the right until the rectangle is past the right side of the window
-			draw(dest.x, dest.y, 0);
+			ret += draw(dest.x, dest.y, 0);
 			dest.x += dest.w; // Move the rectangle on right to the next tile
 		}
 
 		dest.x = r.x - dest.w; // Reset the rectangle start
 		while (dest.x + dest.w > 0) { // Continue drawing to the left until the rectangle is past the left side of the window
-			draw(dest.x, dest.y, 0);
+			ret += draw(dest.x, dest.y, 0);
 			dest.x -= dest.w; // Move the rectangle on left to the next tile
 		}
 
-		return 0;
+		return ret;
 	}
+	/**
+	* Repeatedly draw the Texture vertically down the screen.
+	* @param r the rectangle to draw
+	*
+	* @retval 0 success
+	* @retval nonzero a draw call failed
+	*/
 	int Texture::tile_vertical(const SDL_Rect& r) {
+		int ret = 0;
+
 		SDL_Rect dest (r);
 		const int rh = get_room_size().second;
 
 		while (dest.y < rh) { // Continue drawing to the bottom until the rectnagle is past the bottom of the window
-			draw(dest.x, dest.y, 0);
+			ret += draw(dest.x, dest.y, 0);
 			dest.y += dest.h; // Move the rectangle on down to the next tile
 		}
 
 		dest.y = r.y - dest.h; // Reset the rectangle start
 		while (dest.y + dest.h > 0) { // Continue drawing to the top until the rectangle is past the top of the window
-			draw(dest.x, dest.y, 0);
+			ret += draw(dest.x, dest.y, 0);
 			dest.y -= dest.h; // Move the rectangle on up to the next tile
 		}
 
-		return 0;
+		return ret;
 	}
-	/*
-	* Texture::set_as_target() - Set the texture as the render target
+	/**
+	* Set the texture as the render target.
+	*
+	* @returns the OpenGL framebuffer index
 	*/
 	GLuint Texture::set_as_target() {
 		if (framebuffer == static_cast<GLuint>(-1)) {

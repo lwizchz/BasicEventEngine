@@ -97,8 +97,8 @@ void ObjUIElement::reset(bee::Instance* self) {
 
 	bee::Texture* spr = self->get_sprite();
 	if (spr != nullptr) {
-		_i("w") = spr->get_width();
-		_i("h") = spr->get_height();
+		_i("w") = spr->get_size().first;
+		_i("h") = spr->get_size().second;
 	}
 
 	_i("is_visible") = true;

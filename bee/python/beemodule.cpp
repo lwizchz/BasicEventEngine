@@ -22,6 +22,8 @@
 
 #include "instance.hpp"
 
+#include "resources/texture.hpp"
+
 #include "../engine.hpp"
 
 #include "../init/gameoptions.hpp"
@@ -139,11 +141,13 @@ namespace bee { namespace python { namespace internal {
                 //PyModule_AddObject(module, "network", PyInit_bee_network());
                 //PyModule_AddObject(module, "physics", PyInit_bee_physics());
                 //PyModule_AddObject(module, "render", PyInit_bee_render());
-                //PyModule_AddObject(module, "resource", PyInit_bee_resource());
                 //PyModule_AddObject(module, "ui", PyInit_bee_ui());
 
                 // Add classes
                 if (PyInit_bee_instance(module) == nullptr) {
+                        return nullptr;
+                }
+                if (PyInit_bee_texture(module) == nullptr) {
                         return nullptr;
                 }
 

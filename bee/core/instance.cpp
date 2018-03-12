@@ -129,14 +129,6 @@ namespace bee {
 
 		set_data("alarms", std::map<Variant,Variant>());
 	}
-	/**
-	* Send a string of the serialized Instance to the messenger.
-	*/
-	int Instance::print() {
-		Variant m (serialize());
-		messenger::send({"engine", "instance"}, E_MESSAGE::INFO, "Instance " + m.to_str(true));
-		return 0;
-	}
 
 	/**
 	* Compare Instances first by depths, then by IDs.
@@ -241,6 +233,14 @@ namespace bee {
 			btScalar(m["path_pos_start"].v[2].f)
 		);
 
+		return 0;
+	}
+	/**
+	* Print all relevant information about the Instance.
+	*/
+	int Instance::print() {
+		Variant m (serialize());
+		messenger::send({"engine", "instance"}, E_MESSAGE::INFO, "Instance " + m.to_str(true));
 		return 0;
 	}
 
@@ -448,10 +448,22 @@ namespace bee {
 		return get_pos().z();
 	}
 	/**
+	* @returns the AABB for the sprite mask
+	*/
+	SDL_Rect Instance::get_aabb() const {
+		std::pair<int,int> s (0, 0);
+		if (object->get_mask() != nullptr) {
+			s = object->get_mask()->get_size();
+		}
+
+		return {static_cast<int>(get_x() - s.first/2), static_cast<int>(get_y() - s.second/2), s.first, s.second};
+	}
+	/**
 	* @returns the top-left corner of the 2D AABB
 	*/
 	std::pair<double,double> Instance::get_corner() const {
-		return std::make_pair(get_x() - get_width()/2.0, get_y() - get_height()/2.0);
+		SDL_Rect aabb (get_aabb());
+		return std::make_pair(aabb.x, aabb.y);
 	}
 	/**
 	* @returns the starting position
@@ -486,31 +498,6 @@ namespace bee {
 	}
 
 	/**
-	* @returns the width of the object's sprite mask
-	*/
-	int Instance::get_width() const {
-		if (object->get_mask() == nullptr) {
-			return 0;
-		}
-		return object->get_mask()->get_subimage_width();
-	}
-	/**
-	* @returns the height of the object's sprite mask
-	*/
-	int Instance::get_height() const {
-		if (object->get_mask() == nullptr) {
-			return 0;
-		}
-		return object->get_mask()->get_height();
-	}
-	/**
-	* @returns the AABB for the sprite mask
-	*/
-	SDL_Rect Instance::get_aabb() const {
-		return {static_cast<int>(get_corner().first), static_cast<int>(get_corner().second), get_width(), get_height()};
-	}
-
-	/**
 	* Set the center position of the attached PhysicsBody.
 	* @param p the new position
 	*/
@@ -537,7 +524,7 @@ namespace bee {
 		set_pos(pos_start);
 	}
 	void Instance::set_corner(double x, double y) {
-		set_pos(x + get_width()/2.0, y + get_height()/2.0, get_z());
+		set_pos(x + get_aabb().w/2.0, y + get_aabb().h/2.0, get_z());
 	}
 	void Instance::set_mass(double mass) {
 		btVector3 pos = get_pos(); // Store the position since setting the mass to 0.0 resets it
@@ -890,7 +877,7 @@ namespace bee {
 		if (get_sprite() == nullptr) {
 			return std::make_pair(static_cast<int>(get_x()), static_cast<int>(get_y()));
 		}
-		return get_snapped(get_sprite()->get_width(), get_sprite()->get_height());
+		return get_snapped(get_sprite()->get_size().first, get_sprite()->get_size().second);
 	}
 	/**
 	* Move to a random 2D position aligned to the given grid size.
@@ -924,7 +911,7 @@ namespace bee {
 			return;
 		}
 
-		move_snap(get_sprite()->get_width(), get_sprite()->get_height());
+		move_snap(get_sprite()->get_size().first, get_sprite()->get_size().second);
 	}
 	/**
 	* Wrap the 2D position around the screen with the given margin.
@@ -1035,13 +1022,18 @@ namespace bee {
 	* @retval 4 the given Instance is to the left
 	*/
 	int Instance::get_relation(Instance* other) const {
-		if ((other->get_y() < get_y())&&(abs(other->get_x() - get_x()) < other->get_width()/2 + get_width()/2)) { // Top block
+		int w2 = get_aabb().w/2;
+		int h2 = get_aabb().h/2;
+		int ow2 = other->get_aabb().w/2;
+		int oh2 = other->get_aabb().h/2;
+
+		if ((other->get_y() < get_y())&&(abs(other->get_x() - get_x()) < ow2+w2)) { // Top block
 			return 1;
-		} else if ((other->get_x() > get_x())&&(abs(other->get_y() - get_y()) < other->get_height()/2 + get_height()/2)) { // Right block
+		} else if ((other->get_x() > get_x())&&(abs(other->get_y() - get_y()) < oh2+h2)) { // Right block
 			return 2;
-		} else if ((other->get_y() > get_y())&&(abs(other->get_x() - get_x()) < other->get_width()/2 + get_width()/2)) { // Bottom block
+		} else if ((other->get_y() > get_y())&&(abs(other->get_x() - get_x()) < ow2+w2)) { // Bottom block
 			return 3;
-		} else if ((other->get_x() < get_x())&&(abs(other->get_y() - get_y()) < other->get_height()/2 + get_height()/2)) { // Left block
+		} else if ((other->get_x() < get_x())&&(abs(other->get_y() - get_y()) < oh2+h2)) { // Left block
 			return 4;
 		}
 		return 0;

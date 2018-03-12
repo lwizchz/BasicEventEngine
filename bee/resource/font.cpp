@@ -533,7 +533,7 @@ namespace bee {
 		if (is_sprite) { // If the font is a sprite font, draw it appropriately
 			int i = 0;
 			int w = sprite_font->get_subimage_width();
-			int h = sprite_font->get_height();
+			int h = sprite_font->get_size().second;
 			for (char& c : t) {
 				sprite_font->draw_subimage(x+(i++), y, static_cast<int>(c), w, h, 0.0, {color.r, color.g, color.b, color.a});
 			}
@@ -578,7 +578,7 @@ namespace bee {
 
 		if (lineskip == 0) { // If the lineskip hasn't been set yet, get it from the loaded font
 			if (is_sprite) { // If the font is a sprite font, get the lineskip appropriately
-				lineskip = sprite_font->get_height();
+				lineskip = sprite_font->get_size().second;
 			} else { // Otherwise, get if from the loaded TTF font
 				lineskip = TTF_FontLineSkip(font);
 			}

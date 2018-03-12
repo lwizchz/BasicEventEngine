@@ -50,7 +50,7 @@ namespace bee {
 		double s = particle_type->scale * get_deviation_percent();
 
 		w = static_cast<int>(particle_type->get_texture()->get_subimage_width() * s);
-		h = static_cast<int>(particle_type->get_texture()->get_height() * s);
+		h = static_cast<int>(particle_type->get_texture()->get_size().second * s);
 
 		velocity = particle_type->velocity;
 		creation_time = now;
