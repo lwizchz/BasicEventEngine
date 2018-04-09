@@ -413,7 +413,8 @@ namespace bee {
 
 	bool operator<(const Variant& a, const Variant& b) {
 		if (a.type != b.type) {
-			throw std::runtime_error("Error: Invalid comparison on Variants of differing types");
+			//throw std::runtime_error("Error: Invalid comparison on Variants of differing types");
+			return (static_cast<int>(a.type) < static_cast<int>(b.type)); // Compare the type values so different types can be used in an ordered map
 		}
 
 		switch (a.type) {

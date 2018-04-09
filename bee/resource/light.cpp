@@ -144,7 +144,7 @@ namespace bee {
 	/*
 	* Light::print() - Print all relevant information about the resource
 	*/
-	int Light::print() const {
+	void Light::print() const {
 		std::stringstream s; // Declare the output stream
 		s << // Append all info to the output
 		"Light { "
@@ -179,8 +179,6 @@ namespace bee {
 		"\n	color       " << static_cast<int>(lighting.color.r) << ", " << static_cast<int>(lighting.color.g) << ", " << static_cast<int>(lighting.color.b) <<
 		"\n}\n";
 		messenger::send({"engine", "resource"}, E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for output
-
-		return 0; // Return 0 on success
 	}
 
 	/*

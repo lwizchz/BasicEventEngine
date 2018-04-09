@@ -59,8 +59,6 @@ namespace bee {
 
 		Uint32 tickstamp, fps_ticks, tick_delta;
 
-		double volume;
-
 		unsigned int fps_goal, fps_max, fps_unfocused;
 		unsigned int fps_count;
 		Uint32 frame_number;

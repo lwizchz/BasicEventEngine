@@ -1,3 +1,27 @@
+# Library invalid rw
+{
+	lib_i965_dri
+	Memcheck:Addr4
+	obj:/usr/*lib*/i965_dri.*
+}
+{
+	lib_i965_dri
+	Memcheck:Addr8
+	obj:/usr/*lib*/i965_dri.*
+}
+{
+	lib_i965_dri/memmove
+	Memcheck:Addr2
+	fun:memmove
+	obj:/usr/*lib*/i965_dri.*
+}
+{
+	lib_i965_dri/memmove
+	Memcheck:Addr8
+	fun:memmove
+	obj:/usr/*lib*/i965_dri.*
+}
+
 {
 	pymalloc_free/address_in_range
 	Memcheck:Value8
@@ -53,9 +77,25 @@
 	fun:Py_EncodeLocale
 }
 
+# Library memory leak
 {
 	PyMem_RawMalloc
 	Memcheck:Leak
 	fun:malloc
 	fun:PyMem_RawMalloc
+}
+
+{
+	XlcCreateLC/realloc
+	Memcheck:Leak
+	fun:realloc
+	...
+	fun:_XlcCreateLC
+}
+{
+	libSDL2/malloc
+	Memcheck:Leak
+	fun:malloc
+	...
+	obj:/usr/*lib*/libSDL2-*
 }

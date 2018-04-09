@@ -72,8 +72,8 @@ namespace bee { namespace python { namespace internal {
                         PyErr_SetString(PyExc_TypeError, "parameter must be callable");
                         return nullptr;
                 }
-                Py_INCREF(callback);
 
+                Py_INCREF(callback);
                 messenger::register_recipient(_name, tags, is_strict, [callback] (const MessageContents& msg) {
                         PyObject* msg_tags = PyList_New(0);
                         for (auto& t : msg.tags) {

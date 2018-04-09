@@ -60,8 +60,6 @@ namespace bee {
 		fps_ticks(0),
 		tick_delta(0),
 
-		volume(1.0),
-
 		fps_goal(DEFAULT_GAME_FPS),
 		fps_max(300),
 		fps_unfocused(fps_max/20),

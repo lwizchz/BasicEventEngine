@@ -22,10 +22,10 @@ namespace bee {
 		bool is_repeatable;
 
 		KeyBind(const std::string&, SDL_Keycode, bool, std::function<void (const SDL_Event*)>);
-		KeyBind();
-		KeyBind(const std::string&);
-		KeyBind(const std::string&, std::function<void (const SDL_Event*)>);
 		KeyBind(const std::string&, bool, std::function<void (const SDL_Event*)>);
+		KeyBind(const std::string&, std::function<void (const SDL_Event*)>);
+		KeyBind(const std::string&);
+		KeyBind();
 
 		void call(const SDL_Event*);
 	};

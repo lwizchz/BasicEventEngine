@@ -142,7 +142,7 @@ namespace bee {
 	/*
 	* Timeline::print() - Print all relevant information about the resource
 	*/
-	int Timeline::print() const {
+	void Timeline::print() const {
 		std::string action_string = get_action_string(); // Get the list of actions in string form
 
 		std::stringstream s; // Declare the output stream
@@ -157,8 +157,6 @@ namespace bee {
 		"\n	action_list\n" << util::debug_indent(action_string, 2) <<
 		"\n}\n";
 		messenger::send({"engine", "resource"}, E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for output
-
-		return 0; // Return 0 on success
 	}
 
 	/*

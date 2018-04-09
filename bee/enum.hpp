@@ -26,15 +26,14 @@ namespace bee {
 	/**
 	* The type of sound effect that a Sound can have.
 	*/
-	enum class E_SOUNDEFFECT : int {
-		NONE       = BIT(0),
-		CHORUS     = BIT(1),
-		ECHO       = BIT(2),
-		FLANGER    = BIT(3),
-		GARGLE     = BIT(4),
-		REVERB     = BIT(5),
-		COMPRESSOR = BIT(6),
-		EQUALIZER  = BIT(7)
+	enum class E_SOUNDEFFECT {
+		CHORUS,
+		ECHO,
+		FLANGER,
+		GARGLE,
+		REVERB,
+		COMPRESSOR,
+		EQUALIZER
 	};
 
 	/**

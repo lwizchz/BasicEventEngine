@@ -23,6 +23,7 @@
 #include "instance.hpp"
 
 #include "resources/texture.hpp"
+#include "resources/sound.hpp"
 
 #include "../engine.hpp"
 
@@ -148,6 +149,9 @@ namespace bee { namespace python { namespace internal {
                         return nullptr;
                 }
                 if (PyInit_bee_texture(module) == nullptr) {
+                        return nullptr;
+                }
+                if (PyInit_bee_sound(module) == nullptr) {
                         return nullptr;
                 }
 

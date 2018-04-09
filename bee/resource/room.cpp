@@ -260,9 +260,8 @@ namespace bee {
 
 		return 0;
 	}
-	int Room::print() const {
+	void Room::print() const {
 		messenger::send({"engine", "resource"}, E_MESSAGE::INFO, get_print());
-		return 0;
 	}
 	std::string Room::get_print() const {
 		std::string background_string = get_background_string();

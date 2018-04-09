@@ -134,7 +134,7 @@ namespace bee {
 	/*
 	* Path::print() - Print all relevant information about the resource
 	*/
-	int Path::print() const {
+	void Path::print() const {
 		std::string coordinate_string = get_coordinate_string(); // Get the list of coordinates in string form
 
 		std::stringstream s; // Declare the output stream
@@ -148,8 +148,6 @@ namespace bee {
 		"\n	is_closed       " << is_closed <<
 		"\n}\n";
 		messenger::send({"engine", "resource"}, E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for output
-
-		return 0; // Return 0 on success
 	}
 
 	/*

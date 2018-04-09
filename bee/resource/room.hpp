@@ -108,7 +108,7 @@ namespace bee {
 
 		int add_to_resources();
 		int reset();
-		int print() const;
+		void print() const;
 		std::string get_print() const;
 
 		int get_id() const;

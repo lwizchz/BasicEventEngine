@@ -18,17 +18,17 @@ namespace bee {
 		func(_func),
 		is_repeatable(_is_repeatable)
 	{}
-	KeyBind::KeyBind() :
-		KeyBind("", SDLK_UNKNOWN, false, nullptr)
-	{}
-	KeyBind::KeyBind(const std::string& _name) :
-		KeyBind(_name, SDLK_UNKNOWN, false, nullptr)
-	{}
-	KeyBind::KeyBind(const std::string& _name, std::function<void (const SDL_Event*)> _func) :
-		KeyBind(_name, SDLK_UNKNOWN, false, _func)
-	{}
 	KeyBind::KeyBind(const std::string& _name, bool _is_repeatable, std::function<void (const SDL_Event*)> _func) :
 		KeyBind(_name, SDLK_UNKNOWN, _is_repeatable, _func)
+	{}
+	KeyBind::KeyBind(const std::string& _name, std::function<void (const SDL_Event*)> _func) :
+		KeyBind(_name, false, _func)
+	{}
+	KeyBind::KeyBind(const std::string& _name) :
+		KeyBind(_name, nullptr)
+	{}
+	KeyBind::KeyBind() :
+		KeyBind("")
 	{}
 
 	void KeyBind::call(const SDL_Event* e) {

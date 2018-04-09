@@ -122,17 +122,14 @@ void ObjControl::create(bee::Instance* self) {
 	}));
 
 	bee::kb::bind(SDLK_UNKNOWN, bee::KeyBind("StartSound", [] (const SDL_Event* e) {
-		snd_chirp->effect_set(static_cast<int>(bee::E_SOUNDEFFECT::NONE));
-
-		if (snd_chirp->get_is_playing()) {
-			snd_chirp->rewind();
-		} else {
-			snd_chirp->play();
-		}
+		snd_chirp->stop();
+		snd_chirp->effect_remove_all();
+		snd_chirp->play();
 	}));
 	bee::kb::bind(SDLK_UNKNOWN, bee::KeyBind("StartSoundEcho", [] (const SDL_Event* e) {
 		snd_chirp->stop();
-		snd_chirp->effect_set(static_cast<int>(bee::E_SOUNDEFFECT::ECHO));
+		snd_chirp->effect_remove_all();
+		snd_chirp->effect_add(bee::SoundEffect("echo", bee::E_SOUNDEFFECT::ECHO, {}));
 		snd_chirp->play();
 	}));
 

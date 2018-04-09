@@ -1,11 +1,11 @@
 set(deps_bee engine.cpp enum.hpp)
-set(deps_bee_util util/platform.cpp util/real.cpp util/string.cpp util/dates.cpp util/collision.cpp util/soundeffects.cpp util/messagebox.cpp util/files.cpp util/networking.cpp util/debug.cpp)
+set(deps_bee_util util/platform.cpp util/real.cpp util/string.cpp util/dates.cpp util/collision.cpp util/messagebox.cpp util/files.cpp util/networking.cpp util/debug.cpp)
 
 set(deps_bee_init init/info.cpp init/gameoptions.cpp init/programflags.cpp)
 
 set(deps_bee_messenger messenger/messenger.cpp messenger/messagecontents.cpp messenger/messagerecipient.cpp)
 
-set(deps_bee_core core/console.cpp core/display.cpp core/enginestate.cpp core/instance.cpp core/loader.cpp core/rooms.cpp core/window.cpp)
+set(deps_bee_core core/console.cpp core/display.cpp core/enginestate.cpp core/instance.cpp core/loader.cpp core/rooms.cpp core/soundeffects.cpp core/window.cpp)
 set(deps_bee_input input/mouse.cpp input/kb.cpp input/keybind.cpp)
 set(deps_bee_data data/serialdata.cpp data/statemachine.cpp data/variant.cpp)
 
@@ -18,7 +18,7 @@ set(deps_bee_physics physics/body.cpp physics/filter.cpp physics/draw.cpp physic
 
 set(deps_bee_resource resource/texture.cpp resource/sound.cpp resource/font.cpp resource/path.cpp resource/timeline.cpp resource/mesh.cpp resource/light.cpp resource/script.cpp resource/object.cpp resource/room.cpp)
 
-set(deps_bee_python_resources python/resources/texture.cpp)
+set(deps_bee_python_resources python/resources/texture.cpp python/resources/sound.cpp)
 set(deps_bee_python python/python.cpp python/beemodule.cpp python/messenger.cpp python/console.cpp python/commands.cpp python/mouse.cpp python/kb.cpp python/instance.cpp ${deps_bee_python_resources})
 set(deps_bee_scripting ${deps_bee_python})
 

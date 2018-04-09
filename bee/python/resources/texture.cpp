@@ -22,27 +22,27 @@ namespace bee { namespace python { namespace internal {
         PyMethodDef TextureMethods[] = {
                 {"print", reinterpret_cast<PyCFunction>(Texture_print), METH_NOARGS, "Print all relevant information about the Texture"},
 
-                {"get_size", reinterpret_cast<PyCFunction>(Texture_get_size), METH_NOARGS, ""},
-                {"get_subimage_amount", reinterpret_cast<PyCFunction>(Texture_get_subimage_amount), METH_NOARGS, ""},
-                {"get_subimage_width", reinterpret_cast<PyCFunction>(Texture_get_subimage_width), METH_NOARGS, ""},
-                {"get_speed", reinterpret_cast<PyCFunction>(Texture_get_speed), METH_NOARGS, ""},
-                {"get_is_animated", reinterpret_cast<PyCFunction>(Texture_get_is_animated), METH_NOARGS, ""},
-                {"get_origin", reinterpret_cast<PyCFunction>(Texture_get_origin), METH_NOARGS, ""},
-                {"get_rotate", reinterpret_cast<PyCFunction>(Texture_get_rotate), METH_NOARGS, ""},
-                {"get_is_loaded", reinterpret_cast<PyCFunction>(Texture_get_is_loaded), METH_NOARGS, ""},
+                {"get_size", reinterpret_cast<PyCFunction>(Texture_get_size), METH_NOARGS, "Return the image dimensions"},
+                {"get_subimage_amount", reinterpret_cast<PyCFunction>(Texture_get_subimage_amount), METH_NOARGS, "Return the amount of subimages"},
+                {"get_subimage_width", reinterpret_cast<PyCFunction>(Texture_get_subimage_width), METH_NOARGS, "Return the width of each subimage"},
+                {"get_speed", reinterpret_cast<PyCFunction>(Texture_get_speed), METH_NOARGS, "Return the animation speed"},
+                {"get_is_animated", reinterpret_cast<PyCFunction>(Texture_get_is_animated), METH_NOARGS, "Return whether the image is animating or not"},
+                {"get_origin", reinterpret_cast<PyCFunction>(Texture_get_origin), METH_NOARGS, "Return the drawing origin"},
+                {"get_rotate", reinterpret_cast<PyCFunction>(Texture_get_rotate), METH_NOARGS, "Return the rotation origin"},
+                {"get_is_loaded", reinterpret_cast<PyCFunction>(Texture_get_is_loaded), METH_NOARGS, "Return whether the Texture is loaded or not"},
 
-                {"set_speed", reinterpret_cast<PyCFunction>(Texture_set_speed), METH_VARARGS, ""},
-                {"set_origin", reinterpret_cast<PyCFunction>(Texture_set_origin), METH_VARARGS, ""},
-                {"set_rotate", reinterpret_cast<PyCFunction>(Texture_set_rotate), METH_VARARGS, ""},
-                {"set_subimage_amount", reinterpret_cast<PyCFunction>(Texture_set_subimage_amount), METH_VARARGS, ""},
-                {"crop_image", reinterpret_cast<PyCFunction>(Texture_crop_image), METH_VARARGS, ""},
+                {"set_speed", reinterpret_cast<PyCFunction>(Texture_set_speed), METH_VARARGS, "Set the animation speed"},
+                {"set_origin", reinterpret_cast<PyCFunction>(Texture_set_origin), METH_VARARGS, "Set the drawing origin"},
+                {"set_rotate", reinterpret_cast<PyCFunction>(Texture_set_rotate), METH_VARARGS, "Set the rotation origin"},
+                {"set_subimage_amount", reinterpret_cast<PyCFunction>(Texture_set_subimage_amount), METH_VARARGS, "Set the amount and width of subimages"},
+                {"crop_image", reinterpret_cast<PyCFunction>(Texture_crop_image), METH_VARARGS, "Set the cropping border for the image"},
 
-                {"load", reinterpret_cast<PyCFunction>(Texture_load), METH_NOARGS, ""},
-                {"load_as_target", reinterpret_cast<PyCFunction>(Texture_load_as_target), METH_VARARGS, ""},
-                {"free", reinterpret_cast<PyCFunction>(Texture_free), METH_NOARGS, ""},
+                {"load", reinterpret_cast<PyCFunction>(Texture_load), METH_NOARGS, "Load the Texture from its path"},
+                {"load_as_target", reinterpret_cast<PyCFunction>(Texture_load_as_target), METH_VARARGS, "Setup the texture for use as a render target"},
+                {"free", reinterpret_cast<PyCFunction>(Texture_free), METH_NOARGS, "Free the Texture and delete all of its buffers"},
 
-                {"draw", reinterpret_cast<PyCFunction>(Texture_draw), METH_VARARGS, ""},
-                {"set_as_target", reinterpret_cast<PyCFunction>(Texture_set_as_target), METH_NOARGS, ""},
+                {"draw", reinterpret_cast<PyCFunction>(Texture_draw), METH_VARARGS, "Draw the Texture using the given attributes"},
+                {"set_as_target", reinterpret_cast<PyCFunction>(Texture_set_as_target), METH_NOARGS, "Set the Texture as the render target"},
 
                 {nullptr, nullptr, 0, nullptr}
         };

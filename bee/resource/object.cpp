@@ -168,7 +168,7 @@ namespace bee {
 	/*
 	* Object::print() - Print all relevant information about the resource
 	*/
-	int Object::print() const {
+	void Object::print() const {
 		std::string instance_string = get_instance_string(); // Get the list of instances in string form
 
 		std::stringstream ss; // Declare the output stream
@@ -202,8 +202,6 @@ namespace bee {
 		"\n	instances\n" << util::debug_indent(instance_string, 2) <<
 		"\n}\n";
 		messenger::send({"engine", "resource"}, E_MESSAGE::INFO, ss.str()); // Send the info to the messaging system for output
-
-		return 0; // Return 0 on success
 	}
 
 	/*

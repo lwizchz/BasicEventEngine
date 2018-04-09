@@ -129,7 +129,7 @@ namespace bee {
 	/*
 	* Script::print() - Print all relevant information about the resource
 	*/
-	int Script::print() const {
+	void Script::print() const {
 		std::stringstream s; // Declare the output stream
 		s << // Append all info to the output
 		"Script { "
@@ -139,8 +139,6 @@ namespace bee {
 		"\n	is_loaded   " << is_loaded <<
 		"\n}\n";
 		messenger::send({"engine", "resource"}, E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for output
-
-		return 0; // Return 0 on success
 	}
 
 	/*

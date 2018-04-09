@@ -14,7 +14,7 @@ namespace bee {
 		public:
 			virtual ~Resource() {};
 			virtual int reset() =0;
-			virtual int print() const =0;
+			virtual void print() const =0;
 			virtual int get_id() const =0;
 			virtual std::string get_name() const {return "";}
 			virtual int load() {return 0;}

@@ -168,7 +168,7 @@ namespace bee {
 	/*
 	* Mesh::print() - Print all relevant information about the resource
 	*/
-	int Mesh::print() const {
+	void Mesh::print() const {
 		std::stringstream s; // Declare the output stream
 		s << // Append all info to the output
 		"Mesh { "
@@ -177,8 +177,6 @@ namespace bee {
 		"\n	path  " << path <<
 		"\n}\n";
 		messenger::send({"engine", "resource"}, E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for output
-
-		return 0; // Return 0 on success
 	}
 
 	/*

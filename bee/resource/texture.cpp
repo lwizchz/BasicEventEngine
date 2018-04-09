@@ -120,8 +120,8 @@ namespace bee {
 		origin({0, 0}),
 		rotate({0.5, 0.5}),
 
-		texture(nullptr),
 		is_loaded(false),
+		texture(nullptr),
 		has_draw_failed(false),
 
 		vao(-1),
@@ -153,14 +153,14 @@ namespace bee {
 	*/
 	Texture::~Texture() {
 		this->free(); // Free all texture data
-		list.erase(id); // Remove the texture from the resource list
+		Texture::list.erase(id); // Remove the texture from the resource list
 	}
 
 	/**
 	* @returns the number of Texture resources
 	*/
 	size_t Texture::get_amount() {
-		return list.size();
+		return Texture::list.size();
 	}
 	/**
 	* @param id the resource to get
@@ -168,8 +168,8 @@ namespace bee {
 	* @returns the resource with the given id
 	*/
 	Texture* Texture::get(int id) {
-		if (list.find(id) != list.end()) {
-			return list[id];
+		if (Texture::list.find(id) != Texture::list.end()) {
+			return Texture::list.at(id);
 		}
 		return nullptr;
 	}
@@ -209,14 +209,16 @@ namespace bee {
 	*/
 	int Texture::add_to_resources() {
 		if (id < 0) { // If the resource needs to be added to the resource list
-			id = next_id++;
-			list.emplace(id, this); // Add the resource and with the new id
+			id = Texture::next_id++;
+			Texture::list.emplace(id, this); // Add the resource with the new id
 		}
 
-		return id; // Return the id on success
+		return id;
 	}
 	/**
 	* Reset all resource variables for reinitialization.
+	*
+	* @retval 0 success
 	*/
 	int Texture::reset() {
 		this->free(); // Free all memory used by this resource
@@ -312,10 +314,9 @@ namespace bee {
 	/**
 	* Print all relevant information about the resource.
 	*/
-	int Texture::print() const {
+	void Texture::print() const {
 		Variant m (serialize());
 		messenger::send({"engine", "texture"}, E_MESSAGE::INFO, "Texture " + m.to_str(true));
-		return 0;
 	}
 
 	int Texture::get_id() const {
@@ -607,7 +608,7 @@ namespace bee {
 		return surface;
 	}
 	/**
-	* Load the Texture from its filename.
+	* Load the Texture from its path.
 	*
 	* @retval 0 success
 	* @retval 1 failed to load since it's already loaded
@@ -743,7 +744,7 @@ namespace bee {
 	* @retval 0 success
 	*/
 	int Texture::free() {
-		if (!is_loaded) { // Do not attempt to free the textures if the texture has not been loaded
+		if (!is_loaded) { // Do not attempt to free the data if the Texture has not been loaded
 			return 0;
 		}
 
@@ -773,7 +774,7 @@ namespace bee {
 		is_loaded = false;
 		has_draw_failed = false;
 
-		return 0; // Return 0 on success
+		return 0;
 	}
 
 	/**
@@ -1038,7 +1039,7 @@ namespace bee {
 		return ret;
 	}
 	/**
-	* Set the texture as the render target.
+	* Set the Texture as the render target.
 	*
 	* @returns the OpenGL framebuffer index
 	*/

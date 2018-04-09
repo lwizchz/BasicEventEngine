@@ -202,7 +202,7 @@ namespace bee {
 	/*
 	* Font::print() - Print all relevant information about the resource
 	*/
-	int Font::print() const {
+	void Font::print() const {
 		std::stringstream s; // Declare the output stream
 		s << // Append all info to the output
 		"Font { "
@@ -219,8 +219,6 @@ namespace bee {
 		"\n	sprite_font     " << sprite_font <<
 		"\n}\n";
 		messenger::send({"engine", "resource"}, E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for output
-
-		return 0; // Return 0 on success
 	}
 
 	/*

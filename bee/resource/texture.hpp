@@ -82,8 +82,8 @@ namespace bee {
 		std::pair<int,int> origin; ///< The origin from which the texture is drawn
 		std::pair<double,double> rotate; ///< The origin around which the texture is rotated, scaled from 0.0 to 1.0 in both width and height
 
-		SDL_Texture* texture; ///< The internal texture storage for SDL mode
 		bool is_loaded; ///< Whether the image file was successfully loaded into a texture
+		SDL_Texture* texture; ///< The internal texture storage
 		bool has_draw_failed; ///< Whether the draw function has previously failed, this prevents continuous warning outputs
 
 		GLuint vao; ///< The Vertex Array Object which contains most of the following data
@@ -116,7 +116,7 @@ namespace bee {
 
 		std::map<Variant,Variant> serialize() const;
 		int deserialize(std::map<Variant,Variant>&);
-		int print() const;
+		void print() const;
 
 		int get_id() const;
 		std::string get_name() const;
