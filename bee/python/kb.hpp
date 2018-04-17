@@ -12,12 +12,12 @@
 #include <Python.h>
 
 namespace bee { namespace python { namespace internal {
-        PyObject* PyInit_bee_kb();
+	PyObject* PyInit_bee_kb();
 
-        PyObject* kb_get_state(PyObject*, PyObject*);
-        PyObject* kb_get_mod_state(PyObject*, PyObject*);
+	PyObject* kb_get_state(PyObject*, PyObject*);
+	PyObject* kb_get_mod_state(PyObject*, PyObject*);
 
-        PyObject* kb_append_input(PyObject*, PyObject*);
+	PyObject* kb_append_input(PyObject*, PyObject*);
 }}}
 
 #endif // BEE_PYTHON_KB_H

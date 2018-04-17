@@ -12,18 +12,18 @@
 #include <Python.h>
 
 namespace bee { namespace python { namespace internal {
-        PyObject* PyInit_bee_console();
+	PyObject* PyInit_bee_console();
 
-        PyObject* console_open(PyObject*, PyObject*);
-        PyObject* console_close(PyObject*, PyObject*);
-        PyObject* console_toggle(PyObject*, PyObject*);
-        PyObject* console_get_is_open(PyObject*, PyObject*);
+	PyObject* console_open(PyObject*, PyObject*);
+	PyObject* console_close(PyObject*, PyObject*);
+	PyObject* console_toggle(PyObject*, PyObject*);
+	PyObject* console_get_is_open(PyObject*, PyObject*);
 
-        PyObject* console_set_var(PyObject*, PyObject*);
-        PyObject* console_get_var(PyObject*, PyObject*);
+	PyObject* console_set_var(PyObject*, PyObject*);
+	PyObject* console_get_var(PyObject*, PyObject*);
 
-        PyObject* console_run(PyObject*, PyObject*);
-        PyObject* console_log(PyObject*, PyObject*);
+	PyObject* console_run(PyObject*, PyObject*);
+	PyObject* console_log(PyObject*, PyObject*);
 }}}
 
 #endif // BEE_PYTHON_CONSOLE_H
