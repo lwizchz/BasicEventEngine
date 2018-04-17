@@ -74,7 +74,7 @@ int bee::init_resources() {
 		snd_chirp = new Sound("snd_chirp", "snd_chirp.wav", false);
 
 		// Init fonts
-		font_liberation = new Font("font_liberation", "liberation_mono.ttf", 24, false);
+		font_liberation = new Font("font_liberation", "liberation_mono.ttf", 24);
 
 		// Init paths
 		path_bee = new Path("path_bee", "");

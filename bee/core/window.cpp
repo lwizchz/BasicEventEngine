@@ -20,6 +20,8 @@
 
 #include "../render/renderer.hpp"
 
+#include "../resource/texture.hpp"
+
 namespace bee {
 	/**
 	* @see https://wiki.libsdl.org/SDL_GetWindowTitle for details
@@ -97,6 +99,11 @@ namespace bee {
 		engine->width = width;
 		engine->height = height;
 		SDL_SetWindowSize(engine->renderer->window, engine->width, engine->height);
+
+		engine->texture_before->free();
+		engine->texture_after->free();
+		engine->texture_before->load_as_target(engine->width, engine->height);
+		engine->texture_after->load_as_target(engine->width, engine->height);
 	}
 }
 

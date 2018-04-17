@@ -32,7 +32,7 @@ namespace bee {
 		Mix_EffectFunc_t effect_func; ///< The main effect function
 		Mix_EffectDone_t cleanup_func; ///< The effect cleanup function
 	public:
-		// See bee/resources/sound.cpp for function comments
+		// See bee/resource/sound.cpp for function comments
 		SoundEffect(const std::string&, E_SOUNDEFFECT, std::map<Variant,Variant>);
 		SoundEffect(const std::string&, Mix_EffectFunc_t, Mix_EffectDone_t, std::map<Variant,Variant>);
 
@@ -69,14 +69,14 @@ namespace bee {
 
 		std::function<void (Sound*)> finish_func; ///< A function called whenever the sound finishes playing
 
-		// See bee/resources/sound.cpp for function comments
+		// See bee/resource/sound.cpp for function comments
 		void update_volume();
 		int set_pan_internal(int);
 
 		int effect_start(int);
 		int effect_stop(int);
 	public:
-		// See bee/resources/sound.cpp for function comments
+		// See bee/resource/sound.cpp for function comments
 		Sound();
 		Sound(const std::string&, const std::string&, bool);
 		~Sound();

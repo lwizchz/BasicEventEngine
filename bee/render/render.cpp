@@ -11,8 +11,6 @@
 
 #include "../defines.hpp"
 
-#include <GL/glew.h> // Include the required OpenGL headers
-#include <SDL2/SDL_opengl.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -42,6 +40,7 @@
 namespace bee { namespace render {
 	namespace internal {
 		GLuint target = 0;
+		Texture* target_tex = nullptr;
 
 		std::map<const Texture*,std::list<TextureDrawData>> textures;
 
@@ -288,6 +287,7 @@ namespace bee { namespace render {
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0); // Reset the bound framebuffer
 		internal::target = 0; // Reset the target
+		internal::target_tex = nullptr;
 
 		return 0;
 	}
@@ -304,9 +304,13 @@ namespace bee { namespace render {
 			reset_target();
 		} else {
 			internal::target = target->set_as_target();
+			internal::target_tex = target;
 		}
 
 		return 0;
+	}
+	Texture* get_target() {
+		return internal::target_tex;
 	}
 	int set_program(ShaderProgram* new_program) {
 		internal::program = new_program;

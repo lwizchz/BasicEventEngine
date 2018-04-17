@@ -66,9 +66,7 @@ namespace bee {
 		if (engine->current_room != nullptr) { // if we are currently in a room
 			if (engine->transition_type != E_TRANSITION::NONE) { // If a transition has been defined then draw the current room into the before buffer
 				render::set_target(engine->texture_before);
-				render::clear();
 				engine->current_room->draw();
-				render::render();
 			}
 			if (new_room != nullptr) {
 				engine->current_room->room_end(); // Run the room_end event for the current room
@@ -130,7 +128,6 @@ namespace bee {
 		}
 
 		if ((engine->transition_type != E_TRANSITION::NONE)&&(!get_option("is_headless").i)) { // If a transition has been defined then finish drawing the new room into the after buffer
-			render::render();
 			render::reset_target();
 			draw_transition(); // Animate the defined transition from the before and after buffers
 		}

@@ -1384,7 +1384,7 @@ namespace bee {
 		return should_collide;
 	}
 	int Room::draw() {
-		engine->renderer->program->apply();
+		Texture* prev_target = render::get_target();
 
 		for (auto& v : views) {
 			if (v->is_active) {
@@ -1401,7 +1401,7 @@ namespace bee {
 			draw_set_color(RGBA(E_RGB::WHITE));
 		}
 
-		render::reset_target();
+		render::set_target(prev_target);
 		render::set_viewport(nullptr);
 		render::clear();
 
@@ -1413,8 +1413,11 @@ namespace bee {
 			}
 		}
 
-		engine->renderer->program->apply();
+		if (console::get_is_open()) {
+			console::internal::draw();
+		}
 
+		render::render();
 
 		return 0;
 	}
@@ -1483,12 +1486,7 @@ namespace bee {
 			}
 		}
 
-		if (console::get_is_open()) {
-			console::internal::draw();
-		}
-
 		render::render_textures();
-		render::render();
 
 		return 0;
 	}

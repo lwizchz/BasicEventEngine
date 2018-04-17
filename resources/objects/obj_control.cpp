@@ -30,10 +30,12 @@ void ObjControl::create(bee::Instance* self) {
 
 	_p("text_fps") = nullptr;
 
-	_d("camx") = 0.0;
-	_d("camy") = 0.0;
+	_d("camx") = 1920.0/2.0;
+	_d("camy") = 1080.0/2.0;
 	_d("camz") = 0.0;
 	_d("camspeed") = 2.0;
+
+	bee::mouse::set_pos(1920/2, 1080/2);
 
 	_p("part_system") = nullptr;
 	bool enable_partsys = true;

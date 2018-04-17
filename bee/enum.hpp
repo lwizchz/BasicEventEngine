@@ -319,6 +319,17 @@ namespace bee {
 		LOOK,
 		ALL
 	};
+
+	/**
+	* The Font style types corresponding to the TTF_STYLE_ types
+	*/
+	enum class E_FONT_STYLE : int {
+		NORMAL        = 0,
+		BOLD          = BIT(0),
+		ITALIC        = BIT(1),
+		UNDERLINE     = BIT(2),
+		STRIKETHROUGH = BIT(3)
+	};
 }
 
 #endif // BEE_ENUM_H

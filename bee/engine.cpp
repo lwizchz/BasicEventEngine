@@ -111,9 +111,11 @@ namespace bee {
 		}
 
 		engine->texture_before = new Texture();
+		engine->texture_before->load_as_target(engine->width, engine->height);
 		engine->texture_after = new Texture();
+		engine->texture_after->load_as_target(engine->width, engine->height);
 
-		engine->font_default = Font::add("font_default", "liberation_mono.ttf", 16, false);
+		engine->font_default = Font::add("font_default", "liberation_mono.ttf", 16);
 
 		messenger::handle();
 		console::internal::init(); // Initialize the default console commands

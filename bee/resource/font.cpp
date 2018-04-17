@@ -9,70 +9,63 @@
 #ifndef BEE_FONT
 #define BEE_FONT 1
 
-#include <sstream> // Include the required library headers
-
 #include "font.hpp" // Include the class resource header
 
-#include "../engine.hpp"
-
 #include "../util/string.hpp"
-#include "../util/platform.hpp"
 #include "../util/debug.hpp"
 
 #include "../init/gameoptions.hpp"
 
 #include "../messenger/messenger.hpp"
 
-#include "../core/enginestate.hpp"
-
 #include "../render/render.hpp"
 
 #include "texture.hpp"
 
 namespace bee {
-	/*
-	* TextData::TextData() - Construct the data struct and initialize the default values
+	/**
+	* Default construct the data struct.
 	*/
 	TextData::TextData() :
 		textures(),
 		text()
 	{}
-	/*
-	* TextData::TextData() - Construct the data struct and initialize the provided values
-	* @new_texture: the texture for the first line of text
-	* @new_text: the text that has been rendered in the texture
+	/**
+	* Construct the data struct with a pre-rendered Texture for its text.
+	* @param texture the Texture for the first line of text
+	* @param _text the text that has been rendered in the Texture
 	*/
-	TextData::TextData(Texture* new_texture, const std::string& new_text) :
+	TextData::TextData(Texture* texture, const std::string& _text) :
 		textures(),
-		text(new_text)
+		text(_text)
 	{
-		textures.emplace(0, new_texture); // Set the provided texture as the data for the first line
+		textures.emplace_back(texture); // Set the provided Texture for the first line of text
 	}
-	/*
-	* TextData::~TextData() - Free the memory for each line's texture
+	/**
+	* Free the memory for each line's Texture.
 	*/
 	TextData::~TextData() {
-		for (auto& s : textures) { // Iterate over the textures and delete each one
-			delete s.second;
+		for (auto& s : textures) { // Iterate over the Textures and delete each one
+			delete s;
 		}
-		textures.clear(); // Clear the list
+		textures.clear();
 		text.clear();
 	}
-	/*
-	* TextData::pop_front() -  Pop the front texture so it won't be deleted twice
+	/**
+	* Pop the first Texture so it can be combined with another TextData.
 	*/
 	Texture* TextData::pop_front() {
-		Texture* t = textures.begin()->second; // Store a copy of the texture pointer
-		textures.erase(textures.begin()); // Erase the texture from the list
-		return t; // Return the texture
+		Texture* t = textures.front();
+		textures.pop_front();
+		return t;
 	}
 
 	std::map<int,Font*> Font::list;
 	int Font::next_id = 0;
 
-	/*
-	* Font::Font() - Construct the font and set its engine pointer
-	* ! This constructor should only be directly used for temporary fonts, the other constructor should be used for all other cases
+	/**
+	* Default construct the Font.
+	* @note This constructor should only be used for temporary Fonts, the other constructor should be used for all other cases.
 	*/
 	Font::Font() :
 		Resource(),
@@ -80,55 +73,52 @@ namespace bee {
 		id(-1),
 		name(),
 		path(),
+
 		font_size(24),
-		style(TTF_STYLE_NORMAL),
+		style(E_FONT_STYLE::NORMAL),
 		lineskip(0),
 
 		font(nullptr),
 		is_loaded(false),
-		has_draw_failed(false),
-
-		sprite_font(nullptr),
-		is_sprite(false)
+		has_draw_failed(false)
 	{}
-	/*
-	* Font::Font() - Construct the font, reset all variables, add it to the font resource list, and set the new name and path
-	* @new_name: the name of the font to use
-	* @new_path: the path of the font file, must be either a TTF or bitmap font
-	* @new_font_size: the size of the font to use
-	* @new_is_sprite: whether the font is a sprite (bitmap) font
+	/**
+	* Construct the Font, add it to the Font resource list, and set the new name, path, and size.
+	* @param _name the name of the font to use
+	* @param _path the path of the font file, must be either a TTF or bitmap font
+	* @param _font_size the size of the font to use
 	*/
-	Font::Font(const std::string& new_name, const std::string& new_path, int new_font_size, bool new_is_sprite) :
+	Font::Font(const std::string& _name, const std::string& _path, int _font_size) :
 		Font() // Default initialize all variables
 	{
 		add_to_resources(); // Add the font to the appropriate resource list
 		if (id < 0) { // If the font could not be added to the resource list, output a warning
-			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add font resource: \"" + new_name + "\" from " + new_path);
+			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add font resource: \"" + _name + "\" from " + _path);
 			throw(-1); // Throw an exception
 		}
 
-		set_name(new_name); // Set the font name
-		set_path(new_path); // Set the font path
-		set_font_size(new_font_size); // Set the font size
-		is_sprite = new_is_sprite; // Directly set whether the font is a sprite font
+		set_name(_name); // Set the font name
+		set_path(_path); // Set the font path
+		set_font_size(_font_size); // Set the font size
 	}
-	/*
-	* Font::~Font() - Free the font data and remove it from the resource list
+	/**
+	* Free the Font data and remove it from the resource list.
 	*/
 	Font::~Font() {
 		this->free(); // Free all font data
 		list.erase(id); // Remove the font from the resource list
 	}
 
-	/*
-	* Font::get_amount() - Return the amount of font resources
+	/**
+	* @returns the number of Font resources
 	*/
 	size_t Font::get_amount() {
 		return list.size();
 	}
-	/*
-	* Font::get() - Return the resource with the given id
-	* @id: the resource to get
+	/**
+	* @param id the resource to get
+	*
+	* @returns the resource with the given id
 	*/
 	Font* Font::get(int id) {
 		if (list.find(id) != list.end()) {
@@ -136,9 +126,10 @@ namespace bee {
 		}
 		return nullptr;
 	}
-	/*
-	* Font::get_by_name() - Return the font resource with the given name
-	* @name: the name of the desired font
+	/**
+	* @param name the name of the desired Font
+	*
+	* @returns the Font resource with the given name
 	*/
 	Font* Font::get_by_name(const std::string& name) {
 		for (auto& font : list) { // Iterate over the fonts in order to find the first one with the given name
@@ -151,21 +142,20 @@ namespace bee {
 		}
 		return nullptr; // Return nullptr on failure
 	}
-	/*
-	* Font::add() - Initiliaze, load, and return a newly created font resource
-	* @name: the name to initialize the font with
-	* @path: the path to initialize the font with
-	* @size: the font size to initialize the font with
-	* @is_sprite: whether the font is a bitmap or not (i.e. ttf)
+	/**
+	* Initiliaze, load, and return a newly created Font resource.
+	* @param name the name to initialize the font with
+	* @param path the path to initialize the font with
+	* @param size the font size to initialize the font with
 	*/
-	Font* Font::add(const std::string& name, const std::string& path, int size, bool is_sprite) {
-		Font* new_font = new Font(name, path, size, is_sprite);
+	Font* Font::add(const std::string& name, const std::string& path, int size) {
+		Font* new_font = new Font(name, path, size);
 		new_font->load();
 		return new_font;
 	}
 
-	/*
-	* Font::add_to_resources() - Add the font to the appropriate resource list
+	/**
+	* Add the Font to the appropriate resource list.
 	*/
 	int Font::add_to_resources() {
 		if (id < 0) { // If the resource needs to be added to the resource list
@@ -175,8 +165,10 @@ namespace bee {
 
 		return 0; // Return 0 on success
 	}
-	/*
-	* Font::reset() - Reset all resource variables for reinitialization
+	/**
+	* Reset all resource variables for reinitialization.
+	*
+	* @retval 0 success
 	*/
 	int Font::reset() {
 		this->free(); // Free all memory used by this resource
@@ -185,7 +177,7 @@ namespace bee {
 		name = "";
 		path = "";
 		font_size = 24;
-		style = TTF_STYLE_NORMAL;
+		style = E_FONT_STYLE::NORMAL;
 		lineskip = 0;
 
 		// Reset font data
@@ -193,37 +185,65 @@ namespace bee {
 		is_loaded = false;
 		has_draw_failed = false;
 
-		// Reset sprite font data
-		sprite_font = nullptr;
-		is_sprite = false;
-
-		return 0; // Return 0 on success
+		return 0;
 	}
-	/*
-	* Font::print() - Print all relevant information about the resource
+
+	/**
+	* @returns a map of all the information required to restore a Font
+	*/
+	std::map<Variant,Variant> Font::serialize() const {
+		std::map<Variant,Variant> info;
+
+		info["id"] = id;
+		info["name"] = name;
+		info["path"] = path;
+
+		info["font_size"] = font_size;
+		info["style"] = static_cast<int>(style);
+		info["lineskip"] = lineskip;
+
+		info["font"] = font;
+		info["is_loaded"] = is_loaded;
+		info["has_draw_failed"] = has_draw_failed;
+
+		return info;
+	}
+	/**
+	* Restore a Font from its serialized data.
+	* @param m the map of data to use
+	*
+	* @retval 0 success
+	* @retval 1 failed to load the Font
+	*/
+	int Font::deserialize(std::map<Variant,Variant>& m) {
+		this->free();
+
+		id = m["id"].i;
+		name = m["name"].s;
+		path = m["name"].s;
+
+		font_size = m["font_size"].i;
+		style = static_cast<E_FONT_STYLE>(m["style"].i);
+		lineskip = m["lineskip"].i;
+
+		font = nullptr;
+		is_loaded = false;
+		has_draw_failed = m["has_draw_failed"].i;
+
+		if ((m["is_loaded"].i)&&(load())) {
+			return 1;
+		}
+
+		return 0;
+	}
+	/**
+	* Print all relevant information about the resource.
 	*/
 	void Font::print() const {
-		std::stringstream s; // Declare the output stream
-		s << // Append all info to the output
-		"Font { "
-		"\n	id              " << id <<
-		"\n	name            " << name <<
-		"\n	path            " << path <<
-		"\n	font_size       " << font_size <<
-		"\n	style           " << style <<
-		"\n	lineskip        " << lineskip <<
-		"\n	font            " << font <<
-		"\n	is_loaded       " << is_loaded <<
-		"\n	has_draw_failed " << has_draw_failed <<
-		"\n	is_sprite       " << is_sprite <<
-		"\n	sprite_font     " << sprite_font <<
-		"\n}\n";
-		messenger::send({"engine", "resource"}, E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for output
+		Variant m (serialize());
+		messenger::send({"engine", "font"}, E_MESSAGE::INFO, "Font " + m.to_str(true));
 	}
 
-	/*
-	* Font::get_*() - Return the requested resource information
-	*/
 	int Font::get_id() const {
 		return id;
 	}
@@ -236,155 +256,163 @@ namespace bee {
 	int Font::get_font_size() const {
 		return font_size;
 	}
-	int Font::get_style() const {
+	E_FONT_STYLE Font::get_style() const {
 		return style;
 	}
 	int Font::get_lineskip() const {
 		return lineskip;
 	}
+	/**
+	* @returns the Font's default lineskip
+	* @retval -1 failed to get lineskip since it's not loaded
+	*/
 	int Font::get_lineskip_default() {
 		if (!is_loaded) { // If the font is not loaded, output a warning
 			messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to get the default lineskip for \"" + name + "\" becuase it is not loaded");
-			return -1; // Return -1 on failure
+			return -1;
 		}
 
-		return TTF_FontLineSkip(font); // Return the lineskip on success
+		return TTF_FontLineSkip(font);
 	}
+	/**
+	* @returns the font name from the TTF file
+	* @retval "" failed to get the name since it's not loaded
+	*/
 	std::string Font::get_fontname() {
+		if (!is_loaded) {
+			messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to get the font name for \"" + name + "\" becuase it is not loaded");
+			return "";
+		}
+
 		std::string fontname = ""; // Create the fontname in the following format "family style", i.e. "Liberation Mono Regular"
 		fontname.append(TTF_FontFaceFamilyName(font));
 		fontname.append(" ");
 		fontname.append(TTF_FontFaceStyleName(font));
+
 		return fontname;
 	}
 
-	/*
-	* Font::set_*() - Set the requested resource data
-	*/
-	int Font::set_name(const std::string& new_name) {
-		name = new_name;
+	int Font::set_name(const std::string& _name) {
+		name = _name;
 		return 0;
 	}
-	int Font::set_path(const std::string& new_path) {
-		if (new_path.front() == '/') {
-			path = new_path.substr(1);
+	int Font::set_path(const std::string& _path) {
+		if (_path.front() == '/') {
+			path = _path.substr(1);
 		} else {
-			path = "resources/fonts/"+new_path; // Append the path to the font directory if no root
+			path = "resources/fonts/"+_path; // Append the path to the font directory if no root
 		}
 		return 0;
 	}
-	int Font::set_font_size(int new_font_size) {
-		font_size = new_font_size;
-		return 0;
-	}
-	/*
-	* Font::set_style() - Set the font style to use with the font
-	* @new_style: the desired style, a bitmask of TTF_STYLE_BOLD, _ITALIC, _UNDERLINE, _STRIKETHROUGH, and _NORMAL
+	/**
+	* Set the font size.
+	* @param _font_size the desired font size
+	*
+	* @retval 0 success
+	* @retval >1 failed to reload the Font
 	*/
-	int Font::set_style(int new_style) {
+	int Font::set_font_size(int _font_size) {
+		font_size = _font_size;
+
+		if (!is_loaded) {
+			return 0;
+		}
+
+		// Reload the font
+		free();
+		return load();
+	}
+	/**
+	* Set the font style to use.
+	* @param _style the desired style, a bitmask of TTF_STYLE_BOLD, _ITALIC, _UNDERLINE, _STRIKETHROUGH, and _NORMAL
+	*/
+	int Font::set_style(E_FONT_STYLE _style) {
 		if (!is_loaded) { // Do not attempt to set the style if the font has not been loaded
 			messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to set the font style for \"" + name + "\" because it is not loaded");
 			return 1; // Return 1 on error
 		}
 
-		style = new_style; // Store the style
-		TTF_SetFontStyle(font, style); // Set the style of the loaded font
+		style = _style; // Store the style
+		TTF_SetFontStyle(font, static_cast<int>(style)); // Set the style of the loaded font
 		return 0; // Return 0 on success
 	}
-	int Font::set_lineskip(int new_lineskip) {
-		lineskip = new_lineskip;
-		return 0;
+	void Font::set_lineskip(int _lineskip) {
+		lineskip = _lineskip;
 	}
 
-	/*
-	* Font::load() - Load the font from its given filename
+	/**
+	* Load the Font from its path.
+	*
+	* @retval 0 success
+	* @retval 1 failed to load since it's already loaded
+	* @retval 2 failed to load since the engine is in headless mode
+	* @retval 3 failed to load the font file
 	*/
 	int Font::load() {
 		if (is_loaded) { // If the font has already been loaded, output a warning
 			messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to load font \"" + name + "\" from because it has already been loaded");
-			return 1; // Return 1 when already loaded
+			return 1;
 		}
 
 		if (get_option("is_headless").i) {
-			return 2; // Return 2 when in headless mode
+			return 2;
 		}
 
-		if (is_sprite) { // If the font is a sprite font, load it appropriately
-			sprite_font = new Texture("spr_"+get_name(), path); // Create and load a sprite for the font
-			if (!sprite_font->load()) { // If the sprite fails to load, output a warning
-				messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to load the font \"" + path + "\": " + util::get_sdl_error());
-				has_draw_failed = true;
-				return 3; // Return 3 on loading failure
+		if (
+			(get_option("renderer_type").i == static_cast<int>(E_RENDERER::OPENGL3))
+			||(get_option("renderer_type").i == static_cast<int>(E_RENDERER::OPENGL4))
+		) { // If the engine is rendering in OpenGL mode, output a warning about fast font drawing
+			if (this == Font::list.at(0)) { // Only output the warning for the first loaded font
+				messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "TTF fast font rendering is currently broken in OpenGL mode\nThe current behavior is to draw slowly and discard the texture data");
 			}
-
-			// Set the loaded booleans
-			is_loaded = true;
-			has_draw_failed = false;
-		} else { // Otherwise load the sprite's TTF file
-			if (
-				(get_option("renderer_type").i == static_cast<int>(E_RENDERER::OPENGL3))
-				||(get_option("renderer_type").i == static_cast<int>(E_RENDERER::OPENGL4))
-			) { // If the engine is rendering in OpenGL mode, output a warning about fast font drawing
-				if (this == Font::list.at(0)) { // Only output the warning for the first loaded font
-					messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Please note that TTF fast font rendering is currently broken in OpenGL mode\nThe current behavior is to draw slowly and discard the texture data");
-				}
-			}
-
-			font = TTF_OpenFont(path.c_str(), font_size); // Open the TTF file with the desired font size
-			if (font == nullptr) { // If the font failed to load, output a warning
-				messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to load font \"" + path + "\": " + TTF_GetError());
-				has_draw_failed = true;
-				return 4; // Return 4 on loading failure
-			}
-
-			// Set the loaded booleans
-			is_loaded = true;
-			has_draw_failed = false;
 		}
 
-		return 0; // Return 0 on success
+		font = TTF_OpenFont(path.c_str(), font_size); // Open the TTF file with the desired font size
+		if (font == nullptr) { // If the font failed to load, output a warning
+			messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to load font \"" + path + "\": " + util::get_sdl_error());
+			has_draw_failed = true;
+			return 3;
+		}
+
+		// Set the loaded booleans
+		is_loaded = true;
+		has_draw_failed = false;
+
+		return 0;
 	}
-	/*
-	* Font::free() - Free the font textures and other data
+	/**
+	* Free the Font.
+	*
+	* @retval 0 success
 	*/
 	int Font::free() {
-		if (is_loaded) { // Do not attempt to free the data if the font has not been loaded
-			if (is_sprite) { // If the font is a sprite font, free it appropriately
-				// Delete the sprite for the font
-				delete sprite_font;
-				sprite_font = nullptr;
-			} else {
-				// Delete the TTF font
-				TTF_CloseFont(font);
-				font = nullptr;
-			}
-
-			// Set the loaded booleans
-			is_loaded = false;
-			has_draw_failed = false;
+		if (!is_loaded) { // Do not attempt to free the data if the font has not been loaded
+			return 0;
 		}
 
-		return 0; // Return 0 on success
+		// Delete the TTF font
+		TTF_CloseFont(font);
+		font = nullptr;
+
+		// Set the loaded booleans
+		is_loaded = false;
+		has_draw_failed = false;
+
+		return 0;
 	}
 
-	/*
-	* Font::draw_internal() - Draw the given text with the given attributes
-	* @x: the x-coordinate to draw the text at
-	* @y: the y-coordinate to draw the text at
-	* @text: the string to draw
-	* @color: the color to draw the text in
+	/**
+	* Draw the given text with the given attributes.
+	* @param x the x-coordinate to draw the text at
+	* @param y the y-coordinate to draw the text at
+	* @param text the string to draw
+	* @param color the color with which to draw the text
+	*
+	* @returns the rendered Texture data as a TextData
 	*/
 	TextData* Font::draw_internal(int x, int y, const std::string& text, RGBA color) {
-		if (!is_loaded) { // Do not attempt to draw the text if the font has not been loaded
-			if (!has_draw_failed) { // If the draw call hasn't failed before, output a warning
-				messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to draw text with \"" + name + "\" because it is not loaded");
-				has_draw_failed = true; // Set the draw failure boolean
-			}
-			return nullptr; // Return nullptr when not loaded
-		}
-
 		if (text.empty()) {
-			return nullptr; // Return nullptr when no text was provided
+			return nullptr;
 		}
 
 		std::string t = util::string::replace(text, "\t", "    "); // Replace all tabs with 4 spaces for proper rendering
@@ -392,324 +420,274 @@ namespace bee {
 		// Render the text to a temporary surface
 		SDL_Surface* tmp_surface = TTF_RenderUTF8_Blended(font, t.c_str(), {color.r, color.g, color.b, color.a}); // Use the slow but pretty TTF rendering mode
 		if (tmp_surface == nullptr) { // If the text failed to render, output a warning
-			messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to draw with font \"" + name + "\": " + TTF_GetError());
-			return nullptr; // Return nullptr when rendering failed
+			messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to draw with font \"" + name + "\": " + util::get_sdl_error());
+			return nullptr;
 		}
 
-		// Create a temporary sprite to draw the rendered text to the screen
+		// Create a temporary texture to draw the rendered text to the screen
 		Texture* tmp_texture = new Texture();
 		tmp_texture->load_from_surface(tmp_surface); // Load the rendered text into the texture
-		SDL_FreeSurface(tmp_surface); // Free the temporary surface
+		SDL_FreeSurface(tmp_surface);
 
 		tmp_texture->draw(x, y, 0); // Draw the text
-		render::render_textures();
 
 		TextData* textdata = new TextData(tmp_texture, t); // Store the temporary texture in a TextData struct
 
-		return textdata; // Return the textdata on success
+		return textdata;
 	}
-	/*
-	* Font::draw() - Draw the given text with the given attributes
-	* @x: the x-coordinate to draw the text at
-	* @y: the y-coordinate to draw the text at
-	* @text: the string to draw
-	* @color: the color to draw the text in
+	/**
+	* Draw the given text with the given attributes.
+	* @note The user is responsible for freeing the returned TextData after the last time they draw their text.
+	* @note This allows the following syntax:
+	* @code
+	*     td = font->draw(td, x, y, text, color);
+	* @endcode
+	*
+	* @param textdata the TextData to draw if the given text matches the prerendered text
+	* @param x the x-coordinate to draw the text at
+	* @param y the y-coordinate to draw the text at
+	* @param text the string to draw
+	* @param color the color to draw the text in
+	*
+	* @returns the rendered Texture data as a TextData
 	*/
-	TextData* Font::draw(int x, int y, const std::string& text, RGBA color) {
+	TextData* Font::draw(TextData* textdata, int x, int y, const std::string& text, RGBA color) {
 		if (!is_loaded) { // Do not attempt to draw the text if the font has not been loaded
 			if (!has_draw_failed) { // If the draw call hasn't failed before, output a warning
 				messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to draw text with \"" + name + "\" because it is not loaded");
-				has_draw_failed = true; // Set the draw failure boolean
+				has_draw_failed = true;
 			}
-			return nullptr; // Return nullptr when not loaded
+			return nullptr;
 		}
 
 		if (lineskip == 0) { // If the lineskip hasn't been set yet, get it from the loaded font
 			lineskip = TTF_FontLineSkip(font);
 		}
 
-		TextData *textdata = nullptr, *r = nullptr; // Create a pointer for the entire textdata and a temporary one for each line
 		std::vector<std::string> lines = util::splitv(text, '\n', false); // Separate the text by newline
-		size_t i = 0;
-		for (auto& l : lines) { // Iterate over the lines and draw each one
-			r = draw_internal(x, y+lineskip*i, l, color); // Draw the line at the appropriate coordinates
-
-			if (r != nullptr) { // If the line was successfully drawn, append its textdata
-				if (textdata == nullptr) { // If it's the first line, set it as the entire textdata
-					textdata = r;
-				} else { // Otherwise append its data to the existing textdata
-					textdata->textures.emplace(textdata->textures.size(), r->pop_front());
-					delete r; // Free the temporary data
-				}
-			}
-
-			++i;
-		}
-		return textdata; // Return the textdata on success
-	}
-	/*
-	* Font::draw() - Draw the given text at the given coordinates
-	* ! When the function is called without a color, simply draw it in black
-	* @x: the x-coordinate to draw the text at
-	* @y: the y-coordinate to draw the text at
-	* @text: the string to draw
-	*/
-	TextData* Font::draw(int x, int y, const std::string& text) {
-		return draw(x, y, text, {0, 0, 0, 255}); // Return the result of drawing the text in black
-	}
-	/*
-	* Font::draw() - Draw the given text with the given attributes
-	* ! Note that the user is only responsible for freeing the returned TextData after the last time that they draw their text
-	* ! This allows the following syntax:
-		td = font->draw(td, x, y, text, color);
-	* @textdata: the textdata to draw if the given text matches the prerendered text
-	* @x: the x-coordinate to draw the text at
-	* @y: the y-coordinate to draw the text at
-	* @text: the string to draw
-	* @color: the color to draw the text in
-	*/
-	TextData* Font::draw(TextData* textdata, int x, int y, const std::string& text, RGBA color) {
-		if (!is_loaded) { // Do not attempt to draw the text if the font has not been loaded
-			if (!has_draw_failed) { // If the draw call hasn't failed before, output a warning
-				messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to draw text with \"" + name + "\" because it is not loaded");
-				has_draw_failed = true; // Set the draw failure boolean
-			}
-			return nullptr; // Return nullptr when not loaded
-		}
 
 		if ((textdata != nullptr)&&(textdata->text == text)) { // If the prerendered text matches the given text, draw it as-is
-			std::vector<std::string> lines = util::splitv(text, '\n', false); // Separate the text by newline
 			size_t i = 0;
-			for (auto& l : lines) { // Iterate over the lines and draw each one
-				if (!l.empty()) {
-					textdata->textures[i]->draw(x, y, 0);
+			for (auto& t : textdata->textures) { // Iterate over the lines and draw each one
+				if (!lines[i].empty()) {
+					t->draw(x, y+lineskip*i, 0);
 				}
 				++i;
 			}
-			return textdata; // Return the textdata on success
 		} else { // Otherwise, free the given textdata and redraw the text
 			if (textdata != nullptr) {
 				delete textdata; // Free the old textdata
+				textdata = nullptr;
 			}
-			return draw(x, y, text, color); // Return the result of redrawing the text
+
+			TextData *r = nullptr; // Create a temporary TextData for each line
+			size_t i = 0;
+			for (auto& l : lines) { // Iterate over the lines and draw each one
+				r = draw_internal(x, y+lineskip*i, l, color); // Draw the line at the appropriate coordinates
+
+				if (r != nullptr) { // If the line was successfully drawn, append its TextData
+					if (textdata == nullptr) { // If it's the first line, set it as the entire TextData
+						textdata = r;
+					} else { // Otherwise append its data to the existing TextData
+						textdata->text += "\n" + r->text;
+						textdata->textures.emplace_back(r->pop_front());
+						delete r; // Free the temporary data
+					}
+				}
+
+				++i;
+			}
 		}
+
+		return textdata;
 	}
-	/*
-	* Font::draw() - Draw the given text at the given coordinates
-	* ! When the function is called without a color, simply draw it in black
-	* @textdata: the textdata to draw if the given text matches the prerendered text
-	* @x: the x-coordinate to draw the text at
-	* @y: the y-coordinate to draw the text at
-	* @text: the string to draw
+	/**
+	* Draw the given text at the given coordinates.
+	* @note When the function is called without a color, let it be black.
+	* @param textdata the TextData to draw if the given text matches the prerendered text
+	* @param x the x-coordinate to draw the text at
+	* @param y the y-coordinate to draw the text at
+	* @param text the string to draw
+	*
+	* @returns the rendered Texture data as a TextData
 	*/
 	TextData* Font::draw(TextData* textdata, int x, int y, const std::string& text) {
-		return draw(textdata, x, y, text, {0, 0, 0, 255}); // Return the result of drawing the text in black
+		return draw(textdata, x, y, text, {0, 0, 0, 255});
 	}
 
-	/*
-	* Font::draw_fast_internal() - Draw the given text with the given attributes without storing the rendered text
-	* @x: the x-coordinate to draw the text at
-	* @y: the y-coordinate to draw the text at
-	* @text: the string to draw
-	* @color: the color to draw the text in
+	/**
+	* Draw the given text with the given attributes without storing the rendered text.
+	* @param x the x-coordinate to draw the text at
+	* @param y the y-coordinate to draw the text at
+	* @param text the string to draw
+	* @param color the color to draw the text in
+	*
+	* @retval 0 success
+	* @retval 1 failed to render TTF text
 	*/
 	int Font::draw_fast_internal(int x, int y, const std::string& text, RGBA color) {
-		if (!is_loaded) { // Do not attempt to draw the text if the font has not been loaded
-			if (!has_draw_failed) { // If the draw call hasn't failed before, output a warning
-				messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to draw text with \"" + name + "\" because it is not loaded");
-				has_draw_failed = true; // Set the draw failure boolean
-			}
-			return 1; // Return 1 when not loaded
-		}
-
 		if (text.empty()) {
-			return 0; // Return 0 when no text was provided
+			return 0;
 		}
 
 		std::string t = util::string::replace(text, "\t", "    "); // Replace all tabs with 4 spaces for proper rendering
 
-		if (is_sprite) { // If the font is a sprite font, draw it appropriately
-			int i = 0;
-			int w = sprite_font->get_subimage_width();
-			int h = sprite_font->get_size().second;
-			for (char& c : t) {
-				sprite_font->draw_subimage(x+(i++), y, static_cast<int>(c), w, h, 0.0, {color.r, color.g, color.b, color.a});
-			}
-		} else { // Otherwise, draw the font normally
-			// Render the text to a temporary surface
-			SDL_Surface* tmp_surface;
-			tmp_surface = TTF_RenderUTF8_Blended(font, t.c_str(), {color.r, color.g, color.b, color.a}); // Use the slow but pretty TTF rendering mode
-			//tmp_surface = TTF_RenderUTF8_Solid(font, t.c_str(), {color.r, color.g, color.b, color.a}); // Use the fast but ugly TTF rendering mode
-			if (tmp_surface == nullptr) { // If the text failed to render, output a warning
-				messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to draw with font \"" + name + "\": " + TTF_GetError());
-				return 2; // Return 2 on rendering error
-			}
-
-			// Create a temporary sprite to draw the rendered text to the screen
-			Texture* tmp_texture = new Texture();
-			tmp_texture->load_from_surface(tmp_surface); // Load the rendered text into the texture
-			SDL_FreeSurface(tmp_surface); // Free the temporary surface
-
-			tmp_texture->draw(x, y, 0); // Draw the text
-			render::render_textures();
-
-			delete tmp_texture; // Free the temporary texture
+		// Render the text to a temporary surface
+		SDL_Surface* tmp_surface;
+		tmp_surface = TTF_RenderUTF8_Blended(font, t.c_str(), {color.r, color.g, color.b, color.a}); // Use the slow but pretty TTF rendering mode
+		//tmp_surface = TTF_RenderUTF8_Solid(font, t.c_str(), {color.r, color.g, color.b, color.a}); // Use the fast but ugly TTF rendering mode
+		if (tmp_surface == nullptr) { // If the text failed to render, output a warning
+			messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to draw with font \"" + name + "\": " + util::get_sdl_error());
+			return 1;
 		}
 
-		return 0; // Return 0 on success
+		// Create a temporary Texture to draw the rendered text to the screen
+		Texture* tmp_texture = new Texture();
+		tmp_texture->load_from_surface(tmp_surface); // Load the rendered text into the Texture
+		SDL_FreeSurface(tmp_surface);
+
+		tmp_texture->draw(x, y, 0); // Draw the text
+		render::render_textures(); // Render the Texture before freeing it
+
+		delete tmp_texture; // Free the temporary Texture
+
+		return 0;
 	}
-	/*
-	* Font::draw_fast() - Draw the given text with the given attributes without storing the rendered text
-	* @x: the x-coordinate to draw the text at
-	* @y: the y-coordinate to draw the text at
-	* @text: the string to draw
-	* @color: the color to draw the text in
+	/**
+	* Draw the given text with the given attributes without storing the rendered text.
+	* @param x the x-coordinate to draw the text at
+	* @param y the y-coordinate to draw the text at
+	* @param text the string to draw
+	* @param color the color to draw the text in
+	*
+	* @retval 0 success
+	* @retval 1 failed to draw since it's not loaded
+	* @retval 2 failed to draw otherwise
 	*/
 	int Font::draw_fast(int x, int y, const std::string& text, RGBA color) {
 		if (!is_loaded) { // Do not attempt to draw the text if the font has not been loaded
 			if (!has_draw_failed) { // If the draw call hasn't failed before, output a warning
 				messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to draw text with \"" + name + "\" because it is not loaded");
-				has_draw_failed = true; // Set the draw failure boolean
+				has_draw_failed = true;
 			}
-			return 1; // Return 1 when not loaded
+			return 1;
 		}
 
 		if (lineskip == 0) { // If the lineskip hasn't been set yet, get it from the loaded font
-			if (is_sprite) { // If the font is a sprite font, get the lineskip appropriately
-				lineskip = sprite_font->get_size().second;
-			} else { // Otherwise, get if from the loaded TTF font
-				lineskip = TTF_FontLineSkip(font);
-			}
+			lineskip = TTF_FontLineSkip(font);
 		}
 
 		std::vector<std::string> lines = util::splitv(text, '\n', false); // Split the text by newline
 		int r = 0; // Define a return value
 		size_t i = 0;
 		for (auto& l : lines) { // Iterate over the lines and draw each one
-			int ri = draw_fast_internal(x, y+lineskip*i, l, color); // Draw the line at the appropriate coordinates
-			if (ri > r) { // Only store the return value if it's higher than the previous value
-				r = ri;
-			}
+			r += draw_fast_internal(x, y+lineskip*i, l, color); // Draw the line at the appropriate coordinates
 			++i;
 		}
-		return r; // Return the highest error value from draw_fast_internal() above
+		return !!r;
 	}
-	/*
-	* Font::draw_fast() - Draw the given text with the given attributes without storing the rendered text
-	* ! When the function is called without a color, simply draw it in black
-	* @x: the x-coordinate to draw the text at
-	* @y: the y-coordinate to draw the text at
-	* @text: the string to draw
+	/**
+	* Draw the given text with the given attributes without storing the rendered text.
+	* @note When the function is called without a color, let it be black.
+	* @param x the x-coordinate to draw the text at
+	* @param y the y-coordinate to draw the text at
+	* @param text the string to draw
+	*
+	* @retval 0 success
+	* @retval >0 failed to draw
+	* @see draw_fast(int, int, const std::string&, RGBA) for details
 	*/
 	int Font::draw_fast(int x, int y, const std::string& text) {
 		return draw_fast(x, y, text, {0, 0, 0, 255}); // Return the result of drawing the text in black
 	}
 
-	/*
-	* Font::get_string_width() - Return the width of the given text in the given font size
-	* @text: the string to get the width of
-	* @size: the font size to use when getting the string width
+	/**
+	* @param text the string to get the width of
+	* @param size the font size to use when getting the string width
+	*
+	* @returns the width of the given text in the given font size
+	* @retval -1 failed to load the temporary font
 	*/
 	int Font::get_string_width(const std::string& text, int size) const {
-		if ((!is_loaded)||(is_sprite)) { // Do not attempt to get the string width if the font has not been loaded
-			return -1; // Return -1 when not loaded
+		TTF_Font* tmp_font = TTF_OpenFont(path.c_str(), size); // Open the TTF file with the desired font size
+		if (tmp_font == nullptr) {
+			return -1;
 		}
 
-		int w = 0; // Declare a temporary variable for the width
-		if (size == font_size) { // If the desired size is the same as the currently loaded size, fetch the width appropriately
-			std::vector<std::string> lines = util::splitv(text, '\n', false); // Separate the text by newline
-			int w0 = 0;
-			for (auto& l : lines) {
-				TTF_SizeUTF8(font, l.c_str(), &w0, nullptr);
-				if (w0 > w) {
-					w = w0;
-				}
+		std::vector<std::string> lines = util::splitv(text, '\n', false); // Separate the text by newline
+		int w = 0, w0 = 0;
+		for (auto& l : lines) {
+			TTF_SizeUTF8(tmp_font, l.c_str(), &w0, nullptr); // Get the temporary width
+			if (w0 > w) { // Store the maximum line width
+				w = w0;
 			}
-		} else { // Otherwise, load a temporary font
-			TTF_Font* tmp_font = TTF_OpenFont(path.c_str(), size); // Open the same TTF file with the desired font size
-			if (tmp_font == nullptr) { // If the font failed to load, output a warning
-				return -2; // Return -2 when font loading failed
-			}
-
-			std::vector<std::string> lines = util::splitv(text, '\n', false); // Separate the text by newline
-			int w0 = 0;
-			for (auto& l : lines) {
-				TTF_SizeUTF8(tmp_font, l.c_str(), &w0, nullptr); // Get the temporary width
-				if (w0 > w) {
-					w = w0;
-				}
-			}
-
-			TTF_CloseFont(tmp_font); // Close the font after getting the width
 		}
 
-		return w; // Return the width on success
+		TTF_CloseFont(tmp_font); // Close the temp font
+
+		return w;
 	}
-	/*
-	* Font::get_string_width() - Return the width of the given text
-	* ! When the function is called without a font size, simply call it with the font's loaded size
-	* @text: the string to get the width of
+	/**
+	* @note When the function is called without a font size, let it be the Font's loaded size.
+	* @param text the string to get the width of
+	*
+	* @returns the width of the given text
+	* @see get_string_width(const std::string&, int) const for details
 	*/
 	int Font::get_string_width(const std::string& text) const {
-		return get_string_width(text, font_size); // Return the width in the current font size
+		return get_string_width(text, font_size);
 	}
-	/*
-	* Font::get_string_width() - Return the width of a character
-	* ! When the function is called without any arguments, simply call it with the conventionally largest character
+	/**
+	* @note When the function is called with no arguments, let the string be "W" and the font size be the loaded size.
+	*
+	* @returns the width of a large character
+	* @see get_string_width(const std::string&, int) const for details
 	*/
 	int Font::get_string_width() const {
-		return get_string_width("W"); // Return the width of a large character in the current font size
+		return get_string_width("W");
 	}
-	/*
-	* Font::get_string_height() - Return the height of the given text in the given font size
-	* @text: the string to get the height of
-	* @size: the font size to use when getting the string height
+	/**
+	* @param text the string to get the height of
+	* @param size the font size to use when getting the string height
+	*
+	* @returns the height of the given text in the given font size
+	* @retval -1 failed to load the temporary font
 	*/
 	int Font::get_string_height(const std::string& text, int size) const {
-		if ((!is_loaded)||(is_sprite)) { // Do not attempt to get the string height if the font has not been loaded
-			return -1; // Return -1 when not loaded
+		TTF_Font* tmp_font = TTF_OpenFont(path.c_str(), size); // Open the TTF file with the desired font size
+		if (tmp_font == nullptr) {
+			return -1;
 		}
 
-		int h = 0; // Declare a temporary variable for the height
-		if (size == font_size) {
-			std::vector<std::string> lines = util::splitv(text, '\n', false); // Separate the text by newline
-			int h0 = 0;
-			for (auto& l : lines) {
-				TTF_SizeUTF8(font, l.c_str(), nullptr, &h0);
-				h += h0 + lineskip;
-			}
-		} else { // Otherwise, load a temporary font
-			TTF_Font* tmp_font = TTF_OpenFont(path.c_str(), size); // Open the same TTF file with the desired font size
-			if (tmp_font == nullptr) { // If the font failed to load, output a warning
-				return -2; // Return -2 when font loading failed
-			}
-
-			std::vector<std::string> lines = util::splitv(text, '\n', false); // Separate the text by newline
-			int h0 = 0;
-			for (auto& l : lines) {
-				TTF_SizeUTF8(tmp_font, l.c_str(), nullptr, &h0); // Get the temporary height
-				h += h0 + lineskip;
-			}
-
-			TTF_CloseFont(tmp_font); // Close the font after getting the height
+		std::vector<std::string> lines = util::splitv(text, '\n', false); // Separate the text by newline
+		int h = 0, h0 = 0;
+		for (auto& l : lines) {
+			TTF_SizeUTF8(tmp_font, l.c_str(), nullptr, &h0); // Get the temporary height
+			h += h0 + lineskip;
 		}
 
-		return h; // Return the height on success
+		TTF_CloseFont(tmp_font); // Close the temp font
+
+		return h;
 	}
-	/*
-	* Font::get_string_height() - Return the height of the given text
-	* ! When the function is called without a font size, simply call it with the font's loaded size
-	* @text: the string to get the height of
+	/**
+	* @note When the function is called without a font size, let it be the Font's loaded size
+	* @param text the string to get the height of
+	*
+	* @returns the height of the given text
+	* @see get_string_width(const std::string&, int) const for details
 	*/
 	int Font::get_string_height(const std::string& text) const {
-		return get_string_height(text, font_size); // Return the height in the current font size
+		return get_string_height(text, font_size);
 	}
-	/*
-	* Font::get_string_height() - Return the height of a generic English string
-	* ! When the function is called without any arguments, simply call it with the a generic English string and the font's loaded size
+	/**
+	* @note When the function is called without any arguments, let it the string be generic English and the size be the loaded size.
+	*
+	* @returns the height of a generic English string
+	* @see get_string_width(const std::string&, int) const for details
 	*/
 	int Font::get_string_height() const {
-		return get_string_height("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890`~!@#$%^&*(),./;'[]\\-='<>?:\"{}|_+", font_size); // Return the height of most general characters in the current font size
+		return get_string_height("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890`~!@#$%^&*(),./;'[]\\-='<>?:\"{}|_+", font_size);
 	}
 }
 

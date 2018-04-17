@@ -9,16 +9,12 @@
 #ifndef BEE_TEXTURE
 #define BEE_TEXTURE 1
 
-#include "../defines.hpp"
-
-#include <sstream> // Include the required library headers
+#include "texture.hpp" // Include the class resource header
 
 #include <SDL2/SDL_image.h> // Include the required SDL headers
 
 #include <glm/gtc/matrix_transform.hpp> // Include the required OpenGL headers
 #include <glm/gtc/type_ptr.hpp>
-
-#include "texture.hpp" // Include the class resource header
 
 #include "../engine.hpp"
 
@@ -29,16 +25,10 @@
 
 #include "../messenger/messenger.hpp"
 
-#include "../core/enginestate.hpp"
 #include "../core/rooms.hpp"
-#include "../core/window.hpp"
 
-#include "../render/drawing.hpp"
 #include "../render/render.hpp"
-#include "../render/renderer.hpp"
 #include "../render/shader.hpp"
-
-#include "room.hpp"
 
 namespace bee {
 	/**
@@ -558,10 +548,10 @@ namespace bee {
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
 
 		// Bind the vertices to the VAO's vertex buffer
-		glEnableVertexAttribArray(engine->renderer->program->get_location("v_position"));
+		glEnableVertexAttribArray(render::get_program()->get_location("v_position"));
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
 		glVertexAttribPointer(
-			engine->renderer->program->get_location("v_position"),
+			render::get_program()->get_location("v_position"),
 			2,
 			GL_FLOAT,
 			GL_FALSE,
@@ -602,7 +592,7 @@ namespace bee {
 	SDL_Surface* Texture::load_surface() const {
 		SDL_Surface* surface = IMG_Load(path.c_str());
 		if (surface == nullptr) { // If the surface could not be loaded, output a warning
-			messenger::send({"engine", "texture"}, E_MESSAGE::WARNING, "Failed to load texture surface \"" + name + "\": " + IMG_GetError());
+			messenger::send({"engine", "texture"}, E_MESSAGE::WARNING, "Failed to load texture surface \"" + name + "\": " + util::get_sdl_error());
 			return nullptr;
 		}
 		return surface;
@@ -631,7 +621,7 @@ namespace bee {
 		}
 
 		load_from_surface(tmp_surface); // Load the surface into a texture
-		SDL_FreeSurface(tmp_surface); // Free the temporary surface
+		SDL_FreeSurface(tmp_surface);
 
 		return 0;
 	}
@@ -686,10 +676,10 @@ namespace bee {
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
 
 		// Bind the vertices to the VAO's vertex buffer
-		glEnableVertexAttribArray(engine->renderer->program->get_location("v_position"));
+		glEnableVertexAttribArray(render::get_program()->get_location("v_position"));
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
 		glVertexAttribPointer(
-			engine->renderer->program->get_location("v_position"),
+			render::get_program()->get_location("v_position"),
 			2,
 			GL_FLOAT,
 			GL_FALSE,
@@ -791,7 +781,7 @@ namespace bee {
 		glBindVertexArray(vao); // Bind the VAO for the texture
 
 		// Bind the texture texture
-		glUniform1i(engine->renderer->program->get_location("f_texture"), 0);
+		glUniform1i(render::get_program()->get_location("f_texture"), 0);
 		glBindTexture(GL_TEXTURE_2D, gl_texture);
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
@@ -809,9 +799,9 @@ namespace bee {
 			return 1;
 		}
 
-		glUniformMatrix4fv(engine->renderer->program->get_location("model"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the partial transformation matrix
-		glUniformMatrix4fv(engine->renderer->program->get_location("rotation"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the rotation matrix
-		glUniform1i(engine->renderer->program->get_location("flip"), 0); // Reset the flip type
+		glUniformMatrix4fv(render::get_program()->get_location("model"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the partial transformation matrix
+		glUniformMatrix4fv(render::get_program()->get_location("rotation"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the rotation matrix
+		glUniform1i(render::get_program()->get_location("flip"), 0); // Reset the flip type
 
 		glBindVertexArray(0); // Unbind the VAO
 
@@ -835,7 +825,7 @@ namespace bee {
 		if (!is_loaded) { // Do not attempt to draw the subimage if it has not been loaded
 			if (!has_draw_failed) { // If the draw call hasn't failed before, output a warning
 				messenger::send({"engine", "texture"}, E_MESSAGE::WARNING, "Failed to draw texture \"" + name + "\" because it is not loaded");
-				has_draw_failed = true; // Set the draw failure boolean
+				has_draw_failed = true;
 			}
 			return 1;
 		}
@@ -913,7 +903,7 @@ namespace bee {
 	*/
 	int Texture::draw(int x, int y, Uint32 subimage_time, int w, int h, double angle, RGBA color) {
 		// Calculate the current subimage to draw from the given animation frame
-		unsigned int current_subimage = static_cast<unsigned int>(round(speed*(get_ticks()-subimage_time)/engine->fps_goal)) % subimage_amount;
+		unsigned int current_subimage = static_cast<unsigned int>(round(speed*(get_ticks()-subimage_time)/get_fps_goal())) % subimage_amount;
 		if (current_subimage == 0) { // If the first frame is being drawn, set the animation boolean
 			is_animated = true;
 		}
@@ -946,7 +936,7 @@ namespace bee {
 		if (!is_loaded) { // Do not attempt to draw the texture if it has not been loaded
 			if (!has_draw_failed) { // If the draw call hasn't failed before, output a warning
 				messenger::send({"engine", "texture"}, E_MESSAGE::WARNING, "Failed to draw texture \"" + name + "\" because it is not loaded");
-				has_draw_failed = true; // Set the draw failure boolean
+				has_draw_failed = true;
 			}
 			return 1;
 		}
@@ -954,7 +944,7 @@ namespace bee {
 		if (tr.is_stretched) { // If the texture should be stretched, then draw it without animation
 			draw(0, 0, 0, get_room_size().first, get_room_size().second, 0.0, {255, 255, 255, 255});
 		} else {
-			const int dt_fps = get_ticks()/engine->fps_goal;
+			const int dt_fps = get_ticks()/get_fps_goal();
 			int dx = tr.horizontal_speed*dt_fps;
 			int dy = tr.vertical_speed*dt_fps;
 

@@ -369,16 +369,18 @@ namespace bee{ namespace console {
 		size_t total_lines = lines.size(); // Store the total line number for the below page number calculation
 
 		// Split lines if they are wider than the console window
-		for (auto it=lines.begin(); it!=lines.end(); ++it) {
+		std::vector<std::string> full_lines (lines);
+		lines.clear();
+		for (auto it=full_lines.begin(); it!=full_lines.end(); ++it) {
 			if (engine->font_default->get_string_width(*it) > rect.w) {
-				int c = static_cast<int>(
-					1.5 * rect.w / engine->font_default->get_font_size()
-				) - 1;
+				int c = rect.w / engine->font_default->get_string_width();
 
-				lines.emplace(it+1, (*it).substr(c));
-				*it = (*it).substr(0, c);
+				lines.emplace_back(it->substr(0, c));
+				lines.emplace_back(it->substr(c));
 
 				++total_lines;
+			} else {
+				lines.emplace_back(*it);
 			}
 		}
 
@@ -455,8 +457,8 @@ namespace bee{ namespace console {
 	*/
 	void clear() {
 		internal::log.str(std::string());
-                internal::log.clear();
-                internal::page_index = 0;
+        internal::log.clear();
+        internal::page_index = 0;
 	}
 
 	/**

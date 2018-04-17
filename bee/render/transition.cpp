@@ -25,6 +25,7 @@
 
 #include "../render/render.hpp"
 #include "../render/renderer.hpp"
+#include "../render/shader.hpp"
 
 #include "../resource/texture.hpp"
 #include "../resource/room.hpp"
@@ -75,6 +76,9 @@ namespace bee {
 			return 1; // Return 1 when in headless mode
 		}
 
+		render::set_viewport(nullptr);
+		glUniform1i(render::get_program()->get_location("flip"), 2);
+
 		switch (engine->transition_type) {
 			case E_TRANSITION::NONE: { // No transition
 				break;
@@ -89,6 +93,7 @@ namespace bee {
 					engine->texture_before->draw(0, 0, 0);
 					engine->texture_after->crop_image({-1, -1, static_cast<int>(i), -1});
 					engine->texture_after->draw(0, 0, 0, static_cast<int>(i), -1, 0.0, {255, 255, 255, 255});
+					render::render_textures();
 					render::render();
 				}
 				break;
@@ -101,8 +106,9 @@ namespace bee {
 
 					render::clear();
 					engine->texture_after->draw(0, 0, 0);
-					engine->texture_after->crop_image({-1, -1, static_cast<int>(i), -1});
+					engine->texture_before->crop_image({-1, -1, static_cast<int>(i), -1});
 					engine->texture_before->draw(0, 0, 0, static_cast<int>(i), -1, 0.0, {255, 255, 255, 255});
+					render::render_textures();
 					render::render();
 				}
 				break;
@@ -117,6 +123,7 @@ namespace bee {
 					engine->texture_before->draw(0, 0, 0);
 					engine->texture_after->crop_image({-1, -1, -1, static_cast<int>(i)});
 					engine->texture_after->draw(0, 0, 0, -1, static_cast<int>(i), 0.0, {255, 255, 255, 255});
+					render::render_textures();
 					render::render();
 				}
 				break;
@@ -129,8 +136,9 @@ namespace bee {
 
 					render::clear();
 					engine->texture_after->draw(0, 0, 0);
-					engine->texture_after->crop_image({-1, -1, -1, static_cast<int>(i)});
+					engine->texture_before->crop_image({-1, -1, -1, static_cast<int>(i)});
 					engine->texture_before->draw(0, 0, 0, -1, static_cast<int>(i), 0.0, {255, 255, 255, 255});
+					render::render_textures();
 					render::render();
 				}
 				break;
@@ -151,6 +159,7 @@ namespace bee {
 					engine->texture_after->crop_image({x, y, static_cast<int>(i), static_cast<int>(ih)});
 					engine->texture_after->draw(x, y, 0, static_cast<int>(i), static_cast<int>(ih), 0.0, {255, 255, 255, 255});
 
+					render::render_textures();
 					render::render();
 				}
 				break;
@@ -164,6 +173,7 @@ namespace bee {
 					render::clear();
 					engine->texture_before->draw(0, 0, 0);
 					engine->texture_after->draw(static_cast<int>(i), 0, 0);
+					render::render_textures();
 					render::render();
 				}
 				break;
@@ -177,6 +187,7 @@ namespace bee {
 					render::clear();
 					engine->texture_before->draw(0, 0, 0);
 					engine->texture_after->draw(static_cast<int>(i), 0, 0);
+					render::render_textures();
 					render::render();
 				}
 				break;
@@ -190,6 +201,7 @@ namespace bee {
 					render::clear();
 					engine->texture_before->draw(0, 0, 0);
 					engine->texture_after->draw(0, static_cast<int>(i), 0);
+					render::render_textures();
 					render::render();
 				}
 				break;
@@ -203,6 +215,7 @@ namespace bee {
 					render::clear();
 					engine->texture_before->draw(0, 0, 0);
 					engine->texture_after->draw(0, static_cast<int>(i), 0);
+					render::render_textures();
 					render::render();
 				}
 				break;
@@ -237,6 +250,7 @@ namespace bee {
 					render::clear();
 					engine->texture_before->draw(static_cast<int>(i)+w, 0, 0);
 					engine->texture_after->draw(static_cast<int>(i), 0, 0);
+					render::render_textures();
 					render::render();
 				}
 				break;
@@ -251,6 +265,7 @@ namespace bee {
 					render::clear();
 					engine->texture_before->draw(static_cast<int>(i)-w, 0, 0);
 					engine->texture_after->draw(static_cast<int>(i), 0, 0);
+					render::render_textures();
 					render::render();
 				}
 				break;
@@ -265,6 +280,7 @@ namespace bee {
 					render::clear();
 					engine->texture_before->draw(0, static_cast<int>(i)+h, 0);
 					engine->texture_after->draw(0, static_cast<int>(i), 0);
+					render::render_textures();
 					render::render();
 				}
 				break;
@@ -279,6 +295,7 @@ namespace bee {
 					render::clear();
 					engine->texture_before->draw(0, static_cast<int>(i)-h, 0);
 					engine->texture_after->draw(0, static_cast<int>(i), 0);
+					render::render_textures();
 					render::render();
 				}
 				break;
@@ -294,6 +311,7 @@ namespace bee {
 					render::clear();
 					engine->texture_before->draw(0, 0, 0, -1, -1, -a, {255, 255, 255, 255});
 					engine->texture_after->draw(0, 0, 0, -1, -1, 90.0-a, {255, 255, 255, 255});
+					render::render_textures();
 					render::render();
 				}
 				break;
@@ -309,6 +327,7 @@ namespace bee {
 					render::clear();
 					engine->texture_before->draw(0, 0, 0, -1, -1, a, {255, 255, 255, 255});
 					engine->texture_after->draw(0, 0, 0, -1, -1, a-90.0, {255, 255, 255, 255});
+					render::render_textures();
 					render::render();
 				}
 				break;
@@ -322,6 +341,7 @@ namespace bee {
 					render::clear();
 					engine->texture_before->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, static_cast<Uint8>(255.0-a)});
 					engine->texture_after->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, static_cast<Uint8>(a)});
+					render::render_textures();
 					render::render();
 				}
 				break;
@@ -334,6 +354,7 @@ namespace bee {
 
 					render::clear();
 					engine->texture_before->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, static_cast<Uint8>(255.0-a)});
+					render::render_textures();
 					render::render();
 				}
 				for (double a=0.0; a<255.0; a+=engine->transition_speed*get_delta()/5.0) {
@@ -343,6 +364,7 @@ namespace bee {
 
 					render::clear();
 					engine->texture_after->draw(0, 0, 0, -1, -1, 0.0, {255, 255, 255, static_cast<Uint8>(a)});
+					render::render_textures();
 					render::render();
 				}
 				break;
@@ -358,6 +380,8 @@ namespace bee {
 				break;
 			}
 		}
+
+		glUniform1i(render::get_program()->get_location("flip"), 0);
 
 		return 0;
 	}

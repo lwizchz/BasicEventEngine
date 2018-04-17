@@ -42,6 +42,7 @@ namespace render {
 
 	int reset_target();
 	int set_target(Texture*);
+	Texture* get_target();
 	int set_program(ShaderProgram*);
 	ShaderProgram* get_program();
 

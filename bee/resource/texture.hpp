@@ -14,7 +14,6 @@
 #include <string> // Include the required library headers
 #include <map>
 #include <vector>
-#include <list>
 
 #include <SDL2/SDL.h> // Include the required SDL headers
 
@@ -41,7 +40,7 @@ namespace bee {
 
 		bool is_stretched; ///< Whether the texture should be stretched to the window size, which will cause some of the above values to be ignored
 
-		// See bee/resources/texture.cpp for function comments
+		// See bee/resource/texture.cpp for function comments
 		TextureTransform();
 		TextureTransform(int, int, bool, bool, int, int, bool);
 	};
@@ -57,7 +56,7 @@ namespace bee {
 		glm::vec4 color; ///< The colorization to use
 		GLuint buffer; ///< The texcoord buffer
 
-		// See bee/resources/texture.cpp for function comments
+		// See bee/resource/texture.cpp for function comments
 		TextureDrawData(GLuint, GLuint, GLuint);
 		TextureDrawData(GLuint, GLuint, GLuint, glm::mat4, glm::mat4, glm::vec4, GLuint);
 	};
@@ -94,14 +93,14 @@ namespace bee {
 
 		GLuint framebuffer; ///< The framebuffer object used by set_as_target()
 
-		// See bee/resources/texture.cpp for function comments
+		// See bee/resource/texture.cpp for function comments
 		int drawing_begin();
 		int drawing_end();
 
 		int tile_horizontal(const SDL_Rect&);
 		int tile_vertical(const SDL_Rect&);
 	public:
-		// See bee/resources/texture.cpp for function comments
+		// See bee/resource/texture.cpp for function comments
 		Texture();
 		Texture(const std::string&, const std::string&);
 		~Texture();

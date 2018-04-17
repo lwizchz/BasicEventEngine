@@ -9,22 +9,17 @@
 #ifndef BEE_SOUND
 #define BEE_SOUND 1
 
-#include <sstream> // Include the required library headers
-#include <vector>
+#include <vector> // Include the required library headers
 #include <algorithm>
 
 #include "sound.hpp" // Include the class resource header
 
-#include "../enum.hpp"
-#include "../engine.hpp"
-
-#include "../util/platform.hpp"
+#include "../util/debug.hpp"
 
 #include "../init/gameoptions.hpp"
 
 #include "../messenger/messenger.hpp"
 
-#include "../core/enginestate.hpp"
 #include "../core/soundeffects.hpp"
 
 namespace bee {
@@ -169,7 +164,7 @@ namespace bee {
 		finish_func(nullptr)
 	{}
 	/**
-	* Construct the sound, add it to the sound resource list, and set the new name and path.
+	* Construct the Sound, add it to the Sound resource list, and set the new name and path.
 	* @param _name the name of the sound to use
 	* @param _path the path of the sound's file
 	* @param _is_music whether the sound should be treated as music or a sound effect
@@ -299,7 +294,7 @@ namespace bee {
 	}
 
 	/**
-	* Add the sound to the appropriate resource list.
+	* Add the Sound to the appropriate resource list.
 	*
 	* @returns the Sound id
 	*/
@@ -337,7 +332,7 @@ namespace bee {
 		current_channels.clear();
 		has_play_failed = false;
 
-		return 0; // Return 0 on success
+		return 0;
 	}
 
 	/**
@@ -380,7 +375,7 @@ namespace bee {
 	* @param m the map of data to use
 	*
 	* @retval 0 success
-	* @retval 1 failed to load the sound
+	* @retval 1 failed to load the Sound
 	*/
 	int Sound::deserialize(std::map<Variant,Variant>& m) {
 		this->free();
@@ -388,6 +383,9 @@ namespace bee {
 		id = m["id"].i;
 		name = m["name"].s;
 		path = m["name"].s;
+
+		volume = m["volume"].d;
+		pan = m["pan"].d;
 
 		music = nullptr;
 		chunk = nullptr;
@@ -566,13 +564,13 @@ namespace bee {
 		if (is_music) { // If the sound should be treated as music, load it appropriately
 			music = Mix_LoadMUS(path.c_str()); // Load the sound file as mixer music
 			if (music == nullptr) { // If the music could not be loaded, output a warning
-				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to load sound \"" + name + "\" as music: " + Mix_GetError());
+				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to load sound \"" + name + "\" as music: " + util::get_sdl_error());
 				return 3;
 			}
 		} else { // Otherwise load the sound normally
 			chunk = Mix_LoadWAV(path.c_str()); // Load the sound file as a chunk sound
 			if (chunk == nullptr) { // If the chunk could not be loaded, output a warning
-				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to load sound \"" + name + "\" as chunk: " + Mix_GetError());
+				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to load sound \"" + name + "\" as chunk: " + util::get_sdl_error());
 				return 3;
 			}
 		}
@@ -667,7 +665,7 @@ namespace bee {
 				current_channels.remove(c); // Remove any duplicate channels
 				current_channels.emplace_back(c);
 			} else { // If the chunk could not be played, output a warning
-				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to play sound \"" + name + "\": " + Mix_GetError());
+				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to play sound \"" + name + "\": " + util::get_sdl_error());
 				return 2;
 			}
 
