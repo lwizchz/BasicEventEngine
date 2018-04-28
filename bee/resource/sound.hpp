@@ -53,21 +53,21 @@ namespace bee {
 		std::string name; ///< An arbitrary resource name
 		std::string path; ///< The path of the sound file
 
-		double volume; ///< The relative volume to play the sound at, from 0.0 to 1.0
-		double pan; ///< The panning of the sound, from -1.0 to 1.0 as Left to Right
+		double volume; ///< The relative volume to play the Sound at, from 0.0 to 1.0
+		double pan; ///< The panning of the Sound, from -1.0 to 1.0 as Left to Right
 
 		Mix_Music* music; ///< The internal sound storage struct for music
 		Mix_Chunk* chunk; ///< The internal sound storage struct for a sound effect chunk
 		bool is_loaded; ///< Whether the sound file was successfully loaded
-		bool is_music; ///< Whether the sound should be treated as music or a sound effect chunk
-		bool is_playing; ///< Whether the sound is currently playing
-		bool is_looping; ///< Whether the sound is currently looping while playing
-		std::list<int> current_channels; ///< A list of the current channels that the sound is playing on
+		bool is_music; ///< Whether the Sound should be treated as music or a sound effect chunk
+		bool is_playing; ///< Whether the Sound is currently playing
+		bool is_looping; ///< Whether the Sound is currently looping while playing
+		std::list<int> current_channels; ///< A list of the current channels that the Sound is playing on
 		bool has_play_failed; ///< Whether the play function has previously failed, this prevents continuous warning outputs
 
-		std::vector<SoundEffect> effects; ///< A vector of the effects that are applied to the sound
+		std::vector<SoundEffect> effects; ///< A vector of the effects that are applied to the Sound
 
-		std::function<void (Sound*)> finish_func; ///< A function called whenever the sound finishes playing
+		std::function<void (Sound*)> finish_func; ///< A function called whenever the Sound finishes playing
 
 		// See bee/resource/sound.cpp for function comments
 		void update_volume();

@@ -33,12 +33,12 @@ namespace bee {
 		int x; ///< The top-left x-coordinate
 		int y; ///< The top-left y-coordinate
 
-		bool is_horizontal_tile; ///< Whether the texture should be tiled horizontally
-		bool is_vertical_tile; ///< Whether the texture should be tiled vertically
-		int horizontal_speed; ///< The speed with which the texture should move horizontally in pixels per second
-		int vertical_speed; ///< The speed with which the texture should move vertically in pixels per second
+		bool is_horizontal_tile; ///< Whether the Texture should be tiled horizontally
+		bool is_vertical_tile; ///< Whether the Texture should be tiled vertically
+		int horizontal_speed; ///< The speed with which the Texture should move horizontally in pixels per second
+		int vertical_speed; ///< The speed with which the Texture should move vertically in pixels per second
 
-		bool is_stretched; ///< Whether the texture should be stretched to the window size, which will cause some of the above values to be ignored
+		bool is_stretched; ///< Whether the Texture should be stretched to the window size, which will cause some of the above values to be ignored
 
 		// See bee/resource/texture.cpp for function comments
 		TextureTransform();
@@ -75,18 +75,18 @@ namespace bee {
 		unsigned int subimage_amount; ///< The number of subimages to divide the images into
 		unsigned int subimage_width; ///< The width of each subimage
 
-		SDL_Rect crop; ///< A rectangle which determines how the texture is cropped before being drawn
+		SDL_Rect crop; ///< A rectangle which determines how the Texture is cropped before being drawn
 		double speed; ///< The speed at which the subimages animate in frames per second
-		bool is_animated; ///< Whether the texture is currently animating or not
-		std::pair<int,int> origin; ///< The origin from which the texture is drawn
-		std::pair<double,double> rotate; ///< The origin around which the texture is rotated, scaled from 0.0 to 1.0 in both width and height
+		bool is_animated; ///< Whether the Texture is currently animating or not
+		std::pair<int,int> origin; ///< The origin from which the Texture is drawn
+		std::pair<double,double> rotate; ///< The origin around which the Texture is rotated, scaled from 0.0 to 1.0 in both width and height
 
 		bool is_loaded; ///< Whether the image file was successfully loaded into a texture
 		SDL_Texture* texture; ///< The internal texture storage
 		bool has_draw_failed; ///< Whether the draw function has previously failed, this prevents continuous warning outputs
 
-		GLuint vao; ///< The Vertex Array Object which contains most of the following data
-		GLuint vbo_vertices; ///< The Vertex Buffer Object which contains the vertices of the quad
+		GLuint vao; ///< The Vertex Array %Object which contains most of the following data
+		GLuint vbo_vertices; ///< The Vertex Buffer %Object which contains the vertices of the quad
 		GLuint ibo; ///< The buffer object which contains the order of the vertices for each element
 		GLuint gl_texture; ///< The internal texture storage for OpenGL mode
 		std::vector<GLuint> vbo_texcoords; ///< The buffer objects which contains the subimage texture coordinates

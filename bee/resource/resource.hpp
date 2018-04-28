@@ -10,7 +10,8 @@
 #define BEE_RESOURCE_H 1
 
 namespace bee {
-	class Resource { // The abstract class for all resource types
+	/// The abstract class for all resource types
+	class Resource {
 		public:
 			virtual ~Resource() {};
 			virtual int reset() =0;

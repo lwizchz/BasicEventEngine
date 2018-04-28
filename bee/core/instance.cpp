@@ -31,7 +31,6 @@
 #include "../physics/world.hpp"
 
 #include "../resource/texture.hpp"
-#include "../resource/path.hpp"
 #include "../resource/object.hpp"
 #include "../resource/room.hpp"
 
@@ -49,14 +48,6 @@ namespace bee {
 		computation_type(E_COMPUTATION::SEMISTATIC),
 		is_persistent(false),
 
-		path(nullptr),
-		path_speed(0.0),
-		path_end_action(E_PATH_END::STOP),
-		path_current_node(0),
-		path_is_drawn(false),
-		path_is_pausable(false),
-		path_previous_mass(0.0),
-
 		data({
 			{"object", Variant(std::string())},
 			{"alarms", Variant(std::map<Variant,Variant>())}
@@ -66,8 +57,7 @@ namespace bee {
 		subimage_time(0),
 		depth(0),
 
-		pos_previous(),
-		path_pos_start()
+		pos_previous()
 	{}
 	/**
 	* Construct the Instance with the given object and position.
@@ -118,8 +108,6 @@ namespace bee {
 
 		pos_start = btVector3(btScalar(x), btScalar(y), btScalar(z));
 		pos_previous = pos_start;
-		path_pos_start = btVector3(0.0, 0.0, 0.0);
-		path_previous_mass = 0.0;
 
 		data.clear();
 		set_data("object", object->get_name());
@@ -178,18 +166,6 @@ namespace bee {
 		instance_info["pos_start"] = {Variant(pos_start.x()), Variant(pos_start.y()), Variant(pos_start.z())};
 		instance_info["pos_previous"] = {Variant(pos_previous.x()), Variant(pos_previous.y()), Variant(pos_previous.z())};
 
-		instance_info["path"] = "";
-		if (path != nullptr) {
-			instance_info["path"] = path->get_name();
-		}
-		instance_info["path_speed"] = path_speed;
-		instance_info["path_end_action"] = static_cast<int>(path_end_action);
-		instance_info["path_current_node"] = path_current_node;
-		instance_info["path_is_drawn"] = path_is_drawn;
-		instance_info["path_is_pausable"] = path_is_pausable;
-		instance_info["path_previous_mass"] = path_previous_mass;
-		instance_info["path_pos_start"] = {Variant(path_pos_start.x()), Variant(path_pos_start.y()), Variant(path_pos_start.z())};
-
 		return instance_info;
 	}
 	/**
@@ -218,19 +194,6 @@ namespace bee {
 			btScalar(m["pos_previous"].v[0].f),
 			btScalar(m["pos_previous"].v[1].f),
 			btScalar(m["pos_previous"].v[2].f)
-		);
-
-		path = Path::get_by_name(m["path"].s);
-		path_speed = m["path_speed"].d;
-		path_end_action = static_cast<E_PATH_END>(m["path_end_action"].i);
-		path_current_node = m["path_current_node"].i;
-		path_is_drawn = m["path_is_drawn"].i;
-		path_is_pausable = m["path_is_pausable"].i;
-		path_previous_mass = m["path_previous_mass"].d;
-		path_pos_start = btVector3(
-			btScalar(m["path_pos_start"].v[0].f),
-			btScalar(m["path_pos_start"].v[1].f),
-			btScalar(m["path_pos_start"].v[2].f)
 		);
 
 		return 0;
@@ -1039,148 +1002,6 @@ namespace bee {
 		return 0;
 	}
 
-	int Instance::path_start(Path* _path, double _path_speed, E_PATH_END _end_action, bool absolute) {
-		path = _path;
-		path_speed = _path_speed;
-		path_end_action = _end_action;
-		path_current_node = -1;
-
-		path_previous_mass = get_physbody()->get_mass();
-		set_mass(0.0);
-
-		if (absolute) {
-			path_pos_start = btVector3(
-				btScalar(std::get<0>(path->get_coordinate_list().front())),
-				btScalar(std::get<1>(path->get_coordinate_list().front())),
-				btScalar(std::get<2>(path->get_coordinate_list().front()))
-			);
-		} else {
-			path_pos_start = btVector3(
-				btScalar(get_x()),
-				btScalar(get_y()),
-				btScalar(get_z())
-			);
-		}
-
-		return 0;
-	}
-	int Instance::path_end() {
-		path = nullptr;
-		path_speed = 0.0;
-		path_end_action = E_PATH_END::STOP;
-		path_pos_start = btVector3(0.0, 0.0, 0.0);
-		path_current_node = 0;
-
-		set_mass(path_previous_mass);
-		path_previous_mass = 0.0;
-
-		return 0;
-	}
-	int Instance::path_reset() {
-		bool a = false;
-		if (
-			(path_pos_start.x() == std::get<0>(path->get_coordinate_list().front()))
-			&&(path_pos_start.y() == std::get<1>(path->get_coordinate_list().front()))
-			&&(path_pos_start.z() == std::get<2>(path->get_coordinate_list().front()))
-		) {
-				a = true;
-		}
-
-		return path_start(path, path_speed, path_end_action, a);
-	}
-	int Instance::path_update_node() {
-		if (has_path()) {
-			if (path_speed >= 0) {
-				if (path_current_node+1 < static_cast<int>(path->get_coordinate_list().size())) {
-					path_coord_t c = path->get_coordinate_list().at(path_current_node+1);
-					btVector3 node_pos (path_pos_start);
-					node_pos += btVector3(std::get<0>(c), std::get<1>(c), std::get<2>(c));
-					if (get_distance(node_pos) < std::get<3>(c)*path_speed) {
-						path_current_node++;
-					}
-				}
-			} else {
-				path_coord_t c = path->get_coordinate_list().at(path_current_node);
-				btVector3 node_pos (path_pos_start);
-				node_pos += btVector3(std::get<0>(c), std::get<1>(c), std::get<2>(c));
-				if (get_distance(node_pos) < std::get<3>(c)*-path_speed) {
-					path_current_node--;
-				}
-			}
-
-			return 0;
-		}
-		return 1;
-	}
-	int Instance::set_path_drawn(bool _path_is_drawn) {
-		path_is_drawn = _path_is_drawn;
-		return 0;
-	}
-	int Instance::set_path_pausable(bool _path_is_pausable) {
-		path_is_pausable = _path_is_pausable;
-		return 0;
-	}
-	int Instance::handle_path_end() {
-		if (has_path()) {
-			switch (path_end_action) {
-				case E_PATH_END::STOP: { // Stop path
-					path_end();
-					break;
-				}
-				case E_PATH_END::RESTART: { // Continue from start
-					path_current_node = -1;
-					set_pos(path_pos_start);
-					pos_previous = path_pos_start;
-					break;
-				}
-				case E_PATH_END::CONTINUE: { // Continue from current position
-					path_current_node = -1;
-					path_pos_start = btVector3(
-						btScalar(get_x()),
-						btScalar(get_y()),
-						btScalar(get_z())
-					);
-					break;
-				}
-				case E_PATH_END::REVERSE: { // Reverse direction
-					path_speed *= -1;
-					if (path_speed >= 0) {
-						path_current_node = 0;
-					} else {
-						path_current_node = path->get_coordinate_list().size()-2;
-					}
-					break;
-				}
-			}
-			return 0;
-		}
-		return 1;
-	}
-	bool Instance::has_path() {
-		if (path == nullptr) {
-			return false;
-		}
-		return true;
-	}
-	bool Instance::get_path_drawn() {
-		return path_is_drawn;
-	}
-	double Instance::get_path_speed() {
-		return path_speed;
-	}
-	int Instance::get_path_node() {
-		return path_current_node;
-	}
-	std::vector<path_coord_t> Instance::get_path_coords() {
-		if (has_path()) {
-			return path->get_coordinate_list();
-		}
-		return std::vector<path_coord_t>();
-	}
-	bool Instance::get_path_pausable() {
-		return path_is_pausable;
-	}
-
 	/**
 	* Draw the sprite Texture with the given properties.
 	* @see Texture::draw() for more information.
@@ -1211,19 +1032,6 @@ namespace bee {
 	*/
 	int Instance::draw() {
 		return draw(-1, -1, 0.0, {255, 255, 255, 255});
-	}
-
-	/**
-	* Draw the current Path.
-	* @see Path::draw() for more information.
-	*
-	* @retval 0 success
-	*/
-	int Instance::draw_path() {
-		if (path != nullptr) {
-			return path->draw(path_pos_start.x(), path_pos_start.y(), path_pos_start.z());
-		}
-		return 0;
 	}
 }
 

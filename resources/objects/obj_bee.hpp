@@ -16,6 +16,7 @@ class ObjBee : public bee::Object {
 		void create(bee::Instance*);
 		void destroy(bee::Instance*);
 		void commandline_input(bee::Instance*, const std::string&);
+		void path_end(bee::Instance*, bee::PathFollower*);
 		void outside_room(bee::Instance*);
 		void draw(bee::Instance*);
 };

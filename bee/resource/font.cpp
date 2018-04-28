@@ -84,29 +84,28 @@ namespace bee {
 	{}
 	/**
 	* Construct the Font, add it to the Font resource list, and set the new name, path, and size.
-	* @param _name the name of the font to use
-	* @param _path the path of the font file, must be either a TTF or bitmap font
-	* @param _font_size the size of the font to use
+	* @param _name the name of the Font to use
+	* @param _path the path of the font file, must be either a TTF or OTF font
+	* @param _font_size the size of the Font to use
 	*/
 	Font::Font(const std::string& _name, const std::string& _path, int _font_size) :
 		Font() // Default initialize all variables
 	{
-		add_to_resources(); // Add the font to the appropriate resource list
-		if (id < 0) { // If the font could not be added to the resource list, output a warning
-			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add font resource: \"" + _name + "\" from " + _path);
+		if (add_to_resources() < 0) { // Attempt to add the Font to its resource list
+			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add Font resource: \"" + _name + "\" from " + _path);
 			throw(-1); // Throw an exception
 		}
 
-		set_name(_name); // Set the font name
-		set_path(_path); // Set the font path
-		set_font_size(_font_size); // Set the font size
+		set_name(_name);
+		set_path(_path);
+		set_font_size(_font_size); // Set the Font size
 	}
 	/**
 	* Free the Font data and remove it from the resource list.
 	*/
 	Font::~Font() {
-		this->free(); // Free all font data
-		list.erase(id); // Remove the font from the resource list
+		this->free();
+		list.erase(id);
 	}
 
 	/**
@@ -132,11 +131,11 @@ namespace bee {
 	* @returns the Font resource with the given name
 	*/
 	Font* Font::get_by_name(const std::string& name) {
-		for (auto& font : list) { // Iterate over the fonts in order to find the first one with the given name
+		for (auto& font : list) { // Iterate over the Fonts in order to find the first one with the given name
 			Font* f = font.second;
 			if (f != nullptr) {
 				if (f->get_name() == name) {
-					return f; // Return the desired font on success
+					return f; // Return the desired Font on success
 				}
 			}
 		}
@@ -144,9 +143,11 @@ namespace bee {
 	}
 	/**
 	* Initiliaze, load, and return a newly created Font resource.
-	* @param name the name to initialize the font with
-	* @param path the path to initialize the font with
-	* @param size the font size to initialize the font with
+	* @param name the name to initialize the Font with
+	* @param path the path to initialize the Font with
+	* @param size the font size to initialize the Font with
+	*
+	* @returns the newly loaded Font
 	*/
 	Font* Font::add(const std::string& name, const std::string& path, int size) {
 		Font* new_font = new Font(name, path, size);
@@ -156,6 +157,8 @@ namespace bee {
 
 	/**
 	* Add the Font to the appropriate resource list.
+	*
+	* @returns the Font id
 	*/
 	int Font::add_to_resources() {
 		if (id < 0) { // If the resource needs to be added to the resource list
@@ -163,7 +166,7 @@ namespace bee {
 			list.emplace(id, this); // Add the resource and with the new id
 		}
 
-		return 0; // Return 0 on success
+		return id;
 	}
 	/**
 	* Reset all resource variables for reinitialization.
@@ -189,7 +192,7 @@ namespace bee {
 	}
 
 	/**
-	* @returns a map of all the information required to restore a Font
+	* @returns a map of all the information required to restore the Font
 	*/
 	std::map<Variant,Variant> Font::serialize() const {
 		std::map<Variant,Variant> info;
@@ -209,7 +212,7 @@ namespace bee {
 		return info;
 	}
 	/**
-	* Restore a Font from its serialized data.
+	* Restore the Font from serialized data.
 	* @param m the map of data to use
 	*
 	* @retval 0 success
@@ -267,7 +270,7 @@ namespace bee {
 	* @retval -1 failed to get lineskip since it's not loaded
 	*/
 	int Font::get_lineskip_default() {
-		if (!is_loaded) { // If the font is not loaded, output a warning
+		if (!is_loaded) { // If the Font is not loaded, output a warning
 			messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to get the default lineskip for \"" + name + "\" becuase it is not loaded");
 			return -1;
 		}
@@ -300,13 +303,13 @@ namespace bee {
 		if (_path.front() == '/') {
 			path = _path.substr(1);
 		} else {
-			path = "resources/fonts/"+_path; // Append the path to the font directory if no root
+			path = "resources/fonts/"+_path; // Append the path to the Font directory if no root
 		}
 		return 0;
 	}
 	/**
 	* Set the font size.
-	* @param _font_size the desired font size
+	* @param _font_size the desired Font size
 	*
 	* @retval 0 success
 	* @retval >1 failed to reload the Font
@@ -318,7 +321,7 @@ namespace bee {
 			return 0;
 		}
 
-		// Reload the font
+		// Reload the Font
 		free();
 		return load();
 	}
@@ -327,13 +330,13 @@ namespace bee {
 	* @param _style the desired style, a bitmask of TTF_STYLE_BOLD, _ITALIC, _UNDERLINE, _STRIKETHROUGH, and _NORMAL
 	*/
 	int Font::set_style(E_FONT_STYLE _style) {
-		if (!is_loaded) { // Do not attempt to set the style if the font has not been loaded
+		if (!is_loaded) { // Do not attempt to set the style if the Font has not been loaded
 			messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to set the font style for \"" + name + "\" because it is not loaded");
 			return 1; // Return 1 on error
 		}
 
 		style = _style; // Store the style
-		TTF_SetFontStyle(font, static_cast<int>(style)); // Set the style of the loaded font
+		TTF_SetFontStyle(font, static_cast<int>(style)); // Set the style of the loaded Font
 		return 0; // Return 0 on success
 	}
 	void Font::set_lineskip(int _lineskip) {
@@ -349,8 +352,8 @@ namespace bee {
 	* @retval 3 failed to load the font file
 	*/
 	int Font::load() {
-		if (is_loaded) { // If the font has already been loaded, output a warning
-			messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to load font \"" + name + "\" from because it has already been loaded");
+		if (is_loaded) { // If the Font has already been loaded, output a warning
+			messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to load Font \"" + name + "\" from because it has already been loaded");
 			return 1;
 		}
 
@@ -362,14 +365,14 @@ namespace bee {
 			(get_option("renderer_type").i == static_cast<int>(E_RENDERER::OPENGL3))
 			||(get_option("renderer_type").i == static_cast<int>(E_RENDERER::OPENGL4))
 		) { // If the engine is rendering in OpenGL mode, output a warning about fast font drawing
-			if (this == Font::list.at(0)) { // Only output the warning for the first loaded font
+			if (this == Font::list.at(0)) { // Only output the warning for the first loaded Font
 				messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "TTF fast font rendering is currently broken in OpenGL mode\nThe current behavior is to draw slowly and discard the texture data");
 			}
 		}
 
 		font = TTF_OpenFont(path.c_str(), font_size); // Open the TTF file with the desired font size
-		if (font == nullptr) { // If the font failed to load, output a warning
-			messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to load font \"" + path + "\": " + util::get_sdl_error());
+		if (font == nullptr) { // If the Font failed to load, output a warning
+			messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to load Font \"" + path + "\": " + util::get_sdl_error());
 			has_draw_failed = true;
 			return 3;
 		}
@@ -386,7 +389,7 @@ namespace bee {
 	* @retval 0 success
 	*/
 	int Font::free() {
-		if (!is_loaded) { // Do not attempt to free the data if the font has not been loaded
+		if (!is_loaded) { // Do not attempt to free the data if the Font has not been loaded
 			return 0;
 		}
 
@@ -420,7 +423,7 @@ namespace bee {
 		// Render the text to a temporary surface
 		SDL_Surface* tmp_surface = TTF_RenderUTF8_Blended(font, t.c_str(), {color.r, color.g, color.b, color.a}); // Use the slow but pretty TTF rendering mode
 		if (tmp_surface == nullptr) { // If the text failed to render, output a warning
-			messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to draw with font \"" + name + "\": " + util::get_sdl_error());
+			messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to draw with Font \"" + name + "\": " + util::get_sdl_error());
 			return nullptr;
 		}
 
@@ -452,7 +455,7 @@ namespace bee {
 	* @returns the rendered Texture data as a TextData
 	*/
 	TextData* Font::draw(TextData* textdata, int x, int y, const std::string& text, RGBA color) {
-		if (!is_loaded) { // Do not attempt to draw the text if the font has not been loaded
+		if (!is_loaded) { // Do not attempt to draw the text if the Font has not been loaded
 			if (!has_draw_failed) { // If the draw call hasn't failed before, output a warning
 				messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to draw text with \"" + name + "\" because it is not loaded");
 				has_draw_failed = true;
@@ -460,7 +463,7 @@ namespace bee {
 			return nullptr;
 		}
 
-		if (lineskip == 0) { // If the lineskip hasn't been set yet, get it from the loaded font
+		if (lineskip == 0) { // If the lineskip hasn't been set yet, get it from the loaded Font
 			lineskip = TTF_FontLineSkip(font);
 		}
 
@@ -537,7 +540,7 @@ namespace bee {
 		tmp_surface = TTF_RenderUTF8_Blended(font, t.c_str(), {color.r, color.g, color.b, color.a}); // Use the slow but pretty TTF rendering mode
 		//tmp_surface = TTF_RenderUTF8_Solid(font, t.c_str(), {color.r, color.g, color.b, color.a}); // Use the fast but ugly TTF rendering mode
 		if (tmp_surface == nullptr) { // If the text failed to render, output a warning
-			messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to draw with font \"" + name + "\": " + util::get_sdl_error());
+			messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to draw with Font \"" + name + "\": " + util::get_sdl_error());
 			return 1;
 		}
 
@@ -565,7 +568,7 @@ namespace bee {
 	* @retval 2 failed to draw otherwise
 	*/
 	int Font::draw_fast(int x, int y, const std::string& text, RGBA color) {
-		if (!is_loaded) { // Do not attempt to draw the text if the font has not been loaded
+		if (!is_loaded) { // Do not attempt to draw the text if the Font has not been loaded
 			if (!has_draw_failed) { // If the draw call hasn't failed before, output a warning
 				messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to draw text with \"" + name + "\" because it is not loaded");
 				has_draw_failed = true;
@@ -573,7 +576,7 @@ namespace bee {
 			return 1;
 		}
 
-		if (lineskip == 0) { // If the lineskip hasn't been set yet, get it from the loaded font
+		if (lineskip == 0) { // If the lineskip hasn't been set yet, get it from the loaded Font
 			lineskip = TTF_FontLineSkip(font);
 		}
 

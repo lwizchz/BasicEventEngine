@@ -139,8 +139,8 @@ namespace bee {
 	double Sound::master_volume = 1.0;
 
 	/**
-	* Default construct the sound.
-	* @note This constructor should only be used for temporary sounds, the other constructor should be used for all other cases.
+	* Default construct the Sound.
+	* @note This constructor should only be used for temporary Sounds, the other constructor should be used for all other cases.
 	*/
 	Sound::Sound() :
 		Resource(),
@@ -165,29 +165,28 @@ namespace bee {
 	{}
 	/**
 	* Construct the Sound, add it to the Sound resource list, and set the new name and path.
-	* @param _name the name of the sound to use
-	* @param _path the path of the sound's file
-	* @param _is_music whether the sound should be treated as music or a sound effect
+	* @param _name the name of the Sound to use
+	* @param _path the path of the Sound's file
+	* @param _is_music whether the Sound should be treated as music or a sound effect
 	*/
 	Sound::Sound(const std::string& _name, const std::string& _path, bool _is_music) :
 		Sound() // Default initialize all variables
 	{
-		add_to_resources(); // Add the sound to the appropriate resource list
-		if (id < 0) { // If the sound could not be added to the resource list, output a warning
-			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add sound resource: \"" + _name + "\" from " + _path);
+		if (add_to_resources() < 0) { // Attempt to add the Sound to its resource list
+			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add Sound resource: \"" + _name + "\" from " + _path);
 			throw(-1); // Throw an exception
 		}
 
 		set_name(_name);
 		set_path(_path);
-		set_is_music(_is_music); // Set whether the sound should be treated as music or a sound effect
+		set_is_music(_is_music); // Set whether the Sound should be treated as music or a sound effect
 	}
 	/**
 	* Free the sound data and remove it from the resource list.
 	*/
 	Sound::~Sound() {
-		this->free(); // Free all sound data
-		Sound::list.erase(id); // Remove the sound from the resource list
+		this->free();
+		Sound::list.erase(id);
 	}
 
 	/**
@@ -213,11 +212,11 @@ namespace bee {
 	* @returns the Sound resource with the given name
 	*/
 	Sound* Sound::get_by_name(const std::string& name) {
-		for (auto& sound : list) { // Iterate over the sounds in order to find the first one with the given name
+		for (auto& sound : list) { // Iterate over the Sounds in order to find the first one with the given name
 			Sound* s = sound.second;
 			if (s != nullptr) {
 				if (s->get_name() == name) {
-					return s; // Return the desired sound on success
+					return s; // Return the desired Sound on success
 				}
 			}
 		}
@@ -225,9 +224,9 @@ namespace bee {
 	}
 	/**
 	* Initiliaze, load, and return a newly created Sound resource.
-	* @param name the name to initialize the sound with
-	* @param path the path to initialize the sound with
-	* @param is_music whether the sound should be considered music or not
+	* @param name the name to initialize the Sound with
+	* @param path the path to initialize the Sound with
+	* @param is_music whether the Sound should be considered music or not
 	*
 	* @returns the newly loaded Sound
 	*/
@@ -243,7 +242,7 @@ namespace bee {
 	* @param channel the channel which has finished playback
 	*/
 	void Sound::finished(int channel) {
-		for (auto& sound : list) { // Iterate over the sounds in order to remove finished channels from each sound's list
+		for (auto& sound : list) { // Iterate over the Sounds in order to remove finished channels from each Sound's list
 			Sound* s = sound.second;
 			if (s != nullptr) {
 				s->finish(channel); // Remove the finished channel from the list
@@ -251,10 +250,10 @@ namespace bee {
 		}
 	}
 	/**
-	* Immediately stop all looping sounds.
+	* Immediately stop all looping Sounds.
 	*/
 	void Sound::stop_loops() {
-		for (auto& sound : list) { // Iterate over the sounds and stop them individually
+		for (auto& sound : list) { // Iterate over the Sounds and stop them individually
 			Sound* s = sound.second;
 			if ((s != nullptr)&&(s->get_is_looping())) {
 				s->stop();
@@ -262,10 +261,10 @@ namespace bee {
 		}
 	}
 	/**
-	* Immediately stop all sounds.
+	* Immediately stop all Sounds.
 	*/
 	void Sound::stop_all() {
-		for (auto& sound : list) { // Iterate over the sounds and stop them individually
+		for (auto& sound : list) { // Iterate over the Sounds and stop them individually
 			Sound* s = sound.second;
 			if (s != nullptr) {
 				s->stop();
@@ -279,13 +278,13 @@ namespace bee {
 		return Sound::master_volume;
 	}
 	/**
-	* Set a new global sound volume and update it for all currently playing sounds.
+	* Set a new global sound volume and update it for all currently playing Sounds.
 	* @param volume the new volume to use
 	*/
 	void Sound::set_master_volume(double volume) {
 		Sound::master_volume = volume; // Set the volume
 
-		for (auto& sound : list) { // Iterate over the sounds and update them to the new volume
+		for (auto& sound : list) { // Iterate over the Sounds and update them to the new volume
 			Sound* s = sound.second;
 			if (s != nullptr) {
 				s->update_volume();
@@ -336,7 +335,7 @@ namespace bee {
 	}
 
 	/**
-	* @returns a map of all the information required to restore a Sound
+	* @returns a map of all the information required to restore the Sound
 	*/
 	std::map<Variant,Variant> Sound::serialize() const {
 		std::map<Variant,Variant> info;
@@ -371,7 +370,7 @@ namespace bee {
 		return info;
 	}
 	/**
-	* Restore a Sound from its serialized data.
+	* Restore the Sound from serialized data.
 	* @param m the map of data to use
 	*
 	* @retval 0 success
@@ -445,12 +444,12 @@ namespace bee {
 	* @param _path the new path to use
 	* @note If the first character is '/' then the path will be relative to
 	*       the executable directory, otherwise it will be relative to the
-	*       sounds resource directory.
+	*       Sounds resource directory.
 	*/
 	void Sound::set_path(const std::string& _path) {
 		if (_path.front() == '/') {
 			path = _path.substr(1);
-		} else { // Append the path to the sound directory if not root
+		} else { // Append the path to the Sound directory if not root
 			path = "resources/sounds/"+_path;
 		}
 	}
@@ -463,7 +462,7 @@ namespace bee {
 
 		if (is_loaded) {
 			int v = static_cast<int>(128.0*get_master_volume()*volume); // Get the volume level relative to the master volume
-			if (is_music) { // If the sound is music, set the volume appropriately
+			if (is_music) { // If the Sound is music, set the volume appropriately
 				Mix_VolumeMusic(v);
 			} else { // Otherwise set the sound chunk volume
 				Mix_VolumeChunk(chunk, v);
@@ -496,7 +495,7 @@ namespace bee {
 	/**
 	* Set the panning.
 	* @note Sounds must be loaded as chunk data (i.e. non-music) in order for panning to work.
-	* @param _pan the new panning to use for the sound
+	* @param _pan the new panning to use for the Sound
 	*
 	* @retval 0 success
 	* @retval 1 a channel could not be panned
@@ -506,7 +505,7 @@ namespace bee {
 		pan = _pan;
 
 		if (is_loaded) {
-			if (is_music) { // If the sound is music, do not attempt to pan it
+			if (is_music) { // If the Sound is music, do not attempt to pan it
 				return 2;
 			} else { // Otherwise set the desired panning for each currently playing channel
 				int r = 0;
@@ -529,7 +528,7 @@ namespace bee {
 	* @see load() for return value info
 	*/
 	int Sound::set_is_music(bool _is_music) {
-		if (is_loaded) { // If the sound is already loaded, reload it
+		if (is_loaded) { // If the Sound is already loaded, reload it
 			this->free();
 			is_music = _is_music;
 			return load();
@@ -551,8 +550,8 @@ namespace bee {
 	* @retval 3 failed to load the music or chunk
 	*/
 	int Sound::load() {
-		if (is_loaded) { // Do not attempt to load the sound if it has already been loaded
-			messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to load sound \"" + name + "\" because it has already been loaded");
+		if (is_loaded) { // Do not attempt to load the Sound if it has already been loaded
+			messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to load Sound \"" + name + "\" because it has already been loaded");
 			return 1;
 		}
 
@@ -561,21 +560,21 @@ namespace bee {
 			return 2;
 		}
 
-		if (is_music) { // If the sound should be treated as music, load it appropriately
+		if (is_music) { // If the Sound should be treated as music, load it appropriately
 			music = Mix_LoadMUS(path.c_str()); // Load the sound file as mixer music
 			if (music == nullptr) { // If the music could not be loaded, output a warning
-				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to load sound \"" + name + "\" as music: " + util::get_sdl_error());
+				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to load Sound \"" + name + "\" as music: " + util::get_sdl_error());
 				return 3;
 			}
-		} else { // Otherwise load the sound normally
+		} else { // Otherwise load the Sound normally
 			chunk = Mix_LoadWAV(path.c_str()); // Load the sound file as a chunk sound
 			if (chunk == nullptr) { // If the chunk could not be loaded, output a warning
-				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to load sound \"" + name + "\" as chunk: " + util::get_sdl_error());
+				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to load Sound \"" + name + "\" as chunk: " + util::get_sdl_error());
 				return 3;
 			}
 		}
 
-		// Set the volume for the now-loaded sound
+		// Set the volume for the now-loaded Sound
 		update_volume();
 
 		// Set the loaded booleans
@@ -594,14 +593,14 @@ namespace bee {
 			return 0;
 		}
 
-		stop(); // Stop playing the sound before freeing its data
+		stop(); // Stop playing the Sound before freeing its data
 
 		effect_remove_all();
 
-		if (is_music) { // If the sound is music, free it appropriately
+		if (is_music) { // If the Sound is music, free it appropriately
 			Mix_FreeMusic(music);
 			music = nullptr;
-		} else { // Otherwise free the sound normally
+		} else { // Otherwise free the Sound normally
 			Mix_FreeChunk(chunk);
 			chunk = nullptr;
 		}
@@ -636,36 +635,36 @@ namespace bee {
 	}
 
 	/**
-	* Play the sound with optional looping and fading.
+	* Play the Sound with optional looping and fading.
 	* @see https://www.libsdl.org/projects/SDL_mixer/docs/SDL_mixer_52.html#SEC52 for more informaion about music
 	* @see https://www.libsdl.org/projects/SDL_mixer/docs/SDL_mixer_25.html#SEC25 for more information about chunks
 	*
-	* @param loop_amount the amount of times to play the sound, -1 will make it play until stopped
-	* @param fade_in the amount of ticks over which to fade in the sound
+	* @param loop_amount the amount of times to play the Sound, -1 will make it play until stopped
+	* @param fade_in the amount of ticks over which to fade in the Sound
 	*
 	* @retval 0 success
 	* @retval 1 failed to play since it's not loaded
 	* @retval 2 failed to play since no channels are available
 	*/
 	int Sound::play(int loop_amount, int fade_in) {
-		if (!is_loaded) { // Do not attempt to play the sound if it has not been loaded
+		if (!is_loaded) { // Do not attempt to play the Sound if it has not been loaded
 			if (!has_play_failed) { // If the play call hasn't failed before, output a warning
-				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to play sound \"" + name + "\" because it is not loaded");
+				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to play Sound \"" + name + "\" because it is not loaded");
 				has_play_failed = true;
 			}
 			return 1;
 		}
 
-		if (is_music) { // If the sound is music, play it appropriately
+		if (is_music) { // If the Sound is music, play it appropriately
 			Mix_FadeInMusic(music, loop_amount, fade_in);
 			effect_start(MIX_CHANNEL_POST);
-		} else { // Otherwise play the sound normally
+		} else { // Otherwise play the Sound normally
 			int c = Mix_FadeInChannel(-1, chunk, loop_amount, fade_in);
 			if (c >= 0) { // If the chunk was played successfully, add its channel to the list
 				current_channels.remove(c); // Remove any duplicate channels
 				current_channels.emplace_back(c);
 			} else { // If the chunk could not be played, output a warning
-				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to play sound \"" + name + "\": " + util::get_sdl_error());
+				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to play Sound \"" + name + "\": " + util::get_sdl_error());
 				return 2;
 			}
 
@@ -680,9 +679,9 @@ namespace bee {
 		return 0;
 	}
 	/**
-	* Play the sound with optional looping.
+	* Play the Sound with optional looping.
 	* @note When the function is called without a fade-in, let the fade-in be 0.
-	* @param loop_amount the amount of times to play the sound, -1 will make it play until stopped
+	* @param loop_amount the amount of times to play the Sound, -1 will make it play until stopped
 	*
 	* @returns whether the play call failed or not
 	* @see play(int, int) for details
@@ -691,7 +690,7 @@ namespace bee {
 		return play(loop_amount, 0);
 	}
 	/**
-	* Play the sound.
+	* Play the Sound.
 	* @note When the function is called with no arguments, play it once with no fade-in.
 	*
 	* @returns whether the play call failed or not
@@ -701,7 +700,7 @@ namespace bee {
 		return play(0);
 	}
 	/**
-	* Play a sound but only if it is not already playing.
+	* Play the Sound but only if it is not already playing.
 	* @note This can be used to handle multiple instances emitting the same sound at the same time.
 	*
 	* @retval 0 the Sound was played successfully
@@ -716,24 +715,24 @@ namespace bee {
 		return -1;
 	}
 	/**
-	* Stop playing all instances of the sound on every channel.
-	* @param fade_out the amount of ticks over which to fade out the sound
+	* Stop playing all instances of the Sound on every channel.
+	* @param fade_out the amount of ticks over which to fade out the Sound
 	*
 	* @retval 0 success
 	* @retval 1 failed to stop playing since it's not loaded
 	*/
 	int Sound::stop(int fade_out) {
-		if (!is_loaded) { // Do not attempt to stop the sound if it hasn't been loaded
+		if (!is_loaded) { // Do not attempt to stop the Sound if it hasn't been loaded
 			if (!has_play_failed) { // If the play call hasn't failed before, output a warning
-				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to stop sound \"" + name + "\" because it is not loaded");
+				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to stop Sound \"" + name + "\" because it is not loaded");
 				has_play_failed = true;
 			}
 			return 1;
 		}
 
-		if (is_music) { // If the sound is music, stop it appropriately
+		if (is_music) { // If the Sound is music, stop it appropriately
 			Mix_FadeOutMusic(fade_out);
-		} else { // Otherwise play the sound normally
+		} else { // Otherwise play the Sound normally
 			std::list<int> tmp_channels (current_channels); // Use a temporary copy since halting the channels will remove them from the list
 			for (auto i=tmp_channels.begin(); i != tmp_channels.end(); ++i) { // Iterate over the currently playing channels
 				Mix_FadeOutChannel(*i, fade_out);
@@ -743,7 +742,7 @@ namespace bee {
 		return 0;
 	}
 	/**
-	* Stop playing all instances of the sound on every channel.
+	* Stop playing all instances of the Sound on every channel.
 	*
 	* @retval 0 success
 	* @retval 1 failed to stop playing since it's not loaded
@@ -753,22 +752,22 @@ namespace bee {
 		return stop(0);
 	}
 	/**
-	* Play the sound from the beginning on every current channel.
+	* Play the Sound from the beginning on every current channel.
 	*
 	* @retval 0 success
 	* @retval 1 failed to rewind since it's not loaded
 	* @retval 2 some channels failed to rewind
 	*/
 	int Sound::rewind() {
-		if (!is_loaded) { // Do not attempt to rewind the sound if it has not been loaded
+		if (!is_loaded) { // Do not attempt to rewind the Sound if it has not been loaded
 			if (!has_play_failed) { // If the play call hasn't failed before, output a warning
-				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to rewind sound \"" + name + "\" because it is not loaded");
+				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to rewind Sound \"" + name + "\" because it is not loaded");
 				has_play_failed = true;
 			}
 			return 1;
 		}
 
-		if (is_music) { // If the sound is music, play it appropriately
+		if (is_music) { // If the Sound is music, play it appropriately
 			// Mix_RewindMusic(); // Only works for MOD, OGG, MP3, and MIDI
 			Mix_HaltMusic();
 
@@ -780,8 +779,8 @@ namespace bee {
 			}
 
 			effect_start(MIX_CHANNEL_POST);
-		} else { // Otherwise play the sound normally
-			if (!current_channels.empty()) { // If the sound is currently playing, rewind it
+		} else { // Otherwise play the Sound normally
+			if (!current_channels.empty()) { // If the Sound is currently playing, rewind it
 				std::list<int> tmp_channels (current_channels); // Use a temporary list copy since halting the channels will remove them from the list
 				for (auto i=tmp_channels.begin(); i != tmp_channels.end(); ++i) { // Iterate over the currently playing channels
 					Mix_HaltChannel(*i);
@@ -801,7 +800,7 @@ namespace bee {
 					set_pan_internal(c);
 					effect_start(*i);
 				}
-			} else { // If the sound is not playing, start playing it
+			} else { // If the Sound is not playing, start playing it
 				return (play() ? 2 : 0);
 			}
 		}
@@ -809,21 +808,21 @@ namespace bee {
 		return 0;
 	}
 	/**
-	* Pause all instances of the sound on every channel.
+	* Pause all instances of the Sound on every channel.
 	*
 	* @retval 0 success
 	* @retval 1 failed to pause since it's not loaded
 	*/
 	int Sound::pause() {
-		if (!is_loaded) { // Do not attempt to pause the sound if it has not been loaded
+		if (!is_loaded) { // Do not attempt to pause the Sound if it has not been loaded
 			if (!has_play_failed) { // If the play call hasn't failed before, output a warning
-				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to pause sound \"" + name + "\" because it is not loaded");
+				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to pause Sound \"" + name + "\" because it is not loaded");
 				has_play_failed = true;
 			}
 			return 1;
 		}
 
-		if (is_music) { // If the sound is music, pause it appropriately
+		if (is_music) { // If the Sound is music, pause it appropriately
 			Mix_PauseMusic();
 		} else { // Otherwise pause it normally
 			for (auto i=current_channels.begin(); i != current_channels.end(); ++i) { // Iterate over the currently playing channels
@@ -836,21 +835,21 @@ namespace bee {
 		return 0;
 	}
 	/**
-	* Resume all paused instances of the sound on every channel.
+	* Resume all paused instances of the Sound on every channel.
 	*
 	* @retval 0 success
 	* @retval 1 failed to resume since it's not loaded
 	*/
 	int Sound::resume() {
-		if (!is_loaded) { // Do not attempt to resume the sound if it has not been loaded
+		if (!is_loaded) { // Do not attempt to resume the Sound if it has not been loaded
 			if (!has_play_failed) { // If the play call hasn't failed before, output a warning
-				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to resume sound \"" + name + "\" because it is not loaded");
+				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to resume Sound \"" + name + "\" because it is not loaded");
 				has_play_failed = true;
 			}
 			return 1;
 		}
 
-		if (is_music) { // If the sound is music, resume it appropriately
+		if (is_music) { // If the Sound is music, resume it appropriately
 			Mix_ResumeMusic();
 		} else { // Otherwise resume it normally
 			for (auto i=current_channels.begin(); i != current_channels.end(); ++i) { // Iterate over the currently playing (or paused) channels
@@ -863,28 +862,28 @@ namespace bee {
 		return 0;
 	}
 	/**
-	* Toggle the sound between playing and paused.
+	* Toggle the Sound between playing and paused.
 	*
 	* @retval 0 success
 	* @retval 1 failed to toggle the state since it's not loaded
 	* @see pause() and resume()
 	*/
 	int Sound::toggle() {
-		if (is_playing) { // If the sound is playing, then pause it
+		if (is_playing) { // If the Sound is playing, then pause it
 			return pause();
 		} else { // Otherwise resume it
 			return resume();
 		}
 	}
 	/**
-	* Play the sound in a continuous loop.
+	* Play the Sound in a continuous loop.
 	*
 	* @retval 0 success
-	* @retval >0 failed to play the sound
+	* @retval >0 failed to play the Sound
 	* @see play(int, int) for return values >0
 	*/
 	int Sound::loop() {
-		int r = play(-1); // Loop the sound
+		int r = play(-1); // Loop the Sound
 		if (r == 0) {
 			is_looping = true;
 		}
@@ -900,7 +899,7 @@ namespace bee {
 	* @retval 2 failed to apply the effect to some channels
 	*/
 	int Sound::effect_add(SoundEffect se) {
-		if (!is_loaded) { // Do not attempt to add any sound effects if the sound has not been loaded
+		if (!is_loaded) { // Do not attempt to add any sound effects if the Sound has not been loaded
 			if (!has_play_failed) { // If the play call hasn't failed before, output a warning
 				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to set sound effects for \"" + name + "\" because it is not loaded");
 				has_play_failed = true;
@@ -908,7 +907,7 @@ namespace bee {
 			return 1;
 		}
 
-		if (is_music) { // If the sound is music, set the effects appropriately
+		if (is_music) { // If the Sound is music, set the effects appropriately
 			if (se.add(MIX_CHANNEL_POST) == 0) {
 				effects.emplace_back(se);
 			} else {

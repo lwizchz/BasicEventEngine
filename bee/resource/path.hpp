@@ -13,21 +13,65 @@
 #include <map>
 #include <vector>
 
+#include <btBulletDynamicsCommon.h>
+
 #include "resource.hpp"
 
-namespace bee {
-	typedef std::tuple<double, double, double, double> path_coord_t; // {x, y, z, speed}
+#include "../data/variant.hpp"
 
-	class Path: public Resource { // The path resource class is used to repeatedly move instances in complex, predefined patterns
+namespace bee {
+	// Forward declarations
+	class Path;
+	class Instance;
+
+	/// Used to calculate Path coordinates
+	struct PathNode {
+		btVector3 pos; ///< The node position
+		double speed; ///< The speed at the node
+
+		// See bee/resources/path.cpp for function comments
+		PathNode(const btVector3&, double);
+		PathNode();
+	};
+
+	/// Used to hold Path position data
+	struct PathFollower {
+		Path* path; ///< The Path to follow
+		btVector3 offset; ///< The offset from the Path coordinates
+
+		unsigned int node; ///< The current node
+		unsigned int progress; ///< The progress to the next node from 0 to 10'000
+		unsigned int speed; ///< The speed at which the coordinates progress from 0 to 10'000
+
+		bool direction; ///< Whether the follower is moving forward or backward
+		bool is_curved; ///< Whether the path should be curved by a quadratic Bézier curve
+		bool is_closed; ///< Whether the path should loop after the end
+
+		bool is_pausable; ///< Whether the follower should pause Path movement
+
+		// See bee/resources/path.cpp for function comments
+		PathFollower(Path*, btVector3, int);
+		PathFollower();
+	};
+
+	/// Used to repeatedly move in complex patterns
+	class Path: public Resource {
 		static std::map<int,Path*> list;
 		static int next_id;
 
-		int id; // The id of the resource
-		std::string name; // An arbitrary name for the resource
-		std::string path; // The path of the config file which is used to populate the coordinate list
-		std::vector<path_coord_t> coordinate_list; // The list of points which the instance will follow, see bee/engine.hpp for the typedef of path_coord_t
-		bool is_curved; // Whether the path should be curved by a quadratic Bézier curve
-		bool is_closed; // Whether the path should loop after the end
+		int id; ///< The unique Path identifier
+		std::string name; ///< An arbitrary resource name
+		std::string path; ///< The path of the config file used to populate the node and control point lists
+
+		std::vector<PathNode> nodes; ///< The list of points which the Instance will follow
+		std::map<unsigned int,btVector3> control_points; ///< The list of control points for Bezier curves
+
+		std::vector<btVector3> coord_cache; ///< A cache of the coordinates used by the drawing function
+
+		// See bee/resources/path.cpp for function comments
+		PathNode get_node_prev(const PathFollower*) const;
+		PathNode get_node(const PathFollower*) const;
+		PathNode get_node_next(const PathFollower*) const;
 	public:
 		// See bee/resources/path.cpp for function comments
 		Path();
@@ -41,28 +85,33 @@ namespace bee {
 
 		int add_to_resources();
 		int reset();
+
+		std::map<Variant,Variant> serialize() const;
+		int deserialize(std::map<Variant,Variant>& m);
 		void print() const;
 
 		int get_id() const;
 		std::string get_name() const;
 		std::string get_path() const;
-		std::vector<path_coord_t> get_coordinate_list() const;
-		std::string get_coordinate_string() const;
-		bool get_is_curved() const;
-		bool get_is_closed() const;
+		const std::vector<PathNode>& get_nodes() const;
 
-		int set_name(const std::string&);
-		int set_path(const std::string&);
-		int set_is_curved(bool);
-		int set_is_closed(bool);
-		int add_coordinate(path_coord_t);
-		int add_coordinate(double, double, double, double);
-		int add_coordinate(double, double, double);
-		int remove_last_coordinate();
-		int remove_coordinate(unsigned int);
+		void set_name(const std::string&);
+		void set_path(const std::string&);
 
-		int draw(double, double, double);
-		int draw(double, double);
+		void add_node(const PathNode&);
+		void add_control_point(unsigned int, const btVector3&);
+		int remove_node(unsigned int);
+		int remove_control_point(unsigned int);
+
+		int load();
+
+ 		void advance(PathFollower*) const;
+		void advance(Instance*, PathFollower*) const;
+		btVector3 get_coord(const PathFollower*) const;
+		bool at_end(PathFollower*) const;
+
+		void draw(const PathFollower*);
+		void draw(const btVector3&);
 	};
 }
 

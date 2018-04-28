@@ -86,7 +86,7 @@ namespace bee {
 					return 2; // Return 2 when assertions could not be verified
 				}
 			#else
-				messenger::send({"engine", "init"}, E_MESSAGE::INFO, "Couldn't verify assertions: compiled without debug mode");
+				messenger::send({"engine", "init"}, E_MESSAGE::INFO, "Failed to verify assertions: compiled without debug mode");
 			#endif
 		}
 
@@ -105,7 +105,7 @@ namespace bee {
 
 		if (!is_initialized) {
 			if (init_resources()) {
-				messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't init resources");
+				messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Failed to init resources");
 				return 9; // Return 9 when the resources could not be initialized
 			}
 		}
@@ -125,7 +125,7 @@ namespace bee {
 
 		if (*_first_room != nullptr) {
 			if (change_room(*_first_room, false)) {
-				messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't load first room");
+				messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Failed to load first room");
 				return 10; // Return 10 when the first room could not be loaded
 			}
 		}
@@ -287,8 +287,8 @@ namespace bee {
 
 	int internal::init_sdl() {
 		if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't init SDL: " + util::get_sdl_error());
-			return 3; // Return 3 when SDL couldn't be initialized
+			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Failed to init SDL: " + util::get_sdl_error());
+			return 3; // Return 3 when SDL could not be initialized
 		}
 
 		// Use the highest version of OpenGL available
@@ -335,7 +335,7 @@ namespace bee {
 		}
 		engine->renderer->window = SDL_CreateWindow("BasicEventEngine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, engine->width, engine->height, window_flags);
 		if (engine->renderer->window == nullptr) {
-			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't create SDL window: " + util::get_sdl_error());
+			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Failed to create SDL window: " + util::get_sdl_error());
 			return 4; // Return 4 when the window could not be created
 		}
 		if (get_option("is_minimized").i) {
@@ -352,18 +352,18 @@ namespace bee {
 
 		int img_flags = IMG_INIT_PNG | IMG_INIT_JPG;
 		if (!(IMG_Init(img_flags) & img_flags)) {
-			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't init SDL_image: " + std::string(IMG_GetError()));
+			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Failed to init SDL_image: " + std::string(IMG_GetError()));
 			return 6; // Return 6 when SDL_image could not be initialized
 		}
 
 		if (TTF_Init() == -1) {
-			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't init SDL_ttf: " + std::string(TTF_GetError()));
+			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Failed to init SDL_ttf: " + std::string(TTF_GetError()));
 			return 7; // Return 7 when SDL_ttf could not be initialized
 		}
 
 		Mix_SetSoundFonts(""); // This will disable MIDI but fixes a small error when not including a soundfont
 		if (Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 1024) < 0) {
-			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Couldn't init SDL_mixer: " + std::string(Mix_GetError()));
+			messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Failed to init SDL_mixer: " + std::string(Mix_GetError()));
 			return 8; // Return 8 when SDL_mixer could not be initialized
 		}
 		Mix_ChannelFinished(Sound::finished);

@@ -207,38 +207,40 @@ namespace bee {
 		}
 
 		try {
-			if ((ns[0] == '"')&&(ns[ns.length()-1] == '"')) { // String
+			std::string _ns (util::trim(ns));
+			if ((_ns[0] == '"')&&(_ns[_ns.length()-1] == '"')) { // String
 				type = E_DATA_TYPE::STRING;
 				new (&s) std::string(ns.substr(1, ns.length()-2));
-			} else if ((ns[0] == '[')&&(ns[ns.length()-1] == ']')) { // Array
+			} else if ((_ns[0] == '[')&&(_ns[_ns.length()-1] == ']')) { // Array
 				type = E_DATA_TYPE::VECTOR;
 				new (&v) std::vector<Variant>;
-				util::vector_deserialize(ns, &v);
-			} else if ((ns[0] == '{')&&(ns[ns.length()-1] == '}')) { // Map
+				util::vector_deserialize(_ns, &v);
+			} else if ((_ns[0] == '{')&&(_ns[_ns.length()-1] == '}')) { // Map
 				type = E_DATA_TYPE::MAP;
 				new (&m) std::map<Variant,Variant>;
-				util::map_deserialize(ns, &m);
-			} else if (util::string::is_integer(ns)) { // Integer
+				util::map_deserialize(_ns, &m);
+			} else if (util::string::is_integer(_ns)) { // Integer
 				type = E_DATA_TYPE::INT;
-				i = std::stoi(ns);
-			} else if (util::string::is_floating(ns)) { // Double
+				i = std::stoi(_ns);
+			} else if (util::string::is_floating(_ns)) { // Double
 				type = E_DATA_TYPE::DOUBLE;
-				d = std::stod(ns);
-			} else if ((ns == "true")||(ns == "false")) { // Boolean
+				d = std::stod(_ns);
+			} else if ((_ns == "true")||(_ns == "false")) { // Boolean
 				type = E_DATA_TYPE::INT;
-				if (ns == "true") {
+				if (_ns == "true") {
 					i = 1;
 				} else {
 					i = 0;
 				}
 			} else { // Probably a string
+				messenger::send({"engine", "variant"}, E_MESSAGE::WARNING, "Variant type not determined, storing as string: \"" + ns + "\"");
 				type = E_DATA_TYPE::STRING;
 				new (&s) std::string(ns);
 			}
 		} catch (const std::invalid_argument) {}
 
 		if (type == E_DATA_TYPE::NONE) { // No possible type, this will only occur when std::stod or std::stoi fails
-			messenger::send({"engine", "variant"}, E_MESSAGE::WARNING, "WARN: Variant type not determined, storing as string: \"" + ns + "\"");
+			messenger::send({"engine", "variant"}, E_MESSAGE::WARNING, "Variant type not determined, storing as string: \"" + ns + "\"");
 			type = E_DATA_TYPE::STRING;
 			new (&s) std::string(ns);
 		}
@@ -456,8 +458,7 @@ namespace bee {
 		return os;
 	}
 	std::istream& operator>>(std::istream& is, Variant& var) {
-		std::string s;
-		is >> s;
+		std::string s (std::istreambuf_iterator<char>(is), {});
 		var.interpret(s);
 		return is;
 	}

@@ -25,7 +25,7 @@ namespace bee { namespace python {
 	std::string get_traceback();
 
 	void set_displayhook(PyObject*);
-	std::string get_displayhook();
+	Variant get_displayhook();
 
 	Variant pyobj_to_variant(PyObject*);
 	PyObject* variant_to_pyobj(Variant);

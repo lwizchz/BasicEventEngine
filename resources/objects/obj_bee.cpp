@@ -18,6 +18,7 @@ ObjBee::ObjBee() : Object("obj_bee", "obj_bee.hpp") {
 		bee::E_EVENT::CREATE,
 		bee::E_EVENT::DESTROY,
 		bee::E_EVENT::COMMANDLINE_INPUT,
+		bee::E_EVENT::PATH_END,
 		bee::E_EVENT::OUTSIDE_ROOM,
 		bee::E_EVENT::DRAW
 	});
@@ -39,14 +40,23 @@ void ObjBee::create(bee::Instance* self) {
 
 	if (self == obj_bee->get_instance(0)) {
 		_a("serialdata") = self->serialize();
+		_p("path") = nullptr;
+		_d("path_previous_mass") = 0.0;
 
 		bee::kb::bind(SDLK_UNKNOWN, bee::KeyBind("StartPath", [this, self] (const SDL_Event* e) mutable {
 			self = obj_bee->get_instance(0);
 			s = &self->get_data();
 
+			if (_p("path") != nullptr) {
+				delete static_cast<bee::PathFollower*>(_p("path"));
+				_p("path") = nullptr;
+			}
+
 			self->set_mass(1.0);
-			self->path_start(path_bee, 100.0, bee::E_PATH_END::STOP, true);
-			self->set_path_drawn(true);
+			bee::PathFollower* pf = new bee::PathFollower(path_bee, {100.0, 100.0, 0.0}, 100);
+			pf->is_curved = true;
+			bee::get_current_room()->automate_path(self, pf);
+			_p("path") = pf;
 		}));
 
 		bee::kb::bind(SDLK_UNKNOWN, bee::KeyBind("StartSerialize", [this, self] (const SDL_Event* e) mutable {
@@ -67,6 +77,11 @@ void ObjBee::create(bee::Instance* self) {
 void ObjBee::destroy(bee::Instance* self) {
 	if (self == obj_bee->get_instance(0)) {
 		_a("serialdata").reset();
+
+		if (_p("path") != nullptr) {
+			delete static_cast<bee::PathFollower*>(_p("path"));
+			_p("path") = nullptr;
+		}
 	}
 
 	delete static_cast<bee::TextData*>(_p("text_id"));
@@ -78,6 +93,12 @@ void ObjBee::destroy(bee::Instance* self) {
 void ObjBee::commandline_input(bee::Instance* self, const std::string& str) {
 	std::cout << "bee" << self->id << ":~~~" << str << "~~~\n";
 }
+void ObjBee::path_end(bee::Instance* self, bee::PathFollower* pf) {
+	bee::get_current_room()->automate_path(self, nullptr);
+
+	delete static_cast<bee::PathFollower*>(_p("path"));
+	_p("path") = nullptr;
+}
 void ObjBee::outside_room(bee::Instance* self) {
 	bee::get_current_room()->destroy(self);
 }
@@ -85,6 +106,10 @@ void ObjBee::draw(bee::Instance* self) {
 	int size = 100;
 	double r = util::radtodeg(self->get_physbody()->get_rotation_z());
 	self->draw(size, size, r, bee::RGBA(bee::E_RGB::WHITE));
+
+	if (static_cast<bee::PathFollower*>(_p("path")) != nullptr) {
+		path_bee->draw(static_cast<bee::PathFollower*>(_p("path")));
+	}
 
 	_p("text_id") = font_liberation->draw(static_cast<bee::TextData*>(_p("text_id")), self->get_corner().first, self->get_corner().second, std::to_string(self->id));
 

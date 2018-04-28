@@ -25,6 +25,7 @@
 #include "resource/texture.hpp"
 #include "resource/sound.hpp"
 #include "resource/font.hpp"
+#include "resource/path.hpp"
 
 #include "../engine.hpp"
 
@@ -156,6 +157,9 @@ namespace bee { namespace python { namespace internal {
 			return nullptr;
 		}
 		if (PyInit_bee_font(module) == nullptr) {
+			return nullptr;
+		}
+		if (PyInit_bee_path(module) == nullptr) {
 			return nullptr;
 		}
 

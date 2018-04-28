@@ -74,6 +74,11 @@ int vector_deserialize(const std::string& s, std::vector<A>* v) {
 
 	std::vector<std::string> elements = splitv(ns, ',', true);
 	for (auto& e : elements) {
+		e = trim(e);
+		if (e.empty()) {
+			break;
+		}
+
 		std::istringstream es (e);
 		A element;
 		es >> element;
@@ -144,6 +149,10 @@ int map_deserialize(const std::string& s, std::map<A,B>* m) {
 		ks = trim(ks);
 		std::string vs = e.substr(e.find(":")+1);
 		vs = trim(vs);
+		
+		if ((ks.empty())||(vs.empty())) {
+			break;
+		}
 
 		std::istringstream k (ks);
 		A key;

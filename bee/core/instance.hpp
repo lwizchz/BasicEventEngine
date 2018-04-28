@@ -22,8 +22,6 @@
 
 #include "../render/rgba.hpp"
 
-#include "../resource/path.hpp"
-
 namespace bee {
 	// Forward declarations
 	class Texture;
@@ -41,14 +39,6 @@ namespace bee {
 		E_COMPUTATION computation_type; ///< Determines the desired amount of processing
 		bool is_persistent; ///< Whether to persist between Rooms
 
-		Path* path;
-		double path_speed;
-		E_PATH_END path_end_action;
-		int path_current_node;
-		bool path_is_drawn;
-		bool path_is_pausable;
-		double path_previous_mass;
-
 		std::map<std::string,Variant> data; ///< The Instance-specific data
 	public:
 		int id; ///< Semi-unique identifier, old IDs may be reused
@@ -56,7 +46,6 @@ namespace bee {
 		int depth; ///< Determines the order of event processing, higher depths first
 
 		btVector3 pos_previous; ///< The previous position, currently unimplemented
-		btVector3 path_pos_start; ///< The offset to the Path starting position
 
 		// See bee/core/instance.cpp for function comments
 		Instance();
@@ -156,24 +145,8 @@ namespace bee {
 		btVector3 get_direction_of(Object*) const;
 		int get_relation(Instance*) const;
 
-		int path_start(Path*, double, E_PATH_END, bool);
-		int path_end();
-		int path_reset();
-		int path_update_node();
-		int set_path_drawn(bool);
-		int set_path_pausable(bool);
-		int handle_path_end();
-		bool has_path();
-		bool get_path_drawn();
-		double get_path_speed();
-		int get_path_node();
-		std::vector<path_coord_t> get_path_coords();
-		bool get_path_pausable();
-
 		int draw(int, int, double, RGBA);
 		int draw();
-
-		int draw_path();
 	};
 
 	template <typename T>

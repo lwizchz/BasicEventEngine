@@ -41,11 +41,11 @@ namespace bee {
 	* Construct the data struct and initiliaze it with all the given values.
 	* @param _x the top-left x-coordinate
 	* @param _y the top-left y-coordinate
-	* @param _is_horizontal_tile whether the texture should be tiled horizontally
-	* @param _is_vertical_tile whether the texture should be tiled vertically
-	* @param _horizontal_speed the speed at which the texture should move horizontally in pixels per second
-	* @param _vertical_speed the speed with which the texture should move vertically in pixels per second
-	* @param _is_stretched whether to stretch the texture to fit the screen, which will cause some of the above values to be ignored
+	* @param _is_horizontal_tile whether the Texture should be tiled horizontally
+	* @param _is_vertical_tile whether the Texture should be tiled vertically
+	* @param _horizontal_speed the speed at which the Texture should move horizontally in pixels per second
+	* @param _vertical_speed the speed with which the Texture should move vertically in pixels per second
+	* @param _is_stretched whether to stretch the Texture to fit the screen, which will cause some of the above values to be ignored
 	*/
 	TextureTransform::TextureTransform(int _x, int _y, bool _is_horizontal_tile, bool _is_vertical_tile, int _horizontal_speed, int _vertical_speed, bool _is_stretched) :
 		x(_x),
@@ -91,8 +91,8 @@ namespace bee {
 	int Texture::next_id = 0;
 
 	/**
-	* Default construct the texture.
-	* @note This constructor should only be directly used for temporary textures, e.g. framebuffers.
+	* Default construct the Texture.
+	* @note This constructor should only be directly used for temporary Textures, e.g. framebuffers.
 	*/
 	Texture::Texture() :
 		Resource(),
@@ -131,7 +131,7 @@ namespace bee {
 		Texture() // Default initialize all variables
 	{
 		if (add_to_resources() < 0) { // Attempt to add the Texture to its resource list
-			messenger::send({"engine", "resource"}, E_MESSAGE::ERROR, "Failed to add texture resource: \"" + _name + "\" from " + _path);
+			messenger::send({"engine", "resource"}, E_MESSAGE::ERROR, "Failed to add Texture resource: \"" + _name + "\" from " + _path);
 			throw(-1); // Throw an exception if it could not be added
 		}
 
@@ -142,8 +142,8 @@ namespace bee {
 	* Free the texture data and remove it from the resource list.
 	*/
 	Texture::~Texture() {
-		this->free(); // Free all texture data
-		Texture::list.erase(id); // Remove the texture from the resource list
+		this->free();
+		Texture::list.erase(id);
 	}
 
 	/**
@@ -169,11 +169,11 @@ namespace bee {
 	* @returns the Texture resource with the given name
 	*/
 	Texture* Texture::get_by_name(const std::string& name) {
-		for (auto& tex : list) { // Iterate over the textures in order to find the first one with the given name
+		for (auto& tex : list) { // Iterate over the Textures in order to find the first one with the given name
 			Texture* t = tex.second;
 			if (t != nullptr) {
 				if (t->get_name() == name) {
-					return t; // Return the desired texture on success
+					return t; // Return the desired Texture on success
 				}
 			}
 		}
@@ -235,7 +235,7 @@ namespace bee {
 	}
 
 	/**
-	* @returns a map of all the information required to restore a Texture
+	* @returns a map of all the information required to restore the Texture
 	*/
 	std::map<Variant,Variant> Texture::serialize() const {
 		std::map<Variant,Variant> info;
@@ -263,7 +263,7 @@ namespace bee {
 		return info;
 	}
 	/**
-	* Restore a Texture from its serialized data.
+	* Restore the Texture from serialized data.
 	* @param m the map of data to use
 	*
 	* @retval 0 success
@@ -354,12 +354,12 @@ namespace bee {
 	* @param _path the new path to use
 	* @note If the first character is '/' then the path will be relative to
 	*       the executable directory, otherwise it will be relative to the
-	*       textures resource directory.
+	*       Textures resource directory.
 	*/
 	void Texture::set_path(const std::string& _path) {
 		if (_path.front() == '/') {
 			path = _path.substr(1);
-		} else { // Append the path to the texture directory if not root
+		} else { // Append the path to the Texture directory if not root
 			path = "resources/textures/"+_path;
 		}
 	}
@@ -388,7 +388,7 @@ namespace bee {
 	* @note All x- and y-coordinates of the rotation origin are given as a percentage from 0.0 to 1.0 of the image dimensions.
 	* @note Provide a negative value for either argument in order to leave it unchanged.
 	* @param rotate_x the new x-coordinate to rotate the texture around
-	* @param rotate_y the new y-coordinate to rotate the texture around
+	* @param rotate_y the new y-coordinate to rotate the Texture around
 	*/
 	void Texture::set_rotate(double rotate_x, double rotate_y) {
 		if (rotate_x >= 0.0) {
@@ -420,7 +420,7 @@ namespace bee {
 			vbo_texcoords.clear();
 		}
 
-		// Convert the subimage width to a percentage of the full texture width
+		// Convert the subimage width to a percentage of the full Texture width
 		GLfloat w = GLfloat(subimage_width);
 		if (width > 0) {
 			w /= width;
@@ -475,7 +475,7 @@ namespace bee {
 			vbo_texcoords.clear();
 		}
 
-		// Convert the width and height of the crop rectangle to a percentage of the full texture dimensions
+		// Convert the width and height of the crop rectangle to a percentage of the full Texture dimensions
 		GLfloat x = GLfloat(crop.x);
 		GLfloat y = GLfloat(crop.y);
 		GLfloat w = GLfloat(crop.w);
@@ -499,19 +499,19 @@ namespace bee {
 	}
 
 	/**
-	* Load a texture from the given surface.
+	* Load a OpenGL texture from the given surface.
 	* @param tmp_surface the temporary surface to load from
 	*
 	* @retval 0 success
 	* @retval 1 failed to load since it's already been loaded
 	*/
 	int Texture::load_from_surface(SDL_Surface* tmp_surface) {
-		if (is_loaded) { // If the texture has already been loaded, output a warning
-			messenger::send({"engine", "texture"}, E_MESSAGE::WARNING, "Failed to load texture \"" + name + "\" from surface because it has already been loaded");
+		if (is_loaded) { // If the Texture has already been loaded, output a warning
+			messenger::send({"engine", "texture"}, E_MESSAGE::WARNING, "Failed to load OpenGL texture \"" + name + "\" from surface because it has already been loaded");
 			return 1;
 		}
 
-		// Set the texture dimensions
+		// Set the Texture dimensions
 		width = tmp_surface->w;
 		height = tmp_surface->h;
 
@@ -592,7 +592,7 @@ namespace bee {
 	SDL_Surface* Texture::load_surface() const {
 		SDL_Surface* surface = IMG_Load(path.c_str());
 		if (surface == nullptr) { // If the surface could not be loaded, output a warning
-			messenger::send({"engine", "texture"}, E_MESSAGE::WARNING, "Failed to load texture surface \"" + name + "\": " + util::get_sdl_error());
+			messenger::send({"engine", "texture"}, E_MESSAGE::WARNING, "Failed to load Texture surface \"" + name + "\": " + util::get_sdl_error());
 			return nullptr;
 		}
 		return surface;
@@ -606,8 +606,8 @@ namespace bee {
 	* @retval 3 failed to load temporary surface
 	*/
 	int Texture::load() {
-		if (is_loaded) { // Do not attempt to load the texture if it has already been loaded
-		       messenger::send({"engine", "texture"}, E_MESSAGE::WARNING, "Failed to load texture \"" + name + "\" because it has already been loaded");
+		if (is_loaded) { // Do not attempt to load the Texture if it has already been loaded
+		       messenger::send({"engine", "texture"}, E_MESSAGE::WARNING, "Failed to load Texture \"" + name + "\" because it has already been loaded");
 		       return 1;
 		}
 
@@ -615,7 +615,7 @@ namespace bee {
 			return 2;
 		}
 
-		SDL_Surface* tmp_surface = load_surface(); // Load the texture into a temporary surface
+		SDL_Surface* tmp_surface = load_surface(); // Load the Texture into a temporary surface
 		if (tmp_surface == nullptr) {
 			return 3;
 		}
@@ -626,7 +626,7 @@ namespace bee {
 		return 0;
 	}
 	/**
-	* Setup the texture for use as a render target.
+	* Setup the Texture for use as a render target.
 	* @param w the target width to use
 	* @param h the target height to use
 	*
@@ -636,8 +636,8 @@ namespace bee {
 	* @retval 3 failed to initialize framebuffer
 	*/
 	int Texture::load_as_target(int w, int h) {
-		if (is_loaded) { // Do not attempt to load the texture if it has already been loaded
-			messenger::send({"engine", "texture"}, E_MESSAGE::WARNING, "Failed to load texture \"" + name + "\" because it has already been loaded");
+		if (is_loaded) { // Do not attempt to load the Texture if it has already been loaded
+			messenger::send({"engine", "texture"}, E_MESSAGE::WARNING, "Failed to load Texture \"" + name + "\" because it has already been loaded");
 			return 1;
 		}
 
@@ -645,7 +645,7 @@ namespace bee {
 			return 2;
 		}
 
-		// Set the texture dimensions and remove all cropping
+		// Set the Texture dimensions and remove all cropping
 		width = w;
 		height = h;
 		set_subimage_amount(1, width);
@@ -780,7 +780,7 @@ namespace bee {
 
 		glBindVertexArray(vao); // Bind the VAO for the texture
 
-		// Bind the texture texture
+		// Bind the texture
 		glUniform1i(render::get_program()->get_location("f_texture"), 0);
 		glBindTexture(GL_TEXTURE_2D, gl_texture);
 
@@ -812,7 +812,7 @@ namespace bee {
 	* Draw a given subimage of the Texture with the given attributes.
 	* @param x the x-coordinate to draw the subimage at
 	* @param y the y-coordinate to draw the subimage at
-	* @param subimage the subimage of the texture to draw
+	* @param subimage the subimage of the Texture to draw
 	* @param w the width to scale the subimage to
 	* @param h the height to scale the subimage to
 	* @param angle the number of degrees to rotate the subimage clockwise
@@ -824,7 +824,7 @@ namespace bee {
 	int Texture::draw_subimage(int x, int y, unsigned int subimage, int w, int h, double angle, RGBA color) {
 		if (!is_loaded) { // Do not attempt to draw the subimage if it has not been loaded
 			if (!has_draw_failed) { // If the draw call hasn't failed before, output a warning
-				messenger::send({"engine", "texture"}, E_MESSAGE::WARNING, "Failed to draw texture \"" + name + "\" because it is not loaded");
+				messenger::send({"engine", "texture"}, E_MESSAGE::WARNING, "Failed to draw Texture \"" + name + "\" because it is not loaded");
 				has_draw_failed = true;
 			}
 			return 1;
@@ -836,7 +836,7 @@ namespace bee {
 		if ((w >= 0)&&(h >= 0)) { // If the width and height are provided to the function, use them as is
 			drect.w = w;
 			drect.h = h;
-		} else { // Otherwise set the width and height to the same as the texture, i.e. don't scale the render
+		} else { // Otherwise set the width and height to the same as the Texture, i.e. don't scale the render
 			drect.w = width;
 			drect.h = height;
 			if (subimage_amount > 1) {
@@ -844,7 +844,7 @@ namespace bee {
 			}
 		}
 
-		// Get the full width of the texture to be used for scaling
+		// Get the full width of the Texture to be used for scaling
 		int rect_width = width;
 		if (subimage_amount > 1) {
 			rect_width = subimage_width;
@@ -868,11 +868,11 @@ namespace bee {
 		// This is not included in the above transformation matrix because it is faster to rotate everything in the geometry shader
 		if (angle != 0.0) {
 			td.rotation = glm::translate(glm::mat4(1.0f), glm::vec3(rotate.first*rect_width, rotate.second*height, 0.0f));
-			td.rotation = glm::rotate(td.rotation, static_cast<float>(util::degtorad(angle)), glm::vec3(0.0f, 0.0f, 1.0f)); // Rotate the subimage on the z-axis around the texture's rotation origin at (rotate_x, rotate_y)
+			td.rotation = glm::rotate(td.rotation, static_cast<float>(util::degtorad(angle)), glm::vec3(0.0f, 0.0f, 1.0f)); // Rotate the subimage on the z-axis around the Texture's rotation origin at (rotate_x, rotate_y)
 			td.rotation = glm::translate(td.rotation, glm::vec3(-rotate.first*rect_width, -rotate.second*height, 0.0f));
 		}
 
-		// Colorize the texture with the given color
+		// Colorize the Texture with the given color
 		td.color = glm::vec4(color.r, color.g, color.b, color.a); // Normalize the color values from 0.0 to 1.0
 		td.color /= 255.0f;
 
@@ -881,7 +881,7 @@ namespace bee {
 
 		render::queue_texture(this, td);
 
-		// If the texture has reached the end of its subimage cycle, set the animation boolean
+		// If the Texture has reached the end of its subimage cycle, set the animation boolean
 		if ((is_animated)&&(subimage == subimage_amount-1)) {
 			is_animated = false;
 		}
@@ -890,13 +890,13 @@ namespace bee {
 	}
 	/**
 	* Draw the Texture with a given subimage timing using the given attributes.
-	* @param x the x-coordinate to draw the texture at
-	* @param y the y-coordinate to draw the texture at
+	* @param x the x-coordinate to draw the Texture at
+	* @param y the y-coordinate to draw the Texture at
 	* @param subimage_time the frame of animation to choose the subimage from
-	* @param w the width to scale the texture to
-	* @param h the height to scale the texture to
-	* @param angle the number of degrees to rotate the texture clockwise
-	* @param color the color to paint the texture in
+	* @param w the width to scale the Texture to
+	* @param h the height to scale the Texture to
+	* @param angle the number of degrees to rotate the Texture clockwise
+	* @param color the color to paint the Texture in
 	*
 	* @returns whether the draw call failed or not
 	* @see draw_subimage() for details
@@ -913,8 +913,8 @@ namespace bee {
 	/**
 	* Draw the Texture with a given subimage timing using the given attributes.
 	* @note When the function is called with no other attributes, let them be values that will not affect the render.
-	* @param x the x-coordinate to draw the texture at
-	* @param y the y-coordinate to draw the texture at
+	* @param x the x-coordinate to draw the Texture at
+	* @param y the y-coordinate to draw the Texture at
 	* @param subimage_time the frame of animation to choose the subimage from
 	*
 	* @returns whether the draw call failed or not
@@ -933,15 +933,15 @@ namespace bee {
 	* @retval <0 a tile call failed
 	*/
 	int Texture::draw_transform(const TextureTransform& tr) {
-		if (!is_loaded) { // Do not attempt to draw the texture if it has not been loaded
+		if (!is_loaded) { // Do not attempt to draw the Texture if it has not been loaded
 			if (!has_draw_failed) { // If the draw call hasn't failed before, output a warning
-				messenger::send({"engine", "texture"}, E_MESSAGE::WARNING, "Failed to draw texture \"" + name + "\" because it is not loaded");
+				messenger::send({"engine", "texture"}, E_MESSAGE::WARNING, "Failed to draw Texture \"" + name + "\" because it is not loaded");
 				has_draw_failed = true;
 			}
 			return 1;
 		}
 
-		if (tr.is_stretched) { // If the texture should be stretched, then draw it without animation
+		if (tr.is_stretched) { // If the Texture should be stretched, then draw it without animation
 			draw(0, 0, 0, get_room_size().first, get_room_size().second, 0.0, {255, 255, 255, 255});
 		} else {
 			const int dt_fps = get_ticks()/get_fps_goal();
@@ -955,12 +955,12 @@ namespace bee {
 
 				const int rh = get_room_size().second;
 				while (rect.y-rect.h < rh) { // Tile as many horizontal lines as necessary to fill the window to the bottom
-					ret += tile_horizontal(rect); // Tile the texture across the row
+					ret += tile_horizontal(rect); // Tile the Texture across the row
 					rect.y += rect.h; // Move to the below row
 				}
 				rect.y = tr.y + dy - rect.h; // Reset the row to above the first
 				while (rect.y+rect.h > 0) { // Tile as many horizontal lines as necessary to fill the window to the top
-					ret += tile_horizontal(rect); // Tile the texture across the row
+					ret += tile_horizontal(rect); // Tile the Texture across the row
 					rect.y -= rect.h; // Move to the above row
 				}
 
@@ -1041,7 +1041,7 @@ namespace bee {
 
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
-		// Bind the framebuffer to the empty texture
+		// Bind the framebuffer to the empty Texture
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gl_texture, 0);
 		GLenum buffer[1] = {GL_COLOR_ATTACHMENT0};
 		glDrawBuffers(1, buffer); // Enable drawing to the framebuffer

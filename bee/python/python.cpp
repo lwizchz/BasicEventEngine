@@ -28,7 +28,7 @@ namespace bee { namespace python {
 		wchar_t* program = nullptr;
 		std::vector<wchar_t*> argv;
 
-		std::string dh_str;
+		Variant dh;
 	}
 
 	/**
@@ -201,21 +201,17 @@ namespace bee { namespace python {
 	}
 
 	/**
-	* Store the last evaluated Python object in the internal displayhook string.
+	* Store the last evaluated Python object in the internal displayhook Variant.
 	* @param obj the object to store
 	*/
 	void set_displayhook(PyObject* obj) {
-		if (obj == Py_None) {
-			internal::dh_str.clear();
-		} else {
-			internal::dh_str = PyUnicode_AsUTF8(PyObject_Str(obj));
-		}
+		internal::dh = pyobj_to_variant(obj);
 	}
 	/**
-	* @returns the internal displayhook string
+	* @returns the internal displayhook Variant
 	*/
-	std::string get_displayhook() {
-		return internal::dh_str;
+	Variant get_displayhook() {
+		return internal::dh;
 	}
 
 	/**
@@ -227,7 +223,9 @@ namespace bee { namespace python {
 	Variant pyobj_to_variant(PyObject* obj) {
 		Variant var;
 
-		if (PyLong_Check(obj)) {
+		if (obj == Py_None) {
+			var = Variant(E_DATA_TYPE::NONE);
+		} else if (PyLong_Check(obj)) {
 			var = static_cast<int>(PyLong_AsLong(obj));
 		} else if (PyBool_Check(obj)) {
 			var = (obj == Py_True);
@@ -257,6 +255,8 @@ namespace bee { namespace python {
 			while (PyDict_Next(obj, &pos, &key, &value)) {
 				var.m.emplace(pyobj_to_variant(key), pyobj_to_variant(value));
 			}
+		} else {
+			var = Variant(PyUnicode_AsUTF8(PyObject_Str(obj)));
 		}
 
 		return var;
@@ -457,7 +457,7 @@ namespace bee { namespace python {
 
 		if (retval != nullptr) {
 			if (value == Py_None) {
-				*retval = Variant(python::get_displayhook(), true);
+				*retval = python::get_displayhook();
 			} else {
 				*retval = python::pyobj_to_variant(value);
 			}

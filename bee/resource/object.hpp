@@ -27,6 +27,7 @@ namespace bee {
 	class Texture;
 
 	struct NetworkEvent;
+	struct PathFollower;
 
 	class Object: public Resource { // The object resource class is used to handle all events and instance data
 		static std::map<int,Object*> list;
@@ -120,7 +121,7 @@ namespace bee {
 		virtual void controller_release(Instance*, SDL_Event*) {};
 		virtual void controller_modify(Instance*, SDL_Event*) {};
 		virtual void commandline_input(Instance*, const std::string&) {};
-		virtual void path_end(Instance*) {};
+		virtual void path_end(Instance*, PathFollower*) {};
 		virtual void outside_room(Instance*) {};
 		virtual void intersect_boundary(Instance*) {};
 		virtual void collision(Instance*, Instance*) {};

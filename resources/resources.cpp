@@ -77,11 +77,8 @@ int bee::init_resources() {
 		font_liberation = new Font("font_liberation", "liberation_mono.ttf", 24);
 
 		// Init paths
-		path_bee = new Path("path_bee", "");
-			path_bee->add_coordinate(0.0, 0.0, 0.0, 1.0);
-			path_bee->add_coordinate(200.0, 400.0, 0.0, 1.0);
-			path_bee->add_coordinate(800.0, 400.0, 0.0, 1.0);
-			path_bee->add_coordinate(500.0, 200.0, 0.0, 1.0);
+		path_bee = new Path("path_bee", "path_bee.json");
+			path_bee->load();
 
 		// Init timelines
 

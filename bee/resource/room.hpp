@@ -34,6 +34,7 @@ namespace bee {
 	class ParticleSystem;
 
 	struct NetworkEvent;
+	struct PathFollower;
 
 	// Declare a function to flip <int,Instance*> to <Instance*,int> for use with instances_sorted
 	namespace internal {
@@ -95,6 +96,8 @@ namespace bee {
 		std::string instance_map; // The path of the instance map file to load instance from when the room starts
 
 		ViewPort* view_current; // A pointer to the current view that is being drawn
+
+		std::map<Instance*,PathFollower*> automatic_paths; // Paths to automatically update
 	public:
 		// See bee/resources/room.cpp for function comments
 		Room();
@@ -155,6 +158,7 @@ namespace bee {
 		int handle_lights();
 		int reset_lights();
 		int clear_lights();
+		int automate_path(Instance*, PathFollower*);
 
 		int reset_properties();
 		int transfer_instances(const Room*);

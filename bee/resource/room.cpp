@@ -50,6 +50,7 @@
 #include "../physics/world.hpp"
 
 #include "texture.hpp"
+#include "path.hpp"
 #include "timeline.hpp"
 #include "light.hpp"
 #include "object.hpp"
@@ -676,6 +677,19 @@ namespace bee {
 
 		return 0;
 	}
+	int Room::automate_path(Instance* inst, PathFollower* pf) {
+		automatic_paths[inst] = pf;
+
+		// Store and restore the Instance mass
+		if (pf == nullptr) {
+			inst->set_mass(inst->get_data("path_previous_mass", Variant(0.0), false).d);
+		} else {
+			inst->set_data("path_previous_mass", inst->get_mass());
+			inst->set_mass(0.0);
+		}
+
+		return 0;
+	}
 
 	int Room::reset_properties() {
 		should_sort = false;
@@ -1056,39 +1070,16 @@ namespace bee {
 		}
 
 		// Move instances along their paths
-		for (auto& i : instances_sorted) {
-			if (i.first->has_path()) {
-				if (
-					(get_is_paused())
-					&&(i.first->get_object()->get_is_pausable())
-					&&(i.first->get_path_pausable())
-				) {
-					continue;
-				}
-
-				i.first->path_update_node();
-
-				path_coord_t c (0.0, 0.0, 0.0, 0.0);
-				if (i.first->get_path_speed() >= 0) {
-					if (i.first->get_path_node()+1 < static_cast<int>(i.first->get_path_coords().size())) {
-						c = i.first->get_path_coords().at(i.first->get_path_node()+1);
-					} else {
-						break;
-					}
-				} else if (i.first->get_path_node() >= 0) {
-					c = i.first->get_path_coords().at(i.first->get_path_node());
-				}
-
-				btVector3 node_pos (i.first->path_pos_start);
-				node_pos += btVector3(std::get<0>(c), std::get<1>(c), std::get<2>(c));
-
-				i.first->set_pos(
-					i.first->get_pos()
-					+ btScalar(std::get<3>(c)*abs(i.first->get_path_speed()))
-					* util::direction_of(i.first->get_pos(), node_pos)
-					* btScalar(get_delta())
-				);
+		for (auto& ipf : automatic_paths) {
+			if (
+				(get_is_paused())
+				&&(ipf.first->get_object()->get_is_pausable())
+				&&(ipf.second->is_pausable)
+			) {
+				continue;
 			}
+
+			ipf.second->path->advance(ipf.first, ipf.second);
 		}
 
 		// Run timelines
@@ -1239,32 +1230,32 @@ namespace bee {
 		return 0;
 	}
 	int Room::check_paths() {
-		for (auto& i : instances_sorted) {
-			if (i.first->has_path()) {
-				if (
+		for (auto& ipf : automatic_paths) {
+			if (
+				(ipf.second == nullptr)
+				||(
 					(get_is_paused())
-					&&(i.first->get_object()->get_is_pausable())
-					&&(i.first->get_path_pausable())
-				) {
-					continue;
-				}
+					&&(ipf.first->get_object()->get_is_pausable())
+					&&(ipf.second->is_pausable)
+				)
+			) {
+				continue;
+			}
 
-				if (
-					(
-						(i.first->get_path_speed() >= 0)
-						&&(i.first->get_path_node() == static_cast<int>(i.first->get_path_coords().size())-1)
-					)
-					||(
-						(i.first->get_path_speed() < 0)
-						&&(i.first->get_path_node() == -1)
-					)
-				) {
-					if (instances_sorted_events[E_EVENT::PATH_END].find(i.first) != instances_sorted_events[E_EVENT::PATH_END].end()) {
-						i.first->get_object()->update(i.first);
-						i.first->get_object()->path_end(i.first);
-					}
-					i.first->handle_path_end();
+			if (ipf.second->path->at_end(ipf.second)) {
+				if (instances_sorted_events[E_EVENT::PATH_END].find(ipf.first) != instances_sorted_events[E_EVENT::PATH_END].end()) {
+					ipf.first->get_object()->update(ipf.first);
+					ipf.first->get_object()->path_end(ipf.first, ipf.second);
 				}
+			}
+		}
+
+		// Remove ended Paths
+		for (auto it=automatic_paths.begin(); it!=automatic_paths.end(); ) {
+			if (it->second == nullptr) {
+				it = automatic_paths.erase(it);
+			} else {
+				++it;
 			}
 		}
 
@@ -1461,15 +1452,6 @@ namespace bee {
 		for (auto& b : backgrounds) {
 			if ((b->is_visible)&&(b->is_foreground)) {
 				b->texture->draw_transform(b->transform);
-			}
-		}
-
-		// Draw instance paths
-		for (auto& i : instances_sorted) {
-			if (i.first->has_path()) {
-				if ((get_option("is_debug_enabled").i)||(i.first->get_path_drawn())) {
-					i.first->draw_path();
-				}
 			}
 		}
 

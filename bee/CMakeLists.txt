@@ -18,7 +18,7 @@ set(deps_bee_physics physics/body.cpp physics/filter.cpp physics/draw.cpp physic
 
 set(deps_bee_resource resource/texture.cpp resource/sound.cpp resource/font.cpp resource/path.cpp resource/timeline.cpp resource/mesh.cpp resource/light.cpp resource/script.cpp resource/object.cpp resource/room.cpp)
 
-set(deps_bee_python_resource python/resource/texture.cpp python/resource/sound.cpp python/resource/font.cpp)
+set(deps_bee_python_resource python/resource/texture.cpp python/resource/sound.cpp python/resource/font.cpp python/resource/path.cpp)
 set(deps_bee_python python/python.cpp python/beemodule.cpp python/messenger.cpp python/console.cpp python/commands.cpp python/mouse.cpp python/kb.cpp python/instance.cpp ${deps_bee_python_resource})
 set(deps_bee_scripting ${deps_bee_python})
 
