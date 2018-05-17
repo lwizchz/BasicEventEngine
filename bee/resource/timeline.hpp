@@ -23,6 +23,7 @@ namespace bee {
 	// Forward declarations
 	class Timeline;
 	struct TimelineIterator;
+	class Script;
 
 	/// Used to hold action callbacks
 	struct TimelineAction {
@@ -63,8 +64,11 @@ namespace bee {
 		std::string name; ///< An arbitrary resource name
 		std::string path; ///< The path of the file to load the Timeline from
 
+		bool is_loaded; ///< Whether the actions were successfully loaded into the map
 		std::multimap<Uint32,TimelineAction> actions; ///< The map which holds the actions
 		TimelineAction end_action; ///< An action which will be executed when the Timeline is finished
+
+		Script* scr_actions; ///< The Script which loads the desired actions
 	public:
 		// See bee/resources/timeline.cpp for function comments
 		Timeline();
@@ -90,6 +94,9 @@ namespace bee {
 
 		void set_name(const std::string&);
 		void set_path(const std::string&);
+
+		int load();
+		int free();
 
 		void add_action(Uint32, const std::string&, std::function<void (TimelineIterator*, TimelineAction*)>);
 		void add_action(Uint32, std::function<void (TimelineIterator*, TimelineAction*)>);

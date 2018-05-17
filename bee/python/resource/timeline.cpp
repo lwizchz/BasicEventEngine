@@ -26,12 +26,12 @@ namespace bee { namespace python { namespace internal {
 
 		{"get_actions", reinterpret_cast<PyCFunction>(Timeline_get_actions), METH_NOARGS, "Return the list of action frames and names"},
 
-		{"add_action", reinterpret_cast<PyCFunction>(Timeline_add_action), METH_NOARGS, "Add the given callback to the action list"},
-		{"remove_actions", reinterpret_cast<PyCFunction>(Timeline_remove_actions), METH_NOARGS, "Remove all actions from the given frames"},
-		{"set_ending", reinterpret_cast<PyCFunction>(Timeline_set_ending), METH_NOARGS, "Set the end action"},
+		{"add_action", reinterpret_cast<PyCFunction>(Timeline_add_action), METH_VARARGS, "Add the given callback to the action list"},
+		{"remove_actions", reinterpret_cast<PyCFunction>(Timeline_remove_actions), METH_VARARGS, "Remove all actions from the given frames"},
+		{"set_ending", reinterpret_cast<PyCFunction>(Timeline_set_ending), METH_VARARGS, "Set the end action"},
 
-		{"step_to", reinterpret_cast<PyCFunction>(Timeline_step_to), METH_NOARGS, "Execute all actions up to the given frame"},
-		{"end", reinterpret_cast<PyCFunction>(Timeline_end), METH_NOARGS, "End execution whether the iterator's finished or not"},
+		{"step_to", reinterpret_cast<PyCFunction>(Timeline_step_to), METH_VARARGS, "Execute all actions up to the given frame"},
+		{"end", reinterpret_cast<PyCFunction>(Timeline_end), METH_VARARGS, "End execution whether the iterator's finished or not"},
 
 		{nullptr, nullptr, 0, nullptr}
 	};

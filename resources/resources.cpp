@@ -48,9 +48,6 @@ bee::Object* obj_bee = nullptr;
 // Declare Rooms
 bee::Room* rm_test = nullptr;
 
-// Include Timelines
-#include "timelines/tl_bee.hpp"
-
 // Include Objects
 #include "objects/obj_control.hpp"
 #include "objects/obj_bee.hpp"
@@ -88,8 +85,8 @@ int bee::init_resources() {
 			path_bee->load();
 
 		// Init Timelines
-		tl_bee = new Timeline("tl_bee", "timelines/tl_bee.hpp");
-			tl_bee_load();
+		tl_bee = new Timeline("tl_bee", "tl_bee.py");
+			tl_bee->load();
 
 		// Init Meshes
 		mesh_monkey = new Mesh("mesh_monkey", "monkey2.obj");

@@ -23,6 +23,8 @@
 
 #include "../core/rooms.hpp"
 
+#include "../resource/script.hpp"
+
 namespace bee {
 	/**
 	* Construct the action from a name and callback.
@@ -103,8 +105,11 @@ namespace bee {
 		name(),
 		path(),
 
+		is_loaded(false),
 		actions(),
-		end_action()
+		end_action(),
+
+		scr_actions(new Script())
 	{}
 	/**
 	* Construct the Timeline, add it to the Timeline resource list, and set the new name and path.
@@ -126,6 +131,8 @@ namespace bee {
 	* Remove the Timeline from the resource list.
 	*/
 	Timeline::~Timeline() {
+		delete scr_actions;
+
 		list.erase(id);
 	}
 
@@ -200,6 +207,8 @@ namespace bee {
 		actions.clear();
 		end_action = TimelineAction();
 
+		scr_actions->free();
+
 		return 0;
 	}
 
@@ -213,6 +222,20 @@ namespace bee {
 		info["name"] = name;
 		info["path"] = path;
 
+		info["is_loaded"] = is_loaded;
+
+		std::vector<Variant> _actions;
+		for (auto& a : actions) {
+			_actions.emplace_back(a.second.name);
+		}
+		info["actions"] = _actions;
+
+		if (end_action.func != nullptr) {
+			info["end_action"] = end_action.name;
+		} else {
+			info["end_action"] = Variant();
+		}
+
 		return info;
 	}
 	/**
@@ -222,9 +245,21 @@ namespace bee {
 	* @retval 0 success
 	*/
 	int Timeline::deserialize(std::map<Variant,Variant>& m) {
+		this->free();
+
 		id = m["id"].i;
 		name = m["name"].s;
 		path = m["path"].s;
+
+		is_loaded = false;
+		actions.clear();
+		end_action = TimelineAction();
+
+		scr_actions->free();
+
+		if ((m["is_loaded"].i)&&(load())) {
+			return 1;
+		}
 
 		return 0;
 	}
@@ -268,12 +303,56 @@ namespace bee {
 	}
 
 	/**
+	* Load the Timeline script from its path.
+	*
+	* @retval 0 success
+	* @retval 1 failed to load since it's already loaded
+	* @retval 2 failed to load since it's not a script
+	*/
+	int Timeline::load() {
+		if (is_loaded) {
+			messenger::send({"engine", "timeline"}, E_MESSAGE::WARNING, "Failed to load Timeline \"" + name + "\" because it has already been loaded");
+			return 1;
+		}
+
+		if (Script::is_script(path)) {
+			messenger::send({"engine", "timeline"}, E_MESSAGE::WARNING, "Failed to load Timeline \"" + name + "\" from \"" + path + "\" because it's not a script");
+			return 2;
+		}
+
+		scr_actions->set_path("/"+path);
+		scr_actions->load();
+
+		// Set the loaded booleans
+		is_loaded = true;
+
+		return 0;
+	}
+	int Timeline::free() {
+		if (!is_loaded) {
+			return 0;
+		}
+
+		// Remove all actions
+		actions.clear();
+		end_action = TimelineAction();
+
+		scr_actions->free();
+
+		// Set the loaded boolean
+		is_loaded = false;
+
+		return 0;
+	}
+
+	/**
 	* Add the given callback to the action list.
 	* @param frame the frame at which to execute the action
 	* @param action_name the name of the action
 	* @param callback the callback to use for the action
 	*/
 	void Timeline::add_action(Uint32 frame, const std::string& action_name, std::function<void (TimelineIterator*, TimelineAction*)> callback) {
+		is_loaded = true;
 		actions.emplace(frame, TimelineAction(action_name, callback));
 	}
 	/**

@@ -1,7 +1,6 @@
-set(timelines timelines/tl_bee.cpp)
 set(objects objects/obj_control.cpp objects/obj_bee.cpp)
 set(rooms rooms/rm_test.cpp)
-set(deps resources.cpp ${timelines} ${objects} ${rooms})
+set(deps resources.cpp ${objects} ${rooms})
 
 if (WIN32)
 	set(SRC ${${PROJECT_NAME}_SOURCE_DIR})

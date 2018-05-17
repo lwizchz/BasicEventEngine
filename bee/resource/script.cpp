@@ -102,6 +102,18 @@ namespace bee {
 		return new_script;
 	}
 
+	/**
+	* @param path the path to check
+	*
+	* @returns whether the given path represents a script file
+	*/
+	bool Script::is_script(const std::string& path) {
+		if (path.substr(path.length()-3, 3) != ".py") {
+			return true;
+		}
+		return false;
+	}
+
 	/*
 	* Script::add_to_resources() - Add the sprite to the appropriate resource list
 	*/

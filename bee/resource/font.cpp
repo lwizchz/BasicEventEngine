@@ -353,7 +353,7 @@ namespace bee {
 	*/
 	int Font::load() {
 		if (is_loaded) { // If the Font has already been loaded, output a warning
-			messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to load Font \"" + name + "\" from because it has already been loaded");
+			messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to load Font \"" + name + "\" because it has already been loaded");
 			return 1;
 		}
 
@@ -372,7 +372,7 @@ namespace bee {
 
 		font = TTF_OpenFont(path.c_str(), font_size); // Open the TTF file with the desired font size
 		if (font == nullptr) { // If the Font failed to load, output a warning
-			messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to load Font \"" + path + "\": " + util::get_sdl_error());
+			messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to load Font from \"" + path + "\": " + util::get_sdl_error());
 			has_draw_failed = true;
 			return 3;
 		}
