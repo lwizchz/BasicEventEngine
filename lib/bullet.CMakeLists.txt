@@ -13,7 +13,9 @@ IF(COMMAND cmake_policy)
       # Enable MACOSX_RPATH by default.
       cmake_policy(SET CMP0042 NEW)
    endif(POLICY CMP0042)
-   cmake_policy(SET CMP0072 NEW)
+   if(POLICY CMP0072)
+      cmake_policy(SET CMP0072 NEW)
+   endif(POLICY CMP0072)
 ENDIF(COMMAND cmake_policy)
 
 

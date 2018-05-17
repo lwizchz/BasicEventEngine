@@ -1,5 +1,11 @@
 cmake_minimum_required(VERSION 3.0)
 
+if(COMMAND cmake_policy)
+	if(POLICY CMP0072)
+		cmake_policy(SET CMP0072 NEW)
+	endif(POLICY CMP0072)
+endif(COMMAND cmake_policy)
+
 set(ENGINE_VERSION_MAJOR "0")
 set(ENGINE_VERSION_MINOR "1")
 set(ENGINE_VERSION_RELEASE "6")
@@ -134,7 +140,6 @@ else() # Include Unix libraries automatically
 	target_link_libraries(${PROJECT_NAME} ${SDL2IMAGE_LIBRARIES} ${SDL2TTF_LIBRARIES} ${SDL2MIXER_LIBRARIES} ${SDL2NET_LIBRARIES} ${SDL2_LIBRARIES})
 
 	# Include OpenGL related libraries
-	cmake_policy(SET CMP0072 NEW)
 	find_package(GLEW REQUIRED)
 	find_package(GLUT REQUIRED)
 	find_package(OpenGL REQUIRED)
