@@ -134,6 +134,7 @@ else() # Include Unix libraries automatically
 	target_link_libraries(${PROJECT_NAME} ${SDL2IMAGE_LIBRARIES} ${SDL2TTF_LIBRARIES} ${SDL2MIXER_LIBRARIES} ${SDL2NET_LIBRARIES} ${SDL2_LIBRARIES})
 
 	# Include OpenGL related libraries
+	cmake_policy(SET CMP0072 NEW)
 	find_package(GLEW REQUIRED)
 	find_package(GLUT REQUIRED)
 	find_package(OpenGL REQUIRED)

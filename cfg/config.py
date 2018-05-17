@@ -18,6 +18,7 @@ bind("SDLK_n", "$Start3D")
 bind("SDLK_m", "$End3D")
 
 bind("SDLK_y", "$StartPath")
+bind("SDLK_t", "$StartTimeline")
 bind("SDLK_b", "$StartSerialize")
 bind("SDLK_v", "$StartDeserialize")
 

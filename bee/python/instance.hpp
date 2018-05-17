@@ -27,8 +27,8 @@ namespace bee { namespace python { namespace internal {
 	int Instance_init(InstanceObject*, PyObject*, PyObject*);
 
 	// Instance methods
-	PyObject* Instance_repr(InstanceObject*, PyObject*);
-	PyObject* Instance_str(InstanceObject*, PyObject*);
+	PyObject* Instance_repr(InstanceObject*);
+	PyObject* Instance_str(InstanceObject*);
 	PyObject* Instance_print(InstanceObject*, PyObject*);
 
 	PyObject* Instance_set_alarm(InstanceObject*, PyObject*);

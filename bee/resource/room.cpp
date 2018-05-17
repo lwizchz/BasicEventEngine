@@ -690,6 +690,10 @@ namespace bee {
 
 		return 0;
 	}
+	int Room::automate_timeline(TimelineIterator* tlit) {
+		automatic_timelines.emplace_back(tlit);
+		return 0;
+	}
 
 	int Room::reset_properties() {
 		should_sort = false;
@@ -1069,7 +1073,7 @@ namespace bee {
 			i.first->get_object()->step_mid(i.first);
 		}
 
-		// Move instances along their paths
+		// Move Instances along their Paths
 		for (auto& ipf : automatic_paths) {
 			if (
 				(get_is_paused())
@@ -1082,19 +1086,10 @@ namespace bee {
 			ipf.second->path->advance(ipf.first, ipf.second);
 		}
 
-		// Run timelines
-		for (size_t i=0; i<Timeline::get_amount(); ++i) {
-			Timeline* tt = Timeline::get(i);
-			if (tt->get_is_running()) {
-				int r = tt->step_to(get_frame());
-				if (r == 2) {
-					tt->end();
-					if (tt->get_is_looping()) {
-						tt->start();
-					}
-				}
-			}
-		}
+		// Step Timelines
+		automatic_timelines.erase(std::remove_if(automatic_timelines.begin(), automatic_timelines.end(), [] (TimelineIterator* tlit) {
+			return tlit->step_to(get_frame());
+		}), automatic_timelines.end());
 
 		return 0;
 	}

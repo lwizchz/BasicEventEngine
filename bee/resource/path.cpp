@@ -132,7 +132,7 @@ namespace bee {
 	/**
 	* @param name the name of the desired Path
 	*
-	* @returns the Rath resource with the given name
+	* @returns the Path resource with the given name
 	*/
 	Path* Path::get_by_name(const std::string& name) {
 		for (auto& path : list) { // Iterate over the Paths in order to find the first one with the given name
@@ -230,7 +230,7 @@ namespace bee {
 	int Path::deserialize(std::map<Variant,Variant>& m) {
 		id = m["id"].i;
 		name = m["name"].s;
-		path = m["name"].s;
+		path = m["path"].s;
 
 		for (auto& n : m["nodes"].v) {
 			btVector3 pos (n.v[0].v[0].d, n.v[0].v[1].d, n.v[0].v[2].d);

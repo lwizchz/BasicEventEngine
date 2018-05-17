@@ -26,6 +26,7 @@
 #include "resource/sound.hpp"
 #include "resource/font.hpp"
 #include "resource/path.hpp"
+#include "resource/timeline.hpp"
 
 #include "../engine.hpp"
 
@@ -160,6 +161,9 @@ namespace bee { namespace python { namespace internal {
 			return nullptr;
 		}
 		if (PyInit_bee_path(module) == nullptr) {
+			return nullptr;
+		}
+		if (PyInit_bee_timeline(module) == nullptr) {
 			return nullptr;
 		}
 

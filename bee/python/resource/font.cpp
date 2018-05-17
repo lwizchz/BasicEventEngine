@@ -153,11 +153,11 @@ namespace bee { namespace python { namespace internal {
 		return 0;
 	}
 
-	PyObject* Font_repr(FontObject* self, PyObject* args) {
+	PyObject* Font_repr(FontObject* self) {
 		std::string s = std::string("bee.Font(\"") + PyUnicode_AsUTF8(self->name) + "\")";
 		return Py_BuildValue("N", PyUnicode_FromString(s.c_str()));
 	}
-	PyObject* Font_str(FontObject* self, PyObject* args) {
+	PyObject* Font_str(FontObject* self) {
 		Font* font = as_font(self);
 		if (font == nullptr) {
 			return Py_BuildValue("N", PyUnicode_FromString("Invalid Font name"));

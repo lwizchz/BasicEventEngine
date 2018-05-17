@@ -26,8 +26,8 @@ namespace bee { namespace python { namespace internal {
 	int Texture_init(TextureObject*, PyObject*, PyObject*);
 
 	// Texture methods
-	PyObject* Texture_repr(TextureObject*, PyObject*);
-	PyObject* Texture_str(TextureObject*, PyObject*);
+	PyObject* Texture_repr(TextureObject*);
+	PyObject* Texture_str(TextureObject*);
 	PyObject* Texture_print(TextureObject*, PyObject*);
 
 	PyObject* Texture_get_size(TextureObject*, PyObject*);

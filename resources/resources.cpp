@@ -11,81 +11,90 @@
 
 #include "resources.hpp"
 
-// Define sprites
+// Define Sprites
 bee::Texture* spr_none = nullptr;
 bee::Texture* spr_bee = nullptr;
 bee::Texture* spr_dot = nullptr;
 
-// Define backgrounds
+// Define Backgrounds
 bee::Texture* bk_green = nullptr;
 
-// Define sounds
+// Define Sounds
 bee::Sound* snd_chirp = nullptr;
 
-// Define fonts
+// Define Fonts
 bee::Font* font_liberation = nullptr;
 
-// Define paths
+// Define Paths
 bee::Path* path_bee = nullptr;
 
-// Define timelines
+// Define Timelines
+bee::Timeline* tl_bee = nullptr;
 
-// Define meshes
+// Define Meshes
 bee::Mesh* mesh_monkey = nullptr;
 
-// Define lights
+// Define Lights
 bee::Light* lt_ambient = nullptr;
 bee::Light* lt_bee = nullptr;
 
-// Define scripts
+// Define Scripts
 bee::Script* scr_test = nullptr;
 
-// Declare objects
+// Declare Objects
 bee::Object* obj_control = nullptr;
 bee::Object* obj_bee = nullptr;
 
-// Declare rooms
+// Declare Rooms
 bee::Room* rm_test = nullptr;
 
-// Include objects
+// Include Timelines
+#include "timelines/tl_bee.hpp"
+
+// Include Objects
 #include "objects/obj_control.hpp"
 #include "objects/obj_bee.hpp"
 
-// Include rooms
+// Include Rooms
 #include "rooms/rm_test.hpp"
 
-/*
-* bee::init_resources() - Initialize all game resources
-* ! Note that loading is not required at this stage, just initialization
+/**
+* Initialize all game resources.
+* @note Loading is not required at this stage, just initialization.
+*
+* @retval 0 success
+* @retval 1 failed
 */
 int bee::init_resources() {
 	try { // Catch any exceptions so that the engine can properly clean up
-		// Init sprites
+		// Init Sprites
 		spr_none = new Texture("spr_none", "none.png");
 			spr_none->load();
 		spr_bee = new Texture("spr_bee", "spr_bee.png");
 			spr_bee->set_subimage_amount(2, 100);
 		spr_dot = new Texture("spr_dot", "spr_dot.png");
 
-		// Init backgrounds
+		// Init Backgrounds
 		bk_green = new Texture("bk_green", "bk_green.png");
 
-		// Init sounds
+		// Init Sounds
 		snd_chirp = new Sound("snd_chirp", "snd_chirp.wav", false);
 
-		// Init fonts
+		// Init Fonts
 		font_liberation = new Font("font_liberation", "liberation_mono.ttf", 24);
 
-		// Init paths
+		// Init Paths
 		path_bee = new Path("path_bee", "path_bee.json");
 			path_bee->load();
 
-		// Init timelines
+		// Init Timelines
+		tl_bee = new Timeline("tl_bee", "timelines/tl_bee.hpp");
+			tl_bee_load();
 
-		// Init meshes
+		// Init Meshes
 		mesh_monkey = new Mesh("mesh_monkey", "monkey2.obj");
 
-		// Init lights
+		// Init Lights
 		lt_ambient = new Light("lt_ambient", "");
 			//lt_ambient->set_color({255, 255, 255, 192});
 			lt_ambient->set_color({255, 255, 255, 30});
@@ -96,70 +105,73 @@ int bee::init_resources() {
 			//lt_bee->set_attenuation({5.0, 1000.0, 40000.0, 0.0});
 			lt_bee->set_color({255, 255, 255, 255});
 
-		// Init scripts
+		// Init Scripts
 		scr_test = new Script("scr_test", "scr_test.py");
 			scr_test->load();
 
-		// Init objects
+		// Init Objects
 		obj_control = new ObjControl();
 		obj_bee = new ObjBee();
 			obj_bee->set_is_solid(true);
 			obj_bee->set_sprite(spr_bee);
 
-		// Init rooms
+		// Init Rooms
 		rm_test = new RmTest();
 
 		is_initialized = true; // Set the engine initialization flag
 	} catch (...) {
-		return 1; // Return 1 if any errors are encountered
+		return 1;
 	}
 
-	return 0; // Return 0 on success
+	return 0;
 }
 
 #define DEL(x) if (x!=nullptr) {delete x; x=nullptr;}
-/*
-* bee::close_resources() - Destroy all game resources
+/**
+* Destroy all game resources.
+*
+* @retval 0 success
 */
 int bee::close_resources() {
-	// Destroy sprites
+	// Destroy Sprites
 	DEL(spr_bee);
 	DEL(spr_dot);
 
-	// Destroy backgrounds
+	// Destroy Backgrounds
 	DEL(bk_green);
 
-	// Destroy sounds
+	// Destroy Sounds
 	DEL(snd_chirp);
 
-	// Destroy fonts
+	// Destroy Fonts
 	DEL(font_liberation);
 
-	// Destroy paths
+	// Destroy Paths
 	DEL(path_bee);
 
-	// Destroy timelines
+	// Destroy Timelines
+	DEL(tl_bee);
 
-	// Destroy meshes
+	// Destroy Meshes
 	DEL(mesh_monkey);
 
-	// Destroy lights
+	// Destroy Lights
 	DEL(lt_ambient);
 	DEL(lt_bee);
 
-	// Destroy scripts
+	// Destroy Scripts
 	DEL(scr_test);
 
-	// Destroy objects
+	// Destroy Objects
 	DEL(obj_control);
 	DEL(obj_bee);
 
-	// Destroy rooms
+	// Destroy Rooms
 	DEL(rm_test);
 
 	is_initialized = false; // Unset the engine initialization flag
 
-	return 0; // Return 0 on success
+	return 0;
 }
 #undef DEL
 

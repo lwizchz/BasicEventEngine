@@ -12,40 +12,41 @@
 #include "../bee/util.hpp"
 #include "../bee/all.hpp"
 
-// Define sprites
+// Define Sprites
 extern bee::Texture* spr_none;
 extern bee::Texture* spr_bee;
 extern bee::Texture* spr_dot;
 
-// Define backgrounds
+// Define Backgrounds
 extern bee::Texture* bk_green;
 
-// Define sounds
+// Define Sounds
 extern bee::Sound* snd_chirp;
 
-// Define fonts
+// Define Fonts
 extern bee::Font* font_liberation;
 
-// Define paths
+// Define Paths
 extern bee::Path* path_bee;
 
-// Define timelines
+// Define Timelines
+extern bee::Timeline* tl_bee;
 
-// Define meshes
+// Define Meshes
 extern bee::Mesh* mesh_monkey;
 
-// Define lights
+// Define Lights
 extern bee::Light* lt_ambient;
 extern bee::Light* lt_bee;
 
-// Define scripts
+// Define Scripts
 extern bee::Script* scr_test;
 
-// Declare objects
+// Declare Objects
 extern bee::Object* obj_control;
 extern bee::Object* obj_bee;
 
-// Declare rooms
+// Declare Rooms
 extern bee::Room* rm_test;
 
 namespace bee {

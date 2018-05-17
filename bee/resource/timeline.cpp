@@ -21,13 +21,80 @@
 
 #include "../messenger/messenger.hpp"
 
+#include "../core/rooms.hpp"
+
 namespace bee {
+	/**
+	* Construct the action from a name and callback.
+	*/
+	TimelineAction::TimelineAction(const std::string& _name, std::function<void (TimelineIterator*, TimelineAction*)> _func) :
+		name(_name),
+		func(_func)
+	{}
+	/**
+	* Default construct the action.
+	*/
+	TimelineAction::TimelineAction() :
+		TimelineAction("", nullptr)
+	{}
+	/**
+	* Call the callback if it's set.
+	*/
+	void TimelineAction::operator()(TimelineIterator* tlit) {
+		if (func != nullptr) {
+			func(tlit, this);
+		}
+	}
+
+	/**
+	* Construct the iterator from an offset.
+	* @param _tl the Timeline to iterate over
+	* @param _start_offset the tick offset to start at
+	* @param _is_looping whether to restart the Timeline when it finishes
+	* @param _is_pausable whether the iterator should pause when the game pauses
+	*/
+	TimelineIterator::TimelineIterator(Timeline* _tl, Uint32 _start_offset, bool _is_looping, bool _is_pausable) :
+		tl(_tl),
+
+		start_frame(0),
+		position_frame(-1),
+		start_offset(_start_offset),
+		pause_offset(0),
+
+		is_looping(_is_looping),
+		is_pausable(_is_pausable)
+	{}
+	/**
+	* Default construct the iterator.
+	*/
+	TimelineIterator::TimelineIterator() :
+		TimelineIterator(nullptr, 0, false, false)
+	{}
+	/**
+	* Clip the start offset to the first action's frame.
+	*/
+	void TimelineIterator::clip_offset() {
+		if ((tl == nullptr)||(tl->get_actions().empty())) {
+			start_offset = 0;
+			return;
+		}
+
+		start_offset = tl->get_actions().begin()->first;
+	}
+	/**
+	* Step to the given frame.
+	* @param frame the frame to step to
+	*/
+	int TimelineIterator::step_to(Uint32 frame) {
+		return tl->step_to(this, frame);
+	}
+
 	std::map<int,Timeline*> Timeline::list;
 	int Timeline::next_id = 0;
 
-	/*
-	* Timeline::Timeline() - Default construct the timeline
-	* ! This constructor should only be directly used for temporary timelines, the other constructor should be used for all other cases
+	/**
+	* Default construct the Timeline.
+	* @note This constructor should only be directly used for temporary timelines, the other constructor should be used for all other cases.
 	*/
 	Timeline::Timeline() :
 		Resource(),
@@ -35,50 +102,43 @@ namespace bee {
 		id(-1),
 		name(),
 		path(),
-		action_list(),
-		next_action(),
-		end_action(nullptr),
 
-		start_frame(0xffffffff),
-		position_frame(0xffffffff),
-		start_offset(0),
-		pause_offset(0),
-		is_looping(false),
-		is_paused(false)
+		actions(),
+		end_action()
 	{}
-	/*
-	* Timeline::Timeline() - Construct the timeline, add it to the timeline resource list, and set the new name and path
-	* @new_name: the name of the timeline to use
-	* @new_path: the path of the timeline config file
+	/**
+	* Construct the Timeline, add it to the Timeline resource list, and set the new name and path.
+	* @param _name the name of the Timeline to use
+	* @param _path the path of the Timeline file
 	*/
-	Timeline::Timeline(const std::string& new_name, const std::string& new_path) :
+	Timeline::Timeline(const std::string& _name, const std::string& _path) :
 		Timeline()
 	{
-		add_to_resources(); // Add the timeline to the appropriate resource list
-		if (id < 0) { // If the timeline could not be added to the resource list, output a warning
-			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add timeline resource: \"" + new_name + "\" from " + new_path);
+		if (add_to_resources() < 0) { // Attempt to add the Timeline to its resource list
+			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add timeline resource: \"" + _name + "\" from " + _path);
 			throw(-1); // Throw an exception
 		}
 
-		set_name(new_name); // Set the timeline name
-		set_path(new_path); // Set the timeline path
+		set_name(_name);
+		set_path(_path);
 	}
-	/*
-	* Timeline::~Timeline() - Remove the timeline from the resource list
+	/**
+	* Remove the Timeline from the resource list.
 	*/
 	Timeline::~Timeline() {
-		list.erase(id); // Remove the timeline from the resource list
+		list.erase(id);
 	}
 
-	/*
-	* Timeline::get_amount() - Return the amount of timeline resources
+	/**
+	* @returns the number of Timeline resources
 	*/
 	size_t Timeline::get_amount() {
 		return list.size();
 	}
-	/*
-	* Timeline::get() - Return the resource with the given id
-	* @id: the resource to get
+	/**
+	* @param id the resource to get
+	*
+	* @returns the resource with the given id
 	*/
 	Timeline* Timeline::get(int id) {
 		if (list.find(id) != list.end()) {
@@ -86,9 +146,10 @@ namespace bee {
 		}
 		return nullptr;
 	}
-	/*
-	* Timeline::get_by_name() - Return the timeline resource with the given name
-	* @name: the name of the desired timeline
+	/**
+	* @param name the name of the desired Timeline
+	*
+	* @returns the Timeline resource with the given name
 	*/
 	Timeline* Timeline::get_by_name(const std::string& name) {
 		for (auto& tl : list) { // Iterate over the timelines in order to find the first one with the given name
@@ -101,18 +162,22 @@ namespace bee {
 		}
 		return nullptr; // Return nullptr on failure
 	}
-	/*
-	* Timeline::add() - Initiliaze and return a newly created timeline resource
-	* @name: the name to initialize the timeline with
-	* @path: the path to initialize the timeline with
+	/**
+	* Initiliaze and return a newly created Timeline resource.
+	* @param name the name to initialize the Timeline with
+	* @param path the path to initialize the Timeline with
+	*
+	* @returns the newly created Timeline
 	*/
 	Timeline* Timeline::add(const std::string& name, const std::string& path) {
 		Timeline* new_timeline = new Timeline(name, path);
 		return new_timeline;
 	}
 
-	/*
-	* Timeline::add_to_resources() - Add the timeline to the appropriate resource list
+	/**
+	* Add the Timeline to the appropriate resource list.
+	*
+	* @returns the Timeline id
 	*/
 	int Timeline::add_to_resources() {
 		if (id < 0) { // If the resource needs to be added to the resource list
@@ -120,48 +185,57 @@ namespace bee {
 			list.emplace(id, this); // Add the resource and with the new id
 		}
 
-		return 0; // Return 0 on success
+		return id;
 	}
-	/*
-	* Timeline::reset() - Reset all resource variables for reinitialization
+	/**
+	* Reset all resource variables for reinitialization.
+	*
+	* @retval 0 success
 	*/
 	int Timeline::reset() {
 		// Reset all properties
 		name = "";
 		path = "";
-		action_list.clear();
-		next_action = action_list.end();
 
-		start_frame = 0xffffffff;
-		position_frame = 0xffffffff;
-		start_offset = 0;
-		is_looping = false;
+		actions.clear();
+		end_action = TimelineAction();
 
-		return 0; // Return 0 on success
+		return 0;
 	}
-	/*
-	* Timeline::print() - Print all relevant information about the resource
+
+	/**
+	* @returns a map of all the information required to restore the Timeline
+	*/
+	std::map<Variant,Variant> Timeline::serialize() const {
+		std::map<Variant,Variant> info;
+
+		info["id"] = id;
+		info["name"] = name;
+		info["path"] = path;
+
+		return info;
+	}
+	/**
+	* Restore the Timeline from the serialized data.
+	* @param m the map of data to use
+	*
+	* @retval 0 success
+	*/
+	int Timeline::deserialize(std::map<Variant,Variant>& m) {
+		id = m["id"].i;
+		name = m["name"].s;
+		path = m["path"].s;
+
+		return 0;
+	}
+	/**
+	* Print all relevant information about the resource.
 	*/
 	void Timeline::print() const {
-		std::string action_string = get_action_string(); // Get the list of actions in string form
-
-		std::stringstream s; // Declare the output stream
-		s << // Append all info to the output
-		"Timeline { "
-		"\n	id             " << id <<
-		"\n	name           " << name <<
-		"\n	path           " << path <<
-		"\n	start_frame    " << start_frame <<
-		"\n	position_frame " << position_frame <<
-		"\n	is_looping     " << is_looping <<
-		"\n	action_list\n" << util::debug_indent(action_string, 2) <<
-		"\n}\n";
-		messenger::send({"engine", "resource"}, E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for output
+		Variant m (serialize());
+		messenger::send({"engine", "timeline"}, E_MESSAGE::INFO, "Timeline " + m.to_str(true));
 	}
 
-	/*
-	* Timeline::get_*() - Return the requested resource information
-	*/
 	int Timeline::get_id() const {
 		return id;
 	}
@@ -171,185 +245,156 @@ namespace bee {
 	std::string Timeline::get_path() const {
 		return path;
 	}
-	timeline_list_t Timeline::get_action_list() const {
-		return action_list;
-	}
-	std::string Timeline::get_action_string() const {
-		if (action_list.empty()) { // If there are no actions in the list, return a none-string
-			return "none\n";
-		}
-
-		std::vector<std::vector<std::string>> table; // Declare a table to hold the actions
-		table.push_back({"(frame", "func_name)"}); // Append the table header
-
-		for (auto& a : action_list) { // Iterate over the actions and add each one of them to the table
-			table.push_back({std::to_string(a.first), a.second.first});
-		}
-
-		return util::string::tabulate(table); // Return the table as a properly spaced string
-	}
-	bool Timeline::get_is_running() const {
-		if (is_paused) {
-			return false; // Return false if the timeline is currently paused
-		}
-
-		if (start_frame == 0xffffffff) {
-			return false; // Return false if the start frame is the maximum value, i.e. not currently running
-		}
-
-		return true; // Return true if the timeline is neither paused nor stopped at the max value
-	}
-	bool Timeline::get_is_looping() const {
-		return is_looping;
+	const std::multimap<Uint32,TimelineAction>& Timeline::get_actions() const {
+		return actions;
 	}
 
-	/*
-	* Timeline::set_*() - Set the requested resource data
+	void Timeline::set_name(const std::string& _name) {
+		name = _name;
+	}
+	/**
+	* Set the relative or absolute path.
+	* @param _path the new path to use
+	* @note If the first character is '/' then the path will be relative to
+	*       the executable directory, otherwise it will be relative to the
+	*       Timelines resource directory.
 	*/
-	int Timeline::set_name(const std::string& new_name) {
-		name = new_name;
-		return 0;
-	}
-	int Timeline::set_path(const std::string& new_path) {
-		if (new_path.front() == '/') {
-			path = new_path.substr(1);
-		} else {
-			path = "resources/timelines/"+new_path; // Append the path to the timelines directory if no root
+	void Timeline::set_path(const std::string& _path) {
+		if (_path.front() == '/') {
+			path = _path.substr(1);
+		} else { // Append the path to the Timelines directory if not root
+			path = "resources/timelines/"+_path;
 		}
-		return 0;
 	}
-	int Timeline::add_action(Uint32 frame_number, const std::string& func_name, std::function<void()> callback) {
-		if (get_is_running()) { // If the timeline is already running, output a warning
-			messenger::send({"engine", "timeline"}, E_MESSAGE::WARNING, "Failed to add action to timeline \"" + name + "\" because it is currently running");
-			return 1; // Return 1 when the timeline is already running
-		}
 
-		action_list.emplace(frame_number, std::make_pair(func_name, callback)); // Insert the action in the list
-
-		return 0; // Return 0 on success
+	/**
+	* Add the given callback to the action list.
+	* @param frame the frame at which to execute the action
+	* @param action_name the name of the action
+	* @param callback the callback to use for the action
+	*/
+	void Timeline::add_action(Uint32 frame, const std::string& action_name, std::function<void (TimelineIterator*, TimelineAction*)> callback) {
+		actions.emplace(frame, TimelineAction(action_name, callback));
 	}
-	int Timeline::add_action(Uint32 frame_number, std::function<void()> callback) {
-		return add_action(frame_number, "anonymous", callback); // Return the attempt to add the anonymous action
+	/**
+	* Add the given function to the action list.
+	* @param frame the frame at which to execute the action
+	* @param callback the callback to use for the action
+	*/
+	void Timeline::add_action(Uint32 frame, std::function<void (TimelineIterator*, TimelineAction*)> callback) {
+		add_action(frame, "anonymous_callback", callback);
 	}
-	int Timeline::remove_actions(Uint32 frame_number) {
+	/**
+	* Remove all actions at the given frame.
+	* @param frame the frame to remove from the action list
+	*
+	* @returns the number of actions that were removed
+	*/
+	int Timeline::remove_actions(Uint32 frame) {
 		int amount_removed = 0;
 
-		while (action_list.find(frame_number) != action_list.end()) { // Continue removing actions until no more exist at the given frame
-			action_list.erase(action_list.find(frame_number)); // Remove the action
+		while (actions.find(frame) != actions.end()) { // Continue removing actions until no more exist at the given frame
+			actions.erase(actions.find(frame)); // Remove the action
 			++amount_removed; // Increment the counter
 		}
 
-		return amount_removed; // Return the amount of actions that were removed
+		return amount_removed;
 	}
+	/**
+	* Remove all actions in a given frame range.
+	* @param frame_start the frame at which to begin removing actions
+	* @param frame_end the frame at which to stop removing actions
+	*
+	* @returns the total number of actions that were removed
+	*/
 	int Timeline::remove_actions_range(Uint32 frame_start, Uint32 frame_end) {
 		int amount_removed = 0;
 
-		for (size_t i=0; i<=frame_end-frame_start; ++i) { // Iterate over the frames
-			amount_removed += remove_actions(frame_start+i); // Remove the actions from each frame and increment the counter
+		for (size_t i=frame_start; i<=frame_end; ++i) {
+			amount_removed += remove_actions(i);
 		}
 
-		return amount_removed; // Return the amount of actions that were removed
+		return amount_removed;
 	}
+	/**
+	* Remove all actions.
+	*
+	* @returns the total number of actions that were removed
+	*/
 	int Timeline::remove_actions_all() {
-		int amount_removed = action_list.size(); // Store the amount of actions in the list
+		int amount_removed = actions.size();
 
-		action_list.clear(); // Clear the action list
+		actions.clear();
 
-		return amount_removed; // Return the amount of actions that were removed
+		return amount_removed;
 	}
-	/*
-	* Timeline::set_offset() - Set the amount of frames to skip at the beginning of timeline execution
-	* @new_offset: the new offset to use
+	/**
+	* Set the end action.
+	* @param action the action to use upon ending the Timeline
 	*/
-	int Timeline::set_offset(Uint32 new_offset) {
-		start_offset = new_offset;
-		return 0;
+	void Timeline::set_ending(TimelineAction action) {
+		end_action = action;
 	}
-	/*
-	* Timeline::clip_offset() - Offset the list such that the first action is executed on timeline start
+
+	/**
+	* Execute all actions up to the given frame.
+	* @param tlit the iterator to use
+	* @param frame the frame to execute
+	*
+	* @retval 0 success
+	* @retval 1 failed to advance the iterator since it's finished
+	* @retval 2 the iterator has finished
 	*/
-	int Timeline::clip_offset() {
-		if (action_list.empty()) { // If the list is empty, remove the offset
-			start_offset = 0;
-			return 1; // Return 1 when the offset could not be clipped
+	int Timeline::step_to(TimelineIterator* tlit, Uint32 frame) {
+		if (tlit->start_frame == static_cast<Uint32>(-1)) {
+			return 1;
 		}
 
-		start_offset = action_list.begin()->first; // Set the offset to the first executable frame
-
-		return 0; // Return 0 on success
-	}
-	int Timeline::set_is_looping(bool new_is_looping) {
-		is_looping = new_is_looping;
-		return 0;
-	}
-	int Timeline::set_ending(std::function<void()> callback) {
-		end_action = callback;
-		return 0;
-	}
-	int Timeline::set_pause(bool new_is_paused) {
-		if (is_paused == new_is_paused) {
-			return 1; // Return 1 when the requested pause state is already in effect
+		if ((tlit->is_pausable)&&(get_is_paused())) {
+			tlit->pause_offset = get_frame() - tlit->pause_offset;
+			return 0;
 		}
 
-		pause_offset = get_frame() - pause_offset; // Modify the pause offset according to when the timeline was paused
-
-		is_paused = new_is_paused; // Set the timeline's pause state
-
-		return 0; // Return 0 on success
-	}
-
-	/*
-	* Timeline::start() - Enable timeline execution on the first action
-	*/
-	int Timeline::start() {
-		start_frame = get_frame() - start_offset; // Set the start frame with respect to the start offset
-		next_action = action_list.begin(); // Set the next action to be executed
-		return 0; // Return 0 on success
-	}
-	/*
-	* Timeline::step_to() - Execute all actions up to the given frame
-	* @new_frame: the frame to execute up to
-	*/
-	int Timeline::step_to(Uint32 new_frame) {
-		if (!get_is_running()) { // If the timeline isn't running, ignore any step_to() calls
-			return 1; // Return 1 when the timeline is not running
+		if (tlit->position_frame == static_cast<Uint32>(-1)) {
+			tlit->start_frame = frame - tlit->start_offset;
+			tlit->position_frame = 0;
 		}
 
-		if (next_action == action_list.end()) {
-			return 2;  // Return 2 when the timeline has no more actions to execute
-		}
+		const Uint32 last_frame = frame - tlit->start_frame - tlit->pause_offset; // Calculate the frame to step to with respect to offsets
 
-		const Uint32 last_frame = new_frame - start_frame - pause_offset; // Calculate the frame to step to with respect to offsets
+		while (tlit->position_frame <= last_frame) {
+			std::multimap<Uint32,TimelineAction>::iterator start, end;
+			std::tie(start, end) = actions.equal_range(tlit->position_frame);
 
-		position_frame = next_action->first; // Set the position frame to the frame of the next action
-		while (position_frame < last_frame) { // Iterate over the action list until the last step frame is reached
-			next_action->second.second(); // Call the action's callback
-			++next_action; // Increment the iterator
-
-			if (next_action == action_list.end()) { // If the timeline has no more actions left
-				start_frame = 0xffffffff; // Reset the start frame in preparation for the timeline end
-				return 2; // Return 2 when there's nothing left to execute
+			for (auto it=start; it!=end; ++it) {
+				it->second(tlit);
 			}
 
-			position_frame = next_action->first; // Set the position frame to the frame of the next action
+			++tlit->position_frame; // Set the position frame to the frame of the next action
 		}
 
-		return 0; // Return 0 on success
+		if (actions.lower_bound(tlit->position_frame) == actions.end()) { // If the timeline has no more actions left
+			end(tlit);
+			return 2;
+		}
+
+		return 0;
 	}
-	/*
-	* Timeline::end() - End timeline execution whether it finished or not
+	/**
+	* End execution whether the iterator's finished or not.
+	* @param tlit the iterator to use
 	*/
-	int Timeline::end() {
-		pause_offset = 0; // Reset the pause state
-		is_paused = false;
+	void Timeline::end(TimelineIterator* tlit) {
+		tlit->start_frame = -1;
+		tlit->pause_offset = 0; // Reset the pause state
 
-		if (end_action == nullptr) {
-			return 1; // Return 1 when there is no end action to call
+		if (end_action.func != nullptr) { // Call the end action callback if necessary
+			end_action(tlit);
 		}
 
-		end_action(); // Call the end action callback if necessary
-
-		return 0; // Return 0 on success
+		if (tlit->is_looping) {
+			*tlit = TimelineIterator(tlit->tl, tlit->start_offset, tlit->is_looping, tlit->is_pausable);
+		}
 	}
 }
 

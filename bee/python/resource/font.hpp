@@ -26,8 +26,8 @@ namespace bee { namespace python { namespace internal {
 	int Font_init(FontObject*, PyObject*, PyObject*);
 
 	// Font methods
-	PyObject* Font_repr(FontObject*, PyObject*);
-	PyObject* Font_str(FontObject*, PyObject*);
+	PyObject* Font_repr(FontObject*);
+	PyObject* Font_str(FontObject*);
 	PyObject* Font_print(FontObject*, PyObject*);
 
 	PyObject* Font_get_font_size(FontObject*, PyObject*);

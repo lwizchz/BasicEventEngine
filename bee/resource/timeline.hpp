@@ -17,26 +17,54 @@
 
 #include "resource.hpp"
 
-namespace bee {
-	typedef std::multimap<Uint32, std::pair<std::string,std::function<void()>>> timeline_list_t;
+#include "../data/variant.hpp"
 
-	class Timeline: public Resource { // The timeline resource class is used to execute specific actions at a given time offset
+namespace bee {
+	// Forward declarations
+	class Timeline;
+	struct TimelineIterator;
+
+	/// Used to hold action callbacks
+	struct TimelineAction {
+		std::string name; ///< The action name
+		std::function<void (TimelineIterator*, TimelineAction*)> func; ///< The action callback
+
+		TimelineAction(const std::string&, std::function<void (TimelineIterator*, TimelineAction*)>);
+		TimelineAction();
+
+		void operator()(TimelineIterator*);
+	};
+
+	/// Used to iterate through a Timeline's actions
+	struct TimelineIterator {
+		Timeline* tl; ///< The associated Timeline
+
+		Uint32 start_frame; ///< The iterator starting frame
+		Uint32 position_frame; ///< The iterator position
+		Uint32 start_offset; ///< The offset to start the iterator with
+		Uint32 pause_offset; ///< The offset which increases during a pause
+
+		bool is_looping; ///< Whether the iterator should loop
+		bool is_pausable; ///< Whether the iterator should pause
+
+		TimelineIterator(Timeline*, Uint32, bool, bool);
+		TimelineIterator();
+
+		void clip_offset();
+		int step_to(Uint32);
+	};
+
+	/// Used to execute specific actions at a given time offset
+	class Timeline: public Resource {
 		static std::map<int,Timeline*> list;
 		static int next_id;
 
-		int id; // The id of resource
-		std::string name; // An arbitrary name for the resource
-		std::string path; // The path of the file to load the timeline from
-		timeline_list_t action_list; // The map which holds the timeline actions
-		timeline_list_t::iterator next_action; // An iterator pointing to the next action to be executed
-		std::function<void()> end_action; // An action which will be executed when the timeline is finished
+		int id; ///< The unique Timeline identifier
+		std::string name; ///< An arbitrary resource name
+		std::string path; ///< The path of the file to load the Timeline from
 
-		Uint32 start_frame; // The frame that the timeline begins executing
-		Uint32 position_frame; // The current frame the the timeline is executing
-		Uint32 start_offset; // The amount of frames to skip upon starting
-		Uint32 pause_offset; // The amount of frames that were skipped while paused
-		bool is_looping; // Whether the timeline should loop
-		bool is_paused; // Whether the timeline is currently paused
+		std::multimap<Uint32,TimelineAction> actions; ///< The map which holds the actions
+		TimelineAction end_action; ///< An action which will be executed when the Timeline is finished
 	public:
 		// See bee/resources/timeline.cpp for function comments
 		Timeline();
@@ -50,32 +78,28 @@ namespace bee {
 
 		int add_to_resources();
 		int reset();
+
+		std::map<Variant,Variant> serialize() const;
+		int deserialize(std::map<Variant,Variant>&);
 		void print() const;
 
 		int get_id() const;
 		std::string get_name() const;
 		std::string get_path() const;
-		timeline_list_t get_action_list() const;
-		std::string get_action_string() const;
-		bool get_is_running() const;
-		bool get_is_looping() const;
+		const std::multimap<Uint32,TimelineAction>& get_actions() const;
 
-		int set_name(const std::string&);
-		int set_path(const std::string&);
-		int add_action(Uint32, const std::string&, std::function<void()>);
-		int add_action(Uint32, std::function<void()>);
+		void set_name(const std::string&);
+		void set_path(const std::string&);
+
+		void add_action(Uint32, const std::string&, std::function<void (TimelineIterator*, TimelineAction*)>);
+		void add_action(Uint32, std::function<void (TimelineIterator*, TimelineAction*)>);
 		int remove_actions(Uint32);
 		int remove_actions_range(Uint32, Uint32);
 		int remove_actions_all();
-		int set_offset(Uint32);
-		int clip_offset();
-		int set_is_looping(bool);
-		int set_ending(std::function<void()>);
-		int set_pause(bool);
+		void set_ending(TimelineAction);
 
-		int start();
-		int step_to(Uint32);
-		int end();
+		int step_to(TimelineIterator*, Uint32);
+		void end(TimelineIterator*);
 	};
 }
 

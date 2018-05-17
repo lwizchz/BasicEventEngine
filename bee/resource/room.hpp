@@ -35,6 +35,7 @@ namespace bee {
 
 	struct NetworkEvent;
 	struct PathFollower;
+	struct TimelineIterator;
 
 	// Declare a function to flip <int,Instance*> to <Instance*,int> for use with instances_sorted
 	namespace internal {
@@ -98,6 +99,7 @@ namespace bee {
 		ViewPort* view_current; // A pointer to the current view that is being drawn
 
 		std::map<Instance*,PathFollower*> automatic_paths; // Paths to automatically update
+		std::vector<TimelineIterator*> automatic_timelines; // Timelines to automatically step
 	public:
 		// See bee/resources/room.cpp for function comments
 		Room();
@@ -159,6 +161,7 @@ namespace bee {
 		int reset_lights();
 		int clear_lights();
 		int automate_path(Instance*, PathFollower*);
+		int automate_timeline(TimelineIterator*);
 
 		int reset_properties();
 		int transfer_instances(const Room*);

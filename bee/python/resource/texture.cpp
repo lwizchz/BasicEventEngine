@@ -156,11 +156,11 @@ namespace bee { namespace python { namespace internal {
 		return 0;
 	}
 
-	PyObject* Texture_repr(TextureObject* self, PyObject* args) {
+	PyObject* Texture_repr(TextureObject* self) {
 		std::string s = std::string("bee.Texture(\"") + PyUnicode_AsUTF8(self->name) + "\")";
 		return Py_BuildValue("N", PyUnicode_FromString(s.c_str()));
 	}
-	PyObject* Texture_str(TextureObject* self, PyObject* args) {
+	PyObject* Texture_str(TextureObject* self) {
 		Texture* tex = as_texture(self);
 		if (tex == nullptr) {
 			return Py_BuildValue("N", PyUnicode_FromString("Invalid Texture name"));

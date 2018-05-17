@@ -237,7 +237,7 @@ namespace bee {
 				type = E_DATA_TYPE::STRING;
 				new (&s) std::string(ns);
 			}
-		} catch (const std::invalid_argument) {}
+		} catch (const std::invalid_argument&) {}
 
 		if (type == E_DATA_TYPE::NONE) { // No possible type, this will only occur when std::stod or std::stoi fails
 			messenger::send({"engine", "variant"}, E_MESSAGE::WARNING, "Variant type not determined, storing as string: \"" + ns + "\"");

@@ -26,8 +26,8 @@ namespace bee { namespace python { namespace internal {
 	int Path_init(PathObject*, PyObject*, PyObject*);
 
 	// Path methods
-	PyObject* Path_repr(PathObject*, PyObject*);
-	PyObject* Path_str(PathObject*, PyObject*);
+	PyObject* Path_repr(PathObject*);
+	PyObject* Path_str(PathObject*);
 	PyObject* Path_print(PathObject*, PyObject*);
 
 	PyObject* Path_get_nodes(PathObject*, PyObject*);

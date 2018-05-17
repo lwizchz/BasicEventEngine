@@ -164,11 +164,11 @@ namespace bee { namespace python { namespace internal {
 		return 0;
 	}
 
-	PyObject* Sound_repr(SoundObject* self, PyObject* args) {
+	PyObject* Sound_repr(SoundObject* self) {
 		std::string s = std::string("bee.Sound(\"") + PyUnicode_AsUTF8(self->name) + "\")";
 		return Py_BuildValue("N", PyUnicode_FromString(s.c_str()));
 	}
-	PyObject* Sound_str(SoundObject* self, PyObject* args) {
+	PyObject* Sound_str(SoundObject* self) {
 		Sound* snd = as_sound(self);
 		if (snd == nullptr) {
 			return Py_BuildValue("N", PyUnicode_FromString("Invalid Sound name"));

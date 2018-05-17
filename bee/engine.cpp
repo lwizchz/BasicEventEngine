@@ -242,9 +242,12 @@ namespace bee {
 		}
 		messenger::send({"engine"}, E_MESSAGE::END, "gameloop");
 
+		change_room(nullptr, false);
 		engine->current_room->room_end();
 		engine->current_room->game_end();
-		change_room(nullptr, false);
+
+		engine->current_room->reset_properties();
+		engine->current_room = nullptr;
 		engine->is_ready = false;
 
 		return 0;

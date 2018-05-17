@@ -145,11 +145,11 @@ namespace bee { namespace python { namespace internal {
 		return 0;
 	}
 
-	PyObject* Path_repr(PathObject* self, PyObject* args) {
+	PyObject* Path_repr(PathObject* self) {
 		std::string s = std::string("bee.Path(\"") + PyUnicode_AsUTF8(self->name) + "\")";
 		return Py_BuildValue("N", PyUnicode_FromString(s.c_str()));
 	}
-	PyObject* Path_str(PathObject* self, PyObject* args) {
+	PyObject* Path_str(PathObject* self) {
 		Path* path = as_path(self);
 		if (path == nullptr) {
 			return Py_BuildValue("N", PyUnicode_FromString("Invalid Path name"));

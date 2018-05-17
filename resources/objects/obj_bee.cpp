@@ -58,6 +58,19 @@ void ObjBee::create(bee::Instance* self) {
 			bee::get_current_room()->automate_path(self, pf);
 			_p("path") = pf;
 		}));
+		bee::kb::bind(SDLK_UNKNOWN, bee::KeyBind("StartTimeline", [this, self] (const SDL_Event* e) mutable {
+			self = obj_bee->get_instance(0);
+			s = &self->get_data();
+
+			if (_p("tl") != nullptr) {
+				delete static_cast<bee::TimelineIterator*>(_p("tl"));
+				_p("tl") = nullptr;
+			}
+
+			bee::TimelineIterator* tlit = new bee::TimelineIterator(tl_bee, 0, false, false);
+			bee::get_current_room()->automate_timeline(tlit);
+			_p("tl") = tlit;
+		}));
 
 		bee::kb::bind(SDLK_UNKNOWN, bee::KeyBind("StartSerialize", [this, self] (const SDL_Event* e) mutable {
 			self = obj_bee->get_instance(0);
@@ -81,6 +94,11 @@ void ObjBee::destroy(bee::Instance* self) {
 		if (_p("path") != nullptr) {
 			delete static_cast<bee::PathFollower*>(_p("path"));
 			_p("path") = nullptr;
+		}
+
+		if (_p("tl") != nullptr) {
+			delete static_cast<bee::TimelineIterator*>(_p("tl"));
+			_p("tl") = nullptr;
 		}
 	}
 

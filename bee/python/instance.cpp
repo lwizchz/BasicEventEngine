@@ -53,7 +53,9 @@ namespace bee { namespace python { namespace internal {
 		{"set_gravity", reinterpret_cast<PyCFunction>(Instance_set_gravity), METH_VARARGS, "Set the gravity vector of the attached PhysicsBody"},
 		{"set_velocity", reinterpret_cast<PyCFunction>(Instance_set_velocity), METH_VARARGS, "Set the velocity of the attached PhysicsBody"},
 		{"add_velocity", reinterpret_cast<PyCFunction>(Instance_add_velocity), METH_VARARGS, "Add the given velocityy to the velocity of the attached PhysicsBody"},
-		{"limit_velocity", reinterpret_cast<PyCFunction>(Instance_limit_velocity), METH_VARARGS | METH_KEYWORDS, "Limit the velocity of the attached PhysicsBody along the given axes"},
+		// Do some terrible casting to get rid of an incompatible function type warning
+		{"limit_velocity", reinterpret_cast<PyCFunction>(reinterpret_cast<void (*)(void)>(Instance_limit_velocity)), METH_VARARGS | METH_KEYWORDS, "Limit the velocity of the attached PhysicsBody along the given axes"},
+		//{"limit_velocity", reinterpret_cast<PyCFunction>(Instance_limit_velocity), METH_VARARGS | METH_KEYWORDS, "Limit the velocity of the attached PhysicsBody along the given axes"},
 
 		{"get_speed", reinterpret_cast<PyCFunction>(Instance_get_speed), METH_NOARGS, "Return the speed of the attached PhysicsBody"},
 		{"get_velocity", reinterpret_cast<PyCFunction>(Instance_get_velocity), METH_NOARGS, "Return the velocity of the attached PhysicsBody"},
@@ -65,8 +67,8 @@ namespace bee { namespace python { namespace internal {
 	};
 
 	PyMemberDef InstanceMembers[] = {
-		{"name", T_OBJECT_EX, offsetof(InstanceObject, name), 0, "The object name"},
-		{"num", T_INT, offsetof(InstanceObject, num), 0, "The instance number"},
+		{"name", T_OBJECT_EX, offsetof(InstanceObject, name), 0, "The Object name"},
+		{"num", T_INT, offsetof(InstanceObject, num), 0, "The Instance number"},
 		{nullptr, 0, 0, 0, nullptr}
 	};
 
@@ -172,11 +174,11 @@ namespace bee { namespace python { namespace internal {
 		return 0;
 	}
 
-	PyObject* Instance_repr(InstanceObject* self, PyObject* args) {
+	PyObject* Instance_repr(InstanceObject* self) {
 		std::string s = std::string("bee.Instance(\"") + PyUnicode_AsUTF8(self->name) + "\", " + std::to_string(self->num) + ")";
 		return Py_BuildValue("N", PyUnicode_FromString(s.c_str()));
 	}
-	PyObject* Instance_str(InstanceObject* self, PyObject* args) {
+	PyObject* Instance_str(InstanceObject* self) {
 		Instance* inst = as_instance(self);
 		if (inst == nullptr) {
 			return nullptr;

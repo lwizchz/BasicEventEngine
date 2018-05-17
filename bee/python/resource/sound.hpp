@@ -26,8 +26,8 @@ namespace bee { namespace python { namespace internal {
 	int Sound_init(SoundObject*, PyObject*, PyObject*);
 
 	// Sound methods
-	PyObject* Sound_repr(SoundObject*, PyObject*);
-	PyObject* Sound_str(SoundObject*, PyObject*);
+	PyObject* Sound_repr(SoundObject*);
+	PyObject* Sound_str(SoundObject*);
 	PyObject* Sound_print(SoundObject*, PyObject*);
 
 	PyObject* Sound_get_volume(SoundObject*, PyObject*);
