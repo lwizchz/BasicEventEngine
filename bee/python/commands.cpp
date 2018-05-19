@@ -147,7 +147,7 @@ namespace bee { namespace python { namespace internal {
 	PyObject* commands_bind(PyObject* self, PyObject* args) {
 		PyObject* keystring;
 		PyObject* command = nullptr;
-		bool is_repeatable = false;
+		int is_repeatable = false;
 
 		if (!PyArg_ParseTuple(args, "U|Up", &keystring, &command, &is_repeatable)) {
 			return nullptr;
@@ -162,6 +162,8 @@ namespace bee { namespace python { namespace internal {
 
 		SDL_Keycode k (kb::keystrings_get_key(_keystring));
 
+		bool _is_repeatable = is_repeatable;
+
 		if (command == nullptr) {
 			std::string _name (kb::get_keybind(k).name);
 			return Py_BuildValue("N", PyUnicode_FromString(_name.c_str()));
@@ -171,9 +173,9 @@ namespace bee { namespace python { namespace internal {
 			KeyBind kb;
 			if (_command.front() == '$') { // Bind to an existing KeyBind with the given name
 				kb = kb::get_keybind(_command.substr(1));
-				kb.is_repeatable = is_repeatable;
+				kb.is_repeatable = _is_repeatable;
 			} else { // Otherwise bind to the console string
-				kb = KeyBind(_command, k, is_repeatable, [_command] (const SDL_Event* e) {
+				kb = KeyBind(_command, k, _is_repeatable, [_command] (const SDL_Event* e) {
 					console::internal::run(_command, false);
 				});
 			}

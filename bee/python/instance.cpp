@@ -254,17 +254,19 @@ namespace bee { namespace python { namespace internal {
 		Py_RETURN_NONE;
 	}
 	PyObject* Instance_set_is_persistent(InstanceObject* self, PyObject* args) {
-		bool is_persistent;
+		int is_persistent;
 		if (!PyArg_ParseTuple(args, "p", &is_persistent)) {
 			return nullptr;
 		}
+
+		bool _is_persistent = is_persistent;
 
 		Instance* inst = as_instance(self);
 		if (inst == nullptr) {
 			return nullptr;
 		}
 
-		inst->set_is_persistent(is_persistent);
+		inst->set_is_persistent(_is_persistent);
 
 		Py_RETURN_NONE;
 	}

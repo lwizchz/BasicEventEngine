@@ -15,12 +15,9 @@
 
 #include <SDL2/SDL_image.h> // Include the required SDL headers
 
-#include <GL/glew.h> // Include the required OpenGL headers
-#include <SDL2/SDL_opengl.h>
-#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <assimp/cimport.h> // Include the required Assimp headers
+#include <assimp/cimport.h>
 #include <assimp/postprocess.h>
 
 #include "mesh.hpp" // Include the class resource header
@@ -28,6 +25,7 @@
 #include "../engine.hpp"
 
 #include "../util/real.hpp"
+#include "../util/debug.hpp"
 
 #include "../init/gameoptions.hpp"
 
@@ -42,9 +40,9 @@ namespace bee {
 	std::map<int,Mesh*> Mesh::list;
 	int Mesh::next_id = 0;
 
-	/*
-	* Mesh::Mesh() - Default construct the mesh
-	* ! This constructor should only be directly used for temporary meshes, the other constructor should be used for all other cases
+	/**
+	* Default construct the Mesh.
+	* @note This constructor should only be used for temporary Meshes, the other constructor should be used for all other cases.
 	*/
 	Mesh::Mesh() :
 		Resource(),
@@ -73,38 +71,40 @@ namespace bee {
 		ibo(-1),
 		gl_texture(-1)
 	{}
-	/*
-	* Mesh::Mesh() - Construct the mesh, add it to the mesh resource list, and set the new name and path
+	/**
+	* Construct the Mesh, add it to the Mesh resource list, and set the new name and path.
+	* @param _name the name for the Mesh
+	* @param _path the path for the Mesh
 	*/
-	Mesh::Mesh(const std::string& new_name, const std::string& new_path) :
+	Mesh::Mesh(const std::string& _name, const std::string& _path) :
 		Mesh() // Default initialize all variables
 	{
-		add_to_resources(); // Add the mesh to the appropriate resource list
-		if (id < 0) { // If the mesh could not be added to the resource list, output a warning
-			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add mesh resource: \"" + new_name + "\" from " + new_path);
+		if (add_to_resources() < 0) { // Attempt to add the Mesh to its resource list
+			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add Mesh resource: \"" + _name + "\" from " + _path);
 			throw(-1); // Throw an exception
 		}
 
-		set_name(new_name); // Set the mesh name
-		set_path(new_path); // Set the mesh object file path
+		set_name(_name);
+		set_path(_path);
 	}
-	/*
-	* Mesh::~Mesh() - Free the mesh data and remove it from the resource list
+	/**
+	* Free the Mesh data and remove it from the resource list.
 	*/
 	Mesh::~Mesh() {
-		this->free(); // Free all the mesh data
-		list.erase(id); // Remove the mesh from the resource list
+		this->free();
+		list.erase(id);
 	}
 
-	/*
-	* Mesh::get_amount() - Return the amount of mesh resources
+	/**
+	* @returns the number of Mesh resources
 	*/
 	size_t Mesh::get_amount() {
 		return list.size();
 	}
-	/*
-	* Mesh::get() - Return the resource with the given id
-	* @id: the resource to get
+	/**
+	* @param id the resource to get
+	*
+	* @returns the resource with the given id
 	*/
 	Mesh* Mesh::get(int id) {
 		if (list.find(id) != list.end()) {
@@ -112,44 +112,52 @@ namespace bee {
 		}
 		return nullptr;
 	}
-	/*
-	* Mesh::get_by_name() - Return the mesh resource with the given name
-	* @name: the name of the desired mesh
+	/**
+	* @param name the name of the desired Mesh
+	*
+	* @returns the Mesh resource with the given name
 	*/
 	Mesh* Mesh::get_by_name(const std::string& name) {
-		for (auto& mesh : list) { // Iterate over the meshes in order to find the first one with the given name
+		for (auto& mesh : list) { // Iterate over the Meshes in order to find the first one with the given name
 			Mesh* m = mesh.second;
 			if (m != nullptr) {
 				if (m->get_name() == name) {
-					return m; // Return the desired mesh on success
+					return m; // Return the desired Mesh on success
 				}
 			}
 		}
 		return nullptr; // Return nullptr on failure
 	}
-	/*
-	* Mesh::add() - Initiliaze and return a newly created mesh resource
-	* @name: the name to initialize the mesh with
-	* @path: the path to initialize the mesh with
+	/**
+	* Initiliaze, load, and return a newly created Mesh resource.
+	* @param name the name to initialize the Mesh with
+	* @param path the path to initialize the Mesh with
+	*
+	* @returns the newly loaded Mesh
 	*/
 	Mesh* Mesh::add(const std::string& name, const std::string& path) {
 		Mesh* new_mesh = new Mesh(name, path);
+		new_mesh->load();
 		return new_mesh;
 	}
 
-	/*
-	* Mesh::add_to_resources() - Add the mesh to the appropriate resource list
+	/**
+	* Add the Mesh to the appropriate resource list.
+	*
+	* @returns the Mesh id
 	*/
 	int Mesh::add_to_resources() {
 		if (id < 0) { // If the resource needs to be added to the resource list
 			id = next_id++;
-			list.emplace(id, this); // Add the resource and with the new id
+			list.emplace(id, this); // Add the resource with it's new id
 		}
 
-		return 0; // Return 0 on success
+		return id;
 	}
-	/*
-	* Mesh::reset() - Reset all resource variables for reinitialization
+	/**
+	* Reset all resource variables for reinitialization.
+	*
+	* @retval 0 success
 	*/
 	int Mesh::reset() {
 		this->free(); // Free all memory used by this resource
@@ -158,30 +166,65 @@ namespace bee {
 		name = "";
 		path = "";
 
-		// Reset mesh data
+		// Reset Mesh data
 		is_loaded = false;
 		has_draw_failed = false;
+		has_texture = false;
 		vertex_amount = 0;
 
-		return 0; // Return 0 on success
-	}
-	/*
-	* Mesh::print() - Print all relevant information about the resource
-	*/
-	void Mesh::print() const {
-		std::stringstream s; // Declare the output stream
-		s << // Append all info to the output
-		"Mesh { "
-		"\n	id    " << id <<
-		"\n	name  " << name <<
-		"\n	path  " << path <<
-		"\n}\n";
-		messenger::send({"engine", "resource"}, E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for output
+		return 0;
 	}
 
-	/*
-	* Mesh::get_*() - Return the requested resource information
+	/**
+	* @returns a map of all the information required to restore the Mesh
 	*/
+	std::map<Variant,Variant> Mesh::serialize() const {
+		std::map<Variant,Variant> info;
+
+		info["id"] = id;
+		info["name"] = name;
+		info["path"] = path;
+
+		info["is_loaded"] = is_loaded;
+		info["has_draw_failed"] = has_draw_failed;
+		info["has_texture"] = has_texture;
+		info["vertex_amount"] = vertex_amount;
+
+		return info;
+	}
+	/**
+	* Restore the Mesh from serialized data.
+	* @param m the map of data to use
+	*
+	* @retval 0 success
+	* @retval 1 failed to load the Font
+	*/
+	int Mesh::deserialize(std::map<Variant,Variant>& m) {
+		this->free();
+
+		id = m["id"].i;
+		name = m["name"].s;
+		path = m["path"].s;
+
+		is_loaded = false;
+		has_draw_failed = m["has_draw_failed"].i;
+		has_texture = false;
+		vertex_amount = 0;
+
+		if ((m["is_loaded"].i)&&(load())) {
+			return 1;
+		}
+
+		return 0;
+	}
+	/**
+	* Print all relevant information about the resource.
+	*/
+	void Mesh::print() const {
+		Variant m (serialize());
+		messenger::send({"engine", "mesh"}, E_MESSAGE::INFO, "Mesh " + m.to_str(true));
+	}
+
 	int Mesh::get_id() const {
 		return id;
 	}
@@ -195,44 +238,53 @@ namespace bee {
 		return is_loaded;
 	}
 
-	/*
-	* Mesh::set_*() - Set the requested resource data
-	*/
-	int Mesh::set_name(const std::string& new_name) {
-		name = new_name;
-		return 0;
+	void Mesh::set_name(const std::string& _name) {
+		name = _name;
 	}
-	int Mesh::set_path(const std::string& new_path) {
-		if (new_path.front() == '/') {
-			path = new_path.substr(1);
-		} else {
-			path = "resources/meshes/"+new_path; // Append the path to the mesh directory if no root
+	/**
+	* Set the relative or absolute resource path.
+	* @param _path the new path to use
+	* @note If the first character is '/' then the path will be relative to
+	*       the executable directory, otherwise it will be relative to the
+	*       Mesh resource directory.
+	*/
+	void Mesh::set_path(const std::string& _path) {
+		if (_path.front() == '/') {
+			path = _path.substr(1);
+		} else { // Append the path to the Mesh directory if no root
+			path = "resources/meshes/"+_path;
 		}
-		return 0;
 	}
 
-	/*
-	* Mesh::load() - Load the desired mesh from its given filename
-	* @mesh_index: the desired mesh index from the imported scene
+	/**
+	* Load the desired Mesh from its given filename.
+	* @param index the desired mesh index from the imported scene
+	*
+	* @retval 0 success
+	* @retval 1 failed to load since it's already loaded
+	* @retval 2 failed to load since the engine is in headless mode
+	* @retval 3 failed to load the object file
+	* @retval 4 failed to load since the mesh's texture file is missing
+	* @retval 5 failed to load the mesh's texture file
 	*/
-	int Mesh::load(int mesh_index) {
-		if (is_loaded) { // If the mesh has already been loaded, output a warning
-			messenger::send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to load mesh \"" + name + "\" because it is already loaded");
-			return 1; // Return 1 when already loaded
+	int Mesh::load(int index) {
+		if (is_loaded) { // If the Mesh has already been loaded, output a warning
+			messenger::send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to load Mesh \"" + name + "\" because it is already loaded");
+			return 1;
 		}
 
 		if (get_option("is_headless").i) {
-			return 2; // Return 2 when in headless mode
+			return 2;
 		}
 
 		// Attempt to import the object file
 		scene = aiImportFile(path.c_str(), aiProcessPreset_TargetRealtime_MaxQuality); // Import it with "MaxQuality"
 		if (scene == nullptr) { // If the file couldn't be imported, output a warning
-			messenger::send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to load mesh \"" + name + "\": " + aiGetErrorString());
-			return 3; // Return 3 on import failure
+			messenger::send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to load Mesh \"" + name + "\": " + aiGetErrorString());
+			return 3;
 		}
 
-		mesh = scene->mMeshes[mesh_index]; // Get the mesh with the desired index
+		mesh = scene->mMeshes[index]; // Get the mesh with the desired index
 		vertex_amount = mesh->mNumVertices; // Fetch the number of vertices in the mesh
 
 		// Allocate space for the vertices and other mesh attributes
@@ -276,28 +328,28 @@ namespace bee {
 		glGenVertexArrays(1, &vao); // Generate the vertex object array
 		glBindVertexArray(vao);
 
-		// Bind the vertices for the mesh
+		// Bind the vertices for the Mesh
 		glGenBuffers(1, &vbo_vertices);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
 		glBufferData(GL_ARRAY_BUFFER, 3 * vertex_amount * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
 		glVertexAttribPointer(render::get_program()->get_location("v_position"), 3, GL_FLOAT, GL_FALSE, 0, 0);
 		glEnableVertexAttribArray(render::get_program()->get_location("v_position"));
 
-		// Bind the normals for the mesh
+		// Bind the normals for the Mesh
 		/*glGenBuffers(1, &vbo_normals);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
 		glBufferData(GL_ARRAY_BUFFER, 3 * vertex_amount * sizeof(GLfloat), normals, GL_STATIC_DRAW);
 		glVertexAttribPointer(render::get_program()->get_location("v_normal"), 3, GL_FLOAT, GL_FALSE, 0, 0);
 		glEnableVertexAttribArray(render::get_program()->get_location("v_normal"));*/
 
-		// Bind the texture coordinates for the mesh
+		// Bind the texture coordinates for the Mesh
 		glGenBuffers(1, &vbo_texcoords);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords);
 		glBufferData(GL_ARRAY_BUFFER, 2 * vertex_amount * sizeof(GLfloat), uv_array, GL_STATIC_DRAW);
 		glVertexAttribPointer(render::get_program()->get_location("v_texcoord"), 2, GL_FLOAT, GL_FALSE, 0, 0);
 		glEnableVertexAttribArray(render::get_program()->get_location("v_texcoord"));
 
-		// Bind the mesh ibo
+		// Bind the Mesh ibo
 		glGenBuffers(1, &ibo);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * mesh->mNumFaces * sizeof(GLuint), indices, GL_STATIC_DRAW);
@@ -306,15 +358,21 @@ namespace bee {
 			material = scene->mMaterials[mesh->mMaterialIndex]; // Get the material for the mesh
 			aiString tex_path;
 			if (material->GetTexture(aiTextureType_DIFFUSE, 0, &tex_path, nullptr, nullptr, nullptr, nullptr, nullptr) == AI_SUCCESS) { // Attempt to fetch the texture's path into tex_path
-				std::string fullpath = "resources/meshes/" + std::string(tex_path.C_Str()); // Create the full path for the texture
+				// Create the full path for the texture
+				std::string fullpath (tex_path.C_Str());
+				if (fullpath.front() == '/') {
+					fullpath = fullpath.substr(1);
+				} else {
+					fullpath = "resources/meshes/" + fullpath;
+				}
 
 				// Attempt to load the texure as a temporary surface
 				SDL_Surface* tmp_surface;
 				tmp_surface = IMG_Load(fullpath.c_str());
 				if (tmp_surface == nullptr) { // If the surface could not be loaded, output a warning
 					free_internal();
-					messenger::send({"engine", "sprite"}, E_MESSAGE::WARNING, "Failed to load the texture for mesh \"" + name + "\": " + IMG_GetError());
-					return 4; // Return 4 on texture load failure
+					messenger::send({"engine", "sprite"}, E_MESSAGE::WARNING, "Failed to load the texture for Mesh \"" + name + "\": " + util::get_sdl_error());
+					return 5;
 				}
 
 				// Generate the texture from the surface pixels
@@ -338,33 +396,36 @@ namespace bee {
 				// Set the texture boolean
 				has_texture = true;
 			} else {
-				glBindVertexArray(0); // Unbind the mesh vao
+				glBindVertexArray(0); // Unbind the Mesh vao
 
 				free_internal();
-				messenger::send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to load the texture for mesh \"" + name + "\", the material reported a texture with no file path");
-				return 5; // Return 5 on missing texture file
+				messenger::send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to load the texture for Mesh \"" + name + "\", the material reported a texture with no file path");
+				return 4;
 			}
 		}
 
-		glBindVertexArray(0); // Unbind the mesh vao
+		glBindVertexArray(0); // Unbind the Mesh vao
 
 		// Set the loaded booleans
 		is_loaded = true;
 		has_draw_failed = false;
 
-		return 0; // Return 0 on success
+		return 0;
 	}
-	/*
-	* Mesh::load() - Load the first mesh from its given filename
+	/**
+	* Load the first Mesh from its given filename.
+	*
+	* @returns whether the load failed or not
+	* @see load(int) for details
 	*/
 	int Mesh::load() {
-		return load(0); // Return the attempt to load the first mesh in the scene
+		return load(0);
 	}
-	/*
-	* Mesh::free_internal() - Free the mesh buffers and release the scene
-	* ! This function is only called directly if there was a failure in the middle of a call to load(), for all other cases use free()
+	/**
+	* Free the Mesh buffers and release the scene.
+	* @note This function is only called directly if there was a failure in the middle of a call to load(), for all other cases use free().
 	*/
-	int Mesh::free_internal() {
+	void Mesh::free_internal() {
 		// Delete the vertex array
 		delete[] vertices;
 		delete[] normals;
@@ -392,52 +453,57 @@ namespace bee {
 		// Reset the loaded booleans
 		has_texture = false;
 		is_loaded = false;
-
-		return 0; // Return 0 on success
 	}
-	/*
-	* Mesh::free() - Free the mesh buffers if they have already been loaded
+	/**
+	* Free the Mesh buffers.
+	*
+	* @retval 0 success
 	*/
 	int Mesh::free() {
-		if (!is_loaded) { // Do not attempt to free the buffers if the mesh hasn't been loaded
-			return 0; // Return 0 on success
+		if (!is_loaded) { // Do not attempt to free the buffers if the Mesh hasn't been loaded
+			return 0;
 		}
 
-		return free_internal(); // Return the attempt to free the mesh buffers
+		free_internal();
+
+		return 0;
 	}
 
-	/*
-	* Mesh::draw() - Draw the mesh with the given attributes
-	* @pos: the position to draw the mesh at
-	* @scale: the scale to draw the mesh with
-	* @rotate: the rotation to apply to the mesh
-	* @color: the color to draw the mesh in
-	* @is_wireframe: whether the mesh should be drawn in wireframe or not
+	/**
+	* Draw the Mesh with the given attributes.
+	* @param pos the position to draw the mesh at
+	* @param scale the scale to draw the mesh with
+	* @param rotate the rotation to apply to the mesh
+	* @param color the color to draw the mesh in
+	* @param is_wireframe whether the mesh should be drawn in wireframe or not
+	*
+	* @retval 0 success
+	* @retval 1 failed to draw since it's not loaded
 	*/
 	int Mesh::draw(glm::vec3 pos, glm::vec3 scale, glm::vec3 rotate, RGBA color, bool is_wireframe) {
 		if (!is_loaded) {
 			if (!has_draw_failed) {
-				messenger::send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to draw mesh \"" + name + "\" because it is not loaded");
+				messenger::send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to draw Mesh \"" + name + "\" because it is not loaded");
 				has_draw_failed = true;
 			}
 			return 1;
 		}
 
-		glBindVertexArray(vao); // Bind the vao for the mesh
+		glBindVertexArray(vao); // Bind the vao for the Mesh
 
-		if (has_texture) { // If necessary, bind the mesh texture
+		if (has_texture) { // If necessary, bind the Mesh texture
 			glUniform1i(render::get_program()->get_location("f_texture"), 0);
 			glBindTexture(GL_TEXTURE_2D, gl_texture);
 		} else { // Otherwise, enable primitive drawing mode
 			glUniform1i(render::get_program()->get_location("is_primitive"), 1);
 		}
 
-		// Generate the partial transformation matrix (translation and scaling) for the mesh
-		glm::mat4 model = glm::translate(glm::mat4(1.0f), pos); // Translate the mesh the desired amount
-		model = glm::scale(model, scale); // Scale the mesh as desired
+		// Generate the partial transformation matrix (translation and scaling) for the Mesh
+		glm::mat4 model = glm::translate(glm::mat4(1.0f), pos); // Translate the Mesh the desired amount
+		model = glm::scale(model, scale); // Scale the Mesh as desired
 		glUniformMatrix4fv(render::get_program()->get_location("model"), 1, GL_FALSE, glm::value_ptr(model)); // Send the transformation matrix to the shader
 
-		// Generate the rotation matrix for the mesh
+		// Generate the rotation matrix for the Mesh
 		// This is not included in the above transformation matrix because it is faster to rotate everything in the geometry shader
 		glm::mat4 rotation = glm::mat4(1.0f);
 		if (rotate.x != 0.0) { // Rotate around the x-axis if necessary
@@ -451,12 +517,12 @@ namespace bee {
 		}
 		glUniformMatrix4fv(render::get_program()->get_location("rotation"), 1, GL_FALSE, glm::value_ptr(rotation)); // Send the rotation matrix to the shader
 
-		// Colorize the mesh with the given color
+		// Colorize the Mesh with the given color
 		glm::vec4 c (color.r, color.g, color.b, color.a);
 		c /= 255.0f;
 		glUniform4fv(render::get_program()->get_location("colorize"), 1, glm::value_ptr(c));
 
-		if (is_wireframe) { // If the mesh should be drawn in wireframe, set the polygone drawing mode to line
+		if (is_wireframe) { // If the Mesh should be drawn in wireframe, set the polygone drawing mode to line
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		}
 
@@ -482,25 +548,25 @@ namespace bee {
 
 		glBindVertexArray(0); // Unbind the vao
 
-		return 0; // Return 0 on success
+		return 0;
 	}
-	/*
-	* Mesh::draw() - Draw the mesh with the given attributes
-	* ! When the function is called with no color or wireframe status, simply call it with white and filled polygon mode
-	* @pos: the position to draw the mesh at
-	* @scale: the scale to draw the mesh with
-	* @rotate: the rotation to apply to the mesh
+	/**
+	* Draw the Mesh with the given attributes.
+	* @note When the function is called with no color or wireframe status, let them be white and filled polygon mode.
+	* @param pos the position to draw the mesh at
+	* @param scale the scale to draw the mesh with
+	* @param rotate the rotation to apply to the mesh
 	*/
 	int Mesh::draw(glm::vec3 pos, glm::vec3 scale, glm::vec3 rotate) {
-		return draw(pos, scale, rotate, {255, 255, 255, 255}, false); // Return the result of drawing the transformed mesh
+		return draw(pos, scale, rotate, {255, 255, 255, 255}, false);
 	}
-	/*
-	* Mesh::draw() - Draw the mesh with the given attributes
-	* ! When the function is called with only position, simply call it with sane defaults
-	* @pos: the position to draw the mesh at
+	/**
+	* Draw the Mesh with the given attributes.
+	* @note When the function is called with only position, let it have scaling with 1.0, rotation of 0.0, white color, and filled polygon drawing.
+	* @param pos the position to draw the mesh at
 	*/
 	int Mesh::draw(glm::vec3 pos) {
-		return draw(pos, glm::vec3(1.0f), glm::vec3(0.0), {255, 255, 255, 255}, false); // Return the result of drawing the translated mesh
+		return draw(pos, glm::vec3(1.0f), glm::vec3(0.0), {255, 255, 255, 255}, false);
 	}
 }
 

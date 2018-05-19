@@ -163,7 +163,7 @@ namespace bee {
 	int Font::add_to_resources() {
 		if (id < 0) { // If the resource needs to be added to the resource list
 			id = next_id++;
-			list.emplace(id, this); // Add the resource and with the new id
+			list.emplace(id, this); // Add the resource with it's new id
 		}
 
 		return id;
@@ -295,17 +295,22 @@ namespace bee {
 		return fontname;
 	}
 
-	int Font::set_name(const std::string& _name) {
+	void Font::set_name(const std::string& _name) {
 		name = _name;
-		return 0;
 	}
-	int Font::set_path(const std::string& _path) {
+	/**
+	* Set the relative or absolute resource path.
+	* @param _path the new path to use
+	* @note If the first character is '/' then the path will be relative to
+	*       the executable directory, otherwise it will be relative to the
+	*       Fonts resource directory.
+	*/
+	void Font::set_path(const std::string& _path) {
 		if (_path.front() == '/') {
 			path = _path.substr(1);
-		} else {
-			path = "resources/fonts/"+_path; // Append the path to the Font directory if no root
+		} else { // Append the path to the Font directory if no root
+			path = "resources/fonts/"+_path;
 		}
-		return 0;
 	}
 	/**
 	* Set the font size.
@@ -329,15 +334,12 @@ namespace bee {
 	* Set the font style to use.
 	* @param _style the desired style, a bitmask of TTF_STYLE_BOLD, _ITALIC, _UNDERLINE, _STRIKETHROUGH, and _NORMAL
 	*/
-	int Font::set_style(E_FONT_STYLE _style) {
-		if (!is_loaded) { // Do not attempt to set the style if the Font has not been loaded
-			messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to set the font style for \"" + name + "\" because it is not loaded");
-			return 1; // Return 1 on error
-		}
-
+	void Font::set_style(E_FONT_STYLE _style) {
 		style = _style; // Store the style
-		TTF_SetFontStyle(font, static_cast<int>(style)); // Set the style of the loaded Font
-		return 0; // Return 0 on success
+
+		if (is_loaded) { // Only set the style if the Font is loaded
+			TTF_SetFontStyle(font, static_cast<int>(style));
+		}
 	}
 	void Font::set_lineskip(int _lineskip) {
 		lineskip = _lineskip;
@@ -376,6 +378,8 @@ namespace bee {
 			has_draw_failed = true;
 			return 3;
 		}
+
+		TTF_SetFontStyle(font, static_cast<int>(style));
 
 		// Set the loaded booleans
 		is_loaded = true;

@@ -246,7 +246,9 @@ namespace bee { namespace python { namespace internal {
 			return nullptr;
 		}
 
-		return Py_BuildValue("i", font->set_style(static_cast<E_FONT_STYLE>(style)));
+		font->set_style(static_cast<E_FONT_STYLE>(style));
+
+		Py_RETURN_NONE;
 	}
 	PyObject* Font_set_lineskip(FontObject* self, PyObject* args) {
 		int lineskip;

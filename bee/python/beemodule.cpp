@@ -27,6 +27,7 @@
 #include "resource/font.hpp"
 #include "resource/path.hpp"
 #include "resource/timeline.hpp"
+#include "resource/mesh.hpp"
 
 #include "../engine.hpp"
 
@@ -164,6 +165,9 @@ namespace bee { namespace python { namespace internal {
 			return nullptr;
 		}
 		if (PyInit_bee_timeline(module) == nullptr) {
+			return nullptr;
+		}
+		if (PyInit_bee_mesh(module) == nullptr) {
 			return nullptr;
 		}
 
@@ -627,13 +631,15 @@ namespace bee { namespace python { namespace internal {
 		return Py_BuildValue("O", is_on_screen(rect) ? Py_True : Py_False);
 	}
 	PyObject* core_set_is_paused(PyObject* self, PyObject* args) {
-		bool is_paused;
+		int is_paused;
 
 		if (!PyArg_ParseTuple(args, "p", &is_paused)) {
 			return nullptr;
 		}
 
-		set_is_paused(is_paused);
+		bool _is_paused = is_paused;
+
+		set_is_paused(_is_paused);
 
 		Py_RETURN_NONE;
 	}

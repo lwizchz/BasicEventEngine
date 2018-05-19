@@ -10,6 +10,24 @@
 	obj:/usr/*lib*/i965_dri.*
 }
 {
+	lib_i965_dri/bcmp
+	Memcheck:Addr1
+	fun:bcmp
+	obj:/usr/*lib*/i965_dri.*
+}
+{
+	lib_i965_dri/bcmp
+	Memcheck:Addr8
+	fun:bcmp
+	obj:/usr/*lib*/i965_dri.*
+}
+{
+	lib_i965_dri/memmove
+	Memcheck:Addr1
+	fun:memmove
+	obj:/usr/*lib*/i965_dri.*
+}
+{
 	lib_i965_dri/memmove
 	Memcheck:Addr2
 	fun:memmove
@@ -58,6 +76,24 @@
 	Memcheck:Addr4
 	fun:address_in_range
 	fun:pymalloc_realloc
+}
+{
+	pymalloc_free/address_in_range
+	Memcheck:Value8
+	fun:address_in_range
+	fun:pymalloc_free.isra.0
+}
+{
+	pymalloc_free/address_in_range
+	Memcheck:Cond
+	fun:address_in_range
+	fun:pymalloc_free.isra.0
+}
+{
+	pymalloc_free/address_in_range
+	Memcheck:Addr4
+	fun:address_in_range
+	fun:pymalloc_free.isra.0
 }
 
 {

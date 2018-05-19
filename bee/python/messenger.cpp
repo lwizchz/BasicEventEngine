@@ -46,7 +46,7 @@ namespace bee { namespace python { namespace internal {
 	PyObject* messenger_register_recipient(PyObject* self, PyObject* args) {
 		PyObject* name;
 		PyObject* tag_list;
-		bool is_strict;
+		int is_strict;
 		PyObject* callback;
 
 		if (!PyArg_ParseTuple(args, "UO!pO", &name, &PyList_Type, &tag_list, &is_strict, &callback)) {
@@ -68,13 +68,15 @@ namespace bee { namespace python { namespace internal {
 			tags.emplace_back(PyUnicode_AsUTF8(item));
 		}
 
+		bool _is_strict = is_strict;
+
 		if (!PyCallable_Check(callback)) {
 			PyErr_SetString(PyExc_TypeError, "parameter must be callable");
 			return nullptr;
 		}
 
 		Py_INCREF(callback);
-		messenger::register_recipient(_name, tags, is_strict, [callback] (const MessageContents& msg) {
+		messenger::register_recipient(_name, tags, _is_strict, [callback] (const MessageContents& msg) {
 			PyObject* msg_tags = PyList_New(0);
 			for (auto& t : msg.tags) {
 				PyList_Append(msg_tags, PyUnicode_FromString(t.c_str()));
@@ -163,13 +165,15 @@ namespace bee { namespace python { namespace internal {
 		Py_RETURN_NONE;
 	}
 	PyObject* messenger_set_filter_blacklist(PyObject* self, PyObject* args) {
-		bool is_blacklist;
+		int is_blacklist;
 
 		if (!PyArg_ParseTuple(args, "p", &is_blacklist)) {
 			return nullptr;
 		}
 
-		messenger::set_filter_blacklist(is_blacklist);
+		bool _is_blacklist = is_blacklist;
+
+		messenger::set_filter_blacklist(_is_blacklist);
 
 		Py_RETURN_NONE;
 	}
@@ -198,7 +202,7 @@ namespace bee { namespace python { namespace internal {
 	}
 	PyObject* messenger_remove_log(PyObject* self, PyObject* args) {
 		PyObject* filename;
-		bool should_delete;
+		int should_delete;
 
 		if (!PyArg_ParseTuple(args, "Up", &filename, &should_delete)) {
 			return nullptr;
@@ -207,18 +211,22 @@ namespace bee { namespace python { namespace internal {
 		filename = PyTuple_GetItem(args, 0); // For some reason, PyArg_ParseTuple() doesn't set the first arg correctly
 		std::string _filename (PyUnicode_AsUTF8(filename));
 
-		messenger::remove_log(_filename, should_delete);
+		bool _should_delete = should_delete;
+
+		messenger::remove_log(_filename, _should_delete);
 
 		Py_RETURN_NONE;
 	}
 	PyObject* messenger_clear_logs(PyObject* self, PyObject* args) {
-		bool should_delete;
+		int should_delete;
 
 		if (!PyArg_ParseTuple(args, "p", &should_delete)) {
 			return nullptr;
 		}
 
-		messenger::clear_logs(should_delete);
+		bool _should_delete = should_delete;
+
+		messenger::clear_logs(_should_delete);
 
 		Py_RETURN_NONE;
 	}

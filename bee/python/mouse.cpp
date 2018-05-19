@@ -151,13 +151,15 @@ namespace bee { namespace python { namespace internal {
 		}
 	}
 	PyObject* mouse_set_show_cursor(PyObject* self, PyObject* args) {
-		bool show_cursor;
+		int show_cursor;
 
 		if (!PyArg_ParseTuple(args, "p", &show_cursor)) {
 			return nullptr;
 		}
 
-		return Py_BuildValue("i", mouse::set_show_cursor(show_cursor));
+		bool _show_cursor = show_cursor;
+
+		return Py_BuildValue("i", mouse::set_show_cursor(_show_cursor));
 	}
 }}}
 

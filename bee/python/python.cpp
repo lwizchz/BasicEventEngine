@@ -67,6 +67,8 @@ namespace bee { namespace python {
 
 		PySys_SetArgv(internal::argv.size(), internal::argv.data());
 
+		run_string("import bee");
+
 		return 0;
 	}
 	/**

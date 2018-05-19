@@ -270,18 +270,20 @@ namespace bee { namespace python { namespace internal {
 		return Py_BuildValue("i", snd->set_pan(pan));
 	}
 	PyObject* Sound_set_is_music(SoundObject* self, PyObject* args) {
-		bool is_music;
+		int is_music;
 
 		if (!PyArg_ParseTuple(args, "p", &is_music)) {
 			return nullptr;
 		}
+
+		bool _is_music = is_music;
 
 		Sound* snd = as_sound(self);
 		if (snd == nullptr) {
 			return nullptr;
 		}
 
-		return Py_BuildValue("i", snd->set_is_music(is_music));
+		return Py_BuildValue("i", snd->set_is_music(_is_music));
 	}
 	PyObject* Sound_set_finish(SoundObject* self, PyObject* args) {
 		PyObject* callback;

@@ -274,19 +274,22 @@ namespace bee { namespace python { namespace internal {
 
 	PyObject* Timeline_start(TimelineObject* self, PyObject* args) {
 		Uint32 start_offset = 0;
-		bool is_looping = false;
-		bool is_pausable = false;
+		int is_looping = false;
+		int is_pausable = false;
 
 		if (!PyArg_ParseTuple(args, "|Ipp", &start_offset, &is_looping, &is_pausable)) {
 			return nullptr;
 		}
+
+		bool _is_looping = is_looping;
+		bool _is_pausable = is_pausable;
 
 		Timeline* tl = as_timeline(self);
 		if (tl == nullptr) {
 			return nullptr;
 		}
 
-		TimelineIterator* tlit = new TimelineIterator(tl, start_offset, is_looping, is_pausable);
+		TimelineIterator* tlit = new TimelineIterator(tl, start_offset, _is_looping, _is_pausable);
 
 		int index = 0;
 		if (!tlits[tl].empty()) {

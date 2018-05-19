@@ -61,7 +61,7 @@ namespace bee {
 		TextureDrawData(GLuint, GLuint, GLuint, glm::mat4, glm::mat4, glm::vec4, GLuint);
 	};
 
-	/// Used to draw all on-screen items
+	/// Used to draw all 2D items
 	class Texture: public Resource {
 		static std::map<int,Texture*> list;
 		static int next_id;
