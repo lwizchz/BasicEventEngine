@@ -6,36 +6,7 @@ if(COMMAND cmake_policy)
 	endif(POLICY CMP0072)
 endif(COMMAND cmake_policy)
 
-set(ENGINE_VERSION_MAJOR "0")
-set(ENGINE_VERSION_MINOR "1")
-set(ENGINE_VERSION_RELEASE "6")
-
-if (GAME_NAME)
-	project("${GAME_NAME}" CXX C)
-
-	set(GAME_VERSION_MAJOR "${GAME_VERSION_MAJOR}")
-	set(GAME_VERSION_MINOR "${GAME_VERSION_MINOR}")
-	set(GAME_VERSION_RELEASE "${GAME_VERSION_RELEASE}")
-else()
-	project("BasicEventEngine" CXX C)
-
-	set(GAME_VERSION_MAJOR "${ENGINE_VERSION_MAJOR}")
-	set(GAME_VERSION_MINOR "${ENGINE_VERSION_MINOR}")
-	set(GAME_VERSION_RELEASE "${ENGINE_VERSION_RELEASE}")
-endif()
-
-# Generate a unique BEE_GAME_ID in ./build.sh
-if (NOT BEE_BUILD_ID)
-	set(BEE_BUILD_ID "0")
-endif()
-if (NOT BEE_GAME_ID)
-	set(BEE_GAME_ID "11111111")
-endif()
-
-set(engine_defines "-DBEE_VERSION_MAJOR=${ENGINE_VERSION_MAJOR} -DBEE_VERSION_MINOR=${ENGINE_VERSION_MINOR} -DBEE_VERSION_RELEASE=${ENGINE_VERSION_RELEASE}")
-#set(game_defines "-DBEE_BUILD_ID=${BEE_BUILD_ID} -DBEE_GAME_ID=${BEE_GAME_ID}")
-set(game_defines "${game_defines} -DGAME_NAME=${PROJECT_NAME} -DGAME_VERSION_MAJOR=${GAME_VERSION_MAJOR} -DGAME_VERSION_MINOR=${GAME_VERSION_MINOR} -DGAME_VERSION_RELEASE=${GAME_VERSION_RELEASE}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${engine_defines}")
+project("${GAME_NAME}" CXX C)
 
 set(warns "")
 
@@ -53,8 +24,6 @@ if (WIN32) # Include Windows libraries manually
 	add_subdirectory("bee")
 
 	add_subdirectory("tests")
-
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${game_defines}")
 
 	add_subdirectory("resources")
 	add_executable(${PROJECT_NAME} main.cpp)
@@ -95,10 +64,13 @@ if (WIN32) # Include Windows libraries manually
 else() # Include Unix libraries automatically
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 		set(warns "-Wall -Wextra -Wpedantic -Wshadow -Wno-unused-parameter")
+		#set(warns "${warns} -D_GLIBCXX_ASSERTIONS -fasynchronous-unwind-tables -fexceptions -fstack-clash-protection -fstack-protector-strong")
+		#set(warns "${warns} -Wl,-z,defs -Wl,-z,now -Wl,-z,relro")
 	endif()
 
 	set(packaged_lib_dir "-Wl,-rpath='\$ORIGIN/lib/'") # ./lib (relative to the executable) will be search for dynamic library loading
 	set(CMAKE_CXX_FLAGS_DEBUG "${packaged_lib_dir} -g -pg -pipe -std=c++14 ${warns} -D_REENTRANT")
+	#set(CMAKE_CXX_FLAGS_RELEASE "${packaged_lib_dir} -O2 -pipe -std=c++14 ${warns} -D_REENTRANT -DNDEBUG -D_FORTIFY_SOURCE=2")
 	set(CMAKE_CXX_FLAGS_RELEASE "${packaged_lib_dir} -O2 -pipe -std=c++14 ${warns} -D_REENTRANT -DNDEBUG")
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG}")
@@ -116,8 +88,6 @@ else() # Include Unix libraries automatically
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 		add_subdirectory("tests")
 	endif()
-
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${game_defines}")
 
 	add_subdirectory("resources")
 	add_executable(${PROJECT_NAME} main.cpp)

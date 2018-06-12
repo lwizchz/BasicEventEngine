@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
 	};
 
 	// Add a logfile to the messenger
-	bee::messenger::add_log(MACRO_TO_STR(GAME_NAME) + std::string(".log"), bee::E_OUTPUT::NORMAL);
+	bee::messenger::add_log(bee::get_game_name() + ".log", bee::E_OUTPUT::NORMAL);
 
 	// Initialize the game engine
 	if (bee::init(argc, argv, &rm_test, {}, options)) {
@@ -34,10 +34,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	// Output initialization message
-	bee::messenger::send({"engine", "init"}, bee::E_MESSAGE::INFO,
-		std::string("Initialized ") + MACRO_TO_STR(GAME_NAME) + " v" +
-		std::to_string(GAME_VERSION_MAJOR) + "." + std::to_string(GAME_VERSION_MINOR) + "." + std::to_string(GAME_VERSION_RELEASE)
-	);
+	bee::messenger::send({"engine", "init"}, bee::E_MESSAGE::INFO, "Initialized " + bee::get_game_name() + " v" + bee::get_game_version().to_str());
 
 	// Run the game engine event loop
 	// This loop will run until the user closes the window, the game closes itself, or the game throws an exception

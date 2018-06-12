@@ -32,6 +32,7 @@
 #include "../engine.hpp"
 
 #include "../init/gameoptions.hpp"
+#include "../init/info.hpp"
 #include "../init/programflags.hpp"
 
 #include "../core/display.hpp"
@@ -57,10 +58,16 @@ namespace bee { namespace python { namespace internal {
 		{nullptr, nullptr, 0, nullptr}
 	};
 	PyMethodDef BEEInitMethods[] = {
-		{"add_flag", init_add_flag, METH_VARARGS, "Add a program flag for post-init parsing"},
-
 		{"get_option", init_get_option, METH_VARARGS, "Return the option value"},
 		{"set_option", init_set_option, METH_VARARGS, "Assign a value and setter callback to the given option"},
+
+		{"get_build_id", init_get_build_id, METH_NOARGS, "Return the full build ID as a hex string"},
+		{"get_game_id", init_get_game_id, METH_NOARGS, "Return the game ID, which is a truncated version of the build ID"},
+		{"get_game_name", init_get_game_name, METH_NOARGS, "Return the game name as a string"},
+		{"get_engine_version", init_get_engine_version, METH_NOARGS, "Return the engine version in a tuple"},
+		{"get_game_version", init_get_game_version, METH_NOARGS, "Return the game version in a tuple"},
+
+		{"add_flag", init_add_flag, METH_VARARGS, "Add a program flag for post-init parsing"},
 
 		{nullptr, nullptr, 0, nullptr}
 	};
@@ -447,40 +454,6 @@ namespace bee { namespace python { namespace internal {
 		Py_RETURN_NONE;
 	}
 
-	PyObject* init_add_flag(PyObject* self, PyObject* args) {
-		PyObject* longopt;
-		int shortopt;
-		unsigned long arg_type;
-		PyObject* callback;
-
-		if (!PyArg_ParseTuple(args, "UCkO", &longopt, &shortopt, &arg_type, &callback)) {
-			return nullptr;
-		}
-
-		longopt = PyTuple_GetItem(args, 0);
-		std::string _longopt (PyUnicode_AsUTF8(longopt));
-
-		char _shortopt = shortopt;
-
-		E_FLAGARG _arg_type = static_cast<E_FLAGARG>(arg_type);
-
-		if (!PyCallable_Check(callback)) {
-			PyErr_SetString(PyExc_TypeError, "parameter must be callable");
-			return nullptr;
-		}
-		Py_INCREF(callback);
-
-		add_flag(new ProgramFlag(_longopt, _shortopt, false, _arg_type, [callback] (const std::string& arg) {
-			PyObject* arg_tup = Py_BuildValue("(N)", PyUnicode_FromString(arg.c_str()));
-			if (PyEval_CallObject(callback, arg_tup) == nullptr) {
-				PyErr_Print();
-			}
-			Py_DECREF(arg_tup);
-		}));
-
-		Py_RETURN_NONE;
-	}
-
 	PyObject* init_get_option(PyObject* self, PyObject* args) {
 		PyObject* name;
 
@@ -532,6 +505,60 @@ namespace bee { namespace python { namespace internal {
 				return 0;
 			}
 		}));
+	}
+
+	PyObject* init_get_build_id(PyObject* self, PyObject* args) {
+		std::string build_id (get_build_id());
+		return Py_BuildValue("N", PyUnicode_FromString(build_id.c_str()));
+	}
+	PyObject* init_get_game_id(PyObject* self, PyObject* args) {
+		return Py_BuildValue("I", get_game_id());
+	}
+	PyObject* init_get_game_name(PyObject* self, PyObject* args) {
+		std::string game_name (get_game_name());
+		return Py_BuildValue("N", PyUnicode_FromString(game_name.c_str()));
+	}
+	PyObject* init_get_engine_version(PyObject* self, PyObject* args) {
+		VersionInfo version (get_engine_version());
+		return Py_BuildValue("(III)", version.major, version.minor, version.patch);
+	}
+	PyObject* init_get_game_version(PyObject* self, PyObject* args) {
+		VersionInfo version (get_game_version());
+		return Py_BuildValue("(III)", version.major, version.minor, version.patch);
+	}
+
+	PyObject* init_add_flag(PyObject* self, PyObject* args) {
+		PyObject* longopt;
+		int shortopt;
+		unsigned long arg_type;
+		PyObject* callback;
+
+		if (!PyArg_ParseTuple(args, "UCkO", &longopt, &shortopt, &arg_type, &callback)) {
+			return nullptr;
+		}
+
+		longopt = PyTuple_GetItem(args, 0);
+		std::string _longopt (PyUnicode_AsUTF8(longopt));
+
+		char _shortopt = shortopt;
+
+		E_FLAGARG _arg_type = static_cast<E_FLAGARG>(arg_type);
+
+		if (!PyCallable_Check(callback)) {
+			PyErr_SetString(PyExc_TypeError, "parameter must be callable");
+			return nullptr;
+		}
+		Py_INCREF(callback);
+
+		add_flag(new ProgramFlag(_longopt, _shortopt, false, _arg_type, [callback] (const std::string& arg) {
+			PyObject* arg_tup = Py_BuildValue("(N)", PyUnicode_FromString(arg.c_str()));
+			if (PyEval_CallObject(callback, arg_tup) == nullptr) {
+				PyErr_Print();
+			}
+			Py_DECREF(arg_tup);
+		}));
+
+		Py_RETURN_NONE;
 	}
 
 	PyObject* core_get_display(PyObject* self, PyObject* args) {

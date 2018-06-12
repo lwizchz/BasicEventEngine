@@ -9,14 +9,8 @@
 #ifndef BEE_CORE_ENGINESTATE_H
 #define BEE_CORE_ENGINESTATE_H 1
 
-#include <sstream>
-#include <list>
-#include <memory>
 #include <functional>
-#include <map>
 #include <vector>
-#include <unordered_map>
-#include <unordered_set>
 
 #include <SDL2/SDL.h> // Include the required SDL headers
 
@@ -24,12 +18,6 @@
 
 namespace bee {
 	// Forward declarations
-	struct ProgramFlag;
-
-	class Messenger;
-	class Console;
-	struct NetworkConnection;
-
 	class Renderer;
 	struct RGBA;
 

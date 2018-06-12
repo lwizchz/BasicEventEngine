@@ -13,7 +13,7 @@ if [ "$package_dir" != "." ]; then
 	mkdir -p $package_dir
 fi
 
-package_file="$game-$version_major.$version_minor.$version_release-build$(date +%Y.%m.%d).tar.gz"
+package_file="$game-$version_major.$version_minor.$version_patch-build$(date +%Y.%m.%d).tar.gz"
 if [ -n "$2" ]; then
         package_file="$2"
 fi

@@ -86,6 +86,39 @@ generate_game_id()
 
         echo "$id"
 }
+output_game_defines()
+{
+    cat > "defines.hpp" <<-DEFINES
+/*
+* Copyright (c) 2015-18 Luke Montalvo <lukemontalvo@gmail.com>
+*
+* This file is part of BEE.
+* BEE is free software and comes with ABSOLUTELY NO WARANTY.
+* See LICENSE for more details.
+*/
+
+// The below definitions are auto-generated and all changes will be overwritten
+// To change the game name and version, edit config.sh
+
+#ifndef DEFINES_H
+#define DEFINES_H 1
+
+#define BEE_BUILD_ID $1
+#define BEE_GAME_ID $2
+
+#define GAME_NAME $3
+#define GAME_VERSION_MAJOR $4
+#define GAME_VERSION_MINOR $5
+#define GAME_VERSION_PATCH $6
+
+#endif // DEFINES_H
+DEFINES
+
+    diff "defines.hpp" "../defines.hpp" > /dev/null
+    if [ $? -ne 0 ]; then
+        cp "defines.hpp" "../defines.hpp"
+    fi
+}
 
 assert_build_type()
 {
@@ -112,15 +145,9 @@ debug()
         assert_build_type "debug" "$1"
         echo -n "debug" > "$1/last_build_type.txt"
 
-        cmake \
-                -DCMAKE_BUILD_TYPE=Debug \
-                -DGAME_NAME="$game" \
-                -DBEE_BUILD_ID=$build_id \
-                -DBEE_GAME_ID=$game_id \
-                -DGAME_VERSION_MAJOR=$version_major \
-                -DGAME_VERSION_MINOR=$version_minor \
-                -DGAME_VERSION_RELEASE=$version_release \
-                ..
+        output_game_defines $build_id $game_id "$game" $version_major $version_minor $version_patch
+
+        cmake -DCMAKE_BUILD_TYPE=Debug -DGAME_NAME="$game" ..
 
         if [ "$2" == "nomake" ]; then
                 return
@@ -158,15 +185,9 @@ release()
         assert_build_type "release" "$1"
         echo -n "release" > "$1/last_build_type.txt"
 
-        cmake \
-                -DCMAKE_BUILD_TYPE=Release \
-                -DGAME_NAME="$game" \
-                -DBEE_BUILD_ID=$build_id \
-                -DBEE_GAME_ID=$game_id \
-                -DGAME_VERSION_MAJOR=$version_major \
-                -DGAME_VERSION_MINOR=$version_minor \
-                -DGAME_VERSION_RELEASE=$version_release \
-                ..
+        output_game_defines $build_id $game_id "$game" $version_major $version_minor $version_patch
+
+        cmake -DCMAKE_BUILD_TYPE=Release -DGAME_NAME="$game" ..
 
         if [ "$2" == "nomake" ]; then
                 return

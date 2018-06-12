@@ -11,10 +11,25 @@
 
 #include "info.hpp"
 
+#include "../../defines.hpp"
+
+#include "../defines.hpp"
+
 #include "../util/platform.hpp"
 #include "../util/files.hpp"
 
+#define BEE_VERSION_MAJOR 0
+#define BEE_VERSION_MINOR 1
+#define BEE_VERSION_PATCH 6
+
 namespace bee {
+	/**
+	* @returns the version as a string in the format "Major.Minor.Patch"
+	*/
+	std::string VersionInfo::to_str() const {
+		return std::to_string(major) + "." + std::to_string(minor) + "." + std::to_string(patch);
+	}
+
 	/**
 	* @returns information about how to run the program
 	*/
@@ -48,6 +63,38 @@ namespace bee {
 			"	1       Failure to initialize the engine\n"
 			"	2       Unknown exception during game loop\n"
 		;
+	}
+
+	/**
+	* @returns the full build ID as a hex string
+	*/
+	std::string get_build_id() {
+		return std::string(MACRO_TO_STR(BEE_BUILD_ID));
+	}
+	/**
+	* @returns the game ID, which is a truncated version of the build ID
+	*/
+	unsigned int get_game_id() {
+		return BEE_GAME_ID;
+	}
+	/**
+	* @returns the game name as a string
+	*/
+	std::string get_game_name() {
+		return std::string(MACRO_TO_STR(GAME_NAME));
+	}
+
+	/**
+	* @returns the engine version in a struct
+	*/
+	VersionInfo get_engine_version() {
+		return {BEE_VERSION_MAJOR, BEE_VERSION_MINOR, BEE_VERSION_PATCH};
+	}
+	/**
+	* @returns the game version in a struct
+	*/
+	VersionInfo get_game_version() {
+		return {GAME_VERSION_MAJOR, GAME_VERSION_MINOR, GAME_VERSION_PATCH};
 	}
 }
 

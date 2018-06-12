@@ -10,11 +10,8 @@
 #define BEE_INPUT_KB_H 1
 
 #include <string>
-#include <functional>
 
 #include <SDL2/SDL.h> // Include the required SDL headers
-
-#include "../messenger/messagecontents.hpp"
 
 namespace bee {
 	// Forward declaration

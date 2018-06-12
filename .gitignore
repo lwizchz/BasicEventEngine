@@ -1,11 +1,19 @@
+# Build files
 /build/
 /build2/
 /win/
 /winbuild/
 gmon.out
+defines.hpp
 
 *.o
 *.pyc
 *.pyo
 
 *.exe
+
+# Run files
+/*.log
+
+# Package files
+/pkg/

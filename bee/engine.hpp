@@ -10,22 +10,9 @@
 #define BEE_ENGINE_H 1
 
 // Include the required library headers
-#include <string>
-#include <functional>
-#include <memory>
 #include <list>
-#include <vector>
-#include <map>
-#include <unordered_map>
-#include <unordered_set>
 
 #include <SDL2/SDL.h> // Include the required SDL headers
-
-#include "defines.hpp"
-
-#include <glm/glm.hpp> // Include the required OpenGL headers
-
-#include "enum.hpp" // Include the required engine enumerations
 
 namespace bee { // The engine namespace
 	// Forward declarations

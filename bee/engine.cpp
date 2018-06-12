@@ -19,6 +19,7 @@
 #include "enum.hpp"
 
 #include "init/gameoptions.hpp"
+#include "init/info.hpp"
 #include "init/programflags.hpp"
 
 #include "messenger/messenger.hpp"
@@ -74,10 +75,7 @@ namespace bee {
 			return 1; // Return 1 when the flags request to exit
 		}
 
-		messenger::send({"engine", "init"}, E_MESSAGE::INFO,
-			"Initializing BasicEventEngine v" +
-			std::to_string(BEE_VERSION_MAJOR) + "." + std::to_string(BEE_VERSION_MINOR) + "." + std::to_string(BEE_VERSION_RELEASE)
-		);
+		messenger::send({"engine", "init"}, E_MESSAGE::INFO, "Initializing BasicEventEngine v" + get_engine_version().to_str());
 
 		if (get_option("should_assert").i) {
 			#ifndef NDEBUG

@@ -12,7 +12,22 @@
 #include <string>
 
 namespace bee {
+	struct VersionInfo {
+		unsigned int major;
+		unsigned int minor;
+		unsigned int patch;
+
+		std::string to_str() const;
+	};
+
 	std::string get_usage_text();
+
+	std::string get_build_id();
+	unsigned int get_game_id();
+	std::string get_game_name();
+
+	VersionInfo get_engine_version();
+	VersionInfo get_game_version();
 }
 
 #endif // BEE_INIT_INFO_H

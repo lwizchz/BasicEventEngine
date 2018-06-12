@@ -9,8 +9,6 @@
 #ifndef BEE_INPUT_MOUSE_H
 #define BEE_INPUT_MOUSE_H 1
 
-#include <string>
-
 #include <SDL2/SDL.h> // Include the required SDL headers
 
 namespace bee {

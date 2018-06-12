@@ -14,7 +14,7 @@
 namespace bee { namespace python { namespace internal {
 	int init_module();
 	PyObject* PyInit_bee();
-	
+
 	PyObject* displayhook(PyObject*, PyObject*);
 
 	PyObject* get_ticks(PyObject*, PyObject*);
@@ -27,10 +27,16 @@ namespace bee { namespace python { namespace internal {
 	PyObject* restart_game(PyObject*, PyObject*);
 	PyObject* end_game(PyObject*, PyObject*);
 
-	PyObject* init_add_flag(PyObject*, PyObject*);
-
 	PyObject* init_get_option(PyObject*, PyObject*);
 	PyObject* init_set_option(PyObject*, PyObject*);
+
+	PyObject* init_get_build_id(PyObject*, PyObject*);
+	PyObject* init_get_game_id(PyObject*, PyObject*);
+	PyObject* init_get_game_name(PyObject*, PyObject*);
+	PyObject* init_get_engine_version(PyObject*, PyObject*);
+	PyObject* init_get_game_version(PyObject*, PyObject*);
+
+	PyObject* init_add_flag(PyObject*, PyObject*);
 
 	PyObject* core_get_display(PyObject*, PyObject*);
 	PyObject* core_get_display_size(PyObject*, PyObject*);
