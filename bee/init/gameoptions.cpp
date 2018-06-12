@@ -32,6 +32,12 @@
 
 #include "../render/renderer.hpp"
 
+#ifndef NDEBUG
+	#define SHOULD_ASSERT_DEFAULT true
+#else
+	#define SHOULD_ASSERT_DEFAULT false
+#endif
+
 namespace bee {
 	namespace internal {
 		std::map<std::string,GameOption> options = {
@@ -160,7 +166,7 @@ namespace bee {
 				return 0;
 			}}},
 
-			{"should_assert", {"should_assert", Variant(true), [] (GameOption* self, Variant value) {
+			{"should_assert", {"should_assert", Variant(SHOULD_ASSERT_DEFAULT), [] (GameOption* self, Variant value) {
 				if (engine->current_room != nullptr) {
 					messenger::send({"engine", "options"}, E_MESSAGE::WARNING, "Cannot modify GameOption should_assert after initialization");
 					return 1;

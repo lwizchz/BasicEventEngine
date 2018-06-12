@@ -64,14 +64,13 @@ if (WIN32) # Include Windows libraries manually
 else() # Include Unix libraries automatically
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 		set(warns "-Wall -Wextra -Wpedantic -Wshadow -Wno-unused-parameter")
-		#set(warns "${warns} -D_GLIBCXX_ASSERTIONS -fasynchronous-unwind-tables -fexceptions -fstack-clash-protection -fstack-protector-strong")
-		#set(warns "${warns} -Wl,-z,defs -Wl,-z,now -Wl,-z,relro")
+		set(warns "${warns} -D_GLIBCXX_ASSERTIONS -fasynchronous-unwind-tables -fexceptions -fstack-clash-protection -fstack-protector-strong")
+		set(warns "${warns} -Wl,-z,defs -Wl,-z,now -Wl,-z,relro")
 	endif()
 
-	set(packaged_lib_dir "-Wl,-rpath='\$ORIGIN/lib/'") # ./lib (relative to the executable) will be search for dynamic library loading
+	set(packaged_lib_dir "-Wl,-rpath='\$ORIGIN/lib/'") # ./lib (relative to the executable) will be searched for dynamic library loading
 	set(CMAKE_CXX_FLAGS_DEBUG "${packaged_lib_dir} -g -pg -pipe -std=c++14 ${warns} -D_REENTRANT")
-	#set(CMAKE_CXX_FLAGS_RELEASE "${packaged_lib_dir} -O2 -pipe -std=c++14 ${warns} -D_REENTRANT -DNDEBUG -D_FORTIFY_SOURCE=2")
-	set(CMAKE_CXX_FLAGS_RELEASE "${packaged_lib_dir} -O2 -pipe -std=c++14 ${warns} -D_REENTRANT -DNDEBUG")
+	set(CMAKE_CXX_FLAGS_RELEASE "${packaged_lib_dir} -O2 -pipe -std=c++14 ${warns} -D_REENTRANT -DNDEBUG -D_FORTIFY_SOURCE=2")
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG}")
 	else()

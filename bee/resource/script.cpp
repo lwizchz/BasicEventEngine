@@ -177,14 +177,14 @@ namespace bee {
 		return 0;
 	}
 	int Script::set_path(const std::string& new_path) {
-		if (new_path == ".py") { // If the path is "empty," use the script type as the path
+		if (new_path.empty()) {
+			path.clear();
+		} else if (new_path == ".py") { // If the path is "empty," use the script type as the path
 			path = new_path;
+		} else if (new_path.front() == '/') {
+			path = new_path.substr(1);
 		} else {
-			if (new_path.front() == '/') {
-				path = new_path.substr(1);
-			} else {
-				path = "resources/scripts/"+new_path; // Append the path to the script directory if no root
-			}
+			path = "resources/scripts/"+new_path; // Append the path to the script directory if no root
 		}
 		return 0;
 	}

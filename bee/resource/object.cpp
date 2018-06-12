@@ -252,7 +252,9 @@ namespace bee {
 		return 0;
 	}
 	int Object::set_path(const std::string& new_path) {
-		if (new_path.front() == '/') {
+		if (new_path.empty()) {
+			path.clear();
+		} else if (new_path.front() == '/') {
 			path = new_path.substr(1);
 		} else {
 			path = "resources/objects/"+new_path; // Append the path to the object directory if no root

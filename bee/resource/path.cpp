@@ -276,7 +276,9 @@ namespace bee {
 	*       Paths resource directory.
 	*/
 	void Path::set_path(const std::string& _path) {
-		if (_path.front() == '/') {
+		if (_path.empty()) {
+			path.clear();
+		} else if (_path.front() == '/') {
 			path = _path.substr(1);
 		} else { // Append the path to the Path directory if not root
 			path = "resources/paths/"+_path;

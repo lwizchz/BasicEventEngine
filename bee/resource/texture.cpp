@@ -357,7 +357,9 @@ namespace bee {
 	*       Textures resource directory.
 	*/
 	void Texture::set_path(const std::string& _path) {
-		if (_path.front() == '/') {
+		if (_path.empty()) {
+			path.clear();
+		} else if (_path.front() == '/') {
 			path = _path.substr(1);
 		} else { // Append the path to the Texture directory if not root
 			path = "resources/textures/"+_path;

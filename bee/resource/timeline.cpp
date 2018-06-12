@@ -295,7 +295,9 @@ namespace bee {
 	*       Timelines resource directory.
 	*/
 	void Timeline::set_path(const std::string& _path) {
-		if (_path.front() == '/') {
+		if (_path.empty()) {
+			path.clear();
+		} else if (_path.front() == '/') {
 			path = _path.substr(1);
 		} else { // Append the path to the Timelines directory if not root
 			path = "resources/timelines/"+_path;

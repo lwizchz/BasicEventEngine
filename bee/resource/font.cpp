@@ -306,7 +306,9 @@ namespace bee {
 	*       Fonts resource directory.
 	*/
 	void Font::set_path(const std::string& _path) {
-		if (_path.front() == '/') {
+		if (_path.empty()) {
+			path.clear();
+		} else if (_path.front() == '/') {
 			path = _path.substr(1);
 		} else { // Append the path to the Font directory if no root
 			path = "resources/fonts/"+_path;

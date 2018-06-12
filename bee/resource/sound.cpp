@@ -447,7 +447,9 @@ namespace bee {
 	*       Sounds resource directory.
 	*/
 	void Sound::set_path(const std::string& _path) {
-		if (_path.front() == '/') {
+		if (_path.empty()) {
+			path.clear();
+		} else if (_path.front() == '/') {
 			path = _path.substr(1);
 		} else { // Append the path to the Sound directory if not root
 			path = "resources/sounds/"+_path;
