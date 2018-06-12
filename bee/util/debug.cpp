@@ -15,6 +15,8 @@
 
 #include "debug.hpp" // Include the function declarations
 
+#include "string.hpp"
+
 namespace util {
 
 /**
@@ -67,16 +69,17 @@ std::string debug_indent(const std::string& input, int amount) {
 std::string get_shader_error(GLuint shader) {
 	int length = 0;
 	glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length); // Get the length of the error string
-	if (length <= 0) { // If the log length is not enough, then return an empty string
-		return "";
+	if (length <= 0) { // If the log length is not enough, then return a warning string
+		return "No error message provided";
 	}
 
-	char* log = new char[length]; // Allocate a new char array to store the log
-	glGetShaderInfoLog(shader, length, nullptr, log); // Fetch the error string into the char array
-	std::string s (log); // Convert the char array into a string in order to return it more easily
-	delete[] log; // Free the memory of the char array
+	// Fetch the error string
+	char* log = new char[length];
+	glGetShaderInfoLog(shader, length, nullptr, log);
+	std::string s (log);
+	delete[] log;
 
-	return s;
+	return trim(s);
 }
 /**
 * @param program the OpenGL index of the given program
@@ -86,16 +89,17 @@ std::string get_shader_error(GLuint shader) {
 std::string get_program_error(GLuint program) {
 	int length = 0;
 	glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length); // Get the length of the error string
-	if (length <= 0) { // If the log length is not enough, then return an empty string
-		return "";
+	if (length <= 0) { // If the log length is not enough, then return a warning string
+		return "No error message provided";
 	}
 
-	char* log = new char[length]; // Allocate a new char array to store the log
-	glGetProgramInfoLog(program, length, nullptr, log); // Fetch the error string into the char array
-	std::string s (log); // Convert the char array into a string in order to return it more easily
-	delete[] log; // Free the memory of the char array
+	// Fetch the error string
+	char* log = new char[length];
+	glGetProgramInfoLog(program, length, nullptr, log);
+	std::string s (log);
+	delete[] log;
 
-	return s;
+	return trim(s);
 }
 
 /**

@@ -14,6 +14,8 @@
 #include <random>
 #include <time.h>
 
+#include <glm/gtc/type_ptr.hpp>
+
 #include "real.hpp" // Include the function definitions
 
 namespace util {
@@ -39,7 +41,7 @@ template int sign<long>(long);
 template int sign<float>(float);
 template int sign<double>(double);
 #ifdef _WIN32
-	template int sign<time_t>(time_t); // On Windows, time_t is __int64 but on Linux, time_t is long
+	template int sign<time_t>(time_t); // On Windows time_t is __int64, but on Linux time_t is long
 #endif
 /**
 * @param x the number to square
@@ -174,12 +176,13 @@ std::pair<double,double> coord_approach(double x1, double y1, double x2, double 
 
 	return std::make_pair(x3, y3); // Return a point somewhere in between the given points based on the given speed
 }
+
 /**
 * @param v the vector to convert
 *
 * @returns the equivalent vector as a glm::vec3
 */
-glm::vec3 bt_to_glm3(const btVector3& v) {
+glm::vec3 bt_to_glm_v3(const btVector3& v) {
 	return glm::vec3(v.x(), v.y(), v.z());
 }
 /**
@@ -187,9 +190,56 @@ glm::vec3 bt_to_glm3(const btVector3& v) {
 *
 * @returns the equivalent vector as a btVector3
 */
-btVector3 glm_to_bt3(const glm::vec3& v) {
+btVector3 glm_to_bt_v3(const glm::vec3& v) {
 	return btVector3(v.x, v.y, v.z);
 }
+/**
+* @param v the vector to convert
+*
+* @returns the equivalent vector as a glm::vec3
+*/
+glm::vec3 ai_to_glm_v3(const aiVector3D& v) {
+	return glm::vec3(v.x, v.y, v.z);
+}
+/**
+* @param m the matrix to convert
+*
+* @returns the equivalent matrix as a glm::mat4
+*/
+glm::mat4 ai_to_glm_m4(const aiMatrix4x4& m) {
+	float _m[16] = {
+		// Row major
+		/*m.a1, m.a2, m.a3, m.a4,
+		m.b1, m.b2, m.b3, m.b4,
+		m.c1, m.c2, m.c3, m.c4,
+		m.d1, m.d2, m.d3, m.d4*/
+
+		// Column major
+		m.a1, m.b1, m.c1, m.d1,
+		m.a2, m.b2, m.c2, m.d2,
+		m.a3, m.b3, m.c3, m.d3,
+		m.a4, m.b4, m.c4, m.d4
+	};
+	return glm::make_mat4(_m);
+}
+glm::mat4 ai_to_glm_m4(const aiQuaternion&q) {
+	return ai_to_glm_m4(aiMatrix4x4(q.GetMatrix()));
+}
+
+/**
+* Linearly interpolate between the given values.
+* @param a the first value
+* @param b the second value
+* @param t the percentage from 0.0 to 1.0
+*/
+template <typename T>
+T interp_linear(T a, T b, double t) {
+	return a + (b - a) * t;
+}
+template int interp_linear(int, int, double);
+template long interp_linear(long, long, double);
+template float interp_linear(float, float, double);
+template double interp_linear(double, double, double);
 
 /**
 * @param x the number to check

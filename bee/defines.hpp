@@ -24,6 +24,9 @@
 #define BEE_MAX_LIGHTABLES 96
 #define BEE_MAX_MASK_VERTICES 8
 
+#define BEE_MAX_BONES 100 // Define Mesh bone maximums
+#define BEE_BONES_PER_VERTEX 4
+
 #define MACRO_TO_STR_(x) #x
 #define MACRO_TO_STR(x) MACRO_TO_STR_(x)
 

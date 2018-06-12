@@ -26,6 +26,12 @@
 #include "../render/rgba.hpp"
 
 namespace bee {
+	/// Used to transfer vertex bone data to the geometry shader
+	struct MeshBoneData {
+		unsigned int indices[4]; ///< The indices of the attached bones
+		float weights[4]; ///< The weight of the attached bone
+	};
+
 	/// Used to draw all 3D items
 	class Mesh: public Resource {
 		static std::map<int,Mesh*> list;
@@ -43,20 +49,34 @@ namespace bee {
 		const aiScene* scene; ///< The scene containing all of the meshes in the object file
 		const aiMesh* mesh; ///< The primary mesh from the scene, the one we're interested in
 		const aiMaterial* material; ///< The material that the mesh uses
-		float* vertices; ///< An array of the mesh's vertices
-		float* normals; ///< An array of the mesh's normals
-		float* uv_array; ///< An array of the mesh's UVs
-		unsigned int* indices; ///< An array of the mesh's indices
+
+		std::vector<float> vertices; ///< A vector of the mesh's vertices
+		std::vector<float> normals; ///< A vector of the mesh's normals
+		std::vector<float> uv_array; ///< A vector of the mesh's UVs
+		std::vector<unsigned int> indices; ///< A vector of the mesh's indices
+
+		std::map<std::string,std::pair<size_t,const aiBone*>> bones; ///< The map of skeletal mesh bones
+		std::map<std::string,const aiAnimation*> animations; ///< The map of skeletal animations
+		std::vector<MeshBoneData> bone_data; ///< The vector of the bone vertex data
+		std::map<const aiAnimation*, std::map<const aiNode*, const aiNodeAnim*>> node_animations; ///< The map of nodes and their associated animations
 
 		GLuint vao; ///< The Vertex Array Object which contains most of the following data
 		GLuint vbo_vertices; ///< The Vertex Buffer Object which contains the vertices of the faces
 		GLuint vbo_normals; ///< The buffer object which contains the normals of the faces
 		GLuint vbo_texcoords;  ///< The buffer object which contains the subimage texture coordinates
 		GLuint ibo; ///< The buffer object which contains the order of the vertices for each element
+		GLuint vbo_bones; ///< The buffer object which contains the vertex bone data
 		GLuint gl_texture; ///< The internal texture storage
 
 		// See bee/resources/mesh.cpp for function comments
 		void free_internal();
+
+		void gen_node_animations(const aiAnimation*);
+		void calc_transforms(const aiAnimation*, float, const aiNode*, const glm::mat4&, std::vector<glm::mat4>*);
+
+		static glm::vec3 interp_scale(const aiNodeAnim*, float);
+		static glm::mat4 interp_rotate(const aiNodeAnim*, float);
+		static glm::vec3 interp_translate(const aiNodeAnim*, float);
 	public:
 		// See bee/resources/mesh.cpp for function comments
 		Mesh();
@@ -79,6 +99,7 @@ namespace bee {
 		std::string get_name() const;
 		std::string get_path() const;
 		bool get_is_loaded() const;
+		bool has_animation(const std::string&) const;
 
 		void set_name(const std::string&);
 		void set_path(const std::string&);
@@ -87,9 +108,9 @@ namespace bee {
 		int load();
 		int free();
 
+		int draw(const std::string&, Uint32, glm::vec3, glm::vec3, glm::vec3, RGBA, bool);
 		int draw(glm::vec3, glm::vec3, glm::vec3, RGBA, bool);
 		int draw(glm::vec3, glm::vec3, glm::vec3);
-		int draw(glm::vec3);
 	};
 }
 

@@ -129,32 +129,40 @@ namespace bee {
 			}
 		}
 
+		int r = 0;
 		program = new ShaderProgram();
 
 		Shader vertex_shader (vs_fn, GL_VERTEX_SHADER);
-		program->add_shader(vertex_shader);
+		r += program->add_shader(vertex_shader);
 
-		program->add_attrib("v_position", true);
-		//program->add_attrib("v_normal", true);
-		program->add_attrib("v_texcoord", true);
+		r += program->add_attrib("v_position", true);
+		//r += program->add_attrib("v_normal", true);
+		r += program->add_attrib("v_texcoord", true);
 
-		program->add_uniform("projection", true);
-		program->add_uniform("view", true);
-		program->add_uniform("model", true);
-		program->add_uniform("port", true);
+		program->add_attrib("v_bone_indices", false);
+		program->add_attrib("v_bone_weights", false);
+
+		r += program->add_uniform("port", true);
 
 		Shader geometry_shader (gs_fn, GL_GEOMETRY_SHADER);
-		program->add_shader(geometry_shader);
+		r += program->add_shader(geometry_shader);
 
-		program->add_uniform("rotation", true);
+		r += program->add_uniform("projection", true);
+		r += program->add_uniform("view", true);
+		r += program->add_uniform("model", true);
+
+		r += program->add_uniform("rotation", true);
+
+		r += program->add_uniform("has_bones", false);
+		r += program->add_uniform("bone_transforms", false);
 
 		Shader fragment_shader (fs_fn, GL_FRAGMENT_SHADER);
-		program->add_shader(fragment_shader);
+		r += program->add_shader(fragment_shader);
 
-		program->add_uniform("f_texture", true);
-		program->add_uniform("colorize", true);
-		program->add_uniform("is_primitive", true);
-		program->add_uniform("flip", true);
+		r += program->add_uniform("f_texture", true);
+		r += program->add_uniform("colorize", true);
+		r += program->add_uniform("is_primitive", true);
+		r += program->add_uniform("flip", true);
 
 		program->add_uniform("time", false);
 
@@ -177,7 +185,11 @@ namespace bee {
 			}
 		}
 
-		program->link();
+		r += program->link();
+		if (r != 0) {
+			return 3;
+		}
+
 		render::set_program(program);
 
 		draw_set_color({255, 255, 255, 255});

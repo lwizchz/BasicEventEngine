@@ -550,19 +550,19 @@ namespace bee {
 			}
 		}
 
-		glm::vec3 offset (util::bt_to_glm3(pf->offset));
+		glm::vec3 offset (util::bt_to_glm_v3(pf->offset));
 		glm::vec3 v1, v2; // Declare two vectors for the start and end points of each line
 		for (auto it = coord_cache.begin(); it != --coord_cache.end(); ) {
-			v1 = util::bt_to_glm3(*it); // Get the start point from the current node
+			v1 = util::bt_to_glm_v3(*it); // Get the start point from the current node
 			++it; // Move to the next node
-			v2 = util::bt_to_glm3(*it); // Get the end point from the next node
+			v2 = util::bt_to_glm_v3(*it); // Get the end point from the next node
 
 			draw_line(offset+v1, offset+v2, c_line);
 		}
 
 		// Draw the control points
 		for (auto& cp : control_points) {
-			draw_circle(offset+util::bt_to_glm3(cp.second), 7.0, -1, c_controls);
+			draw_circle(offset+util::bt_to_glm_v3(cp.second), 7.0, -1, c_controls);
 		}
 	}
 	/**

@@ -15,8 +15,8 @@
 #include "../util/files.hpp"
 
 namespace bee {
-	/*
-	* get_usage_test() - Return an information string about how to run the program
+	/**
+	* @returns information about how to run the program
 	*/
 	std::string get_usage_text() {
 		return
@@ -42,7 +42,7 @@ namespace bee {
 			"		Disable fullscreen mode\n"
 			"	--headless\n"
 			"		Run the engine in headless mode without any SDL/OpenGL initialization\n"
-			"	Other options may be added prior to initialization."
+			"	Other options may be added prior to initialization.\n"
 			"Exit Status:\n"
 			"	0       Success\n"
 			"	1       Failure to initialize the engine\n"

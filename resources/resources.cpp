@@ -33,6 +33,7 @@ bee::Timeline* tl_bee = nullptr;
 
 // Define Meshes
 bee::Mesh* mesh_monkey = nullptr;
+bee::Mesh* mesh_spider = nullptr;
 
 // Define Lights
 bee::Light* lt_ambient = nullptr;
@@ -90,6 +91,8 @@ int bee::init_resources() {
 
 		// Init Meshes
 		mesh_monkey = new Mesh("mesh_monkey", "monkey2.obj");
+		mesh_spider = new Mesh("mesh_spider", "spider.fbx");
+			mesh_spider->load(2);
 
 		// Init Lights
 		lt_ambient = new Light("lt_ambient", "");
@@ -151,6 +154,7 @@ int bee::close_resources() {
 
 	// Destroy Meshes
 	DEL(mesh_monkey);
+	DEL(mesh_spider);
 
 	// Destroy Lights
 	DEL(lt_ambient);

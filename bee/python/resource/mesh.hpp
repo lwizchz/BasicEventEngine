@@ -30,6 +30,8 @@ namespace bee { namespace python { namespace internal {
 	PyObject* Mesh_str(MeshObject*);
 	PyObject* Mesh_print(MeshObject*, PyObject*);
 
+	PyObject* Mesh_has_animation(MeshObject*, PyObject*);
+
 	PyObject* Mesh_load(MeshObject*, PyObject*);
 	PyObject* Mesh_free(MeshObject*, PyObject*);
 

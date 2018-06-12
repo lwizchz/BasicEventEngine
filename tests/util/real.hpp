@@ -11,6 +11,8 @@
 
 #include "doctest.h" // Include the required unit testing library
 
+#include <glm/gtc/type_ptr.hpp> // Include for glm::make_mat4()
+
 #include "../../bee/util/real.hpp"
 
 TEST_SUITE_BEGIN("util");
@@ -52,9 +54,35 @@ TEST_CASE("real/movement") {
 	REQUIRE(util::distance(0.0, 0.0, 3.0, 4.0) == 5.0);
 	REQUIRE(util::distance(0.0, 0.0, 0.0, 0.0) == 0.0);
 
-	REQUIRE(util::bt_to_glm3(btVector3(0.0, 1.0, 2.0)) == glm::vec3(0.0, 1.0, 2.0));
-	REQUIRE(util::glm_to_bt3(glm::vec3(0.0, 1.0, 2.0)) == btVector3(0.0, 1.0, 2.0));
-	REQUIRE(util::bt_to_glm3(util::glm_to_bt3(glm::vec3(0.0, 1.0, 2.0))) == glm::vec3(0.0, 1.0, 2.0));
+	REQUIRE(util::bt_to_glm_v3(btVector3(0.0, 1.0, 2.0)) == glm::vec3(0.0, 1.0, 2.0));
+	REQUIRE(util::glm_to_bt_v3(glm::vec3(0.0, 1.0, 2.0)) == btVector3(0.0, 1.0, 2.0));
+	REQUIRE(util::bt_to_glm_v3(util::glm_to_bt_v3(glm::vec3(0.0, 1.0, 2.0))) == glm::vec3(0.0, 1.0, 2.0));
+	REQUIRE(util::ai_to_glm_v3(aiVector3D(0.0, 1.0, 2.0)) == glm::vec3(0.0, 1.0, 2.0));
+
+	float m_col[16] = {
+		// Column major
+		0.0,  4.0,  8.0, 12.0,
+		1.0,  5.0,  9.0, 13.0,
+		2.0,  6.0, 10.0, 14.0,
+		3.0,  7.0, 11.0, 15.0
+	};
+	REQUIRE(util::ai_to_glm_m4(aiMatrix4x4(
+		// Row major
+		m_col[0], m_col[4], m_col[8],  m_col[12],
+		m_col[1], m_col[5], m_col[9],  m_col[13],
+		m_col[2], m_col[6], m_col[10], m_col[14],
+		m_col[3], m_col[7], m_col[11], m_col[15]
+	)) == glm::make_mat4(m_col));
+
+	REQUIRE(util::interp_linear(0, 10, 0.5) == 5);
+	REQUIRE(util::interp_linear(0, 10, 0.2) == 2);
+	REQUIRE(util::interp_linear(0, 5, 0.5) == 2);
+	REQUIRE(util::interp_linear(0, 1, 1.0) == 1);
+	REQUIRE(util::interp_linear(0.0, 10.0, 0.5) == 5.0);
+	REQUIRE(util::interp_linear(0.0, 100.0, 0.1) == 10.0);
+	REQUIRE(util::interp_linear(0.0, 10.0, 0.22222) == 2.2222);
+	REQUIRE(util::interp_linear(0.0, 5.0, 0.5) == 2.5);
+	REQUIRE(util::interp_linear(0.0, 1.0, 1.0) == 1.0);
 }
 TEST_CASE("real/bounds") {
 	REQUIRE(util::is_between(5, 3, 6) == true);

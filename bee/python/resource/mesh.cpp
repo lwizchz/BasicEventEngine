@@ -22,6 +22,8 @@ namespace bee { namespace python { namespace internal {
 	PyMethodDef MeshMethods[] = {
 		{"print", reinterpret_cast<PyCFunction>(Mesh_print), METH_NOARGS, "Print all relevant information about the Mesh"},
 
+		{"has_animation", reinterpret_cast<PyCFunction>(Mesh_has_animation), METH_VARARGS, "Return whether an animation with the given name exists"},
+
 		{"load", reinterpret_cast<PyCFunction>(Mesh_load), METH_VARARGS, "Load the desired Mesh from its given filename"},
 		{"free", reinterpret_cast<PyCFunction>(Mesh_free), METH_NOARGS, "Free the Mesh buffers"},
 
@@ -165,6 +167,23 @@ namespace bee { namespace python { namespace internal {
 		Py_RETURN_NONE;
 	}
 
+	PyObject* Mesh_has_animation(MeshObject* self, PyObject* args) {
+		PyObject* anim_name;
+
+		if (!PyArg_ParseTuple(args, "U", &anim_name)) {
+			return nullptr;
+		}
+
+		std::string _anim_name (PyUnicode_AsUTF8(anim_name));
+
+		Mesh* mesh = as_mesh(self);
+		if (mesh == nullptr) {
+			return nullptr;
+		}
+
+		return Py_BuildValue("O", mesh->has_animation(_anim_name) ? Py_True : Py_False);
+	}
+
 	PyObject* Mesh_load(MeshObject* self, PyObject* args) {
 		int index = 0;
 
@@ -194,26 +213,34 @@ namespace bee { namespace python { namespace internal {
 		glm::vec3 rotate (0.0f);
 		RGBA color (255, 255, 255, 255);
 		int is_wireframe = false;
+		PyObject* anim_name = nullptr;
+		Uint32 animation_time = 0;
 
 		if (!PyArg_ParseTuple(
-			args, "(fff)|(fff)(fff)(bbbb)p",
+			args, "(fff)|(fff)(fff)(bbbb)pUI",
 			&pos.x, &pos.y, &pos.z,
 			&scale.x, &scale.y, &scale.z,
 			&rotate.x, &rotate.y, &rotate.z,
 			&color.r, &color.g, &color.b, &color.a,
-			&is_wireframe
+			&is_wireframe,
+			&anim_name, &animation_time
 		)) {
 			return nullptr;
 		}
 
 		bool _is_wireframe = is_wireframe;
 
+		std::string _anim_name;
+		if (anim_name != nullptr) {
+			_anim_name = PyUnicode_AsUTF8(anim_name);
+		}
+
 		Mesh* mesh = as_mesh(self);
 		if (mesh == nullptr) {
 			return nullptr;
 		}
 
-		return Py_BuildValue("i", mesh->draw(pos, scale, rotate, color, _is_wireframe));
+		return Py_BuildValue("i", mesh->draw(_anim_name, animation_time, pos, scale, rotate, color, _is_wireframe));
 	}
 }}}
 

@@ -371,16 +371,21 @@ namespace bee{ namespace console {
 		// Split lines if they are wider than the console window
 		std::vector<std::string> full_lines (lines);
 		lines.clear();
+		const int cutoff = rect.w / engine->font_default->get_string_width();
 		for (auto it=full_lines.begin(); it!=full_lines.end(); ++it) {
-			if (engine->font_default->get_string_width(*it) > rect.w) {
-				int c = rect.w / engine->font_default->get_string_width();
+			std::string line (*it);
 
-				lines.emplace_back(it->substr(0, c));
-				lines.emplace_back(it->substr(c));
+			while (engine->font_default->get_string_width(line) > rect.w) {
+				const int tab_amount = util::string::replace(line, "\t", "").length() - line.length();
+
+				lines.emplace_back(line.substr(0, cutoff+4*tab_amount));
+				line = line.substr(cutoff+4*tab_amount);
 
 				++total_lines;
-			} else {
-				lines.emplace_back(*it);
+			}
+
+			if (!line.empty()) {
+				lines.emplace_back(line);
 			}
 		}
 

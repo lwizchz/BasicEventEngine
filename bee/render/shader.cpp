@@ -55,11 +55,11 @@ namespace bee {
 		GLint is_shader_compiled = GL_FALSE;
 		glGetShaderiv(shader, GL_COMPILE_STATUS, &is_shader_compiled);
 		if (is_shader_compiled != GL_TRUE) {
-			glDeleteShader(shader);
 			messenger::send({"engine", "renderer"}, E_MESSAGE::ERROR,
 				"Couldn't compile OpenGL shader: " + std::to_string(shader) + "\n"
 				+ util::get_shader_error(shader)
 			);
+			glDeleteShader(shader);
 			shader = -1;
 			return 1; // Return 1 when the shader could not be compiled
 		}

@@ -34,6 +34,7 @@ extern bee::Timeline* tl_bee;
 
 // Define Meshes
 extern bee::Mesh* mesh_monkey;
+extern bee::Mesh* mesh_spider;
 
 // Define Lights
 extern bee::Light* lt_ambient;

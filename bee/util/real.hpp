@@ -16,6 +16,7 @@
 
 #include <glm/glm.hpp> // Include the required headers for vector handling
 #include <btBulletDynamicsCommon.h>
+#include <assimp/scene.h>
 
 #define PI 3.141592653589793238462643383279502884197 // 40 digits of pi, sufficient to calculate the circumference of the observable universe to the width of one atom
 
@@ -36,8 +37,15 @@ double direction_of(double, double, double, double);
 double dist_sqr(double, double, double, double);
 double distance(double, double, double, double);
 std::pair<double,double> coord_approach(double, double, double, double, double, double);
-glm::vec3 bt_to_glm3(const btVector3&);
-btVector3 glm_to_bt3(const glm::vec3&);
+
+glm::vec3 bt_to_glm_v3(const btVector3&);
+btVector3 glm_to_bt_v3(const glm::vec3&);
+glm::vec3 ai_to_glm_v3(const aiVector3D&);
+glm::mat4 ai_to_glm_m4(const aiMatrix4x4&);
+glm::mat4 ai_to_glm_m4(const aiQuaternion&);
+
+template <typename T>
+extern T interp_linear(T, T, double);
 
 template <typename T>
 extern bool is_between(T, T, T);
