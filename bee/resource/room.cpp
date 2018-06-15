@@ -128,7 +128,7 @@ namespace bee {
 		add_to_resources();
 		if (id < 0) {
 			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add room resource: \"" + new_name + "\"" + new_path);
-			throw(-1);
+			throw -1;
 		}
 
 		set_name(new_name);

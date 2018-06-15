@@ -258,7 +258,18 @@ namespace bee { namespace python {
 				var.m.emplace(pyobj_to_variant(key), pyobj_to_variant(value));
 			}
 		} else {
-			var = Variant(PyUnicode_AsUTF8(PyObject_Str(obj)));
+			PyObject* str = PyObject_Str(obj);
+			if (str == nullptr) {
+				str = PyObject_Repr(obj);
+				if (str == nullptr) {
+					messenger::send({"engine", "python"}, E_MESSAGE::ERROR, "Failed to convert PyObject to Variant");
+					var = Variant();
+				} else {
+					var = Variant(PyUnicode_AsUTF8(str));
+				}
+			} else {
+				var = Variant(PyUnicode_AsUTF8(str));
+			}
 		}
 
 		return var;

@@ -39,6 +39,8 @@ namespace bee {
 	{}
 	/*
 	* Script::Script() - Construct the script, add it to the script resource list, and set the new name and path
+	*
+	* @throws int(-1) Failed to initialize Resource
 	*/
 	Script::Script(const std::string& new_name, const std::string& new_path) :
 		Script() // Default initialize all variables
@@ -46,7 +48,7 @@ namespace bee {
 		add_to_resources(); // Add the script to the appropriate resource list
 		if (id < 0) { // If the script could not be added to the resource list, output a warning
 			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add script resource: \"" + new_name + "\" from " + new_path);
-			throw(-1); // Throw an exception
+			throw -1;
 		}
 
 		set_name(new_name); // Set the script name

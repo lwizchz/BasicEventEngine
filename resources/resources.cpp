@@ -95,15 +95,10 @@ int bee::init_resources() {
 			mesh_spider->load(2);
 
 		// Init Lights
-		lt_ambient = new Light("lt_ambient", "");
-			//lt_ambient->set_color({255, 255, 255, 192});
-			lt_ambient->set_color({255, 255, 255, 30});
-		lt_bee = new Light("lt_bee", "");
-			lt_bee->set_type(bee::E_LIGHT::POINT);
-			//lt_bee->set_attenuation({2.0, 100.0, 2000.0, 0.0});
-			lt_bee->set_attenuation({2.0, 100.0, 20000.0, 0.0});
-			//lt_bee->set_attenuation({5.0, 1000.0, 40000.0, 0.0});
-			lt_bee->set_color({255, 255, 255, 255});
+		lt_ambient = new Light("lt_ambient", "lt_ambient.json");
+			lt_ambient->load();
+		lt_bee = new Light("lt_bee", "lt_bee.json");
+			lt_bee->load();
 
 		// Init Scripts
 		scr_test = new Script("scr_test", "scr_test.py");

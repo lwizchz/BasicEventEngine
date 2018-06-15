@@ -66,6 +66,8 @@ namespace bee {
 	* Object::Object() - Construct the object, add it to the object resource list, and set the new name and path
 	* @new_name: the name to use for the object
 	* @new_path: the path of the object's header file
+	*
+	* @throws int(-1) Failed to initialize Resource
 	*/
 	Object::Object(const std::string& new_name, const std::string& new_path) :
 		Object() // Default initialize all variables
@@ -73,7 +75,7 @@ namespace bee {
 		add_to_resources(); // Add the object to the appropriate resource list
 		if (id < 0) { // If it could not be added, output a warning
 			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add object resource: \"" + new_name + "\" from " + new_path);
-			throw(-1); // Throw an exception
+			throw -1;
 		}
 
 		set_name(new_name);

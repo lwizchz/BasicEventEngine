@@ -13,20 +13,19 @@
 
 #include "light.hpp" // Include the class resource header
 
-#include "../engine.hpp"
+#include "../util/files.hpp"
 
 #include "../init/gameoptions.hpp"
 
 #include "../messenger/messenger.hpp"
 
-#include "../core/enginestate.hpp"
 #include "../core/rooms.hpp"
 
 #include "room.hpp"
 
 namespace bee {
-	/*
-	* LightData::LightData() - Construct the data struct and initialize all values
+	/**
+	* Construct the data struct and initialize all values.
 	*/
 	LightData::LightData() :
 		type(E_LIGHT::AMBIENT),
@@ -39,9 +38,9 @@ namespace bee {
 	std::map<int,Light*> Light::list;
 	int Light::next_id = 0;
 
-	/*
-	* Light::Light() - Default construct the light
-	* ! This constructor should only be directly used for temporary lights, the other constructor should be used for all other cases
+	/**
+	* Default construct the Light.
+	* @note This constructor should only be directly used for temporary lights, the other constructor should be used for all other cases.
 	*/
 	Light::Light() :
 		Resource(),
@@ -52,37 +51,41 @@ namespace bee {
 
 		lighting()
 	{}
-	/*
-	* Light::Light() - Construct the light, add it to the light resource list, and set the new name and path
+	/**
+	* Construct the light, add it to the light resource list, and set the new name and path.
+	* @param _name the name of the Light to use
+	* @param _path the path of the Light's config file
+	*
+	* @throws int(-1) Failed to initialize Resource
 	*/
-	Light::Light(const std::string& new_name, const std::string& new_path) :
+	Light::Light(const std::string& _name, const std::string& _path) :
 		Light() // Default initialize all variables
 	{
-		add_to_resources(); // Add the light to the appropriate resource list
-		if (id < 0) { // If the light could not be added to the resource list, output a warning
-			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add light resource: \"" + new_name + "\" from " + new_path);
-			throw(-1); // Throw an exception
+		if (add_to_resources() < 0) { // Attempt to add the Light to its resource list
+			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add light resource: \"" + _name + "\" from " + _path);
+			throw -1;
 		}
 
-		set_name(new_name); // Set the light name
-		set_path(new_path); // Set the light path
+		set_name(_name); // Set the light name
+		set_path(_path); // Set the light path
 	}
-	/*
-	* Light::~Light() - Remove the light from the resouce list
+	/**
+	* Remove the Light from the resouce list.
 	*/
 	Light::~Light() {
-		list.erase(id); // Remove the light from the resource list
+		list.erase(id);
 	}
 
-	/*
-	* Light::get_amount() - Return the amount of light resources
+	/**
+	* @returns the number of Light resources
 	*/
 	size_t Light::get_amount() {
 		return list.size();
 	}
-	/*
-	* Light::get() - Return the resource with the given id
-	* @id: the resource to get
+	/**
+	* @oaran id the resource to get
+	*
+	* @returns the resource with the given id or nullptr if not found
 	*/
 	Light* Light::get(int id) {
 		if (list.find(id) != list.end()) {
@@ -90,33 +93,39 @@ namespace bee {
 		}
 		return nullptr;
 	}
-	/*
-	* Light::get_by_name() - Return the light resource with the given name
-	* @name: the name of the desired light
+	/**
+	* @param name the name of the desired light
+	*
+	* @returns the Light resource with the given name or nullptr if not found
 	*/
 	Light* Light::get_by_name(const std::string& name) {
-		for (auto& light : list) { // Iterate over the lights in order to find the first one with the given name
+		for (auto& light : list) { // Iterate over the Lights in order to find the first one with the given name
 			Light* l = light.second;
 			if (l != nullptr) {
 				if (l->get_name() == name) {
-					return l; // Return the desired light on success
+					return l; // Return the desired Light on success
 				}
 			}
 		}
-		return nullptr; // Return nullptr on failure
+		return nullptr;
 	}
-	/*
-	* Light::add() - Initiliaze and return a newly created light resource
-	* @name: the name to initialize the light with
-	* @path: the path to initialize the light with
+	/**
+	* Initiliaze and return a newly created light resource
+	* @param name the name to initialize the light with
+	* @param path the path to initialize the light with
+	*
+	* @returns the newly loaded Light
 	*/
 	Light* Light::add(const std::string& name, const std::string& path) {
 		Light* new_light = new Light(name, path);
+		new_light->load();
 		return new_light;
 	}
 
-	/*
-	* Light::add_to_resources() - Add the light to the appropriate resource list
+	/**
+	* Add the Light to the appropriate resource list.
+	*
+	* @returns the Light id
 	*/
 	int Light::add_to_resources() {
 		if (id < 0) { // If the resource needs to be added to the resource list
@@ -124,10 +133,12 @@ namespace bee {
 			list.emplace(id, this); // Add the resource and with the new id
 		}
 
-		return 0; // Return 0 on success
+		return id;
 	}
-	/*
-	* Light::reset() - Reset all resource variables for reinitialization
+	/**
+	* Reset all resource variables for reinitialization.
+	*
+	* @retval 0 success
 	*/
 	int Light::reset() {
 		// Reset all properties
@@ -139,51 +150,79 @@ namespace bee {
 		lighting.direction = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 		lighting.color = {255, 255, 255, 255};
 
-		return 0; // Return 0 on success
-	}
-	/*
-	* Light::print() - Print all relevant information about the resource
-	*/
-	void Light::print() const {
-		std::stringstream s; // Declare the output stream
-		s << // Append all info to the output
-		"Light { "
-		"\n	id          " << id <<
-		"\n	name        " << name <<
-		"\n	path        " << path;
-		switch (lighting.type) {
-			case E_LIGHT::AMBIENT: {
-				s << "\n	type        ambient";
-				break;
-			}
-			case E_LIGHT::DIFFUSE: {
-				s << "\n	type        diffuse";
-				break;
-			}
-			case E_LIGHT::POINT: {
-				s << "\n	type        point";
-				break;
-			}
-			case E_LIGHT::SPOT: {
-				s << "\n	type        spot";
-				break;
-			}
-			default: {
-				s << "\n	type        unknown";
-			}
-		}
-		s <<
-		"\n	position    (" << lighting.position.x << ", " << lighting.position.y << ", " << lighting.position.z << ")" <<
-		"\n	direction   (" << lighting.direction.x << ", " << lighting.direction.y << ", " << lighting.direction.z << ")" <<
-		"\n	attenuation (" << lighting.attenuation.x << ", " << lighting.attenuation.y << ", " << lighting.attenuation.z << ")" <<
-		"\n	color       " << static_cast<int>(lighting.color.r) << ", " << static_cast<int>(lighting.color.g) << ", " << static_cast<int>(lighting.color.b) <<
-		"\n}\n";
-		messenger::send({"engine", "resource"}, E_MESSAGE::INFO, s.str()); // Send the info to the messaging system for output
+		return 0;
 	}
 
-	/*
-	* Light::get_*() - Return the requested resource information
+	/**
+	* @returns a map of all the information required to restore the Light
 	*/
+	std::map<Variant,Variant> Light::serialize() const {
+		std::map<Variant,Variant> info;
+
+		info["id"] = id;
+		info["name"] = name;
+		info["path"] = path;
+
+		info["type"] = static_cast<int>(lighting.type);
+		info["position"] = {Variant(lighting.position.x), Variant(lighting.position.y), Variant(lighting.position.z), Variant(lighting.position.w)};
+		info["direction"] = {Variant(lighting.direction.x), Variant(lighting.direction.y), Variant(lighting.direction.z), Variant(lighting.direction.w)};
+		info["attenuation"] = {Variant(lighting.attenuation.x), Variant(lighting.attenuation.y), Variant(lighting.attenuation.z), Variant(lighting.attenuation.w)};
+		info["color"] = {
+			Variant(static_cast<int>(lighting.color.r)),
+			Variant(static_cast<int>(lighting.color.g)),
+			Variant(static_cast<int>(lighting.color.b)),
+			Variant(static_cast<int>(lighting.color.a))
+		};
+
+		return info;
+	}
+	/**
+	* Restore the Light from serialized data.
+	* @param m the map of data to use
+	*
+	* @retval 0 success
+	*/
+	int Light::deserialize(std::map<Variant,Variant>& m) {
+		id = m["id"].i;
+		name = m["name"].s;
+		path = m["path"].s;
+
+		lighting.type = static_cast<E_LIGHT>(m["type"].i);
+		lighting.position = glm::vec4(
+			m["position"].v[0].f,
+			m["position"].v[1].f,
+			m["position"].v[2].f,
+			m["position"].v[3].f
+		);
+		lighting.direction = glm::vec4(
+			m["direction"].v[0].f,
+			m["direction"].v[1].f,
+			m["direction"].v[2].f,
+			m["direction"].v[3].f
+		);
+		lighting.attenuation = glm::vec4(
+			m["attenuation"].v[0].f,
+			m["attenuation"].v[1].f,
+			m["attenuation"].v[2].f,
+			m["attenuation"].v[3].f
+		);
+		lighting.color = RGBA(
+			m["color"].v[0].i,
+			m["color"].v[1].i,
+			m["color"].v[2].i,
+			m["color"].v[3].i
+		);
+
+		return 0;
+	}
+	/**
+	* Print all relevant information about the resource.
+	*/
+	void Light::print() const {
+		Variant m (serialize());
+		messenger::send({"engine", "light"}, E_MESSAGE::INFO, "Light " + m.to_str(true));
+	}
+
 	int Light::get_id() const {
 		return id;
 	}
@@ -209,55 +248,131 @@ namespace bee {
 		return lighting.color;
 	}
 
-	/*
-	* Light::set_*() - Set the requested resource data
-	*/
-	int Light::set_name(const std::string& new_name) {
-		name = new_name;
-		return 0;
+	void Light::set_name(const std::string& _name) {
+		name = _name;
 	}
-	int Light::set_path(const std::string& new_path) {
+	/**
+	* Set the relative or absolute resource path.
+	* @param _path the new path to use
+	* @note If the first character is '/' then the path will be relative to
+	*       the executable directory, otherwise it will be relative to the
+	*       Fonts resource directory.
+	*/
+	void Light::set_path(const std::string& new_path) {
 		if (new_path.empty()) {
 			path.clear();
 		} else if (new_path.front() == '/') {
 			path = new_path.substr(1);
-		} else {
-			path = "resources/lights/"+new_path; // Append the path to the light directory if no root
+		} else { // Append the path to the Light directory if not root
+			path = "resources/lights/"+new_path;
 		}
-		return 0;
 	}
-	int Light::set_type(E_LIGHT new_type) {
+	void Light::set_type(E_LIGHT new_type) {
 		lighting.type = new_type;
-		return 0;
 	}
-	int Light::set_position(const glm::vec4& new_position) {
+	void Light::set_position(const glm::vec4& new_position) {
 		lighting.position = new_position;
-		return 0;
 	}
-	int Light::set_direction(const glm::vec4& new_direction) {
+	void Light::set_direction(const glm::vec4& new_direction) {
 		lighting.direction = new_direction;
-		return 0;
 	}
-	int Light::set_attenuation(const glm::vec4& new_attenuation) {
+	void Light::set_attenuation(const glm::vec4& new_attenuation) {
 		lighting.attenuation = new_attenuation;
-		return 0;
 	}
-	int Light::set_color(RGBA new_color) {
+	void Light::set_color(RGBA new_color) {
 		lighting.color = new_color;
+	}
+
+	/**
+	* Load the Light from its path.
+	*
+	* @retval 0 success
+	* @retval 1 failed to load the file
+	* @retval 2 invalid value
+	*/
+	int Light::load() {
+		std::string cfg (util::file_get_contents(path));
+		if (cfg.empty()) { // If the file could not be loaded, output a warning
+			messenger::send({"engine", "light"}, E_MESSAGE::WARNING, "Failed to load Light \"" + name + "\" from file \"" + path + "\"");
+			return 1;
+		}
+
+		// Parse the config file
+		Variant m;
+		m.interpret(cfg);
+
+		// Clear the old data
+		lighting = LightData();
+
+		// Load the new data
+		std::string type;
+		if (m.m.find("type") != m.m.end()) {
+			type = m.m["type"].s;
+		}
+
+		if (type == "ambient") {
+			lighting.type = E_LIGHT::AMBIENT;
+		} else if (type == "diffuse") {
+			lighting.type = E_LIGHT::DIFFUSE;
+		} else if (type == "point") {
+			lighting.type = E_LIGHT::POINT;
+		} else if (type == "spot") {
+			lighting.type = E_LIGHT::SPOT;
+		} else {
+			messenger::send({"engine", "light"}, E_MESSAGE::WARNING, "Failed to load Light \"" + name + "\": invalid light type");
+			return 2;
+		}
+
+		if (m.m.find("position") != m.m.end()) {
+			lighting.position = glm::vec4(
+				m.m["position"].v[0].d,
+				m.m["position"].v[1].d,
+				m.m["position"].v[2].d,
+				m.m["position"].v[3].d
+			);
+		}
+		if (m.m.find("direction") != m.m.end()) {
+			lighting.direction = glm::vec4(
+				m.m["direction"].v[0].d,
+				m.m["direction"].v[1].d,
+				m.m["direction"].v[2].d,
+				m.m["direction"].v[3].d
+			);
+		}
+		if (m.m.find("attenuation") != m.m.end()) {
+			lighting.attenuation = glm::vec4(
+				m.m["attenuation"].v[0].d,
+				m.m["attenuation"].v[1].d,
+				m.m["attenuation"].v[2].d,
+				m.m["attenuation"].v[3].d
+			);
+		}
+		if (m.m.find("color") != m.m.end()) {
+			lighting.color = RGBA(
+				m.m["color"].v[0].i,
+				m.m["color"].v[1].i,
+				m.m["color"].v[2].i,
+				m.m["color"].v[3].i
+			);
+		}
+
 		return 0;
 	}
 
-	/*
-	* Light::queue() - Queue the light for drawing in the Room rendering loop
+	/**
+	* Queue the Light for drawing in the Room rendering loop.
+	*
+	* @retval 0 success
+	* @retval 1 failed to queue since the engine is in headless mode
 	*/
 	int Light::queue() {
 		if (get_option("is_headless").i) {
-			return 1; // Return 1 when in headless mode
+			return 1;
 		}
 
-		get_current_room()->add_light(lighting); // Add the light to the Room lighting queue
+		get_current_room()->add_light(lighting); // Add the Light to the Room lighting queue
 
-		return 0; // Return 0 on success
+		return 0;
 	}
 }
 

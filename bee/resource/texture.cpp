@@ -126,13 +126,15 @@ namespace bee {
 	* Construct the Texture, add it to the Texture resource list, and set the new name and path.
 	* @param _name the name of the Texture to use
 	* @param _path the path of the Texture's image
+	*
+	* @throws int(-1) Failed to initialize Resource
 	*/
 	Texture::Texture(const std::string& _name, const std::string& _path) :
 		Texture() // Default initialize all variables
 	{
 		if (add_to_resources() < 0) { // Attempt to add the Texture to its resource list
 			messenger::send({"engine", "resource"}, E_MESSAGE::ERROR, "Failed to add Texture resource: \"" + _name + "\" from " + _path);
-			throw(-1); // Throw an exception if it could not be added
+			throw -1;
 		}
 
 		set_name(_name);
@@ -155,7 +157,7 @@ namespace bee {
 	/**
 	* @param id the resource to get
 	*
-	* @returns the resource with the given id
+	* @returns the resource with the given id or nullptr if not found
 	*/
 	Texture* Texture::get(int id) {
 		if (Texture::list.find(id) != Texture::list.end()) {
@@ -166,7 +168,7 @@ namespace bee {
 	/**
 	* @param name the name of the desired Texture
 	*
-	* @returns the Texture resource with the given name
+	* @returns the Texture resource with the given name or nullptr if not found
 	*/
 	Texture* Texture::get_by_name(const std::string& name) {
 		for (auto& tex : list) { // Iterate over the Textures in order to find the first one with the given name
@@ -177,7 +179,7 @@ namespace bee {
 				}
 			}
 		}
-		return nullptr; // Return nullptr on failure
+		return nullptr;
 	}
 	/**
 	* Initiliaze, load, and return a newly created Texture resource.
@@ -272,7 +274,7 @@ namespace bee {
 	int Texture::deserialize(std::map<Variant,Variant>& m) {
 		id = m["id"].i;
 		name = m["name"].s;
-		path = m["name"].s;
+		path = m["path"].s;
 
 		width = m["width"].i;
 		height = m["height"].i;

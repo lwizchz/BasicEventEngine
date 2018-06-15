@@ -93,13 +93,15 @@ namespace bee {
 	* Construct the Path, add it to the Path resource list, and set the new name and file path.
 	* @param _name the name of the Path to use
 	* @param _path the filename of the Path's config file
+	*
+	* @throws int(-1) Failed to initialize Resource
 	*/
 	Path::Path(const std::string& _name, const std::string& _path) :
 		Path() // Default initialize all variables
 	{
 		if (add_to_resources() < 0) { // Attempt to add the Path to its resource list
 			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add Path resource: \"" + _name + "\" from " + _path);
-			throw(-1); // Throw an exception
+			throw -1;
 		}
 
 		set_name(_name);
@@ -121,7 +123,7 @@ namespace bee {
 	/**
 	* @param id the resource to get
 	*
-	* @returns the resource with the given id
+	* @returns the resource with the given id or nullptr if not found
 	*/
 	Path* Path::get(int id) {
 		if (list.find(id) != list.end()) {
@@ -132,7 +134,7 @@ namespace bee {
 	/**
 	* @param name the name of the desired Path
 	*
-	* @returns the Path resource with the given name
+	* @returns the Path resource with the given name or nullptr if not found
 	*/
 	Path* Path::get_by_name(const std::string& name) {
 		for (auto& path : list) { // Iterate over the Paths in order to find the first one with the given name
@@ -143,7 +145,7 @@ namespace bee {
 				}
 			}
 		}
-		return nullptr; // Return nullptr on failure
+		return nullptr;
 	}
 	/**
 	* Initiliaze, load, and return a newly created Path resource.

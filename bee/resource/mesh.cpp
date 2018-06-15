@@ -80,13 +80,15 @@ namespace bee {
 	* Construct the Mesh, add it to the Mesh resource list, and set the new name and path.
 	* @param _name the name for the Mesh
 	* @param _path the path for the Mesh
+	*
+	* @throws int(-1) Failed to initialize Resource
 	*/
 	Mesh::Mesh(const std::string& _name, const std::string& _path) :
 		Mesh() // Default initialize all variables
 	{
 		if (add_to_resources() < 0) { // Attempt to add the Mesh to its resource list
 			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add Mesh resource: \"" + _name + "\" from " + _path);
-			throw(-1); // Throw an exception
+			throw -1;
 		}
 
 		set_name(_name);
@@ -109,7 +111,7 @@ namespace bee {
 	/**
 	* @param id the resource to get
 	*
-	* @returns the resource with the given id
+	* @returns the resource with the given id or nullptr if not found
 	*/
 	Mesh* Mesh::get(int id) {
 		if (list.find(id) != list.end()) {
@@ -120,7 +122,7 @@ namespace bee {
 	/**
 	* @param name the name of the desired Mesh
 	*
-	* @returns the Mesh resource with the given name
+	* @returns the Mesh resource with the given name or nullptr if not found
 	*/
 	Mesh* Mesh::get_by_name(const std::string& name) {
 		for (auto& mesh : list) { // Iterate over the Meshes in order to find the first one with the given name
@@ -131,7 +133,7 @@ namespace bee {
 				}
 			}
 		}
-		return nullptr; // Return nullptr on failure
+		return nullptr;
 	}
 	/**
 	* Initiliaze, load, and return a newly created Mesh resource.
@@ -282,7 +284,7 @@ namespace bee {
 			path.clear();
 		} else if (_path.front() == '/') {
 			path = _path.substr(1);
-		} else { // Append the path to the Mesh directory if no root
+		} else { // Append the path to the Mesh directory if not root
 			path = "resources/meshes/"+_path;
 		}
 	}

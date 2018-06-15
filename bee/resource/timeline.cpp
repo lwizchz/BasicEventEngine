@@ -115,13 +115,15 @@ namespace bee {
 	* Construct the Timeline, add it to the Timeline resource list, and set the new name and path.
 	* @param _name the name of the Timeline to use
 	* @param _path the path of the Timeline file
+	*
+	* @throws int(-1) Failed to initialize Resource
 	*/
 	Timeline::Timeline(const std::string& _name, const std::string& _path) :
 		Timeline()
 	{
 		if (add_to_resources() < 0) { // Attempt to add the Timeline to its resource list
 			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add timeline resource: \"" + _name + "\" from " + _path);
-			throw(-1); // Throw an exception
+			throw -1;
 		}
 
 		set_name(_name);
@@ -145,7 +147,7 @@ namespace bee {
 	/**
 	* @param id the resource to get
 	*
-	* @returns the resource with the given id
+	* @returns the resource with the given id or nullptr if not found
 	*/
 	Timeline* Timeline::get(int id) {
 		if (list.find(id) != list.end()) {
@@ -156,7 +158,7 @@ namespace bee {
 	/**
 	* @param name the name of the desired Timeline
 	*
-	* @returns the Timeline resource with the given name
+	* @returns the Timeline resource with the given name or nullptr if not found
 	*/
 	Timeline* Timeline::get_by_name(const std::string& name) {
 		for (auto& tl : list) { // Iterate over the timelines in order to find the first one with the given name
@@ -167,7 +169,7 @@ namespace bee {
 				}
 			}
 		}
-		return nullptr; // Return nullptr on failure
+		return nullptr;
 	}
 	/**
 	* Initiliaze and return a newly created Timeline resource.

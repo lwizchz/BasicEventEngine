@@ -28,6 +28,7 @@
 #include "resource/path.hpp"
 #include "resource/timeline.hpp"
 #include "resource/mesh.hpp"
+#include "resource/light.hpp"
 
 #include "../engine.hpp"
 
@@ -175,6 +176,9 @@ namespace bee { namespace python { namespace internal {
 			return nullptr;
 		}
 		if (PyInit_bee_mesh(module) == nullptr) {
+			return nullptr;
+		}
+		if (PyInit_bee_light(module) == nullptr) {
 			return nullptr;
 		}
 

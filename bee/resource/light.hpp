@@ -9,8 +9,6 @@
 #ifndef BEE_LIGHT_H
 #define BEE_LIGHT_H 1
 
-#include "../defines.hpp"
-
 #include <string> // Include the required library headers
 #include <map>
 #include <vector>
@@ -21,33 +19,38 @@
 
 #include "../enum.hpp"
 
+#include "../data/variant.hpp"
+
 #include "../render/rgba.hpp"
 
 namespace bee {
-	struct LightData { // The data struct which contains all of the relevant rendering information for the light
-		E_LIGHT type; // The type of lighting to render
-		glm::vec4 position; // The position of the light
-		glm::vec4 direction; // The direction of the light
-		glm::vec4 attenuation; // The components of attenuation: x=the brightness, y=the cone width, z=the range, all roughly in pixels
-		RGBA color; // The light color, where the alpha value is treated as the light intensity
+	/// Used to store all relevant rendering information
+	struct LightData {
+		E_LIGHT type; ///< The type of lighting to render
+		glm::vec4 position; ///< The position of the light
+		glm::vec4 direction; ///< The direction of the light
+		glm::vec4 attenuation; ///< The components of attenuation: x=brightness, y=cone width, z=range, all roughly in pixels
+		RGBA color; ///< The light color, where the alpha value is treated as the light intensity
 
 		LightData();
 	};
 
-	struct LightableData { // The data struct which defines an object that can cast shadows
-		glm::vec4 position; // The position of the lightable object
-		std::vector<glm::vec4> mask; // The mask for the object, relative to the position
+	/// Used to define a 2D object that can cast shadows
+	struct LightableData {
+		glm::vec4 position; ///< The position of the lightable object
+		std::vector<glm::vec4> mask; ///< The mask for the object relative to the position
 	};
 
-	class Light: public Resource { // The light resource class is used to draw all lighting effects
+	/// Used to render lighting effects
+	class Light: public Resource {
 		static std::map<int,Light*> list;
 		static int next_id;
 
-		int id; // The id of the resource
-		std::string name; // An arbitrary name for the resource
-		std::string path; // The path of the file to load the light from
+		int id; ///< The unique Light identifier
+		std::string name; ///< An arbitrary resource name
+		std::string path; ///< The path of the config file used for the lighting
 
-		LightData lighting; // The properties that define the light
+		LightData lighting; ///< The properties that define the light
 	public:
 		// See bee/resources/light.cpp for function comments
 		Light();
@@ -61,6 +64,9 @@ namespace bee {
 
 		int add_to_resources();
 		int reset();
+
+		std::map<Variant,Variant> serialize() const;
+		int deserialize(std::map<Variant,Variant>&);
 		void print() const;
 
 		int get_id() const;
@@ -72,13 +78,15 @@ namespace bee {
 		glm::vec4 get_attenuation() const;
 		RGBA get_color() const;
 
-		int set_name(const std::string&);
-		int set_path(const std::string&);
-		int set_type(E_LIGHT);
-		int set_position(const glm::vec4&);
-		int set_direction(const glm::vec4&);
-		int set_attenuation(const glm::vec4&);
-		int set_color(RGBA);
+		void set_name(const std::string&);
+		void set_path(const std::string&);
+		void set_type(E_LIGHT);
+		void set_position(const glm::vec4&);
+		void set_direction(const glm::vec4&);
+		void set_attenuation(const glm::vec4&);
+		void set_color(RGBA);
+
+		int load();
 
 		int queue();
 	};

@@ -87,13 +87,15 @@ namespace bee {
 	* @param _name the name of the Font to use
 	* @param _path the path of the font file, must be either a TTF or OTF font
 	* @param _font_size the size of the Font to use
+	*
+	* @throws int(-1) Failed to initialize Resource
 	*/
 	Font::Font(const std::string& _name, const std::string& _path, int _font_size) :
 		Font() // Default initialize all variables
 	{
 		if (add_to_resources() < 0) { // Attempt to add the Font to its resource list
 			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add Font resource: \"" + _name + "\" from " + _path);
-			throw(-1); // Throw an exception
+			throw -1;
 		}
 
 		set_name(_name);
@@ -117,7 +119,7 @@ namespace bee {
 	/**
 	* @param id the resource to get
 	*
-	* @returns the resource with the given id
+	* @returns the resource with the given id or nullptr if not found
 	*/
 	Font* Font::get(int id) {
 		if (list.find(id) != list.end()) {
@@ -128,7 +130,7 @@ namespace bee {
 	/**
 	* @param name the name of the desired Font
 	*
-	* @returns the Font resource with the given name
+	* @returns the Font resource with the given name or nullptr if not found
 	*/
 	Font* Font::get_by_name(const std::string& name) {
 		for (auto& font : list) { // Iterate over the Fonts in order to find the first one with the given name
@@ -139,7 +141,7 @@ namespace bee {
 				}
 			}
 		}
-		return nullptr; // Return nullptr on failure
+		return nullptr;
 	}
 	/**
 	* Initiliaze, load, and return a newly created Font resource.
@@ -223,7 +225,7 @@ namespace bee {
 
 		id = m["id"].i;
 		name = m["name"].s;
-		path = m["name"].s;
+		path = m["path"].s;
 
 		font_size = m["font_size"].i;
 		style = static_cast<E_FONT_STYLE>(m["style"].i);
@@ -310,7 +312,7 @@ namespace bee {
 			path.clear();
 		} else if (_path.front() == '/') {
 			path = _path.substr(1);
-		} else { // Append the path to the Font directory if no root
+		} else { // Append the path to the Font directory if not root
 			path = "resources/fonts/"+_path;
 		}
 	}

@@ -168,13 +168,15 @@ namespace bee {
 	* @param _name the name of the Sound to use
 	* @param _path the path of the Sound's file
 	* @param _is_music whether the Sound should be treated as music or a sound effect
+	*
+	* @throws int(-1) Failed to initialize Resource
 	*/
 	Sound::Sound(const std::string& _name, const std::string& _path, bool _is_music) :
 		Sound() // Default initialize all variables
 	{
 		if (add_to_resources() < 0) { // Attempt to add the Sound to its resource list
 			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add Sound resource: \"" + _name + "\" from " + _path);
-			throw(-1); // Throw an exception
+			throw -1;
 		}
 
 		set_name(_name);
@@ -198,7 +200,7 @@ namespace bee {
 	/**
 	* @param id the resource to get
 	*
-	* @returns the resource with the given id
+	* @returns the resource with the given id or nullptr if not found
 	*/
 	Sound* Sound::get(int id) {
 		if (Sound::list.find(id) != Sound::list.end()) {
@@ -209,7 +211,7 @@ namespace bee {
 	/**
 	* @param name the name of the desired Sound
 	*
-	* @returns the Sound resource with the given name
+	* @returns the Sound resource with the given name or nullptr if not found
 	*/
 	Sound* Sound::get_by_name(const std::string& name) {
 		for (auto& sound : list) { // Iterate over the Sounds in order to find the first one with the given name
@@ -220,7 +222,7 @@ namespace bee {
 				}
 			}
 		}
-		return nullptr; // Return nullptr on failure
+		return nullptr;
 	}
 	/**
 	* Initiliaze, load, and return a newly created Sound resource.
@@ -381,7 +383,7 @@ namespace bee {
 
 		id = m["id"].i;
 		name = m["name"].s;
-		path = m["name"].s;
+		path = m["path"].s;
 
 		volume = m["volume"].d;
 		pan = m["pan"].d;
