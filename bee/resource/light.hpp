@@ -26,7 +26,7 @@
 namespace bee {
 	/// Used to store all relevant rendering information
 	struct LightData {
-		E_LIGHT type; ///< The type of lighting to render
+		E_LIGHT_TYPE type; ///< The type of lighting to render
 		glm::vec4 position; ///< The position of the light
 		glm::vec4 direction; ///< The direction of the light
 		glm::vec4 attenuation; ///< The components of attenuation: x=brightness, y=cone width, z=range, all roughly in pixels
@@ -72,7 +72,7 @@ namespace bee {
 		int get_id() const;
 		std::string get_name() const;
 		std::string get_path() const;
-		E_LIGHT get_type() const;
+		E_LIGHT_TYPE get_type() const;
 		glm::vec4 get_position() const;
 		glm::vec4 get_direction() const;
 		glm::vec4 get_attenuation() const;
@@ -80,7 +80,7 @@ namespace bee {
 
 		void set_name(const std::string&);
 		void set_path(const std::string&);
-		void set_type(E_LIGHT);
+		void set_type(E_LIGHT_TYPE);
 		void set_position(const glm::vec4&);
 		void set_direction(const glm::vec4&);
 		void set_attenuation(const glm::vec4&);

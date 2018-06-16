@@ -9,8 +9,6 @@
 #ifndef BEE_LIGHT
 #define BEE_LIGHT 1
 
-#include <sstream> // Include the required library headers
-
 #include "light.hpp" // Include the class resource header
 
 #include "../util/files.hpp"
@@ -28,7 +26,7 @@ namespace bee {
 	* Construct the data struct and initialize all values.
 	*/
 	LightData::LightData() :
-		type(E_LIGHT::AMBIENT),
+		type(E_LIGHT_TYPE::AMBIENT),
 		position(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)),
 		direction(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)),
 		attenuation(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)),
@@ -40,7 +38,7 @@ namespace bee {
 
 	/**
 	* Default construct the Light.
-	* @note This constructor should only be directly used for temporary lights, the other constructor should be used for all other cases.
+	* @note This constructor should only be directly used for temporary Lights, the other constructor should be used for all other cases.
 	*/
 	Light::Light() :
 		Resource(),
@@ -52,7 +50,7 @@ namespace bee {
 		lighting()
 	{}
 	/**
-	* Construct the light, add it to the light resource list, and set the new name and path.
+	* Construct the Light, add it to the Light resource list, and set the new name and path.
 	* @param _name the name of the Light to use
 	* @param _path the path of the Light's config file
 	*
@@ -62,15 +60,15 @@ namespace bee {
 		Light() // Default initialize all variables
 	{
 		if (add_to_resources() < 0) { // Attempt to add the Light to its resource list
-			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add light resource: \"" + _name + "\" from " + _path);
+			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add Light resource: \"" + _name + "\" from " + _path);
 			throw -1;
 		}
 
-		set_name(_name); // Set the light name
-		set_path(_path); // Set the light path
+		set_name(_name);
+		set_path(_path);
 	}
 	/**
-	* Remove the Light from the resouce list.
+	* Remove the Light from the resource list.
 	*/
 	Light::~Light() {
 		list.erase(id);
@@ -94,7 +92,7 @@ namespace bee {
 		return nullptr;
 	}
 	/**
-	* @param name the name of the desired light
+	* @param name the name of the desired Light
 	*
 	* @returns the Light resource with the given name or nullptr if not found
 	*/
@@ -110,9 +108,9 @@ namespace bee {
 		return nullptr;
 	}
 	/**
-	* Initiliaze and return a newly created light resource
-	* @param name the name to initialize the light with
-	* @param path the path to initialize the light with
+	* Initiliaze, load, and return a newly created Light resource
+	* @param name the name to initialize the Light with
+	* @param path the path to initialize the Light with
 	*
 	* @returns the newly loaded Light
 	*/
@@ -130,7 +128,7 @@ namespace bee {
 	int Light::add_to_resources() {
 		if (id < 0) { // If the resource needs to be added to the resource list
 			id = next_id++;
-			list.emplace(id, this); // Add the resource and with the new id
+			list.emplace(id, this); // Add the resource with its new id
 		}
 
 		return id;
@@ -145,7 +143,7 @@ namespace bee {
 		name = "";
 		path = "";
 
-		lighting.type = E_LIGHT::AMBIENT;
+		lighting.type = E_LIGHT_TYPE::AMBIENT;
 		lighting.position = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 		lighting.direction = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 		lighting.color = {255, 255, 255, 255};
@@ -187,7 +185,7 @@ namespace bee {
 		name = m["name"].s;
 		path = m["path"].s;
 
-		lighting.type = static_cast<E_LIGHT>(m["type"].i);
+		lighting.type = static_cast<E_LIGHT_TYPE>(m["type"].i);
 		lighting.position = glm::vec4(
 			m["position"].v[0].f,
 			m["position"].v[1].f,
@@ -232,7 +230,7 @@ namespace bee {
 	std::string Light::get_path() const {
 		return path;
 	}
-	E_LIGHT Light::get_type() const {
+	E_LIGHT_TYPE Light::get_type() const {
 		return lighting.type;
 	}
 	glm::vec4 Light::get_position() const {
@@ -258,29 +256,29 @@ namespace bee {
 	*       the executable directory, otherwise it will be relative to the
 	*       Fonts resource directory.
 	*/
-	void Light::set_path(const std::string& new_path) {
-		if (new_path.empty()) {
+	void Light::set_path(const std::string& _path) {
+		if (_path.empty()) {
 			path.clear();
-		} else if (new_path.front() == '/') {
-			path = new_path.substr(1);
+		} else if (_path.front() == '/') {
+			path = _path.substr(1);
 		} else { // Append the path to the Light directory if not root
-			path = "resources/lights/"+new_path;
+			path = "resources/lights/"+_path;
 		}
 	}
-	void Light::set_type(E_LIGHT new_type) {
-		lighting.type = new_type;
+	void Light::set_type(E_LIGHT_TYPE _type) {
+		lighting.type = _type;
 	}
-	void Light::set_position(const glm::vec4& new_position) {
-		lighting.position = new_position;
+	void Light::set_position(const glm::vec4& _position) {
+		lighting.position = _position;
 	}
-	void Light::set_direction(const glm::vec4& new_direction) {
-		lighting.direction = new_direction;
+	void Light::set_direction(const glm::vec4& _direction) {
+		lighting.direction = _direction;
 	}
-	void Light::set_attenuation(const glm::vec4& new_attenuation) {
-		lighting.attenuation = new_attenuation;
+	void Light::set_attenuation(const glm::vec4& _attenuation) {
+		lighting.attenuation = _attenuation;
 	}
-	void Light::set_color(RGBA new_color) {
-		lighting.color = new_color;
+	void Light::set_color(RGBA _color) {
+		lighting.color = _color;
 	}
 
 	/**
@@ -311,13 +309,13 @@ namespace bee {
 		}
 
 		if (type == "ambient") {
-			lighting.type = E_LIGHT::AMBIENT;
+			lighting.type = E_LIGHT_TYPE::AMBIENT;
 		} else if (type == "diffuse") {
-			lighting.type = E_LIGHT::DIFFUSE;
+			lighting.type = E_LIGHT_TYPE::DIFFUSE;
 		} else if (type == "point") {
-			lighting.type = E_LIGHT::POINT;
+			lighting.type = E_LIGHT_TYPE::POINT;
 		} else if (type == "spot") {
-			lighting.type = E_LIGHT::SPOT;
+			lighting.type = E_LIGHT_TYPE::SPOT;
 		} else {
 			messenger::send({"engine", "light"}, E_MESSAGE::WARNING, "Failed to load Light \"" + name + "\": invalid light type");
 			return 2;

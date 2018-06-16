@@ -165,7 +165,7 @@ namespace bee {
 	int Font::add_to_resources() {
 		if (id < 0) { // If the resource needs to be added to the resource list
 			id = next_id++;
-			list.emplace(id, this); // Add the resource with it's new id
+			list.emplace(id, this); // Add the resource with its new id
 		}
 
 		return id;

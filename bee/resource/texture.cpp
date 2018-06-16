@@ -202,7 +202,7 @@ namespace bee {
 	int Texture::add_to_resources() {
 		if (id < 0) { // If the resource needs to be added to the resource list
 			id = Texture::next_id++;
-			Texture::list.emplace(id, this); // Add the resource with it's new id
+			Texture::list.emplace(id, this); // Add the resource with its new id
 		}
 
 		return id;

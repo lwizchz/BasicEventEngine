@@ -486,7 +486,7 @@ namespace bee { namespace python {
 	* @param code the code string to run
 	* @param retval the pointer to store the code return value in
 	*
-	* @see run_string() for return values
+	* @see run_string(const std::string&, Variant*, int) for return values
 	*/
 	int PythonScriptInterface::run_string(const std::string& code, Variant* retval) {
 		return run_string(code, retval, Py_single_input);
@@ -495,7 +495,7 @@ namespace bee { namespace python {
 	* Run the given file in the loaded module.
 	* @param filename the file to run
 	*
-	* @see run_string() for return values
+	* @see run_string(const std::string&, Variant*, int) for return values
 	*/
 	int PythonScriptInterface::run_file(const std::string& filename) {
 		return run_string(util::file_get_contents(filename), nullptr, Py_file_input);

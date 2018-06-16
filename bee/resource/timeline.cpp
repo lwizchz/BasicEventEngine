@@ -191,7 +191,7 @@ namespace bee {
 	int Timeline::add_to_resources() {
 		if (id < 0) { // If the resource needs to be added to the resource list
 			id = next_id++;
-			list.emplace(id, this); // Add the resource with it's new id
+			list.emplace(id, this); // Add the resource with its new id
 		}
 
 		return id;
@@ -311,7 +311,8 @@ namespace bee {
 	*
 	* @retval 0 success
 	* @retval 1 failed to load since it's already loaded
-	* @retval 2 failed to load since it's not a script
+	* @retval 2 failed to load since it's not a script file
+	* @retval 3 failed to load the Script
 	*/
 	int Timeline::load() {
 		if (is_loaded) {
@@ -319,13 +320,16 @@ namespace bee {
 			return 1;
 		}
 
-		if (Script::is_script(path)) {
+		if (Script::get_type(path) == E_SCRIPT_TYPE::INVALID) {
 			messenger::send({"engine", "timeline"}, E_MESSAGE::WARNING, "Failed to load Timeline \"" + name + "\" from \"" + path + "\" because it's not a script");
 			return 2;
 		}
 
 		scr_actions->set_path("/"+path);
-		scr_actions->load();
+		if (scr_actions->load()) {
+			messenger::send({"engine", "timeline"}, E_MESSAGE::WARNING, "Failed to load Timeline script \"" + name + "\" from \"" + path + "\"");
+			return 3;
+		}
 
 		// Set the loaded booleans
 		is_loaded = true;

@@ -232,7 +232,7 @@ namespace bee { namespace python { namespace internal {
 			return nullptr;
 		}
 
-		E_LIGHT _type (static_cast<E_LIGHT>(type));
+		E_LIGHT_TYPE _type (static_cast<E_LIGHT_TYPE>(type));
 
 		Light* lt = as_light(self);
 		if (lt == nullptr) {
@@ -322,9 +322,7 @@ namespace bee { namespace python { namespace internal {
 			return nullptr;
 		}
 
-		lt->load();
-
-		Py_RETURN_NONE;
+		return Py_BuildValue("i", lt->load());
 	}
 
 	PyObject* Light_queue(LightObject* self, PyObject* args) {
@@ -333,9 +331,7 @@ namespace bee { namespace python { namespace internal {
 			return nullptr;
 		}
 
-		lt->queue();
-
-		Py_RETURN_NONE;
+		return Py_BuildValue("i", lt->queue());
 	}
 }}}
 

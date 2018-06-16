@@ -70,12 +70,12 @@ namespace bee {
 	};
 
 	/**
-	* The object event types.
+	* The Object event types.
 	*/
 	enum class E_EVENT {
 		UPDATE,                 ///< Used to update the Object's Instance data pointer.
-		CREATE,                 ///< Used to initialize the instance.
-		DESTROY,                ///< Used to free the instance's extra memory.
+		CREATE,                 ///< Used to initialize the Instance.
+		DESTROY,                ///< Used to free the Instance's extra memory.
 		ALARM,                  ///<
 		STEP_BEGIN,             ///<
 		STEP_MID,               ///<
@@ -95,8 +95,8 @@ namespace bee {
 		OUTSIDE_ROOM,           ///<
 		INTERSECT_BOUNDARY,     ///<
 		COLLISION,              ///<
-		CHECK_COLLISION_FILTER, ///< Used to check whether two instances should collide.
-		DRAW,                   ///< Used to render the instance.
+		CHECK_COLLISION_FILTER, ///< Used to check whether two Instances should collide.
+		DRAW,                   ///< Used to render the Instance.
 		ANIMATION_END,          ///<
 		ROOM_START,             ///<
 		ROOM_END,               ///<
@@ -107,9 +107,9 @@ namespace bee {
 	};
 
 	/**
-	* The light rendering types.
+	* The Light rendering types.
 	*/
-	enum class E_LIGHT : int {
+	enum class E_LIGHT_TYPE : int {
 		AMBIENT = 1, ///< Evenly lights the entire viewport.
 		DIFFUSE,     ///< Light the scene from a specific angle.
 		POINT,       ///< Emit light from a point.
@@ -117,7 +117,7 @@ namespace bee {
 	};
 
 	/**
-	* The room transition animation types.
+	* The Room transition animation types.
 	*/
 	enum class E_TRANSITION {
 		NONE,             ///< No transition.
@@ -196,7 +196,7 @@ namespace bee {
 	};
 
 	/**
-	* How the instance should be computed for physics, networking, etc.
+	* How the Instance should be computed for physics, networking, etc.
 	*/
 	enum class E_COMPUTATION : int {
 		NOTHING    = BIT(0), ///< Do not compute.
@@ -226,7 +226,7 @@ namespace bee {
 		DISCONNECT,    ///< Disconnected by server / Player disconnected.
 		KEYFRAME,      ///< A keyframe data update.
 		PLAYER_UPDATE, ///< A player data update.
-		INST_UPDATE,   ///< An instance update.
+		INST_UPDATE,   ///< An Instance update.
 		DATA_UPDATE,   ///< A server data update.
 		OTHER          ///< Miscellaneous.
 	};
@@ -329,6 +329,14 @@ namespace bee {
 		ITALIC        = BIT(1),
 		UNDERLINE     = BIT(2),
 		STRIKETHROUGH = BIT(3)
+	};
+
+	/**
+	* The Script types.
+	*/
+	enum class E_SCRIPT_TYPE {
+		INVALID,
+		PYTHON
 	};
 }
 

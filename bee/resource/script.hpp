@@ -18,6 +18,7 @@
 #include "../data/variant.hpp"
 
 namespace bee {
+	/// Used to interface with different scripting systems
 	class ScriptInterface {
 	public:
 		virtual ~ScriptInterface() {};
@@ -34,16 +35,17 @@ namespace bee {
 		virtual Variant get_var(const std::string&) const =0;
 	};
 
-	class Script: public Resource { // The script resource class is used to execute python scripts
+	/// Used to execute Python scripts
+	class Script: public Resource {
 		static std::map<int,Script*> list;
 		static int next_id;
 
-		int id; // The id of the resource
-		std::string name; // An arbitrary name for the resource
-		std::string path; // The path of the file to load the script from
+		int id; ///< The unique Script identifier
+		std::string name; ///< An arbitrary resource name
+		std::string path; ///< The path of the script file
 
-		ScriptInterface* script; // The script object
-		bool is_loaded; // Whether the script was successfully loaded into its interface
+		ScriptInterface* script; ///< The scripting interface
+		bool is_loaded; ///< Whether the script was successfully loaded into its interface
 	public:
 		// See bee/resources/script.cpp for function comments
 		Script();
@@ -55,10 +57,13 @@ namespace bee {
 		static Script* get_by_name(const std::string&);
 		static Script* add(const std::string&, const std::string&);
 
-		static bool is_script(const std::string&);
+		static E_SCRIPT_TYPE get_type(const std::string&);
 
 		int add_to_resources();
 		int reset();
+
+		std::map<Variant,Variant> serialize() const;
+		int deserialize(std::map<Variant,Variant>&);
 		void print() const;
 
 		int get_id() const;
@@ -66,11 +71,12 @@ namespace bee {
 		std::string get_path() const;
 		ScriptInterface* get_interface() const;
 
-		int set_name(const std::string&);
-		int set_path(const std::string&);
+		void set_name(const std::string&);
+		void set_path(const std::string&);
 
 		int load();
 		int free();
+
 		int run_string(const std::string&, Variant*);
 		int run_file(const std::string&);
 		int run_func(const std::string&, Variant*);

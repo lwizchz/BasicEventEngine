@@ -29,6 +29,7 @@
 #include "resource/timeline.hpp"
 #include "resource/mesh.hpp"
 #include "resource/light.hpp"
+#include "resource/script.hpp"
 
 #include "../engine.hpp"
 
@@ -181,6 +182,9 @@ namespace bee { namespace python { namespace internal {
 		if (PyInit_bee_light(module) == nullptr) {
 			return nullptr;
 		}
+		if (PyInit_bee_script(module) == nullptr) {
+			return nullptr;
+		}
 
 		// Add enums
 		PyModule_AddObject(module, "E_FLAGARG", make_enum({
@@ -255,7 +259,7 @@ namespace bee { namespace python { namespace internal {
 			"WINDOW",
 			"NETWORK"
 		}));
-		PyModule_AddObject(module, "E_LIGHT", make_enum({
+		PyModule_AddObject(module, "E_LIGHT_TYPE", make_enum({
 			"AMBIENT",
 			"DIFFUSE",
 			"POINT",
@@ -419,6 +423,10 @@ namespace bee { namespace python { namespace internal {
 		}));
 		PyDict_SetItemString(fontstyle, "NORMAL", PyLong_FromLong(0));
 		PyModule_AddObject(module, "E_FONT_STYLE", fontstyle);
+		PyModule_AddObject(module, "E_SCRIPT_TYPE", make_enum({
+			"INVALID",
+			"PYTHON"
+		}));
 
 		return module;
 	}
