@@ -1,0 +1,27 @@
+image: gcc:6
+
+build:
+  stage: build
+  before_script:
+    - apt update
+    - >
+       apt -y install
+       make cmake libsdl2-dev libegl1-mesa-dev libgles2-mesa-dev
+       libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev libsdl2-net-dev
+       libglew-dev libglm-dev freeglut3-dev libassimp-dev
+    - wget https://lukemontalvo.us/BasicEventEngine/resources.tar.gz
+    - tar xzf resources.tar.gz
+  script:
+    - ./build.sh norun
+  artifacts:
+    paths:
+      - ./build/BEE_Example
+
+# run tests using the binary built before
+test:
+  stage: test
+  script:
+    - ./build/BEE_Example --single-run --headless
+  artifacts:
+    paths:
+      - ./BEE_Example.log
