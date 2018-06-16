@@ -1,17 +1,17 @@
 Copyright (c) 2015-18 Luke Montalvo <lukemontalvo@gmail.com>
 
-[![Build Status](https://travis-ci.org/piluke/BasicEventEngine.svg?branch=master)](https://travis-ci.org/piluke/BasicEventEngine)
+[![pipeline status](https://gitlab.com/piluke/BasicEventEngine/badges/master/pipeline.svg)](https://gitlab.com/piluke/BasicEventEngine/commits/master)
 
 ![In-Game Screenshot](https://github.com/piluke/BasicEventEngine/raw/master/screenshot.png)
 
 BasicEventEngine is an event-driven game engine which the user can interface
-with via the Sprite, Sound, Background, Font, Path, Timeline, Mesh, Light,
-Object, and Room classes. The Room class is used to organize the resources for
-each section of the game and the Object class is used to act upon the events
-from the main loop. A small example is included in the resources directory.
+with via the Texture, Sound, Font, Path, Timeline, Mesh, Light, Script, Object,
+and Room classes. The Room class is used to organize the resources for each
+section of the game and the Object class is used to act upon the events from
+the main loop. A small example is included in the resources directory.
 
 The available events are the virtual functions of the Object class which are on
-lines 100 to 128 in the file ``bee/resources/object.hpp``
+lines 106 to 136 in the file ``bee/resource/object.hpp``
 
 The software is in early alpha so do not expect any sort of stability. I'm
 slowly adding more content to the wiki so be sure to check that out first but
@@ -21,7 +21,7 @@ Github. And above all, report bugs! :)
 
 ## How to use on Linux
 
-This program can compile under Arch Linux, Ubuntu 15.10, and Windows 10 but at
+This program can compile under Arch Linux, Ubuntu 16.04, and Windows 10 but at
 the moment support will only be offered for Linux.
 
 1. [Intall git-lfs][1] so that you can download the resources for the example.
@@ -36,13 +36,9 @@ the moment support will only be offered for Linux.
         # Ubuntu
         sudo apt-get install cmake libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev libsdl2-net-dev libglew-dev libglm-dev freeglut3-dev libxmu-dev libassimp-dev
 
-3. Download the additional library submodules:
+3. *(Optional)* Edit the file ``resources/resources.hpp`` in order to add or remove resources which are located in their corresponding subdirectory.
 
-        git submodule update --init --recursive
-
-4. *(Optional)* Edit the file ``resources/resources.hpp`` in order to add or remove resources which are located in their corresponding subdirectory.
-
-5. Compile and run the program with the following commands:
+4. Compile and run the program with the following commands:
 
         # Build with debug mode in the build/ subdirectory
         ./build.sh debug build
