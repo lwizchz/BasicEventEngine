@@ -14,9 +14,9 @@
 #include <random>
 #include <time.h>
 
-#include <glm/gtc/type_ptr.hpp>
-
 #include "real.hpp" // Include the function definitions
+
+#include <glm/gtc/type_ptr.hpp>
 
 namespace util {
 

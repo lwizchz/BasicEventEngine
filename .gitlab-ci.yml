@@ -1,7 +1,6 @@
 image: gcc:6
 
-build:
-  stage: build
+.lib_install: &lib_install_def
   before_script:
     - apt update
     - >
@@ -11,6 +10,10 @@ build:
        libglew-dev libglm-dev freeglut3-dev libxmu-dev libassimp-dev
     - wget https://lukemontalvo.us/BasicEventEngine/resources.tar.gz
     - tar xzf resources.tar.gz
+
+build:
+  stage: build
+  <<: *lib_install_def
   script:
     - ./build.sh norun
   artifacts:
@@ -20,6 +23,7 @@ build:
 # run tests using the binary built before
 test:
   stage: test
+  <<: *lib_install_def
   script:
     - ./build/BEE_Example --single-run --headless
   artifacts:
