@@ -1,38 +1,36 @@
 image: gcc:6
 
 .lib_install: &lib_install_def
-  before_script:
-    - apt update
-    - >
-       apt -y install
-       make cmake libsdl2-dev libegl1-mesa-dev libgles2-mesa-dev
-       libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev libsdl2-net-dev
-       libglew-dev libglm-dev freeglut3-dev libxmu-dev libassimp-dev
-    - wget https://lukemontalvo.us/BasicEventEngine/resources.tar.gz
-    - tar xzf resources.tar.gz
-
-cache:
-  key: ${CI_COMMIT_REF_SLUG}
-  paths:
-    - lib/cpython
+  >
+   apt -y install
+   make cmake libsdl2-dev libegl1-mesa-dev libgles2-mesa-dev
+   libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev libsdl2-net-dev
+   libglew-dev libglm-dev freeglut3-dev libxmu-dev libassimp-dev
 
 build:
   stage: build
-  <<: *lib_install_def
+  before_script:
+    - apt update
+    - *lib_install_def
+    - wget https://lukemontalvo.us/BasicEventEngine/resources.tar.gz
+    - tar xzf resources.tar.gz
   script:
     - ./build.sh norun
   artifacts:
     paths:
+      - ./bee/resources
+      - ./resources
       - ./build/BEE_Example
+      - ./lib/cpython
 
 # run tests using the binary built before
 test:
   stage: test
-  <<: *lib_install_def
+  before_script:
+    - apt update
+    - *lib_install_def
   script:
     - ./build/BEE_Example --single-run --headless
-  after_script:
-    - rm -r lib/cpython
   artifacts:
     paths:
       - ./BEE_Example.log
