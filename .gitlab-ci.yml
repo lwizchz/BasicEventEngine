@@ -11,6 +11,11 @@ image: gcc:6
     - wget https://lukemontalvo.us/BasicEventEngine/resources.tar.gz
     - tar xzf resources.tar.gz
 
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - lib/cpython
+
 build:
   stage: build
   <<: *lib_install_def
@@ -26,6 +31,8 @@ test:
   <<: *lib_install_def
   script:
     - ./build/BEE_Example --single-run --headless
+  after_script:
+    - rm -r lib/cpython
   artifacts:
     paths:
       - ./BEE_Example.log
