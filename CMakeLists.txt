@@ -64,7 +64,7 @@ if (WIN32) # Include Windows libraries manually
 else() # Include Unix libraries automatically
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 		set(warns "-Wall -Wextra -Wpedantic -Wshadow -Wno-unused-parameter")
-		set(warns "${warns} -D_GLIBCXX_ASSERTIONS -fasynchronous-unwind-tables -fexceptions -fstack-clash-protection -fstack-protector-strong")
+		set(warns "${warns} -D_GLIBCXX_ASSERTIONS -fasynchronous-unwind-tables -fexceptions -fstack-clash-protection -fstack-protector-strong -fsanitize=undefined")
 		set(warns "${warns} -Wl,-z,defs -Wl,-z,now -Wl,-z,relro")
 	endif()
 

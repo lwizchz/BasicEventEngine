@@ -13,14 +13,20 @@
 
 #include <Python.h>
 
-namespace bee { namespace python { namespace internal {
+namespace bee {
+	class Instance;
+namespace python { namespace internal {
 	typedef struct {
 		PyObject_HEAD
 		PyObject* name;
 		int num;
 	} InstanceObject;
 
+	extern PyTypeObject InstanceType;
+
 	PyObject* PyInit_bee_instance(PyObject*);
+
+	Instance* as_instance(InstanceObject*);
 
 	void Instance_dealloc(InstanceObject*);
 	PyObject* Instance_new(PyTypeObject*, PyObject*, PyObject*);

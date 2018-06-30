@@ -19,6 +19,8 @@ namespace bee { namespace python { namespace internal {
 		PyObject* name;
 	} PathObject;
 
+	extern PyTypeObject PathType;
+
 	PyObject* PyInit_bee_path(PyObject*);
 
 	void Path_dealloc(PathObject*);

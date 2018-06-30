@@ -440,7 +440,7 @@ unsigned int checksum::internal::reflect(unsigned int reflect, const char bits) 
 
 	for (int i=0; i<(bits+1); ++i) { // Swap bits
 		if (reflect & 1) {
-			value |= (1 << (bits-i));
+			value |= 1 << ((bits-i) % 32);
 		}
 		reflect >>= 1;
 	}

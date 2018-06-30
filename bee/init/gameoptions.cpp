@@ -131,21 +131,27 @@ namespace bee {
 			{"renderer_type", {"renderer_type", Variant(static_cast<int>(E_RENDERER::OPENGL3)), [] (GameOption* self, Variant value) {
 				self->value = value;
 
-				engine->renderer->reset();
+				if (engine->renderer->context != nullptr) {
+					engine->renderer->reset();
+				}
 
 				return 0;
 			}}},
 			{"is_vsync_enabled", {"is_vsync_enabled", Variant(false), [] (GameOption* self, Variant value) {
 				self->value = value;
 
-				engine->renderer->reset();
+				if (engine->renderer->context != nullptr) {
+					engine->renderer->reset();
+				}
 
 				return 0;
 			}}},
 			{"is_basic_shaders_enabled", {"is_basic_shaders_enabled", Variant(false), [] (GameOption* self, Variant value) {
 				self->value = value;
 
-				engine->renderer->reset();
+				if (engine->renderer->context != nullptr) {
+					engine->renderer->reset();
+				}
 
 				return 0;
 			}}},

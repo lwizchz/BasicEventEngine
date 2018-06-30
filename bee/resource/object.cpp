@@ -9,8 +9,6 @@
 #ifndef BEE_OBJECT
 #define BEE_OBJECT 1
 
-#include <sstream> // Include the required library headers
-
 #include "object.hpp" // Include the class resource header
 
 #include "../engine.hpp"
@@ -31,9 +29,9 @@ namespace bee {
 	std::map<int,Object*> Object::list;
 	int Object::next_id = 0;
 
-	/*
-	* Object::Object() - Default construct the object
-	* ! This constructor should only be directly used for temporary objects, the other constructor should be used for all other cases
+	/**
+	* Default construct the object.
+	* @note This constructor should only be directly used for temporary objects, the other constructor should be used for all other cases.
 	*/
 	Object::Object() :
 		Resource(),
@@ -42,19 +40,15 @@ namespace bee {
 		name(),
 		path(),
 		sprite(nullptr),
-		is_solid(false),
-		is_visible(true),
 		is_persistent(false),
 		depth(0),
 		parent(nullptr),
-		mask(nullptr),
-		xoffset(0),
-		yoffset(0),
+		draw_offset({0, 0}),
 		is_pausable(true),
 
 		instances(),
-		s(nullptr),
 		current_instance(nullptr),
+		s(nullptr),
 
 		implemented_events({
 			E_EVENT::UPDATE,
@@ -62,41 +56,41 @@ namespace bee {
 			E_EVENT::STEP_BEGIN
 		})
 	{}
-	/*
-	* Object::Object() - Construct the object, add it to the object resource list, and set the new name and path
-	* @new_name: the name to use for the object
-	* @new_path: the path of the object's header file
+	/**
+	* Construct the Object, add it to the Object resource list, and set the new name and path.
+	* @param _name the name to use for the object
+	* @param _path: the path of the object's header file
 	*
 	* @throws int(-1) Failed to initialize Resource
 	*/
-	Object::Object(const std::string& new_name, const std::string& new_path) :
+	Object::Object(const std::string& _name, const std::string& _path) :
 		Object() // Default initialize all variables
 	{
-		add_to_resources(); // Add the object to the appropriate resource list
-		if (id < 0) { // If it could not be added, output a warning
-			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add object resource: \"" + new_name + "\" from " + new_path);
+		if (add_to_resources() < 0) { // Attempt to add the Object to its resource list
+			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add object resource: \"" + _name + "\" from " + _path);
 			throw -1;
 		}
 
-		set_name(new_name);
-		set_path(new_path);
+		set_name(_name);
+		set_path(_path);
 	}
-	/*
-	* Object::~Object() - Remove the object from the resource list
+	/**
+	* Remove the Object from the resource list.
 	*/
 	Object::~Object() {
-		list.erase(id); // Remove the object from the resource list
+		list.erase(id);
 	}
 
-	/*
-	* Object::get_amount() - Return the amount of object resources
+	/**
+	* @returns the number of Object resources
 	*/
 	size_t Object::get_amount() {
 		return list.size();
 	}
-	/*
-	* Object::get() - Return the resource with the given id
-	* @id: the resource to get
+	/**
+	* @param id the resource to get
+	*
+	* @returns the resource with the given id or nullptr if not found
 	*/
 	Object* Object::get(int id) {
 		if (list.find(id) != list.end()) {
@@ -104,35 +98,41 @@ namespace bee {
 		}
 		return nullptr;
 	}
-	/*
-	* Object::get_by_name() - Return the object resource with the given name
-	* @name: the name of the desired object
+	/**
+	* @param name the name of the desired object
+	*
+	* @returns the Object resource with the given name or nullptr if not found
 	*/
 	Object* Object::get_by_name(const std::string& name) {
-		for (auto& obj : list) { // Iterate over the objects in order to find the first one with the given name
+		for (auto& obj : list) { // Iterate over the Objects in order to find the first one with the given name
 			Object* o = obj.second;
 			if (o != nullptr) {
 				if (o->get_name() == name) {
-					return o; // Return the desired object on success
+					return o; // Return the desired Object on success
 				}
 			}
 		}
-		return nullptr; // Return nullptr on failure
+		return nullptr;
 	}
-	/*
-	* Object::add() - Initiliaze and return a newly created object resource
-	* @name: the name to initialize the object with
-	* @path: the path to initialize the object with
+	/**
+	* Initiliaze and return a newly created Object resource.
+	* @param name the name to initialize the object with
+	* @param path the path to initialize the object with
+	*
+	* @returns the newly create Object
 	*/
 	Object* Object::add(const std::string& name, const std::string& path) {
 		/*Object* new_object = new Object(name, path);
 		return new_object;*/
 
-		return nullptr; // It doesn't really make sense to add a generic object on the fly
+		// It doesn't really make sense to add a generic Object on the fly
+		return nullptr; // TODO: Python Objects
 	}
 
-	/*
-	* Object::add_to_resources() - Add the object to the appropriate resource list
+	/**
+	* Add the Object to the appropriate resource list.
+	*
+	* @returns the Object id
 	*/
 	int Object::add_to_resources() {
 		if (id < 0) { // If the resource needs to be added to the resource list
@@ -140,75 +140,97 @@ namespace bee {
 			list.emplace(id, this); // Add the resource with its new id
 		}
 
-		return 0; // Return 0 on success
+		return id;
 	}
-	/*
-	* Object::reset() - Reset all resource variables for reinitialization
+	/**
+	* Reset all resource variables for reinitialization.
+	*
+	* @retval 0 success
 	*/
 	int Object::reset() {
 		// Reset all properties
 		name = "";
 		path = "";
 		sprite = nullptr;
-		is_solid = false;
-		is_visible = true;
 		is_persistent = false;
 		depth = 0;
 		parent = nullptr;
-		mask = nullptr;
-		xoffset = 0;
-		yoffset = 0;
+		draw_offset = {0, 0};
 		is_pausable = true;
 
 		// Clear instance data
 		instances.clear();
-		s = nullptr;
 		current_instance = nullptr;
+		s = nullptr;
 
-		return 0; // Return 0 on success
+		return 0;
 	}
-	/*
-	* Object::print() - Print all relevant information about the resource
+
+	/**
+	* @returns a map of all the information required to restore the Object
+	*/
+	std::map<Variant,Variant> Object::serialize() const {
+		std::map<Variant,Variant> info;
+
+		info["id"] = id;
+		info["name"] = name;
+		info["path"] = path;
+
+		info["sprite"] = "";
+		if (sprite != nullptr) {
+			info["sprite"] = sprite->get_name();
+		}
+		info["is_persistent"] = is_persistent;
+		info["depth"] = depth;
+		info["parent"] = "";
+		if (parent != nullptr) {
+			info["parent"] = parent->get_name();
+		}
+		info["offsetx"] = draw_offset.first;
+		info["offsety"] = draw_offset.second;
+		info["is_pausable"] = is_pausable;
+
+		std::vector<Variant> events;
+		for (auto& e : implemented_events) {
+			events.emplace_back(static_cast<int>(e));
+		}
+		info["implemented_events"] = events;
+
+		return info;
+	}
+	/**
+	* Restore the Object from serialized data.
+	* @param m the map of data to use
+	*
+	* @retval 0 success
+	* @retval 1 failed to load the Object
+	*/
+	int Object::deserialize(std::map<Variant,Variant>& m) {
+		id = m["id"].i;
+		name = m["name"].s;
+		path = m["path"].s;
+
+		sprite = Texture::get_by_name(m["sprite"].s);
+		is_persistent = m["is_persistent"].i;
+		depth = m["depth"].i;
+		parent = Object::get_by_name(m["parent"].s);
+		draw_offset = std::make_pair(m["offsetx"].i, m["offsety"].i);
+		is_pausable = m["is_pausable"].i;
+
+		for (auto& e : m["implemented_events"].v) {
+			implemented_events.emplace(static_cast<E_EVENT>(e.i));
+		}
+
+		return 0;
+	}
+	/**
+	* Print all relevant information about the resource.
 	*/
 	void Object::print() const {
-		std::string instance_string = get_instance_string(); // Get the list of instances in string form
-
-		std::stringstream ss; // Declare the output stream
-		ss << // Append all info to the output
-		"Object { "
-		"\n	id            " << id <<
-		"\n	name          " << name <<
-		"\n	path          " << path;
-		if (sprite != nullptr) {
-			ss << "\n	sprite        " << sprite->get_id() << ", " << sprite->get_name();
-		} else {
-			ss << "\n	sprite        nullptr";
-		}
-		ss <<
-		"\n	is_solid      " << is_solid <<
-		"\n	is_visible    " << is_visible <<
-		"\n	is_persistent " << is_persistent <<
-		"\n	depth         " << depth;
-		if (parent != nullptr) {
-			ss << "\n	parent        " << parent->get_id() << ", " << parent->get_name();
-		} else {
-			ss << "\n	parent        nullptr";
-		}
-		if (mask != nullptr) {
-			ss << "\n	mask          " << mask->get_id() << ", " << mask->get_name();
-		} else {
-			ss << "\n	mask          nullptr";
-		}
-		ss <<
-		"\n	is_pausable   " << is_pausable <<
-		"\n	instances\n" << util::debug_indent(instance_string, 2) <<
-		"\n}\n";
-		messenger::send({"engine", "resource"}, E_MESSAGE::INFO, ss.str()); // Send the info to the messaging system for output
+		Variant m (serialize());
+		messenger::send({"engine", "object"}, E_MESSAGE::INFO, "Object " + m.to_str(true));
 	}
 
-	/*
-	* Object::get_*() - Return the requested resource information
-	*/
 	int Object::get_id() const {
 		return id;
 	}
@@ -221,12 +243,6 @@ namespace bee {
 	Texture* Object::get_sprite() const {
 		return sprite;
 	}
-	bool Object::get_is_solid() const {
-		return is_solid;
-	}
-	bool Object::get_is_visible() const {
-		return is_visible;
-	}
 	bool Object::get_is_persistent() const {
 		return is_persistent;
 	}
@@ -236,173 +252,145 @@ namespace bee {
 	Object* Object::get_parent() const {
 		return parent;
 	}
-	Texture* Object::get_mask() const {
-		return mask;
-	}
 	std::pair<int,int> Object::get_mask_offset() const {
-		return std::make_pair(xoffset, yoffset);
+		return draw_offset;
 	}
 	bool Object::get_is_pausable() const {
 		return is_pausable;
 	}
+	const std::set<E_EVENT>& Object::get_events() const {
+		return implemented_events;
+	}
 
-	/*
-	* Object::set_*() - Set the requested resource data
+	void Object::set_name(const std::string& _name) {
+		name = _name;
+	}
+	/**
+	* Set the relative or absolute resource path.
+	* @param _path the new path to use
+	* @note If the first character is '/' then the path will be relative to
+	*       the executable directory, otherwise it will be relative to the
+	*       Objects resource directory.
 	*/
-	int Object::set_name(const std::string& new_name) {
-		name = new_name;
-		return 0;
-	}
-	int Object::set_path(const std::string& new_path) {
-		if (new_path.empty()) {
+	void Object::set_path(const std::string& _path) {
+		if (_path.empty()) {
 			path.clear();
-		} else if (new_path.front() == '/') {
-			path = new_path.substr(1);
-		} else {
-			path = "resources/objects/"+new_path; // Append the path to the object directory if no root
+		} else if (_path.front() == '/') {
+			path = _path.substr(1);
+		} else { // Append the path to the Object directory if not root
+			path = "resources/objects/"+_path;
 		}
-		return 0;
 	}
-	int Object::set_sprite(Texture* new_sprite) {
-		sprite = new_sprite;
-		if (mask == nullptr) { // If there is no mask, set it to the new sprite
-			mask = new_sprite;
-		}
-		return 0;
+	void Object::set_sprite(Texture* _sprite) {
+		sprite = _sprite;
 	}
-	int Object::set_is_solid(bool new_is_solid) {
-		is_solid = new_is_solid;
-		return 0;
+	void Object::set_is_persistent(bool _is_persistent) {
+		is_persistent = _is_persistent;
 	}
-	int Object::set_is_visible(bool new_is_visible) {
-		is_visible = new_is_visible;
-		return 0;
-	}
-	int Object::set_is_persistent(bool new_is_persistent) {
-		is_persistent = new_is_persistent;
-		return 0;
-	}
-	int Object::set_depth(int new_depth) {
-		depth = new_depth;
+	/**
+	* Set the sorting depth for all of the Object's Instances.
+	* @param _depth the desired depth, lower values are processed first
+	*/
+	void Object::set_depth(int _depth) {
+		depth = _depth;
 
 		for (auto i : instances) { // Iterate over all current instances and adjust their depth
 			i.second->depth = depth;
 		}
-
-		return 0;
 	}
-	int Object::set_parent(Object* new_parent) {
-		parent = new_parent;
-		return 0;
+	void Object::set_parent(Object* _parent) {
+		parent = _parent;
 	}
-	int Object::set_mask(Texture* new_mask) {
-		mask = new_mask;
-		return 0;
+	void Object::set_mask_offset(const std::pair<int,int>& _offset) {
+		draw_offset = _offset;
 	}
-	int Object::set_mask_offset(const std::pair<int,int>& new_offset) {
-		std::tie(xoffset, yoffset) = new_offset;
-		return 0;
-	}
-	int Object::set_mask_offset(int new_xoffset, int new_yoffset) {
-		xoffset = new_xoffset;
-		yoffset = new_yoffset;
-		return 0;
-	}
-	int Object::set_is_pausable(bool new_is_pausable) {
-		is_pausable = new_is_pausable;
-		return 0;
+	void Object::set_is_pausable(bool _is_pausable) {
+		is_pausable = _is_pausable;
 	}
 
-	/*
-	* Object::add_instance() - Add an instance of this object to its list
+	/**
+	* Add an Instance of this Object to its list.
+	* @param index the Instance identifier
+	* @param new_instance the Instance pointer
+	*
+	* @retval 0 success
+	* @retval 1 failed since the Instance has an incorrect Object type
 	*/
 	int Object::add_instance(int index, Instance* new_instance) {
 		if (new_instance->get_object() != this) { // Do not attempt to add the instance if it's the wrong type
-			return 1; // Return 1 on wrong object type
+			return 1;
 		}
 
 		// Overwrite any previous instance with the same id
 		instances.erase(index);
 		instances.emplace(index, new_instance); // Emplace the instance in the list
 
-		return 0; // Return 0 on success
+		return 0;
 	}
-	int Object::remove_instance(int index) {
+	void Object::remove_instance(int index) {
 		instances.erase(index);
-		return 0;
 	}
-	int Object::clear_instances() {
+	void Object::clear_instances() {
 		instances.clear();
-		return 0;
 	}
-	std::map<int, Instance*> Object::get_instances() const {
+	const std::map<int,Instance*>& Object::get_instances() const {
 		return instances;
 	}
 	size_t Object::get_instance_amount() const {
 		return instances.size();
 	}
-	/*
-	* Object::get_instance() - Return a pointer to the nth instance of this object
-	* @inst_number: the position of the instance in the object's instance list, NOT the instance id
+	/**
+	* @param inst_number the position of the Instance in the Object's Instance list, NOT the Instance id
+	*
+	* @returns a pointer to the nth Instance of this Object or nullptr if not found
 	*/
-	Instance* Object::get_instance(int inst_number) const {
-		if ((size_t)inst_number >= instances.size()) { // If the desired instance position is greater than the list size, return nullptr
+	Instance* Object::get_instance_at(int inst_number) const {
+		if (static_cast<size_t>(inst_number) >= instances.size()) { // If the desired Instance position is greater than the list size
 			return nullptr;
 		}
 
 		int i = 0;
-		for (auto& inst : instances) { // Iterate over the instance list, counting how many there are
-			if (i == inst_number) { // If the instance position is the desired number, return the instance pointer
+		for (auto& inst : instances) { // Iterate over the Instance list, counting how many there are
+			if (i == inst_number) {
 				return inst.second;
 			}
 			i++;
 		}
 
-		return nullptr; // Otherwise return nullptr (this statement should never be reached)
-	}
-	std::string Object::get_instance_string() const {
-		if (instances.empty()) { // If there are no instances in the list, return a none-string
-			return "none\n";
-		}
-
-		std::vector<std::vector<std::string>> table; // Declare a table to hold the instances
-		table.push_back({"(id", "object", "x", "y", "z)"}); // Append the table header
-
-		for (auto& i : instances) { // Iterate over the instances and add each of them to the table
-			table.push_back({
-				std::to_string(i.second->id),
-				i.second->get_object()->get_name(),
-				std::to_string(static_cast<int>(i.second->get_pos()[0])),
-				std::to_string(static_cast<int>(i.second->get_pos()[1])),
-				std::to_string(static_cast<int>(i.second->get_pos()[2]))
-			});
-		}
-
-		return util::string::tabulate(table); // Return the table as a properly spaced string
+		return nullptr;
 	}
 
-	/*
-	* Object::update() - Update the instance and data map pointers to the given instance, usually before a call to one of the instance's events
-	* @inst: the instance to update the pointers for
+	/**
+	* Update the Instance pointer and data map pointer to the given Instance, usually before a call to one of the Instance's events.
+	* @param inst the Instance to update the pointers for
 	*/
 	void Object::update(Instance* inst) {
-		current_instance = inst; // Set the current instance, i.e. the next instance to be operated on
-		s = &inst->get_data(); // Update the pointer to the instance data map
+		current_instance = inst;
+		s = &inst->get_data();
 	}
-	/*
-	* Object::destroy() - Remove the instance data for the given instance
-	* @inst: the instance to remove data for
+	/**
+	* Remove the data for the given Instance.
+	* @param inst the Instance to remove data for
 	*/
 	void Object::destroy(Instance* inst) {
 		net::internal::destroy_instance(inst);
 	}
-	/*
-	* Object::step_begin() - Update the instance every step
-	* @inst: the instance to update
+	/**
+	* Update the Instance every step.
+	* @param inst the Instance to update
 	*/
 	void Object::step_begin(Instance* inst) {
 		inst->pos_previous = inst->get_pos();
 	}
+	/**
+	* Compare Instance collision filters.
+	* @see Room::check_collision_filter(btBroadphaseProxy*, btBroadphaseProxy*)
+	* @param self the first Instance
+	* @param other the second Instance
+	*
+	* @retval true the collision masks and computation types overlap
+	* @retval false the collision masks and computation types do not overlap
+	*/
 	bool Object::check_collision_filter(const Instance* self, const Instance* other) const {
 		int self_mask = self->get_data("collision_mask").i;
 		int self_comp = static_cast<int>(self->get_computation_type());

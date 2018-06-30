@@ -19,6 +19,8 @@ namespace bee { namespace python { namespace internal {
 		PyObject* name;
 	} FontObject;
 
+	extern PyTypeObject FontType;
+
 	PyObject* PyInit_bee_font(PyObject*);
 
 	void Font_dealloc(FontObject*);

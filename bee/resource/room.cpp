@@ -498,7 +498,7 @@ namespace bee {
 		sort_instances();
 		object->add_instance(index, new_instance);
 
-		for (E_EVENT e : object->implemented_events) {
+		for (E_EVENT e : object->get_events()) {
 			instances_sorted_events[e].emplace(new_instance, new_instance->id);
 		}
 
@@ -554,7 +554,7 @@ namespace bee {
 			instances.erase(index);
 			instances_sorted.erase(inst);
 
-			for (E_EVENT e : inst->get_object()->implemented_events) {
+			for (E_EVENT e : inst->get_object()->get_events()) {
 				instances_sorted_events[e].erase(inst);
 			}
 
@@ -767,7 +767,7 @@ namespace bee {
 			sort_instances();
 			obj_control->add_instance(index, inst_control);
 
-			for (E_EVENT e : obj_control->implemented_events) {
+			for (E_EVENT e : obj_control->get_events()) {
 				instances_sorted_events[e].emplace(inst_control, inst_control->id);
 			}
 
@@ -796,7 +796,7 @@ namespace bee {
 				b->attach(get_phys_world());
 			}
 
-			for (E_EVENT e : inst.second->get_object()->implemented_events) {
+			for (E_EVENT e : inst.second->get_object()->get_events()) {
 				instances_sorted_events[e].emplace(inst.second, inst.first);
 			}
 		}
@@ -1263,7 +1263,7 @@ namespace bee {
 			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
 				continue;
 			}
-			if (i.first->get_object()->get_mask() != nullptr) {
+			if (i.first->get_object()->get_sprite() != nullptr) {
 				SDL_Rect a = i.first->get_aabb();
 				SDL_Rect b = {0, 0, get_width(), get_height()};
 				if (!util::check_collision(a, b)) {
@@ -1432,10 +1432,8 @@ namespace bee {
 
 		// Draw instances
 		for (auto& i : instances_sorted_events[E_EVENT::DRAW]) {
-			if (i.first->get_object()->get_is_visible()) {
-				i.first->get_object()->update(i.first);
-				i.first->get_object()->draw(i.first);
-			}
+			i.first->get_object()->update(i.first);
+			i.first->get_object()->draw(i.first);
 		}
 		render::render_textures();
 

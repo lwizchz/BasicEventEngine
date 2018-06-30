@@ -38,13 +38,13 @@ void ObjBee::create(bee::Instance* self) {
 	obj_ui_handle->set_is_visible(ui_handle, false);
 	_p("ui_handle") = ui_handle;
 
-	if (self == obj_bee->get_instance(0)) {
+	if (self == obj_bee->get_instance_at(0)) {
 		_a("serialdata") = self->serialize();
 		_p("path") = nullptr;
 		_d("path_previous_mass") = 0.0;
 
 		bee::kb::bind(SDLK_UNKNOWN, bee::KeyBind("StartPath", [this, self] (const SDL_Event* e) mutable {
-			self = obj_bee->get_instance(0);
+			self = obj_bee->get_instance_at(0);
 			s = &self->get_data();
 
 			if (_p("path") != nullptr) {
@@ -59,7 +59,7 @@ void ObjBee::create(bee::Instance* self) {
 			_p("path") = pf;
 		}));
 		bee::kb::bind(SDLK_UNKNOWN, bee::KeyBind("StartTimeline", [this, self] (const SDL_Event* e) mutable {
-			self = obj_bee->get_instance(0);
+			self = obj_bee->get_instance_at(0);
 			s = &self->get_data();
 
 			if (_p("tl") != nullptr) {
@@ -73,14 +73,14 @@ void ObjBee::create(bee::Instance* self) {
 		}));
 
 		bee::kb::bind(SDLK_UNKNOWN, bee::KeyBind("StartSerialize", [this, self] (const SDL_Event* e) mutable {
-			self = obj_bee->get_instance(0);
+			self = obj_bee->get_instance_at(0);
 			s = &self->get_data();
 
 			_m("serialdata") = self->serialize();
 			bee::messenger::send({"bee"}, bee::E_MESSAGE::INFO, _a("serialdata").to_str(true));
 		}));
 		bee::kb::bind(SDLK_UNKNOWN, bee::KeyBind("StartDeserialize", [this, self] (const SDL_Event* e) mutable {
-			self = obj_bee->get_instance(0);
+			self = obj_bee->get_instance_at(0);
 			s = &self->get_data();
 
 			self->deserialize(_m("serialdata"));
@@ -88,7 +88,7 @@ void ObjBee::create(bee::Instance* self) {
 	}
 }
 void ObjBee::destroy(bee::Instance* self) {
-	if (self == obj_bee->get_instance(0)) {
+	if (self == obj_bee->get_instance_at(0)) {
 		_a("serialdata").reset();
 
 		if (_p("path") != nullptr) {

@@ -19,6 +19,8 @@ namespace bee { namespace python { namespace internal {
 		PyObject* name;
 	} SoundObject;
 
+	extern PyTypeObject SoundType;
+
 	PyObject* PyInit_bee_sound(PyObject*);
 
 	void Sound_dealloc(SoundObject*);

@@ -19,6 +19,8 @@ namespace bee { namespace python { namespace internal {
 		PyObject* name;
 	} ScriptObject;
 
+	extern PyTypeObject ScriptType;
+
 	PyObject* PyInit_bee_script(PyObject*);
 
 	void Script_dealloc(ScriptObject*);

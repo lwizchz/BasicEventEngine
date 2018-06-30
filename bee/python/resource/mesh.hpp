@@ -19,6 +19,8 @@ namespace bee { namespace python { namespace internal {
 		PyObject* name;
 	} MeshObject;
 
+	extern PyTypeObject MeshType;
+
 	PyObject* PyInit_bee_mesh(PyObject*);
 
 	void Mesh_dealloc(MeshObject*);

@@ -19,6 +19,8 @@ namespace bee { namespace python { namespace internal {
 		PyObject* name;
 	} TimelineObject;
 
+	extern PyTypeObject TimelineType;
+
 	PyObject* PyInit_bee_timeline(PyObject*);
 
 	void Timeline_dealloc(TimelineObject*);

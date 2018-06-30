@@ -30,6 +30,7 @@
 #include "resource/mesh.hpp"
 #include "resource/light.hpp"
 #include "resource/script.hpp"
+#include "resource/object.hpp"
 
 #include "../engine.hpp"
 
@@ -183,6 +184,9 @@ namespace bee { namespace python { namespace internal {
 			return nullptr;
 		}
 		if (PyInit_bee_script(module) == nullptr) {
+			return nullptr;
+		}
+		if (PyInit_bee_object(module) == nullptr) {
 			return nullptr;
 		}
 

@@ -19,6 +19,8 @@ namespace bee { namespace python { namespace internal {
 		PyObject* name;
 	} LightObject;
 
+	extern PyTypeObject LightType;
+
 	PyObject* PyInit_bee_light(PyObject*);
 
 	void Light_dealloc(LightObject*);

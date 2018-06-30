@@ -13,13 +13,19 @@
 
 #include <Python.h>
 
-namespace bee { namespace python { namespace internal {
+namespace bee {
+	class Texture;
+namespace python { namespace internal {
 	typedef struct {
 		PyObject_HEAD
 		PyObject* name;
 	} TextureObject;
 
+	extern PyTypeObject TextureType;
+
 	PyObject* PyInit_bee_texture(PyObject*);
+
+	Texture* as_texture(TextureObject*);
 
 	void Texture_dealloc(TextureObject*);
 	PyObject* Texture_new(PyTypeObject*, PyObject*, PyObject*);

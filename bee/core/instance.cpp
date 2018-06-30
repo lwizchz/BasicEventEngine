@@ -150,23 +150,23 @@ namespace bee {
 	* @returns a map of all the information required to restore an Instance
 	*/
 	std::map<Variant,Variant> Instance::serialize() const {
-		std::map<Variant,Variant> instance_info;
+		std::map<Variant,Variant> info;
 
-		instance_info["id"] = id;
-		instance_info["object"] = object->get_name();
-		instance_info["sprite"] = "";
+		info["id"] = id;
+		info["object"] = object->get_name();
+		info["sprite"] = "";
 		if (get_sprite() != nullptr) {
-			instance_info["sprite"] = get_sprite()->get_name();
+			info["sprite"] = get_sprite()->get_name();
 		}
-		instance_info["subimage_time"] = static_cast<int>(subimage_time);
+		info["subimage_time"] = static_cast<int>(subimage_time);
 
-		instance_info["body"] = body->serialize();
+		info["body"] = body->serialize();
 
-		instance_info["depth"] = depth;
-		instance_info["pos_start"] = {Variant(pos_start.x()), Variant(pos_start.y()), Variant(pos_start.z())};
-		instance_info["pos_previous"] = {Variant(pos_previous.x()), Variant(pos_previous.y()), Variant(pos_previous.z())};
+		info["depth"] = depth;
+		info["pos_start"] = {Variant(pos_start.x()), Variant(pos_start.y()), Variant(pos_start.z())};
+		info["pos_previous"] = {Variant(pos_previous.x()), Variant(pos_previous.y()), Variant(pos_previous.z())};
 
-		return instance_info;
+		return info;
 	}
 	/**
 	* Restore an instance from its serialized data.
@@ -415,8 +415,8 @@ namespace bee {
 	*/
 	SDL_Rect Instance::get_aabb() const {
 		std::pair<int,int> s (0, 0);
-		if (object->get_mask() != nullptr) {
-			s = object->get_mask()->get_size();
+		if (object->get_sprite() != nullptr) {
+			s = object->get_sprite()->get_size();
 		}
 
 		return {static_cast<int>(get_x() - s.first/2), static_cast<int>(get_y() - s.second/2), s.first, s.second};

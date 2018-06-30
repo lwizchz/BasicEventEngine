@@ -21,6 +21,7 @@ int main(int argc, char* argv[]) {
 	// Declare some game options, see bee/init/gameoptions.hpp for the struct definition
 	std::list<bee::GameOption> options = {
 		//{"is_debug_enabled", bee::Variant(true)},
+		//{"is_basic_shaders_enabled", bee::Variant(true)},
 		{"is_network_enabled", bee::Variant(true)}
 	};
 

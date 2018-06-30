@@ -88,8 +88,13 @@ namespace bee { namespace python { namespace internal {
 		std::string _obj_name (PyUnicode_AsUTF8(obj_name));
 		const Object* object (Object::get_by_name(_obj_name));
 
-		const Instance* instance (object->get_instance(inst_id));
+		const std::map<int,Instance*>& instances (object->get_instances());
+		if (instances.find(inst_id) == instances.end()) {
+			PyErr_SetString(PyExc_ValueError, "the provided Instance id was not valid");
+			return nullptr;
+		}
 
+		const Instance* instance = instances.at(inst_id);
 		return Py_BuildValue("O", mouse::is_inside(instance) ? Py_True : Py_False);
 	}
 

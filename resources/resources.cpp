@@ -107,7 +107,6 @@ int bee::init_resources() {
 		// Init Objects
 		obj_control = new ObjControl();
 		obj_bee = new ObjBee();
-			obj_bee->set_is_solid(true);
 			obj_bee->set_sprite(spr_bee);
 
 		// Init Rooms
