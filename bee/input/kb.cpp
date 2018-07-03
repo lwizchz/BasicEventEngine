@@ -51,8 +51,8 @@ namespace bee { namespace kb {
 		}));
 		bee::kb::bind(SDLK_ESCAPE, bee::KeyBind("Quit", [] (const SDL_Event* e) {
 			messenger::send({"engine"}, E_MESSAGE::INFO, "Quitting...");
-	                set_transition_type(E_TRANSITION::NONE);
-	                end_game();
+			set_transition_type(E_TRANSITION::NONE);
+			end_game();
 		}));
 	}
 
@@ -467,10 +467,11 @@ namespace bee { namespace kb {
 	* @returns the bound keybind or an empty bind if none was found
 	*/
 	KeyBind get_keybind(SDL_Keycode key) {
-		if (internal::bindings.find(key) == internal::bindings.end()) { // If the key has not been bound, then return an empty bind
+		std::unordered_map<SDL_Keycode,KeyBind>::iterator bind (internal::bindings.find(key));
+		if (bind == internal::bindings.end()) { // If the key has not been bound, then return an empty bind
 			return KeyBind();
 		}
-		return internal::bindings.find(key)->second;
+		return bind->second;
 	}
 	/**
 	* Return the Keybind with the given name.

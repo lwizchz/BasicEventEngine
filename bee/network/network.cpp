@@ -616,29 +616,30 @@ namespace bee { namespace net {
 						std::map<Uint16,std::unique_ptr<NetworkPacket>>& buffer = internal::connection->buffer;
 
 						// Buffer the received data if necessary
-						if (buffer.find(packet->get_packet_id()) == buffer.end()) {
-							buffer.emplace(
+						std::map<Uint16,std::unique_ptr<NetworkPacket>>::iterator pkt (buffer.find(packet->get_packet_id()));
+						if (pkt == buffer.end()) {
+							std::tie(pkt, std::ignore) = buffer.emplace(
 								packet->get_packet_id(),
 								std::make_unique<NetworkPacket>(
 									internal::connection->udp_data
 								)
 							);
 						} else {
-							buffer[packet->get_packet_id()]->append_net(internal::connection->udp_data);
+							pkt->second->append_net(internal::connection->udp_data);
 						}
 
-						if (!buffer[packet->get_packet_id()]->get_is_sequence_complete()) { // Break when only a partial map has been received
+						if (!pkt->second->get_is_sequence_complete()) { // Break when only a partial map has been received
 							break;
 						}
 
 						NetworkEvent e (E_NETEVENT::DATA_UPDATE);
 						e.id = packet->id;
 
-						SerialData d (buffer[packet->get_packet_id()]->get_raw());
+						SerialData d (pkt->second->get_raw());
 						d.store_serial_m(e.instances);
 
-						buffer[packet->get_packet_id()].reset();
-						buffer.erase(packet->get_packet_id());
+						pkt->second.reset();
+						buffer.erase(pkt);
 
 						internal::has_data_update = true;
 						internal::connection->players[packet->id].last_recv = get_ticks();
@@ -885,30 +886,31 @@ namespace bee { namespace net {
 						std::map<Uint16,std::unique_ptr<NetworkPacket>>& buffer = internal::connection->buffer;
 
 						// Buffer the received data if necessary
-						if (buffer.find(packet->get_packet_id()) == buffer.end()) {
-							buffer.emplace(
+						std::map<Uint16,std::unique_ptr<NetworkPacket>>::iterator pkt (buffer.find(packet->get_packet_id()));
+						if (pkt == buffer.end()) {
+							std::tie(pkt, std::ignore) = buffer.emplace(
 								packet->get_packet_id(),
 								std::make_unique<NetworkPacket>(
 									internal::connection->udp_data
 								)
 							);
 						} else {
-							buffer[packet->get_packet_id()]->append_net(internal::connection->udp_data);
+							pkt->second->append_net(internal::connection->udp_data);
 						}
 
-						if (!buffer[packet->get_packet_id()]->get_is_sequence_complete()) { // Break when only a partial map has been received
+						if (!pkt->second->get_is_sequence_complete()) { // Break when only a partial map has been received
 							break;
 						}
 
 						NetworkEvent e (E_NETEVENT::DATA_UPDATE);
 
 						/*internal::connection->data.clear();
-						SerialData(buffer[packet->get_packet_id()]->get_raw()).store_map(internal::connection->data); // Decode the data map directly
+						SerialData(pkt->second->get_raw()).store_map(internal::connection->data); // Decode the data map directly
 						e.data = std::map<std::string,Variant>(internal::connection->data);*/
-						SerialData(buffer[packet->get_packet_id()]->get_raw()).store_serial_m(e.instances);
+						SerialData(pkt->second->get_raw()).store_serial_m(e.instances);
 
-						buffer[packet->get_packet_id()].reset();
-						buffer.erase(packet->get_packet_id());
+						pkt->second.reset();
+						buffer.erase(pkt);
 
 						messenger::send({"engine", "network"}, E_MESSAGE::INTERNAL, "Received data map:\n" + util::map_serialize(e.instances, true));
 

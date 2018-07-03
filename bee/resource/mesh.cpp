@@ -553,8 +553,7 @@ namespace bee {
 	* @param anim the animation to map out
 	*/
 	void Mesh::gen_node_animations(const aiAnimation* anim) {
-		node_animations.emplace(anim, std::map<const aiNode*, const aiNodeAnim*>());
-		auto& anim_nodes = node_animations.at(anim);
+		std::map<const aiNode*, const aiNodeAnim*> anim_nodes;
 
 		for (size_t i=0; i<anim->mNumChannels; ++i) {
 			const aiNodeAnim* bone_anim = anim->mChannels[i];
@@ -562,6 +561,8 @@ namespace bee {
 
 			anim_nodes.emplace(node, bone_anim);
 		}
+		
+		node_animations.emplace(anim, anim_nodes);
 	}
 	/**
 	* Calculate the bone transformations for the given animation frame.

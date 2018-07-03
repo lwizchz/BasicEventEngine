@@ -245,10 +245,11 @@ namespace bee { namespace render {
 		return 0;
 	}
 	int queue_texture(const Texture* texture, const TextureDrawData& data) {
-		if (internal::textures.find(texture) == internal::textures.end()) {
+		std::map<const Texture*,std::list<TextureDrawData>>::iterator tex (internal::textures.find(texture));
+		if (tex == internal::textures.end()) {
 			internal::textures.emplace(texture, std::list<TextureDrawData>({data}));
 		} else {
-			internal::textures.at(texture).push_back(data);
+			tex->second.push_back(data);
 		}
 		return 0;
 	}

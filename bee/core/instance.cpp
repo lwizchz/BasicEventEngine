@@ -360,14 +360,15 @@ namespace bee {
 	* @returns the requested data field from the data map
 	*/
 	const Variant& Instance::get_data(const std::string& field, const Variant& default_value, bool should_output) const {
-		if (data.find(field) == data.end()) { // If the data field doesn't exist, output a warning and return the default value
+		std::map<std::string,Variant>::const_iterator d (data.find(field));
+		if (d == data.end()) { // If the data field doesn't exist, output a warning and return the default value
 			if (should_output) {
 				messenger::send({"engine", "instance"}, E_MESSAGE::WARNING, "Failed to get the data field \"" + field + "\" from the instance of object \"" + get_object()->get_name() + "\", returning the provided default: " + default_value.to_str());
 			}
 			return default_value;
 		}
 
-		return data.at(field); // Return the data field value on success
+		return d->second;
 	}
 	/**
 	* @note If the function is called without a default value, then let it be an empty Variant.

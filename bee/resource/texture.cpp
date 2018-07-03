@@ -949,8 +949,8 @@ namespace bee {
 			draw(0, 0, 0, get_room_size().first, get_room_size().second, 0.0, {255, 255, 255, 255});
 		} else {
 			const int dt_fps = get_ticks()/get_fps_goal();
-			int dx = tr.horizontal_speed*dt_fps;
-			int dy = tr.vertical_speed*dt_fps;
+			int dx = (tr.horizontal_speed*dt_fps) % width; // Modulo to keep the coordinates close to the viewport
+			int dy = (tr.vertical_speed*dt_fps) % height;
 
 			SDL_Rect rect = {tr.x+dx, tr.y+dy, static_cast<int>(width), static_cast<int>(height)};
 

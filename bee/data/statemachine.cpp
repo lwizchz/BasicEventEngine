@@ -90,12 +90,13 @@ namespace bee {
 
 		return 0;
 	}
-	int StateMachine::remove_state(const std::string& name) {
-		if (graph.find(name) == graph.end()) {
+	int StateMachine::remove_state(const std::string& state_name) {
+		std::map<std::string,State>::iterator state (graph.find(state_name));
+		if (state == graph.end()) {
 			return 1;
 		}
 
-		graph.erase(name);
+		graph.erase(state);
 
 		return 0;
 	}
@@ -121,29 +122,29 @@ namespace bee {
 
 		return states;
 	}
-	bool StateMachine::has_state(const std::string& name) const {
+	bool StateMachine::has_state(const std::string& state_name) const {
 		for (auto& s : stack) {
-			if (s == name) {
+			if (s == state_name) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	int StateMachine::push_state(const std::string& name) {
+	int StateMachine::push_state(const std::string& state_name) {
 		const std::set<std::string>& outputs = graph.at(get_state()).outputs;
 		if (
-			(outputs.find(name) == outputs.end())
+			(outputs.find(state_name) == outputs.end())
 			&&(outputs.find("*") == outputs.end())
 		) {
 			return 1;
 		}
 
-		if (get_state() == name) {
+		if (get_state() == state_name) {
 			return 2;
 		}
 
-		stack.push_front(name);
+		stack.push_front(state_name);
 		graph.at(get_state()).start();
 
 		return 0;
@@ -159,17 +160,17 @@ namespace bee {
 
 		return 0;
 	}
-	int StateMachine::pop_state(const std::string& name) {
-		if (get_state() != name) {
+	int StateMachine::pop_state(const std::string& state_name) {
+		if (get_state() != state_name) {
 			return 2;
 		}
 
 		return pop_state();
 	}
-	int StateMachine::pop_state_all(const std::string& name) {
-		graph.at(name).end();
-		stack.erase(std::remove_if(stack.begin(), stack.end(), [&name] (const std::string& n) -> bool {
-			return (n == name);
+	int StateMachine::pop_state_all(const std::string& state_name) {
+		graph.at(state_name).end();
+		stack.erase(std::remove_if(stack.begin(), stack.end(), [&state_name] (const std::string& n) -> bool {
+			return (n == state_name);
 		}), stack.end());
 
 		return 0;

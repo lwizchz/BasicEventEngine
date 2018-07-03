@@ -134,11 +134,12 @@ namespace bee { namespace python { namespace internal {
 		std::string _name (PyUnicode_AsUTF8(self->name));
 
 		/*const std::map<int,Instance*>& instances (Object::get_by_name(_name)->get_instances());
-		if (instances.find(self->num) == instances.end()) {
+		std::map<int,Instance*>::iterator inst (instances.find(self->num));
+		if (inst == instances.end()) {
 			return nullptr;
 		}
 
-		return instances.at(self->num);*/
+		return inst->second;*/
 
 		// WARNING: this behavior depends on Object_get_instance_at()
 		return Object::get_by_name(_name)->get_instance_at(self->num);

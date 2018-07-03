@@ -138,11 +138,12 @@ namespace bee { namespace ui {
 			return 1;
 		}
 
-		if (internal::button_callbacks.find(button) == internal::button_callbacks.end()) {
+		std::map<Instance*,std::function<void (Instance*)>>::iterator b (internal::button_callbacks.find(button));
+		if (b == internal::button_callbacks.end()) {
 			return 2;
 		}
 
-		std::function<void (Instance*)> func = internal::button_callbacks[button];
+		std::function<void (Instance*)> func = b->second;
 		if (func == nullptr) {
 			return 3;
 		}
@@ -225,11 +226,12 @@ namespace bee { namespace ui {
 			return 1;
 		}
 
-		if (internal::text_entry_callbacks.find(text_entry) == internal::text_entry_callbacks.end()) {
+		std::map<Instance*,std::function<void (Instance*, const std::string&)>>::iterator te (internal::text_entry_callbacks.find(text_entry));
+		if (te == internal::text_entry_callbacks.end()) {
 			return 2;
 		}
 
-		std::function<void (Instance*, const std::string&)> func = internal::text_entry_callbacks[text_entry];
+		std::function<void (Instance*, const std::string&)> func = te->second;
 		if (func == nullptr) {
 			return 3;
 		}
@@ -246,11 +248,12 @@ namespace bee { namespace ui {
 			return uncomplete;
 		}
 
-		if (internal::text_entry_completors.find(text_entry) == internal::text_entry_completors.end()) {
+		std::map<Instance*,std::function<std::vector<Variant> (Instance*, const std::string&)>>::iterator tec (internal::text_entry_completors.find(text_entry));
+		if (tec == internal::text_entry_completors.end()) {
 			return uncomplete;
 		}
 
-		std::function<std::vector<Variant> (Instance*, const std::string&)> func = internal::text_entry_completors[text_entry];
+		std::function<std::vector<Variant> (Instance*, const std::string&)> func = tec->second;
 		if (func == nullptr) {
 			return uncomplete;
 		}
@@ -263,11 +266,12 @@ namespace bee { namespace ui {
 			return 1;
 		}
 
-		if (internal::text_entry_handlers.find(text_entry) == internal::text_entry_handlers.end()) {
+		std::map<Instance*,std::function<void (Instance*, const std::string&, const SDL_Event*)>>::iterator teh (internal::text_entry_handlers.find(text_entry));
+		if (teh == internal::text_entry_handlers.end()) {
 			return 2;
 		}
 
-		std::function<void (Instance*, const std::string&, const SDL_Event*)> func = internal::text_entry_handlers[text_entry];
+		std::function<void (Instance*, const std::string&, const SDL_Event*)> func = teh->second;
 		if (func == nullptr) {
 			return 3;
 		}
@@ -328,11 +332,12 @@ namespace bee { namespace ui {
 			return 1;
 		}
 
-		if (internal::slider_callbacks.find(slider) == internal::slider_callbacks.end()) {
+		std::map<Instance*,std::function<void (Instance*, int)>>::iterator sl (internal::slider_callbacks.find(slider));
+		if (sl == internal::slider_callbacks.end()) {
 			return 2;
 		}
 
-		std::function<void (Instance*, int)> func = internal::slider_callbacks[slider];
+		std::function<void (Instance*, int)> func = sl->second;
 		if (func == nullptr) {
 			return 3;
 		}
@@ -389,11 +394,12 @@ namespace bee { namespace ui {
 			return 1;
 		}
 
-		if (internal::optionbox_callbacks.find(optionbox) == internal::optionbox_callbacks.end()) {
+		std::map<Instance*,std::vector<std::function<void (Instance*, bool)>>>::iterator opb (internal::optionbox_callbacks.find(optionbox));
+		if (opb == internal::optionbox_callbacks.end()) {
 			return 2;
 		}
 
-		internal::optionbox_callbacks.erase(optionbox);
+		internal::optionbox_callbacks.erase(opb);
 
 		return 0;
 	}
@@ -403,14 +409,15 @@ namespace bee { namespace ui {
 			return 1;
 		}
 
+		std::map<Instance*,std::vector<std::function<void (Instance*, bool)>>>::iterator opb (internal::optionbox_callbacks.find(optionbox));
 		if (
-			(internal::optionbox_callbacks.find(optionbox) == internal::optionbox_callbacks.end())
-			||(option_index >= internal::optionbox_callbacks[optionbox].size())
+			(opb == internal::optionbox_callbacks.end())
+			||(option_index >= opb->second.size())
 		) {
 			return 2;
 		}
 
-		std::function<void (Instance*, bool)> func = internal::optionbox_callbacks[optionbox][option_index];
+		std::function<void (Instance*, bool)> func = opb->second.at(option_index);
 		if (func == nullptr) {
 			return 3;
 		}

@@ -46,7 +46,7 @@ namespace bee {
 	class ShaderProgram {
 			GLuint program;
 			std::vector<Shader> shaders;
-			std::map<std::string,ShaderInput> inputs;
+			std::map<const std::string,ShaderInput> inputs;
 		public:
 			ShaderProgram();
 

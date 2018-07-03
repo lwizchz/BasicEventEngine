@@ -573,9 +573,7 @@ namespace bee {
 		return 0;
 	}
 	int Room::add_physbody(Instance* inst, PhysicsBody* body) {
-		if (physics_instances.find(body->get_body()) == physics_instances.end()) {
-			physics_instances.emplace(body->get_body(), inst);
-		}
+		physics_instances.emplace(body->get_body(), inst);
 		return 0;
 	}
 	int Room::remove_physbody(PhysicsBody* body) {

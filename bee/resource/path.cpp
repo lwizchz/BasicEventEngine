@@ -324,13 +324,14 @@ namespace bee {
 	}
 	/**
 	* Remove the control point associated with the given node index.
-	* @param node the node index to remove the control point of
+	* @param node_index the node index to remove the control point of
 	*
 	* @retval 0 success
 	* @retval 1 failed since the node with the given index does not have a control point
 	*/
-	int Path::remove_control_point(unsigned int node) {
-		if (control_points.find(node) == control_points.end()) {
+	int Path::remove_control_point(unsigned int node_index) {
+		std::map<unsigned int,btVector3>::iterator node (control_points.find(node_index));
+		if (node == control_points.end()) {
 			return 1;
 		}
 

@@ -294,10 +294,12 @@ namespace bee { namespace messenger{
 	*/
 	int internal::register_protected(const MessageRecipient& recv) {
 		for (auto& tag : recv.tags) { // Iterate over the requested tags
-			if (recipients.find(tag) == recipients.end()) { // If the tag doesn't exist, then create it
-				recipients.emplace(tag, std::list<MessageRecipient>()); // Emplace an empty set of recipients
+			std::unordered_map<std::string,std::list<MessageRecipient>>::iterator rt (recipients.find(tag));
+			if (rt == recipients.end()) { // If the tag doesn't exist, then create it
+				recipients.emplace(tag, std::list<MessageRecipient>({recv}));
+			} else {
+				rt->second.push_back(recv); // Add the recipient to the list
 			}
-			recipients[tag].push_back(recv); // Add the recipient to the list
 		}
 		return 0; // Return 0 on success
 	}
@@ -387,10 +389,12 @@ namespace bee { namespace messenger{
 				continue; // Skip to the next tag
 			}
 
-			if (internal::recipients.find(tag) == internal::recipients.end()) { // If the tag doesn't exist, then create it
-				internal::recipients.emplace(tag, std::list<MessageRecipient>()); // Emplace an empty set of recipients
+			std::unordered_map<std::string,std::list<MessageRecipient>>::iterator rt (internal::recipients.find(tag));
+			if (rt == internal::recipients.end()) { // If the tag doesn't exist, then create it
+				internal::recipients.emplace(tag, std::list<MessageRecipient>({recv}));
+			} else {
+				rt->second.push_back(recv); // Add the recipient to the list
 			}
-			internal::recipients[tag].push_back(recv); // Add the recipient to the list
 		}
 
 		return r; // Return the amount of attempts to register a protected tag
@@ -463,7 +467,7 @@ namespace bee { namespace messenger{
 
 		// Remove all non-protected tags
 		for (auto tag=internal::recipients.begin(); tag!=internal::recipients.end();) {
-			if (internal::protected_tags.find((*tag).first) == internal::protected_tags.end()) { // If the tag is not protected, remove it
+			if (internal::protected_tags.find(tag->first) == internal::protected_tags.end()) { // If the tag is not protected, remove it
 				tag = internal::recipients.erase(tag);
 			} else { // It the tag is protected, skip it
 				++tag;
@@ -570,15 +574,16 @@ namespace bee { namespace messenger{
 			return 1;
 		}
 
-		if (internal::logfiles.find(filename) == internal::logfiles.end()) {
+		std::unordered_map<std::string,std::pair<E_OUTPUT,std::ofstream*>>::iterator log (internal::logfiles.find(filename));
+		if (log == internal::logfiles.end()) {
 			send({"engine", "messenger"}, E_MESSAGE::WARNING, "The log file \"" + filename + "\" could not be removed because it has not been added");
 			return 2;
 		}
 
-		internal::logfiles.at(filename).second->close();
-		delete internal::logfiles.at(filename).second;
+		log->second.second->close();
+		delete log->second.second;
 
-		internal::logfiles.erase(filename);
+		internal::logfiles.erase(log);
 
 		if (should_delete) {
 			util::file_delete(filename);

@@ -608,7 +608,7 @@ namespace bee {
 		Uint32 frame_ticks = 1000/fps_desired;
 		if (new_tickstamp - engine->tickstamp < frame_ticks) {
 			if ((!get_option("is_vsync_enabled").i)||(!engine->has_focus)) {
-				Uint32 delay = frame_ticks - (new_tickstamp - engine->tickstamp);
+				Uint32 delay = frame_ticks - (new_tickstamp - engine->tickstamp) + 1;
 				//messenger::log("FPS delay: " + std::to_string(delay) + "ms, " + std::to_string(100*delay/frame_ticks) + "% of the frame");
 				SDL_Delay(delay);
 			}
