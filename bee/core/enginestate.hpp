@@ -45,7 +45,7 @@ namespace bee {
 		// These contain data about the current window state
 		bool has_mouse, has_focus;
 
-		Uint32 tickstamp, fps_ticks, tick_delta;
+		Uint32 tickstamp, fps_ticks, tick_delta, lost_ticks;
 
 		unsigned int fps_goal, fps_max, fps_unfocused;
 		unsigned int fps_count;

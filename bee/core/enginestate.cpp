@@ -59,6 +59,7 @@ namespace bee {
 		tickstamp(0),
 		fps_ticks(0),
 		tick_delta(0),
+		lost_ticks(0),
 
 		fps_goal(DEFAULT_GAME_FPS),
 		fps_max(300),

@@ -118,7 +118,7 @@ namespace bee {
 		}
 
 		// Locate inputs
-		std::map<const std::string,ShaderInput> _inputs (inputs);
+		std::unordered_map<std::string,ShaderInput> _inputs (inputs);
 		inputs.clear();
 		for (auto& input : _inputs) {
 			if (input.second.is_attrib) {
@@ -147,7 +147,7 @@ namespace bee {
 		return program;
 	}
 	GLint ShaderProgram::get_location(const std::string& _input, bool should_print) const {
-		std::map<const std::string,ShaderInput>::const_iterator input (inputs.find(_input));
+		std::unordered_map<std::string,ShaderInput>::const_iterator input (inputs.find(_input));
 		if (input == inputs.end()) {
 			if (should_print) {
 				messenger::send({"engine", "renderer"}, E_MESSAGE::WARNING, "Shader input \"" + _input + "\" not found");

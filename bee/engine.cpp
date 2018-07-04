@@ -612,14 +612,11 @@ namespace bee {
 				//messenger::log("FPS delay: " + std::to_string(delay) + "ms, " + std::to_string(100*delay/frame_ticks) + "% of the frame");
 				SDL_Delay(delay);
 			}
-		} else if (new_tickstamp - engine->tickstamp > 6*frame_ticks) { // If the tick difference is more than 5 frames worth, output a warning
+		} else {
 			Uint32 overtime = (new_tickstamp - engine->tickstamp) - frame_ticks;
-			E_MESSAGE type (E_MESSAGE::INFO);
-			if (overtime/frame_ticks >= 10) {
-				type = E_MESSAGE::WARNING;
-			}
-			messenger::send({"engine"}, type, "Engine loop over time by " + std::to_string(overtime) + "ms, " + std::to_string(overtime/frame_ticks) + " frames lost");
+			engine->lost_ticks += overtime;
 		}
+
 		internal::update_delta();
 
 		// Compute the number of frames in the last second, the stable fps
@@ -627,6 +624,15 @@ namespace bee {
 			engine->fps_stable = engine->fps_count;
 			engine->fps_count = 0;
 			engine->fps_ticks = engine->tickstamp;
+
+			if (engine->lost_ticks > 5*frame_ticks) { // If the lost ticks are more than 5 frames worth, output a warning
+				E_MESSAGE type = E_MESSAGE::INFO;
+				if (engine->lost_ticks >= 10*frame_ticks) {
+					type = E_MESSAGE::WARNING;
+				}
+				messenger::send({"engine"}, type, "Engine over time by " + std::to_string(engine->lost_ticks) + "ms, " + std::to_string(engine->lost_ticks/frame_ticks) + " frames lost");
+			}
+			engine->lost_ticks = 0;
 		}
 
 		return 0;

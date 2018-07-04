@@ -12,8 +12,8 @@
 #include "../defines.hpp"
 
 #include <string>
-#include <map>
 #include <vector>
+#include <unordered_map>
 
 #include <SDL2/SDL.h> // Include the required SDL headers
 
@@ -46,7 +46,7 @@ namespace bee {
 	class ShaderProgram {
 			GLuint program;
 			std::vector<Shader> shaders;
-			std::map<const std::string,ShaderInput> inputs;
+			std::unordered_map<std::string,ShaderInput> inputs;
 		public:
 			ShaderProgram();
 
