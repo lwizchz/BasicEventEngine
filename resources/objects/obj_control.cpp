@@ -52,7 +52,7 @@ void ObjControl::create(bee::Instance* self) {
 		part_firework->angle_increase = 0.2;
 		part_firework->color = bee::RGBA(bee::E_RGB::ORANGE, 200);
 		//part_firework->set_death_type(part_done);
-		//part_firework->is_sprite_lightable = true;
+		//part_firework->is_texture_lightable = true;
 		part_system->add_particle_type(part_firework);
 
 		bee::ParticleEmitter* part_emitter = new bee::ParticleEmitter(

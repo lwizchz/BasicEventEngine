@@ -145,7 +145,10 @@ namespace bee { namespace messenger{
 				*o << msg.descr << "\n";
 			}
 
-			if ((msg.type == E_MESSAGE::WARNING)||(msg.type == E_MESSAGE::ERROR)) {
+			if (
+				(lf.first == "stdout")
+				&&((msg.type == E_MESSAGE::WARNING)||(msg.type == E_MESSAGE::ERROR))
+			) {
 				util::platform::commandline_color_reset(o); // Reset the output color
 			}
 
