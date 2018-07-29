@@ -214,8 +214,10 @@ namespace bee {
 				{"windowID", Variant(static_cast<int>(e->wheel.windowID))},
 				{"which", Variant(static_cast<int>(e->wheel.which))},
 				{"x", Variant(static_cast<int>(e->wheel.x))},
-				{"y", Variant(static_cast<int>(e->wheel.y))},
-				{"direction", Variant(static_cast<int>(e->wheel.direction))}
+				{"y", Variant(static_cast<int>(e->wheel.y))}
+			#if SDL_VERSION_ATLEAST(2, 0, 4)
+				, {"direction", Variant(static_cast<int>(e->wheel.direction))}
+			#endif
 			};
 		}
 
