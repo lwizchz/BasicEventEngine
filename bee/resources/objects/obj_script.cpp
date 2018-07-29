@@ -61,7 +61,9 @@ namespace bee {
 			filename = "/resources/objects/"+filename;
 		}
 
-		script = Script::add("__scr_obj_script_" + util::string::replace(scriptfile, "/", "_"), filename);
+		set_name("__obj_script:" + scriptfile);
+
+		script = Script::add("__scr_obj_script:" + scriptfile, filename);
 		if (script == nullptr) {
 			return;
 		}
