@@ -49,8 +49,8 @@ namespace bee {
 		is_persistent(false),
 
 		data({
-			{"object", Variant(std::string())},
-			{"alarms", Variant(std::map<Variant,Variant>())}
+			{"__object", Variant(std::string())},
+			{"__alarms", Variant(std::map<Variant,Variant>())}
 		}),
 
 		id(-1),
@@ -110,12 +110,12 @@ namespace bee {
 		pos_previous = pos_start;
 
 		data.clear();
-		set_data("object", object->get_name());
+		set_data("__object", object->get_name());
 
 		set_computation_type(computation_type);
 		is_persistent = object->get_is_persistent();
 
-		set_data("alarms", std::map<Variant,Variant>());
+		set_data("__alarms", std::map<Variant,Variant>());
 	}
 
 	/**
@@ -270,7 +270,7 @@ namespace bee {
 	* @param elapsed_ticks how far in the future to set the alarm
 	*/
 	void Instance::set_alarm(const std::string& name, int elapsed_ticks) {
-		std::map<Variant,Variant>& alarms = data["alarms"].m;
+		std::map<Variant,Variant>& alarms = data["__alarms"].m;
 		if (elapsed_ticks >= 0) {
 			alarms[name.c_str()] = static_cast<int>(elapsed_ticks + get_ticks());
 		} else {
@@ -287,7 +287,7 @@ namespace bee {
 
 		object = _object;
 		object->add_instance(id, this);
-		set_data("object", object->get_name());
+		set_data("__object", object->get_name());
 	}
 	/**
 	* Change the sprite.
@@ -315,17 +315,17 @@ namespace bee {
 				if (get_physbody()->get_mass() != 0.0) { // If a body already has 0 mass, setting it to 0 will segfault
 					get_physbody()->set_mass(0.0);
 				}
-				set_data("collision_mask", util::bitmask<E_COMPUTATION>({E_COMPUTATION::SEMIPLAYER, E_COMPUTATION::PLAYER, E_COMPUTATION::DYNAMIC}));
+				set_data("__collision_mask", util::bitmask<E_COMPUTATION>({E_COMPUTATION::SEMIPLAYER, E_COMPUTATION::PLAYER, E_COMPUTATION::DYNAMIC}));
 				break;
 			}
 			case E_COMPUTATION::SEMIPLAYER:
 			case E_COMPUTATION::PLAYER: {
 				get_physbody()->get_body()->forceActivationState(DISABLE_DEACTIVATION);
-				set_data("collision_mask", util::bitmask<E_COMPUTATION>({E_COMPUTATION::STATIC, E_COMPUTATION::SEMISTATIC, E_COMPUTATION::SEMIPLAYER, E_COMPUTATION::PLAYER}));
+				set_data("__collision_mask", util::bitmask<E_COMPUTATION>({E_COMPUTATION::STATIC, E_COMPUTATION::SEMISTATIC, E_COMPUTATION::SEMIPLAYER, E_COMPUTATION::PLAYER}));
 				break;
 			}
 			case E_COMPUTATION::DYNAMIC: {
-				set_data("collision_mask", util::bitmask<E_COMPUTATION>({E_COMPUTATION::STATIC, E_COMPUTATION::SEMISTATIC}));
+				set_data("__collision_mask", util::bitmask<E_COMPUTATION>({E_COMPUTATION::STATIC, E_COMPUTATION::SEMISTATIC}));
 				break;
 			}
 			case E_COMPUTATION::NOTHING:
@@ -333,7 +333,7 @@ namespace bee {
 				if (get_physbody()->get_mass() != 0.0) {
 					get_physbody()->set_mass(0.0);
 				}
-				set_data("collision_mask", 0);
+				set_data("__collision_mask", 0);
 				break;
 			}
 		}

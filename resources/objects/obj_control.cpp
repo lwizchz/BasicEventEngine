@@ -26,7 +26,7 @@ ObjControl::ObjControl() : Object("obj_control", "obj_control.hpp") {
 	this->set_is_persistent(true);
 }
 void ObjControl::create(bee::Instance* self) {
-	scr_test->run_func("main", nullptr);
+	scr_test->run_func("main", {}, nullptr);
 
 	_p("text_fps") = nullptr;
 
@@ -142,7 +142,7 @@ void ObjControl::create(bee::Instance* self) {
 		bee::render::set_3d(false);
 	}));
 
-	bee::console::set_var("anim_spider", "Spider_Armature|warte_pose");
+	bee::get_current_room()->add_instance(-1, obj_mesh, 0.0, 0.0, 0.0);
 }
 void ObjControl::destroy(bee::Instance* self) {
 	if (_p("part_system") != nullptr) {
@@ -185,32 +185,6 @@ void ObjControl::mouse_press(bee::Instance* self, SDL_Event* e) {
 }
 void ObjControl::draw(bee::Instance* self) {
 	lt_ambient->queue();
-
-	bool use_python = true;
-	if (use_python) {
-		bee::python::run_string(R"PYTHON(
-import math
-t = bee.get_ticks()/1000.0
-a = 180.0 + math.degrees(math.sin(t))
-pos = (1000.0+500.0*math.cos(t), 500.0+300.0*math.sin(t), 0.0)
-rot = (0.0, a, 180.0)
-
-#bee.Mesh("mesh_monkey").draw(pos, (1.0, 1.0, 1.0), rot, (255, 255, 0, 255), False)
-
-bee.Mesh("mesh_spider").draw(pos, (50.0, 50.0, 50.0), rot, (255, 255, 255, 255), False)
-#bee.Mesh("mesh_spider").draw(pos, (50.0, 50.0, 50.0), rot, (255, 255, 255, 255), False, bee.console.get_var("anim_spider"), 0)
-		)PYTHON");
-	} else {
-		float t = static_cast<float>(bee::get_ticks())/1000.0f;
-		float a = 180.0f + util::radtodeg(sin(t));
-		glm::vec3 pos (1000.0f+500.0f*cos(t), 500.0f+300.0f*sin(t), 0.0f);
-		glm::vec3 rot (0.0f, a, 180.0f);
-
-		//mesh_monkey->draw(pos, glm::vec3(1.0f, 1.0f, 1.0f), rot, {255, 255, 0, 255}, false);
-
-		mesh_spider->draw(pos, glm::vec3(50.0f, 50.0f, 50.0f), rot, {255, 255, 255, 255}, false);
-		//mesh_spider->draw(bee::console::get_var("anim_spider").s, 0, pos, glm::vec3(50.0f, 50.0f, 50.0f), rot, {255, 255, 255, 255}, false);
-	}
 
 	_p("text_fps") = font_liberation->draw(static_cast<bee::TextData*>(_p("text_fps")), 0, 0, "FPS: " + std::to_string(bee::engine->fps_stable));
 }

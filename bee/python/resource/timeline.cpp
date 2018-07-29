@@ -18,7 +18,17 @@
 
 #include "../../resource/timeline.hpp"
 
-namespace bee { namespace python { namespace internal {
+namespace bee { namespace python {
+	PyObject* Timeline_from(Timeline* timeline) {
+		PyObject* py_timeline = internal::Timeline_new(&internal::TimelineType, nullptr, nullptr);
+		internal::TimelineObject* _py_timeline = reinterpret_cast<internal::TimelineObject*>(py_timeline);
+		_py_timeline->name = PyUnicode_FromString(timeline->get_name().c_str());
+		return py_timeline;
+	}
+	bool Timeline_check(PyObject* obj) {
+		return PyObject_TypeCheck(obj, &internal::TimelineType);
+	}
+namespace internal {
 	std::map<Timeline*,std::map<int,TimelineIterator*>> tlits;
 
 	PyMethodDef TimelineMethods[] = {
@@ -103,6 +113,12 @@ namespace bee { namespace python { namespace internal {
 		std::string _name (PyUnicode_AsUTF8(self->name));
 
 		return Timeline::get_by_name(_name);
+	}
+	Timeline* as_timeline(PyObject* self) {
+		if (Timeline_check(self)) {
+			return as_timeline(reinterpret_cast<TimelineObject*>(self));
+		}
+		return nullptr;
 	}
 
 	void Timeline_dealloc(TimelineObject* self) {

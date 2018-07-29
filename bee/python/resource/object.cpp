@@ -24,7 +24,17 @@
 #include "../../resource/texture.hpp"
 #include "../../core/instance.hpp"
 
-namespace bee { namespace python { namespace internal {
+namespace bee { namespace python {
+	PyObject* Object_from(Object* object) {
+		PyObject* py_object = internal::Object_new(&internal::ObjectType, nullptr, nullptr);
+		internal::ObjectObject* _py_object = reinterpret_cast<internal::ObjectObject*>(py_object);
+		_py_object->name = PyUnicode_FromString(object->get_name().c_str());
+		return py_object;
+	}
+	bool Object_check(PyObject* obj) {
+		return PyObject_TypeCheck(obj, &internal::ObjectType);
+	}
+namespace internal {
 	PyMethodDef ObjectMethods[] = {
 		{"print", reinterpret_cast<PyCFunction>(Object_print), METH_NOARGS, "Print all relevant information about the Object"},
 
@@ -117,6 +127,12 @@ namespace bee { namespace python { namespace internal {
 		std::string _name (PyUnicode_AsUTF8(self->name));
 
 		return Object::get_by_name(_name);
+	}
+	Object* as_object(PyObject* self) {
+		if (Object_check(self)) {
+			return as_object(reinterpret_cast<ObjectObject*>(self));
+		}
+		return nullptr;
 	}
 
 	void Object_dealloc(ObjectObject* self) {
@@ -278,7 +294,7 @@ namespace bee { namespace python { namespace internal {
 			return nullptr;
 		}
 
-		Texture* _tex = as_texture(reinterpret_cast<TextureObject*>(tex));
+		Texture* _tex = as_texture(tex);
 
 		Object* obj = as_object(self);
 		if (obj == nullptr) {

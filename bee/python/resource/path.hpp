@@ -13,7 +13,12 @@
 
 #include <Python.h>
 
-namespace bee { namespace python { namespace internal {
+namespace bee {
+	class Path;
+namespace python {
+	PyObject* Path_from(Path*);
+	bool Path_check(PyObject*);
+namespace internal {
 	typedef struct {
 		PyObject_HEAD
 		PyObject* name;
@@ -22,6 +27,9 @@ namespace bee { namespace python { namespace internal {
 	extern PyTypeObject PathType;
 
 	PyObject* PyInit_bee_path(PyObject*);
+
+	Path* as_path(PathObject*);
+	Path* as_path(PyObject*);
 
 	void Path_dealloc(PathObject*);
 	PyObject* Path_new(PyTypeObject*, PyObject*, PyObject*);

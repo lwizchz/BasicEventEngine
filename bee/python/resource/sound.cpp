@@ -20,7 +20,17 @@
 
 #include "../../util/string.hpp"
 
-namespace bee { namespace python { namespace internal {
+namespace bee { namespace python {
+	PyObject* Sound_from(Sound* sound) {
+		PyObject* py_sound = internal::Sound_new(&internal::SoundType, nullptr, nullptr);
+		internal::SoundObject* _py_sound = reinterpret_cast<internal::SoundObject*>(py_sound);
+		_py_sound->name = PyUnicode_FromString(sound->get_name().c_str());
+		return py_sound;
+	}
+	bool Sound_check(PyObject* obj) {
+		return PyObject_TypeCheck(obj, &internal::SoundType);
+	}
+namespace internal {
 	PyMethodDef SoundMethods[] = {
 		{"print", reinterpret_cast<PyCFunction>(Sound_print), METH_NOARGS, "Print all relevant information about the Sound"},
 
@@ -122,6 +132,12 @@ namespace bee { namespace python { namespace internal {
 		std::string _name (PyUnicode_AsUTF8(self->name));
 
 		return Sound::get_by_name(_name);
+	}
+	Sound* as_sound(PyObject* self) {
+		if (Sound_check(self)) {
+			return as_sound(reinterpret_cast<SoundObject*>(self));
+		}
+		return nullptr;
 	}
 
 	void Sound_dealloc(SoundObject* self) {

@@ -13,7 +13,12 @@
 
 #include <Python.h>
 
-namespace bee { namespace python { namespace internal {
+namespace bee {
+	class Sound;
+namespace python {
+	PyObject* Sound_from(Sound*);
+	bool Sound_check(PyObject*);
+namespace internal {
 	typedef struct {
 		PyObject_HEAD
 		PyObject* name;
@@ -22,6 +27,9 @@ namespace bee { namespace python { namespace internal {
 	extern PyTypeObject SoundType;
 
 	PyObject* PyInit_bee_sound(PyObject*);
+
+	Sound* as_sound(SoundObject*);
+	Sound* as_sound(PyObject*);
 
 	void Sound_dealloc(SoundObject*);
 	PyObject* Sound_new(PyTypeObject*, PyObject*, PyObject*);

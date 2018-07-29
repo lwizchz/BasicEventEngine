@@ -18,6 +18,7 @@
 #include "../util/string.hpp"
 
 #include "../core/enginestate.hpp"
+#include "../core/instance.hpp"
 
 #include "../messenger/messenger.hpp"
 
@@ -257,6 +258,28 @@ namespace bee { namespace python {
 			while (PyDict_Next(obj, &pos, &key, &value)) {
 				var.m.emplace(pyobj_to_variant(key), pyobj_to_variant(value));
 			}
+		} else if (Texture_check(obj)) {
+			var = internal::as_texture(obj);
+		} else if (Sound_check(obj)) {
+			var = internal::as_sound(obj);
+		} else if (Font_check(obj)) {
+			var = internal::as_font(obj);
+		} else if (Path_check(obj)) {
+			var = internal::as_path(obj);
+		} else if (Timeline_check(obj)) {
+			var = internal::as_timeline(obj);
+		} else if (Mesh_check(obj)) {
+			var = internal::as_mesh(obj);
+		} else if (Light_check(obj)) {
+			var = internal::as_light(obj);
+		} else if (Script_check(obj)) {
+			var = internal::as_script(obj);
+		} else if (Object_check(obj)) {
+			var = internal::as_object(obj);
+		/*} else if (Room_check(obj)) {
+			var = internal::as_room(obj);*/
+		} else if (Instance_check(obj)) {
+			var = internal::as_instance(obj);
 		} else {
 			PyObject* str = PyObject_Str(obj);
 			if (str == nullptr) {
@@ -283,6 +306,43 @@ namespace bee { namespace python {
 	PyObject* variant_to_pyobj(Variant var) {
 		switch (var.get_type()) {
 			case E_DATA_TYPE::NONE: {
+				if (var.p != nullptr) {
+					if (var.get_ptype() == std::type_index(typeid(Texture*))) {
+						Texture* p = static_cast<Texture*>(var.p);
+						return Texture_from(p);
+					} else if (var.get_ptype() == std::type_index(typeid(Sound*))) {
+						Sound* p = static_cast<Sound*>(var.p);
+						return Sound_from(p);
+					} else if (var.get_ptype() == std::type_index(typeid(Font*))) {
+						Font* p = static_cast<Font*>(var.p);
+						return Font_from(p);
+					} else if (var.get_ptype() == std::type_index(typeid(Path*))) {
+						Path* p = static_cast<Path*>(var.p);
+						return Path_from(p);
+					} else if (var.get_ptype() == std::type_index(typeid(Timeline*))) {
+						Timeline* p = static_cast<Timeline*>(var.p);
+						return Timeline_from(p);
+					} else if (var.get_ptype() == std::type_index(typeid(Mesh*))) {
+						Mesh* p = static_cast<Mesh*>(var.p);
+						return Mesh_from(p);
+					} else if (var.get_ptype() == std::type_index(typeid(Light*))) {
+						Light* p = static_cast<Light*>(var.p);
+						return Light_from(p);
+					} else if (var.get_ptype() == std::type_index(typeid(Script*))) {
+						Script* p = static_cast<Script*>(var.p);
+						return Script_from(p);
+					} else if (var.get_ptype() == std::type_index(typeid(Object*))) {
+						Object* p = static_cast<Object*>(var.p);
+						return Object_from(p);
+					/*} else if (var.get_ptype() == std::type_index(typeid(Room*))) {
+						Room* p = static_cast<Room*>(var.p);
+						return Room_from(p);*/
+					} else if (var.get_ptype() == std::type_index(typeid(Instance*))) {
+						Instance* p = static_cast<Instance*>(var.p);
+						return Instance_from(p);
+					}
+				}
+
 				Py_RETURN_NONE;
 			}
 			case E_DATA_TYPE::CHAR: {
@@ -503,14 +563,16 @@ namespace bee { namespace python {
 	/**
 	* Run the given function in the loaded module.
 	* @param funcname the function to run
+	* @param args the function arguments
 	* @param retval the pointer to store the function return value in
 	*
 	* @retval 0 success
 	* @retval 1 failed since the module is not loaded
 	* @retval 2 failed to find a callable object with the given function name
-	* @retval 3 failed to call the function, see the Python exception for more info
+	* @retval 3 failed to convert function arguments
+	* @retval 4 failed to call the function, see the Python exception for more info
 	*/
-	int PythonScriptInterface::run_func(const std::string& funcname, Variant* retval) {
+	int PythonScriptInterface::run_func(const std::string& funcname, const Variant& args, Variant* retval) {
 		if (module == nullptr) {
 			messenger::send({"engine", "python"}, E_MESSAGE::ERROR, "Failed to run python function \"" + path + "\": script is not loaded");
 			return 1;
@@ -526,14 +588,31 @@ namespace bee { namespace python {
 			return 2;
 		}
 
-		PyObject* value = PyObject_CallObject(func, nullptr);
+		PyObject* _args = nullptr;
+		if (args.get_type() != E_DATA_TYPE::VECTOR) {
+			if (args.get_type() != E_DATA_TYPE::NONE) {
+				messenger::send({"engine", "python"}, E_MESSAGE::ERROR, "Failed to convert function arguments for \"" + funcname + "\" in \"" + path + "\": arguments must be a vector");
+				return 3;
+			}
+		} else {
+			const std::vector<Variant>& vargs = args.v;
+			_args = PyTuple_New(vargs.size());
+
+			size_t i = 0;
+			for (auto& a : vargs) {
+				PyTuple_SetItem(_args, i++, python::variant_to_pyobj(a));
+			}
+		}
+
+		PyObject* value = PyObject_CallObject(func, _args);
 		if (value == nullptr) {
+			Py_XDECREF(_args);
 			Py_DECREF(func);
 
 			PyErr_Print();
 			messenger::send({"engine", "python"}, E_MESSAGE::ERROR, "Python script function \"" + funcname + "\" failed for \"" + path + "\"");
 
-			return 3;
+			return 4;
 		}
 
 		if (retval != nullptr) {
@@ -541,6 +620,7 @@ namespace bee { namespace python {
 		}
 		Py_DECREF(value);
 
+		Py_XDECREF(_args);
 		Py_DECREF(func);
 
 		return 0;
@@ -569,6 +649,19 @@ namespace bee { namespace python {
 		}
 
 		return 0;
+	}
+	/**
+	* @param name the name of the variable to check for
+	*
+	* @returns whether a variable with the given name exists or false when not loaded
+	*/
+	bool PythonScriptInterface::has_var(const std::string& name) const {
+		if (module == nullptr) {
+			messenger::send({"engine", "python"}, E_MESSAGE::ERROR, "Failed to get python variable \"" + name + "\": script \"" + path + "\" is not loaded");
+			return false;
+		}
+
+		return PyObject_HasAttrString(module, name.c_str());
 	}
 	/**
 	* @param name the name of the variable to get

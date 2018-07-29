@@ -318,6 +318,7 @@ namespace bee {
 	/**
 	* Run the given function in the interface.
 	* @param funcname the function to run
+	* @param args the function arguments
 	* @param retval the pointer to store the function return value in
 	*
 	* @retval 0 success
@@ -325,13 +326,13 @@ namespace bee {
 	* @returns other error codes based on the interface
 	* @see ScriptInterface and PythonScriptInterface::run_func(const string&, Variant*)
 	*/
-	int Script::run_func(const std::string& funcname, Variant* retval) {
+	int Script::run_func(const std::string& funcname, const Variant& args, Variant* retval) {
 		if (!is_loaded) {
 			messenger::send({"engine", "script"}, E_MESSAGE::WARNING, "Failed to run script \"" + name + "\" because it is not loaded");
 			return -1;
 		}
 
-		return script->run_func(funcname, retval);
+		return script->run_func(funcname, args, retval);
 	}
 }
 

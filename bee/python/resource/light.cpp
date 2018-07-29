@@ -18,7 +18,17 @@
 
 #include "../../resource/light.hpp"
 
-namespace bee { namespace python { namespace internal {
+namespace bee { namespace python {
+	PyObject* Light_from(Light* light) {
+		PyObject* py_light = internal::Light_new(&internal::LightType, nullptr, nullptr);
+		internal::LightObject* _py_light = reinterpret_cast<internal::LightObject*>(py_light);
+		_py_light->name = PyUnicode_FromString(light->get_name().c_str());
+		return py_light;
+	}
+	bool Light_check(PyObject* obj) {
+		return PyObject_TypeCheck(obj, &internal::LightType);
+	}
+namespace internal {
 	PyMethodDef LightMethods[] = {
 		{"print", reinterpret_cast<PyCFunction>(Light_print), METH_NOARGS, "Print all relevant information about the Light"},
 
@@ -108,6 +118,12 @@ namespace bee { namespace python { namespace internal {
 		std::string _name (PyUnicode_AsUTF8(self->name));
 
 		return Light::get_by_name(_name);
+	}
+	Light* as_light(PyObject* self) {
+		if (Light_check(self)) {
+			return as_light(reinterpret_cast<LightObject*>(self));
+		}
+		return nullptr;
 	}
 
 	void Light_dealloc(LightObject* self) {

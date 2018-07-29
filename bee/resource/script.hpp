@@ -29,9 +29,10 @@ namespace bee {
 
 		virtual int run_string(const std::string&, Variant*) =0;
 		virtual int run_file(const std::string&) =0;
-		virtual int run_func(const std::string&, Variant*) =0;
+		virtual int run_func(const std::string&, const Variant&, Variant*) =0;
 
 		virtual int set_var(const std::string&, const Variant&) =0;
+		virtual bool has_var(const std::string&) const =0;
 		virtual Variant get_var(const std::string&) const =0;
 	};
 
@@ -79,7 +80,7 @@ namespace bee {
 
 		int run_string(const std::string&, Variant*);
 		int run_file(const std::string&);
-		int run_func(const std::string&, Variant*);
+		int run_func(const std::string&, const Variant&, Variant*);
 	};
 }
 

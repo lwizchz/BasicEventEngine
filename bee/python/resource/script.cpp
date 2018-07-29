@@ -18,7 +18,17 @@
 
 #include "../../resource/script.hpp"
 
-namespace bee { namespace python { namespace internal {
+namespace bee { namespace python {
+	PyObject* Script_from(Script* script) {
+		PyObject* py_script = internal::Script_new(&internal::ScriptType, nullptr, nullptr);
+		internal::ScriptObject* _py_script = reinterpret_cast<internal::ScriptObject*>(py_script);
+		_py_script->name = PyUnicode_FromString(script->get_name().c_str());
+		return py_script;
+	}
+	bool Script_check(PyObject* obj) {
+		return PyObject_TypeCheck(obj, &internal::ScriptType);
+	}
+namespace internal {
 	PyMethodDef ScriptMethods[] = {
 		{"print", reinterpret_cast<PyCFunction>(Script_print), METH_NOARGS, "Print all relevant information about the Script"},
 
@@ -102,6 +112,12 @@ namespace bee { namespace python { namespace internal {
 		std::string _name (PyUnicode_AsUTF8(self->name));
 
 		return Script::get_by_name(_name);
+	}
+	Script* as_script(PyObject* self) {
+		if (Script_check(self)) {
+			return as_script(reinterpret_cast<ScriptObject*>(self));
+		}
+		return nullptr;
 	}
 
 	void Script_dealloc(ScriptObject* self) {
@@ -227,12 +243,15 @@ namespace bee { namespace python { namespace internal {
 	}
 	PyObject* Script_run_func(ScriptObject* self, PyObject* args) {
 		PyObject* func;
+		PyObject* fargs;
 
-		if (!PyArg_ParseTuple(args, "U", &func)) {
+		if (!PyArg_ParseTuple(args, "UO!", &func, &PyList_Type, &fargs)) {
 			return nullptr;
 		}
 
 		std::string _func (PyUnicode_AsUTF8(func));
+
+		Variant _fargs = pyobj_to_variant(fargs);
 
 		Script* scr = as_script(self);
 		if (scr == nullptr) {
@@ -240,7 +259,7 @@ namespace bee { namespace python { namespace internal {
 		}
 
 		Variant retval;
-		int r = scr->run_func(_func, &retval);
+		int r = scr->run_func(_func, _fargs, &retval);
 		if (r) { // If the script failed to run the string
 			return Py_BuildValue("(iO)", r, Py_None);
 		} else {

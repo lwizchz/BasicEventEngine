@@ -21,8 +21,21 @@
 #include "../resource/texture.hpp"
 #include "../resource/object.hpp"
 
-namespace bee { namespace python { namespace internal {
+namespace bee { namespace python {
+	PyObject* Instance_from(Instance* inst) {
+		PyObject* py_inst = internal::Instance_new(&internal::InstanceType, nullptr, nullptr);
+		internal::InstanceObject* _py_inst = reinterpret_cast<internal::InstanceObject*>(py_inst);
+		_py_inst->name = PyUnicode_FromString(inst->get_object()->get_name().c_str());
+		_py_inst->num = inst->id;
+		return py_inst;
+	}
+	bool Instance_check(PyObject* obj) {
+		return PyObject_TypeCheck(obj, &internal::InstanceType);
+	}
+namespace internal {
 	PyMethodDef InstanceMethods[] = {
+		{"at", reinterpret_cast<PyCFunction>(Instance_at), METH_VARARGS, "Return the nth Instance of the Object"},
+
 		{"print", reinterpret_cast<PyCFunction>(Instance_print), METH_NOARGS, "Print all relevant information about the Instance"},
 
 		{"set_alarm", reinterpret_cast<PyCFunction>(Instance_set_alarm), METH_VARARGS, "Set the alarm with the given name"},
@@ -133,16 +146,26 @@ namespace bee { namespace python { namespace internal {
 		}
 		std::string _name (PyUnicode_AsUTF8(self->name));
 
-		/*const std::map<int,Instance*>& instances (Object::get_by_name(_name)->get_instances());
-		std::map<int,Instance*>::iterator inst (instances.find(self->num));
-		if (inst == instances.end()) {
+		Object* obj = Object::get_by_name(_name);
+		if (obj == nullptr) {
+			PyErr_SetString(PyExc_ValueError, "the provided Object name is not valid");
 			return nullptr;
 		}
 
-		return inst->second;*/
+		const std::map<int,Instance*>& instances (obj->get_instances());
+		std::map<int,Instance*>::const_iterator inst (instances.find(self->num));
+		if (inst == instances.end()) {
+			PyErr_SetString(PyExc_ValueError, "the provided Instance id is not valid");
+			return nullptr;
+		}
 
-		// WARNING: this behavior depends on Object_get_instance_at()
-		return Object::get_by_name(_name)->get_instance_at(self->num);
+		return inst->second;
+	}
+	Instance* as_instance(PyObject* self) {
+		if (Instance_check(self)) {
+			return as_instance(reinterpret_cast<InstanceObject*>(self));
+		}
+		return nullptr;
 	}
 
 	void Instance_dealloc(InstanceObject* self) {
@@ -181,6 +204,34 @@ namespace bee { namespace python { namespace internal {
 		}
 
 		return 0;
+	}
+
+	PyObject* Instance_at(InstanceObject* self, PyObject* args) {
+		int index;
+		if (!PyArg_ParseTuple(args, "i", &index)) {
+			return nullptr;
+		}
+
+		if (self->name == nullptr) {
+			PyErr_SetString(PyExc_AttributeError, "name");
+			return nullptr;
+		}
+		std::string _name (PyUnicode_AsUTF8(self->name));
+
+		Object* obj = Object::get_by_name(_name);
+		if (obj == nullptr) {
+			PyErr_SetString(PyExc_ValueError, "the provided Object name is not valid");
+			return nullptr;
+		}
+
+		Instance* inst = obj->get_instance_at(index);
+		if (inst == nullptr) {
+			Py_RETURN_NONE;
+		}
+
+		self->num = inst->id;
+
+		return Py_BuildValue("O", self);
 	}
 
 	PyObject* Instance_repr(InstanceObject* self) {

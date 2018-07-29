@@ -46,6 +46,7 @@ extern bee::Script* scr_test;
 // Declare Objects
 extern bee::Object* obj_control;
 extern bee::Object* obj_bee;
+extern bee::Object* obj_mesh;
 
 // Declare Rooms
 extern bee::Room* rm_test;

@@ -18,7 +18,17 @@
 
 #include "../../resource/texture.hpp"
 
-namespace bee { namespace python { namespace internal {
+namespace bee { namespace python {
+	PyObject* Texture_from(Texture* texture) {
+		PyObject* py_texture = internal::Texture_new(&internal::TextureType, nullptr, nullptr);
+		internal::TextureObject* _py_texture = reinterpret_cast<internal::TextureObject*>(py_texture);
+		_py_texture->name = PyUnicode_FromString(texture->get_name().c_str());
+		return py_texture;
+	}
+	bool Texture_check(PyObject* obj) {
+		return PyObject_TypeCheck(obj, &internal::TextureType);
+	}
+namespace internal {
 	PyMethodDef TextureMethods[] = {
 		{"print", reinterpret_cast<PyCFunction>(Texture_print), METH_NOARGS, "Print all relevant information about the Texture"},
 
@@ -114,6 +124,12 @@ namespace bee { namespace python { namespace internal {
 		std::string _name (PyUnicode_AsUTF8(self->name));
 
 		return Texture::get_by_name(_name);
+	}
+	Texture* as_texture(PyObject* self) {
+		if (Texture_check(self)) {
+			return as_texture(reinterpret_cast<TextureObject*>(self));
+		}
+		return nullptr;
 	}
 
 	void Texture_dealloc(TextureObject* self) {

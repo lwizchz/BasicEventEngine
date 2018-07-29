@@ -13,7 +13,12 @@
 
 #include <Python.h>
 
-namespace bee { namespace python { namespace internal {
+namespace bee {
+	class Mesh;
+namespace python {
+	PyObject* Mesh_from(Mesh*);
+	bool Mesh_check(PyObject*);
+namespace internal {
 	typedef struct {
 		PyObject_HEAD
 		PyObject* name;
@@ -22,6 +27,9 @@ namespace bee { namespace python { namespace internal {
 	extern PyTypeObject MeshType;
 
 	PyObject* PyInit_bee_mesh(PyObject*);
+
+	Mesh* as_mesh(MeshObject*);
+	Mesh* as_mesh(PyObject*);
 
 	void Mesh_dealloc(MeshObject*);
 	PyObject* Mesh_new(PyTypeObject*, PyObject*, PyObject*);

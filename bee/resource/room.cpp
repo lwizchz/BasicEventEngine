@@ -1041,7 +1041,7 @@ namespace bee {
 				continue;
 			}
 
-			Variant alarms = i.first->get_data("alarms");
+			Variant alarms = i.first->get_data("__alarms");
 			for (auto& a : alarms.m) {
 				if (get_ticks() >= static_cast<unsigned int>(a.second.i)) {
 					i.first->set_alarm(a.first.s, -1);

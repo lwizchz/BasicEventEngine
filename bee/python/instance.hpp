@@ -15,7 +15,10 @@
 
 namespace bee {
 	class Instance;
-namespace python { namespace internal {
+namespace python {
+	PyObject* Instance_from(Instance*);
+	bool Instance_check(PyObject*);
+namespace internal {
 	typedef struct {
 		PyObject_HEAD
 		PyObject* name;
@@ -27,12 +30,15 @@ namespace python { namespace internal {
 	PyObject* PyInit_bee_instance(PyObject*);
 
 	Instance* as_instance(InstanceObject*);
+	Instance* as_instance(PyObject*);
 
 	void Instance_dealloc(InstanceObject*);
 	PyObject* Instance_new(PyTypeObject*, PyObject*, PyObject*);
 	int Instance_init(InstanceObject*, PyObject*, PyObject*);
 
 	// Instance methods
+	PyObject* Instance_at(InstanceObject*, PyObject*);
+
 	PyObject* Instance_repr(InstanceObject*);
 	PyObject* Instance_str(InstanceObject*);
 	PyObject* Instance_print(InstanceObject*, PyObject*);

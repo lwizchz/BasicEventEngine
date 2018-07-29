@@ -13,7 +13,12 @@
 
 #include <Python.h>
 
-namespace bee { namespace python { namespace internal {
+namespace bee {
+	class Script;
+namespace python {
+	PyObject* Script_from(Script*);
+	bool Script_check(PyObject*);
+namespace internal {
 	typedef struct {
 		PyObject_HEAD
 		PyObject* name;
@@ -22,6 +27,9 @@ namespace bee { namespace python { namespace internal {
 	extern PyTypeObject ScriptType;
 
 	PyObject* PyInit_bee_script(PyObject*);
+
+	Script* as_script(ScriptObject*);
+	Script* as_script(PyObject*);
 
 	void Script_dealloc(ScriptObject*);
 	PyObject* Script_new(PyTypeObject*, PyObject*, PyObject*);

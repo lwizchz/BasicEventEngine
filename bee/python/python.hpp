@@ -46,9 +46,10 @@ namespace bee { namespace python {
 		int run_string(const std::string&, Variant*, int);
 		int run_string(const std::string&, Variant*);
 		int run_file(const std::string&);
-		int run_func(const std::string&, Variant*);
+		int run_func(const std::string&, const Variant&, Variant*);
 
 		int set_var(const std::string&, const Variant&);
+		bool has_var(const std::string&) const;
 		Variant get_var(const std::string&) const;
 
 		std::vector<Variant> complete(const std::string&) const;

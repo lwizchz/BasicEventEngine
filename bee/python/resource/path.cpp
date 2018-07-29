@@ -18,7 +18,17 @@
 
 #include "../../resource/path.hpp"
 
-namespace bee { namespace python { namespace internal {
+namespace bee { namespace python {
+	PyObject* Path_from(Path* path) {
+		PyObject* py_path = internal::Path_new(&internal::PathType, nullptr, nullptr);
+		internal::PathObject* _py_path = reinterpret_cast<internal::PathObject*>(py_path);
+		_py_path->name = PyUnicode_FromString(path->get_name().c_str());
+		return py_path;
+	}
+	bool Path_check(PyObject* obj) {
+		return PyObject_TypeCheck(obj, &internal::PathType);
+	}
+namespace internal {
 	PyMethodDef PathMethods[] = {
 		{"print", reinterpret_cast<PyCFunction>(Path_print), METH_NOARGS, "Print all relevant information about the Path"},
 
@@ -103,6 +113,12 @@ namespace bee { namespace python { namespace internal {
 		std::string _name (PyUnicode_AsUTF8(self->name));
 
 		return Path::get_by_name(_name);
+	}
+	Path* as_path(PyObject* self) {
+		if (Path_check(self)) {
+			return as_path(reinterpret_cast<PathObject*>(self));
+		}
+		return nullptr;
 	}
 
 	void Path_dealloc(PathObject* self) {

@@ -18,7 +18,17 @@
 
 #include "../../resource/mesh.hpp"
 
-namespace bee { namespace python { namespace internal {
+namespace bee { namespace python {
+	PyObject* Mesh_from(Mesh* mesh) {
+		PyObject* py_mesh = internal::Mesh_new(&internal::MeshType, nullptr, nullptr);
+		internal::MeshObject* _py_mesh = reinterpret_cast<internal::MeshObject*>(py_mesh);
+		_py_mesh->name = PyUnicode_FromString(mesh->get_name().c_str());
+		return py_mesh;
+	}
+	bool Mesh_check(PyObject* obj) {
+		return PyObject_TypeCheck(obj, &internal::MeshType);
+	}
+namespace internal {
 	PyMethodDef MeshMethods[] = {
 		{"print", reinterpret_cast<PyCFunction>(Mesh_print), METH_NOARGS, "Print all relevant information about the Mesh"},
 
@@ -99,6 +109,12 @@ namespace bee { namespace python { namespace internal {
 		std::string _name (PyUnicode_AsUTF8(self->name));
 
 		return Mesh::get_by_name(_name);
+	}
+	Mesh* as_mesh(PyObject* self) {
+		if (Mesh_check(self)) {
+			return as_mesh(reinterpret_cast<MeshObject*>(self));
+		}
+		return nullptr;
 	}
 
 	void Mesh_dealloc(MeshObject* self) {

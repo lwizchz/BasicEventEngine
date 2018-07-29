@@ -78,4 +78,6 @@
 #include "ui/ui.hpp"
 #include "ui/elements.hpp"
 
+#include "resources/objects/obj_script.hpp"
+
 // Does not include the util headers, use ./util.hpp

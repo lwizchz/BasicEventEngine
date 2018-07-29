@@ -13,7 +13,12 @@
 
 #include <Python.h>
 
-namespace bee { namespace python { namespace internal {
+namespace bee {
+	class Font;
+namespace python {
+	PyObject* Font_from(Font*);
+	bool Font_check(PyObject*);
+namespace internal {
 	typedef struct {
 		PyObject_HEAD
 		PyObject* name;
@@ -22,6 +27,9 @@ namespace bee { namespace python { namespace internal {
 	extern PyTypeObject FontType;
 
 	PyObject* PyInit_bee_font(PyObject*);
+
+	Font* as_font(FontObject*);
+	Font* as_font(PyObject*);
 
 	void Font_dealloc(FontObject*);
 	PyObject* Font_new(PyTypeObject*, PyObject*, PyObject*);

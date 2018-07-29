@@ -13,7 +13,12 @@
 
 #include <Python.h>
 
-namespace bee { namespace python { namespace internal {
+namespace bee {
+	class Object;
+namespace python {
+	PyObject* Object_from(Object*);
+	bool Object_check(PyObject*);
+namespace internal {
 	typedef struct {
 		PyObject_HEAD
 		PyObject* name;
@@ -22,6 +27,9 @@ namespace bee { namespace python { namespace internal {
 	extern PyTypeObject ObjectType;
 
 	PyObject* PyInit_bee_object(PyObject*);
+
+	Object* as_object(ObjectObject*);
+	Object* as_object(PyObject*);
 
 	void Object_dealloc(ObjectObject*);
 	PyObject* Object_new(PyTypeObject*, PyObject*, PyObject*);

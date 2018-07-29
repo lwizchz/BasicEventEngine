@@ -15,7 +15,10 @@
 
 namespace bee {
 	class Texture;
-namespace python { namespace internal {
+namespace python {
+	PyObject* Texture_from(Texture*);
+	bool Texture_check(PyObject*);
+namespace internal {
 	typedef struct {
 		PyObject_HEAD
 		PyObject* name;
@@ -26,6 +29,7 @@ namespace python { namespace internal {
 	PyObject* PyInit_bee_texture(PyObject*);
 
 	Texture* as_texture(TextureObject*);
+	Texture* as_texture(PyObject*);
 
 	void Texture_dealloc(TextureObject*);
 	PyObject* Texture_new(PyTypeObject*, PyObject*, PyObject*);

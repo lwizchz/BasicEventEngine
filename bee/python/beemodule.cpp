@@ -437,6 +437,10 @@ namespace bee { namespace python { namespace internal {
 
 	PyObject* displayhook(PyObject* self, PyObject* arg) {
 		python::set_displayhook(arg);
+
+		if (PyErr_Occurred() != nullptr) {
+			return nullptr;
+		}
 		Py_RETURN_NONE;
 	}
 

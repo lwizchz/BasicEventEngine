@@ -11,6 +11,8 @@
 
 #include <map>
 #include <vector>
+#include <typeinfo>
+#include <typeindex>
 
 #include "../enum.hpp"
 
@@ -19,6 +21,7 @@
 namespace bee {
 	class Variant { // This class can hold various types and is meant to allow multiple types in the same container
 		E_DATA_TYPE type;
+		std::type_index ptype;
 
 	public:
 		union {
@@ -38,6 +41,7 @@ namespace bee {
 		Variant(const Variant&);
 		Variant(const std::string&, bool);
 		Variant(const char*);
+		//Variant(std::initializer_list<Variant>);
 
 		explicit Variant(unsigned char);
 		explicit Variant(int);
@@ -47,12 +51,14 @@ namespace bee {
 		explicit Variant(const std::vector<Variant>&);
 		explicit Variant(const std::map<Variant,Variant>&);
 		explicit Variant(const SerialData&);
-		explicit Variant(void*);
+		template <typename T>
+		explicit Variant(T*);
 
 		~Variant();
 		int reset();
 
 		E_DATA_TYPE get_type() const;
+		std::type_index get_ptype() const;
 
 		int interpret(const std::string&);
 		std::string to_str(bool) const;
@@ -68,9 +74,11 @@ namespace bee {
 		Variant& operator=(const std::vector<Variant>&);
 		Variant& operator=(const std::map<Variant,Variant>&);
 		Variant& operator=(const SerialData&);
-		Variant& operator=(void*);
+		template <typename T>
+		Variant& operator=(T*);
 
 		bool operator==(const Variant&) const;
+		bool operator!=(const Variant&) const;
 
 		friend bool operator<(const Variant&, const Variant&);
 
@@ -81,6 +89,19 @@ namespace bee {
 
 	std::ostream& operator<<(std::ostream&, const Variant&);
 	std::istream& operator>>(std::istream&, Variant&);
+
+	template <typename T>
+	Variant::Variant(T* _p) :
+		type(E_DATA_TYPE::NONE),
+		ptype(std::type_index(typeid(_p))),
+		p(_p)
+	{}
+
+	template <typename T>
+	Variant& Variant::operator=(T* _p) {
+		*this = Variant(_p);
+		return *this;
+	}
 }
 
 // Shorthand for easier use in Instances

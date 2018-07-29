@@ -45,6 +45,7 @@ bee::Script* scr_test = nullptr;
 // Declare Objects
 bee::Object* obj_control = nullptr;
 bee::Object* obj_bee = nullptr;
+bee::Object* obj_mesh = nullptr;
 
 // Declare Rooms
 bee::Room* rm_test = nullptr;
@@ -108,6 +109,7 @@ int bee::init_resources() {
 		obj_control = new ObjControl();
 		obj_bee = new ObjBee();
 			obj_bee->set_sprite(spr_bee);
+		obj_mesh = new __ObjScript("obj_mesh.py");
 
 		// Init Rooms
 		rm_test = new RmTest();
@@ -160,6 +162,7 @@ int bee::close_resources() {
 	// Destroy Objects
 	DEL(obj_control);
 	DEL(obj_bee);
+	DEL(obj_mesh);
 
 	// Destroy Rooms
 	DEL(rm_test);

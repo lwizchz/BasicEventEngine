@@ -18,7 +18,17 @@
 
 #include "../../resource/font.hpp"
 
-namespace bee { namespace python { namespace internal {
+namespace bee { namespace python {
+	PyObject* Font_from(Font* font) {
+		PyObject* py_font = internal::Font_new(&internal::FontType, nullptr, nullptr);
+		internal::FontObject* _py_font = reinterpret_cast<internal::FontObject*>(py_font);
+		_py_font->name = PyUnicode_FromString(font->get_name().c_str());
+		return py_font;
+	}
+	bool Font_check(PyObject* obj) {
+		return PyObject_TypeCheck(obj, &internal::FontType);
+	}
+namespace internal {
 	PyMethodDef FontMethods[] = {
 		{"print", reinterpret_cast<PyCFunction>(Font_print), METH_NOARGS, "Print all relevant information about the Font"},
 
@@ -111,6 +121,12 @@ namespace bee { namespace python { namespace internal {
 		std::string _name (PyUnicode_AsUTF8(self->name));
 
 		return Font::get_by_name(_name);
+	}
+	Font* as_font(PyObject* self) {
+		if (Font_check(self)) {
+			return as_font(reinterpret_cast<FontObject*>(self));
+		}
+		return nullptr;
 	}
 
 	void Font_dealloc(FontObject* self) {

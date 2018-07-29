@@ -64,4 +64,16 @@ namespace bee { namespace python { namespace internal {
 	PyObject* core_set_window_size(PyObject*, PyObject*);
 }}}
 
+#include "resource/texture.hpp"
+#include "resource/sound.hpp"
+#include "resource/font.hpp"
+#include "resource/path.hpp"
+#include "resource/timeline.hpp"
+#include "resource/mesh.hpp"
+#include "resource/light.hpp"
+#include "resource/script.hpp"
+#include "resource/object.hpp"
+//#include "resource/room.hpp"
+#include "instance.hpp"
+
 #endif // BEE_PYTHON_BEEMODULE_H

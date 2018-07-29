@@ -392,9 +392,9 @@ namespace bee {
 	* @retval false the collision masks and computation types do not overlap
 	*/
 	bool Object::check_collision_filter(const Instance* self, const Instance* other) const {
-		int self_mask = self->get_data("collision_mask").i;
+		int self_mask = self->get_data("__collision_mask").i;
 		int self_comp = static_cast<int>(self->get_computation_type());
-		int other_mask = other->get_data("collision_mask").i;
+		int other_mask = other->get_data("__collision_mask").i;
 		int other_comp = static_cast<int>(other->get_computation_type());
 
 		if ((self_mask & other_comp) != 0) {

@@ -320,7 +320,12 @@ namespace bee{ namespace console {
 		int r = scr_console->run_string(command, &value);
 		if (r == 0) {
 			if (value.get_type() != E_DATA_TYPE::NONE) {
-				messenger::send({"engine", "console"}, E_MESSAGE::INFO, value.to_str());
+				messenger::send({"engine", "console"}, E_MESSAGE::INFO, value.to_str(true));
+			} else if (value.p != nullptr) {
+				// FIXME: ugly and probably only works for Python
+				PyObject* str = PyObject_Str(python::variant_to_pyobj(value));
+				std::string _str (PyUnicode_AsUTF8(str));
+				messenger::send({"engine", "console"}, E_MESSAGE::INFO, _str);
 			}
 		} else if (r > 1) {
 			messenger::send({"engine", "console"}, E_MESSAGE::ERROR, python::get_traceback());

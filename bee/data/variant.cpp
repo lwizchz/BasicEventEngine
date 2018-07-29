@@ -28,7 +28,8 @@ namespace bee {
 		Variant(E_DATA_TYPE::NONE)
 	{}
 	Variant::Variant(E_DATA_TYPE _type) :
-		type(_type)
+		type(_type),
+		ptype(std::type_index(typeid(nullptr)))
 	{
 		switch (type) {
 			case E_DATA_TYPE::NONE: {
@@ -70,11 +71,13 @@ namespace bee {
 		}
 	}
 	Variant::Variant(const Variant& var) :
-		type(var.type)
+		type(var.type),
+		ptype(std::type_index(typeid(nullptr)))
 	{
 		switch (type) {
 			case E_DATA_TYPE::NONE: {
 				p = var.p;
+				ptype = var.get_ptype();
 				break;
 			}
 			case E_DATA_TYPE::CHAR: {
@@ -124,43 +127,59 @@ namespace bee {
 	Variant::Variant(const char* _s) :
 		Variant(std::string(_s))
 	{}
+	/*Variant::Variant(std::initializer_list<Variant> il) :
+		Variant()
+	{
+		std::vector<Variant> v;
+		v.reserve(il.size());
+		for (auto& e : il) {
+			v.push_back(e);
+		}
+
+		*this = Variant(v);
+	}*/
 
 	Variant::Variant(unsigned char _c) :
 		type(E_DATA_TYPE::CHAR),
+		ptype(std::type_index(typeid(nullptr))),
 		c(_c)
 	{}
 	Variant::Variant(int _i) :
 		type(E_DATA_TYPE::INT),
+		ptype(std::type_index(typeid(nullptr))),
 		i(_i)
 	{}
 	Variant::Variant(float _f) :
 		type(E_DATA_TYPE::FLOAT),
+		ptype(std::type_index(typeid(nullptr))),
 		f(_f)
 	{}
 	Variant::Variant(double _d) :
 		type(E_DATA_TYPE::DOUBLE),
+		ptype(std::type_index(typeid(nullptr))),
 		d(_d)
 	{}
 	Variant::Variant(const std::string& _s) :
 		type(E_DATA_TYPE::STRING),
+		ptype(std::type_index(typeid(nullptr))),
 		s(_s)
 	{}
 	Variant::Variant(const std::vector<Variant>& _v) :
 		type(E_DATA_TYPE::VECTOR),
+		ptype(std::type_index(typeid(nullptr))),
 		v(_v)
 	{}
 	Variant::Variant(const std::map<Variant,Variant>& _m) :
 		type(E_DATA_TYPE::MAP),
+		ptype(std::type_index(typeid(nullptr))),
 		m(_m)
 	{}
 	Variant::Variant(const SerialData& _sd) :
 		type(E_DATA_TYPE::SERIAL),
+		ptype(std::type_index(typeid(nullptr))),
 		sd(_sd)
 	{}
-	Variant::Variant(void* _p) :
-		type(E_DATA_TYPE::NONE),
-		p(_p)
-	{}
+	// See variant.hpp for Variant(T*)
 
 	Variant::~Variant() {
 		reset();
@@ -191,6 +210,7 @@ namespace bee {
 		}
 
 		type = E_DATA_TYPE::NONE;
+		ptype = std::type_index(typeid(nullptr));
 		p = nullptr;
 
 		return 0;
@@ -198,6 +218,9 @@ namespace bee {
 
 	E_DATA_TYPE Variant::get_type() const {
 		return type;
+	}
+	std::type_index Variant::get_ptype() const {
+		return ptype;
 	}
 
 	int Variant::interpret(const std::string& ns) {
@@ -294,7 +317,8 @@ namespace bee {
 			this->type = rhs.type;
 			switch (this->type) {
 				case E_DATA_TYPE::NONE: {
-					this->p = nullptr;
+					this->ptype = rhs.get_ptype();
+					this->p = rhs.p;
 					break;
 				}
 				case E_DATA_TYPE::CHAR: {
@@ -369,10 +393,7 @@ namespace bee {
 		*this = Variant(_sd);
 		return *this;
 	}
-	Variant& Variant::operator=(void* _p) {
-		*this = Variant(_p);
-		return *this;
-	}
+	// See variant.hpp for operator=(T*)
 
 	bool Variant::operator==(const Variant& rhs) const {
 		if (this->type != rhs.type) {
@@ -412,10 +433,12 @@ namespace bee {
 
 		return false;
 	}
+	bool Variant::operator!=(const Variant& rhs) const {
+		return !(*this == rhs);
+	}
 
 	bool operator<(const Variant& a, const Variant& b) {
 		if (a.type != b.type) {
-			//throw std::runtime_error("Error: Invalid comparison on Variants of differing types");
 			return (static_cast<int>(a.type) < static_cast<int>(b.type)); // Compare the type values so different types can be used in an ordered map
 		}
 

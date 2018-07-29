@@ -1,3 +1,11 @@
+###############################################################################
+# Copyright (c) 2015-18 Luke Montalvo <lukemontalvo@gmail.com>
+#
+# This file is part of BEE.
+# BEE is free software and comes with ABSOLUTELY NO WARRANTY
+# See LICENSE for more details.
+###############################################################################
+
 import bee
 
 import random
@@ -23,6 +31,6 @@ def main():
         print("changing pyopt to: {}".format(value))
     bee.set_option("pyopt", "a string value", pyopt)
 
-    inst = bee.Instance("obj_bee")
+    inst = bee.Instance("obj_bee").at(0)
     inst.set_data("py", [1, 2, 3])
     print(inst.get_data("py"))

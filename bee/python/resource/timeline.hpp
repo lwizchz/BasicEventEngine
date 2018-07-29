@@ -13,7 +13,12 @@
 
 #include <Python.h>
 
-namespace bee { namespace python { namespace internal {
+namespace bee {
+	class Timeline;
+namespace python {
+	PyObject* Timeline_from(Timeline*);
+	bool Timeline_check(PyObject*);
+namespace internal {
 	typedef struct {
 		PyObject_HEAD
 		PyObject* name;
@@ -22,6 +27,9 @@ namespace bee { namespace python { namespace internal {
 	extern PyTypeObject TimelineType;
 
 	PyObject* PyInit_bee_timeline(PyObject*);
+
+	Timeline* as_timeline(TimelineObject*);
+	Timeline* as_timeline(PyObject*);
 
 	void Timeline_dealloc(TimelineObject*);
 	PyObject* Timeline_new(PyTypeObject*, PyObject*, PyObject*);
