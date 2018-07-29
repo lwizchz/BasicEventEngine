@@ -6,10 +6,10 @@
 * See LICENSE for more details.
 */
 
-#ifndef BEE_UI_OBJ_ELEMENT_H
-#define BEE_UI_OBJ_ELEMENT_H 1
+#ifndef BEE_OBJ_UI_ELEMENT_H
+#define BEE_OBJ_UI_ELEMENT_H 1
 
-#include "../../resource/object.hpp"
+#include "../../../resource/object.hpp"
 
 class ObjUIElement : public bee::Object {
 	public:

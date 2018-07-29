@@ -13,7 +13,6 @@
 #include <vector>
 
 #include "ui.hpp"
-#include "elements.hpp"
 
 #include "../messenger/messenger.hpp"
 
@@ -24,6 +23,8 @@
 #include "../resource/font.hpp"
 #include "../resource/object.hpp"
 #include "../resource/room.hpp"
+
+#include "../resources/headers.hpp"
 
 namespace bee { namespace ui {
 	namespace internal {

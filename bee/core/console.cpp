@@ -45,7 +45,8 @@
 #include "../python/python.hpp"
 
 #include "../ui/ui.hpp"
-#include "../ui/elements.hpp"
+
+#include "../resources/headers.hpp"
 
 namespace bee{ namespace console {
 	namespace internal {

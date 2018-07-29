@@ -6,10 +6,10 @@
 * See LICENSE for more details.
 */
 
-#ifndef BEE_UI_OBJ_GAUGE_H
-#define BEE_UI_OBJ_GAUGE_H 1
+#ifndef BEE_OBJ_UI_GAUGE_H
+#define BEE_OBJ_UI_GAUGE_H 1
 
-#include "element.hpp"
+#include "obj_element.hpp"
 
 class ObjUIGauge : public ObjUIElement {
 	public:
@@ -28,4 +28,4 @@ class ObjUIGauge : public ObjUIElement {
 		void set_color_back(bee::Instance*, bee::RGBA);
 };
 
-#endif // BEE_UI_OBJ_GAUGE_H
+#endif // BEE_OBJ_UI_GAUGE_H

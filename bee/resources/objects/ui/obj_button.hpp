@@ -6,10 +6,10 @@
 * See LICENSE for more details.
 */
 
-#ifndef BEE_UI_OBJ_BUTTON_H
-#define BEE_UI_OBJ_BUTTON_H 1
+#ifndef BEE_OBJ_UI_BUTTON_H
+#define BEE_OBJ_UI_BUTTON_H 1
 
-#include "element.hpp"
+#include "obj_element.hpp"
 
 class ObjUIButton : public ObjUIElement {
 	public:
@@ -24,4 +24,4 @@ class ObjUIButton : public ObjUIElement {
 		void center_width(bee::Instance*);
 };
 
-#endif // BEE_UI_OBJ_BUTTON_H
+#endif // BEE_OBJ_UI_BUTTON_H

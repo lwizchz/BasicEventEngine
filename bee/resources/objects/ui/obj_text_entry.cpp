@@ -6,15 +6,15 @@
 * See LICENSE for more details.
 */
 
-#ifndef BEE_UI_OBJ_TEXTENTRY
-#define BEE_UI_OBJ_TEXTENTRY 1
+#ifndef BEE_OBJ_UI_TEXTENTRY
+#define BEE_OBJ_UI_TEXTENTRY 1
 
-#include "../../util.hpp"
-#include "../../all.hpp"
+#include "../../../util.hpp"
+#include "../../../all.hpp"
 
-#include "text_entry.hpp"
+#include "obj_text_entry.hpp"
 
-ObjUITextEntry::ObjUITextEntry() : ObjUIElement("obj_ui_text_entry", "/ui/objects/text_entry.cpp") {
+ObjUITextEntry::ObjUITextEntry() : ObjUIElement("__obj_ui_text_entry", "/bee/resources/objects/ui/obj_text_entry.cpp") {
 	implemented_events.insert({
 		bee::E_EVENT::CREATE,
 		bee::E_EVENT::DESTROY,
@@ -200,4 +200,4 @@ void ObjUITextEntry::complete(bee::Instance* self, const std::string& input) {
 	_s("input") = new_input;
 }
 
-#endif // BEE_UI_OBJ_TEXTENTRY
+#endif // BEE_OBJ_UI_TEXTENTRY

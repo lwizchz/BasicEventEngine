@@ -6,10 +6,10 @@
 * See LICENSE for more details.
 */
 
-#ifndef BEE_UI_OBJ_TEXTENTRY_H
-#define BEE_UI_OBJ_TEXTENTRY_H 1
+#ifndef BEE_OBJ_UI_TEXTENTRY_H
+#define BEE_OBJ_UI_TEXTENTRY_H 1
 
-#include "element.hpp"
+#include "obj_element.hpp"
 
 class ObjUITextEntry : public ObjUIElement {
 	public:
@@ -30,4 +30,4 @@ class ObjUITextEntry : public ObjUIElement {
 		void complete(bee::Instance*, const std::string&);
 };
 
-#endif // BEE_UI_OBJ_TEXTENTRY_H
+#endif // BEE_OBJ_UI_TEXTENTRY_H

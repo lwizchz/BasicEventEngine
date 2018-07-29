@@ -6,13 +6,13 @@
 * See LICENSE for more details.
 */
 
-#ifndef BEE_UI_OBJ_ELEMENT
-#define BEE_UI_OBJ_ELEMENT 1
+#ifndef BEE_OBJ_UI_ELEMENT
+#define BEE_OBJ_UI_ELEMENT 1
 
-#include "../../util.hpp"
-#include "../../all.hpp"
+#include "../../../util.hpp"
+#include "../../../all.hpp"
 
-#include "element.hpp"
+#include "obj_element.hpp"
 
 ObjUIElement::ObjUIElement(const std::string& new_name, const std::string& new_path) :
 	Object(new_name, new_path)
@@ -119,4 +119,4 @@ void ObjUIElement::set_color(bee::Instance* self, const bee::RGBA& new_color) {
 	_i("color_a") = new_color.a;
 }
 
-#endif // BEE_UI_OBJ_ELEMENT
+#endif // BEE_OBJ_UI_ELEMENT

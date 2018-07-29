@@ -51,7 +51,7 @@ namespace bee {
 		};
 	}
 
-	__ObjScript::__ObjScript(const std::string& scriptfile) :
+	ObjScript::ObjScript(const std::string& scriptfile) :
 		Object("__obj_script", scriptfile),
 		script(nullptr),
 		events()
@@ -76,13 +76,13 @@ namespace bee {
 			}
 		}
 	}
-	__ObjScript::~__ObjScript() {
+	ObjScript::~ObjScript() {
 		if (script != nullptr) {
 			delete script;
 		}
 	}
 
-	void __ObjScript::update(Instance* self) {
+	void ObjScript::update(Instance* self) {
 		Object::update(self);
 		if (events.find(bee::E_EVENT::UPDATE) == events.end()) {
 			return;
@@ -93,13 +93,13 @@ namespace bee {
 		});
 		script->run_func("update", args, nullptr);
 	}
-	void __ObjScript::create(Instance* self) {
+	void ObjScript::create(Instance* self) {
 		Variant args (std::vector<Variant>{
 			Variant(self)
 		});
 		script->run_func("create", args, nullptr);
 	}
-	void __ObjScript::destroy(Instance* self) {
+	void ObjScript::destroy(Instance* self) {
 		if (events.find(bee::E_EVENT::DESTROY) != events.end()) {
 			Variant args (std::vector<Variant>{
 				Variant(self)
@@ -110,7 +110,7 @@ namespace bee {
 		Object::destroy(self);
 	}
 
-	void __ObjScript::alarm(Instance* self, const std::string& alarm) {
+	void ObjScript::alarm(Instance* self, const std::string& alarm) {
 		Variant args (std::vector<Variant>{
 			Variant(self),
 			Variant(alarm)
@@ -118,7 +118,7 @@ namespace bee {
 		script->run_func("alarm", args, nullptr);
 	}
 
-	void __ObjScript::step_begin(Instance* self) {
+	void ObjScript::step_begin(Instance* self) {
 		Object::step_begin(self);
 		if (events.find(bee::E_EVENT::STEP_BEGIN) == events.end()) {
 			return;
@@ -129,20 +129,20 @@ namespace bee {
 		});
 		script->run_func("step_begin", args, nullptr);
 	}
-	void __ObjScript::step_mid(Instance* self) {
+	void ObjScript::step_mid(Instance* self) {
 		Variant args (std::vector<Variant>{
 			Variant(self)
 		});
 		script->run_func("step_mid", args, nullptr);
 	}
-	void __ObjScript::step_end(Instance* self) {
+	void ObjScript::step_end(Instance* self) {
 		Variant args (std::vector<Variant>{
 			Variant(self)
 		});
 		script->run_func("step_end", args, nullptr);
 	}
 
-	void __ObjScript::keyboard_press(Instance* self, SDL_Event* e) {
+	void ObjScript::keyboard_press(Instance* self, SDL_Event* e) {
 		Variant args (std::vector<Variant>{
 			Variant(self),
 			Variant(std::map<Variant,Variant>{
@@ -160,7 +160,7 @@ namespace bee {
 		});
 		script->run_func("keyboard_press", args, nullptr);
 	}
-	void __ObjScript::mouse_press(Instance* self, SDL_Event* e) {
+	void ObjScript::mouse_press(Instance* self, SDL_Event* e) {
 		Variant args (std::vector<Variant>{
 			Variant(self),
 			Variant(std::map<Variant,Variant>{
@@ -177,7 +177,7 @@ namespace bee {
 		});
 		script->run_func("mouse_press", args, nullptr);
 	}
-	void __ObjScript::keyboard_input(Instance* self, SDL_Event* e) {
+	void ObjScript::keyboard_input(Instance* self, SDL_Event* e) {
 		Variant args (std::vector<Variant>{
 			Variant(self),
 			Variant(std::map<Variant,Variant>{
@@ -195,7 +195,7 @@ namespace bee {
 		});
 		script->run_func("keyboard_input", args, nullptr);
 	}
-	void __ObjScript::mouse_input(Instance* self, SDL_Event* e) {
+	void ObjScript::mouse_input(Instance* self, SDL_Event* e) {
 		Variant event;
 		if (e->type == SDL_MOUSEMOTION) {
 			event = {
@@ -229,7 +229,7 @@ namespace bee {
 		});
 		script->run_func("mouse_input", args, nullptr);
 	}
-	void __ObjScript::keyboard_release(Instance* self, SDL_Event* e) {
+	void ObjScript::keyboard_release(Instance* self, SDL_Event* e) {
 		Variant args (std::vector<Variant>{
 			Variant(self),
 			Variant(std::map<Variant,Variant>{
@@ -247,7 +247,7 @@ namespace bee {
 		});
 		script->run_func("keyboard_release", args, nullptr);
 	}
-	void __ObjScript::mouse_release(Instance* self, SDL_Event* e) {
+	void ObjScript::mouse_release(Instance* self, SDL_Event* e) {
 		Variant args (std::vector<Variant>{
 			Variant(self),
 			Variant(std::map<Variant,Variant>{
@@ -264,7 +264,7 @@ namespace bee {
 		});
 		script->run_func("mouse_release", args, nullptr);
 	}
-	void __ObjScript::controller_axis(Instance* self, SDL_Event* e) {
+	void ObjScript::controller_axis(Instance* self, SDL_Event* e) {
 		Variant args (std::vector<Variant>{
 			Variant(self),
 			Variant(std::map<Variant,Variant>{
@@ -277,7 +277,7 @@ namespace bee {
 		});
 		script->run_func("controller_axis", args, nullptr);
 	}
-	void __ObjScript::controller_press(Instance* self, SDL_Event* e) {
+	void ObjScript::controller_press(Instance* self, SDL_Event* e) {
 		Variant args (std::vector<Variant>{
 			Variant(self),
 			Variant(std::map<Variant,Variant>{
@@ -290,7 +290,7 @@ namespace bee {
 		});
 		script->run_func("controller_press", args, nullptr);
 	}
-	void __ObjScript::controller_release(Instance* self, SDL_Event* e) {
+	void ObjScript::controller_release(Instance* self, SDL_Event* e) {
 		Variant args (std::vector<Variant>{
 			Variant(self),
 			Variant(std::map<Variant,Variant>{
@@ -303,7 +303,7 @@ namespace bee {
 		});
 		script->run_func("controller_release", args, nullptr);
 	}
-	void __ObjScript::controller_modify(Instance* self, SDL_Event* e) {
+	void ObjScript::controller_modify(Instance* self, SDL_Event* e) {
 		Variant args (std::vector<Variant>{
 			Variant(self),
 			Variant(std::map<Variant,Variant>{
@@ -315,7 +315,7 @@ namespace bee {
 		script->run_func("controller_modify", args, nullptr);
 	}
 
-	void __ObjScript::commandline_input(Instance* self, const std::string& str) {
+	void ObjScript::commandline_input(Instance* self, const std::string& str) {
 		Variant args (std::vector<Variant>{
 			Variant(self),
 			Variant(str)
@@ -323,33 +323,33 @@ namespace bee {
 		script->run_func("commandline_input", args, nullptr);
 	}
 
-	void __ObjScript::path_end(Instance* self, PathFollower* pf) {
+	void ObjScript::path_end(Instance* self, PathFollower* pf) {
 		Variant args (std::vector<Variant>{
 			Variant(self),
 			Variant(pf->path)
 		});
 		script->run_func("path_end", args, nullptr);
 	}
-	void __ObjScript::outside_room(Instance* self) {
+	void ObjScript::outside_room(Instance* self) {
 		Variant args (std::vector<Variant>{
 			Variant(self)
 		});
 		script->run_func("outside_room", args, nullptr);
 	}
-	void __ObjScript::intersect_boundary(Instance* self) {
+	void ObjScript::intersect_boundary(Instance* self) {
 		Variant args (std::vector<Variant>{
 			Variant(self)
 		});
 		script->run_func("intersect_boundary", args, nullptr);
 	}
-	void __ObjScript::collision(Instance* self, Instance* other) {
+	void ObjScript::collision(Instance* self, Instance* other) {
 		Variant args (std::vector<Variant>{
 			Variant(self),
 			Variant(other)
 		});
 		script->run_func("collision", args, nullptr);
 	}
-	bool __ObjScript::check_collision_filter(const Instance* self, const Instance* other) const {
+	bool ObjScript::check_collision_filter(const Instance* self, const Instance* other) const {
 		if (events.find(bee::E_EVENT::CHECK_COLLISION_FILTER) == events.end()) {
 			return Object::check_collision_filter(self, other);
 		}
@@ -368,45 +368,45 @@ namespace bee {
 		return result.i;
 	}
 
-	void __ObjScript::draw(Instance* self) {
+	void ObjScript::draw(Instance* self) {
 		Variant args (std::vector<Variant>{
 			Variant(self)
 		});
 		script->run_func("draw", args, nullptr);
 	}
-	void __ObjScript::animation_end(Instance* self) {
+	void ObjScript::animation_end(Instance* self) {
 		Variant args (std::vector<Variant>{
 			Variant(self)
 		});
 		script->run_func("animation_end", args, nullptr);
 	}
 
-	void __ObjScript::room_start(Instance* self) {
+	void ObjScript::room_start(Instance* self) {
 		Variant args (std::vector<Variant>{
 			Variant(self)
 		});
 		script->run_func("room_start", args, nullptr);
 	}
-	void __ObjScript::room_end(Instance* self) {
+	void ObjScript::room_end(Instance* self) {
 		Variant args (std::vector<Variant>{
 			Variant(self)
 		});
 		script->run_func("room_end", args, nullptr);
 	}
-	void __ObjScript::game_start(Instance* self) {
+	void ObjScript::game_start(Instance* self) {
 		Variant args (std::vector<Variant>{
 			Variant(self)
 		});
 		script->run_func("game_start", args, nullptr);
 	}
-	void __ObjScript::game_end(Instance* self) {
+	void ObjScript::game_end(Instance* self) {
 		Variant args (std::vector<Variant>{
 			Variant(self)
 		});
 		script->run_func("game_end", args, nullptr);
 	}
 
-	void __ObjScript::window(Instance* self, SDL_Event* e) {
+	void ObjScript::window(Instance* self, SDL_Event* e) {
 		Variant args (std::vector<Variant>{
 			Variant(self),
 			Variant(std::map<Variant,Variant>{
@@ -421,7 +421,7 @@ namespace bee {
 		script->run_func("window", args, nullptr);
 	}
 
-	void __ObjScript::network(Instance* self, const NetworkEvent& e) {
+	void ObjScript::network(Instance* self, const NetworkEvent& e) {
 		std::map<Variant,Variant> data;
 		for (auto& d : e.data) {
 			data.emplace(Variant(d.first), d.second);

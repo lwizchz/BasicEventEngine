@@ -6,15 +6,15 @@
 * See LICENSE for more details.
 */
 
-#ifndef BEE_UI_OBJ_SLIDER
-#define BEE_UI_OBJ_SLIDER 1
+#ifndef BEE_OBJ_UI_SLIDER
+#define BEE_OBJ_UI_SLIDER 1
 
-#include "../../util.hpp"
-#include "../../all.hpp"
+#include "../../../util.hpp"
+#include "../../../all.hpp"
 
-#include "slider.hpp"
+#include "obj_slider.hpp"
 
-ObjUISlider::ObjUISlider() : ObjUIElement("obj_ui_slider", "/ui/objects/slider.cpp") {
+ObjUISlider::ObjUISlider() : ObjUIElement("__obj_ui_slider", "/bee/resources/objects/ui/obj_slider.cpp") {
 	implemented_events.insert({
 		bee::E_EVENT::CREATE,
 		bee::E_EVENT::MOUSE_INPUT,

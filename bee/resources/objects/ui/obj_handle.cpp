@@ -6,15 +6,15 @@
 * See LICENSE for more details.
 */
 
-#ifndef BEE_UI_OBJ_HANDLE
-#define BEE_UI_OBJ_HANDLE 1
+#ifndef BEE_OBJ_UI_HANDLE
+#define BEE_OBJ_UI_HANDLE 1
 
-#include "../../util.hpp"
-#include "../../all.hpp"
+#include "../../../util.hpp"
+#include "../../../all.hpp"
 
-#include "handle.hpp"
+#include "obj_handle.hpp"
 
-ObjUIHandle::ObjUIHandle() : ObjUIElement("obj_ui_handle", "/ui/objects/handle.cpp") {
+ObjUIHandle::ObjUIHandle() : ObjUIElement("__obj_ui_handle", "/bee/resources/objects/ui/obj_handle.cpp") {
 	implemented_events.insert({
 		bee::E_EVENT::CREATE,
 		bee::E_EVENT::DESTROY,
@@ -141,4 +141,4 @@ void ObjUIHandle::bind(bee::Instance* self, bee::Instance* parent_inst) {
 	}
 }
 
-#endif // BEE_UI_OBJ_HANDLE
+#endif // BEE_OBJ_UI_HANDLE

@@ -14,6 +14,10 @@
 
 #include <SDL2/SDL.h> // Include the required SDL headers
 
+// User defined in resources/resources.hpp
+int init_resources();
+int close_resources();
+
 namespace bee { // The engine namespace
 	// Forward declarations
 	struct ProgramFlag;
@@ -34,10 +38,6 @@ namespace bee { // The engine namespace
 		int update_delta();
 		int frame_delay();
 	}
-
-	// User defined in resources/resources.hpp
-	int init_resources();
-	int close_resources();
 
 	// bee/engine.cpp
 	int init(int, char**, Room**, const std::list<ProgramFlag*>&, const std::list<GameOption>&);

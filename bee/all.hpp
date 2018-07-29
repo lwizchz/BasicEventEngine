@@ -76,8 +76,7 @@
 #include "python/python.hpp"
 
 #include "ui/ui.hpp"
-#include "ui/elements.hpp"
 
-#include "resources/objects/obj_script.hpp"
+#include "resources/headers.hpp"
 
 // Does not include the util headers, use ./util.hpp

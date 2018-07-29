@@ -9,14 +9,18 @@
 #ifndef BEE_OBJ_SCRIPT_H
 #define BEE_OBJ_SCRIPT_H 1
 
+#include "../../resource/object.hpp"
+
 namespace bee {
+	class Script;
+
 	/// Used to run Scripts as Objects
-	class __ObjScript : public Object {
+	class ObjScript : public Object {
 			Script* script; ///< The script containing the Object event functions
 			std::set<E_EVENT> events; ///< The set of fully implemented events
 		public:
-			__ObjScript(const std::string&);
-			virtual ~__ObjScript();
+			ObjScript(const std::string&);
+			virtual ~ObjScript();
 
 			void update(Instance*);
 			void create(Instance*);

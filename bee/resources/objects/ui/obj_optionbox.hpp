@@ -6,10 +6,10 @@
 * See LICENSE for more details.
 */
 
-#ifndef BEE_UI_OBJ_OPTIONBOX_H
-#define BEE_UI_OBJ_OPTIONBOX_H 1
+#ifndef BEE_OBJ_UI_OPTIONBOX_H
+#define BEE_OBJ_UI_OPTIONBOX_H 1
 
-#include "element.hpp"
+#include "obj_element.hpp"
 
 class ObjUIOptionBox : public ObjUIElement {
 	public:
@@ -33,4 +33,4 @@ class ObjUIOptionBox : public ObjUIElement {
 		void set_option_state(bee::Instance*, size_t, bool);
 };
 
-#endif // BEE_UI_OBJ_OPTIONBOX_H
+#endif // BEE_OBJ_UI_OPTIONBOX_H

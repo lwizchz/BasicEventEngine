@@ -6,15 +6,15 @@
 * See LICENSE for more details.
 */
 
-#ifndef BEE_UI_OBJ_OPTIONBOX
-#define BEE_UI_OBJ_OPTIONBOX 1
+#ifndef BEE_OBJ_UI_OPTIONBOX
+#define BEE_OBJ_UI_OPTIONBOX 1
 
-#include "../../util.hpp"
-#include "../../all.hpp"
+#include "../../../util.hpp"
+#include "../../../all.hpp"
 
-#include "optionbox.hpp"
+#include "obj_optionbox.hpp"
 
-ObjUIOptionBox::ObjUIOptionBox() : ObjUIElement("obj_ui_optionbox", "/ui/objects/optionbox.cpp") {
+ObjUIOptionBox::ObjUIOptionBox() : ObjUIElement("__obj_ui_optionbox", "/bee/resources/objects/ui/obj_optionbox.cpp") {
 	implemented_events.insert({
 		bee::E_EVENT::CREATE,
 		bee::E_EVENT::MOUSE_INPUT,
@@ -196,4 +196,4 @@ void ObjUIOptionBox::set_option_state(bee::Instance* self, size_t index, bool ne
 	}
 }
 
-#endif // BEE_UI_OBJ_OPTIONBOX
+#endif // BEE_OBJ_UI_OPTIONBOX

@@ -64,57 +64,57 @@ bee::Room* rm_test = nullptr;
 * @retval 0 success
 * @retval 1 failed
 */
-int bee::init_resources() {
+int init_resources() {
 	try { // Catch any exceptions so that the engine can properly clean up
 		// Init Sprites
-		spr_none = new Texture("spr_none", "none.png");
+		spr_none = new bee::Texture("spr_none", "none.png");
 			spr_none->load();
-		spr_bee = new Texture("spr_bee", "spr_bee.png");
+		spr_bee = new bee::Texture("spr_bee", "spr_bee.png");
 			spr_bee->set_subimage_amount(2, 100);
-		spr_dot = new Texture("spr_dot", "spr_dot.png");
+		spr_dot = new bee::Texture("spr_dot", "spr_dot.png");
 
 		// Init Backgrounds
-		bk_green = new Texture("bk_green", "bk_green.png");
+		bk_green = new bee::Texture("bk_green", "bk_green.png");
 
 		// Init Sounds
-		snd_chirp = new Sound("snd_chirp", "snd_chirp.wav", false);
+		snd_chirp = new bee::Sound("snd_chirp", "snd_chirp.wav", false);
 
 		// Init Fonts
-		font_liberation = new Font("font_liberation", "liberation_mono.ttf", 24);
+		font_liberation = new bee::Font("font_liberation", "liberation_mono.ttf", 24);
 
 		// Init Paths
-		path_bee = new Path("path_bee", "path_bee.json");
+		path_bee = new bee::Path("path_bee", "path_bee.json");
 			path_bee->load();
 
 		// Init Timelines
-		tl_bee = new Timeline("tl_bee", "tl_bee.py");
+		tl_bee = new bee::Timeline("tl_bee", "tl_bee.py");
 			tl_bee->load();
 
 		// Init Meshes
-		mesh_monkey = new Mesh("mesh_monkey", "monkey2.obj");
-		mesh_spider = new Mesh("mesh_spider", "spider.fbx");
+		mesh_monkey = new bee::Mesh("mesh_monkey", "monkey2.obj");
+		mesh_spider = new bee::Mesh("mesh_spider", "spider.fbx");
 			mesh_spider->load(2);
 
 		// Init Lights
-		lt_ambient = new Light("lt_ambient", "lt_ambient.json");
+		lt_ambient = new bee::Light("lt_ambient", "lt_ambient.json");
 			lt_ambient->load();
-		lt_bee = new Light("lt_bee", "lt_bee.json");
+		lt_bee = new bee::Light("lt_bee", "lt_bee.json");
 			lt_bee->load();
 
 		// Init Scripts
-		scr_test = new Script("scr_test", "scr_test.py");
+		scr_test = new bee::Script("scr_test", "scr_test.py");
 			scr_test->load();
 
 		// Init Objects
 		obj_control = new ObjControl();
 		obj_bee = new ObjBee();
 			obj_bee->set_sprite(spr_bee);
-		obj_mesh = new __ObjScript("obj_mesh.py");
+		obj_mesh = new bee::ObjScript("obj_mesh.py");
 
 		// Init Rooms
 		rm_test = new RmTest();
 
-		is_initialized = true; // Set the engine initialization flag
+		bee::is_initialized = true; // Set the engine initialization flag
 	} catch (...) {
 		return 1;
 	}
@@ -128,7 +128,7 @@ int bee::init_resources() {
 *
 * @retval 0 success
 */
-int bee::close_resources() {
+int close_resources() {
 	// Destroy Sprites
 	DEL(spr_bee);
 	DEL(spr_dot);
@@ -167,7 +167,7 @@ int bee::close_resources() {
 	// Destroy Rooms
 	DEL(rm_test);
 
-	is_initialized = false; // Unset the engine initialization flag
+	bee::is_initialized = false; // Unset the engine initialization flag
 
 	return 0;
 }

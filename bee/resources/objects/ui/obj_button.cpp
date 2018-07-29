@@ -6,15 +6,15 @@
 * See LICENSE for more details.
 */
 
-#ifndef BEE_UI_OBJ_BUTTON
-#define BEE_UI_OBJ_BUTTON 1
+#ifndef BEE_OBJ_UI_BUTTON
+#define BEE_OBJ_UI_BUTTON 1
 
-#include "../../util.hpp"
-#include "../../all.hpp"
+#include "../../../util.hpp"
+#include "../../../all.hpp"
 
-#include "button.hpp"
+#include "obj_button.hpp"
 
-ObjUIButton::ObjUIButton() : ObjUIElement("obj_ui_button", "/ui/objects/button.cpp") {
+ObjUIButton::ObjUIButton() : ObjUIElement("__obj_ui_button", "/bee/resources/objects/ui/obj_button.cpp") {
 	implemented_events.insert({
 		bee::E_EVENT::CREATE,
 		bee::E_EVENT::DESTROY,
@@ -125,4 +125,4 @@ void ObjUIButton::center_width(bee::Instance* self) {
 	self->set_corner((bee::get_window().w - w)/2 - ox, self->get_corner().second);
 }
 
-#endif // BEE_UI_OBJ_BUTTON
+#endif // BEE_OBJ_UI_BUTTON

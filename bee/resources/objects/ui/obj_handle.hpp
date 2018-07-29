@@ -6,10 +6,10 @@
 * See LICENSE for more details.
 */
 
-#ifndef BEE_UI_OBJ_HANDLE_H
-#define BEE_UI_OBJ_HANDLE_H 1
+#ifndef BEE_OBJ_UI_HANDLE_H
+#define BEE_OBJ_UI_HANDLE_H 1
 
-#include "element.hpp"
+#include "obj_element.hpp"
 
 class ObjUIHandle : public ObjUIElement {
 	public:
@@ -26,4 +26,4 @@ class ObjUIHandle : public ObjUIElement {
 		void bind(bee::Instance*, bee::Instance*);
 };
 
-#endif // BEE_UI_OBJ_HANDLE_H
+#endif // BEE_OBJ_UI_HANDLE_H

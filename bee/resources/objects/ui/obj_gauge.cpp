@@ -6,15 +6,15 @@
 * See LICENSE for more details.
 */
 
-#ifndef BEE_UI_OBJ_GAUGE
-#define BEE_UI_OBJ_GAUGE 1
+#ifndef BEE_OBJ_UI_GAUGE
+#define BEE_OBJ_UI_GAUGE 1
 
-#include "../../util.hpp"
-#include "../../all.hpp"
+#include "../../../util.hpp"
+#include "../../../all.hpp"
 
-#include "gauge.hpp"
+#include "obj_gauge.hpp"
 
-ObjUIGauge::ObjUIGauge() : ObjUIElement("obj_ui_gauge", "/ui/objects/gauge.cpp") {
+ObjUIGauge::ObjUIGauge() : ObjUIElement("__obj_ui_gauge", "/bee/resources/objects/ui/obj_gauge.cpp") {
 	implemented_events.insert({
 		bee::E_EVENT::CREATE,
 		bee::E_EVENT::DRAW
@@ -122,4 +122,4 @@ void ObjUIGauge::set_color_back(bee::Instance* self, bee::RGBA new_color) {
 	_i("color_back_a") = new_color.a;
 }
 
-#endif // BEE_UI_OBJ_GAUGE
+#endif // BEE_OBJ_UI_GAUGE
