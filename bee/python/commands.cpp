@@ -256,7 +256,8 @@ namespace bee { namespace python { namespace internal {
 	}
 
 	PyObject* commands_info(PyObject* self, PyObject* args) {
-		messenger::send({"engine", "console"}, E_MESSAGE::INFO, get_current_room()->get_print());
+		Variant m (get_current_room()->serialize());
+		messenger::send({"engine", "console"}, E_MESSAGE::INFO, "Room " + m.to_str(true));
 
 		Py_RETURN_NONE;
 	}

@@ -27,6 +27,7 @@
 
 #include "../messenger/messenger.hpp"
 
+#include "instance.hpp"
 #include "enginestate.hpp"
 #include "rooms.hpp"
 

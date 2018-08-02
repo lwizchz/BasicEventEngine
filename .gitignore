@@ -4,7 +4,7 @@
 /win/
 /winbuild/
 gmon.out
-defines.hpp
+/defines.hpp
 
 *.o
 *.pyc

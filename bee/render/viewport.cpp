@@ -36,7 +36,7 @@ namespace bee {
 		view(_view),
 		port(_port),
 
-		texture(new Texture()),
+		texture(std::make_shared<Texture>()),
 
 		update_func(nullptr),
 
@@ -44,13 +44,10 @@ namespace bee {
 	{
 		texture->load_as_target(get_window().w, get_window().h);
 	}
-	ViewPort::~ViewPort() {
-		delete texture;
-	}
 
 	void ViewPort::update() {
 		if (update_func != nullptr) {
-			update_func(this);
+			update_func(*this);
 		}
 	}
 	void ViewPort::draw() {

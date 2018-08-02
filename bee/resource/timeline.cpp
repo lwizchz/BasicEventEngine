@@ -9,8 +9,6 @@
 #ifndef BEE_TIMELINE
 #define BEE_TIMELINE 1
 
-#include <sstream> // Include the required library headers
-
 #include "timeline.hpp" // Include the class resource header
 
 #include "../engine.hpp"
@@ -91,8 +89,8 @@ namespace bee {
 		return tl->step_to(this, frame);
 	}
 
-	std::map<int,Timeline*> Timeline::list;
-	int Timeline::next_id = 0;
+	std::map<size_t,Timeline*> Timeline::list;
+	size_t Timeline::next_id = 0;
 
 	/**
 	* Default construct the Timeline.
@@ -121,7 +119,7 @@ namespace bee {
 	Timeline::Timeline(const std::string& _name, const std::string& _path) :
 		Timeline()
 	{
-		if (add_to_resources() < 0) { // Attempt to add the Timeline to its resource list
+		if (add_to_resources() == static_cast<size_t>(-1)) { // Attempt to add the Timeline to its resource list
 			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add timeline resource: \"" + _name + "\" from " + _path);
 			throw -1;
 		}
@@ -149,7 +147,7 @@ namespace bee {
 	*
 	* @returns the resource with the given id or nullptr if not found
 	*/
-	Timeline* Timeline::get(int id) {
+	Timeline* Timeline::get(size_t id) {
 		if (list.find(id) != list.end()) {
 			return list[id];
 		}
@@ -188,8 +186,8 @@ namespace bee {
 	*
 	* @returns the Timeline id
 	*/
-	int Timeline::add_to_resources() {
-		if (id < 0) { // If the resource needs to be added to the resource list
+	size_t Timeline::add_to_resources() {
+		if (id == static_cast<size_t>(-1)) { // If the resource needs to be added to the resource list
 			id = next_id++;
 			list.emplace(id, this); // Add the resource with its new id
 		}
@@ -220,7 +218,7 @@ namespace bee {
 	std::map<Variant,Variant> Timeline::serialize() const {
 		std::map<Variant,Variant> info;
 
-		info["id"] = id;
+		info["id"] = static_cast<int>(id);
 		info["name"] = name;
 		info["path"] = path;
 
@@ -273,7 +271,7 @@ namespace bee {
 		messenger::send({"engine", "timeline"}, E_MESSAGE::INFO, "Timeline " + m.to_str(true));
 	}
 
-	int Timeline::get_id() const {
+	size_t Timeline::get_id() const {
 		return id;
 	}
 	std::string Timeline::get_name() const {

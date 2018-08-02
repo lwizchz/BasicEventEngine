@@ -37,48 +37,6 @@ void ObjControl::create(bee::Instance* self) {
 
 	bee::mouse::set_pos(1920/2, 1080/2);
 
-	_p("part_system") = nullptr;
-	bool enable_partsys = true;
-	//bool enable_partsys = false;
-	if (enable_partsys) {
-		bee::ParticleSystem* part_system = new bee::ParticleSystem();
-
-		/*bee::Particle* part_done = new bee::Particle(bee::E_PT_SHAPE::EXPLOSION, 0.5, 1000);
-		part_done->velocity = {50.0, 90.0};
-		part_system->add_particle_type(part_done);*/
-
-		bee::Particle* part_firework = new bee::Particle(bee::E_PT_SHAPE::SNOW, 0.5, 15000);
-		part_firework->velocity = {100.0, 270.0};
-		part_firework->angle_increase = 0.2;
-		part_firework->color = bee::RGBA(bee::E_RGB::ORANGE, 200);
-		//part_firework->set_death_type(part_done);
-		//part_firework->is_texture_lightable = true;
-		part_system->add_particle_type(part_firework);
-
-		bee::ParticleEmitter* part_emitter = new bee::ParticleEmitter(
-			0.0, 0.0,
-			1920, 1,
-			part_firework
-		);
-		part_emitter->set_number(3);
-		part_system->add_emitter(part_emitter);
-
-		bee::ParticleDestroyer* part_destroyer = new bee::ParticleDestroyer(
-			0.0, 1000.0,
-			1920, 80
-		);
-		part_system->add_destroyer(part_destroyer);
-
-		bee::ParticleAttractor* part_attr = new bee::ParticleAttractor(
-			300.0, 1000.0,
-			200, 50
-		);
-		part_attr->set_max_distance(500);
-		part_system->add_attractor(part_attr);
-
-		_p("part_system") = part_system;
-	}
-
 	bee::kb::bind(SDLK_UNKNOWN, bee::KeyBind("RoomRestart", [] (const SDL_Event* e) {
 		bee::set_transition_type(static_cast<bee::E_TRANSITION>(static_cast<int>(bee::get_transition_type())+1));
 		bee::restart_room();
@@ -141,14 +99,8 @@ void ObjControl::create(bee::Instance* self) {
 	bee::kb::bind(SDLK_UNKNOWN, bee::KeyBind("End3D", [] (const SDL_Event* e) {
 		bee::render::set_3d(false);
 	}));
-
-	bee::get_current_room()->add_instance(-1, obj_mesh, 0.0, 0.0, 0.0);
 }
 void ObjControl::destroy(bee::Instance* self) {
-	if (_p("part_system") != nullptr) {
-		delete static_cast<bee::ParticleSystem*>(_p("part_system"));
-	}
-
 	if (bee::net::get_is_connected()) {
 		bee::net::session_end();
 	}
@@ -174,7 +126,7 @@ void ObjControl::mouse_press(bee::Instance* self, SDL_Event* e) {
 			SDL_Rect b = {e->button.x-10, e->button.y-10, 20, 20};
 			if ((self->id == 0)&&(!util::check_collision(a, b))) {
 				if (self->is_place_empty(e->button.x, e->button.y)) {
-					bee::Instance* bee = bee::get_current_room()->add_instance(-1, obj_bee, e->button.x, e->button.y, 0.0);
+					bee::Instance* bee = bee::get_current_room()->add_instance(-1, obj_bee, btVector3(e->button.x, e->button.y, 0));
 					bee->set_computation_type(bee::E_COMPUTATION::SEMIPLAYER);
 					bee->set_mass(1.0);
 				}
@@ -189,11 +141,7 @@ void ObjControl::draw(bee::Instance* self) {
 	_p("text_fps") = font_liberation->draw(static_cast<bee::TextData*>(_p("text_fps")), 0, 0, "FPS: " + std::to_string(bee::engine->fps_stable));
 }
 void ObjControl::room_start(bee::Instance* self) {
-	bee::ParticleSystem* part_system = static_cast<bee::ParticleSystem*>(_p("part_system"));
-	if (part_system != nullptr) {
-		//part_system->fast_forward(300);
-		bee::get_current_room()->add_particle_system(part_system);
-	}
+	bee::get_current_room()->add_instance(-1, obj_mesh, btVector3(0.0, 0.0, 0.0));
 }
 void ObjControl::game_start(bee::Instance* self) {
 	bee::console::run("execfile(\"cfg/config.py\")"); // Configure default binds

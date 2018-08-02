@@ -19,6 +19,8 @@
 
 #include "../core/rooms.hpp"
 
+#include "../render/render.hpp"
+
 #include "room.hpp"
 
 namespace bee {
@@ -33,8 +35,8 @@ namespace bee {
 		color({255, 255, 255, 255})
 	{}
 
-	std::map<int,Light*> Light::list;
-	int Light::next_id = 0;
+	std::map<size_t,Light*> Light::list;
+	size_t Light::next_id = 0;
 
 	/**
 	* Default construct the Light.
@@ -59,7 +61,7 @@ namespace bee {
 	Light::Light(const std::string& _name, const std::string& _path) :
 		Light() // Default initialize all variables
 	{
-		if (add_to_resources() < 0) { // Attempt to add the Light to its resource list
+		if (add_to_resources() == static_cast<size_t>(-1)) { // Attempt to add the Light to its resource list
 			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add Light resource: \"" + _name + "\" from " + _path);
 			throw -1;
 		}
@@ -85,7 +87,7 @@ namespace bee {
 	*
 	* @returns the resource with the given id or nullptr if not found
 	*/
-	Light* Light::get(int id) {
+	Light* Light::get(size_t id) {
 		if (list.find(id) != list.end()) {
 			return list[id];
 		}
@@ -125,8 +127,8 @@ namespace bee {
 	*
 	* @returns the Light id
 	*/
-	int Light::add_to_resources() {
-		if (id < 0) { // If the resource needs to be added to the resource list
+	size_t Light::add_to_resources() {
+		if (id == static_cast<size_t>(-1)) { // If the resource needs to be added to the resource list
 			id = next_id++;
 			list.emplace(id, this); // Add the resource with its new id
 		}
@@ -157,7 +159,7 @@ namespace bee {
 	std::map<Variant,Variant> Light::serialize() const {
 		std::map<Variant,Variant> info;
 
-		info["id"] = id;
+		info["id"] = static_cast<int>(id);
 		info["name"] = name;
 		info["path"] = path;
 
@@ -221,7 +223,7 @@ namespace bee {
 		messenger::send({"engine", "light"}, E_MESSAGE::INFO, "Light " + m.to_str(true));
 	}
 
-	int Light::get_id() const {
+	size_t Light::get_id() const {
 		return id;
 	}
 	std::string Light::get_name() const {
@@ -317,7 +319,7 @@ namespace bee {
 		} else if (type == "spot") {
 			lighting.type = E_LIGHT_TYPE::SPOT;
 		} else {
-			messenger::send({"engine", "light"}, E_MESSAGE::WARNING, "Failed to load Light \"" + name + "\": invalid light type");
+			messenger::send({"engine", "light"}, E_MESSAGE::WARNING, "Failed to load Light \"" + name + "\": invalid light type \"" + type + "\"");
 			return 2;
 		}
 
@@ -368,7 +370,7 @@ namespace bee {
 			return 1;
 		}
 
-		get_current_room()->add_light(lighting); // Add the Light to the Room lighting queue
+		render::queue_light(lighting); // Add the Light to the Room lighting queue
 
 		return 0;
 	}

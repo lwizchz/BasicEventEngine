@@ -87,8 +87,8 @@ namespace bee {
 		buffer(_buffer)
 	{}
 
-	std::map<int,Texture*> Texture::list;
-	int Texture::next_id = 0;
+	std::map<size_t,Texture*> Texture::list;
+	size_t Texture::next_id = 0;
 
 	/**
 	* Default construct the Texture.
@@ -132,7 +132,7 @@ namespace bee {
 	Texture::Texture(const std::string& _name, const std::string& _path) :
 		Texture() // Default initialize all variables
 	{
-		if (add_to_resources() < 0) { // Attempt to add the Texture to its resource list
+		if (add_to_resources() == static_cast<size_t>(-1)) { // Attempt to add the Texture to its resource list
 			messenger::send({"engine", "resource"}, E_MESSAGE::ERROR, "Failed to add Texture resource: \"" + _name + "\" from " + _path);
 			throw -1;
 		}
@@ -159,7 +159,7 @@ namespace bee {
 	*
 	* @returns the resource with the given id or nullptr if not found
 	*/
-	Texture* Texture::get(int id) {
+	Texture* Texture::get(size_t id) {
 		if (Texture::list.find(id) != Texture::list.end()) {
 			return Texture::list.at(id);
 		}
@@ -199,8 +199,8 @@ namespace bee {
 	*
 	* @returns the Texture id
 	*/
-	int Texture::add_to_resources() {
-		if (id < 0) { // If the resource needs to be added to the resource list
+	size_t Texture::add_to_resources() {
+		if (id == static_cast<size_t>(-1)) { // If the resource needs to be added to the resource list
 			id = Texture::next_id++;
 			Texture::list.emplace(id, this); // Add the resource with its new id
 		}
@@ -242,7 +242,7 @@ namespace bee {
 	std::map<Variant,Variant> Texture::serialize() const {
 		std::map<Variant,Variant> info;
 
-		info["id"] = id;
+		info["id"] = static_cast<int>(id);
 		info["name"] = name;
 		info["path"] = path;
 
@@ -311,7 +311,7 @@ namespace bee {
 		messenger::send({"engine", "texture"}, E_MESSAGE::INFO, "Texture " + m.to_str(true));
 	}
 
-	int Texture::get_id() const {
+	size_t Texture::get_id() const {
 		return id;
 	}
 	std::string Texture::get_name() const {

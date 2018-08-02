@@ -40,6 +40,7 @@
 #include "network/packet.hpp"
 #include "network/event.hpp"
 
+#include "render/background.hpp"
 #include "render/camera.hpp"
 #include "render/drawing.hpp"
 #include "render/render.hpp"
@@ -48,14 +49,6 @@
 #include "render/shader.hpp"
 #include "render/transition.hpp"
 #include "render/viewport.hpp"
-#include "render/particle/particle.hpp"
-#include "render/particle/particledata.hpp"
-#include "render/particle/emitter.hpp"
-#include "render/particle/attractor.hpp"
-#include "render/particle/destroyer.hpp"
-#include "render/particle/deflector.hpp"
-#include "render/particle/changer.hpp"
-#include "render/particle/system.hpp"
 
 #include "physics/world.hpp"
 #include "physics/draw.hpp"

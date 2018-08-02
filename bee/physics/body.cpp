@@ -29,7 +29,7 @@
 #include "../resource/room.hpp"
 
 namespace bee {
-	PhysicsBody::PhysicsBody(PhysicsWorld* _world, Instance* _inst, E_PHYS_SHAPE _type, double _mass, double x, double y, double z, double* p) :
+	PhysicsBody::PhysicsBody(PhysicsWorld* _world, Instance* _inst, E_PHYS_SHAPE _type, double _mass, btVector3 pos, double* p) :
 		type(_type),
 		shape(nullptr),
 		shape_param_amount(0),
@@ -50,7 +50,7 @@ namespace bee {
 
 		btTransform transform;
 		transform.setIdentity();
-		transform.setOrigin(btVector3(btScalar(x), btScalar(y), btScalar(z))/btScalar(scale));
+		transform.setOrigin(pos/btScalar(scale));
 		motion_state = new btDefaultMotionState(transform);
 
 		btRigidBody::btRigidBodyConstructionInfo rb_info (btScalar(mass), motion_state, shape, get_inertia());
@@ -179,7 +179,7 @@ namespace bee {
 
 		data["attached_instance"] = -1;
 		if (attached_instance != nullptr) {
-			data["attached_instance"] = attached_instance->id;
+			data["attached_instance"] = static_cast<int>(attached_instance->id);
 		}
 		data["position"] = {Variant(get_pos().x()), Variant(get_pos().y()), Variant(get_pos().z())};
 		data["rotation"] = {Variant(get_rotation_x()), Variant(get_rotation_y()), Variant(get_rotation_z())};

@@ -152,8 +152,8 @@ namespace internal {
 			return nullptr;
 		}
 
-		const std::map<int,Instance*>& instances (obj->get_instances());
-		std::map<int,Instance*>::const_iterator inst (instances.find(self->num));
+		const std::map<size_t,Instance*>& instances (obj->get_instances());
+		std::map<size_t,Instance*>::const_iterator inst (instances.find(self->num));
 		if (inst == instances.end()) {
 			PyErr_SetString(PyExc_ValueError, "the provided Instance id is not valid");
 			return nullptr;

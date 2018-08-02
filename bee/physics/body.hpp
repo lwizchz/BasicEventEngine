@@ -44,7 +44,7 @@ namespace bee {
 			double mass;
 			double friction;
 		public:
-			PhysicsBody(PhysicsWorld*, Instance*, E_PHYS_SHAPE, double, double, double, double, double*);
+			PhysicsBody(PhysicsWorld*, Instance*, E_PHYS_SHAPE, double, btVector3, double*);
 			PhysicsBody(const PhysicsBody&);
 			~PhysicsBody();
 

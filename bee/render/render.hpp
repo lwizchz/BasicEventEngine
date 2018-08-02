@@ -11,11 +11,14 @@
 
 #include <string>
 
-#include "camera.hpp"
+#include <glm/glm.hpp>
 
 namespace bee {
 	class Texture;
 	struct TextureDrawData;
+	struct LightData;
+
+	struct Camera;
 	struct ViewPort;
 	class ShaderProgram;
 
@@ -39,6 +42,10 @@ namespace render {
 
 	int queue_texture(const Texture*, const TextureDrawData&);
 	int render_textures();
+
+	int queue_light(LightData);
+	int render_lights();
+	int clear_lights();
 
 	int reset_target();
 	int set_target(Texture*);

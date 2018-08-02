@@ -9,8 +9,6 @@
 #ifndef BEE_PATH
 #define BEE_PATH 1
 
-#include <sstream> // Include the required library headers
-
 #include "path.hpp" // Include the class resource header
 
 #include "../engine.hpp"
@@ -72,8 +70,8 @@ namespace bee {
 		PathFollower(nullptr, {0.0, 0.0, 0.0}, 100)
 	{}
 
-	std::map<int,Path*> Path::list;
-	int Path::next_id = 0;
+	std::map<size_t,Path*> Path::list;
+	size_t Path::next_id = 0;
 
 	/**
 	* Default construct the Path.
@@ -99,7 +97,7 @@ namespace bee {
 	Path::Path(const std::string& _name, const std::string& _path) :
 		Path() // Default initialize all variables
 	{
-		if (add_to_resources() < 0) { // Attempt to add the Path to its resource list
+		if (add_to_resources() == static_cast<size_t>(-1)) { // Attempt to add the Path to its resource list
 			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add Path resource: \"" + _name + "\" from " + _path);
 			throw -1;
 		}
@@ -125,7 +123,7 @@ namespace bee {
 	*
 	* @returns the resource with the given id or nullptr if not found
 	*/
-	Path* Path::get(int id) {
+	Path* Path::get(size_t id) {
 		if (list.find(id) != list.end()) {
 			return list[id];
 		}
@@ -167,8 +165,8 @@ namespace bee {
 	*
 	* @returns the Path id
 	*/
-	int Path::add_to_resources() {
-		if (id < 0) { // If the resource needs to be added to the resource list
+	size_t Path::add_to_resources() {
+		if (id == static_cast<size_t>(-1)) { // If the resource needs to be added to the resource list
 			id = next_id++;
 			list.emplace(id, this); // Add the resource with its new id
 		}
@@ -197,7 +195,7 @@ namespace bee {
 	std::map<Variant,Variant> Path::serialize() const {
 		std::map<Variant,Variant> info;
 
-		info["id"] = id;
+		info["id"] = static_cast<int>(id);
 		info["name"] = name;
 		info["path"] = path;
 
@@ -254,7 +252,7 @@ namespace bee {
 		messenger::send({"engine", "path"}, E_MESSAGE::INFO, "Path " + m.to_str(true));
 	}
 
-	int Path::get_id() const {
+	size_t Path::get_id() const {
 		return id;
 	}
 	std::string Path::get_name() const {
@@ -383,11 +381,11 @@ namespace bee {
 	* @returns the PathNode previous to the current node
 	* @note The direction of the PathFollower is not taken into account.
 	*/
-	PathNode Path::get_node_prev(const PathFollower* pf) const {
-		if ((pf->node > 0)&&(pf->node <= nodes.size())) {
-			return nodes.at(pf->node-1);
+	PathNode Path::get_node_prev(const PathFollower& pf) const {
+		if ((pf.node > 0)&&(pf.node <= nodes.size())) {
+			return nodes.at(pf.node-1);
 		} else if (!nodes.empty()) {
-			if (pf->is_closed) {
+			if (pf.is_closed) {
 				return nodes.back();
 			} else {
 				return nodes.front();
@@ -400,9 +398,9 @@ namespace bee {
 	*
 	* @returns the current PathNode
 	*/
-	PathNode Path::get_node(const PathFollower* pf) const {
-		if (pf->node < nodes.size()) {
-			return nodes.at(pf->node);
+	PathNode Path::get_node(const PathFollower& pf) const {
+		if (pf.node < nodes.size()) {
+			return nodes.at(pf.node);
 		} else if (!nodes.empty()) {
 			return nodes.back();
 		}
@@ -414,11 +412,11 @@ namespace bee {
 	* @returns the PathNode after the current node
 	* @note The direction of the PathFollower is not taken into account.
 	*/
-	PathNode Path::get_node_next(const PathFollower* pf) const {
-		if (pf->node+1 < nodes.size()) {
-			return nodes.at(pf->node+1);
+	PathNode Path::get_node_next(const PathFollower& pf) const {
+		if (pf.node+1 < nodes.size()) {
+			return nodes.at(pf.node+1);
 		} else if (!nodes.empty()) {
-			if (pf->is_closed) {
+			if (pf.is_closed) {
 				return nodes.front();
 			} else {
 				return nodes.back();
@@ -431,42 +429,42 @@ namespace bee {
 	* Advance the given follower along the Path one unit.
 	* @param pf the PathFollower to advance
 	*/
-	void Path::advance(PathFollower* pf) const {
-		const int dir = (pf->direction) ? 1 : -1;
-		if (pf->node == static_cast<unsigned int>(-1)) {
+	void Path::advance(PathFollower& pf) const {
+		const int dir = (pf.direction) ? 1 : -1;
+		if (pf.node == static_cast<unsigned int>(-1)) {
 			if (dir == 1) {
-				pf->node = 0;
+				pf.node = 0;
 			} else {
-				pf->node = nodes.size()-1;
+				pf.node = nodes.size()-1;
 			}
 		}
 
 		PathNode p1 (get_node(pf));
 		PathNode p2 (get_node_next(pf));
-		if (!pf->direction) {
+		if (!pf.direction) {
 			p2 = get_node_prev(pf);
 		}
 
-		const double prog = pf->progress / 10'000.0;
-		pf->progress += pf->speed * (p1.speed*(1.0-prog) + p2.speed*prog);
-		if (pf->progress >= 10'000) {
-			pf->progress = 0;
-			pf->node += dir;
+		const double prog = pf.progress / 10'000.0;
+		pf.progress += pf.speed * (p1.speed*(1.0-prog) + p2.speed*prog);
+		if (pf.progress >= 10'000) {
+			pf.progress = 0;
+			pf.node += dir;
 		}
 
-		if (pf->is_closed) {
-			if ((dir > 0)&&(pf->node == nodes.size())) {
-				pf->node = 0;
-			} else if ((dir < 0)&&(pf->node == static_cast<unsigned int>(-1))) {
-				pf->node = nodes.size()-1;
+		if (pf.is_closed) {
+			if ((dir > 0)&&(pf.node == nodes.size())) {
+				pf.node = 0;
+			} else if ((dir < 0)&&(pf.node == static_cast<unsigned int>(-1))) {
+				pf.node = nodes.size()-1;
 			}
 		} else {
-			if ((dir > 0)&&(pf->node == nodes.size()-1)) {
-				pf->node = nodes.size();
-				pf->progress = 0;
-			} else if ((dir < 0)&&(pf->node == 0)) {
-				pf->node = nodes.size();
-				pf->progress = 0;
+			if ((dir > 0)&&(pf.node == nodes.size()-1)) {
+				pf.node = nodes.size();
+				pf.progress = 0;
+			} else if ((dir < 0)&&(pf.node == 0)) {
+				pf.node = nodes.size();
+				pf.progress = 0;
 			}
 		}
 	}
@@ -475,9 +473,9 @@ namespace bee {
 	* @param inst the Instance to move
 	* @param pf the PathFollower to advance
 	*
-	* @see advance(PathFollower*) const for details.
+	* @see advance(PathFollower&) const for details.
 	*/
-	void Path::advance(Instance* inst, PathFollower* pf) const {
+	void Path::advance(Instance* inst, PathFollower& pf) const {
 		advance(pf);
 		if (!at_end(pf)) {
 			inst->set_pos(get_coord(pf));
@@ -488,30 +486,30 @@ namespace bee {
 	*
 	* @returns the effective coordinates of the given follower
 	*/
-	btVector3 Path::get_coord(const PathFollower* pf) const {
-		btVector3 c (pf->offset);
+	btVector3 Path::get_coord(const PathFollower& pf) const {
+		btVector3 c (pf.offset);
 
 		btVector3 p1 (get_node(pf).pos);
 		btVector3 p2 (get_node_next(pf).pos);
-		if (!pf->direction) {
+		if (!pf.direction) {
 			p2 = get_node_prev(pf).pos;
 		}
 
 		btVector3 p (p1);
 
-		if (pf->is_curved) {
+		if (pf.is_curved) {
 			// Bezier progression
 
 			btVector3 p3 ((p2+p1)/2);
-			if (control_points.find(pf->node) != control_points.end()) {
-				p3 = control_points.at(pf->node);
+			if (control_points.find(pf.node) != control_points.end()) {
+				p3 = control_points.at(pf.node);
 			}
 
-			const double prog = pf->progress / 10'000.0;
+			const double prog = pf.progress / 10'000.0;
 			p = util::sqr(1.0-prog)*p1 + 2*(1.0-prog)*prog*p3 + util::sqr(prog)*p2;
 		} else {
 			// Linear progression
-			const double prog = pf->progress / 10'000.0;
+			const double prog = pf.progress / 10'000.0;
 			p += (p2-p1) * prog;
 		}
 
@@ -525,37 +523,37 @@ namespace bee {
 	* @retval true the given follower has reached the end of its Path
 	* @retval false the given follower is still progressing along its Path
 	*/
-	bool Path::at_end(PathFollower* pf) const {
-		return (pf->node == nodes.size());
+	bool Path::at_end(PathFollower& pf) const {
+		return (pf.node == nodes.size());
 	}
 
 	/**
 	* Draw the effective Path of the given follower for debugging purposes.
 	* @param pf the PathFollower to draw
 	*/
-	void Path::draw(const PathFollower* pf) {
+	void Path::draw(const PathFollower& pf) {
 		RGBA c_line (E_RGB::CYAN);
 		RGBA c_controls (E_RGB::RED);
 
 		// Generate the coord cache if needed
 		if (coord_cache.empty()) {
-			PathFollower _pf (*pf);
+			PathFollower _pf (pf);
 			_pf.offset = {0.0, 0.0, 0.0};
 
-			advance(&_pf);
-			coord_cache.push_back(get_coord(&_pf));
+			advance(_pf);
+			coord_cache.push_back(get_coord(_pf));
 			unsigned int first_node = _pf.node;
 
 			while (
-				(!at_end(&_pf))
+				(!at_end(_pf))
 				&&((_pf.node != first_node)||(_pf.progress != 0))
 			) {
-				advance(&_pf);
-				coord_cache.push_back(get_coord(&_pf));
+				advance(_pf);
+				coord_cache.push_back(get_coord(_pf));
 			}
 		}
 
-		glm::vec3 offset (util::bt_to_glm_v3(pf->offset));
+		glm::vec3 offset (util::bt_to_glm_v3(pf.offset));
 		glm::vec3 v1, v2; // Declare two vectors for the start and end points of each line
 		for (auto it = coord_cache.begin(); it != --coord_cache.end(); ) {
 			v1 = util::bt_to_glm_v3(*it); // Get the start point from the current node
@@ -576,7 +574,7 @@ namespace bee {
 	*/
 	void Path::draw(const btVector3& offset) {
 		PathFollower pf (this, offset, 100);
-		draw(&pf);
+		draw(pf);
 	}
 }
 

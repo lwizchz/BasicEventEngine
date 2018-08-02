@@ -9,8 +9,6 @@
 #ifndef BEE_PYTHON_OBJECT_H
 #define BEE_PYTHON_OBJECT_H 1
 
-#include <string>
-
 #include <Python.h>
 
 namespace bee {
@@ -58,8 +56,6 @@ namespace internal {
 	PyObject* Object_get_instances(ObjectObject*, PyObject*);
 	PyObject* Object_get_instance_amount(ObjectObject*, PyObject*);
 	PyObject* Object_get_instance_at(ObjectObject*, PyObject*);
-
-	//PyObject* Object_update(ObjectObject*, PyObject*);
 }}}
 
 #endif // BEE_PYTHON_OBJECT_H

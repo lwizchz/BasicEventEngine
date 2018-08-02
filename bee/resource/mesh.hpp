@@ -34,10 +34,10 @@ namespace bee {
 
 	/// Used to draw all 3D items
 	class Mesh: public Resource {
-		static std::map<int,Mesh*> list;
-		static int next_id;
+		static std::map<size_t,Mesh*> list;
+		static size_t next_id;
 
-		int id; ///< The unique Mesh identifier
+		size_t id; ///< The unique Mesh identifier
 		std::string name; ///< An arbitrary resource name
 		std::string path; ///< The path of the object file
 
@@ -68,7 +68,7 @@ namespace bee {
 		GLuint vbo_bones; ///< The buffer object which contains the vertex bone data
 		GLuint gl_texture; ///< The internal texture storage
 
-		// See bee/resources/mesh.cpp for function comments
+		// See bee/resource/mesh.cpp for function comments
 		void free_internal();
 
 		void gen_node_animations(const aiAnimation*);
@@ -78,24 +78,24 @@ namespace bee {
 		static glm::mat4 interp_rotate(const aiNodeAnim*, float);
 		static glm::vec3 interp_translate(const aiNodeAnim*, float);
 	public:
-		// See bee/resources/mesh.cpp for function comments
+		// See bee/resource/mesh.cpp for function comments
 		Mesh();
 		Mesh(const std::string&, const std::string&);
 		~Mesh();
 
 		static size_t get_amount();
-		static Mesh* get(int);
+		static Mesh* get(size_t);
 		static Mesh* get_by_name(const std::string&);
 		static Mesh* add(const std::string&, const std::string&);
 
-		int add_to_resources();
+		size_t add_to_resources();
 		int reset();
 
 		std::map<Variant,Variant> serialize() const;
 		int deserialize(std::map<Variant,Variant>&);
 		void print() const;
 
-		int get_id() const;
+		size_t get_id() const;
 		std::string get_name() const;
 		std::string get_path() const;
 		bool get_is_loaded() const;

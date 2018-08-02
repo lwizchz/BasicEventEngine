@@ -30,6 +30,7 @@ namespace bee {
 		std::string name; ///< The action name
 		std::function<void (TimelineIterator*, TimelineAction*)> func; ///< The action callback
 
+		// See bee/resource/timeline.cpp for function comments
 		TimelineAction(const std::string&, std::function<void (TimelineIterator*, TimelineAction*)>);
 		TimelineAction();
 
@@ -48,6 +49,7 @@ namespace bee {
 		bool is_looping; ///< Whether the iterator should loop
 		bool is_pausable; ///< Whether the iterator should pause
 
+		// See bee/resource/timeline.cpp for function comments
 		TimelineIterator(Timeline*, Uint32, bool, bool);
 		TimelineIterator();
 
@@ -57,10 +59,10 @@ namespace bee {
 
 	/// Used to execute specific actions at a given time offset
 	class Timeline: public Resource {
-		static std::map<int,Timeline*> list;
-		static int next_id;
+		static std::map<size_t,Timeline*> list;
+		static size_t next_id;
 
-		int id; ///< The unique Timeline identifier
+		size_t id; ///< The unique Timeline identifier
 		std::string name; ///< An arbitrary resource name
 		std::string path; ///< The path of the file to load the Timeline from
 
@@ -70,24 +72,24 @@ namespace bee {
 
 		Script* scr_actions; ///< The Script which loads the desired actions
 	public:
-		// See bee/resources/timeline.cpp for function comments
+		// See bee/resource/timeline.cpp for function comments
 		Timeline();
 		Timeline(const std::string&, const std::string&);
 		~Timeline();
 
 		static size_t get_amount();
-		static Timeline* get(int);
+		static Timeline* get(size_t);
 		static Timeline* get_by_name(const std::string&);
 		static Timeline* add(const std::string&, const std::string&);
 
-		int add_to_resources();
+		size_t add_to_resources();
 		int reset();
 
 		std::map<Variant,Variant> serialize() const;
 		int deserialize(std::map<Variant,Variant>&);
 		void print() const;
 
-		int get_id() const;
+		size_t get_id() const;
 		std::string get_name() const;
 		std::string get_path() const;
 		const std::multimap<Uint32,TimelineAction>& get_actions() const;

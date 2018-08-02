@@ -9,7 +9,6 @@
 #ifndef BEE_SOUND
 #define BEE_SOUND 1
 
-#include <vector> // Include the required library headers
 #include <algorithm>
 
 #include "sound.hpp" // Include the class resource header
@@ -134,8 +133,8 @@ namespace bee {
 		return name;
 	}
 
-	std::map<int,Sound*> Sound::list;
-	int Sound::next_id = 0;
+	std::map<size_t,Sound*> Sound::list;
+	size_t Sound::next_id = 0;
 	double Sound::master_volume = 1.0;
 
 	/**
@@ -174,7 +173,7 @@ namespace bee {
 	Sound::Sound(const std::string& _name, const std::string& _path, bool _is_music) :
 		Sound() // Default initialize all variables
 	{
-		if (add_to_resources() < 0) { // Attempt to add the Sound to its resource list
+		if (add_to_resources() == static_cast<size_t>(-1)) { // Attempt to add the Sound to its resource list
 			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add Sound resource: \"" + _name + "\" from " + _path);
 			throw -1;
 		}
@@ -202,7 +201,7 @@ namespace bee {
 	*
 	* @returns the resource with the given id or nullptr if not found
 	*/
-	Sound* Sound::get(int id) {
+	Sound* Sound::get(size_t id) {
 		if (Sound::list.find(id) != Sound::list.end()) {
 			return Sound::list.at(id);
 		}
@@ -299,8 +298,8 @@ namespace bee {
 	*
 	* @returns the Sound id
 	*/
-	int Sound::add_to_resources() {
-		if (id < 0) { // If the resource needs to be added to the resource list
+	size_t Sound::add_to_resources() {
+		if (id == static_cast<size_t>(-1)) { // If the resource needs to be added to the resource list
 			id = Sound::next_id++;
 			Sound::list.emplace(id, this); // Add the resource with its new id
 		}
@@ -342,7 +341,7 @@ namespace bee {
 	std::map<Variant,Variant> Sound::serialize() const {
 		std::map<Variant,Variant> info;
 
-		info["id"] = id;
+		info["id"] = static_cast<int>(id);
 		info["name"] = name;
 		info["path"] = path;
 
@@ -410,7 +409,7 @@ namespace bee {
 		messenger::send({"engine", "sound"}, E_MESSAGE::INFO, "Sound " + m.to_str(true));
 	}
 
-	int Sound::get_id() const {
+	size_t Sound::get_id() const {
 		return id;
 	}
 	std::string Sound::get_name() const {

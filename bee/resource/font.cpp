@@ -60,8 +60,8 @@ namespace bee {
 		return t;
 	}
 
-	std::map<int,Font*> Font::list;
-	int Font::next_id = 0;
+	std::map<size_t,Font*> Font::list;
+	size_t Font::next_id = 0;
 
 	/**
 	* Default construct the Font.
@@ -93,7 +93,7 @@ namespace bee {
 	Font::Font(const std::string& _name, const std::string& _path, int _font_size) :
 		Font() // Default initialize all variables
 	{
-		if (add_to_resources() < 0) { // Attempt to add the Font to its resource list
+		if (add_to_resources() == static_cast<size_t>(-1)) { // Attempt to add the Font to its resource list
 			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add Font resource: \"" + _name + "\" from " + _path);
 			throw -1;
 		}
@@ -121,7 +121,7 @@ namespace bee {
 	*
 	* @returns the resource with the given id or nullptr if not found
 	*/
-	Font* Font::get(int id) {
+	Font* Font::get(size_t id) {
 		if (list.find(id) != list.end()) {
 			return list[id];
 		}
@@ -162,8 +162,8 @@ namespace bee {
 	*
 	* @returns the Font id
 	*/
-	int Font::add_to_resources() {
-		if (id < 0) { // If the resource needs to be added to the resource list
+	size_t Font::add_to_resources() {
+		if (id == static_cast<size_t>(-1)) { // If the resource needs to be added to the resource list
 			id = next_id++;
 			list.emplace(id, this); // Add the resource with its new id
 		}
@@ -199,7 +199,7 @@ namespace bee {
 	std::map<Variant,Variant> Font::serialize() const {
 		std::map<Variant,Variant> info;
 
-		info["id"] = id;
+		info["id"] = static_cast<int>(id);
 		info["name"] = name;
 		info["path"] = path;
 
@@ -249,7 +249,7 @@ namespace bee {
 		messenger::send({"engine", "font"}, E_MESSAGE::INFO, "Font " + m.to_str(true));
 	}
 
-	int Font::get_id() const {
+	size_t Font::get_id() const {
 		return id;
 	}
 	std::string Font::get_name() const {

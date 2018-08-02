@@ -16,7 +16,7 @@ def create(self):
     bee.console.set_var("anim_spider", "Spider_Armature|warte_pose")
 
 def draw(self):
-    t = bee.get_ticks()/1000.0
+    t = bee.get_ticks()/1000.0 + self.get_pos()[0]
     a = 180.0 + math.degrees(math.sin(t))
     pos = (1000.0+500.0*math.cos(t), 500.0+300.0*math.sin(t), 0.0)
     rot = (0.0, a, 180.0)

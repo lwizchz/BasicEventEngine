@@ -47,29 +47,17 @@ void ObjBee::create(bee::Instance* self) {
 			self = obj_bee->get_instance_at(0);
 			s = &self->get_data();
 
-			if (_p("path") != nullptr) {
-				delete static_cast<bee::PathFollower*>(_p("path"));
-				_p("path") = nullptr;
-			}
-
 			self->set_mass(1.0);
-			bee::PathFollower* pf = new bee::PathFollower(path_bee, {100.0, 100.0, 0.0}, 100);
-			pf->is_curved = true;
+			bee::PathFollower pf = bee::PathFollower(path_bee, {100.0, 100.0, 0.0}, 100);
+			pf.is_curved = true;
 			bee::get_current_room()->automate_path(self, pf);
-			_p("path") = pf;
 		}));
 		bee::kb::bind(SDLK_UNKNOWN, bee::KeyBind("StartTimeline", [this, self] (const SDL_Event* e) mutable {
 			self = obj_bee->get_instance_at(0);
 			s = &self->get_data();
 
-			if (_p("tl") != nullptr) {
-				delete static_cast<bee::TimelineIterator*>(_p("tl"));
-				_p("tl") = nullptr;
-			}
-
-			bee::TimelineIterator* tlit = new bee::TimelineIterator(tl_bee, 0, false, false);
+			bee::TimelineIterator tlit = bee::TimelineIterator(tl_bee, 0, false, false);
 			bee::get_current_room()->automate_timeline(tlit);
-			_p("tl") = tlit;
 		}));
 
 		bee::kb::bind(SDLK_UNKNOWN, bee::KeyBind("StartSerialize", [this, self] (const SDL_Event* e) mutable {
@@ -90,16 +78,6 @@ void ObjBee::create(bee::Instance* self) {
 void ObjBee::destroy(bee::Instance* self) {
 	if (self == obj_bee->get_instance_at(0)) {
 		_a("serialdata").reset();
-
-		if (_p("path") != nullptr) {
-			delete static_cast<bee::PathFollower*>(_p("path"));
-			_p("path") = nullptr;
-		}
-
-		if (_p("tl") != nullptr) {
-			delete static_cast<bee::TimelineIterator*>(_p("tl"));
-			_p("tl") = nullptr;
-		}
 	}
 
 	delete static_cast<bee::TextData*>(_p("text_id"));
@@ -111,11 +89,8 @@ void ObjBee::destroy(bee::Instance* self) {
 void ObjBee::commandline_input(bee::Instance* self, const std::string& str) {
 	std::cout << "bee" << self->id << ":~~~" << str << "~~~\n";
 }
-void ObjBee::path_end(bee::Instance* self, bee::PathFollower* pf) {
-	bee::get_current_room()->automate_path(self, nullptr);
-
-	delete static_cast<bee::PathFollower*>(_p("path"));
-	_p("path") = nullptr;
+void ObjBee::path_end(bee::Instance* self, const bee::PathFollower& pf) {
+	bee::get_current_room()->automate_path(self, bee::PathFollower());
 }
 void ObjBee::outside_room(bee::Instance* self) {
 	bee::get_current_room()->destroy(self);
@@ -125,14 +100,19 @@ void ObjBee::draw(bee::Instance* self) {
 	double r = util::radtodeg(self->get_physbody()->get_rotation_z());
 	self->draw(size, size, r, bee::RGBA(bee::E_RGB::WHITE));
 
-	if (static_cast<bee::PathFollower*>(_p("path")) != nullptr) {
-		path_bee->draw(static_cast<bee::PathFollower*>(_p("path")));
+	const std::map<bee::Instance*,bee::PathFollower>& paths = bee::get_current_room()->get_paths();
+	std::map<bee::Instance*,bee::PathFollower>::const_iterator pf (paths.find(self));
+	if (pf != paths.end()) {
+		if (pf->second.path != nullptr) {
+			pf->second.path->draw(pf->second);
+		}
 	}
 
 	_p("text_id") = font_liberation->draw(static_cast<bee::TextData*>(_p("text_id")), self->get_corner().first, self->get_corner().second, std::to_string(self->id));
 
+	bee::RGBA c = lt_bee->get_color();
 	lt_bee->set_position(glm::vec4(self->get_x(), self->get_y(), 0.0, 1.0));
-	lt_bee->set_color({static_cast<Uint8>(self->id*50), static_cast<Uint8>(self->id*20), 255, 255});
+	lt_bee->set_color({static_cast<Uint8>(self->id*50), static_cast<Uint8>(self->id*20), c.b, c.a});
 	lt_bee->queue();
 }
 

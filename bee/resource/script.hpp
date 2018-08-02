@@ -38,36 +38,36 @@ namespace bee {
 
 	/// Used to execute Python scripts
 	class Script: public Resource {
-		static std::map<int,Script*> list;
-		static int next_id;
+		static std::map<size_t,Script*> list;
+		static size_t next_id;
 
-		int id; ///< The unique Script identifier
+		size_t id; ///< The unique Script identifier
 		std::string name; ///< An arbitrary resource name
 		std::string path; ///< The path of the script file
 
 		ScriptInterface* script; ///< The scripting interface
 		bool is_loaded; ///< Whether the script was successfully loaded into its interface
 	public:
-		// See bee/resources/script.cpp for function comments
+		// See bee/resource/script.cpp for function comments
 		Script();
 		Script(const std::string&, const std::string&);
 		~Script();
 
 		static size_t get_amount();
-		static Script* get(int);
+		static Script* get(size_t);
 		static Script* get_by_name(const std::string&);
 		static Script* add(const std::string&, const std::string&);
 
 		static E_SCRIPT_TYPE get_type(const std::string&);
 
-		int add_to_resources();
+		size_t add_to_resources();
 		int reset();
 
 		std::map<Variant,Variant> serialize() const;
 		int deserialize(std::map<Variant,Variant>&);
 		void print() const;
 
-		int get_id() const;
+		size_t get_id() const;
 		std::string get_name() const;
 		std::string get_path() const;
 		ScriptInterface* get_interface() const;

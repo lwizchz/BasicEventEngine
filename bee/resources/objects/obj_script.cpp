@@ -343,6 +343,10 @@ namespace bee {
 		script->run_func("intersect_boundary", args, nullptr);
 	}
 	void ObjScript::collision(Instance* self, Instance* other) {
+		if (events.find(bee::E_EVENT::COLLISION) == events.end()) {
+			return;
+		}
+
 		Variant args (std::vector<Variant>{
 			Variant(self),
 			Variant(other)

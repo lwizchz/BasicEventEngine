@@ -67,17 +67,17 @@ namespace bee {
 	* @param y the y-coordinate of the Instance
 	* @param z the z-coordinate of the Instance
 	*/
-	Instance::Instance(int _id, Object* _object, double x, double y, double z) :
+	Instance::Instance(size_t _id, Object* _object, btVector3 pos) :
 		Instance()
 	{
-		init(_id, _object, x, y, z);
+		init(_id, _object, pos);
 	}
 	/**
 	* Copy an Instance along with its internal data.
 	* @param other the Instance to copy
 	*/
 	Instance::Instance(const Instance& other) :
-		Instance(other.id, other.object, other.get_x(), other.get_y(), other.get_z())
+		Instance(other.id, other.object, other.get_pos())
 	{
 		this->data = other.data;
 	}
@@ -93,7 +93,7 @@ namespace bee {
 	* @param y the y-coordinate of the Instance
 	* @param z the z-coordinate of the Instance
 	*/
-	void Instance::init(int _id, Object* _object, double x, double y, double z) {
+	void Instance::init(size_t _id, Object* _object, btVector3 pos) {
 		id = _id;
 		object = _object;
 		subimage_time = get_ticks();
@@ -101,12 +101,12 @@ namespace bee {
 
 		if (body == nullptr) {
 			PhysicsWorld* w = get_current_room()->get_phys_world();
-			body = new PhysicsBody(w, this, E_PHYS_SHAPE::NONE, 0.0, x, y, z, nullptr);
+			body = new PhysicsBody(w, this, E_PHYS_SHAPE::NONE, 0.0, pos, nullptr);
 		} else {
-			set_pos(x, y, z);
+			set_pos(pos);
 		}
 
-		pos_start = btVector3(btScalar(x), btScalar(y), btScalar(z));
+		pos_start = pos;
 		pos_previous = pos_start;
 
 		data.clear();
@@ -139,8 +139,7 @@ namespace bee {
 	*/
 	Instance& Instance::operator=(const Instance& rhs) {
 		if (this != &rhs) {
-			btVector3 pos = rhs.get_pos();
-			this->init(rhs.id, rhs.object, pos.x(), pos.y(), pos.z());
+			this->init(rhs.id, rhs.object, rhs.get_pos());
 			this->data = rhs.data;
 		}
 		return *this;
@@ -152,7 +151,7 @@ namespace bee {
 	std::map<Variant,Variant> Instance::serialize() const {
 		std::map<Variant,Variant> info;
 
-		info["id"] = id;
+		info["id"] = static_cast<int>(id);
 		info["object"] = object->get_name();
 		info["sprite"] = "";
 		if (get_sprite() != nullptr) {
@@ -973,7 +972,7 @@ namespace bee {
 		if (closest_instance != nullptr) {
 			return get_direction_of(closest_instance->get_pos());
 		}
-		return btVector3();
+		return btVector3(0.0, 0.0, 0.0);
 	}
 	/**
 	* Determine the 2D relation with a given Instance.

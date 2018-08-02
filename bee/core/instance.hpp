@@ -41,7 +41,7 @@ namespace bee {
 
 		std::map<std::string,Variant> data; ///< The Instance-specific data
 	public:
-		int id; ///< Semi-unique identifier, old IDs may be reused
+		size_t id; ///< Semi-unique identifier, old IDs may be reused
 		Uint32 subimage_time; ///< The timestamp of the animation start
 		int depth; ///< Determines the order of event processing, higher depths first
 
@@ -49,10 +49,10 @@ namespace bee {
 
 		// See bee/core/instance.cpp for function comments
 		Instance();
-		Instance(int, Object*, double, double, double);
+		Instance(size_t, Object*, btVector3);
 		Instance(const Instance&);
 		virtual ~Instance();
-		void init(int, Object*, double, double, double);
+		void init(size_t, Object*, btVector3);
 
 		bool operator<(const Instance&) const;
 		Instance& operator=(const Instance&);

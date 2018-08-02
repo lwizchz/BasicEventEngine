@@ -166,6 +166,7 @@ namespace bee {
 			}
 
 			try {
+				engine->current_room->create();
 				engine->current_room->step_begin();
 				engine->current_room->check_alarms();
 

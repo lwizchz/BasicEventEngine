@@ -43,33 +43,33 @@ namespace bee {
 
 	/// Used to render lighting effects
 	class Light: public Resource {
-		static std::map<int,Light*> list;
-		static int next_id;
+		static std::map<size_t,Light*> list;
+		static size_t next_id;
 
-		int id; ///< The unique Light identifier
+		size_t id; ///< The unique Light identifier
 		std::string name; ///< An arbitrary resource name
 		std::string path; ///< The path of the config file used for the lighting
 
 		LightData lighting; ///< The properties that define the light
 	public:
-		// See bee/resources/light.cpp for function comments
+		// See bee/resource/light.cpp for function comments
 		Light();
 		Light(const std::string&, const std::string&);
 		~Light();
 
 		static size_t get_amount();
-		static Light* get(int);
+		static Light* get(size_t);
 		static Light* get_by_name(const std::string&);
 		static Light* add(const std::string&, const std::string&);
 
-		int add_to_resources();
+		size_t add_to_resources();
 		int reset();
 
 		std::map<Variant,Variant> serialize() const;
 		int deserialize(std::map<Variant,Variant>&);
 		void print() const;
 
-		int get_id() const;
+		size_t get_id() const;
 		std::string get_name() const;
 		std::string get_path() const;
 		E_LIGHT_TYPE get_type() const;

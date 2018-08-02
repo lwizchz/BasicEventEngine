@@ -26,8 +26,8 @@
 #include "texture.hpp"
 
 namespace bee {
-	std::map<int,Object*> Object::list;
-	int Object::next_id = 0;
+	std::map<size_t,Object*> Object::list;
+	size_t Object::next_id = 0;
 
 	/**
 	* Default construct the object.
@@ -53,7 +53,8 @@ namespace bee {
 		implemented_events({
 			E_EVENT::UPDATE,
 			E_EVENT::DESTROY,
-			E_EVENT::STEP_BEGIN
+			E_EVENT::STEP_BEGIN,
+			E_EVENT::COLLISION
 		})
 	{}
 	/**
@@ -66,7 +67,7 @@ namespace bee {
 	Object::Object(const std::string& _name, const std::string& _path) :
 		Object() // Default initialize all variables
 	{
-		if (add_to_resources() < 0) { // Attempt to add the Object to its resource list
+		if (add_to_resources() == static_cast<size_t>(-1)) { // Attempt to add the Object to its resource list
 			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add object resource: \"" + _name + "\" from " + _path);
 			throw -1;
 		}
@@ -92,7 +93,7 @@ namespace bee {
 	*
 	* @returns the resource with the given id or nullptr if not found
 	*/
-	Object* Object::get(int id) {
+	Object* Object::get(size_t id) {
 		if (list.find(id) != list.end()) {
 			return list[id];
 		}
@@ -134,8 +135,8 @@ namespace bee {
 	*
 	* @returns the Object id
 	*/
-	int Object::add_to_resources() {
-		if (id < 0) { // If the resource needs to be added to the resource list
+	size_t Object::add_to_resources() {
+		if (id == static_cast<size_t>(-1)) { // If the resource needs to be added to the resource list
 			id = next_id++;
 			list.emplace(id, this); // Add the resource with its new id
 		}
@@ -172,7 +173,7 @@ namespace bee {
 	std::map<Variant,Variant> Object::serialize() const {
 		std::map<Variant,Variant> info;
 
-		info["id"] = id;
+		info["id"] = static_cast<int>(id);
 		info["name"] = name;
 		info["path"] = path;
 
@@ -231,7 +232,7 @@ namespace bee {
 		messenger::send({"engine", "object"}, E_MESSAGE::INFO, "Object " + m.to_str(true));
 	}
 
-	int Object::get_id() const {
+	size_t Object::get_id() const {
 		return id;
 	}
 	std::string Object::get_name() const {
@@ -333,7 +334,7 @@ namespace bee {
 	void Object::clear_instances() {
 		instances.clear();
 	}
-	const std::map<int,Instance*>& Object::get_instances() const {
+	const std::map<size_t,Instance*>& Object::get_instances() const {
 		return instances;
 	}
 	size_t Object::get_instance_amount() const {

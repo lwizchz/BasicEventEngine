@@ -18,8 +18,8 @@
 #include "../python/python.hpp"
 
 namespace bee {
-	std::map<int,Script*> Script::list;
-	int Script::next_id = 0;
+	std::map<size_t,Script*> Script::list;
+	size_t Script::next_id = 0;
 
 	/**
 	* Default construct the Script.
@@ -43,7 +43,7 @@ namespace bee {
 	Script::Script(const std::string& _name, const std::string& _path) :
 		Script() // Default initialize all variables
 	{
-		if (add_to_resources() < 0) { // Attempt to add the Script to its resource list
+		if (add_to_resources() == static_cast<size_t>(-1)) { // Attempt to add the Script to its resource list
 			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add script resource: \"" + _name + "\" from " + _path);
 			throw -1;
 		}
@@ -70,7 +70,7 @@ namespace bee {
 	*
 	* @returns the resource with the given id or nullptr if not found
 	*/
-	Script* Script::get(int id) {
+	Script* Script::get(size_t id) {
 		if (list.find(id) != list.end()) {
 			return list[id];
 		}
@@ -122,8 +122,8 @@ namespace bee {
 	*
 	* @returns the Script id
 	*/
-	int Script::add_to_resources() {
-		if (id < 0) { // If the resource needs to be added to the resource list
+	size_t Script::add_to_resources() {
+		if (id == static_cast<size_t>(-1)) { // If the resource needs to be added to the resource list
 			id = next_id++;
 			list.emplace(id, this); // Add the resource and with the new id
 		}
@@ -152,7 +152,7 @@ namespace bee {
 	std::map<Variant,Variant> Script::serialize() const {
 		std::map<Variant,Variant> info;
 
-		info["id"] = id;
+		info["id"] = static_cast<int>(id);
 		info["name"] = name;
 		info["path"] = path;
 
@@ -190,7 +190,7 @@ namespace bee {
 		messenger::send({"engine", "script"}, E_MESSAGE::INFO, "Script " + m.to_str(true));
 	}
 
-	int Script::get_id() const {
+	size_t Script::get_id() const {
 		return id;
 	}
 	std::string Script::get_name() const {

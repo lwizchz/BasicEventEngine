@@ -29,7 +29,7 @@ namespace bee {
 		btVector3 pos; ///< The node position
 		double speed; ///< The speed at the node
 
-		// See bee/resources/path.cpp for function comments
+		// See bee/resource/path.cpp for function comments
 		PathNode(const btVector3&, double);
 		PathNode();
 	};
@@ -49,17 +49,17 @@ namespace bee {
 
 		bool is_pausable; ///< Whether the follower should pause Path movement
 
-		// See bee/resources/path.cpp for function comments
+		// See bee/resource/path.cpp for function comments
 		PathFollower(Path*, btVector3, int);
 		PathFollower();
 	};
 
 	/// Used to repeatedly move in complex patterns
 	class Path: public Resource {
-		static std::map<int,Path*> list;
-		static int next_id;
+		static std::map<size_t,Path*> list;
+		static size_t next_id;
 
-		int id; ///< The unique Path identifier
+		size_t id; ///< The unique Path identifier
 		std::string name; ///< An arbitrary resource name
 		std::string path; ///< The path of the config file used to populate the node and control point lists
 
@@ -68,29 +68,29 @@ namespace bee {
 
 		std::vector<btVector3> coord_cache; ///< A cache of the coordinates used by the drawing function
 
-		// See bee/resources/path.cpp for function comments
-		PathNode get_node_prev(const PathFollower*) const;
-		PathNode get_node(const PathFollower*) const;
-		PathNode get_node_next(const PathFollower*) const;
+		// See bee/resource/path.cpp for function comments
+		PathNode get_node_prev(const PathFollower&) const;
+		PathNode get_node(const PathFollower&) const;
+		PathNode get_node_next(const PathFollower&) const;
 	public:
-		// See bee/resources/path.cpp for function comments
+		// See bee/resource/path.cpp for function comments
 		Path();
 		Path(const std::string&, const std::string&);
 		~Path();
 
 		static size_t get_amount();
-		static Path* get(int);
+		static Path* get(size_t);
 		static Path* get_by_name(const std::string&);
 		static Path* add(const std::string&, const std::string&);
 
-		int add_to_resources();
+		size_t add_to_resources();
 		int reset();
 
 		std::map<Variant,Variant> serialize() const;
 		int deserialize(std::map<Variant,Variant>& m);
 		void print() const;
 
-		int get_id() const;
+		size_t get_id() const;
 		std::string get_name() const;
 		std::string get_path() const;
 		const std::vector<PathNode>& get_nodes() const;
@@ -105,12 +105,12 @@ namespace bee {
 
 		int load();
 
- 		void advance(PathFollower*) const;
-		void advance(Instance*, PathFollower*) const;
-		btVector3 get_coord(const PathFollower*) const;
-		bool at_end(PathFollower*) const;
+ 		void advance(PathFollower&) const;
+		void advance(Instance*, PathFollower&) const;
+		btVector3 get_coord(const PathFollower&) const;
+		bool at_end(PathFollower&) const;
 
-		void draw(const PathFollower*);
+		void draw(const PathFollower&);
 		void draw(const btVector3&);
 	};
 }

@@ -290,7 +290,7 @@ namespace bee {
 				return std::to_string(d);
 			}
 			case E_DATA_TYPE::STRING: {
-				return s;
+				return "\"" + s + "\"";
 			}
 			case E_DATA_TYPE::VECTOR: {
 				return util::vector_serialize(v, should_pretty_print);

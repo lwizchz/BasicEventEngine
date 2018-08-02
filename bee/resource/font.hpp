@@ -40,10 +40,10 @@ namespace bee {
 
 	/// Used to render all text as Textures
 	class Font: public Resource {
-		static std::map<int,Font*> list;
-		static int next_id;
+		static std::map<size_t,Font*> list;
+		static size_t next_id;
 
-		int id; ///< The unique Font identifier
+		size_t id; ///< The unique Font identifier
 		std::string name; ///< An arbitrary resource name
 		std::string path; ///< The path of the TrueType font file
 
@@ -65,18 +65,18 @@ namespace bee {
 		~Font();
 
 		static size_t get_amount();
-		static Font* get(int);
+		static Font* get(size_t);
 		static Font* get_by_name(const std::string&);
 		static Font* add(const std::string&, const std::string&, int);
 
-		int add_to_resources();
+		size_t add_to_resources();
 		int reset();
 
 		std::map<Variant,Variant> serialize() const;
 		int deserialize(std::map<Variant,Variant>&);
 		void print() const;
 
-		int get_id() const;
+		size_t get_id() const;
 		std::string get_name() const;
 		std::string get_path() const;
 		int get_font_size() const;

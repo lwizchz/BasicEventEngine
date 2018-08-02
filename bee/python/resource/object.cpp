@@ -398,7 +398,7 @@ namespace internal {
 			return nullptr;
 		}
 
-		const std::map<int,Instance*>& _instances = obj->get_instances();
+		const std::map<size_t,Instance*>& _instances = obj->get_instances();
 
 		PyObject* instances = PyList_New(_instances.size());
 		size_t i = 0;

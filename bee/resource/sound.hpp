@@ -44,12 +44,12 @@ namespace bee {
 
 	/// Used to play all audio
 	class Sound: public Resource {
-		static std::map<int,Sound*> list;
-		static int next_id;
+		static std::map<size_t,Sound*> list;
+		static size_t next_id;
 
 		static double master_volume;
 
-		int id; ///< The unique Sound identifier
+		size_t id; ///< The unique Sound identifier
 		std::string name; ///< An arbitrary resource name
 		std::string path; ///< The path of the sound file
 
@@ -82,7 +82,7 @@ namespace bee {
 		~Sound();
 
 		static size_t get_amount();
-		static Sound* get(int);
+		static Sound* get(size_t);
 		static Sound* get_by_name(const std::string&);
 		static Sound* add(const std::string&, const std::string&, bool);
 
@@ -92,14 +92,14 @@ namespace bee {
 		static double get_master_volume();
 		static void set_master_volume(double);
 
-		int add_to_resources();
+		size_t add_to_resources();
 		int reset();
 
 		std::map<Variant,Variant> serialize() const;
 		int deserialize(std::map<Variant,Variant>&);
 		void print() const;
 
-		int get_id() const;
+		size_t get_id() const;
 		std::string get_name() const;
 		std::string get_path() const;
 		double get_volume() const;

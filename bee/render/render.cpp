@@ -11,7 +11,6 @@
 
 #include "../defines.hpp"
 
-#include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -36,6 +35,7 @@
 #include "viewport.hpp"
 
 #include "../resource/texture.hpp"
+#include "../resource/light.hpp"
 
 namespace bee { namespace render {
 	namespace internal {
@@ -43,6 +43,7 @@ namespace bee { namespace render {
 		Texture* target_tex = nullptr;
 
 		std::map<const Texture*,std::list<TextureDrawData>> textures;
+		std::list<LightData> lights;
 
 		ShaderProgram* program = nullptr;
 	}
@@ -254,7 +255,7 @@ namespace bee { namespace render {
 		return 0;
 	}
 	int render_textures() {
-		for (auto t : internal::textures) {
+		for (auto& t : internal::textures) {
 			glBindVertexArray(t.second.front().vao); // Bind the VAO for the texture
 
 			glUniform1i(get_program()->get_location("f_texture"), 0);
@@ -273,6 +274,58 @@ namespace bee { namespace render {
 		glUniformMatrix4fv(get_program()->get_location("rotation"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f))); // Reset the rotation matrix
 
 		internal::textures.clear();
+
+		return 0;
+	}
+
+	int queue_light(LightData lighting) {
+		if (get_program()->get_location("light_amount", false) == -1) {
+			return 1;
+		}
+
+		lighting.attenuation.x = 10000.f/lighting.attenuation.x;
+		lighting.attenuation.y = 1000.f/lighting.attenuation.y;
+		lighting.attenuation.z = 1000.f/lighting.attenuation.z;
+
+		internal::lights.push_back(lighting);
+
+		return 0;
+	}
+	int render_lights() {
+		if (get_program()->get_location("light_amount", false) == -1) {
+			internal::lights.clear();
+			return 1;
+		}
+
+		int i = 0;
+		for (auto& l : internal::lights) {
+			if (i >= BEE_MAX_LIGHTS) {
+				break;
+			}
+
+			glm::vec4 c (l.color.r, l.color.g, l.color.b, l.color.a);
+			c /= 255.0f;
+
+			glUniform1i(get_program()->get_location("lighting[" + std::to_string(i) + "].type"), static_cast<int>(l.type));
+			glUniform4fv(get_program()->get_location("lighting[" + std::to_string(i) + "].position"), 1, glm::value_ptr(l.position));
+			glUniform4fv(get_program()->get_location("lighting[" + std::to_string(i) + "].direction"), 1, glm::value_ptr(l.direction));
+			glUniform4fv(get_program()->get_location("lighting[" + std::to_string(i) + "].attenuation"), 1, glm::value_ptr(l.attenuation));
+			glUniform4fv(get_program()->get_location("lighting[" + std::to_string(i) + "].color"), 1, glm::value_ptr(c));
+
+			i++;
+		}
+		glUniform1i(get_program()->get_location("light_amount"), i);
+
+		internal::lights.clear();
+
+		return 0;
+	}
+	int clear_lights() {
+		if (get_program()->get_location("light_amount", false) == -1) {
+			return 1;
+		}
+
+		glUniform1i(get_program()->get_location("light_amount"), 0);
 
 		return 0;
 	}

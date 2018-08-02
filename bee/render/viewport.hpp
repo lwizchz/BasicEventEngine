@@ -10,6 +10,7 @@
 #define BEE_RENDER_VIEWPORT_H 1
 
 #include <functional>
+#include <memory>
 
 #include <SDL2/SDL.h> // Include the required SDL headers
 
@@ -23,15 +24,14 @@ namespace bee {
 		SDL_Rect view;
 		SDL_Rect port;
 
-		Texture* texture;
+		std::shared_ptr<Texture> texture;
 
-		std::function<void (ViewPort*)> update_func;
+		std::function<void (ViewPort&)> update_func;
 
 		ShaderProgram* shader;
 
 		ViewPort();
 		ViewPort(bool, SDL_Rect, SDL_Rect);
-		~ViewPort();
 
 		void update();
 		void draw();

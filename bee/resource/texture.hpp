@@ -63,10 +63,10 @@ namespace bee {
 
 	/// Used to draw all 2D items
 	class Texture: public Resource {
-		static std::map<int,Texture*> list;
-		static int next_id;
+		static std::map<size_t,Texture*> list;
+		static size_t next_id;
 
-		int id; ///<  The unique Texture identifier
+		size_t id; ///<  The unique Texture identifier
 		std::string name; ///< An arbitrary resource name
 		std::string path; ///< The path of the image file
 
@@ -106,18 +106,18 @@ namespace bee {
 		~Texture();
 
 		static size_t get_amount();
-		static Texture* get(int);
+		static Texture* get(size_t);
 		static Texture* get_by_name(const std::string&);
 		static Texture* add(const std::string&, const std::string&);
 
-		int add_to_resources();
+		size_t add_to_resources();
 		int reset();
 
 		std::map<Variant,Variant> serialize() const;
 		int deserialize(std::map<Variant,Variant>&);
 		void print() const;
 
-		int get_id() const;
+		size_t get_id() const;
 		std::string get_name() const;
 		std::string get_path() const;
 		std::pair<int,int> get_size() const;

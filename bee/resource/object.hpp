@@ -31,10 +31,10 @@ namespace bee {
 
 	/// Used to handle all events and to store Instance data
 	class Object: public Resource {
-		static std::map<int,Object*> list;
-		static int next_id;
+		static std::map<size_t,Object*> list;
+		static size_t next_id;
 
-		int id; ///< The unique Object identifier
+		size_t id; ///< The unique Object identifier
 		std::string name; ///< An arbitrary resource name
 		std::string path; ///< The path of the Object's derived header
 
@@ -45,32 +45,32 @@ namespace bee {
 		std::pair<int,int> draw_offset; ///< How far the sprite should be offset from the Instance position
 		bool is_pausable; ///< Whether the Object's events are pausable or not
 
-		std::map<int,Instance*> instances; ///< A list of all the Instances of this Object type
+		std::map<size_t,Instance*> instances; ///< A list of all the Instances of this Object type
 	protected:
 		Instance* current_instance; ///< A pointer to the Instance that is currently being processed
 		std::map<std::string,Variant>* s; ///< A pointer to the data map for the current Instance
 
 		std::set<E_EVENT> implemented_events; ///< A list of all the events that the Object implements
 
-		// See bee/resources/object.cpp for function comments
+		// See bee/resource/object.cpp for function comments
 		Object();
 		Object(const std::string&, const std::string&);
 	public:
 		virtual ~Object();
 
 		static size_t get_amount();
-		static Object* get(int);
+		static Object* get(size_t);
 		static Object* get_by_name(const std::string&);
 		static Object* add(const std::string&, const std::string&);
 
-		int add_to_resources();
+		size_t add_to_resources();
 		int reset();
 
 		virtual std::map<Variant,Variant> serialize() const;
 		virtual int deserialize(std::map<Variant,Variant>&);
 		void print() const;
 
-		int get_id() const;
+		size_t get_id() const;
 		std::string get_name() const;
 		std::string get_path() const;
 		Texture* get_sprite() const;
@@ -93,7 +93,7 @@ namespace bee {
 		int add_instance(int, Instance*);
 		void remove_instance(int);
 		void clear_instances();
-		const std::map<int,Instance*>& get_instances() const;
+		const std::map<size_t,Instance*>& get_instances() const;
 		size_t get_instance_amount() const;
 		Instance* get_instance_at(int) const;
 
@@ -115,7 +115,7 @@ namespace bee {
 		virtual void controller_release(Instance*, SDL_Event*) {};
 		virtual void controller_modify(Instance*, SDL_Event*) {};
 		virtual void commandline_input(Instance*, const std::string&) {};
-		virtual void path_end(Instance*, PathFollower*) {};
+		virtual void path_end(Instance*, const PathFollower&) {};
 		virtual void outside_room(Instance*) {};
 		virtual void intersect_boundary(Instance*) {};
 		virtual void collision(Instance*, Instance*) {};
