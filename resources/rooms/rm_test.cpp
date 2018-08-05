@@ -26,17 +26,18 @@ void RmTest::init() {
 	get_phys_world()->set_scale(100.0);
 
 	// Set backgrounds
-	set_background(-1, bee::Background(bk_green, true, false, {0, 0, true, true, 10, 10, false}));
+	add_background("bk_green", bee::Background(bk_green, true, false, {0, 0, true, true, 10, 10, false}));
 
 	// Set up instances
 	/*if (get_instance_map().empty()) {
 		set_instance_map("resources/rooms/rm_test.csv");
 	}
 	load_instance_map();*/
-	add_instance(-1, obj_bee, btVector3(300.0, 300.0, 0.0));
-	add_instance(-1, obj_bee, btVector3(800.0, 300.0, 0.0));
-	add_instance(-1, obj_bee, btVector3(300.0, 600.0, 0.0));
-	add_instance(-1, obj_bee, btVector3(800.0, 600.0, 0.0));
+	add_instance(obj_control, btVector3(0.0, 0.0, 0.0));
+	add_instance(obj_bee, btVector3(300.0, 300.0, 0.0));
+	add_instance(obj_bee, btVector3(800.0, 300.0, 0.0));
+	add_instance(obj_bee, btVector3(300.0, 600.0, 0.0));
+	add_instance(obj_bee, btVector3(800.0, 600.0, 0.0));
 
 	// Load required resources for this room
 	if (spr_bee->get_is_loaded()) {

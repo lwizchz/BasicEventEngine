@@ -40,7 +40,6 @@ void ObjBee::create(bee::Instance* self) {
 
 	if (self == obj_bee->get_instance_at(0)) {
 		_a("serialdata") = self->serialize();
-		_p("path") = nullptr;
 		_d("path_previous_mass") = 0.0;
 
 		bee::kb::bind(SDLK_UNKNOWN, bee::KeyBind("StartPath", [this, self] (const SDL_Event* e) mutable {

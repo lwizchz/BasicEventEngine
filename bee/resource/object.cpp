@@ -30,8 +30,8 @@ namespace bee {
 	size_t Object::next_id = 0;
 
 	/**
-	* Default construct the object.
-	* @note This constructor should only be directly used for temporary objects, the other constructor should be used for all other cases.
+	* Default construct the Object.
+	* @note This constructor should only be directly used for temporary Objects, the other constructor should be used for all other cases.
 	*/
 	Object::Object() :
 		Resource(),
@@ -59,8 +59,8 @@ namespace bee {
 	{}
 	/**
 	* Construct the Object, add it to the Object resource list, and set the new name and path.
-	* @param _name the name to use for the object
-	* @param _path: the path of the object's header file
+	* @param _name the name to use for the Object
+	* @param _path the path of the Object's header file
 	*
 	* @throws int(-1) Failed to initialize Resource
 	*/
@@ -68,7 +68,7 @@ namespace bee {
 		Object() // Default initialize all variables
 	{
 		if (add_to_resources() == static_cast<size_t>(-1)) { // Attempt to add the Object to its resource list
-			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add object resource: \"" + _name + "\" from " + _path);
+			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add Object resource: \"" + _name + "\" from " + _path);
 			throw -1;
 		}
 
@@ -100,7 +100,7 @@ namespace bee {
 		return nullptr;
 	}
 	/**
-	* @param name the name of the desired object
+	* @param name the name of the desired Object
 	*
 	* @returns the Object resource with the given name or nullptr if not found
 	*/
@@ -117,10 +117,10 @@ namespace bee {
 	}
 	/**
 	* Initiliaze and return a newly created Object resource.
-	* @param name the name to initialize the object with
-	* @param path the path to initialize the object with
+	* @param name the name to initialize the Object with
+	* @param path the path to initialize the Object with
 	*
-	* @returns the newly create Object
+	* @returns the newly created Object
 	*/
 	Object* Object::add(const std::string& name, const std::string& path) {
 		/*Object* new_object = new Object(name, path);
@@ -159,7 +159,7 @@ namespace bee {
 		draw_offset = {0, 0};
 		is_pausable = true;
 
-		// Clear instance data
+		// Clear Instance data
 		instances.clear();
 		current_instance = nullptr;
 		s = nullptr;

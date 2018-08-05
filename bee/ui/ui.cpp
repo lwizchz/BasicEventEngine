@@ -119,7 +119,7 @@ namespace bee { namespace ui {
 			return nullptr;
 		}
 
-		bee::Instance* button = bee::get_current_room()->add_instance(-1, internal::obj_button, btVector3(x, y, 0));
+		bee::Instance* button = bee::get_current_room()->add_instance(internal::obj_button, btVector3(x, y, 0));
 		button->set_corner(x, y);
 
 		button->set_data("font", static_cast<void*>(font));
@@ -160,7 +160,7 @@ namespace bee { namespace ui {
 			return nullptr;
 		}
 
-		bee::Instance* handle = bee::get_current_room()->add_instance(-1, internal::obj_handle, btVector3(x, y, 0));
+		bee::Instance* handle = bee::get_current_room()->add_instance(internal::obj_handle, btVector3(x, y, 0));
 		handle->set_corner(x, y);
 
 		handle->set_data("w", w);
@@ -190,7 +190,7 @@ namespace bee { namespace ui {
 			return nullptr;
 		}
 
-		bee::Instance* text_entry = bee::get_current_room()->add_instance(-1, internal::obj_text_entry, btVector3(x, y, 0));
+		bee::Instance* text_entry = bee::get_current_room()->add_instance(internal::obj_text_entry, btVector3(x, y, 0));
 		text_entry->set_corner(x, y);
 
 		ObjUITextEntry* obj_text_entry = static_cast<ObjUITextEntry*>(internal::obj_text_entry);
@@ -288,7 +288,7 @@ namespace bee { namespace ui {
 			return nullptr;
 		}
 
-		bee::Instance* gauge = bee::get_current_room()->add_instance(-1, internal::obj_gauge, btVector3(x, y, 0));
+		bee::Instance* gauge = bee::get_current_room()->add_instance(internal::obj_gauge, btVector3(x, y, 0));
 		gauge->set_corner(x, y);
 
 		gauge->set_data("w", w);
@@ -311,7 +311,7 @@ namespace bee { namespace ui {
 			return nullptr;
 		}
 
-		bee::Instance* slider = bee::get_current_room()->add_instance(-1, internal::obj_slider, btVector3(x, y, 0));
+		bee::Instance* slider = bee::get_current_room()->add_instance(internal::obj_slider, btVector3(x, y, 0));
 		slider->set_corner(x, y);
 
 		slider->set_data("w", w);
@@ -354,7 +354,7 @@ namespace bee { namespace ui {
 			return nullptr;
 		}
 
-		bee::Instance* optionbox = bee::get_current_room()->add_instance(-1, internal::obj_optionbox, btVector3(x, y, 0));
+		bee::Instance* optionbox = bee::get_current_room()->add_instance(internal::obj_optionbox, btVector3(x, y, 0));
 		optionbox->set_corner(x, y);
 
 		optionbox->set_data("w", w);

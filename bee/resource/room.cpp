@@ -45,19 +45,24 @@
 #include "object.hpp"
 
 namespace bee {
-	namespace internal {
-		std::pair<Instance*,int> flip_instancemap_pair(const std::pair<int,Instance*>& p) {
-			return std::pair<Instance*,int>(p.second, p.first);
-		}
-	}
-
+	/**
+	* @param lhs the left-hand side of the sort comparison
+	* @param rhs the right-hand side of the sort comparison
+	*
+	* @returns the comparison of Instance values instead of pointers
+	* @see Instance::operator<()
+	*/
 	bool InstanceSort::operator()(Instance* lhs, Instance* rhs) const {
-		return (*lhs) < (*rhs); // Compare the values instead of the pointers
+		return (*lhs) < (*rhs);
 	}
 
 	std::map<size_t,Room*> Room::list;
 	size_t Room::next_id = 0;
 
+	/**
+	* Default construct the Room.
+	* @note This constructor should only be directly used for temporary Rooms, the other constructor should be used for all other cases.
+	*/
 	Room::Room() :
 		Resource(),
 
@@ -70,16 +75,13 @@ namespace bee {
 		is_persistent(false),
 
 		backgrounds(),
-		views({ViewPort()}),
+		viewports({{"default", ViewPort()}}),
 
 		next_instance_id(0),
 		instances(),
-		instances_sorted(),
 		created_instances(),
 		destroyed_instances(),
-		should_sort(false),
-
-		instances_sorted_events(),
+		instances_events(),
 
 		physics_world(nullptr),
 		physics_instances(),
@@ -89,6 +91,11 @@ namespace bee {
 		automatic_paths(),
 		automatic_timelines()
 	{}
+	/**
+	* Construct the Room, add it to the Room resource list, and set the new name and path
+	* @param _name the name to use for the Room
+	* @param _path the path of the Room's header file
+	*/
 	Room::Room(const std::string& _name, const std::string& _path) :
 		Room()
 	{
@@ -101,24 +108,28 @@ namespace bee {
 		set_name(_name);
 		set_path(_path);
 	}
+	/**
+	* Free the Room data and remove it from the resource list.
+	*/
 	Room::~Room() {
 		if (physics_world != nullptr) {
 			delete physics_world;
 			physics_world = nullptr;
 		}
 
-		list.erase(id); // Remove the room from the resource list
+		list.erase(id);
 	}
 
-	/*
-	* Room::get_amount() - Return the amount of room resources
+	/**
+	* @returns the number of Room resources
 	*/
 	size_t Room::get_amount() {
 		return list.size();
 	}
-	/*
-	* Room::get() - Return the resource with the given id
-	* @id: the resource to get
+	/**
+	* @param id the resource to get
+	*
+	* @returns the resource with the given id or nullptr if not found
 	*/
 	Room* Room::get(size_t id) {
 		if (list.find(id) != list.end()) {
@@ -126,46 +137,58 @@ namespace bee {
 		}
 		return nullptr;
 	}
-	/*
-	* Room::get_by_name() - Return the room resource with the given name
-	* @name: the name of the desired room
+	/**
+	* @param name the name of the desired Room
+	*
+	* @returns the Room resource with the given name or nullptr if not found
 	*/
 	Room* Room::get_by_name(const std::string& name) {
-		for (auto& room : list) { // Iterate over the rooms in order to find the first one with the given name
+		for (auto& room : list) { // Iterate over the Rooms in order to find the first one with the given name
 			Room* r = room.second;
 			if (r != nullptr) {
 				if (r->get_name() == name) {
-					return r; // Return the desired room on success
+					return r; // Return the desired Room on success
 				}
 			}
 		}
-		return nullptr; // Return nullptr on failure
+		return nullptr;
 	}
-	/*
-	* Room::add() - Initiliaze, load, and return a newly created room resource
-	* @name: the name to initialize the room with
-	* @path: the path to initialize the room with
+	/**
+	* Initiliaze and return a newly created Room resource.
+	* @param name the name to initialize the Room with
+	* @param path the path to initialize the Room with
+	*
+	* @returns the newly created Room
 	*/
 	Room* Room::add(const std::string& name, const std::string& path) {
 		/*Room* _room = new Room(name, path);
 		_room->load();
 		return _room;*/
 
-		return nullptr; // Right now rooms cannot be added on the fly because they must be compiled
+		// It doesn't really make sense to add a generic Room on the fly
+		return nullptr; // TODO: Python Rooms
 	}
 
-	/*
-	* Room::add_to_resources() - Add the room to the appropriate resource list
+	/**
+	* Add the Room to the appropriate resource list.
+	*
+	* @returns the Room id
 	*/
-	int Room::add_to_resources() {
+	size_t Room::add_to_resources() {
 		if (id == static_cast<size_t>(-1)) { // If the resource needs to be added to the resource list
 			id = next_id++;
 			list.emplace(id, this); // Add the resource with its new id
 		}
 
-		return 0;
+		return id;
 	}
+	/**
+	* Reset all resource variables for reinitialization.
+	*
+	* @retval 0 success
+	*/
 	int Room::reset() {
+		// Reset all properties
 		name = "";
 		path = "";
 
@@ -174,19 +197,18 @@ namespace bee {
 		is_persistent = false;
 
 		backgrounds.clear();
-		views.clear();
-		views.push_back(ViewPort());
+		viewports.clear();
+		viewports.emplace("default", ViewPort());
 
+		// Clear Instance data
 		next_instance_id = 0;
 		for (auto& i : instances) {
 			delete i.second;
 		}
 		instances.clear();
-		instances_sorted.clear();
 		created_instances.clear();
 		destroyed_instances.clear();
-		instances_sorted_events.clear();
-		should_sort = false;
+		instances_events.clear();
 
 		if (physics_world != nullptr) {
 			delete physics_world;
@@ -211,12 +233,12 @@ namespace bee {
 		info["height"] = height;
 		info["is_persistent"] = is_persistent;
 
-		std::vector<Variant> bgs;
-		for (auto& bg : backgrounds) {
+		std::map<Variant,Variant> bgs;
+		for (auto& _bg : backgrounds) {
+			const Background& bg = _bg.second;
 			const TextureTransform& tr = bg.transform;
 
-			bgs.push_back(Variant(std::map<Variant,Variant>{
-				{"index", Variant(static_cast<int>(bgs.size()))},
+			bgs.emplace(Variant(_bg.first), Variant(std::map<Variant,Variant>{
 				{"texture", Variant(bg.texture->get_name())},
 				{"is_visible", Variant(bg.is_visible)},
 				{"is_foreground", Variant(bg.is_foreground)},
@@ -233,13 +255,13 @@ namespace bee {
 		}
 		info["backgrounds"] = bgs;
 
-		std::vector<Variant> vws;
-		for (auto& vp : views) {
+		std::map<Variant,Variant> vws;
+		for (auto& _vp : viewports) {
+			const ViewPort& vp = _vp.second;
 			const SDL_Rect& v = vp.view;
 			const SDL_Rect& p = vp.port;
 
-			vws.push_back(Variant(std::map<Variant,Variant>{
-				{"index", Variant(static_cast<int>(vws.size()))},
+			vws.emplace(Variant(_vp.first), Variant(std::map<Variant,Variant>{
 				{"is_active", Variant(vp.is_active)},
 				{"view", Variant(std::map<Variant,Variant>{
 					{"x", Variant(v.x)},
@@ -255,7 +277,7 @@ namespace bee {
 				})}
 			}));
 		}
-		info["views"] = vws;
+		info["viewports"] = vws;
 
 		std::vector<Variant> insts;
 		for (auto& inst : instances) {
@@ -326,8 +348,8 @@ namespace bee {
 		is_persistent = m["is_persistent"].i;
 
 		backgrounds.clear();
-		for (auto& bg : m["backgrounds"].v) {
-			std::map<Variant,Variant>& t (bg.m["transform"].m);
+		for (auto& bg : m["backgrounds"].m) {
+			std::map<Variant,Variant>& t (bg.second.m["transform"].m);
 			TextureTransform tr (
 				t["x"].i,
 				t["y"].i,
@@ -339,25 +361,25 @@ namespace bee {
 			);
 
 			Background b (
-				Texture::get_by_name(bg.m["texture"].s),
-				bg.m["is_visible"].i,
-				bg.m["is_foreground"].i,
+				Texture::get_by_name(bg.second.m["texture"].s),
+				bg.second.m["is_visible"].i,
+				bg.second.m["is_foreground"].i,
 				tr
 			);
 
-			set_background(bg.m["index"].i, b);
+			add_background(bg.first.s, b);
 		}
 
-		views.clear();
-		for (auto& vw : m["views"].v) {
-			std::map<Variant,Variant>& vm (vw.m["view"].m);
+		viewports.clear();
+		for (auto& vw : m["viewports"].m) {
+			std::map<Variant,Variant>& vm (vw.second.m["view"].m);
 			SDL_Rect v = {
 				vm["x"].i,
 				vm["y"].i,
 				vm["w"].i,
 				vm["h"].i
 			};
-			std::map<Variant,Variant>& pm (vw.m["port"].m);
+			std::map<Variant,Variant>& pm (vw.second.m["port"].m);
 			SDL_Rect p = {
 				pm["x"].i,
 				pm["y"].i,
@@ -366,22 +388,21 @@ namespace bee {
 			};
 
 			ViewPort vp (
-				vw.m["is_active"].i,
+				vw.second.m["is_active"].i,
 				v,
 				p
 			);
 
-			set_view(vw.m["index"].i, vp);
+			add_viewport(vw.first.s, vp);
 		}
 
 		bool was_ready = engine->is_ready;
 		engine->is_ready = false;
 
 		instances.clear();
-		instances_sorted.clear();
 		created_instances.clear();
 		destroyed_instances.clear();
-		instances_sorted_events.clear();
+		instances_events.clear();
 		next_instance_id = 0;
 
 		if (physics_world != nullptr) {
@@ -392,7 +413,6 @@ namespace bee {
 
 		for (auto& _inst : m["instances"].v) {
 			Instance* inst = add_instance(
-				_inst.m["id"].i,
 				Object::get_by_name(_inst.m["object"].s),
 				btVector3(
 					_inst.m["pos_start"].v[0].f,
@@ -406,11 +426,10 @@ namespace bee {
 
 		created_instances.clear();
 		engine->is_ready = was_ready;
-		sort_instances();
 
 		automatic_paths.clear();
 		for (auto& p : m["automatic_paths"].v) {
-			std::map<int,Instance*>::iterator inst = instances.find(p.m["instance"].i);
+			std::map<size_t,Instance*>::iterator inst = instances.find(p.m["instance"].i);
 			if (inst == instances.end()) {
 				continue;
 			}
@@ -480,13 +499,13 @@ namespace bee {
 	bool Room::get_is_persistent() const {
 		return is_persistent;
 	}
-	const std::vector<Background>& Room::get_backgrounds() const {
+	const std::map<std::string,Background>& Room::get_backgrounds() const {
 		return backgrounds;
 	}
-	const std::vector<ViewPort>& Room::get_views() const {
-		return views;
+	const std::map<std::string,ViewPort>& Room::get_viewports() const {
+		return viewports;
 	}
-	const std::map<int,Instance*>& Room::get_instances() const {
+	const std::map<size_t,Instance*>& Room::get_instances() const {
 		return instances;
 	}
 	ViewPort* Room::get_current_view() const {
@@ -508,6 +527,13 @@ namespace bee {
 	void Room::set_name(const std::string& _name) {
 		name = _name;
 	}
+	/**
+	* Set the relative or absolute resource path.
+	* @param _path the new path to use
+	* @note If the first character is '/' then the path will be relative to
+	*       the executable directory, otherwise it will be relative to the
+	*       Rooms resource directory.
+	*/
 	void Room::set_path(const std::string& _path) {
 		if (_path.empty()) {
 			path.clear();
@@ -527,44 +553,68 @@ namespace bee {
 		is_persistent = _is_persistent;
 	}
 
-	size_t Room::set_background(size_t desired_index, Background _background) {
-		size_t new_index = desired_index;
-
-		// If the index doesn't exist, append the backgrounds
-		if (new_index >= backgrounds.size()) {
-			new_index = backgrounds.size();
-			backgrounds.push_back(_background);
-			return new_index;
-		}
-
-		// Otherwise, overwrite any previous background with the same index
-		backgrounds[new_index] = _background;
-		return new_index;
+	/**
+	* Add the Background to the Room using the given name.
+	* @param bg_name the name to use for the Background
+	* @param bg the Background to add
+	*
+	* @retval 0 success
+	* @retval 1 failed to add the Background since one with the same name already exists
+	*/
+	int Room::add_background(const std::string& bg_name, Background bg) {
+		bool r;
+		std::tie(std::ignore, r) = backgrounds.emplace(bg_name, bg);
+		return (r) ? 0 : 1;
 	}
-	size_t Room::set_view(size_t desired_index, ViewPort _view) {
-		size_t new_index = desired_index;
-
-		// If the index doesn't exist, append the view
-		if (new_index >= views.size()) {
-			new_index = views.size();
-			views.push_back(_view);
-			return new_index;
-		}
-
-		// Otherwise, overwrite any previous view with the same index
-		views[new_index] = _view;
-		return new_index;
+	/**
+	* Remove the Background with the given name from the Room.
+	* @param bg_name the name of the Background to remove
+	*/
+	void Room::remove_background(const std::string& bg_name) {
+		backgrounds.erase(bg_name);
 	}
-	size_t Room::set_instance(size_t index, Instance* _instance) {
-		if (instances.find(index) != instances.end()) { //  if the instance exists, overwrite it
+	/**
+	* Add the ViewPort to the Room using the given name.
+	* @param vp_name the name to use for the ViewPort
+	* @param vp the ViewPort to add
+	*
+	* @retval 0 success
+	* @retval 1 failed to add the ViewPort since one with the same name already exists
+	*/
+	int Room::add_viewport(const std::string& vp_name, ViewPort vp) {
+		bool r;
+		std::tie(std::ignore, r) = viewports.emplace(vp_name, vp);
+		return (r) ? 0 : 1;
+	}
+	/**
+	* Remove the ViewPort with the given name from the Room.
+	* @param vp_name the name of the ViewPort to remove
+	*/
+	void Room::remove_viewport(const std::string& vp_name) {
+		viewports.erase(vp_name);
+	}
+	/**
+	* Insert an Instance at the given index.
+	* @param index the index to use for the Instance
+	* @param instance the Instance to insert
+	*/
+	void Room::set_instance(size_t index, Instance* instance) {
+		// If the instance exists, overwrite it
+		if (instances.find(index) != instances.end()) {
 			remove_instance(index);
 		}
 
-		instances.insert(std::pair<int,Instance*>(index, _instance));
-
-		return 0;
+		instances.emplace(index, instance);
 	}
-	Instance* Room::add_instance(size_t index, Object* object, btVector3 pos) {
+	/**
+	* Add an Instance of the given Object at the given position.
+	* @param object the Object to instantiate
+	* @param pos the initial position of the new Instance
+	*
+	* @returns a pointer to the newly created Instance
+	*/
+	Instance* Room::add_instance(Object* object, btVector3 pos) {
+		// Output a warning if the Object's Sprite is not loaded
 		if (object->get_sprite() != nullptr) {
 			if (
 				(!object->get_sprite()->get_is_loaded())
@@ -575,28 +625,30 @@ namespace bee {
 			}
 		}
 
-		if (index == static_cast<size_t>(-1)) {
-			index = next_instance_id++;
-		}
-		while (instances.find(index) != instances.end()) {
-			index = next_instance_id++;
+		// Get the new identifier for the Instance
+		size_t new_id = next_instance_id++;
+		while (instances.find(new_id) != instances.end()) {
+			new_id = next_instance_id++;
 		}
 
-		Instance* new_instance = new Instance(index, object, pos);
-		set_instance(index, new_instance);
-		request_instance_sort();
-		object->add_instance(index, new_instance);
+		// Create and add the Instance to the internal lists
+		Instance* new_instance = new Instance(new_id, object, pos);
+		set_instance(new_id, new_instance);
+		object->add_instance(new_id, new_instance);
 
+		// Register the Instance's events
 		for (E_EVENT e : object->get_events()) {
-			instances_sorted_events[e].emplace(new_instance, new_instance->id);
+			instances_events[e].emplace(new_instance, new_instance->id);
 		}
 
+		// Add the Instance's PhysicsBody to the PhysicsWorld if it exists
 		if (new_instance->get_physbody() != nullptr) {
 			add_physbody(new_instance, new_instance->get_physbody());
 			physics_world->add_body(new_instance->get_physbody());
 		}
 
-		if (get_is_ready()) {
+		// Schedule the create event
+		if (get_is_ready()) { // Run it immediately if the event loop is already processing
         	object->update(new_instance);
 			object->create(new_instance);
 		} else {
@@ -605,72 +657,61 @@ namespace bee {
 
 		return new_instance;
 	}
-	size_t Room::add_instance_grid(size_t index, Object* object, btVector3 pos) {
-		double x = pos.x(), y = pos.y();
-		double xg = x, yg = y;
-
-		if (object->get_sprite() != nullptr) {
-			if (!object->get_sprite()->get_is_loaded()) {
-				messenger::send({"engine", "room"}, E_MESSAGE::INFO, "Automatically loading the sprite for object " + object->get_name());
-				object->get_sprite()->load();
-			}
-
-			xg = 0.0; yg = 0.0;
-			if (x >= 0.0) {
-				xg = x*object->get_sprite()->get_subimage_width();
-			} else {
-				xg = width + x*object->get_sprite()->get_subimage_width();
-			}
-			if (y >= 0.0) {
-				yg = y*object->get_sprite()->get_size().second;
-			} else {
-				yg = height + y*object->get_sprite()->get_size().second;
-			}
-		}
-
-		return add_instance(index, object, btVector3(xg, yg, pos.z()))->id;
-	}
+	/**
+	* Remove the Instance at the given index.
+	* @param index the Instance index to remove
+	*
+	* @retval 0 success
+	* @retval 1 failed to remove since an Instance at the given index doesn't exist
+	*/
 	int Room::remove_instance(size_t index) {
-		if (instances.find(index) == instances.end()) {
+		std::map<size_t,Instance*>::iterator _inst = instances.find(index);
+		if (_inst == instances.end()) {
 			return 1;
 		}
 
-		Instance* inst = instances[index];
+		Instance* inst = _inst->second;
 
-		if (inst->get_physbody() == nullptr) {
-			messenger::send({"engine", "room"}, E_MESSAGE::WARNING, "Null physbody for instance " + std::to_string(index) + " of " + inst->get_object()->get_name() + "\n");
-		} else {
+		if (inst->get_physbody() != nullptr) {
 			remove_physbody(inst->get_physbody());
 		}
 
 		inst->get_object()->remove_instance(index);
 		instances.erase(index);
-		instances_sorted.erase(inst);
 
 		for (E_EVENT e : inst->get_object()->get_events()) {
-			instances_sorted_events[e].erase(inst);
+			instances_events[e].erase(inst);
 		}
 
 		delete inst;
 
 		return 0;
 	}
-	void Room::sort_instances() {
-		std::transform(instances.begin(), instances.end(), std::inserter(instances_sorted, instances_sorted.begin()), internal::flip_instancemap_pair);
-	}
-	void Room::request_instance_sort() {
-		should_sort = true;
-	}
+	/**
+	* Add the given PhysicsBody and an associated Instance.
+	* @note This mapping is used by collision_internal() and check_collision_filter()
+	* @param inst the Instance to add
+	* @param body the PhysicsBody to add
+	*/
 	void Room::add_physbody(Instance* inst, PhysicsBody* body) {
 		physics_instances.emplace(body->get_body(), inst);
 	}
+	/**
+	* Remove the given PhysicsBody from the internal map.
+	* @param body the PhysicsBody to remove
+	*/
 	void Room::remove_physbody(PhysicsBody* body) {
 		physics_instances.erase(body->get_body());
 	}
+	/**
+	* Automatically advance the given Instance with the given PathFollower.
+	* @param inst the Instance to automate
+	* @param pf the PathFollower to use
+	*/
 	void Room::automate_path(Instance* inst, PathFollower pf) {
 		automatic_paths[inst] = pf;
 
-		// Store and restore the Instance mass
+		// Store and restore the Instance's mass
 		if (pf.path == nullptr) {
 			inst->set_mass(inst->get_data("__path_previous_mass", Variant(0.0), false).d);
 		} else {
@@ -678,47 +719,24 @@ namespace bee {
 			inst->set_mass(0.0);
 		}
 	}
+	/**
+	* Automatically advance the given TimelineIterator.
+	* @param tlit the TimelineIterator to automate
+	*/
 	void Room::automate_timeline(TimelineIterator tlit) {
 		automatic_timelines.emplace_back(tlit);
 	}
 
+	/**
+	* Partially reset the Room when changing to it.
+	*/
 	void Room::reset_properties() {
-		should_sort = false;
-		for (auto& i : instances) {
-			destroyed_instances.push_back(i.second);
-		}
-		destroy();
-
-		// Remove all instances except persistent instances
-		for (auto it=instances.begin(); it!=instances.end(); ) {
-			if (!it->second->get_is_persistent()) {
-				it = instances.erase(it);
-			} else {
-				++it;
-			}
-		}
-		for (auto it=instances_sorted.begin(); it!=instances_sorted.end(); ) {
-			if (!it->first->get_is_persistent()) {
-				it = instances_sorted.erase(it);
-			} else {
-				++it;
-			}
-		}
 		created_instances.clear();
 		next_instance_id = 0;
-		for (auto& event_map : instances_sorted_events) {
-			for (auto it=event_map.second.begin(); it!=event_map.second.end(); ) {
-				if (!it->first->get_is_persistent()) {
-					it = event_map.second.erase(it);
-				} else {
-					++it;
-				}
-			}
-		}
 
 		backgrounds.clear();
-		views.clear();
-		views.push_back(ViewPort());
+		viewports.clear();
+		viewports.emplace("default", ViewPort());
 
 		if (physics_world != nullptr) {
 			delete physics_world;
@@ -729,26 +747,15 @@ namespace bee {
 		automatic_paths.clear();
 		automatic_timelines.clear();
 	}
+	/**
+	* Transfer persistent Instances from the previous Room.
+	* @param old_room the previous Room
+	*
+	* @retval 0 success
+	* @retval 1 failed since this is the first Room
+	*/
 	int Room::transfer_instances(const Room* old_room) {
 		if (old_room == nullptr) {
-			Object* obj_control = Object::get_by_name("obj_control");
-			if (obj_control == nullptr) {
-				return 2;
-			}
-
-			// If an obj_control exists, create it for the first room
-			int index = next_instance_id++;
-			Instance* inst_control = new Instance(index, obj_control, btVector3(0.0, 0.0, 0.0));
-			set_instance(index, inst_control);
-			sort_instances();
-			obj_control->add_instance(index, inst_control);
-
-			for (E_EVENT e : obj_control->get_events()) {
-				instances_sorted_events[e].emplace(inst_control, inst_control->id);
-			}
-
-			created_instances.push_back(inst_control);
-
 			return 1;
 		}
 
@@ -756,11 +763,10 @@ namespace bee {
 			inst.second->get_object()->remove_instance(inst.first);
 		}
 
-		const std::map<int,Instance*> old_instances = old_room->get_instances();
+		const std::map<size_t,Instance*> old_instances = old_room->get_instances();
 
 		instances.clear();
-		instances_sorted.clear();
-		instances_sorted_events.clear();
+		instances_events.clear();
 
 		for (auto& inst : old_instances) {
 			set_instance(inst.first, inst.second);
@@ -773,63 +779,75 @@ namespace bee {
 			}
 
 			for (E_EVENT e : inst.second->get_object()->get_events()) {
-				instances_sorted_events[e].emplace(inst.second, inst.first);
+				instances_events[e].emplace(inst.second, inst.first);
 			}
 		}
-		sort_instances();
 
 		return 0;
 	}
 
+	/**
+	* Run the Instance create events.
+	*/
 	void Room::create() {
 		for (auto& i : created_instances) {
 			i->get_object()->update(i);
 			i->get_object()->create(i);
 		}
 		created_instances.clear();
-
-		if (should_sort) {
-			sort_instances();
-			should_sort = false;
-		}
 	}
+	/**
+	* Run the Instance destroy events.
+	*/
 	void Room::destroy() {
 		std::set<Instance*> destroyed;
 
+		// Continually destroy Instances
 		while (!destroyed_instances.empty()) {
 			Instance* inst = destroyed_instances.back();
 			destroyed_instances.pop_back();
 
-			if (destroyed.find(inst) == destroyed.end()) {
-				destroyed.insert(inst);
+			// Skip the Instance if it's already been destroyed
+			if (destroyed.find(inst) != destroyed.end()) {
+				continue;
+			}
 
-				if (!inst->get_is_persistent()) {
-					inst->get_object()->update(inst);
-					inst->get_object()->destroy(inst);
-					remove_instance(inst->id);
-				}
+			destroyed.insert(inst);
+
+			// Destroy the Instance if it's not persistent
+			if (!inst->get_is_persistent()) {
+				inst->get_object()->update(inst);
+				inst->get_object()->destroy(inst);
+				remove_instance(inst->id);
 			}
 		}
-
-		if (should_sort) {
-			sort_instances();
-			should_sort = false;
-		}
 	}
+	/**
+	* Destroy the given Instance at the end of the frame.
+	* @param inst the Instance to schedule for destruction
+	*/
 	void Room::destroy(Instance* inst) {
 		destroyed_instances.push_back(inst);
 	}
+	/**
+	* Destroy all Instances of a given Object.
+	* @param obj the Object type to destroy
+	*/
 	void Room::destroy_all(Object* obj) {
 		for (auto& i : obj->get_instances()) {
-			destroyed_instances.push_back(i.second);
+			destroy(i.second);
 		}
 	}
+	/**
+	* Run the Instance alarm events if needed.
+	*/
 	void Room::check_alarms() {
-		for (auto& i : instances_sorted_events[E_EVENT::ALARM]) {
+		for (auto& i : instances_events[E_EVENT::ALARM]) {
 			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
 				continue;
 			}
 
+			// Iterate over the Instance's alarms
 			Variant alarms = i.first->get_data("__alarms");
 			for (auto& a : alarms.m) {
 				if (get_ticks() >= static_cast<unsigned int>(a.second.i)) {
@@ -840,8 +858,11 @@ namespace bee {
 			}
 		}
 	}
+	/**
+	* Run the Instance step_begin events.
+	*/
 	void Room::step_begin() {
-		for (auto& i : instances_sorted_events[E_EVENT::STEP_BEGIN]) {
+		for (auto& i : instances_events[E_EVENT::STEP_BEGIN]) {
 			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
 				continue;
 			}
@@ -849,8 +870,12 @@ namespace bee {
 			i.first->get_object()->step_begin(i.first);
 		}
 	}
+	/**
+	* Run the Instance step_mid events, automatic Paths, and automatic Timelines.
+	*/
 	void Room::step_mid() {
-		for (auto& i : instances_sorted_events[E_EVENT::STEP_MID]) {
+		// Run the step_mid events
+		for (auto& i : instances_events[E_EVENT::STEP_MID]) {
 			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
 				continue;
 			}
@@ -876,8 +901,11 @@ namespace bee {
 			return tlit.step_to(get_frame());
 		}), automatic_timelines.end());
 	}
+	/**
+	* Run the Instance step_end events.
+	*/
 	void Room::step_end() {
-		for (auto& i : instances_sorted_events[E_EVENT::STEP_END]) {
+		for (auto& i : instances_events[E_EVENT::STEP_END]) {
 			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
 				continue;
 			}
@@ -885,8 +913,11 @@ namespace bee {
 			i.first->get_object()->step_end(i.first);
 		}
 	}
+	/**
+	* Run the Instance keyboard_press events.
+	*/
 	void Room::keyboard_press(SDL_Event* e) {
-		for (auto& i : instances_sorted_events[E_EVENT::KEYBOARD_PRESS]) {
+		for (auto& i : instances_events[E_EVENT::KEYBOARD_PRESS]) {
 			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
 				continue;
 			}
@@ -894,8 +925,11 @@ namespace bee {
 			i.first->get_object()->keyboard_press(i.first, e);
 		}
 	}
+	/**
+	* Run the Instance mouse_press events.
+	*/
 	void Room::mouse_press(SDL_Event* e) {
-		for (auto& i : instances_sorted_events[E_EVENT::MOUSE_PRESS]) {
+		for (auto& i : instances_events[E_EVENT::MOUSE_PRESS]) {
 			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
 				continue;
 			}
@@ -903,8 +937,11 @@ namespace bee {
 			i.first->get_object()->mouse_press(i.first, e);
 		}
 	}
+	/**
+	* Run the Instance keyboard_input events.
+	*/
 	void Room::keyboard_input(SDL_Event* e) {
-		for (auto& i : instances_sorted_events[E_EVENT::KEYBOARD_INPUT]) {
+		for (auto& i : instances_events[E_EVENT::KEYBOARD_INPUT]) {
 			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
 				continue;
 			}
@@ -912,8 +949,11 @@ namespace bee {
 			i.first->get_object()->keyboard_input(i.first, e);
 		}
 	}
+	/**
+	* Run the Instance mouse_input events.
+	*/
 	void Room::mouse_input(SDL_Event* e) {
-		for (auto& i : instances_sorted_events[E_EVENT::MOUSE_INPUT]) {
+		for (auto& i : instances_events[E_EVENT::MOUSE_INPUT]) {
 			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
 				continue;
 			}
@@ -921,8 +961,11 @@ namespace bee {
 			i.first->get_object()->mouse_input(i.first, e);
 		}
 	}
+	/**
+	* Run the Instance keyboard_release events.
+	*/
 	void Room::keyboard_release(SDL_Event* e) {
-		for (auto& i : instances_sorted_events[E_EVENT::KEYBOARD_RELEASE]) {
+		for (auto& i : instances_events[E_EVENT::KEYBOARD_RELEASE]) {
 			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
 				continue;
 			}
@@ -930,8 +973,11 @@ namespace bee {
 			i.first->get_object()->keyboard_release(i.first, e);
 		}
 	}
+	/**
+	* Run the Instance mouse_release events.
+	*/
 	void Room::mouse_release(SDL_Event* e) {
-		for (auto& i : instances_sorted_events[E_EVENT::MOUSE_RELEASE]) {
+		for (auto& i : instances_events[E_EVENT::MOUSE_RELEASE]) {
 			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
 				continue;
 			}
@@ -939,8 +985,11 @@ namespace bee {
 			i.first->get_object()->mouse_release(i.first, e);
 		}
 	}
+	/**
+	* Run the Instance controller_axis events.
+	*/
 	void Room::controller_axis(SDL_Event* e) {
-		for (auto& i : instances_sorted_events[E_EVENT::CONTROLLER_AXIS]) {
+		for (auto& i : instances_events[E_EVENT::CONTROLLER_AXIS]) {
 			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
 				continue;
 			}
@@ -948,8 +997,11 @@ namespace bee {
 			i.first->get_object()->controller_axis(i.first, e);
 		}
 	}
+	/**
+	* Run the Instance controller_press events.
+	*/
 	void Room::controller_press(SDL_Event* e) {
-		for (auto& i : instances_sorted_events[E_EVENT::CONTROLLER_PRESS]) {
+		for (auto& i : instances_events[E_EVENT::CONTROLLER_PRESS]) {
 			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
 				continue;
 			}
@@ -957,8 +1009,11 @@ namespace bee {
 			i.first->get_object()->controller_press(i.first, e);
 		}
 	}
+	/**
+	* Run the Instance controller_release events.
+	*/
 	void Room::controller_release(SDL_Event* e) {
-		for (auto& i : instances_sorted_events[E_EVENT::CONTROLLER_RELEASE]) {
+		for (auto& i : instances_events[E_EVENT::CONTROLLER_RELEASE]) {
 			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
 				continue;
 			}
@@ -966,8 +1021,11 @@ namespace bee {
 			i.first->get_object()->controller_release(i.first, e);
 		}
 	}
+	/**
+	* Run the Instance controller_modify events.
+	*/
 	void Room::controller_modify(SDL_Event* e) {
-		for (auto& i : instances_sorted_events[E_EVENT::CONTROLLER_MODIFY]) {
+		for (auto& i : instances_events[E_EVENT::CONTROLLER_MODIFY]) {
 			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
 				continue;
 			}
@@ -975,8 +1033,11 @@ namespace bee {
 			i.first->get_object()->controller_modify(i.first, e);
 		}
 	}
+	/**
+	* Run the Instance commandline_input events.
+	*/
 	void Room::commandline_input(const std::string& input) {
-		for (auto& i : instances_sorted_events[E_EVENT::COMMANDLINE_INPUT]) {
+		for (auto& i : instances_events[E_EVENT::COMMANDLINE_INPUT]) {
 			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
 				continue;
 			}
@@ -984,7 +1045,11 @@ namespace bee {
 			i.first->get_object()->commandline_input(i.first, input);
 		}
 	}
+	/**
+	* Run the Instance path_end events if needed.
+	*/
 	void Room::check_paths() {
+		// Check the automatic Paths
 		for (auto& ipf : automatic_paths) {
 			if (
 				(ipf.second.path == nullptr)
@@ -998,7 +1063,7 @@ namespace bee {
 			}
 
 			if (ipf.second.path->at_end(ipf.second)) {
-				if (instances_sorted_events[E_EVENT::PATH_END].find(ipf.first) != instances_sorted_events[E_EVENT::PATH_END].end()) {
+				if (instances_events[E_EVENT::PATH_END].find(ipf.first) != instances_events[E_EVENT::PATH_END].end()) {
 					ipf.first->get_object()->update(ipf.first);
 					ipf.first->get_object()->path_end(ipf.first, ipf.second);
 				}
@@ -1014,30 +1079,44 @@ namespace bee {
 			}
 		}
 	}
+	/**
+	* Run the Instance outside_room events if needed.
+	*/
 	void Room::outside_room() {
-		for (auto& i : instances_sorted_events[E_EVENT::OUTSIDE_ROOM]) {
+		for (auto& i : instances_events[E_EVENT::OUTSIDE_ROOM]) {
 			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
 				continue;
 			}
-			if (i.first->get_object()->get_sprite() != nullptr) {
-				SDL_Rect a = i.first->get_aabb();
-				SDL_Rect b = {0, 0, get_width(), get_height()};
-				if (!util::check_collision(a, b)) {
-					i.first->get_object()->update(i.first);
-					i.first->get_object()->outside_room(i.first);
-				}
+
+			SDL_Rect a = i.first->get_aabb();
+			SDL_Rect b = {0, 0, get_width(), get_height()};
+			if (!util::check_collision(a, b)) {
+				i.first->get_object()->update(i.first);
+				i.first->get_object()->outside_room(i.first);
 			}
 		}
 	}
+	/**
+	* Run the Instance intersect_boundary events if needed.
+	*/
 	void Room::intersect_boundary() {
-		for (auto& i : instances_sorted_events[E_EVENT::INTERSECT_BOUNDARY]) {
+		for (auto& i : instances_events[E_EVENT::INTERSECT_BOUNDARY]) {
 			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
 				continue;
 			}
-			i.first->get_object()->update(i.first);
-			i.first->get_object()->intersect_boundary(i.first);
+
+			SDL_Rect a = i.first->get_aabb();
+			SDL_Rect b1 = {0, 0, get_width(), get_height()};
+			SDL_Rect b2 = {0+a.w, 0+a.h, get_width()-2*a.w, get_height()-2*a.h};
+			if ((util::check_collision(a, b1))&&(!util::check_collision(a, b2))) {
+				i.first->get_object()->update(i.first);
+				i.first->get_object()->intersect_boundary(i.first);
+			}
 		}
 	}
+	/**
+	* Step the PhysicsWorld collisions.
+	*/
 	int Room::collision() {
 		if (get_is_paused()) {
 			return 1;
@@ -1047,6 +1126,11 @@ namespace bee {
 
 		return 0;
 	}
+	/**
+	* Run the Instance collision events if necessary.
+	* @param w the world that was stepped
+	* @param timestep the amount of time that was stepped
+	*/
 	void Room::collision_internal(btDynamicsWorld* w, btScalar timestep) {
 		PhysicsWorld* world = static_cast<PhysicsWorld*>(w->getWorldUserInfo());
 		const std::map<const btRigidBody*,Instance*>& physics_instances = get_current_room()->get_phys_instances();
@@ -1059,37 +1143,30 @@ namespace bee {
 			const btRigidBody* body1 = btRigidBody::upcast(manifold->getBody0());
 			const btRigidBody* body2 = btRigidBody::upcast(manifold->getBody1());
 
-			if ((physics_instances.find(body1) != physics_instances.end())&&(physics_instances.find(body2) != physics_instances.end())) {
-				Instance* i1 = physics_instances.at(body1);
-				Instance* i2 = physics_instances.at(body2);
-
+			std::map<const btRigidBody*,Instance*>::const_iterator inst1 = physics_instances.find(body1);
+			std::map<const btRigidBody*,Instance*>::const_iterator inst2 = physics_instances.find(body2);
+			if ((inst1 != physics_instances.end())&&(inst2 != physics_instances.end())) {
+				Instance* i1 = inst1->second;
+				Instance* i2 = inst2->second;
 				if (
 					(i1 != nullptr)
 					&&(i2 != nullptr)
 					&&(i1->get_object() != nullptr)
 					&&(i2->get_object() != nullptr)
 				) {
-					/*if (get_is_paused()) {
-						if ((i1->get_object()->get_is_pausable())||(i2->get_object()->get_is_pausable())) {
-							continue;
-						}
-					}*/
-
 					i1->get_object()->update(i1);
 					i1->get_object()->collision(i1, i2);
 					i2->get_object()->update(i2);
 					i2->get_object()->collision(i2, i1);
-				} else {
-					/*if ((i1 == nullptr)||(i1->get_object() == nullptr)) {
-						physics_instances.erase(body1);
-					}
-					if ((i2 == nullptr)||(i2->get_object() == nullptr)) {
-						physics_instances.erase(body2);
-					}*/
 				}
 			}
 		}
 	}
+	/**
+	* Check the Instance collision filters if found.
+	* @param proxy0 the proxy containing the first body
+	* @param proxy1 the proxy containing the second body
+	*/
 	bool Room::check_collision_filter(btBroadphaseProxy* proxy0, btBroadphaseProxy* proxy1) {
 		bool should_collide = false;
 		const std::map<const btRigidBody*,Instance*>& physics_instances = get_current_room()->get_phys_instances();
@@ -1097,9 +1174,11 @@ namespace bee {
 		btRigidBody* body1 = static_cast<btRigidBody*>(proxy0->m_clientObject);
 		btRigidBody* body2 = static_cast<btRigidBody*>(proxy1->m_clientObject);
 
-		if ((physics_instances.find(body1) != physics_instances.end())&&(physics_instances.find(body2) != physics_instances.end())) {
-			Instance* i1 = physics_instances.at(body1);
-			Instance* i2 = physics_instances.at(body2);
+		std::map<const btRigidBody*,Instance*>::const_iterator inst1 = physics_instances.find(body1);
+		std::map<const btRigidBody*,Instance*>::const_iterator inst2 = physics_instances.find(body2);
+		if ((inst1 != physics_instances.end())&&(inst2 != physics_instances.end())) {
+			Instance* i1 = inst1->second;
+			Instance* i2 = inst2->second;
 
 			if (
 				(i1 != nullptr)
@@ -1111,24 +1190,21 @@ namespace bee {
 				should_collide = i1->get_object()->check_collision_filter(i1, i2);
 				i2->get_object()->update(i2);
 				should_collide = should_collide && i2->get_object()->check_collision_filter(i2, i1);
-			} else {
-				/*if ((i1 == nullptr)||(i1->get_object() == nullptr)) {
-					physics_instances.erase(body1);
-				}
-				if ((i2 == nullptr)||(i2->get_object() == nullptr)) {
-					physics_instances.erase(body2);
-				}*/
 			}
 		}
 
 		return should_collide;
 	}
+	/**
+	* Render the ViewPorts.
+	*/
 	void Room::draw() {
 		Texture* prev_target = render::get_target();
 
-		for (auto& v : views) {
-			if (v.is_active) {
-				view_current = &v;
+		for (auto& v : viewports) {
+			ViewPort& vp = v.second;
+			if (vp.is_active) {
+				view_current = &vp;
 				view_current->update();
 				draw_view(view_current);
 			}
@@ -1143,9 +1219,10 @@ namespace bee {
 
 		render::clear_lights();
 
-		for (auto& v : views) {
-			if (v.is_active) {
-				v.draw();
+		for (auto& v : viewports) {
+			ViewPort& vp = v.second;
+			if (vp.is_active) {
+				vp.draw();
 			}
 		}
 
@@ -1155,6 +1232,10 @@ namespace bee {
 
 		render::render();
 	}
+	/**
+	* Render the Lights, Backgrounds, and call Instance draw events for the given ViewPort.
+	* @param viewport the ViewPort to draw inside of
+	*/
 	void Room::draw_view(ViewPort* viewport) {
 		// Draw backgrounds
 		draw_set_color(RGBA(E_RGB::WHITE));
@@ -1166,14 +1247,15 @@ namespace bee {
 		render::render_lights();
 
 		for (auto& b : backgrounds) {
-			if ((b.is_visible)&&(!b.is_foreground)) {
-				b.texture->draw_transform(b.transform);
+			Background& bg = b.second;
+			if ((bg.is_visible)&&(!bg.is_foreground)) {
+				bg.texture->draw_transform(bg.transform);
 			}
 		}
 		render::render_textures();
 
 		// Draw instances
-		for (auto& i : instances_sorted_events[E_EVENT::DRAW]) {
+		for (auto& i : instances_events[E_EVENT::DRAW]) {
 			i.first->get_object()->update(i.first);
 			i.first->get_object()->draw(i.first);
 		}
@@ -1181,8 +1263,9 @@ namespace bee {
 
 		// Draw foregrounds
 		for (auto& b : backgrounds) {
-			if ((b.is_visible)&&(b.is_foreground)) {
-				b.texture->draw_transform(b.transform);
+			Background& bg = b.second;
+			if ((bg.is_visible)&&(bg.is_foreground)) {
+				bg.texture->draw_transform(bg.transform);
 			}
 		}
 
@@ -1196,8 +1279,11 @@ namespace bee {
 
 		render::render_textures();
 	}
+	/**
+	* Run the Instance animation_end events if needed.
+	*/
 	void Room::animation_end() {
-		for (auto& i : instances_sorted_events[E_EVENT::ANIMATION_END]) {
+		for (auto& i : instances_events[E_EVENT::ANIMATION_END]) {
 			if (i.first->get_object()->get_sprite() != nullptr) {
 				if (!i.first->get_object()->get_sprite()->get_is_animated()) {
 					i.first->get_object()->update(i.first);
@@ -1206,10 +1292,13 @@ namespace bee {
 			}
 		}
 	}
+	/**
+	* Run the Room's start function and Instance room_start events.
+	*/
 	void Room::room_start() {
 		this->start();
 
-		for (auto& i : instances_sorted_events[E_EVENT::ROOM_START]) {
+		for (auto& i : instances_events[E_EVENT::ROOM_START]) {
 			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
 				continue;
 			}
@@ -1217,8 +1306,11 @@ namespace bee {
 			i.first->get_object()->room_start(i.first);
 		}
 	}
+	/**
+	* Run the Instance room_end events, destroy the Room's Instances, and run the Room's end function.
+	*/
 	void Room::room_end() {
-		for (auto& i : instances_sorted_events[E_EVENT::ROOM_END]) {
+		for (auto& i : instances_events[E_EVENT::ROOM_END]) {
 			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
 				continue;
 			}
@@ -1233,8 +1325,11 @@ namespace bee {
 
 		this->end();
 	}
+	/**
+	* Run the Instance game_start events.
+	*/
 	void Room::game_start() {
-		for (auto& i : instances_sorted_events[E_EVENT::GAME_START]) {
+		for (auto& i : instances_events[E_EVENT::GAME_START]) {
 			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
 				continue;
 			}
@@ -1242,8 +1337,11 @@ namespace bee {
 			i.first->get_object()->game_start(i.first);
 		}
 	}
+	/**
+	* Run the Instance game_end events and destroy the Room's leftover persistent Instances.
+	*/
 	void Room::game_end() {
-		for (auto& i : instances_sorted_events[E_EVENT::GAME_END]) {
+		for (auto& i : instances_events[E_EVENT::GAME_END]) {
 			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
 				continue;
 			}
@@ -1257,8 +1355,11 @@ namespace bee {
 		}
 		destroy();
 	}
+	/**
+	* Run the Instance window events.
+	*/
 	void Room::window(SDL_Event* e) {
-		for (auto& i : instances_sorted_events[E_EVENT::WINDOW]) {
+		for (auto& i : instances_events[E_EVENT::WINDOW]) {
 			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
 				continue;
 			}
@@ -1266,8 +1367,11 @@ namespace bee {
 			i.first->get_object()->window(i.first, e);
 		}
 	}
+	/**
+	* Run the Instance network events.
+	*/
 	void Room::network(const NetworkEvent& e) {
-		for (auto& i :instances_sorted_events[E_EVENT::NETWORK]) {
+		for (auto& i :instances_events[E_EVENT::NETWORK]) {
 			if ((get_is_paused())&&(i.first->get_object()->get_is_pausable())) {
 				continue;
 			}
@@ -1276,9 +1380,21 @@ namespace bee {
 		}
 	}
 
+	/**
+	* Initialize the Room and add an Instance of obj_control if it exists.
+	* @note This is called during the Room change in change_room()
+	*/
 	void Room::init() {
 		physics_world = new PhysicsWorld();
 	}
+	/**
+	* @note This is called before the Instance room_start events.
+	*/
+	void Room::start() {}
+	/**
+	* @note This is called after the Instance room_end events.
+	*/
+	void Room::end() {}
 }
 
 #endif // BEE_ROOM

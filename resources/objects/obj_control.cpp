@@ -126,7 +126,7 @@ void ObjControl::mouse_press(bee::Instance* self, SDL_Event* e) {
 			SDL_Rect b = {e->button.x-10, e->button.y-10, 20, 20};
 			if ((self->id == 0)&&(!util::check_collision(a, b))) {
 				if (self->is_place_empty(e->button.x, e->button.y)) {
-					bee::Instance* bee = bee::get_current_room()->add_instance(-1, obj_bee, btVector3(e->button.x, e->button.y, 0));
+					bee::Instance* bee = bee::get_current_room()->add_instance(obj_bee, btVector3(e->button.x, e->button.y, 0));
 					bee->set_computation_type(bee::E_COMPUTATION::SEMIPLAYER);
 					bee->set_mass(1.0);
 				}
@@ -141,7 +141,7 @@ void ObjControl::draw(bee::Instance* self) {
 	_p("text_fps") = font_liberation->draw(static_cast<bee::TextData*>(_p("text_fps")), 0, 0, "FPS: " + std::to_string(bee::engine->fps_stable));
 }
 void ObjControl::room_start(bee::Instance* self) {
-	bee::get_current_room()->add_instance(-1, obj_mesh, btVector3(0.0, 0.0, 0.0));
+	bee::get_current_room()->add_instance(obj_mesh, btVector3(0.0, 0.0, 0.0));
 }
 void ObjControl::game_start(bee::Instance* self) {
 	bee::console::run("execfile(\"cfg/config.py\")"); // Configure default binds

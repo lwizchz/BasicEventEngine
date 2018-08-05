@@ -44,7 +44,7 @@ namespace bee {
 		Script() // Default initialize all variables
 	{
 		if (add_to_resources() == static_cast<size_t>(-1)) { // Attempt to add the Script to its resource list
-			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add script resource: \"" + _name + "\" from " + _path);
+			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add Script resource: \"" + _name + "\" from " + _path);
 			throw -1;
 		}
 
@@ -235,7 +235,7 @@ namespace bee {
 	*/
 	int Script::load() {
 		if (is_loaded) {
-			messenger::send({"engine", "script"}, E_MESSAGE::WARNING, "Failed to load script \"" + name + "\" because it has already been loaded");
+			messenger::send({"engine", "script"}, E_MESSAGE::WARNING, "Failed to load Script \"" + name + "\" because it has already been loaded");
 			return 1;
 		}
 
@@ -249,7 +249,7 @@ namespace bee {
 			}
 			case E_SCRIPT_TYPE::INVALID:
 			default: {
-				messenger::send({"engine", "script"}, E_MESSAGE::WARNING, "Failed to load script \"" + name + "\" from \"" + path + "\": unknown script extension \"" + path.substr(path.length()-3, 3) + "\"");
+				messenger::send({"engine", "script"}, E_MESSAGE::WARNING, "Failed to load Script \"" + name + "\" from \"" + path + "\": unknown script extension \"" + path.substr(path.length()-3, 3) + "\"");
 				return 2;
 			}
 		}
@@ -292,7 +292,7 @@ namespace bee {
 	*/
 	int Script::run_string(const std::string& code, Variant* retval) {
 		if (!is_loaded) {
-			messenger::send({"engine", "script"}, E_MESSAGE::WARNING, "Failed to run script \"" + name + "\" because it is not loaded");
+			messenger::send({"engine", "script"}, E_MESSAGE::WARNING, "Failed to run Script \"" + name + "\" because it is not loaded");
 			return -1;
 		}
 
@@ -309,7 +309,7 @@ namespace bee {
 	*/
 	int Script::run_file(const std::string& filename) {
 		if (!is_loaded) {
-			messenger::send({"engine", "script"}, E_MESSAGE::WARNING, "Failed to run script \"" + name + "\" because it is not loaded");
+			messenger::send({"engine", "script"}, E_MESSAGE::WARNING, "Failed to run Script \"" + name + "\" because it is not loaded");
 			return -1;
 		}
 
@@ -328,7 +328,7 @@ namespace bee {
 	*/
 	int Script::run_func(const std::string& funcname, const Variant& args, Variant* retval) {
 		if (!is_loaded) {
-			messenger::send({"engine", "script"}, E_MESSAGE::WARNING, "Failed to run script \"" + name + "\" because it is not loaded");
+			messenger::send({"engine", "script"}, E_MESSAGE::WARNING, "Failed to run Script \"" + name + "\" because it is not loaded");
 			return -1;
 		}
 
