@@ -40,7 +40,7 @@ namespace bee { namespace python { namespace internal {
 
 		std::string _keyname (PyUnicode_AsUTF8(keyname));
 
-		return Py_BuildValue("O", kb::get_state(kb::keystrings_get_key(_keyname)) ? Py_True : Py_False);
+		return PyBool_FromLong(kb::get_state(kb::keystrings_get_key(_keyname)));
 	}
 	PyObject* kb_get_mod_state(PyObject* self, PyObject* args) {
 		PyObject* modname;
@@ -84,7 +84,7 @@ namespace bee { namespace python { namespace internal {
 			mod = KMOD_GUI;
 		}
 
-		return Py_BuildValue("O", kb::get_mod_state(mod) ? Py_True : Py_False);
+		return PyBool_FromLong(kb::get_mod_state(mod));
 	}
 
 	PyObject* kb_append_input(PyObject* self, PyObject* args) {
@@ -104,7 +104,7 @@ namespace bee { namespace python { namespace internal {
 
 		kb::append_input(&_str, &kbe);
 
-		return Py_BuildValue("N", PyUnicode_FromString(_str.c_str()));
+		return PyUnicode_FromString(_str.c_str());
 	}
 }}}
 

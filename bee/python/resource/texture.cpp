@@ -19,10 +19,14 @@
 #include "../../resource/texture.hpp"
 
 namespace bee { namespace python {
-	PyObject* Texture_from(Texture* texture) {
+	PyObject* Texture_from(const Texture* texture) {
 		PyObject* py_texture = internal::Texture_new(&internal::TextureType, nullptr, nullptr);
 		internal::TextureObject* _py_texture = reinterpret_cast<internal::TextureObject*>(py_texture);
-		_py_texture->name = PyUnicode_FromString(texture->get_name().c_str());
+
+		if (Texture_init(_py_texture, Py_BuildValue("(N)", PyUnicode_FromString(texture->get_name().c_str())), nullptr)) {
+			return nullptr;
+		}
+
 		return py_texture;
 	}
 	bool Texture_check(PyObject* obj) {
@@ -174,18 +178,18 @@ namespace internal {
 
 	PyObject* Texture_repr(TextureObject* self) {
 		std::string s = std::string("bee.Texture(\"") + PyUnicode_AsUTF8(self->name) + "\")";
-		return Py_BuildValue("N", PyUnicode_FromString(s.c_str()));
+		return PyUnicode_FromString(s.c_str());
 	}
 	PyObject* Texture_str(TextureObject* self) {
 		Texture* tex = as_texture(self);
 		if (tex == nullptr) {
-			return Py_BuildValue("N", PyUnicode_FromString("Invalid Texture name"));
+			return PyUnicode_FromString("Invalid Texture name");
 		}
 
 		Variant m (tex->serialize());
 		std::string s = "Texture " + m.to_str(true);
 
-		return Py_BuildValue("N", PyUnicode_FromString(s.c_str()));
+		return PyUnicode_FromString(s.c_str());
 	}
 	PyObject* Texture_print(TextureObject* self, PyObject* args) {
 		Texture* tex = as_texture(self);
@@ -238,7 +242,7 @@ namespace internal {
 			return nullptr;
 		}
 
-		return Py_BuildValue("O", tex->get_is_animated() ? Py_True : Py_False);
+		return PyBool_FromLong(tex->get_is_animated());
 	}
 	PyObject* Texture_get_origin(TextureObject* self, PyObject* args) {
 		Texture* tex = as_texture(self);
@@ -266,7 +270,7 @@ namespace internal {
 			return nullptr;
 		}
 
-		return Py_BuildValue("O", tex->get_is_loaded() ? Py_True : Py_False);
+		return PyBool_FromLong(tex->get_is_loaded());
 	}
 
 	PyObject* Texture_set_speed(TextureObject* self, PyObject* args) {

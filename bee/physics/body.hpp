@@ -59,6 +59,7 @@ namespace bee {
 			int attach(PhysicsWorld*);
 			int remove();
 
+			E_PHYS_SHAPE get_shape_type() const;
 			double get_mass() const;
 			double get_scale() const;
 			btVector3 get_inertia() const;

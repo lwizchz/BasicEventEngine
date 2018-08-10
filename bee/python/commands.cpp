@@ -166,7 +166,7 @@ namespace bee { namespace python { namespace internal {
 
 		if (command == nullptr) {
 			std::string _name (kb::get_keybind(k).name);
-			return Py_BuildValue("N", PyUnicode_FromString(_name.c_str()));
+			return PyUnicode_FromString(_name.c_str());
 		} else {
 			std::string _command (PyUnicode_AsUTF8(command));
 

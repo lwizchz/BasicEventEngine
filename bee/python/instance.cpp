@@ -22,11 +22,14 @@
 #include "../resource/object.hpp"
 
 namespace bee { namespace python {
-	PyObject* Instance_from(Instance* inst) {
+	PyObject* Instance_from(const Instance* inst) {
 		PyObject* py_inst = internal::Instance_new(&internal::InstanceType, nullptr, nullptr);
 		internal::InstanceObject* _py_inst = reinterpret_cast<internal::InstanceObject*>(py_inst);
-		_py_inst->name = PyUnicode_FromString(inst->get_object()->get_name().c_str());
-		_py_inst->num = inst->id;
+
+		if (Instance_init(_py_inst, Py_BuildValue("(Ni)", PyUnicode_FromString(inst->get_object()->get_name().c_str()), inst->id), nullptr)) {
+			return nullptr;
+		}
+
 		return py_inst;
 	}
 	bool Instance_check(PyObject* obj) {
@@ -236,7 +239,7 @@ namespace internal {
 
 	PyObject* Instance_repr(InstanceObject* self) {
 		std::string s = std::string("bee.Instance(\"") + PyUnicode_AsUTF8(self->name) + "\", " + std::to_string(self->num) + ")";
-		return Py_BuildValue("N", PyUnicode_FromString(s.c_str()));
+		return PyUnicode_FromString(s.c_str());
 	}
 	PyObject* Instance_str(InstanceObject* self) {
 		Instance* inst = as_instance(self);
@@ -247,7 +250,7 @@ namespace internal {
 		Variant m (inst->serialize());
 		std::string s = "Instance " + m.to_str(true);
 
-		return Py_BuildValue("N", PyUnicode_FromString(s.c_str()));
+		return PyUnicode_FromString(s.c_str());
 	}
 	PyObject* Instance_print(InstanceObject* self, PyObject* args) {
 		Instance* inst = as_instance(self);
@@ -346,7 +349,7 @@ namespace internal {
 
 		Variant data (inst->get_data(_field));
 
-		return Py_BuildValue("N", variant_to_pyobj(data));
+		return variant_to_pyobj(data);
 	}
 	PyObject* Instance_set_data(InstanceObject* self, PyObject* args) {
 		PyObject* field;
@@ -417,7 +420,7 @@ namespace internal {
 			return nullptr;
 		}
 
-		return Py_BuildValue("N", PyUnicode_FromString(inst->get_sprite()->get_name().c_str()));
+		return PyUnicode_FromString(inst->get_sprite()->get_name().c_str());
 	}
 	PyObject* Instance_get_mass(InstanceObject* self, PyObject* args) {
 		Instance* inst = as_instance(self);

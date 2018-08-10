@@ -25,10 +25,14 @@
 #include "../../core/instance.hpp"
 
 namespace bee { namespace python {
-	PyObject* Object_from(Object* object) {
+	PyObject* Object_from(const Object* object) {
 		PyObject* py_object = internal::Object_new(&internal::ObjectType, nullptr, nullptr);
 		internal::ObjectObject* _py_object = reinterpret_cast<internal::ObjectObject*>(py_object);
-		_py_object->name = PyUnicode_FromString(object->get_name().c_str());
+
+		if (Object_init(_py_object, Py_BuildValue("(N)", PyUnicode_FromString(object->get_name().c_str())), nullptr)) {
+			return nullptr;
+		}
+
 		return py_object;
 	}
 	bool Object_check(PyObject* obj) {
@@ -177,18 +181,18 @@ namespace internal {
 
 	PyObject* Object_repr(ObjectObject* self) {
 		std::string s = std::string("bee.Object(\"") + PyUnicode_AsUTF8(self->name) + "\")";
-		return Py_BuildValue("N", PyUnicode_FromString(s.c_str()));
+		return PyUnicode_FromString(s.c_str());
 	}
 	PyObject* Object_str(ObjectObject* self) {
 		Object* obj = as_object(self);
 		if (obj == nullptr) {
-			return Py_BuildValue("N", PyUnicode_FromString("Invalid Object name"));
+			return PyUnicode_FromString("Invalid Object name");
 		}
 
 		Variant m (obj->serialize());
 		std::string s = "Object " + m.to_str(true);
 
-		return Py_BuildValue("N", PyUnicode_FromString(s.c_str()));
+		return PyUnicode_FromString(s.c_str());
 	}
 	PyObject* Object_print(ObjectObject* self, PyObject* args) {
 		Object* obj = as_object(self);
@@ -209,15 +213,7 @@ namespace internal {
 
 		const Texture* spr = obj->get_sprite();
 		if (spr != nullptr) {
-			TextureObject* tex = reinterpret_cast<TextureObject*>(
-				Texture_new(&TextureType, nullptr, nullptr)
-			);
-
-			if (Texture_init(tex, Py_BuildValue("(N)", PyUnicode_FromString(spr->get_name().c_str())), nullptr)) {
-				Py_RETURN_NONE;
-			}
-
-			return Py_BuildValue("N", tex);
+			return Texture_from(spr);
 		} else {
 			Py_RETURN_NONE;
 		}
@@ -228,7 +224,7 @@ namespace internal {
 			return nullptr;
 		}
 
-		return Py_BuildValue("O", obj->get_is_persistent() ? Py_True : Py_False);
+		return PyBool_FromLong(obj->get_is_persistent());
 	}
 	PyObject* Object_get_depth(ObjectObject* self, PyObject* args) {
 		Object* obj = as_object(self);
@@ -246,11 +242,7 @@ namespace internal {
 
 		const Object* parent = obj->get_parent();
 		if (parent != nullptr) {
-			ObjectObject* _parent = reinterpret_cast<ObjectObject*>(
-				Object_new(&ObjectType, nullptr, nullptr)
-			);
-			_parent->name = PyUnicode_FromString(parent->get_name().c_str());
-			return Py_BuildValue("N", _parent);
+			return Object_from(parent);
 		} else {
 			Py_RETURN_NONE;
 		}
@@ -271,7 +263,7 @@ namespace internal {
 			return nullptr;
 		}
 
-		return Py_BuildValue("O", obj->get_is_pausable() ? Py_True : Py_False);
+		return PyBool_FromLong(obj->get_is_pausable());
 	}
 	PyObject* Object_get_events(ObjectObject* self, PyObject* args) {
 		Object* obj = as_object(self);
@@ -284,7 +276,7 @@ namespace internal {
 			events.v.emplace_back(static_cast<int>(e));
 		}
 
-		return Py_BuildValue("N", variant_to_pyobj(events));
+		return variant_to_pyobj(events);
 	}
 
 	PyObject* Object_set_sprite(ObjectObject* self, PyObject* args) {
@@ -402,17 +394,8 @@ namespace internal {
 
 		PyObject* instances = PyList_New(_instances.size());
 		size_t i = 0;
-		for (auto& _inst : _instances) {
-			InstanceObject* inst = reinterpret_cast<InstanceObject*>(
-				Instance_new(&InstanceType, nullptr, nullptr)
-			);
-
-			if (Instance_init(inst, Py_BuildValue("(Ni)", PyUnicode_FromString(obj->get_name().c_str()), _inst.first), nullptr)) {
-				Py_DECREF(instances);
-				return nullptr;
-			}
-
-			PyList_SetItem(instances, i++, reinterpret_cast<PyObject*>(inst));
+		for (auto& inst : _instances) {
+			PyList_SetItem(instances, i++, Instance_from(inst.second));
 		}
 
 		return instances;
@@ -437,15 +420,7 @@ namespace internal {
 			return nullptr;
 		}
 
-		InstanceObject* inst = reinterpret_cast<InstanceObject*>(
-			Instance_new(&InstanceType, nullptr, nullptr)
-		);
-
-		if (Instance_init(inst, Py_BuildValue("(Ni)", PyUnicode_FromString(obj->get_name().c_str()), index), nullptr)) {
-			Py_RETURN_NONE;
-		}
-
-		return Py_BuildValue("N", inst);
+		return Instance_from(obj->get_instance_at(index));
 	}
 }}}
 

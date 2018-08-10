@@ -19,10 +19,14 @@
 #include "../../resource/timeline.hpp"
 
 namespace bee { namespace python {
-	PyObject* Timeline_from(Timeline* timeline) {
+	PyObject* Timeline_from(const Timeline* timeline) {
 		PyObject* py_timeline = internal::Timeline_new(&internal::TimelineType, nullptr, nullptr);
 		internal::TimelineObject* _py_timeline = reinterpret_cast<internal::TimelineObject*>(py_timeline);
-		_py_timeline->name = PyUnicode_FromString(timeline->get_name().c_str());
+
+		if (Timeline_init(_py_timeline, Py_BuildValue("(N)", PyUnicode_FromString(timeline->get_name().c_str())), nullptr)) {
+			return nullptr;
+		}
+
 		return py_timeline;
 	}
 	bool Timeline_check(PyObject* obj) {
@@ -163,18 +167,18 @@ namespace internal {
 
 	PyObject* Timeline_repr(TimelineObject* self) {
 		std::string s = std::string("bee.Timeline(\"") + PyUnicode_AsUTF8(self->name) + "\")";
-		return Py_BuildValue("N", PyUnicode_FromString(s.c_str()));
+		return PyUnicode_FromString(s.c_str());
 	}
 	PyObject* Timeline_str(TimelineObject* self) {
 		Timeline* tl = as_timeline(self);
 		if (tl == nullptr) {
-			return Py_BuildValue("N", PyUnicode_FromString("Invalid Timeline name"));
+			return PyUnicode_FromString("Invalid Timeline name");
 		}
 
 		Variant m (tl->serialize());
 		std::string s = "Timeline " + m.to_str(true);
 
-		return Py_BuildValue("N", PyUnicode_FromString(s.c_str()));
+		return PyUnicode_FromString(s.c_str());
 	}
 	PyObject* Timeline_print(TimelineObject* self, PyObject* args) {
 		Timeline* tl = as_timeline(self);

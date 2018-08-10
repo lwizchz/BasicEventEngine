@@ -346,10 +346,15 @@ namespace bee {
 		if (attached_instance != nullptr) {
 			attached_instance->add_physbody();
 		}
+
+		if (_world == nullptr) {
+			remove();
+		}
+
 		/*if (attached_world != _world)*/ {
 			attached_world = _world;
 
-			if (constraints.size() > 0) {
+			if ((constraints.size() > 0)&&(attached_world != nullptr)) {
 				auto tmp_constraints = constraints;
 				constraints.clear();
 				for (auto& c : tmp_constraints) {
@@ -378,6 +383,9 @@ namespace bee {
 		return 0;
 	}
 
+	E_PHYS_SHAPE PhysicsBody::get_shape_type() const {
+		return type;
+	}
 	double PhysicsBody::get_mass() const {
 		return mass;
 	}

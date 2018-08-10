@@ -16,7 +16,7 @@
 namespace bee {
 	class Mesh;
 namespace python {
-	PyObject* Mesh_from(Mesh*);
+	PyObject* Mesh_from(const Mesh*);
 	bool Mesh_check(PyObject*);
 namespace internal {
 	typedef struct {

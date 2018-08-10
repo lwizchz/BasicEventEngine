@@ -57,6 +57,7 @@ namespace bee {
 
 		std::map<std::string,Background> backgrounds; ///< The map of named Backgrounds that should be drawn
 		std::map<std::string,ViewPort> viewports; ///< The map of named ViewPorts that should be drawn
+		std::pair<const std::string,ViewPort>* viewport_current; ///< A pointer to the ViewPort that is currently being drawn
 
 		size_t next_instance_id; ///< The always increasing identifier for the next created Instance
 		std::map<size_t,Instance*> instances; ///< A map of all Instances with their associated ID
@@ -66,8 +67,6 @@ namespace bee {
 
 		PhysicsWorld* physics_world; ///< The PhysicsWorld used to simulate all PhysicsBodys in the Room
 		std::map<const btRigidBody*,Instance*> physics_instances; ///< A map of the btRigidBodys in the world with their associated Instance
-
-		ViewPort* view_current; ///< A pointer to the ViewPort that is currently being drawn
 
 		std::map<Instance*,PathFollower> automatic_paths; ///< A map of the Instance Paths to update every step
 		std::vector<TimelineIterator> automatic_timelines; ///< A map of the Timelines to run every step
@@ -100,8 +99,8 @@ namespace bee {
 		bool get_is_persistent() const;
 		const std::map<std::string,Background>& get_backgrounds() const;
 		const std::map<std::string,ViewPort>& get_viewports() const;
+		std::pair<const std::string,ViewPort>* get_current_viewport() const;
 		const std::map<size_t,Instance*>& get_instances() const;
-		ViewPort* get_current_view() const;
 		PhysicsWorld* get_phys_world() const;
 		const std::map<const btRigidBody*,Instance*>& get_phys_instances() const;
 		const std::map<Instance*,PathFollower>& get_paths() const;

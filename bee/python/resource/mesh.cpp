@@ -19,10 +19,14 @@
 #include "../../resource/mesh.hpp"
 
 namespace bee { namespace python {
-	PyObject* Mesh_from(Mesh* mesh) {
+	PyObject* Mesh_from(const Mesh* mesh) {
 		PyObject* py_mesh = internal::Mesh_new(&internal::MeshType, nullptr, nullptr);
 		internal::MeshObject* _py_mesh = reinterpret_cast<internal::MeshObject*>(py_mesh);
-		_py_mesh->name = PyUnicode_FromString(mesh->get_name().c_str());
+
+		if (Mesh_init(_py_mesh, Py_BuildValue("(N)", PyUnicode_FromString(mesh->get_name().c_str())), nullptr)) {
+			return nullptr;
+		}
+
 		return py_mesh;
 	}
 	bool Mesh_check(PyObject* obj) {
@@ -159,18 +163,18 @@ namespace internal {
 
 	PyObject* Mesh_repr(MeshObject* self) {
 		std::string s = std::string("bee.Mesh(\"") + PyUnicode_AsUTF8(self->name) + "\")";
-		return Py_BuildValue("N", PyUnicode_FromString(s.c_str()));
+		return PyUnicode_FromString(s.c_str());
 	}
 	PyObject* Mesh_str(MeshObject* self) {
 		Mesh* mesh = as_mesh(self);
 		if (mesh == nullptr) {
-			return Py_BuildValue("N", PyUnicode_FromString("Invalid Mesh name"));
+			return PyUnicode_FromString("Invalid Mesh name");
 		}
 
 		Variant m (mesh->serialize());
 		std::string s = "Mesh " + m.to_str(true);
 
-		return Py_BuildValue("N", PyUnicode_FromString(s.c_str()));
+		return PyUnicode_FromString(s.c_str());
 	}
 	PyObject* Mesh_print(MeshObject* self, PyObject* args) {
 		Mesh* mesh = as_mesh(self);
@@ -197,7 +201,7 @@ namespace internal {
 			return nullptr;
 		}
 
-		return Py_BuildValue("O", mesh->has_animation(_anim_name) ? Py_True : Py_False);
+		return PyBool_FromLong(mesh->has_animation(_anim_name));
 	}
 
 	PyObject* Mesh_load(MeshObject* self, PyObject* args) {

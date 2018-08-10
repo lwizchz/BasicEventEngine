@@ -16,7 +16,7 @@
 namespace bee {
 	class Light;
 namespace python {
-	PyObject* Light_from(Light*);
+	PyObject* Light_from(const Light*);
 	bool Light_check(PyObject*);
 namespace internal {
 	typedef struct {

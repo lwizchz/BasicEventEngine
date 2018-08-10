@@ -16,7 +16,7 @@
 namespace bee {
 	class Instance;
 namespace python {
-	PyObject* Instance_from(Instance*);
+	PyObject* Instance_from(const Instance*);
 	bool Instance_check(PyObject*);
 namespace internal {
 	typedef struct {

@@ -21,10 +21,14 @@
 #include "../../util/string.hpp"
 
 namespace bee { namespace python {
-	PyObject* Sound_from(Sound* sound) {
+	PyObject* Sound_from(const Sound* sound) {
 		PyObject* py_sound = internal::Sound_new(&internal::SoundType, nullptr, nullptr);
 		internal::SoundObject* _py_sound = reinterpret_cast<internal::SoundObject*>(py_sound);
-		_py_sound->name = PyUnicode_FromString(sound->get_name().c_str());
+
+		if (Sound_init(_py_sound, Py_BuildValue("(N)", PyUnicode_FromString(sound->get_name().c_str())), nullptr)) {
+			return nullptr;
+		}
+
 		return py_sound;
 	}
 	bool Sound_check(PyObject* obj) {
@@ -182,18 +186,18 @@ namespace internal {
 
 	PyObject* Sound_repr(SoundObject* self) {
 		std::string s = std::string("bee.Sound(\"") + PyUnicode_AsUTF8(self->name) + "\")";
-		return Py_BuildValue("N", PyUnicode_FromString(s.c_str()));
+		return PyUnicode_FromString(s.c_str());
 	}
 	PyObject* Sound_str(SoundObject* self) {
 		Sound* snd = as_sound(self);
 		if (snd == nullptr) {
-			return Py_BuildValue("N", PyUnicode_FromString("Invalid Sound name"));
+			return PyUnicode_FromString("Invalid Sound name");
 		}
 
 		Variant m (snd->serialize());
 		std::string s = "Sound " + m.to_str(true);
 
-		return Py_BuildValue("N", PyUnicode_FromString(s.c_str()));
+		return PyUnicode_FromString(s.c_str());
 	}
 	PyObject* Sound_print(SoundObject* self, PyObject* args) {
 		Sound* snd = as_sound(self);
@@ -228,7 +232,7 @@ namespace internal {
 			return nullptr;
 		}
 
-		return Py_BuildValue("O", snd->get_is_loaded() ? Py_True : Py_False);
+		return PyBool_FromLong(snd->get_is_loaded());
 	}
 	PyObject* Sound_get_is_music(SoundObject* self, PyObject* args) {
 		Sound* snd = as_sound(self);
@@ -236,7 +240,7 @@ namespace internal {
 			return nullptr;
 		}
 
-		return Py_BuildValue("O", snd->get_is_music() ? Py_True : Py_False);
+		return PyBool_FromLong(snd->get_is_music());
 	}
 	PyObject* Sound_get_is_playing(SoundObject* self, PyObject* args) {
 		Sound* snd = as_sound(self);
@@ -244,7 +248,7 @@ namespace internal {
 			return nullptr;
 		}
 
-		return Py_BuildValue("O", snd->get_is_playing() ? Py_True : Py_False);
+		return PyBool_FromLong(snd->get_is_playing());
 	}
 	PyObject* Sound_get_is_looping(SoundObject* self, PyObject* args) {
 		Sound* snd = as_sound(self);
@@ -252,7 +256,7 @@ namespace internal {
 			return nullptr;
 		}
 
-		return Py_BuildValue("O", snd->get_is_looping() ? Py_True : Py_False);
+		return PyBool_FromLong(snd->get_is_looping());
 	}
 
 	PyObject* Sound_set_volume(SoundObject* self, PyObject* args) {

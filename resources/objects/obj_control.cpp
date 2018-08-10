@@ -26,8 +26,6 @@ ObjControl::ObjControl() : Object("obj_control", "obj_control.hpp") {
 	this->set_is_persistent(true);
 }
 void ObjControl::create(bee::Instance* self) {
-	scr_test->run_func("main", {}, nullptr);
-
 	_p("text_fps") = nullptr;
 
 	_d("camx") = 1920.0/2.0;
@@ -145,6 +143,8 @@ void ObjControl::room_start(bee::Instance* self) {
 }
 void ObjControl::game_start(bee::Instance* self) {
 	bee::console::run("execfile(\"cfg/config.py\")"); // Configure default binds
+
+	scr_test->run_func("main", {}, nullptr);
 }
 
 #endif // RES_OBJ_CONTROL

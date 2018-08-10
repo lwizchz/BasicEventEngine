@@ -98,8 +98,8 @@ namespace bee {
 		engine->current_room = new_room; // Set the new room as the current room
 		engine->is_ready = false; // Set the event loop as not running
 		engine->current_room->reset_properties(); // Reset the new room's properties
-		engine->current_room->transfer_instances(old_room); // Transfer the persistent instance from the previous room
 		engine->current_room->init(); // Initialize the room
+		engine->current_room->transfer_instances(old_room); // Transfer the persistent instance from the previous room
 
 		//set_window_title(engine->current_room->get_name()); // Set the window title to the room's name
 		messenger::send({"engine", "room"}, E_MESSAGE::INFO, "Changed to room \"" + engine->current_room->get_name() + "\"");

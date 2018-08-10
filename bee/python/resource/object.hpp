@@ -14,7 +14,7 @@
 namespace bee {
 	class Object;
 namespace python {
-	PyObject* Object_from(Object*);
+	PyObject* Object_from(const Object*);
 	bool Object_check(PyObject*);
 namespace internal {
 	typedef struct {

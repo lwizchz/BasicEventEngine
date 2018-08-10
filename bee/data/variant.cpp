@@ -232,8 +232,9 @@ namespace bee {
 		try {
 			std::string _ns (util::trim(ns));
 			if ((_ns[0] == '"')&&(_ns[_ns.length()-1] == '"')) { // String
+				_ns = _ns.substr(1, _ns.length()-2);
 				type = E_DATA_TYPE::STRING;
-				new (&s) std::string(ns.substr(1, ns.length()-2));
+				new (&s) std::string(util::string::unescape(_ns));
 			} else if ((_ns[0] == '[')&&(_ns[_ns.length()-1] == ']')) { // Array
 				type = E_DATA_TYPE::VECTOR;
 				new (&v) std::vector<Variant>;
@@ -258,7 +259,7 @@ namespace bee {
 			} else { // Probably a string
 				messenger::send({"engine", "variant"}, E_MESSAGE::WARNING, "Variant type not determined, storing as string: \"" + ns + "\"");
 				type = E_DATA_TYPE::STRING;
-				new (&s) std::string(ns);
+				new (&s) std::string(_ns);
 			}
 		} catch (const std::invalid_argument&) {}
 
@@ -290,7 +291,7 @@ namespace bee {
 				return std::to_string(d);
 			}
 			case E_DATA_TYPE::STRING: {
-				return "\"" + s + "\"";
+				return "\"" + util::string::escape(s) + "\"";
 			}
 			case E_DATA_TYPE::VECTOR: {
 				return util::vector_serialize(v, should_pretty_print);

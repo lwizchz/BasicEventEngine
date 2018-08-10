@@ -16,7 +16,7 @@
 namespace bee {
 	class Timeline;
 namespace python {
-	PyObject* Timeline_from(Timeline*);
+	PyObject* Timeline_from(const Timeline*);
 	bool Timeline_check(PyObject*);
 namespace internal {
 	typedef struct {

@@ -19,10 +19,14 @@
 #include "../../resource/light.hpp"
 
 namespace bee { namespace python {
-	PyObject* Light_from(Light* light) {
+	PyObject* Light_from(const Light* light) {
 		PyObject* py_light = internal::Light_new(&internal::LightType, nullptr, nullptr);
 		internal::LightObject* _py_light = reinterpret_cast<internal::LightObject*>(py_light);
-		_py_light->name = PyUnicode_FromString(light->get_name().c_str());
+
+		if (Light_init(_py_light, Py_BuildValue("(N)", PyUnicode_FromString(light->get_name().c_str())), nullptr)) {
+			return nullptr;
+		}
+
 		return py_light;
 	}
 	bool Light_check(PyObject* obj) {
@@ -168,18 +172,18 @@ namespace internal {
 
 	PyObject* Light_repr(LightObject* self) {
 		std::string s = std::string("bee.Light(\"") + PyUnicode_AsUTF8(self->name) + "\")";
-		return Py_BuildValue("N", PyUnicode_FromString(s.c_str()));
+		return PyUnicode_FromString(s.c_str());
 	}
 	PyObject* Light_str(LightObject* self) {
 		Light* lt = as_light(self);
 		if (lt == nullptr) {
-			return Py_BuildValue("N", PyUnicode_FromString("Invalid Light name"));
+			return PyUnicode_FromString("Invalid Light name");
 		}
 
 		Variant m (lt->serialize());
 		std::string s = "Light " + m.to_str(true);
 
-		return Py_BuildValue("N", PyUnicode_FromString(s.c_str()));
+		return PyUnicode_FromString(s.c_str());
 	}
 	PyObject* Light_print(LightObject* self, PyObject* args) {
 		Light* lt = as_light(self);

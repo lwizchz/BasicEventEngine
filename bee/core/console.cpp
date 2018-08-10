@@ -359,9 +359,10 @@ namespace bee{ namespace console {
 
 		ui_text_entry->set_corner(cx, cy+rect.h);
 
-		if (get_current_room()->get_current_view() != nullptr) {
-			cx -= get_current_room()->get_current_view()->view.x;
-			cy -= get_current_room()->get_current_view()->view.y;
+		const std::pair<const std::string,ViewPort>* vp = get_current_room()->get_current_viewport();
+		if (vp != nullptr) {
+			cx -= vp->second.view.x;
+			cy -= vp->second.view.y;
 		}
 
 		// Set the drawing sizes

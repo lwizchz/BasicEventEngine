@@ -16,7 +16,7 @@
 namespace bee {
 	class Path;
 namespace python {
-	PyObject* Path_from(Path*);
+	PyObject* Path_from(const Path*);
 	bool Path_check(PyObject*);
 namespace internal {
 	typedef struct {

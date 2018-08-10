@@ -19,10 +19,14 @@
 #include "../../resource/script.hpp"
 
 namespace bee { namespace python {
-	PyObject* Script_from(Script* script) {
+	PyObject* Script_from(const Script* script) {
 		PyObject* py_script = internal::Script_new(&internal::ScriptType, nullptr, nullptr);
 		internal::ScriptObject* _py_script = reinterpret_cast<internal::ScriptObject*>(py_script);
-		_py_script->name = PyUnicode_FromString(script->get_name().c_str());
+
+		if (Script_init(_py_script, Py_BuildValue("(N)", PyUnicode_FromString(script->get_name().c_str())), nullptr)) {
+			return nullptr;
+		}
+
 		return py_script;
 	}
 	bool Script_check(PyObject* obj) {
@@ -162,18 +166,18 @@ namespace internal {
 
 	PyObject* Script_repr(ScriptObject* self) {
 		std::string s = std::string("bee.Script(\"") + PyUnicode_AsUTF8(self->name) + "\")";
-		return Py_BuildValue("N", PyUnicode_FromString(s.c_str()));
+		return PyUnicode_FromString(s.c_str());
 	}
 	PyObject* Script_str(ScriptObject* self) {
 		Script* scr = as_script(self);
 		if (scr == nullptr) {
-			return Py_BuildValue("N", PyUnicode_FromString("Invalid Script name"));
+			return PyUnicode_FromString("Invalid Script name");
 		}
 
 		Variant m (scr->serialize());
 		std::string s = "Script " + m.to_str(true);
 
-		return Py_BuildValue("N", PyUnicode_FromString(s.c_str()));
+		return PyUnicode_FromString(s.c_str());
 	}
 	PyObject* Script_print(ScriptObject* self, PyObject* args) {
 		Script* scr = as_script(self);
@@ -308,7 +312,7 @@ namespace internal {
 			return Py_BuildValue("i", -1);
 		}
 
-		return Py_BuildValue("N", variant_to_pyobj(interface->get_var(_varname)));
+		return variant_to_pyobj(interface->get_var(_varname));
 	}
 }}}
 

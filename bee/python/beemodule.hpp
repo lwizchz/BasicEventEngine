@@ -73,7 +73,7 @@ namespace bee { namespace python { namespace internal {
 #include "resource/light.hpp"
 #include "resource/script.hpp"
 #include "resource/object.hpp"
-//#include "resource/room.hpp"
+#include "resource/room.hpp"
 #include "instance.hpp"
 
 #endif // BEE_PYTHON_BEEMODULE_H

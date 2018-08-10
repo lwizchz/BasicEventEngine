@@ -62,7 +62,7 @@ namespace bee { namespace python { namespace internal {
 		Py_RETURN_NONE;
 	}
 	PyObject* console_get_is_open(PyObject* self, PyObject* args) {
-		return Py_BuildValue("O", console::get_is_open() ? Py_True : Py_False);
+		return PyBool_FromLong(console::get_is_open());
 	}
 
 	PyObject* console_set_var(PyObject* self, PyObject* args) {
@@ -90,7 +90,7 @@ namespace bee { namespace python { namespace internal {
 
 		std::string _name (PyUnicode_AsUTF8(name));
 
-		return Py_BuildValue("N", variant_to_pyobj(console::get_var(_name)));
+		return variant_to_pyobj(console::get_var(_name));
 	}
 
 	PyObject* console_run(PyObject* self, PyObject* args) {

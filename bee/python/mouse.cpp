@@ -95,7 +95,7 @@ namespace bee { namespace python { namespace internal {
 			return nullptr;
 		}
 
-		return Py_BuildValue("O", mouse::is_inside(inst->second) ? Py_True : Py_False);
+		return PyBool_FromLong(mouse::is_inside(inst->second));
 	}
 
 	PyObject* mouse_get_state(PyObject* self, PyObject* args) {
@@ -105,7 +105,7 @@ namespace bee { namespace python { namespace internal {
 			return nullptr;
 		}
 
-		return Py_BuildValue("O", mouse::get_state(button) ? Py_True : Py_False);
+		return PyBool_FromLong(mouse::get_state(button));
 	}
 
 	PyObject* mouse_set_cursor(PyObject* self, PyObject* args) {

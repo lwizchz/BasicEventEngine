@@ -76,6 +76,7 @@ namespace bee {
 
 		backgrounds(),
 		viewports({{"default", ViewPort()}}),
+		viewport_current(nullptr),
 
 		next_instance_id(0),
 		instances(),
@@ -85,8 +86,6 @@ namespace bee {
 
 		physics_world(nullptr),
 		physics_instances(),
-
-		view_current(nullptr),
 
 		automatic_paths(),
 		automatic_timelines()
@@ -285,30 +284,27 @@ namespace bee {
 		}
 		info["instances"] = insts;
 
-		std::vector<Variant> paths;
+		std::map<Variant,Variant> paths;
 		for (auto& p : automatic_paths) {
 			const PathFollower& pf = p.second;
 
-			paths.push_back(Variant(std::map<Variant,Variant>{
-				{"instance", Variant(static_cast<int>(p.first->id))},
-				{"follower", Variant(std::map<Variant,Variant>{
-					{"path", Variant(pf.path->get_name())},
-					{"offset", Variant(std::vector<Variant>{
-						Variant(pf.offset.x()),
-						Variant(pf.offset.y()),
-						Variant(pf.offset.z())
-					})},
+			paths.emplace(Variant(static_cast<int>(p.first->id)), Variant(std::map<Variant,Variant>{
+				{"path", Variant(pf.path->get_name())},
+				{"offset", Variant(std::vector<Variant>{
+					Variant(pf.offset.x()),
+					Variant(pf.offset.y()),
+					Variant(pf.offset.z())
+				})},
 
-					{"node", Variant(static_cast<int>(pf.node))},
-					{"progress", Variant(static_cast<int>(pf.progress))},
-					{"speed", Variant(static_cast<int>(pf.speed))},
+				{"node", Variant(static_cast<int>(pf.node))},
+				{"progress", Variant(static_cast<int>(pf.progress))},
+				{"speed", Variant(static_cast<int>(pf.speed))},
 
-					{"direction", Variant(pf.direction)},
-					{"is_curved", Variant(pf.is_curved)},
-					{"is_closed", Variant(pf.is_closed)},
+				{"direction", Variant(pf.direction)},
+				{"is_curved", Variant(pf.is_curved)},
+				{"is_closed", Variant(pf.is_closed)},
 
-					{"is_pausable", Variant(pf.is_pausable)}
-				})}
+				{"is_pausable", Variant(pf.is_pausable)}
 			}));
 		}
 		info["automatic_paths"] = paths;
@@ -323,8 +319,8 @@ namespace bee {
 				{"start_offset", Variant(static_cast<int>(tlit.start_offset))},
 				{"pause_offset", Variant(static_cast<int>(tlit.pause_offset))},
 
-				{"is_looping", Variant(static_cast<int>(tlit.is_looping))},
-				{"is_pausable", Variant(static_cast<int>(tlit.is_pausable))}
+				{"is_looping", Variant(tlit.is_looping)},
+				{"is_pausable", Variant(tlit.is_pausable)}
 			}));
 		}
 		info["automatic_timelines"] = timelines;
@@ -505,11 +501,11 @@ namespace bee {
 	const std::map<std::string,ViewPort>& Room::get_viewports() const {
 		return viewports;
 	}
+	std::pair<const std::string,ViewPort>* Room::get_current_viewport() const {
+		return viewport_current;
+	}
 	const std::map<size_t,Instance*>& Room::get_instances() const {
 		return instances;
-	}
-	ViewPort* Room::get_current_view() const {
-		return view_current;
 	}
 	PhysicsWorld* Room::get_phys_world() const {
 		return physics_world;
@@ -659,6 +655,7 @@ namespace bee {
 	}
 	/**
 	* Remove the Instance at the given index.
+	* @note Generally Instances should be destroyed via destroy(Instance*) instead of directly calling remove_instance().
 	* @param index the Instance index to remove
 	*
 	* @retval 0 success
@@ -738,11 +735,14 @@ namespace bee {
 		viewports.clear();
 		viewports.emplace("default", ViewPort());
 
+		for (auto& inst : physics_instances) {
+			inst.second->get_physbody()->attach(nullptr);
+		}
+		physics_instances.clear();
 		if (physics_world != nullptr) {
 			delete physics_world;
 			physics_world = nullptr;
 		}
-		physics_instances.clear();
 
 		automatic_paths.clear();
 		automatic_timelines.clear();
@@ -776,6 +776,7 @@ namespace bee {
 				PhysicsBody* b = inst.second->get_physbody();
 				add_physbody(inst.second, b);
 				b->attach(get_phys_world());
+				b->update_state();
 			}
 
 			for (E_EVENT e : inst.second->get_object()->get_events()) {
@@ -815,7 +816,7 @@ namespace bee {
 			destroyed.insert(inst);
 
 			// Destroy the Instance if it's not persistent
-			if (!inst->get_is_persistent()) {
+			if ((!inst->get_is_persistent())&&(!get_is_persistent())) {
 				inst->get_object()->update(inst);
 				inst->get_object()->destroy(inst);
 				remove_instance(inst->id);
@@ -1204,12 +1205,12 @@ namespace bee {
 		for (auto& v : viewports) {
 			ViewPort& vp = v.second;
 			if (vp.is_active) {
-				view_current = &vp;
-				view_current->update();
-				draw_view(view_current);
+				viewport_current = &v;
+				vp.update();
+				draw_view(&vp);
 			}
 		}
-		view_current = nullptr;
+		viewport_current = nullptr;
 
 		draw_set_color(RGBA(E_RGB::WHITE));
 
@@ -1349,6 +1350,7 @@ namespace bee {
 			i.first->get_object()->game_end(i.first);
 		}
 
+		set_is_persistent(false);
 		for (auto& i : instances) {
 			i.second->set_is_persistent(false);
 			destroy(i.second);
@@ -1381,7 +1383,7 @@ namespace bee {
 	}
 
 	/**
-	* Initialize the Room and add an Instance of obj_control if it exists.
+	* Initialize the Room.
 	* @note This is called during the Room change in change_room()
 	*/
 	void Room::init() {

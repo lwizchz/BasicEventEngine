@@ -19,10 +19,14 @@
 #include "../../resource/path.hpp"
 
 namespace bee { namespace python {
-	PyObject* Path_from(Path* path) {
+	PyObject* Path_from(const Path* path) {
 		PyObject* py_path = internal::Path_new(&internal::PathType, nullptr, nullptr);
 		internal::PathObject* _py_path = reinterpret_cast<internal::PathObject*>(py_path);
-		_py_path->name = PyUnicode_FromString(path->get_name().c_str());
+
+		if (Path_init(_py_path, Py_BuildValue("(N)", PyUnicode_FromString(path->get_name().c_str())), nullptr)) {
+			return nullptr;
+		}
+
 		return py_path;
 	}
 	bool Path_check(PyObject* obj) {
@@ -163,18 +167,18 @@ namespace internal {
 
 	PyObject* Path_repr(PathObject* self) {
 		std::string s = std::string("bee.Path(\"") + PyUnicode_AsUTF8(self->name) + "\")";
-		return Py_BuildValue("N", PyUnicode_FromString(s.c_str()));
+		return PyUnicode_FromString(s.c_str());
 	}
 	PyObject* Path_str(PathObject* self) {
 		Path* path = as_path(self);
 		if (path == nullptr) {
-			return Py_BuildValue("N", PyUnicode_FromString("Invalid Path name"));
+			return PyUnicode_FromString("Invalid Path name");
 		}
 
 		Variant m (path->serialize());
 		std::string s = "Path " + m.to_str(true);
 
-		return Py_BuildValue("N", PyUnicode_FromString(s.c_str()));
+		return PyUnicode_FromString(s.c_str());
 	}
 	PyObject* Path_print(PathObject* self, PyObject* args) {
 		Path* path = as_path(self);

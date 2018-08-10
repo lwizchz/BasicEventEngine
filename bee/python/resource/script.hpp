@@ -16,7 +16,7 @@
 namespace bee {
 	class Script;
 namespace python {
-	PyObject* Script_from(Script*);
+	PyObject* Script_from(const Script*);
 	bool Script_check(PyObject*);
 namespace internal {
 	typedef struct {

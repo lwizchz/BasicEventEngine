@@ -29,6 +29,10 @@ namespace util {
 */
 template <typename A>
 std::string vector_serialize(const std::vector<A>& v, bool should_pretty_print) {
+	if (v.empty()) {
+		should_pretty_print = false;
+	}
+
 	std::string pp_field_sep = ", ";
 	std::string pp_indent = "\t";
 	std::string pp_newline = "\n";
@@ -98,6 +102,10 @@ int vector_deserialize(const std::string& s, std::vector<A>* v) {
 */
 template <typename A, typename B>
 std::string map_serialize(const std::map<A,B>& m, bool should_pretty_print) {
+	if (m.empty()) {
+		should_pretty_print = false;
+	}
+
 	std::string pp_set = ": ";
 	std::string pp_field_sep = ", ";
 	std::string pp_indent = "\t";
@@ -149,7 +157,7 @@ int map_deserialize(const std::string& s, std::map<A,B>* m) {
 		ks = trim(ks);
 		std::string vs = e.substr(e.find(":")+1);
 		vs = trim(vs);
-		
+
 		if ((ks.empty())||(vs.empty())) {
 			break;
 		}

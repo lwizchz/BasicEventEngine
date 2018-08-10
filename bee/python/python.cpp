@@ -276,8 +276,8 @@ namespace bee { namespace python {
 			var = internal::as_script(obj);
 		} else if (Object_check(obj)) {
 			var = internal::as_object(obj);
-		/*} else if (Room_check(obj)) {
-			var = internal::as_room(obj);*/
+		} else if (Room_check(obj)) {
+			var = internal::as_room(obj);
 		} else if (Instance_check(obj)) {
 			var = internal::as_instance(obj);
 		} else {
@@ -334,9 +334,9 @@ namespace bee { namespace python {
 					} else if (var.get_ptype() == std::type_index(typeid(Object*))) {
 						Object* p = static_cast<Object*>(var.p);
 						return Object_from(p);
-					/*} else if (var.get_ptype() == std::type_index(typeid(Room*))) {
+					} else if (var.get_ptype() == std::type_index(typeid(Room*))) {
 						Room* p = static_cast<Room*>(var.p);
-						return Room_from(p);*/
+						return Room_from(p);
 					} else if (var.get_ptype() == std::type_index(typeid(Instance*))) {
 						Instance* p = static_cast<Instance*>(var.p);
 						return Instance_from(p);

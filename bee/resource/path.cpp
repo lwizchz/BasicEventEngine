@@ -49,7 +49,7 @@ namespace bee {
 	* @param _offset the offset to apply to the Path nodes
 	* @param _speed the speed to advance with
 	*/
-	PathFollower::PathFollower(Path* _path, btVector3 _offset, int _speed) :
+	PathFollower::PathFollower(Path* _path, btVector3 _offset, unsigned int _speed) :
 		path(_path),
 		offset(_offset),
 

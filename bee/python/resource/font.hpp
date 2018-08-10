@@ -16,7 +16,7 @@
 namespace bee {
 	class Font;
 namespace python {
-	PyObject* Font_from(Font*);
+	PyObject* Font_from(const Font*);
 	bool Font_check(PyObject*);
 namespace internal {
 	typedef struct {

@@ -16,7 +16,7 @@
 namespace bee {
 	class Texture;
 namespace python {
-	PyObject* Texture_from(Texture*);
+	PyObject* Texture_from(const Texture*);
 	bool Texture_check(PyObject*);
 namespace internal {
 	typedef struct {

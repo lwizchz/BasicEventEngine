@@ -189,6 +189,9 @@ namespace bee { namespace python { namespace internal {
 		if (PyInit_bee_object(module) == nullptr) {
 			return nullptr;
 		}
+		if (PyInit_bee_room(module) == nullptr) {
+			return nullptr;
+		}
 
 		// Add enums
 		PyModule_AddObject(module, "E_FLAGARG", make_enum({
@@ -483,7 +486,7 @@ namespace bee { namespace python { namespace internal {
 
 		std::string _name (PyUnicode_AsUTF8(name));
 
-		return Py_BuildValue("N", variant_to_pyobj(get_option(_name)));
+		return variant_to_pyobj(get_option(_name));
 	}
 	PyObject* init_set_option(PyObject* self, PyObject* args) {
 		PyObject* name;
@@ -529,14 +532,14 @@ namespace bee { namespace python { namespace internal {
 
 	PyObject* init_get_build_id(PyObject* self, PyObject* args) {
 		std::string build_id (get_build_id());
-		return Py_BuildValue("N", PyUnicode_FromString(build_id.c_str()));
+		return PyUnicode_FromString(build_id.c_str());
 	}
 	PyObject* init_get_game_id(PyObject* self, PyObject* args) {
 		return Py_BuildValue("I", get_game_id());
 	}
 	PyObject* init_get_game_name(PyObject* self, PyObject* args) {
 		std::string game_name (get_game_name());
-		return Py_BuildValue("N", PyUnicode_FromString(game_name.c_str()));
+		return PyUnicode_FromString(game_name.c_str());
 	}
 	PyObject* init_get_engine_version(PyObject* self, PyObject* args) {
 		VersionInfo version (get_engine_version());
@@ -656,8 +659,7 @@ namespace bee { namespace python { namespace internal {
 			return nullptr;
 		}
 
-		std::string roomname (get_current_room()->get_name());
-		return Py_BuildValue("N", PyUnicode_FromString(roomname.c_str())); // TODO: return a room struct instead of the name
+		return Room_from(get_current_room());
 	}
 	PyObject* core_get_room_size(PyObject* self, PyObject* args) {
 		if (get_current_room() == nullptr) {
@@ -675,7 +677,7 @@ namespace bee { namespace python { namespace internal {
 			return nullptr;
 		}
 
-		return Py_BuildValue("O", is_on_screen(rect) ? Py_True : Py_False);
+		return PyBool_FromLong(is_on_screen(rect));
 	}
 	PyObject* core_set_is_paused(PyObject* self, PyObject* args) {
 		int is_paused;
@@ -691,12 +693,12 @@ namespace bee { namespace python { namespace internal {
 		Py_RETURN_NONE;
 	}
 	PyObject* core_get_is_paused(PyObject* self, PyObject* args) {
-		return Py_BuildValue("O", get_is_paused() ? Py_True : Py_False);
+		return PyBool_FromLong(get_is_paused());
 	}
 
 	PyObject* core_get_window_title(PyObject* self, PyObject* args) {
 		std::string title (get_window_title());
-		return Py_BuildValue("N", PyUnicode_FromString(title.c_str()));
+		return PyUnicode_FromString(title.c_str());
 	}
 	PyObject* core_get_window(PyObject* self, PyObject* args) {
 		SDL_Rect win (get_window());

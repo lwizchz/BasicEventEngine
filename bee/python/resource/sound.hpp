@@ -16,7 +16,7 @@
 namespace bee {
 	class Sound;
 namespace python {
-	PyObject* Sound_from(Sound*);
+	PyObject* Sound_from(const Sound*);
 	bool Sound_check(PyObject*);
 namespace internal {
 	typedef struct {

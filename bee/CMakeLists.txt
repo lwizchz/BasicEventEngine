@@ -21,8 +21,8 @@ set(deps_bee_resources_objects resources/objects/obj_script.cpp resources/object
 set(deps_bee_resources_rooms)
 set(deps_bee_resources ${deps_bee_resources_objects} ${deps_bee_resources_rooms})
 
-set(deps_bee_python_resource python/resource/texture.cpp python/resource/sound.cpp python/resource/font.cpp python/resource/path.cpp python/resource/timeline.cpp python/resource/mesh.cpp python/resource/light.cpp python/resource/script.cpp python/resource/object.cpp)
-set(deps_bee_python python/python.cpp python/beemodule.cpp python/messenger.cpp python/console.cpp python/commands.cpp python/mouse.cpp python/kb.cpp python/instance.cpp ${deps_bee_python_resource})
+set(deps_bee_python_resource python/resource/texture.cpp python/resource/sound.cpp python/resource/font.cpp python/resource/path.cpp python/resource/timeline.cpp python/resource/mesh.cpp python/resource/light.cpp python/resource/script.cpp python/resource/object.cpp python/resource/room.cpp)
+set(deps_bee_python python/python.cpp python/beemodule.cpp python/messenger.cpp python/console.cpp python/commands.cpp python/mouse.cpp python/kb.cpp python/instance.cpp python/structs.cpp ${deps_bee_python_resource})
 set(deps_bee_scripting ${deps_bee_python})
 
 set(deps_bee_ui ui/ui.cpp)

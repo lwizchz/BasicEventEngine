@@ -92,10 +92,10 @@ namespace bee { namespace mouse {
 		int mx, my;
 		std::tie(mx, my) = get_pos(); // Fetch the global coordinates into (mx, my)
 
-		const ViewPort* v = get_current_room()->get_current_view(); // Get the current view
+		const std::pair<const std::string,ViewPort>* v = get_current_room()->get_current_viewport();
 		if (v != nullptr) { // If the view exists then adjust the coordinates
-			mx -= v->port.x;
-			my -= v->port.y;
+			mx -= v->second.port.x;
+			my -= v->second.port.y;
 		}
 
 		return std::make_pair(mx, my); // Return the pair on success

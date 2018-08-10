@@ -19,10 +19,14 @@
 #include "../../resource/font.hpp"
 
 namespace bee { namespace python {
-	PyObject* Font_from(Font* font) {
+	PyObject* Font_from(const Font* font) {
 		PyObject* py_font = internal::Font_new(&internal::FontType, nullptr, nullptr);
 		internal::FontObject* _py_font = reinterpret_cast<internal::FontObject*>(py_font);
-		_py_font->name = PyUnicode_FromString(font->get_name().c_str());
+
+		if (Font_init(_py_font, Py_BuildValue("(N)", PyUnicode_FromString(font->get_name().c_str())), nullptr)) {
+			return nullptr;
+		}
+
 		return py_font;
 	}
 	bool Font_check(PyObject* obj) {
@@ -171,18 +175,18 @@ namespace internal {
 
 	PyObject* Font_repr(FontObject* self) {
 		std::string s = std::string("bee.Font(\"") + PyUnicode_AsUTF8(self->name) + "\")";
-		return Py_BuildValue("N", PyUnicode_FromString(s.c_str()));
+		return PyUnicode_FromString(s.c_str());
 	}
 	PyObject* Font_str(FontObject* self) {
 		Font* font = as_font(self);
 		if (font == nullptr) {
-			return Py_BuildValue("N", PyUnicode_FromString("Invalid Font name"));
+			return PyUnicode_FromString("Invalid Font name");
 		}
 
 		Variant m (font->serialize());
 		std::string s = "Font " + m.to_str(true);
 
-		return Py_BuildValue("N", PyUnicode_FromString(s.c_str()));
+		return PyUnicode_FromString(s.c_str());
 	}
 	PyObject* Font_print(FontObject* self, PyObject* args) {
 		Font* font = as_font(self);
@@ -233,7 +237,7 @@ namespace internal {
 			return nullptr;
 		}
 
-		return Py_BuildValue("N", PyUnicode_FromString(font->get_fontname().c_str()));
+		return PyUnicode_FromString(font->get_fontname().c_str());
 	}
 
 	PyObject* Font_set_font_size(FontObject* self, PyObject* args) {

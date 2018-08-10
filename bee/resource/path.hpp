@@ -50,7 +50,7 @@ namespace bee {
 		bool is_pausable; ///< Whether the follower should pause Path movement
 
 		// See bee/resource/path.cpp for function comments
-		PathFollower(Path*, btVector3, int);
+		PathFollower(Path*, btVector3, unsigned int);
 		PathFollower();
 	};
 
