@@ -110,8 +110,8 @@ namespace bee {
 		origin({0, 0}),
 		rotate({0.5, 0.5}),
 
-		is_loaded(false),
 		texture(nullptr),
+		is_loaded(false),
 		has_draw_failed(false),
 
 		vao(-1),
@@ -218,10 +218,12 @@ namespace bee {
 		// Reset all properties
 		name = "";
 		path = "";
+
 		width = 0;
 		height = 0;
 		subimage_amount = 1;
 		subimage_width = 0;
+
 		crop = {0, 0, 0, 0};
 		speed = 0.0;
 		is_animated = false;
@@ -611,8 +613,8 @@ namespace bee {
 	*/
 	int Texture::load() {
 		if (is_loaded) { // Do not attempt to load the Texture if it has already been loaded
-		       messenger::send({"engine", "texture"}, E_MESSAGE::WARNING, "Failed to load Texture \"" + name + "\" because it has already been loaded");
-		       return 1;
+	       messenger::send({"engine", "texture"}, E_MESSAGE::WARNING, "Failed to load Texture \"" + name + "\" because it has already been loaded");
+	       return 1;
 		}
 
 		if (get_option("is_headless").i) {

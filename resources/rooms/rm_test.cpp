@@ -40,18 +40,23 @@ void RmTest::init() {
 	add_instance(obj_bee, btVector3(800.0, 600.0, 0.0));
 
 	// Load required resources for this room
-	if (spr_bee->get_is_loaded()) {
-		return;
-	}
-
 	bee::loader::queue(spr_bee);
-	bee::loader::queue(snd_chirp);
 	bee::loader::queue(bk_green);
+	bee::loader::queue(snd_chirp);
 	bee::loader::queue(font_liberation);
+	bee::loader::queue(path_bee);
+	bee::loader::queue(tl_bee);
 	bee::loader::queue(mesh_monkey);
+	bee::loader::queue(mesh_spider, [] (bee::Resource* res) -> int {
+		bee::Mesh* _mesh_spider = static_cast<bee::Mesh*>(res);
+		return _mesh_spider->load(2);
+	});
+	bee::loader::queue(lt_ambient);
+	bee::loader::queue(lt_bee);
+	bee::loader::queue(scr_test);
+	bee::loader::queue(obj_mesh);
 
 	bee::loader::load();
-	bee::loader::clear();
 }
 
 #endif // RES_ROOM_TEST

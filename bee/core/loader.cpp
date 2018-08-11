@@ -11,6 +11,7 @@
 
 #include <vector>
 #include <memory>
+#include <algorithm>
 
 #include "loader.hpp"
 
@@ -25,6 +26,8 @@ namespace bee { namespace loader {
 		std::vector<Resource*> resources;
 		std::vector<Resource*>::iterator next_resource = resources.end();
 
+		std::unordered_map<Resource*,std::function<int (Resource*)>> custom_loaders;
+
 		size_t amount_loaded = 0;
 		size_t total_amount = 0;
 		size_t lazy_amount = 0;
@@ -32,78 +35,117 @@ namespace bee { namespace loader {
 		bool has_recipient = false;
 	}
 
-	/*
-	* internal::load_next() - Load the next resource and update the queue
+	/**
+	* Load the next Resource and update the queue.
+	*
+	* @retval 0 success
+	* @retval 1 there are no more Resources to load
+	* @retval 2 the Resource failed to load
 	*/
 	int internal::load_next() {
+		while ((next_resource != resources.end())&&((*next_resource)->get_is_loaded())) {
+			++next_resource;
+			amount_loaded++;
+		}
+
 		if (next_resource == resources.end()) {
 			return 1;
 		}
 
 		messenger::send({"engine", "loader"}, E_MESSAGE::INTERNAL, "Loading resource \"" + (*next_resource)->get_name() + "\"...");
 
-		(*next_resource)->load();
+		int r = 0;
+		std::unordered_map<Resource*,std::function<int (Resource*)>>::iterator loadfunc = custom_loaders.find(*next_resource);
+		if (loadfunc == custom_loaders.end()) {
+			r = (*next_resource)->load();
+		} else {
+			r = loadfunc->second(*next_resource);
+		}
+
 		++next_resource;
 		amount_loaded++;
 
-		return 0;
+		return (r) ? 2 : 0;
 	}
-	/*
-	* internal::load_lazy() - Lazily load the next amount of resources from the queue
+	/**
+	* Lazily load the next amount of Resources from the queue.
+	*
+	* @retval 0 success
+	* @retval >0 some Resources failed to load
 	*/
 	int internal::load_lazy() {
+		int r = 0;
 		for (size_t i=0; i<lazy_amount; ++i) {
-			load_next();
+			r += load_next();
 		}
 
 		if (next_resource != resources.end()) {
-			messenger::send({"engine", "loader", "lazysignal"}, E_MESSAGE::INTERNAL, "Lazily loading the next " + std::to_string(lazy_amount) + " resources");
+			if (lazy_amount == 1) {
+				messenger::send({"engine", "loader", "lazysignal"}, E_MESSAGE::INTERNAL, "Lazily loading the next resource");
+			} else {
+				messenger::send({"engine", "loader", "lazysignal"}, E_MESSAGE::INTERNAL, "Lazily loading the next " + std::to_string(lazy_amount) + " resources");
+			}
 		}
 
-		return 0;
+		return r;
 	}
 
-	/*
-	* queue() - Add the given resource to the loader queue
-	* @res: the resource to add
+	/**
+	* Add the given Resource to the loader queue.
+	* @param res the Resource to add
 	*/
-	int queue(Resource* res) {
+	void queue(Resource* res) {
 		internal::resources.push_back(res);
 		++internal::total_amount;
-		return 0;
 	}
-	/*
-	* clear() - Clear the queue
+	/**
+	* Add the given Resource to the queue with a custom loader.
+	* @param res the Resource to add
+	* @param loadfunc the function to call instead of the default load() method
 	*/
-	int clear() {
+	void queue(Resource* res, std::function<int (Resource*)> loadfunc) {
+		queue(res);
+		internal::custom_loaders.emplace(res, loadfunc);
+	}
+	/**
+	* Clear the queue.
+	*/
+	void clear() {
 		internal::resources.clear();
 		internal::next_resource = internal::resources.end();
 
+		internal::custom_loaders.clear();
+
 		internal::amount_loaded = 0;
 		internal::total_amount = 0;
-
-		return 0;
 	}
 
-	/*
-	* load() - Immediately load the entire queue
+	/**
+	* Immediately load the entire queue.
+	*
+	* @retval 0 success
+	* @retval >0 some Resources failed to load
 	*/
 	int load() {
 		internal::amount_loaded = 0;
 		internal::total_amount = internal::resources.size();
 		internal::next_resource = internal::resources.begin();
 
+		int r = 0;
 		while (internal::next_resource != internal::resources.end()) {
-			internal::load_next();
+			r += internal::load_next();
 		}
 
-		return 0;
+		return r;
 	}
-	/*
-	* load_lazy() - Load the given number of resources per frame from the queue
-	* @amount: the amount to load per frame
+	/**
+	* Load the given number of Resources per frame from the queue.
+	* @param amount the amount to load per frame
+	*
+	* @retval 0 success
+	* @retval >0 some Resources failed to load
 	*/
-	int load_lazy(int amount) {
+	int load_lazy(size_t amount) {
 		if (!internal::has_recipient) { // If lazy loading hasn't been initialized, register with the messenger
 			messenger::internal::register_protected(
 				"lazy_loader",
@@ -116,25 +158,36 @@ namespace bee { namespace loader {
 			internal::has_recipient = true;
 		}
 
+		if (amount < 1) {
+			amount = 1;
+		}
+
 		internal::amount_loaded = 0;
 		internal::total_amount = internal::resources.size();
 		internal::lazy_amount = amount;
 		internal::next_resource = internal::resources.begin();
 
-		internal::load_lazy();
-
-		return 0;
+		return internal::load_lazy();
 	}
-	/*
-	* load_lazy() - Load one resource per frame from the queue
+	/**
+	* Load one Resource per frame from the queue.
+	*
+	* @retval 0 success
+	* @retval 1 the Resource failed to load
 	*/
 	int load_lazy() {
 		return load_lazy(1);
 	}
 
+	/**
+	* @returns the amount of Resources that have been loaded
+	*/
 	size_t get_amount_loaded() {
 		return internal::amount_loaded;
 	}
+	/**
+	* @returns the total amount of queued Resources
+	*/
 	size_t get_total() {
 		return internal::total_amount;
 	}

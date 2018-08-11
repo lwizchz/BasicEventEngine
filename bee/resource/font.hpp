@@ -82,8 +82,9 @@ namespace bee {
 		int get_font_size() const;
 		E_FONT_STYLE get_style() const;
 		int get_lineskip() const;
-		int get_lineskip_default();
-		std::string get_fontname();
+		int get_lineskip_default() const;
+		std::string get_fontname() const;
+		bool get_is_loaded() const;
 
 		void set_name(const std::string&);
 		void set_path(const std::string&);

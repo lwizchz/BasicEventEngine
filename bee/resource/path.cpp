@@ -85,7 +85,10 @@ namespace bee {
 		path(),
 
 		nodes(),
-		control_points()
+		control_points(),
+		is_loaded(false),
+
+		coord_cache()
 	{}
 	/**
 	* Construct the Path, add it to the Path resource list, and set the new name and file path.
@@ -179,12 +182,17 @@ namespace bee {
 	* @retval 0 success
 	*/
 	int Path::reset() {
+		this->free();
+
 		// Reset all properties
 		name = "";
 		path = "";
 
 		nodes.clear();
 		control_points.clear();
+		is_loaded = false;
+
+		coord_cache.clear();
 
 		return 0;
 	}
@@ -219,6 +227,8 @@ namespace bee {
 		}
 		info["control_points"] = _control_points;
 
+		info["is_loaded"] = is_loaded;
+
 		return info;
 	}
 	/**
@@ -228,6 +238,8 @@ namespace bee {
 	* @retval 0 success
 	*/
 	int Path::deserialize(std::map<Variant,Variant>& m) {
+		this->free();
+
 		id = m["id"].i;
 		name = m["name"].s;
 		path = m["path"].s;
@@ -240,6 +252,12 @@ namespace bee {
 		for (auto& cp : m["control_points"].v) {
 			btVector3 pos (cp.v[1].v[0].d, cp.v[1].v[1].d, cp.v[1].v[2].d);
 			control_points.emplace(cp.v[0].i, pos);
+		}
+
+		is_loaded = false;
+
+		if ((m["is_loaded"].i)&&(load())) {
+			return 1;
 		}
 
 		return 0;
@@ -264,6 +282,9 @@ namespace bee {
 	const std::vector<PathNode>& Path::get_nodes() const {
 		return nodes;
 	}
+	bool Path::get_is_loaded() const {
+		return is_loaded;
+	}
 
 	void Path::set_name(const std::string& _name) {
 		name = _name;
@@ -283,6 +304,7 @@ namespace bee {
 		} else { // Append the path to the Path directory if not root
 			path = "resources/paths/"+_path;
 		}
+		is_loaded = false;
 	}
 
 	/**
@@ -343,13 +365,19 @@ namespace bee {
 	* Load the Path from its file path.
 	*
 	* @retval 0 success
-	* @retval 1 failed to load the file
+	* @retval 1 failed to load since it's already loaded
+	* @retval 2 failed to load the file
 	*/
 	int Path::load() {
+		if (is_loaded) { // Do not attempt to load the Path if it has already been loaded
+	       messenger::send({"engine", "path"}, E_MESSAGE::WARNING, "Failed to load Path \"" + name + "\" because it has already been loaded");
+	       return 1;
+		}
+
 		std::string cfg (util::file_get_contents(path));
 		if (cfg.empty()) { // If the file could not be loaded, output a warning
 			messenger::send({"engine", "path"}, E_MESSAGE::WARNING, "Failed to load Path \"" + name + "\" from file \"" + path + "\"");
-			return 1;
+			return 2;
 		}
 
 		// Parse the config file
@@ -371,6 +399,27 @@ namespace bee {
 			btVector3 pos (cp.v[1].v[0].d, cp.v[1].v[1].d, cp.v[1].v[2].d);
 			control_points.emplace(cp.v[0].i, pos);
 		}
+
+		is_loaded = true;
+
+		return 0;
+	}
+	/**
+	* Free the Path node data.
+	*
+	* @retval 0 success
+	*/
+	int Path::free() {
+		if (!is_loaded) { // Do not attempt to free the data if the Path has not been loaded
+			return 0;
+		}
+
+		nodes.clear();
+		control_points.clear();
+
+		coord_cache.clear();
+
+		is_loaded = false;
 
 		return 0;
 	}

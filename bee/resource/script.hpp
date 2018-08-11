@@ -71,6 +71,7 @@ namespace bee {
 		std::string get_name() const;
 		std::string get_path() const;
 		ScriptInterface* get_interface() const;
+		bool get_is_loaded() const;
 
 		void set_name(const std::string&);
 		void set_path(const std::string&);

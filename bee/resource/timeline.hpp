@@ -66,9 +66,9 @@ namespace bee {
 		std::string name; ///< An arbitrary resource name
 		std::string path; ///< The path of the file to load the Timeline from
 
-		bool is_loaded; ///< Whether the actions were successfully loaded into the map
 		std::multimap<Uint32,TimelineAction> actions; ///< The map which holds the actions
 		TimelineAction end_action; ///< An action which will be executed when the Timeline is finished
+		bool is_loaded; ///< Whether the actions were successfully loaded into the map
 
 		Script* scr_actions; ///< The Script which loads the desired actions
 	public:
@@ -93,6 +93,7 @@ namespace bee {
 		std::string get_name() const;
 		std::string get_path() const;
 		const std::multimap<Uint32,TimelineAction>& get_actions() const;
+		bool get_is_loaded() const;
 
 		void set_name(const std::string&);
 		void set_path(const std::string&);

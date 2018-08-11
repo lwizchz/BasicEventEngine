@@ -81,8 +81,8 @@ namespace bee {
 		std::pair<int,int> origin; ///< The origin from which the Texture is drawn
 		std::pair<double,double> rotate; ///< The origin around which the Texture is rotated, scaled from 0.0 to 1.0 in both width and height
 
-		bool is_loaded; ///< Whether the image file was successfully loaded into a texture
 		SDL_Texture* texture; ///< The internal texture storage
+		bool is_loaded; ///< Whether the image file was successfully loaded into a texture
 		bool has_draw_failed; ///< Whether the draw function has previously failed, this prevents continuous warning outputs
 
 		GLuint vao; ///< The Vertex Array %Object which contains most of the following data

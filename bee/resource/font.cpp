@@ -271,7 +271,7 @@ namespace bee {
 	* @returns the Font's default lineskip
 	* @retval -1 failed to get lineskip since it's not loaded
 	*/
-	int Font::get_lineskip_default() {
+	int Font::get_lineskip_default() const {
 		if (!is_loaded) { // If the Font is not loaded, output a warning
 			messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to get the default lineskip for \"" + name + "\" becuase it is not loaded");
 			return -1;
@@ -283,7 +283,7 @@ namespace bee {
 	* @returns the font name from the TTF file
 	* @retval "" failed to get the name since it's not loaded
 	*/
-	std::string Font::get_fontname() {
+	std::string Font::get_fontname() const {
 		if (!is_loaded) {
 			messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to get the font name for \"" + name + "\" becuase it is not loaded");
 			return "";
@@ -295,6 +295,9 @@ namespace bee {
 		fontname.append(TTF_FontFaceStyleName(font));
 
 		return fontname;
+	}
+	bool Font::get_is_loaded() const {
+		return is_loaded;
 	}
 
 	void Font::set_name(const std::string& _name) {

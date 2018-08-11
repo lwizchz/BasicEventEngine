@@ -14,10 +14,15 @@ namespace bee {
 	class Resource {
 		public:
 			virtual ~Resource() {};
+
 			virtual int reset() =0;
+
 			virtual void print() const =0;
+
 			virtual size_t get_id() const =0;
 			virtual std::string get_name() const {return "";}
+			virtual bool get_is_loaded() const {return true;}
+			
 			virtual int load() {return 0;}
 			virtual int free() {return 0;}
 	};

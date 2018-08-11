@@ -49,7 +49,8 @@ namespace bee {
 		name(),
 		path(),
 
-		lighting()
+		lighting(),
+		is_loaded(false)
 	{}
 	/**
 	* Construct the Light, add it to the Light resource list, and set the new name and path.
@@ -141,6 +142,8 @@ namespace bee {
 	* @retval 0 success
 	*/
 	int Light::reset() {
+		this->free();
+
 		// Reset all properties
 		name = "";
 		path = "";
@@ -149,6 +152,8 @@ namespace bee {
 		lighting.position = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 		lighting.direction = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 		lighting.color = {255, 255, 255, 255};
+
+		is_loaded = false;
 
 		return 0;
 	}
@@ -174,6 +179,8 @@ namespace bee {
 			Variant(static_cast<int>(lighting.color.a))
 		};
 
+		info["is_loaded"] = is_loaded;
+
 		return info;
 	}
 	/**
@@ -183,6 +190,8 @@ namespace bee {
 	* @retval 0 success
 	*/
 	int Light::deserialize(std::map<Variant,Variant>& m) {
+		this->free();
+
 		id = m["id"].i;
 		name = m["name"].s;
 		path = m["path"].s;
@@ -212,6 +221,12 @@ namespace bee {
 			m["color"].v[2].i,
 			m["color"].v[3].i
 		);
+
+		is_loaded = false;
+
+		if ((m["is_loaded"].i)&&(load())) {
+			return 1;
+		}
 
 		return 0;
 	}
@@ -247,6 +262,9 @@ namespace bee {
 	RGBA Light::get_color() const {
 		return lighting.color;
 	}
+	bool Light::get_is_loaded() const {
+		return is_loaded;
+	}
 
 	void Light::set_name(const std::string& _name) {
 		name = _name;
@@ -266,6 +284,7 @@ namespace bee {
 		} else { // Append the path to the Light directory if not root
 			path = "resources/lights/"+_path;
 		}
+		is_loaded = false;
 	}
 	void Light::set_type(E_LIGHT_TYPE _type) {
 		lighting.type = _type;
@@ -287,14 +306,20 @@ namespace bee {
 	* Load the Light from its path.
 	*
 	* @retval 0 success
-	* @retval 1 failed to load the file
-	* @retval 2 invalid value
+	* @retval 1 failed to load since it's already loaded
+	* @retval 2 failed to load the file
+	* @retval 3 invalid value
 	*/
 	int Light::load() {
+		if (is_loaded) { // Do not attempt to load the Light if it has already been loaded
+	       messenger::send({"engine", "light"}, E_MESSAGE::WARNING, "Failed to load Light \"" + name + "\" because it has already been loaded");
+	       return 1;
+		}
+
 		std::string cfg (util::file_get_contents(path));
 		if (cfg.empty()) { // If the file could not be loaded, output a warning
 			messenger::send({"engine", "light"}, E_MESSAGE::WARNING, "Failed to load Light \"" + name + "\" from file \"" + path + "\"");
-			return 1;
+			return 2;
 		}
 
 		// Parse the config file
@@ -320,7 +345,7 @@ namespace bee {
 			lighting.type = E_LIGHT_TYPE::SPOT;
 		} else {
 			messenger::send({"engine", "light"}, E_MESSAGE::WARNING, "Failed to load Light \"" + name + "\": invalid light type \"" + type + "\"");
-			return 2;
+			return 3;
 		}
 
 		if (m.m.find("position") != m.m.end()) {
@@ -355,6 +380,24 @@ namespace bee {
 				m.m["color"].v[3].i
 			);
 		}
+
+		is_loaded = true;
+
+		return 0;
+	}
+	/**
+	* Free the LightData.
+	*
+	* @retval 0 success
+	*/
+	int Light::free() {
+		if (!is_loaded) { // Do not attempt to free the data if the Light has not been loaded
+			return 0;
+		}
+
+		lighting = LightData();
+
+		is_loaded = false;
 
 		return 0;
 	}

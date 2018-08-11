@@ -65,6 +65,7 @@ namespace bee {
 
 		std::vector<PathNode> nodes; ///< The list of points which the Instance will follow
 		std::map<unsigned int,btVector3> control_points; ///< The list of control points for Bezier curves
+		bool is_loaded; ///< Whether the Path data has been loaded from the config file
 
 		std::vector<btVector3> coord_cache; ///< A cache of the coordinates used by the drawing function
 
@@ -94,6 +95,7 @@ namespace bee {
 		std::string get_name() const;
 		std::string get_path() const;
 		const std::vector<PathNode>& get_nodes() const;
+		bool get_is_loaded() const;
 
 		void set_name(const std::string&);
 		void set_path(const std::string&);
@@ -104,6 +106,7 @@ namespace bee {
 		int remove_control_point(unsigned int);
 
 		int load();
+		int free();
 
  		void advance(PathFollower&) const;
 		void advance(Instance*, PathFollower&) const;

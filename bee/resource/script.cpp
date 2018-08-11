@@ -202,6 +202,9 @@ namespace bee {
 	ScriptInterface* Script::get_interface() const {
 		return script;
 	}
+	bool Script::get_is_loaded() const {
+		return is_loaded;
+	}
 
 	void Script::set_name(const std::string& _name) {
 		name = _name;

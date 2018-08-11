@@ -51,6 +51,7 @@ namespace bee {
 		std::string path; ///< The path of the config file used for the lighting
 
 		LightData lighting; ///< The properties that define the light
+		bool is_loaded; ///< Whether the LightData has been loaded from the config file
 	public:
 		// See bee/resource/light.cpp for function comments
 		Light();
@@ -77,6 +78,7 @@ namespace bee {
 		glm::vec4 get_direction() const;
 		glm::vec4 get_attenuation() const;
 		RGBA get_color() const;
+		bool get_is_loaded() const;
 
 		void set_name(const std::string&);
 		void set_path(const std::string&);
@@ -87,6 +89,7 @@ namespace bee {
 		void set_color(RGBA);
 
 		int load();
+		int free();
 
 		int queue();
 	};

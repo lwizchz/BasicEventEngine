@@ -51,21 +51,42 @@ namespace bee {
 		};
 	}
 
-	ObjScript::ObjScript(const std::string& scriptfile) :
-		Object("__obj_script", scriptfile),
+	ObjScript::ObjScript(const std::string& _scriptfile) :
+		Object("__obj_script", _scriptfile),
+
+		scriptfile(_scriptfile),
 		script(nullptr),
-		events()
+		events(),
+
+		is_loaded(false)
 	{
+		set_name("__obj_script:" + scriptfile);
+	}
+	ObjScript::~ObjScript() {
+		this->free();
+	}
+
+	/**
+	* Load the Object from its scriptfile.
+	*
+	* @retval 0 success
+	* @retval 1 failed to load since it's already loaded
+	* @retval 2 failed to load the Script
+	*/
+	int ObjScript::load() {
+		if (is_loaded) { // If the Object has already been loaded, output a warning
+			messenger::send({"engine", "object", "objscript"}, E_MESSAGE::WARNING, "Failed to load Object \"" + scriptfile + "\" because it has already been loaded");
+			return 1;
+		}
+
 		std::string filename (scriptfile);
 		if ((!filename.empty())&&(filename.front() != '/')) {
 			filename = "/resources/objects/"+filename;
 		}
 
-		set_name("__obj_script:" + scriptfile);
-
 		script = Script::add("__scr_obj_script:" + scriptfile, filename);
 		if (script == nullptr) {
-			return;
+			return 2;
 		}
 
 		ScriptInterface* si = script->get_interface();
@@ -75,11 +96,36 @@ namespace bee {
 				implemented_events.insert(event.second);
 			}
 		}
+
+		is_loaded = true;
+
+		return 0;
 	}
-	ObjScript::~ObjScript() {
+	/**
+	* Free the Object and its internal Script.
+	*
+	* @retval 0 success
+	*/
+	int ObjScript::free() {
+		if (!is_loaded) {
+			return 0;
+		}
+
+		events.clear();
+		implemented_events.clear();
+
 		if (script != nullptr) {
 			delete script;
+			script = nullptr;
 		}
+
+		is_loaded = false;
+
+		return 0;
+	}
+
+	bool ObjScript::get_is_loaded() const {
+		return is_loaded;
 	}
 
 	void ObjScript::update(Instance* self) {

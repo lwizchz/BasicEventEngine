@@ -103,9 +103,9 @@ namespace bee {
 		name(),
 		path(),
 
-		is_loaded(false),
 		actions(),
 		end_action(),
+		is_loaded(false),
 
 		scr_actions(new Script())
 	{}
@@ -206,6 +206,7 @@ namespace bee {
 
 		actions.clear();
 		end_action = TimelineAction();
+		is_loaded = false;
 
 		scr_actions->free();
 
@@ -283,6 +284,9 @@ namespace bee {
 	const std::multimap<Uint32,TimelineAction>& Timeline::get_actions() const {
 		return actions;
 	}
+	bool Timeline::get_is_loaded() const {
+		return is_loaded;
+	}
 
 	void Timeline::set_name(const std::string& _name) {
 		name = _name;
@@ -335,7 +339,7 @@ namespace bee {
 		return 0;
 	}
 	int Timeline::free() {
-		if (!is_loaded) {
+		if (!is_loaded) { // Do not attempt to free the data if the Timeline has not been loaded
 			return 0;
 		}
 

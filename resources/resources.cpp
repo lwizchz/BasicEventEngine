@@ -84,26 +84,20 @@ int init_resources() {
 
 		// Init Paths
 		path_bee = new bee::Path("path_bee", "path_bee.json");
-			path_bee->load();
 
 		// Init Timelines
 		tl_bee = new bee::Timeline("tl_bee", "tl_bee.py");
-			tl_bee->load();
 
 		// Init Meshes
 		mesh_monkey = new bee::Mesh("mesh_monkey", "monkey2.obj");
 		mesh_spider = new bee::Mesh("mesh_spider", "spider.fbx");
-			mesh_spider->load(2);
 
 		// Init Lights
 		lt_ambient = new bee::Light("lt_ambient", "lt_ambient.json");
-			lt_ambient->load();
 		lt_bee = new bee::Light("lt_bee", "lt_bee.json");
-			lt_bee->load();
 
 		// Init Scripts
 		scr_test = new bee::Script("scr_test", "scr_test.py");
-			scr_test->load();
 
 		// Init Objects
 		obj_control = new ObjControl();
