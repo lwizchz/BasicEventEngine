@@ -229,7 +229,7 @@ namespace bee { namespace python { namespace internal {
 		}
 
 		if (level < 0) {
-			messenger::send({"engine", "console"}, E_MESSAGE::INFO, std::to_string(static_cast<int>(messenger::get_level())));
+			console::log(E_MESSAGE::INFO, std::to_string(static_cast<int>(messenger::get_level())));
 		} else {
 			level = std::min(level, static_cast<int>(E_OUTPUT::VERBOSE));
 			messenger::set_level(static_cast<E_OUTPUT>(level));
@@ -246,7 +246,7 @@ namespace bee { namespace python { namespace internal {
 		}
 
 		if (volume < 0.0) {
-			messenger::send({"engine", "console"}, E_MESSAGE::INFO, std::to_string(Sound::get_master_volume()));
+			console::log(E_MESSAGE::INFO, std::to_string(Sound::get_master_volume()));
 		} else {
 			volume = std::min(volume, 1.0);
 			Sound::set_master_volume(volume);
@@ -257,7 +257,7 @@ namespace bee { namespace python { namespace internal {
 
 	PyObject* commands_info(PyObject* self, PyObject* args) {
 		Variant m (get_current_room()->serialize());
-		messenger::send({"engine", "console"}, E_MESSAGE::INFO, "Room " + m.to_str(true));
+		console::log(E_MESSAGE::INFO, "Room " + m.to_str(true));
 
 		Py_RETURN_NONE;
 	}
@@ -278,7 +278,7 @@ namespace bee { namespace python { namespace internal {
 	}
 
 	PyObject* commands_netstatus(PyObject* self, PyObject* args) {
-		messenger::send({"engine", "console"}, E_MESSAGE::INFO, net::get_print());
+		console::log(E_MESSAGE::INFO, net::get_print());
 
 		Py_RETURN_NONE;
 	}

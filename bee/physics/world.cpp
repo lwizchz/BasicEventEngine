@@ -186,8 +186,10 @@ namespace bee {
 
 	int PhysicsWorld::add_body(PhysicsBody* new_body) {
 		if (scale != new_body->get_scale()) {
-			messenger::send({"engine", "physics"}, E_MESSAGE::WARNING, "Failed to add body to world: scale mismatch: world(" + std::to_string(scale) + "), body(" + std::to_string(new_body->get_scale()) + ")\n");
-			return 1;
+			if (new_body->get_shape_type() != E_PHYS_SHAPE::NONE) {
+				messenger::send({"engine", "physics"}, E_MESSAGE::WARNING, "Failed to add body to world: scale mismatch: world(" + std::to_string(scale) + "), body(" + std::to_string(new_body->get_scale()) + ")\n");
+				return 1;
+			}
 		}
 
 		world->addRigidBody(new_body->get_body());

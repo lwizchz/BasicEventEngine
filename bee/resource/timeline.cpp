@@ -322,7 +322,7 @@ namespace bee {
 			return 1;
 		}
 
-		if (Script::get_type(path) == E_SCRIPT_TYPE::INVALID) {
+		if (Script::get_type(path).first == E_SCRIPT_TYPE::INVALID) {
 			messenger::send({"engine", "timeline"}, E_MESSAGE::WARNING, "Failed to load Timeline \"" + name + "\" from \"" + path + "\" because it's not a script");
 			return 2;
 		}

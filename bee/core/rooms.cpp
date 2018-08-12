@@ -94,7 +94,7 @@ namespace bee {
 			return 0;
 		}
 
-		const Room* old_room = engine->current_room;
+		Room* old_room = engine->current_room;
 		engine->current_room = new_room; // Set the new room as the current room
 		engine->is_ready = false; // Set the event loop as not running
 		engine->current_room->reset_properties(); // Reset the new room's properties

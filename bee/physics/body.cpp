@@ -349,19 +349,20 @@ namespace bee {
 
 		if (_world == nullptr) {
 			remove();
+			return 0;
 		}
 
-		/*if (attached_world != _world)*/ {
-			attached_world = _world;
+		attached_world = _world;
 
-			if ((constraints.size() > 0)&&(attached_world != nullptr)) {
-				auto tmp_constraints = constraints;
-				constraints.clear();
-				for (auto& c : tmp_constraints) {
-					attached_world->add_constraint(std::get<0>(c), this, std::get<1>(c));
-				}
+		if (constraints.size() > 0) {
+			auto tmp_constraints = constraints;
+			constraints.clear();
+			for (auto& c : tmp_constraints) {
+				attached_world->add_constraint(std::get<0>(c), this, std::get<1>(c));
 			}
 		}
+
+		scale = attached_world->get_scale();
 
 		return 0;
 	}

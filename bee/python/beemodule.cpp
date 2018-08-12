@@ -19,6 +19,7 @@
 #include "console.hpp"
 #include "mouse.hpp"
 #include "kb.hpp"
+#include "loader.hpp"
 
 #include "instance.hpp"
 
@@ -152,11 +153,11 @@ namespace bee { namespace python { namespace internal {
 		PyModule_AddObject(module, "console", PyInit_bee_console());
 		PyModule_AddObject(module, "mouse", PyInit_bee_mouse());
 		PyModule_AddObject(module, "kb", PyInit_bee_kb());
-		//PyModule_AddObject(module, "loader", PyInit_bee_loader());
-		//PyModule_AddObject(module, "network", PyInit_bee_network());
+		PyModule_AddObject(module, "loader", PyInit_bee_loader());
 		//PyModule_AddObject(module, "physics", PyInit_bee_physics());
 		//PyModule_AddObject(module, "render", PyInit_bee_render());
 		//PyModule_AddObject(module, "ui", PyInit_bee_ui());
+		//PyModule_AddObject(module, "network", PyInit_bee_network());
 
 		// Add classes
 		if (PyInit_bee_instance(module) == nullptr) {
@@ -635,21 +636,19 @@ namespace bee { namespace python { namespace internal {
 		Py_RETURN_NONE;
 	}
 	PyObject* core_change_room(PyObject* self, PyObject* args) {
-		PyObject* roomname;
+		RoomObject* room;
 
-		if (!PyArg_ParseTuple(args, "U", &roomname)) {
+		if (!PyArg_ParseTuple(args, "O!", &RoomType, &room)) {
 			return nullptr;
 		}
 
-		std::string _roomname (PyUnicode_AsUTF8(roomname));
-
-		Room* rm = Room::get_by_name(_roomname);
-		if (rm == nullptr) {
-			PyErr_SetString(PyExc_ValueError, "parameter must be the name of an existing room");
+		Room* _room = as_room(room);
+		if (_room == nullptr) {
+			PyErr_SetString(PyExc_RuntimeError, "null room");
 			return nullptr;
 		}
 
-		change_room(rm);
+		change_room(_room);
 
 		Py_RETURN_NONE;
 	}

@@ -674,13 +674,31 @@ namespace bee {
 		}
 
 		inst->get_object()->remove_instance(index);
-		instances.erase(index);
 
-		for (E_EVENT e : inst->get_object()->get_events()) {
-			instances_events[e].erase(inst);
-		}
+		remove_instance_internal(index);
 
 		delete inst;
+
+		return 0;
+	}
+	/**
+	* Only remove the Instance at the given index without deleting it.
+	* @note Generally Instances should be destroyed via destroy(Instance*) instead of directly calling remove_instance().
+	* @param index the Instance index to remove
+	*
+	* @retval 0 success
+	* @retval 1 failed to remove since an Instance at the given index doesn't exist
+	*/
+	int Room::remove_instance_internal(size_t index) {
+		std::map<size_t,Instance*>::iterator _inst = instances.find(index);
+		if (_inst == instances.end()) {
+			return 1;
+		}
+
+		for (E_EVENT e : _inst->second->get_object()->get_events()) {
+			instances_events[e].erase(_inst->second);
+		}
+		instances.erase(_inst);
 
 		return 0;
 	}
@@ -754,23 +772,22 @@ namespace bee {
 	* @retval 0 success
 	* @retval 1 failed since this is the first Room
 	*/
-	int Room::transfer_instances(const Room* old_room) {
-		if (old_room == nullptr) {
+	int Room::transfer_instances(Room* old_room) {
+		if ((old_room == nullptr)||(old_room == this)) {
 			return 1;
 		}
 
-		for (auto& inst : instances) {
-			inst.second->get_object()->remove_instance(inst.first);
-		}
-
 		const std::map<size_t,Instance*> old_instances = old_room->get_instances();
-
-		instances.clear();
-		instances_events.clear();
-
 		for (auto& inst : old_instances) {
-			set_instance(inst.first, inst.second);
-			inst.second->get_object()->add_instance(inst.first, inst.second);
+			size_t inst_id = inst.first;
+
+			while (instances.find(inst_id) != instances.end()) {
+				inst_id = next_instance_id++;
+			}
+			inst.second->id = inst_id;
+
+			set_instance(inst_id, inst.second);
+			inst.second->get_object()->add_instance(inst_id, inst.second);
 
 			if (inst.second->get_physbody() != nullptr) {
 				PhysicsBody* b = inst.second->get_physbody();
@@ -780,8 +797,10 @@ namespace bee {
 			}
 
 			for (E_EVENT e : inst.second->get_object()->get_events()) {
-				instances_events[e].emplace(inst.second, inst.first);
+				instances_events[e].emplace(inst.second, inst_id);
 			}
+
+			old_room->remove_instance_internal(inst.first);
 		}
 
 		return 0;

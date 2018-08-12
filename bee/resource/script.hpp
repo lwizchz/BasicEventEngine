@@ -58,7 +58,7 @@ namespace bee {
 		static Script* get_by_name(const std::string&);
 		static Script* add(const std::string&, const std::string&);
 
-		static E_SCRIPT_TYPE get_type(const std::string&);
+		static std::pair<E_SCRIPT_TYPE,std::string> get_type(const std::string&);
 
 		size_t add_to_resources();
 		int reset();

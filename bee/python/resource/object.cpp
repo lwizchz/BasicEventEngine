@@ -280,7 +280,7 @@ namespace internal {
 	}
 
 	PyObject* Object_set_sprite(ObjectObject* self, PyObject* args) {
-		PyObject* tex;
+		TextureObject* tex;
 
 		if (!PyArg_ParseTuple(args, "O!", &TextureType, &tex)) {
 			return nullptr;
@@ -332,7 +332,7 @@ namespace internal {
 		Py_RETURN_NONE;
 	}
 	PyObject* Object_set_parent(ObjectObject* self, PyObject* args) {
-		PyObject* parent;
+		ObjectObject* parent;
 
 		if (!PyArg_ParseTuple(args, "O!", ObjectType, &parent)) {
 			return nullptr;

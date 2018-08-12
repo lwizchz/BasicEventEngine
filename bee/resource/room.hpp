@@ -73,6 +73,7 @@ namespace bee {
 
 		// See bee/resource/room.cpp for function comments
 		void set_instance(size_t, Instance*);
+		int remove_instance_internal(size_t);
 	protected:
 		Room();
 		Room(const std::string&, const std::string&);
@@ -124,7 +125,7 @@ namespace bee {
 		void automate_timeline(TimelineIterator);
 
 		void reset_properties();
-		int transfer_instances(const Room*);
+		int transfer_instances(Room*);
 
 		void create();
 		void destroy();

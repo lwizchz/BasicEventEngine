@@ -23,7 +23,6 @@ ObjControl::ObjControl() : Object("obj_control", "obj_control.hpp") {
 		bee::E_EVENT::ROOM_START,
 		bee::E_EVENT::GAME_START
 	});
-	this->set_is_persistent(true);
 }
 void ObjControl::create(bee::Instance* self) {
 	_p("text_fps") = nullptr;

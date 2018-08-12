@@ -132,14 +132,14 @@ namespace bee{ namespace console {
 		obj_handle->set_color(ui_handle, {0, 0, 0, 255});
 
 		ui_text_entry = bee::ui::create_text_entry(rect.x, rect.y+rect.h, 1, 80, [] (Instance* text_entry, const std::string& input) {
-			bee::console::run(input); // Run the command
-
 			// Reset the console state
 			ObjUITextEntry* obj_text_entry = static_cast<ObjUITextEntry*>(text_entry->get_object());
 			obj_text_entry->set_input(text_entry, "");
 			obj_text_entry->reset_completion(text_entry);
 			obj_text_entry->set_focus(text_entry, true);
 			page_index = 0;
+
+			bee::console::run(input); // Run the command
 		});
 		if (ui_text_entry == nullptr) {
 			return 1;

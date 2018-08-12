@@ -165,6 +165,15 @@ namespace bee {
 		info["pos_start"] = {Variant(pos_start.x()), Variant(pos_start.y()), Variant(pos_start.z())};
 		info["pos_previous"] = {Variant(pos_previous.x()), Variant(pos_previous.y()), Variant(pos_previous.z())};
 
+		info["computation_type"] = static_cast<int>(computation_type);
+		info["is_persistent"] = is_persistent;
+
+		std::map<Variant,Variant> _data;
+		for (auto& d : data) {
+			_data.emplace(Variant(d.first), d.second);
+		}
+		info["data"] = _data;
+
 		return info;
 	}
 	/**
@@ -194,6 +203,14 @@ namespace bee {
 			btScalar(m["pos_previous"].v[1].f),
 			btScalar(m["pos_previous"].v[2].f)
 		);
+
+		computation_type = static_cast<E_COMPUTATION>(m["computation_type"].i);
+		is_persistent = m["is_persistent"].i;
+
+		data.clear();
+		for (auto& d : m["data"].m) {
+			data.emplace(d.first.s, d.second);
+		}
 
 		return 0;
 	}

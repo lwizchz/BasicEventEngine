@@ -60,7 +60,7 @@ namespace bee {
 
 		is_loaded(false)
 	{
-		set_name("__obj_script:" + scriptfile);
+		set_name(Script::get_type(scriptfile).second);
 	}
 	ObjScript::~ObjScript() {
 		this->free();
@@ -75,7 +75,7 @@ namespace bee {
 	*/
 	int ObjScript::load() {
 		if (is_loaded) { // If the Object has already been loaded, output a warning
-			messenger::send({"engine", "object", "objscript"}, E_MESSAGE::WARNING, "Failed to load Object \"" + scriptfile + "\" because it has already been loaded");
+			messenger::send({"engine", "object", "obj_script"}, E_MESSAGE::WARNING, "Failed to load Object \"" + scriptfile + "\" because it has already been loaded");
 			return 1;
 		}
 
@@ -129,6 +129,10 @@ namespace bee {
 	}
 
 	void ObjScript::update(Instance* self) {
+		if (!is_loaded) {
+			return;
+		}
+
 		Object::update(self);
 		if (events.find(bee::E_EVENT::UPDATE) == events.end()) {
 			return;
@@ -140,12 +144,20 @@ namespace bee {
 		script->run_func("update", args, nullptr);
 	}
 	void ObjScript::create(Instance* self) {
+		if (!is_loaded) {
+			return;
+		}
+
 		Variant args (std::vector<Variant>{
 			Variant(self)
 		});
 		script->run_func("create", args, nullptr);
 	}
 	void ObjScript::destroy(Instance* self) {
+		if (!is_loaded) {
+			return;
+		}
+
 		if (events.find(bee::E_EVENT::DESTROY) != events.end()) {
 			Variant args (std::vector<Variant>{
 				Variant(self)
@@ -157,6 +169,10 @@ namespace bee {
 	}
 
 	void ObjScript::alarm(Instance* self, const std::string& alarm) {
+		if (!is_loaded) {
+			return;
+		}
+
 		Variant args (std::vector<Variant>{
 			Variant(self),
 			Variant(alarm)
@@ -165,6 +181,10 @@ namespace bee {
 	}
 
 	void ObjScript::step_begin(Instance* self) {
+		if (!is_loaded) {
+			return;
+		}
+
 		Object::step_begin(self);
 		if (events.find(bee::E_EVENT::STEP_BEGIN) == events.end()) {
 			return;
@@ -176,12 +196,20 @@ namespace bee {
 		script->run_func("step_begin", args, nullptr);
 	}
 	void ObjScript::step_mid(Instance* self) {
+		if (!is_loaded) {
+			return;
+		}
+
 		Variant args (std::vector<Variant>{
 			Variant(self)
 		});
 		script->run_func("step_mid", args, nullptr);
 	}
 	void ObjScript::step_end(Instance* self) {
+		if (!is_loaded) {
+			return;
+		}
+
 		Variant args (std::vector<Variant>{
 			Variant(self)
 		});
@@ -189,6 +217,10 @@ namespace bee {
 	}
 
 	void ObjScript::keyboard_press(Instance* self, SDL_Event* e) {
+		if (!is_loaded) {
+			return;
+		}
+
 		Variant args (std::vector<Variant>{
 			Variant(self),
 			Variant(std::map<Variant,Variant>{
@@ -207,6 +239,10 @@ namespace bee {
 		script->run_func("keyboard_press", args, nullptr);
 	}
 	void ObjScript::mouse_press(Instance* self, SDL_Event* e) {
+		if (!is_loaded) {
+			return;
+		}
+
 		Variant args (std::vector<Variant>{
 			Variant(self),
 			Variant(std::map<Variant,Variant>{
@@ -224,6 +260,10 @@ namespace bee {
 		script->run_func("mouse_press", args, nullptr);
 	}
 	void ObjScript::keyboard_input(Instance* self, SDL_Event* e) {
+		if (!is_loaded) {
+			return;
+		}
+
 		Variant args (std::vector<Variant>{
 			Variant(self),
 			Variant(std::map<Variant,Variant>{
@@ -242,6 +282,10 @@ namespace bee {
 		script->run_func("keyboard_input", args, nullptr);
 	}
 	void ObjScript::mouse_input(Instance* self, SDL_Event* e) {
+		if (!is_loaded) {
+			return;
+		}
+
 		Variant event;
 		if (e->type == SDL_MOUSEMOTION) {
 			event = {
@@ -276,6 +320,10 @@ namespace bee {
 		script->run_func("mouse_input", args, nullptr);
 	}
 	void ObjScript::keyboard_release(Instance* self, SDL_Event* e) {
+		if (!is_loaded) {
+			return;
+		}
+
 		Variant args (std::vector<Variant>{
 			Variant(self),
 			Variant(std::map<Variant,Variant>{
@@ -294,6 +342,10 @@ namespace bee {
 		script->run_func("keyboard_release", args, nullptr);
 	}
 	void ObjScript::mouse_release(Instance* self, SDL_Event* e) {
+		if (!is_loaded) {
+			return;
+		}
+
 		Variant args (std::vector<Variant>{
 			Variant(self),
 			Variant(std::map<Variant,Variant>{
@@ -311,6 +363,10 @@ namespace bee {
 		script->run_func("mouse_release", args, nullptr);
 	}
 	void ObjScript::controller_axis(Instance* self, SDL_Event* e) {
+		if (!is_loaded) {
+			return;
+		}
+
 		Variant args (std::vector<Variant>{
 			Variant(self),
 			Variant(std::map<Variant,Variant>{
@@ -324,6 +380,10 @@ namespace bee {
 		script->run_func("controller_axis", args, nullptr);
 	}
 	void ObjScript::controller_press(Instance* self, SDL_Event* e) {
+		if (!is_loaded) {
+			return;
+		}
+
 		Variant args (std::vector<Variant>{
 			Variant(self),
 			Variant(std::map<Variant,Variant>{
@@ -337,6 +397,10 @@ namespace bee {
 		script->run_func("controller_press", args, nullptr);
 	}
 	void ObjScript::controller_release(Instance* self, SDL_Event* e) {
+		if (!is_loaded) {
+			return;
+		}
+
 		Variant args (std::vector<Variant>{
 			Variant(self),
 			Variant(std::map<Variant,Variant>{
@@ -350,6 +414,10 @@ namespace bee {
 		script->run_func("controller_release", args, nullptr);
 	}
 	void ObjScript::controller_modify(Instance* self, SDL_Event* e) {
+		if (!is_loaded) {
+			return;
+		}
+
 		Variant args (std::vector<Variant>{
 			Variant(self),
 			Variant(std::map<Variant,Variant>{
@@ -362,6 +430,10 @@ namespace bee {
 	}
 
 	void ObjScript::commandline_input(Instance* self, const std::string& str) {
+		if (!is_loaded) {
+			return;
+		}
+
 		Variant args (std::vector<Variant>{
 			Variant(self),
 			Variant(str)
@@ -370,6 +442,10 @@ namespace bee {
 	}
 
 	void ObjScript::path_end(Instance* self, PathFollower* pf) {
+		if (!is_loaded) {
+			return;
+		}
+
 		Variant args (std::vector<Variant>{
 			Variant(self),
 			Variant(pf->path)
@@ -377,18 +453,30 @@ namespace bee {
 		script->run_func("path_end", args, nullptr);
 	}
 	void ObjScript::outside_room(Instance* self) {
+		if (!is_loaded) {
+			return;
+		}
+
 		Variant args (std::vector<Variant>{
 			Variant(self)
 		});
 		script->run_func("outside_room", args, nullptr);
 	}
 	void ObjScript::intersect_boundary(Instance* self) {
+		if (!is_loaded) {
+			return;
+		}
+
 		Variant args (std::vector<Variant>{
 			Variant(self)
 		});
 		script->run_func("intersect_boundary", args, nullptr);
 	}
 	void ObjScript::collision(Instance* self, Instance* other) {
+		if (!is_loaded) {
+			return;
+		}
+
 		if (events.find(bee::E_EVENT::COLLISION) == events.end()) {
 			return;
 		}
@@ -400,6 +488,10 @@ namespace bee {
 		script->run_func("collision", args, nullptr);
 	}
 	bool ObjScript::check_collision_filter(const Instance* self, const Instance* other) const {
+		if (!is_loaded) {
+			return Object::check_collision_filter(self, other);
+		}
+
 		if (events.find(bee::E_EVENT::CHECK_COLLISION_FILTER) == events.end()) {
 			return Object::check_collision_filter(self, other);
 		}
@@ -419,12 +511,20 @@ namespace bee {
 	}
 
 	void ObjScript::draw(Instance* self) {
+		if (!is_loaded) {
+			return;
+		}
+
 		Variant args (std::vector<Variant>{
 			Variant(self)
 		});
 		script->run_func("draw", args, nullptr);
 	}
 	void ObjScript::animation_end(Instance* self) {
+		if (!is_loaded) {
+			return;
+		}
+
 		Variant args (std::vector<Variant>{
 			Variant(self)
 		});
@@ -432,24 +532,40 @@ namespace bee {
 	}
 
 	void ObjScript::room_start(Instance* self) {
+		if (!is_loaded) {
+			return;
+		}
+
 		Variant args (std::vector<Variant>{
 			Variant(self)
 		});
 		script->run_func("room_start", args, nullptr);
 	}
 	void ObjScript::room_end(Instance* self) {
+		if (!is_loaded) {
+			return;
+		}
+
 		Variant args (std::vector<Variant>{
 			Variant(self)
 		});
 		script->run_func("room_end", args, nullptr);
 	}
 	void ObjScript::game_start(Instance* self) {
+		if (!is_loaded) {
+			return;
+		}
+
 		Variant args (std::vector<Variant>{
 			Variant(self)
 		});
 		script->run_func("game_start", args, nullptr);
 	}
 	void ObjScript::game_end(Instance* self) {
+		if (!is_loaded) {
+			return;
+		}
+
 		Variant args (std::vector<Variant>{
 			Variant(self)
 		});
@@ -457,6 +573,10 @@ namespace bee {
 	}
 
 	void ObjScript::window(Instance* self, SDL_Event* e) {
+		if (!is_loaded) {
+			return;
+		}
+
 		Variant args (std::vector<Variant>{
 			Variant(self),
 			Variant(std::map<Variant,Variant>{
@@ -472,6 +592,10 @@ namespace bee {
 	}
 
 	void ObjScript::network(Instance* self, const NetworkEvent& e) {
+		if (!is_loaded) {
+			return;
+		}
+
 		std::map<Variant,Variant> data;
 		for (auto& d : e.data) {
 			data.emplace(Variant(d.first), d.second);

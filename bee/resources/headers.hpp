@@ -15,3 +15,5 @@
 #include "objects/ui/obj_gauge.hpp"
 #include "objects/ui/obj_slider.hpp"
 #include "objects/ui/obj_optionbox.hpp"
+
+#include "rooms/rm_script.hpp"

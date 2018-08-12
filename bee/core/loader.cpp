@@ -76,7 +76,7 @@ namespace bee { namespace loader {
 	int internal::load_lazy() {
 		int r = 0;
 		for (size_t i=0; i<lazy_amount; ++i) {
-			r += load_next();
+			r += (load_next() != 0);
 		}
 
 		if (next_resource != resources.end()) {

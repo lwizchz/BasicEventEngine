@@ -108,13 +108,13 @@ namespace bee {
 	/**
 	* @param path the path to check
 	*
-	* @returns the type of script that the given path represents
+	* @returns the type of script that the given path represents and the path without its script extension
 	*/
-	E_SCRIPT_TYPE Script::get_type(const std::string& path) {
+	std::pair<E_SCRIPT_TYPE,std::string> Script::get_type(const std::string& path) {
 		if (path.substr(path.length()-3, 3) == ".py") {
-			return E_SCRIPT_TYPE::PYTHON;
+			return std::make_pair(E_SCRIPT_TYPE::PYTHON, path.substr(0, path.length()-3));
 		}
-		return E_SCRIPT_TYPE::INVALID;
+		return std::make_pair(E_SCRIPT_TYPE::INVALID, path);
 	}
 
 	/**
@@ -242,7 +242,7 @@ namespace bee {
 			return 1;
 		}
 
-		switch (Script::get_type(path)) {
+		switch (Script::get_type(path).first) {
 			case E_SCRIPT_TYPE::PYTHON: {
 				script = new PythonScriptInterface(path);
 				if (script->load()) {

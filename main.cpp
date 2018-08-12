@@ -29,7 +29,8 @@ int main(int argc, char* argv[]) {
 	bee::messenger::add_log(bee::get_game_name() + ".log", bee::E_OUTPUT::NORMAL);
 
 	// Initialize the game engine
-	if (bee::init(argc, argv, &rm_test, {}, options)) {
+	//if (bee::init(argc, argv, &rm_test, {}, options)) {
+	if (bee::init(argc, argv, &rm_test2, {}, options)) {
 		bee::messenger::handle();
 		return 1; // Return 1 on initialization failure
 	}
