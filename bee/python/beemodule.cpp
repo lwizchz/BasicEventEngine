@@ -20,8 +20,12 @@
 #include "mouse.hpp"
 #include "kb.hpp"
 #include "loader.hpp"
+#include "physics.hpp"
 
 #include "instance.hpp"
+
+#include "physics/world.hpp"
+#include "physics/body.hpp"
 
 #include "resource/texture.hpp"
 #include "resource/sound.hpp"
@@ -154,15 +158,25 @@ namespace bee { namespace python { namespace internal {
 		PyModule_AddObject(module, "mouse", PyInit_bee_mouse());
 		PyModule_AddObject(module, "kb", PyInit_bee_kb());
 		PyModule_AddObject(module, "loader", PyInit_bee_loader());
-		//PyModule_AddObject(module, "physics", PyInit_bee_physics());
+		PyModule_AddObject(module, "physics", PyInit_bee_physics());
 		//PyModule_AddObject(module, "render", PyInit_bee_render());
 		//PyModule_AddObject(module, "ui", PyInit_bee_ui());
 		//PyModule_AddObject(module, "network", PyInit_bee_network());
 
-		// Add classes
+		// Add core classes
 		if (PyInit_bee_instance(module) == nullptr) {
 			return nullptr;
 		}
+
+		// Add physics classes
+		if (PyInit_bee_physics_world(module) == nullptr) {
+			return nullptr;
+		}
+		if (PyInit_bee_physics_body(module) == nullptr) {
+			return nullptr;
+		}
+
+		// Add Resource classes
 		if (PyInit_bee_texture(module) == nullptr) {
 			return nullptr;
 		}

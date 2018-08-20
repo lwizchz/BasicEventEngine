@@ -12,31 +12,27 @@
 #include <btBulletDynamicsCommon.h>
 #include <LinearMath/btIDebugDraw.h>
 
-namespace bee {
-	// Forward declaration
-	class PhysicsWorld;
-
+namespace bee { namespace internal {
+	/// Used to draw Bullet Physics debug graphics
 	class PhysicsDraw : public btIDebugDraw {
-		private:
-			int debug_mode;
+		int debug_mode; ///< The debug mode that is being drawn
+	public:
+		// See bee/core/instance.cpp for function comments
+		explicit PhysicsDraw();
 
-			PhysicsWorld* attached_world;
-		public:
-			explicit PhysicsDraw(PhysicsWorld*);
+		virtual void drawLine(const btVector3&, const btVector3&, const btVector3&, const btVector3&);
+		virtual void drawLine(const btVector3&, const btVector3&, const btVector3&);
+		virtual void drawSphere(const btVector3&, const btVector3&, const btVector3&);
+		virtual void drawTriangle(const btVector3&, const btVector3&, const btVector3&, const btVector3&, btScalar);
+		virtual void drawContactPoint(const btVector3&, const btVector3&, btScalar, int, const btVector3&);
 
-			virtual void drawLine(const btVector3&, const btVector3&, const btVector3&, const btVector3&);
-			virtual void drawLine(const btVector3&, const btVector3&, const btVector3&);
-			virtual void drawSphere(const btVector3&, const btVector3&, const btVector3&);
-			virtual void drawTriangle(const btVector3&, const btVector3&, const btVector3&, const btVector3&, btScalar);
-			virtual void drawContactPoint(const btVector3&, const btVector3&, btScalar, int, const btVector3&);
+		virtual void reportErrorWarning(const char*);
 
-			virtual void reportErrorWarning(const char*);
+		virtual void draw3dText(const btVector3&, const char*);
 
-			virtual void draw3dText(const btVector3&, const char*);
-
-			virtual void setDebugMode(int);
-			virtual int getDebugMode() const;
+		virtual void setDebugMode(int);
+		virtual int getDebugMode() const;
 	};
-}
+}}
 
 #endif // BEE_PHYSICS_DRAW_H

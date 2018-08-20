@@ -35,7 +35,7 @@ namespace bee {
 		Object* object; ///< The Object type
 		Texture* sprite; ///< The sprite to draw
 
-		PhysicsBody* body; ///< The associated PhysicsBody
+		std::shared_ptr<PhysicsBody> body; ///< The associated PhysicsBody
 		E_COMPUTATION computation_type; ///< Determines the desired amount of processing
 		bool is_persistent; ///< Whether to persist between Rooms
 
@@ -68,7 +68,6 @@ namespace bee {
 
 		void set_object(Object*);
 		void set_sprite(Texture*);
-		void add_physbody();
 		void set_computation_type(E_COMPUTATION);
 		void set_is_persistent(bool);
 
@@ -91,7 +90,7 @@ namespace bee {
 
 		Object* get_object() const;
 		Texture* get_sprite() const;
-		PhysicsBody* get_physbody() const;
+		std::shared_ptr<PhysicsBody> get_physbody() const;
 		bool get_is_solid() const;
 		double get_mass() const;
 		E_COMPUTATION get_computation_type() const;

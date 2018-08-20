@@ -18,11 +18,15 @@
 
 #include "../../resource/room.hpp"
 
+#include "../instance.hpp"
+
+#include "../physics/world.hpp"
+#include "../physics/body.hpp"
+
 #include "path.hpp"
 #include "timeline.hpp"
 #include "object.hpp"
 #include "../structs.hpp"
-#include "../instance.hpp"
 
 #include "../../render/background.hpp"
 #include "../../render/viewport.hpp"
@@ -55,6 +59,7 @@ namespace internal {
 		{"get_viewports", reinterpret_cast<PyCFunction>(Room_get_viewports), METH_NOARGS, "Return the Room's named ViewPorts"},
 		{"get_instances", reinterpret_cast<PyCFunction>(Room_get_instances), METH_NOARGS, "Return the Room's Instances"},
 		{"get_current_viewport", reinterpret_cast<PyCFunction>(Room_get_current_viewport), METH_NOARGS, "Return the ViewPort that is currently being drawn"},
+		{"get_phys_world", reinterpret_cast<PyCFunction>(Room_get_phys_world), METH_NOARGS, "Return the Room's PhysicsWorld"},
 		{"get_paths", reinterpret_cast<PyCFunction>(Room_get_paths), METH_NOARGS, "Return the Paths which are being automatically updated"},
 		{"get_timelines", reinterpret_cast<PyCFunction>(Room_get_timelines), METH_NOARGS, "Return the Timelines which are being automatically stepped"},
 
@@ -294,6 +299,14 @@ namespace internal {
 		}
 
 		return insts;
+	}
+	PyObject* Room_get_phys_world(RoomObject* self, PyObject* args) {
+		Room* room = as_room(self);
+		if (room == nullptr) {
+			return nullptr;
+		}
+
+		return PhysicsWorld_from(room->get_phys_world());
 	}
 	PyObject* Room_get_paths(RoomObject* self, PyObject* args) {
 		Room* room = as_room(self);

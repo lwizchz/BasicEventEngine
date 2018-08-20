@@ -13,6 +13,7 @@
 #include <map>
 #include <list>
 #include <vector>
+#include <memory>
 
 #include <btBulletDynamicsCommon.h> // Include the required Bullet headers
 
@@ -65,8 +66,7 @@ namespace bee {
 		std::vector<Instance*> destroyed_instances; ///< A list of Instances that should have their destroy event called after the event loop
 		std::map<E_EVENT,std::map<Instance*,size_t,InstanceSort>> instances_events; ///< A map of all events and the Instances which implement those events
 
-		PhysicsWorld* physics_world; ///< The PhysicsWorld used to simulate all PhysicsBodys in the Room
-		std::map<const btRigidBody*,Instance*> physics_instances; ///< A map of the btRigidBodys in the world with their associated Instance
+		std::shared_ptr<PhysicsWorld> physics_world; ///< The PhysicsWorld used to simulate all PhysicsBodys in the Room
 
 		std::map<Instance*,PathFollower> automatic_paths; ///< A map of the Instance Paths to update every step
 		std::vector<TimelineIterator> automatic_timelines; ///< A map of the Timelines to run every step
@@ -102,8 +102,7 @@ namespace bee {
 		const std::map<std::string,ViewPort>& get_viewports() const;
 		std::pair<const std::string,ViewPort>* get_current_viewport() const;
 		const std::map<size_t,Instance*>& get_instances() const;
-		PhysicsWorld* get_phys_world() const;
-		const std::map<const btRigidBody*,Instance*>& get_phys_instances() const;
+		std::shared_ptr<PhysicsWorld> get_phys_world() const;
 		const std::map<Instance*,PathFollower>& get_paths() const;
 		const std::vector<TimelineIterator>& get_timelines() const;
 
@@ -119,8 +118,6 @@ namespace bee {
 		void remove_viewport(const std::string&);
 		Instance* add_instance(Object*, btVector3);
 		int remove_instance(size_t);
-		void add_physbody(Instance*, PhysicsBody*);
-		void remove_physbody(PhysicsBody*);
 		void automate_path(Instance*, PathFollower);
 		void automate_timeline(TimelineIterator);
 

@@ -13,12 +13,10 @@ def init(self):
     self.set_width(1920)
     self.set_height(1080)
 
-    """
     # Setup physics
     pw = self.get_phys_world()
     pw.set_gravity((0.0, 10.0, 0.0))
     pw.set_scale(100.0)
-    """
 
     # Set Backgrounds
     self.add_background("bk_green", {

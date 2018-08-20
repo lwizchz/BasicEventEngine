@@ -85,7 +85,6 @@ namespace bee {
 		instances_events(),
 
 		physics_world(nullptr),
-		physics_instances(),
 
 		automatic_paths(),
 		automatic_timelines()
@@ -111,10 +110,7 @@ namespace bee {
 	* Free the Room data and remove it from the resource list.
 	*/
 	Room::~Room() {
-		if (physics_world != nullptr) {
-			delete physics_world;
-			physics_world = nullptr;
-		}
+		physics_world.reset();
 
 		list.erase(id);
 	}
@@ -209,11 +205,7 @@ namespace bee {
 		destroyed_instances.clear();
 		instances_events.clear();
 
-		if (physics_world != nullptr) {
-			delete physics_world;
-			physics_world = nullptr;
-		}
-		physics_instances.clear();
+		physics_world.reset();
 
 		return 0;
 	}
@@ -401,11 +393,7 @@ namespace bee {
 		instances_events.clear();
 		next_instance_id = 0;
 
-		if (physics_world != nullptr) {
-			delete physics_world;
-			physics_world = nullptr;
-		}
-		physics_instances.clear();
+		physics_world.reset();
 
 		for (auto& _inst : m["instances"].v) {
 			Instance* inst = add_instance(
@@ -507,11 +495,8 @@ namespace bee {
 	const std::map<size_t,Instance*>& Room::get_instances() const {
 		return instances;
 	}
-	PhysicsWorld* Room::get_phys_world() const {
+	std::shared_ptr<PhysicsWorld> Room::get_phys_world() const {
 		return physics_world;
-	}
-	const std::map<const btRigidBody*,Instance*>& Room::get_phys_instances() const {
-		return physics_instances;
 	}
 	const std::map<Instance*,PathFollower>& Room::get_paths() const {
 		return automatic_paths;
@@ -639,8 +624,7 @@ namespace bee {
 
 		// Add the Instance's PhysicsBody to the PhysicsWorld if it exists
 		if (new_instance->get_physbody() != nullptr) {
-			add_physbody(new_instance, new_instance->get_physbody());
-			physics_world->add_body(new_instance->get_physbody());
+			physics_world->add_physbody(new_instance->get_physbody());
 		}
 
 		// Schedule the create event
@@ -670,7 +654,7 @@ namespace bee {
 		Instance* inst = _inst->second;
 
 		if (inst->get_physbody() != nullptr) {
-			remove_physbody(inst->get_physbody());
+			physics_world->remove_body(inst->get_physbody()->get_body());
 		}
 
 		inst->get_object()->remove_instance(index);
@@ -701,22 +685,6 @@ namespace bee {
 		instances.erase(_inst);
 
 		return 0;
-	}
-	/**
-	* Add the given PhysicsBody and an associated Instance.
-	* @note This mapping is used by collision_internal() and check_collision_filter()
-	* @param inst the Instance to add
-	* @param body the PhysicsBody to add
-	*/
-	void Room::add_physbody(Instance* inst, PhysicsBody* body) {
-		physics_instances.emplace(body->get_body(), inst);
-	}
-	/**
-	* Remove the given PhysicsBody from the internal map.
-	* @param body the PhysicsBody to remove
-	*/
-	void Room::remove_physbody(PhysicsBody* body) {
-		physics_instances.erase(body->get_body());
 	}
 	/**
 	* Automatically advance the given Instance with the given PathFollower.
@@ -753,14 +721,7 @@ namespace bee {
 		viewports.clear();
 		viewports.emplace("default", ViewPort());
 
-		for (auto& inst : physics_instances) {
-			inst.second->get_physbody()->attach(nullptr);
-		}
-		physics_instances.clear();
-		if (physics_world != nullptr) {
-			delete physics_world;
-			physics_world = nullptr;
-		}
+		physics_world.reset();
 
 		automatic_paths.clear();
 		automatic_timelines.clear();
@@ -790,9 +751,10 @@ namespace bee {
 			inst.second->get_object()->add_instance(inst_id, inst.second);
 
 			if (inst.second->get_physbody() != nullptr) {
-				PhysicsBody* b = inst.second->get_physbody();
-				add_physbody(inst.second, b);
-				b->attach(get_phys_world());
+				std::shared_ptr<PhysicsBody> b = inst.second->get_physbody();
+				std::shared_ptr<PhysicsWorld> pw = get_phys_world();
+				b->attach(pw);
+				pw->add_physbody(b);
 				b->update_state();
 			}
 
@@ -1153,9 +1115,6 @@ namespace bee {
 	*/
 	void Room::collision_internal(btDynamicsWorld* w, btScalar timestep) {
 		PhysicsWorld* world = static_cast<PhysicsWorld*>(w->getWorldUserInfo());
-		const std::map<const btRigidBody*,Instance*>& physics_instances = get_current_room()->get_phys_instances();
-
-		//w->clearForces();
 
 		size_t manifold_amount = world->get_dispatcher()->getNumManifolds();
 		for (size_t i=0; i<manifold_amount; ++i) {
@@ -1163,21 +1122,23 @@ namespace bee {
 			const btRigidBody* body1 = btRigidBody::upcast(manifold->getBody0());
 			const btRigidBody* body2 = btRigidBody::upcast(manifold->getBody1());
 
-			std::map<const btRigidBody*,Instance*>::const_iterator inst1 = physics_instances.find(body1);
-			std::map<const btRigidBody*,Instance*>::const_iterator inst2 = physics_instances.find(body2);
-			if ((inst1 != physics_instances.end())&&(inst2 != physics_instances.end())) {
-				Instance* i1 = inst1->second;
-				Instance* i2 = inst2->second;
-				if (
-					(i1 != nullptr)
-					&&(i2 != nullptr)
-					&&(i1->get_object() != nullptr)
-					&&(i2->get_object() != nullptr)
-				) {
-					i1->get_object()->update(i1);
-					i1->get_object()->collision(i1, i2);
-					i2->get_object()->update(i2);
-					i2->get_object()->collision(i2, i1);
+			std::weak_ptr<PhysicsBody> _body1 = world->get_physbody(body1);
+			std::weak_ptr<PhysicsBody> _body2 = world->get_physbody(body2);
+			if (auto physbody1 = _body1.lock()) {
+				if (auto physbody2 = _body2.lock()) {
+					Instance* i1 = physbody1->get_instance();
+					Instance* i2 = physbody2->get_instance();
+					if (
+						(i1 != nullptr)
+						&&(i2 != nullptr)
+						&&(i1->get_object() != nullptr)
+						&&(i2->get_object() != nullptr)
+					) {
+						i1->get_object()->update(i1);
+						i1->get_object()->collision(i1, i2);
+						i2->get_object()->update(i2);
+						i2->get_object()->collision(i2, i1);
+					}
 				}
 			}
 		}
@@ -1189,27 +1150,28 @@ namespace bee {
 	*/
 	bool Room::check_collision_filter(btBroadphaseProxy* proxy0, btBroadphaseProxy* proxy1) {
 		bool should_collide = false;
-		const std::map<const btRigidBody*,Instance*>& physics_instances = get_current_room()->get_phys_instances();
+		PhysicsWorld* world = get_current_room()->get_phys_world().get();
 
 		btRigidBody* body1 = static_cast<btRigidBody*>(proxy0->m_clientObject);
 		btRigidBody* body2 = static_cast<btRigidBody*>(proxy1->m_clientObject);
 
-		std::map<const btRigidBody*,Instance*>::const_iterator inst1 = physics_instances.find(body1);
-		std::map<const btRigidBody*,Instance*>::const_iterator inst2 = physics_instances.find(body2);
-		if ((inst1 != physics_instances.end())&&(inst2 != physics_instances.end())) {
-			Instance* i1 = inst1->second;
-			Instance* i2 = inst2->second;
-
-			if (
-				(i1 != nullptr)
-				&&(i2 != nullptr)
-				&&(i1->get_object() != nullptr)
-				&&(i2->get_object() != nullptr)
-			) {
-				i1->get_object()->update(i1);
-				should_collide = i1->get_object()->check_collision_filter(i1, i2);
-				i2->get_object()->update(i2);
-				should_collide = should_collide && i2->get_object()->check_collision_filter(i2, i1);
+		std::weak_ptr<PhysicsBody> _body1 = world->get_physbody(body1);
+		std::weak_ptr<PhysicsBody> _body2 = world->get_physbody(body2);
+		if (auto physbody1 = _body1.lock()) {
+			if (auto physbody2 = _body2.lock()) {
+				Instance* i1 = physbody1->get_instance();
+				Instance* i2 = physbody2->get_instance();
+				if (
+					(i1 != nullptr)
+					&&(i2 != nullptr)
+					&&(i1->get_object() != nullptr)
+					&&(i2->get_object() != nullptr)
+				) {
+					i1->get_object()->update(i1);
+					should_collide = i1->get_object()->check_collision_filter(i1, i2);
+					i2->get_object()->update(i2);
+					should_collide = should_collide && i2->get_object()->check_collision_filter(i2, i1);
+				}
 			}
 		}
 
@@ -1406,7 +1368,7 @@ namespace bee {
 	* @note This is called during the Room change in change_room()
 	*/
 	void Room::init() {
-		physics_world = new PhysicsWorld();
+		physics_world.reset(new PhysicsWorld());
 	}
 	/**
 	* @note This is called before the Instance room_start events.

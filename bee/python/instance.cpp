@@ -21,6 +21,8 @@
 #include "../resource/texture.hpp"
 #include "../resource/object.hpp"
 
+#include "physics/body.hpp"
+
 namespace bee { namespace python {
 	PyObject* Instance_from(const Instance* inst) {
 		PyObject* py_inst = internal::Instance_new(&internal::InstanceType, nullptr, nullptr);
@@ -56,6 +58,7 @@ namespace internal {
 		{"get_start", reinterpret_cast<PyCFunction>(Instance_get_start), METH_NOARGS, "Return the starting position"},
 
 		{"get_sprite", reinterpret_cast<PyCFunction>(Instance_get_sprite), METH_NOARGS, "Return the sprite"},
+		{"get_physbody", reinterpret_cast<PyCFunction>(Instance_get_physbody), METH_NOARGS, "Return the attached PhysicsBody"},
 		{"get_mass", reinterpret_cast<PyCFunction>(Instance_get_mass), METH_NOARGS, "Return the mass of the attached PhysicsBody"},
 		{"get_computation_type", reinterpret_cast<PyCFunction>(Instance_get_computation_type), METH_NOARGS, "Return the computation type"},
 		{"get_is_persistent", reinterpret_cast<PyCFunction>(Instance_get_is_persistent), METH_NOARGS, "Return whether the Instance will persist between Rooms"},
@@ -421,6 +424,14 @@ namespace internal {
 		}
 
 		return PyUnicode_FromString(inst->get_sprite()->get_name().c_str());
+	}
+	PyObject* Instance_get_physbody(InstanceObject* self, PyObject* args) {
+		Instance* inst = as_instance(self);
+		if (inst == nullptr) {
+			return nullptr;
+		}
+
+		return PhysicsBody_from(inst->get_physbody());
 	}
 	PyObject* Instance_get_mass(InstanceObject* self, PyObject* args) {
 		Instance* inst = as_instance(self);

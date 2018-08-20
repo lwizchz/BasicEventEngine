@@ -53,7 +53,7 @@ IPaddress* resolve_host(const std::string& ip, int port) {
 
 	if (r != 0) { // If the attempt to fill the struct failed
 		delete ipa;
-		std::cerr << "NETWORK Failed to resolve host: " << SDLNet_GetError() << "\n"; // Output an error message
+		std::cerr << "UTIL NETWORK Failed to resolve host: " << SDLNet_GetError() << "\n"; // Output an error message
 		return nullptr;
 	}
 
@@ -356,7 +356,7 @@ int udp_recv_vector(UDPsocket udp, UDPpacket** packets) {
 UDPpacket* packet_alloc(int size) {
 	UDPpacket* packet = SDLNet_AllocPacket(size); // Attempt to allocate the requested space
 	if (packet == nullptr) { // If the packet could not be allocated
-		std::cerr << "NETWORK Failed to allocate UDP packet: " << SDLNet_GetError() << "\n"; // Output an error message
+		std::cerr << "UTIL NETWORK Failed to allocate UDP packet: " << SDLNet_GetError() << "\n"; // Output an error message
 	}
 
 	return packet;
@@ -373,7 +373,7 @@ UDPpacket* packet_resize(UDPpacket* packet, int size) {
 
 	newsize = SDLNet_ResizePacket(packet, size); // Attempt to resize the packet
 	if (newsize < size) { // If the packet could not be resized
-		std::cerr << "NETWORK Failed to resize UDP packet: " << SDLNet_GetError() << "\n"; // Output an error message
+		std::cerr << "UTIL NETWORK Failed to resize UDP packet: " << SDLNet_GetError() << "\n"; // Output an error message
 		return nullptr;
 	}
 
@@ -409,7 +409,7 @@ UDPpacket* packet_realloc(UDPpacket* packet, int size) {
 UDPpacket** packet_alloc_vector(int amount, int size) {
 	UDPpacket** packets = SDLNet_AllocPacketV(amount, size); // Attempt to allocate space for the packets
 	if (packets == nullptr) { // If the packets could not be allocated
-		std::cerr << "NETWORK Failed to allocate UDP vector packets: " << SDLNet_GetError() << "\n"; // Output an error message
+		std::cerr << "UTIL NETWORK Failed to allocate UDP vector packets: " << SDLNet_GetError() << "\n"; // Output an error message
 	}
 
 	return packets;

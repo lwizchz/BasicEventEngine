@@ -12,11 +12,12 @@
 #include "../resource/texture.hpp"
 
 namespace bee {
-	struct Background { // The data struct which is used to pass data to the Room class
-		Texture* texture; // A pointer to the texture to use this data with
-		bool is_visible; // Whether to draw the background
-		bool is_foreground; // Whether to draw the texture above or below the other sprites
-		TextureTransform transform; // The data to transform the texture with
+	/// Used to pass data to Rooms in order to render backgrounds and foregrounds
+	struct Background {
+		Texture* texture; ///< A pointer to the Texture to use this data with
+		bool is_visible; ///< Whether to draw the Background
+		bool is_foreground; ///< Whether to draw the Texture above or below the other sprites
+		TextureTransform transform; ///< The data to transform the Texture with
 
 		// See bee/render/background.cpp for function comments
 		Background();

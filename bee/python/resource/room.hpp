@@ -45,6 +45,7 @@ namespace internal {
 	PyObject* Room_get_viewports(RoomObject*, PyObject*);
 	PyObject* Room_get_instances(RoomObject*, PyObject*);
 	PyObject* Room_get_current_viewport(RoomObject*, PyObject*);
+	PyObject* Room_get_phys_world(RoomObject*, PyObject*);
 	PyObject* Room_get_paths(RoomObject*, PyObject*);
 	PyObject* Room_get_timelines(RoomObject*, PyObject*);
 

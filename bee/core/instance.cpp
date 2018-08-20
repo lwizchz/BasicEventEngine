@@ -82,7 +82,7 @@ namespace bee {
 		this->data = other.data;
 	}
 	Instance::~Instance() {
-		delete body;
+		body.reset();
 		data.clear();
 	}
 	/**
@@ -100,8 +100,8 @@ namespace bee {
 		depth = object->get_depth();
 
 		if (body == nullptr) {
-			PhysicsWorld* w = get_current_room()->get_phys_world();
-			body = new PhysicsBody(w, this, E_PHYS_SHAPE::NONE, 0.0, pos, nullptr);
+			std::shared_ptr<PhysicsWorld> w = get_current_room()->get_phys_world();
+			body.reset(new PhysicsBody(w, this, E_PHYS_SHAPE::NONE, 0.0, pos, nullptr));
 		} else {
 			set_pos(pos);
 		}
@@ -177,11 +177,11 @@ namespace bee {
 		return info;
 	}
 	/**
-	* Restore an instance from its serialized data.
+	* Restore an Instance from its serialized data.
 	* @param m the map of data to use
 	*
 	* @retval 0 success
-	* @retval 1 failed to deserialize physics body
+	* @retval 1 failed to deserialize the PhysicsBody
 	*/
 	int Instance::deserialize(std::map<Variant,Variant>& m) {
 		id = m["id"].i;
@@ -311,12 +311,6 @@ namespace bee {
 	*/
 	void Instance::set_sprite(Texture* _sprite) {
 		sprite = _sprite;
-	}
-	/**
-	* Add the physbody to the room.
-	*/
-	void Instance::add_physbody() {
-		get_current_room()->add_physbody(this, body);
 	}
 	/**
 	* Change the computation type and collision mask.
@@ -464,7 +458,7 @@ namespace bee {
 		}
 		return sprite;
 	}
-	PhysicsBody* Instance::get_physbody() const {
+	std::shared_ptr<PhysicsBody> Instance::get_physbody() const {
 		return body;
 	}
 	double Instance::get_mass() const {

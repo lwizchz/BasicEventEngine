@@ -11,10 +11,12 @@
 
 #include <btBulletDynamicsCommon.h>
 
-namespace bee {
+namespace bee { namespace internal {
+	/// Used to filter collisions during the Bullet Physics broadphase test
 	class PhysicsFilter : public btOverlapFilterCallback {
+		// See bee/physics/filter.cpp for function comments
 		virtual bool needBroadphaseCollision(btBroadphaseProxy*, btBroadphaseProxy*) const;
 	};
-}
+}}
 
 #endif // BEE_PHYSICS_FILTER_H

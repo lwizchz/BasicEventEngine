@@ -11,6 +11,7 @@
 
 #include "body.hpp"
 
+#include "physics.hpp"
 #include "world.hpp"
 
 #include "../engine.hpp"
@@ -29,7 +30,16 @@
 #include "../resource/room.hpp"
 
 namespace bee {
-	PhysicsBody::PhysicsBody(PhysicsWorld* _world, Instance* _inst, E_PHYS_SHAPE _type, double _mass, btVector3 pos, double* p) :
+	/**
+	* Construct the PhysicsBody.
+	* @param _world the PhysicsWorld to attach to
+	* @param _inst the Instance to attach to
+	* @param _type the shape type to initialize
+	* @param _mass the body mass to use
+	* @param pos the position to start at
+	* @param p the shape params to use
+	*/
+	PhysicsBody::PhysicsBody(std::shared_ptr<PhysicsWorld> _world, Instance* _inst, E_PHYS_SHAPE _type, double _mass, btVector3 pos, double* p) :
 		type(_type),
 		shape(nullptr),
 		shape_param_amount(0),
@@ -59,6 +69,10 @@ namespace bee {
 
 		body->setSleepingThresholds(body->getLinearSleepingThreshold()/btScalar(scale), body->getAngularSleepingThreshold());
 	}
+	/**
+	* Construct the PhysicsBody from another one.
+	* @param other the other body to construct from
+	*/
 	PhysicsBody::PhysicsBody(const PhysicsBody& other) :
 		type(other.type),
 		shape(nullptr),
@@ -76,24 +90,11 @@ namespace bee {
 		mass(other.mass),
 		friction(other.friction)
 	{
-		double* p = new double[shape_param_amount];
-		for (size_t i=0; i<shape_param_amount; ++i) {
-			p[i] = other.shape_params[i];
-		}
-		set_shape(type, p);
-
-		motion_state = new btDefaultMotionState(*other.motion_state);
-
-		btRigidBody::btRigidBodyConstructionInfo rb_info (btScalar(mass), motion_state, shape, get_inertia());
-		rb_info.m_friction = btScalar(friction);
-		body = new btRigidBody(rb_info);
-
-		body->setSleepingThresholds(body->getLinearSleepingThreshold()/btScalar(scale), body->getAngularSleepingThreshold());
-
-		for (auto& c : other.constraints) {
-			this->add_constraint(std::get<0>(c), std::get<1>(c));
-		}
+		*this = other;
 	}
+	/**
+	* Free the body and shape data.
+	*/
 	PhysicsBody::~PhysicsBody() {
 		delete motion_state;
 
@@ -142,8 +143,8 @@ namespace bee {
 
 			this->attached_world = rhs.attached_world;
 			this->attached_instance = rhs.attached_instance;
-			this->constraints.clear();
 
+			this->constraints.clear();
 			for (auto& c : rhs.constraints) {
 				this->add_constraint(std::get<0>(c), std::get<1>(c));
 			}
@@ -151,6 +152,9 @@ namespace bee {
 		return *this;
 	}
 
+	/**
+	* @returns a map of all the information required to restore a PhysicsBody
+	*/
 	std::map<Variant,Variant> PhysicsBody::serialize() const {
 		std::vector<Variant> sp;
 		for (size_t i=0; i<shape_param_amount; ++i) {
@@ -158,15 +162,17 @@ namespace bee {
 		}
 
 		std::vector<Variant> cons;
-		for (auto& c : constraints) {
-			size_t constraint_param_amount = attached_world->get_constraint_param_amount(std::get<0>(c));
-			std::vector<Variant> con;
+		if (auto world = attached_world.lock()) {
+			for (auto& c : constraints) {
+				size_t constraint_param_amount = physics::get_constraint_param_amount(std::get<0>(c));
+				std::vector<Variant> con;
 
-			for (size_t i=0; i<constraint_param_amount; ++i) {
-				con.push_back(Variant(std::get<1>(c)[i]));
+				for (size_t i=0; i<constraint_param_amount; ++i) {
+					con.push_back(Variant(std::get<1>(c)[i]));
+				}
+
+				cons.push_back(Variant(con));
 			}
-
-			cons.push_back(Variant(con));
 		}
 
 		std::map<Variant,Variant> data;
@@ -193,6 +199,14 @@ namespace bee {
 
 		return data;
 	}
+	/**
+	* Restore a PhysicsBody from its serialized data.
+	* @param m the map of data to use
+	* @param inst the Instance to attach to
+	*
+	* @retval 0 success
+	* @retval 1 failed to set the shape type
+	*/
 	int PhysicsBody::deserialize(std::map<Variant,Variant>& m, Instance* inst) {
 		mass = m["mass"].d;
 		scale = m["scale"].d;
@@ -201,9 +215,9 @@ namespace bee {
 		E_PHYS_SHAPE previous_type = type;
 		type = static_cast<E_PHYS_SHAPE>(m["type"].i);
 		if (type != previous_type) {
-			shape_param_amount = get_shape_param_amount(type);
+			shape_param_amount = physics::get_shape_param_amount(type);
 			if ((type == E_PHYS_SHAPE::MULTISPHERE)||(type == E_PHYS_SHAPE::CONVEX_HULL)) {
-				shape_param_amount = get_shape_param_amount(type, static_cast<int>(m["shape_params"].v[0].d));
+				shape_param_amount = physics::get_shape_param_amount(type, static_cast<int>(m["shape_params"].v[0].d));
 			}
 
 			if (shape_params != nullptr) {
@@ -217,7 +231,9 @@ namespace bee {
 				}
 			}
 
-			set_shape(type, shape_params);
+			if (set_shape(type, shape_params)) {
+				return 1;
+			}
 		}
 
 		attached_instance = inst;
@@ -342,46 +358,48 @@ namespace bee {
 		return 0;
 	}
 
-	int PhysicsBody::attach(PhysicsWorld* _world) {
-		if (attached_instance != nullptr) {
-			attached_instance->add_physbody();
-		}
-
-		if (_world == nullptr) {
+	/**
+	* Attach to the given PhysicsWorld and re-add any previous constraints from their parameters.
+	* @param world the world to attach to
+	*/
+	void PhysicsBody::attach(std::shared_ptr<PhysicsWorld> world) {
+		if (world == nullptr) {
 			remove();
-			return 0;
 		}
 
-		attached_world = _world;
-
+		attached_world = world;
 		if (constraints.size() > 0) {
 			auto tmp_constraints = constraints;
 			constraints.clear();
 			for (auto& c : tmp_constraints) {
-				attached_world->add_constraint(std::get<0>(c), this, std::get<1>(c));
+				btTypedConstraint* constraint = std::get<2>(c);
+				if (constraint != nullptr) {
+					add_constraint_external(std::get<0>(c), std::get<1>(c), constraint);
+				} else {
+					add_constraint(std::get<0>(c), std::get<1>(c));
+				}
 			}
 		}
 
-		scale = attached_world->get_scale();
-
-		return 0;
+		scale = world->get_scale();
 	}
-	int PhysicsBody::remove() {
-		if (attached_world != nullptr) {
+	/**
+	* Remove from the attached PhysicsWorld and delete the constructed constraints but not their parameters.
+	*/
+	void PhysicsBody::remove() {
+		if (auto world = attached_world.lock()) {
 			for (auto& c : constraints) {
 				if (std::get<2>(c) != nullptr) {
-					attached_world->remove_constraint(std::get<2>(c));
+					world->remove_constraint(std::get<2>(c));
 
 					delete std::get<2>(c);
 					std::get<2>(c) = nullptr;
 				}
 			}
 
-			attached_world->remove_body(this);
-			attached_world = nullptr;
+			world->remove_body(body);
+			world = nullptr;
 		}
-
-		return 0;
 	}
 
 	E_PHYS_SHAPE PhysicsBody::get_shape_type() const {
@@ -393,6 +411,9 @@ namespace bee {
 	double PhysicsBody::get_scale() const {
 		return scale;
 	}
+	/**
+	* @returns the local inertia with regard to the body mass and scale
+	*/
 	btVector3 PhysicsBody::get_inertia() const {
 		btVector3 local_intertia (0.0, 0.0, 0.0);
 		if ((mass != 0.0)&&(shape != nullptr)) {
@@ -403,8 +424,8 @@ namespace bee {
 	btRigidBody* PhysicsBody::get_body() const {
 		return body;
 	}
-	PhysicsWorld* PhysicsBody::get_world() const {
-		return attached_world;
+	std::shared_ptr<PhysicsWorld> PhysicsBody::get_world() const {
+		return attached_world.lock();
 	}
 	Instance* PhysicsBody::get_instance() const {
 		return attached_instance;
@@ -432,6 +453,14 @@ namespace bee {
 		return 2.0*asin(get_rotation().z());
 	}
 
+	/**
+	* Change the shape to the given type with the given parameters.
+	* @see http://bulletphysics.com/Bullet/BulletFull/classbtCollisionShape.html for details.
+	* @param _type the shape type
+	* @param p the shape parameters
+	*
+	* @retval 0 success
+	*/
 	int PhysicsBody::set_shape(E_PHYS_SHAPE _type, double* p) {
 		if (shape != nullptr) {
 			delete shape;
@@ -443,10 +472,10 @@ namespace bee {
 		}
 		type = _type;
 		shape_params = p;
-		shape_param_amount = get_shape_param_amount(type);
+		shape_param_amount = physics::get_shape_param_amount(type);
 
-		if (attached_world != nullptr) {
-			scale = attached_world->get_scale();
+		if (auto world = attached_world.lock()) {
+			scale = world->get_scale();
 		}
 
 		btScalar s = 2.0*scale;
@@ -504,7 +533,7 @@ namespace bee {
 					radii[i] = btScalar(p[i+amount+1]) / s;
 				}
 
-				shape_param_amount = get_shape_param_amount(type, amount);
+				shape_param_amount = physics::get_shape_param_amount(type, amount);
 				shape = new btMultiSphereShape(pos, radii, amount);
 
 				delete[] pos;
@@ -525,15 +554,15 @@ namespace bee {
 					tmp_shape->addPoint(btVector3(btScalar(p[i+2]), btScalar(p[i+3]), btScalar(p[i+4])) / s);
 				}
 
-				shape_param_amount = get_shape_param_amount(type, amount);
+				shape_param_amount = physics::get_shape_param_amount(type, amount);
 				shape = tmp_shape;
 
 				break;
 			}
 
 			default:
-				messenger::send({"engine", "physics"}, E_MESSAGE::WARNING, "PHYS ERR invalid shape type\n");
-				/* FALL THROUGH */
+				messenger::send({"engine", "physics"}, E_MESSAGE::ERROR, "Invalid shape type");
+				[[fallthrough]];
 			case E_PHYS_SHAPE::NONE:
 				shape_param_amount = 0;
 				shape = new btEmptyShape();
@@ -543,39 +572,54 @@ namespace bee {
 
 		return 0;
 	}
-	int PhysicsBody::set_mass(double _mass) {
+	void PhysicsBody::set_mass(double _mass) {
 		mass = _mass;
-
 		update_state();
-
-		return 0;
 	}
-	int PhysicsBody::set_friction(double _friction) {
+	void PhysicsBody::set_friction(double _friction) {
 		friction = _friction;
-
 		update_state();
-
-		return 0;
 	}
 
-	int PhysicsBody::add_constraint(E_PHYS_CONSTRAINT constraint_type, double* p) {
-		if (attached_world != nullptr) {
-			attached_world->add_constraint(constraint_type, this, p);
-		} else {
-			constraints.emplace_back(constraint_type, p, nullptr);
+	/**
+	* Add a constraint of the given type with the given parameters.
+	* @param constraint_type the constraint type
+	* @param p the constraint parameters
+	*
+	* @returns the initialized constraint
+	*/
+	btTypedConstraint* PhysicsBody::add_constraint(E_PHYS_CONSTRAINT constraint_type, double* p) {
+		btTypedConstraint* constraint = nullptr;
+		if (auto world = attached_world.lock()) {
+			constraint = world->add_constraint(constraint_type, body, p);
 		}
 
-		return 0;
-	}
-	int PhysicsBody::add_constraint_external(E_PHYS_CONSTRAINT constraint_type, double* p, btTypedConstraint* constraint) {
 		constraints.emplace_back(constraint_type, p, constraint);
-		return 0;
+
+		return constraint;
 	}
-	int PhysicsBody::remove_constraints() {
+	/**
+	* Add the given constraint and its parameters.
+	* @param constraint_type the constraint type
+	* @param p the constraint parameters
+	* @param constraint the constraint itself
+	*/
+	void PhysicsBody::add_constraint_external(E_PHYS_CONSTRAINT constraint_type, double* p, btTypedConstraint* constraint) {
+		if (auto world = attached_world.lock()) {
+			world->add_constraint_external(constraint);
+		}
+
+		constraints.emplace_back(constraint_type, p, constraint);
+	}
+	/**
+	* Remove all constraints from the body.
+	*/
+	void PhysicsBody::remove_constraints() {
+		auto world = attached_world.lock();
 		while (body->getNumConstraintRefs()) {
 			btTypedConstraint* c = body->getConstraintRef(0);
-			if (attached_world != nullptr) {
-				attached_world->remove_constraint(c);
+			if (world != nullptr) {
+				world->remove_constraint(c);
 			}
 			body->removeConstraintRef(c);
 			delete c;
@@ -583,20 +627,32 @@ namespace bee {
 
 		for (auto& c : constraints) {
 			if (std::get<1>(c) != nullptr) {
-				delete std::get<1>(c);
+				delete[] std::get<1>(c);
+			}
+			if (std::get<2>(c) != nullptr) {
+				delete std::get<2>(c);
 			}
 		}
 		constraints.clear();
-
-		return 0;
 	}
 
+	/**
+	* Update the body state within the simulation.
+	* @note This should not be called very often, mainly just on state changes such as shape type, mass, or friction.
+	*
+	* @retval 0 success
+	* @retval 1 failed since the body and its motion state are not loaded
+	*/
 	int PhysicsBody::update_state() {
 		if ((body == nullptr)||(motion_state == nullptr)) {
 			return 1;
 		}
 
-		PhysicsWorld* tmp_world = attached_world;
+		std::weak_ptr<PhysicsWorld> tmp_world = attached_world;
+		std::weak_ptr<PhysicsBody> self;
+		if (auto world = tmp_world.lock()) {
+			self = world->get_physbody(body);
+		}
 		remove();
 
 		delete body;
@@ -609,32 +665,15 @@ namespace bee {
 
 		body->setSleepingThresholds(body->getLinearSleepingThreshold()/btScalar(scale), body->getAngularSleepingThreshold());
 
-		attached_world = tmp_world;
-		if (attached_world != nullptr) {
-			attached_world->add_body(this);
+		if (auto world = tmp_world.lock()) {
+			if (auto _self = self.lock()) {
+				if (world->add_physbody(_self) == 0) {
+					attach(world);
+				}
+			}
 		}
 
 		return 0;
-	}
-
-	size_t PhysicsBody::get_shape_param_amount(E_PHYS_SHAPE s, int p0) const {
-		switch (s) {
-			case E_PHYS_SHAPE::SPHERE:      return 1;
-			case E_PHYS_SHAPE::BOX:         return 3;
-
-			case E_PHYS_SHAPE::CYLINDER:
-			case E_PHYS_SHAPE::CAPSULE:
-			case E_PHYS_SHAPE::CONE:        return 2;
-
-			case E_PHYS_SHAPE::MULTISPHERE: return p0 * 4 + 1;
-			case E_PHYS_SHAPE::CONVEX_HULL: return p0 * 3 + 1;
-
-			default:
-			case E_PHYS_SHAPE::NONE:        return 0;
-		}
-	}
-	size_t PhysicsBody::get_shape_param_amount(E_PHYS_SHAPE s) const {
-		return get_shape_param_amount(s, 0);
 	}
 }
 

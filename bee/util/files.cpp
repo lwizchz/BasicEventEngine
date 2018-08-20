@@ -91,7 +91,7 @@ std::string file_get_contents(const std::string& fname) {
 	// Open the given file for reading
 	std::ifstream input (fname);
 	if (!input.is_open()) {
-		std::cerr << "UTIL Failed to open \"" << fname << "\" for reading\n"; // Output an error if the file could not be opened
+		std::cerr << "UTIL FILES Failed to open \"" << fname << "\" for reading\n"; // Output an error if the file could not be opened
 		return "";
 	}
 
@@ -117,7 +117,7 @@ std::streamoff file_put_contents(const std::string& fname, const std::string& co
 	// Open the given file for writing
 	std::ofstream output (fname);
 	if (!output.is_open()) {
-		std::cerr << "UTIL Failed to open \"" << fname << "\" for writing\n"; // Output an error if the file could not be opened
+		std::cerr << "UTIL FILES Failed to open \"" << fname << "\" for writing\n"; // Output an error if the file could not be opened
 		return 0;
 	}
 

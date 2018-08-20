@@ -13,10 +13,13 @@
 
 #include "../resource/room.hpp"
 
-namespace bee {
+namespace bee { namespace internal {
+	/**
+	* Passes the Bullet Physics broadphase collision to Room::check_collision_filter()
+	*/
 	bool PhysicsFilter::needBroadphaseCollision(btBroadphaseProxy* proxy0, btBroadphaseProxy* proxy1) const {
 		return Room::check_collision_filter(proxy0, proxy1);
 	}
-}
+}}
 
 #endif // BEE_PHYSICS_FILTER

@@ -58,6 +58,7 @@ namespace internal {
 	PyObject* Instance_get_start(InstanceObject*, PyObject*);
 
 	PyObject* Instance_get_sprite(InstanceObject*, PyObject*);
+	PyObject* Instance_get_physbody(InstanceObject*, PyObject*);
 	PyObject* Instance_get_mass(InstanceObject*, PyObject*);
 	PyObject* Instance_get_computation_type(InstanceObject*, PyObject*);
 	PyObject* Instance_get_is_persistent(InstanceObject*, PyObject*);

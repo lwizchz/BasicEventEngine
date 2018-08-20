@@ -13,7 +13,7 @@ set(deps_bee_network network/network.cpp network/client.cpp network/connection.c
 
 set(deps_bee_render render/background.cpp render/camera.cpp render/drawing.cpp render/render.cpp render/renderer.cpp render/rgba.cpp render/shader.cpp render/transition.cpp render/viewport.cpp)
 
-set(deps_bee_physics physics/body.cpp physics/filter.cpp physics/draw.cpp physics/world.cpp)
+set(deps_bee_physics physics/physics.cpp physics/body.cpp physics/filter.cpp physics/draw.cpp physics/world.cpp)
 
 set(deps_bee_resource resource/texture.cpp resource/sound.cpp resource/font.cpp resource/path.cpp resource/timeline.cpp resource/mesh.cpp resource/light.cpp resource/script.cpp resource/object.cpp resource/room.cpp)
 
@@ -21,8 +21,9 @@ set(deps_bee_resources_objects resources/objects/obj_script.cpp resources/object
 set(deps_bee_resources_rooms resources/rooms/rm_script.cpp)
 set(deps_bee_resources ${deps_bee_resources_objects} ${deps_bee_resources_rooms})
 
+set(deps_bee_python_physics python/physics/world.cpp python/physics/body.cpp)
 set(deps_bee_python_resource python/resource/texture.cpp python/resource/sound.cpp python/resource/font.cpp python/resource/path.cpp python/resource/timeline.cpp python/resource/mesh.cpp python/resource/light.cpp python/resource/script.cpp python/resource/object.cpp python/resource/room.cpp)
-set(deps_bee_python python/python.cpp python/beemodule.cpp python/messenger.cpp python/console.cpp python/commands.cpp python/mouse.cpp python/kb.cpp python/loader.cpp python/instance.cpp python/structs.cpp ${deps_bee_python_resource})
+set(deps_bee_python python/python.cpp python/beemodule.cpp python/messenger.cpp python/console.cpp python/commands.cpp python/mouse.cpp python/kb.cpp python/loader.cpp python/physics.cpp python/instance.cpp python/structs.cpp ${deps_bee_python_physics} ${deps_bee_python_resource})
 set(deps_bee_scripting ${deps_bee_python})
 
 set(deps_bee_ui ui/ui.cpp)
