@@ -20,6 +20,7 @@
 #include <iostream>
 #include <string.h>
 
+#include <dirent.h>
 #include <sys/time.h> // Include the required functions for non-blocking commandline input
 #include <sys/types.h>
 #include <unistd.h>
@@ -52,6 +53,24 @@ std::string get_path() {
 }
 
 /**
+* @returns the OS path separator
+*/
+char get_path_separator() {
+	return '/';
+}
+/**
+* @params fname the filename to check
+*
+* @returns the size of the given file in bytes
+*/
+size_t file_size(const std::string& fname) {
+	struct stat st;
+	if (stat(fname.c_str(), &st) == -1) { // Get the status of the given file
+		return 0;
+	}
+	return st.st_size;
+}
+/**
 * Delete the given file.
 * @param fname the name of the file to delete
 *
@@ -62,16 +81,50 @@ int remove(const std::string& fname) {
 	return ::remove(fname.c_str());
 }
 /**
-* @param fname the name of the directory to check
+* @param dirname the path of the directory to check
 *
 * @returns whether the given directory exists
 */
-int dir_exists(const std::string& fname) {
+int dir_exists(const std::string& dirname) {
 	struct stat st;
-	if (stat(fname.c_str(), &st) == -1) { // Get the status of the given file
+	if (stat(dirname.c_str(), &st) == -1) { // Get the status of the given file
 		return -1;
 	}
 	return (S_ISDIR(st.st_mode) == 0) ? 0 : 1;
+}
+/**
+* @param dirname the path of the directory to list
+*
+* @returns the names of the files contained in the directory
+*/
+std::vector<std::string> dir_list(const std::string& dirname) {
+	std::vector<std::string> files;
+
+	DIR* dir = opendir(dirname.c_str());
+	if (dir == nullptr) {
+		std::cerr << "UTIL PLATFORM Failed to open dir \"" << dirname << "\" for listing\n";
+		return {};
+	}
+
+	struct dirent* ent = nullptr;
+	while ((ent = readdir(dir)) != nullptr) {
+		char* name = ent->d_name;
+		int l = strlen(name);
+
+		// Ignore parent directories
+		if (
+			((l == 1)&&(name[0] == '.'))
+			||((l == 2)&&(name[0] == '.')&&(name[1] == '.'))
+		) {
+			continue;
+		}
+
+		files.push_back(name);
+	}
+
+	closedir(dir);
+
+	return files;
 }
 /**
 * Attempt to create a directory with the given path and permissions.
@@ -247,6 +300,21 @@ std::string get_path() {
 	return std::string();
 }
 
+char get_path_separator() {
+	return '\\';
+}
+size_t file_size(const std::string& fname) {
+	WIN32_FILE_ATTRIBUTE_DATA fad;
+	if (!GetFileAttributesEx(fname.c_str(), GetFileExInfoStandard, &fad)) {
+		return 0;
+	}
+
+	LARGE_INTEGER size;
+	size.HighPart = fad.nFileSizeHigh;
+	size.LowPart = fad.nFileSizeLow;
+
+	return size.QuadPart;
+}
 int remove(const std::string& fname) {
 	DWORD dwAttr = GetFileAttributes(fname.c_str()); // Get the file attributes
 	if (dwAttr == 0xffffffff) { // If the file does not exist, return false
@@ -265,6 +333,32 @@ int dir_exists(const std::string& fname) {
         	return 0;
 	}
 	return (dwAttr & FILE_ATTRIBUTE_DIRECTORY) ? 1 : 0; // Return whether the file is a directory or not
+}
+std::vector<std::string> dir_list(const std::string& dirname) {
+	std::vector<std::string> files;
+
+	WIN32_FIND_DATA fdata;
+	HANDLE fh = FindFirstFile((dirname+"\\*").c_str(), &fdata);
+	if (fh != INVALID_HANDLE_VALUE) {
+		do {
+			char* name = fdata->cFileName;
+			int l = strlen(name);
+
+			// Ignore parent directories
+			if (
+				((l == 1)&&(name[0] == '.'))
+				||((l == 2)&&(name[0] == '.')&&(name[1] == '.'))
+			) {
+				continue;
+			}
+
+			files.push_back(name);
+		} while (FindNextFile(fh, &fdata));
+	}
+
+	FindClose(&fh);
+
+	return files;
 }
 int mkdir(const std::string& path, mode_t mode) {
 	return _mkdir(path.c_str());
@@ -461,6 +555,16 @@ std::string get_path() {
 	return std::string();
 }
 
+char get_path_separator() {
+	return '/';
+}
+size_t file_size(const std::string& fname) {
+	struct stat st;
+	if (stat(fname, &st) == -1) { // Get the status of the given file
+		return 0;
+	}
+	return st.st_size;
+}
 int remove(const std::string& fname) {
 	return ::remove(fname.c_str());
 }
@@ -470,6 +574,35 @@ int dir_exists(const std::string& fname) {
 		return -1;
 	}
 	return (S_ISDIR(st.st_mode) == 0) ? 0 : 1; // Return whether it is a directory or not
+}
+std::vector<std::string> dir_list(const std::string& dirname) {
+	std::vector<std::string> files;
+
+	DIR* dir = opendir(dirname.c_str());
+	if (dir == nullptr) {
+		std::cerr << "UTIL PLATFORM Failed to open dir \"" << dirname << "\" for listing\n";
+		return {};
+	}
+
+	struct dirent* ent = nullptr;
+	while ((ent = readdir(dir)) != nullptr) {
+		char* name = ent->d_name;
+		int l = strlen(name);
+
+		// Ignore parent directories
+		if (
+			((l == 1)&&(name[0] == '.'))
+			||((l == 2)&&(name[0] == '.')&&(name[1] == '.'))
+		) {
+			continue;
+		}
+
+		files.push_back(name);
+	}
+
+	closedir(dir);
+
+	return files;
 }
 int mkdir(const std::string& path, mode_t mode) {
 	return ::mkdir(path.c_str(), mode);
@@ -601,11 +734,20 @@ std::string get_path() {
 	return std::string();
 }
 
+char get_path_separator() {
+	return '/';
+}
+size_t file_size(const std::string& fname) {
+	return 0;
+}
 int remove(const std::string& fname) {
 	return 1;
 }
 int dir_exists(const std::string& fname) {
 	return 0;
+}
+std::vector<std::string> dir_list(const std::string& dirname) {
+	return {};
 }
 int mkdir(const std::string& path, mode_t mode) {
 	return 1;

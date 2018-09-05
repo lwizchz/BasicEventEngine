@@ -46,12 +46,15 @@
 #include "../core/display.hpp"
 #include "../core/rooms.hpp"
 #include "../core/window.hpp"
+#include "../fs/fs.hpp"
+#include "../fs/python.hpp"
 
 #include "../resource/room.hpp"
 
 namespace bee { namespace python { namespace internal {
 	PyMethodDef BEEMethods[] = {
 		{"_displayhook", displayhook, METH_O, "Store the last evaluated Python object in an internal buffer"},
+		{"_import", import, METH_VARARGS, "Import the given scriptname from the game filesystem"},
 
 		{"get_ticks", get_ticks, METH_NOARGS, "Return the millisecond ticks elapsed since initialization"},
 		{"get_seconds", get_seconds, METH_NOARGS, "Return the seconds elapsed since initialization"},
@@ -460,6 +463,17 @@ namespace bee { namespace python { namespace internal {
 			return nullptr;
 		}
 		Py_RETURN_NONE;
+	}
+	PyObject* import(PyObject* self, PyObject* args) {
+		PyObject* fname;
+
+		if (!PyArg_ParseTuple(args, "U", &fname)) {
+			return nullptr;
+		}
+
+		std::string _fname (PyUnicode_AsUTF8(fname));
+
+		return fs::python::import(_fname);
 	}
 
 	PyObject* get_ticks(PyObject* self, PyObject* args) {

@@ -32,6 +32,8 @@
 #include "../messenger/messenger.hpp"
 
 #include "../core/enginestate.hpp"
+#include "../fs/fs.hpp"
+#include "../fs/assimp.hpp"
 
 #include "../render/render.hpp"
 #include "../render/shader.hpp"
@@ -311,9 +313,9 @@ namespace bee {
 		}
 
 		// Attempt to import the object file
-		scene = aiImportFile(path.c_str(), aiProcessPreset_TargetRealtime_MaxQuality); // Import it with "MaxQuality"
+		scene = fs::assimp::import(path, aiProcessPreset_TargetRealtime_MaxQuality); // Import it with "MaxQuality"
 		if (scene == nullptr) { // If the file couldn't be imported, output a warning
-			messenger::send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to load Mesh \"" + name + "\": " + aiGetErrorString());
+			messenger::send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to load Mesh \"" + name + "\" from \"" + path + "\": " + fs::assimp::get_error_string());
 			return 3;
 		}
 
@@ -438,7 +440,7 @@ namespace bee {
 				}
 
 				// Attempt to load the texure as a temporary surface
-				SDL_Surface* tmp_surface = IMG_Load(fullpath.c_str());
+				SDL_Surface* tmp_surface = IMG_Load_RW(fs::get_file(fullpath).get_rwops(), true);
 				if (tmp_surface == nullptr) { // If the surface could not be loaded, output a warning
 					free_internal();
 					messenger::send({"engine", "sprite"}, E_MESSAGE::WARNING, "Failed to load the texture for Mesh \"" + name + "\": " + util::get_sdl_error());
@@ -472,6 +474,7 @@ namespace bee {
 
 				free_internal();
 				messenger::send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to load the Mesh \"" + name + "\", the material reported an invalid texture");
+
 				return 4;
 			}
 		}

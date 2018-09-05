@@ -12,6 +12,7 @@ import math
 
 def create(self):
     self.set_data("mesh", bee.Mesh("mesh_spider"))
+    #self.set_data("mesh", bee.Mesh("mesh_monkey"))
 
     bee.console.set_var("anim_spider", "Spider_Armature|warte_pose")
 
@@ -23,8 +24,7 @@ def draw(self):
 
     mesh = self.get_data("mesh")
     if mesh.name == "mesh_monkey": # Monkey
-        #mesh.draw(pos, (1.0, 1.0, 1.0), rot, (255, 255, 0, 255), False)
-        pass
+        mesh.draw(pos, (1.0, 1.0, 1.0), rot, (255, 255, 0, 255), False)
     elif mesh.name == "mesh_spider": # Spider
         mesh.draw(pos, (50.0, 50.0, 50.0), rot, (255, 255, 255, 255), False)
         #mesh.draw(pos, (50.0, 50.0, 50.0), rot, (255, 255, 255, 255), False, bee.console.get_var("anim_spider"), 0)

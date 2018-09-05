@@ -149,6 +149,11 @@ namespace bee {
 				}
 			));
 			add_flag(new ProgramFlag(
+				"verbose", 'v', true, E_FLAGARG::NONE, [] (const std::string& arg) {
+					messenger::set_level(E_OUTPUT::VERBOSE);
+				}
+			));
+			add_flag(new ProgramFlag(
 				"dimensions", '\0', true, E_FLAGARG::REQUIRED, [] (const std::string& arg) {
 					engine->width = std::stoi(arg.substr(0, arg.find("x")));
 					engine->height = std::stoi(arg.substr(arg.find("x")+1));

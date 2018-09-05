@@ -8,6 +8,7 @@ set(deps_bee_messenger messenger/messenger.cpp messenger/messagecontents.cpp mes
 set(deps_bee_core core/console.cpp core/display.cpp core/enginestate.cpp core/instance.cpp core/loader.cpp core/rooms.cpp core/soundeffects.cpp core/window.cpp)
 set(deps_bee_input input/mouse.cpp input/kb.cpp input/keybind.cpp)
 set(deps_bee_data data/serialdata.cpp data/statemachine.cpp data/variant.cpp)
+set(deps_bee_fs fs/fs.cpp fs/filemap.cpp fs/filepath.cpp fs/assimp.cpp fs/python.cpp)
 
 set(deps_bee_network network/network.cpp network/client.cpp network/connection.cpp network/packet.cpp network/data.cpp network/event.cpp)
 
@@ -28,7 +29,7 @@ set(deps_bee_scripting ${deps_bee_python})
 
 set(deps_bee_ui ui/ui.cpp)
 
-set(deps ${deps_bee} ${deps_bee_util} ${deps_bee_init} ${deps_bee_messenger} ${deps_bee_core} ${deps_bee_input} ${deps_bee_data} ${deps_bee_network} ${deps_bee_render} ${deps_bee_physics} ${deps_bee_resource} ${deps_bee_resources} ${deps_bee_scripting} ${deps_bee_ui})
+set(deps ${deps_bee} ${deps_bee_util} ${deps_bee_init} ${deps_bee_messenger} ${deps_bee_core} ${deps_bee_input} ${deps_bee_data} ${deps_bee_fs} ${deps_bee_network} ${deps_bee_render} ${deps_bee_physics} ${deps_bee_resource} ${deps_bee_resources} ${deps_bee_scripting} ${deps_bee_ui})
 
 if (WIN32)
 	set(SRC ${${PROJECT_NAME}_SOURCE_DIR})

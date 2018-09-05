@@ -16,6 +16,7 @@ namespace bee { namespace python { namespace internal {
 	PyObject* PyInit_bee();
 
 	PyObject* displayhook(PyObject*, PyObject*);
+	PyObject* import(PyObject*, PyObject*);
 
 	PyObject* get_ticks(PyObject*, PyObject*);
 	PyObject* get_seconds(PyObject*, PyObject*);

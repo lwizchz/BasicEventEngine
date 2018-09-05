@@ -9,11 +9,13 @@
 #ifndef BEE_UTIL_FILES_H
 #define BEE_UTIL_FILES_H 1
 
-#include <string> // Include the required library headers
+#include <string>
+#include <vector>
 
 namespace util {
 
 bool file_exists(const std::string&);
+size_t file_size(const std::string&);
 int file_delete(const std::string&);
 int file_rename(const std::string&, const std::string&);
 int file_copy(const std::string&, const std::string&);
@@ -23,6 +25,7 @@ std::streamoff file_put_contents(const std::string&, const std::string&);
 bool directory_exists(const std::string&);
 int directory_create(const std::string&);
 std::string directory_get_temp();
+std::vector<std::string> directory_get_files(const std::string&);
 
 std::string file_basename(const std::string&);
 std::string file_dirname(const std::string&);

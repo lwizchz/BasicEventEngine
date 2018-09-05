@@ -19,6 +19,7 @@
 #include "../engine.hpp"
 
 #include "../util/real.hpp"
+#include "../util/files.hpp"
 #include "../util/debug.hpp"
 
 #include "../init/gameoptions.hpp"
@@ -26,6 +27,7 @@
 #include "../messenger/messenger.hpp"
 
 #include "../core/rooms.hpp"
+#include "../fs/fs.hpp"
 
 #include "../render/render.hpp"
 #include "../render/shader.hpp"
@@ -596,7 +598,7 @@ namespace bee {
 	* @returns the surface on success or nullptr on failure
 	*/
 	SDL_Surface* Texture::load_surface() const {
-		SDL_Surface* surface = IMG_Load(path.c_str());
+		SDL_Surface* surface = IMG_LoadTyped_RW(fs::get_file(path).get_rwops(), true, util::file_extname(path).substr(1).c_str());
 		if (surface == nullptr) { // If the surface could not be loaded, output a warning
 			messenger::send({"engine", "texture"}, E_MESSAGE::WARNING, "Failed to load Texture surface \"" + name + "\": " + util::get_sdl_error());
 			return nullptr;

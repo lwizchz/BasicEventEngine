@@ -17,11 +17,11 @@
 #include "../util/platform.hpp"
 #include "../util/debug.hpp"
 #include "../util/real.hpp"
-#include "../util/files.hpp"
 
 #include "../messenger/messenger.hpp"
 
 #include "../core/instance.hpp"
+#include "../fs/fs.hpp"
 
 #include "../render/drawing.hpp"
 #include "../render/rgba.hpp"
@@ -374,7 +374,7 @@ namespace bee {
 	       return 1;
 		}
 
-		std::string cfg (util::file_get_contents(path));
+		std::string cfg (fs::get_file(path).get());
 		if (cfg.empty()) { // If the file could not be loaded, output a warning
 			messenger::send({"engine", "path"}, E_MESSAGE::WARNING, "Failed to load Path \"" + name + "\" from file \"" + path + "\"");
 			return 2;

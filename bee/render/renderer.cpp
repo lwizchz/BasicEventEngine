@@ -15,7 +15,6 @@
 
 #include "renderer.hpp" // Include the engine headers
 
-#include "../util/files.hpp"
 #include "../util/platform.hpp"
 #include "../util/debug.hpp"
 
@@ -24,6 +23,7 @@
 #include "../messenger/messenger.hpp"
 
 #include "../core/enginestate.hpp"
+#include "../fs/fs.hpp"
 
 #include "camera.hpp"
 #include "drawing.hpp"
@@ -104,13 +104,13 @@ namespace bee {
 		const std::string vs_fn_default = "bee/resources/shaders/default.vertex.glsl";
 		const std::string vs_fn_user = "resources/vertex.glsl";
 		std::string vs_fn (vs_fn_default);
-		if (util::file_exists(vs_fn_user)) {
+		if (fs::exists(vs_fn_user)) {
 			vs_fn = vs_fn_user;
 		}
 		const std::string gs_fn_default = "bee/resources/shaders/default.geometry.glsl";
 		const std::string gs_fn_user = "resources/geometry.glsl";
 		std::string gs_fn (gs_fn_default);
-		if (util::file_exists(gs_fn_user)) {
+		if (fs::exists(gs_fn_user)) {
 			gs_fn = gs_fn_user;
 		}
 		const std::string fs_fn_default = "bee/resources/shaders/default.fragment.glsl";
@@ -120,11 +120,11 @@ namespace bee {
 		std::string fs_fn (fs_fn_default);
 		if (get_option("is_basic_shaders_enabled").i) {
 			fs_fn = fs_fn_basic_default;
-			if (util::file_exists(fs_fn_basic_user)) {
+			if (fs::exists(fs_fn_basic_user)) {
 				fs_fn = fs_fn_basic_user;
 			}
 		} else {
-			if (util::file_exists(fs_fn_user)) {
+			if (fs::exists(fs_fn_user)) {
 				fs_fn = fs_fn_user;
 			}
 		}

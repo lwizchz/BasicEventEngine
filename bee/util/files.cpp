@@ -28,8 +28,22 @@ namespace util {
 * @returns whether the given filename is the location of a file
 */
 bool file_exists(const std::string& fname) {
-	std::fstream f (fname.c_str());
-	return f.good(); // Return whether the file could be successfully opened
+	if (FILE* fh = fopen(fname.c_str(), "r")) { // Return whether the file could be successfully opened
+		fclose(fh);
+		return true;
+	}
+	return false;
+}
+/**
+* @param fname the filename to check
+*
+* @returns the size of the given file in bytes
+*/
+size_t file_size(const std::string& fname) {
+	if (file_exists(fname)) {
+		return platform::file_size(fname);
+	}
+	return 0;
 }
 /**
 * Delete the given file.
@@ -95,14 +109,12 @@ std::string file_get_contents(const std::string& fname) {
 		return "";
 	}
 
-	std::string contents, tmp;
-	while (!input.eof()) { // Read each line of the file into a string
-		getline(input, tmp);
-		contents += tmp + "\n";
-	}
-	contents.pop_back(); // Remove the last new line
+	std::string contents (
+		(std::istreambuf_iterator<char>(input)),
+		(std::istreambuf_iterator<char>())
+	);
 
-	input.close(); // Close the file
+	input.close();
 
 	return contents;
 }
@@ -130,22 +142,22 @@ std::streamoff file_put_contents(const std::string& fname, const std::string& co
 }
 
 /**
-* @param fname the name of the directory to check
+* @param dirname the path of the directory to check
 *
 * @returns whether the given directory exists
 */
-bool directory_exists(const std::string& fname) {
-	return (platform::dir_exists(fname) == 1);
+bool directory_exists(const std::string& dirname) {
+	return (platform::dir_exists(dirname) == 1);
 }
 /**
 * Create a directory at the given path.
-* @param fname the path of the new directory
+* @param dirname the path of the new directory
 *
 * @retval 0 success
 * @retval -1 failed to create directory
 */
-int directory_create(const std::string& fname) {
-	return platform::mkdir(fname, 0755);
+int directory_create(const std::string& dirname) {
+	return platform::mkdir(dirname, 0755);
 }
 /**
 * @returns the path of a temporary directory to store temporary game files in
@@ -156,6 +168,15 @@ std::string directory_get_temp() {
 		d += "/";
 	}
 	return d;
+}
+/**
+* @param dirname the path of the directory to list
+*
+* @returns the names of the files contained in the directory
+* @note In order to recursively discover files, use this function in combination with directory_exists()
+*/
+std::vector<std::string> directory_get_files(const std::string& dirname) {
+	return platform::dir_list(dirname);
 }
 
 /**

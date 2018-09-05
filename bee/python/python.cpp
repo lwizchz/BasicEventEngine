@@ -14,13 +14,14 @@
 
 #include "python.hpp"
 
-#include "../util/files.hpp"
 #include "../util/string.hpp"
+
+#include "../messenger/messenger.hpp"
 
 #include "../core/enginestate.hpp"
 #include "../core/instance.hpp"
-
-#include "../messenger/messenger.hpp"
+#include "../fs/fs.hpp"
+#include "../fs/python.hpp"
 
 #include "beemodule.hpp"
 
@@ -122,7 +123,7 @@ namespace bee { namespace python {
 	* @retval 3 a Python exception was raised during execution
 	*/
 	int run_file(const std::string& filename) {
-		if (!util::file_exists(filename)) {
+		if (!fs::exists(filename)) {
 			messenger::send({"engine", "python"}, E_MESSAGE::ERROR, "Failed to run file \"" + filename + "\": file does not exist");
 			return 1;
 		}
@@ -418,23 +419,12 @@ namespace bee { namespace python {
 			return 0;
 		}
 
-		if (!util::file_exists(path)) {
+		if (!fs::exists(path)) {
 			messenger::send({"engine", "python"}, E_MESSAGE::ERROR, "Failed to load python script \"" + path + "\": file does not exist");
 			return 2;
 		}
 
-		std::string fname = path;
-		const std::string prefix ("bee/resources/");
-		if (fname.rfind(prefix, 0) == 0) {
-			fname = fname.substr(prefix.length());
-		}
-		fname = util::string::replace(fname, ".py", "");
-		fname = util::string::replace(fname, "/", ".");
-
-		PyObject* scr_name = PyUnicode_DecodeFSDefault(fname.c_str());
-		PyObject* _module = PyImport_Import(scr_name);
-		Py_DECREF(scr_name);
-
+		PyObject* _module = fs::python::import(path);
 		if (_module == nullptr) {
 			PyErr_Print();
 			messenger::send({"engine", "python"}, E_MESSAGE::ERROR, "Failed to import python script \"" + path + "\"");
@@ -558,7 +548,7 @@ namespace bee { namespace python {
 	* @see run_string(const std::string&, Variant*, int) for return values
 	*/
 	int PythonScriptInterface::run_file(const std::string& filename) {
-		return run_string(util::file_get_contents(filename), nullptr, Py_file_input);
+		return run_string(fs::get_file(filename).get(), nullptr, Py_file_input);
 	}
 	/**
 	* Run the given function in the loaded module.

@@ -18,6 +18,7 @@
 #include "../messenger/messenger.hpp"
 
 #include "../core/rooms.hpp"
+#include "../fs/fs.hpp"
 
 #include "../render/render.hpp"
 
@@ -316,7 +317,7 @@ namespace bee {
 	       return 1;
 		}
 
-		std::string cfg (util::file_get_contents(path));
+		std::string cfg (fs::get_file(path).get());
 		if (cfg.empty()) { // If the file could not be loaded, output a warning
 			messenger::send({"engine", "light"}, E_MESSAGE::WARNING, "Failed to load Light \"" + name + "\" from file \"" + path + "\"");
 			return 2;

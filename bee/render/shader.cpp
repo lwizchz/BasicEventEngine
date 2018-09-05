@@ -13,11 +13,12 @@
 
 #include "shader.hpp" // Include the engine headers
 
-#include "../util/files.hpp"
 #include "../util/platform.hpp"
 #include "../util/debug.hpp"
 
 #include "../messenger/messenger.hpp"
+
+#include "../fs/fs.hpp"
 
 #include "render.hpp"
 
@@ -45,8 +46,9 @@ namespace bee {
 
 	int Shader::compile() {
 		shader = glCreateShader(type);
-		std::string sh = util::file_get_contents(filename);
+		std::string sh (fs::get_file(filename).get());
 		sh = render::opengl_prepend_version(sh);
+
 		const GLchar* shader_source[] = {sh.c_str()};
 		glShaderSource(shader, 1, shader_source, nullptr);
 

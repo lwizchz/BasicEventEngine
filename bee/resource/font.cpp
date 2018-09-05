@@ -18,6 +18,8 @@
 
 #include "../messenger/messenger.hpp"
 
+#include "../fs/fs.hpp"
+
 #include "../render/render.hpp"
 
 #include "texture.hpp"
@@ -379,9 +381,9 @@ namespace bee {
 			}
 		}
 
-		font = TTF_OpenFont(path.c_str(), font_size); // Open the TTF file with the desired font size
+		font = TTF_OpenFontRW(fs::get_file(path).get_rwops(), true, font_size); // Open the TTF file with the desired font size
 		if (font == nullptr) { // If the Font failed to load, output a warning
-			messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to load Font from \"" + path + "\": " + util::get_sdl_error());
+			messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to load Font \"" + name + "\" from \"" + path + "\": " + util::get_sdl_error());
 			has_draw_failed = true;
 			return 3;
 		}

@@ -26,6 +26,10 @@
 #include "core/rooms.hpp"
 #include "core/window.hpp"
 
+#include "fs/fs.hpp"
+#include "fs/filepath.hpp"
+#include "fs/filemap.hpp"
+
 #include "input/mouse.hpp"
 #include "input/kb.hpp"
 #include "input/keybind.hpp"

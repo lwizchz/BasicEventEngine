@@ -85,7 +85,7 @@ namespace bee {
 		}
 
 		script = Script::add("__scr_obj_script:" + scriptfile, filename);
-		if (script == nullptr) {
+		if ((script == nullptr)||(!script->get_is_loaded())) {
 			return 2;
 		}
 

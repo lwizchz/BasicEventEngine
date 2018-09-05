@@ -27,6 +27,7 @@
 #include "core/console.hpp"
 #include "core/enginestate.hpp"
 #include "core/rooms.hpp"
+#include "fs/fs.hpp"
 
 #include "input/mouse.hpp"
 #include "input/kb.hpp"
@@ -76,6 +77,8 @@ namespace bee {
 		}
 
 		messenger::send({"engine", "init"}, E_MESSAGE::INFO, "Initializing BasicEventEngine v" + get_engine_version().to_str());
+
+		fs::init();
 
 		if (get_option("should_assert").i) {
 			#ifndef NDEBUG

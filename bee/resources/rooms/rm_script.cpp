@@ -48,7 +48,7 @@ namespace bee {
 		}
 
 		script = Script::add("__scr_rm_script:" + scriptfile, filename);
-		if (script == nullptr) {
+		if ((script == nullptr)||(!script->get_is_loaded())) {
 			return 2;
 		}
 
@@ -83,7 +83,7 @@ namespace bee {
 	void RmScript::init() {
 		Room::init();
 
-		if (script->get_interface()->has_var("init")) {
+		if ((script->get_is_loaded())&&(script->get_interface()->has_var("init"))) {
 			Variant args (std::vector<Variant>{
 				Variant(reinterpret_cast<Room*>(this))
 			});
@@ -93,7 +93,7 @@ namespace bee {
 	void RmScript::start() {
 		Room::start();
 
-		if (script->get_interface()->has_var("start")) {
+		if ((script->get_is_loaded())&&(script->get_interface()->has_var("start"))) {
 			Variant args (std::vector<Variant>{
 				Variant(reinterpret_cast<Room*>(this))
 			});
@@ -101,7 +101,7 @@ namespace bee {
 		}
 	}
 	void RmScript::end() {
-		if (script->get_interface()->has_var("end")) {
+		if ((script->get_is_loaded())&&(script->get_interface()->has_var("end"))) {
 			Variant args (std::vector<Variant>{
 				Variant(reinterpret_cast<Room*>(this))
 			});

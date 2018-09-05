@@ -10,6 +10,7 @@
 #define BEE_UTIL_PLATFORM_H 1
 
 #include <string>
+#include <vector>
 
 #ifdef _WIN32
 	typedef int mode_t;
@@ -21,8 +22,11 @@ int get_platform();
 
 std::string get_path();
 
+char get_path_separator();
+size_t file_size(const std::string&);
 int remove(const std::string&);
 int dir_exists(const std::string&);
+std::vector<std::string> dir_list(const std::string&);
 int mkdir(const std::string&, mode_t);
 std::string mkdtemp(const std::string&);
 
