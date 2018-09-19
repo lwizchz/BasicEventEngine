@@ -20,6 +20,10 @@
 
 namespace bee { namespace python {
 	PyObject* Script_from(const Script* script) {
+		if (script == nullptr) {
+			return nullptr;
+		}
+
 		PyObject* py_script = internal::Script_new(&internal::ScriptType, nullptr, nullptr);
 		internal::ScriptObject* _py_script = reinterpret_cast<internal::ScriptObject*>(py_script);
 
@@ -249,7 +253,7 @@ namespace internal {
 		PyObject* func;
 		PyObject* fargs;
 
-		if (!PyArg_ParseTuple(args, "UO!", &func, &PyList_Type, &fargs)) {
+		if (!PyArg_ParseTuple(args, "UO!", &func, &PyTuple_Type, &fargs)) {
 			return nullptr;
 		}
 

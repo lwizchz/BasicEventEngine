@@ -33,8 +33,7 @@ namespace bee {
 			int set_writing(bool);
 
 			int store_char(unsigned char&);
-			int store_int(int&);
-			int store_float(float&);
+			int store_long(long&);
 			int store_double(double&);
 			int store_string(std::string&);
 			int store_serial_v(std::vector<Uint8>&);
@@ -42,7 +41,7 @@ namespace bee {
 
 			int store(unsigned char);
 			int store(int);
-			int store(float);
+			int store(long);
 			int store(double);
 			int store(std::string);
 
@@ -60,7 +59,7 @@ namespace bee {
 
 			int get(unsigned char&);
 			int get(int&);
-			int get(float&);
+			int get(long&);
 			int get(double&);
 			int get(std::string&);
 

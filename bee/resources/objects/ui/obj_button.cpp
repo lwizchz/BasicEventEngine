@@ -27,7 +27,7 @@ void ObjUIButton::create(bee::Instance* self) {
 	ObjUIElement::create(self);
 
 	_p("font") = nullptr;
-	_s("text") = "";
+	_a("text") = "";
 	_p("text_td") = nullptr;
 
 	_p("press_func") = nullptr;
@@ -62,7 +62,7 @@ void ObjUIButton::draw(bee::Instance* self) {
 	int h = _i("h");
 
 	bee::RGBA c_border = {0, 0, 0, 255};
-	bee::RGBA c_back = {_i("color_r"), _i("color_g"), _i("color_b"), _i("color_a")};
+	bee::RGBA c_back = {_c("color_r"), _c("color_g"), _c("color_b"), _c("color_a")};
 	if (_i("has_hover")) {
 		c_back.add_value(-0.20f);
 	}
@@ -82,8 +82,8 @@ void ObjUIButton::draw(bee::Instance* self) {
 	int cx, cy;
 	std::tie(cx, cy) = self->get_corner();
 
-	bee::draw_rectangle(cx-ox, cy+press_offset - oy, w, h, -1, c_back);
-	bee::draw_rectangle(cx-ox, cy+press_offset - oy, w, h, 6, c_border);
+	bee::render::draw_rectangle(cx-ox, cy+press_offset - oy, w, h, -1, c_back);
+	bee::render::draw_rectangle(cx-ox, cy+press_offset - oy, w, h, 6, c_border);
 
 	std::string text = _s("text");
 	if (!text.empty()) {

@@ -20,6 +20,21 @@
 namespace bee { namespace fs { namespace python {
 	namespace internal {
 		std::map<std::string,PyObject*> modules;
+
+		PyMethodDef fp_get_ml {
+			"FilePath_get",
+			[] (PyObject* self, PyObject* args) -> PyObject* {
+				PyObject* path = PyDict_GetItemString(self, "path");
+				std::string _path (PyUnicode_AsUTF8(path));
+				return PyUnicode_FromString(fs::get_file(_path).get().c_str());
+			},
+			METH_NOARGS,
+			nullptr
+		};
+	}
+
+	PyObject* internal::get_file_callable(PyObject* file) {
+		return PyCFunction_New(&fp_get_ml, file);
 	}
 
 	PyObject* import(const std::string& fname) {

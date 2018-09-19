@@ -20,6 +20,10 @@
 
 namespace bee { namespace python {
 	PyObject* Mesh_from(const Mesh* mesh) {
+		if (mesh == nullptr) {
+			return nullptr;
+		}
+
 		PyObject* py_mesh = internal::Mesh_new(&internal::MeshType, nullptr, nullptr);
 		internal::MeshObject* _py_mesh = reinterpret_cast<internal::MeshObject*>(py_mesh);
 
@@ -228,25 +232,29 @@ namespace internal {
 	}
 
 	PyObject* Mesh_draw(MeshObject* self, PyObject* args) {
-		glm::vec3 pos (0.0f);
-		glm::vec3 scale (1.0f);
-		glm::vec3 rotate (0.0f);
+		double px = 0.0, py = 0.0, pz = 0.0;
+		double sx = 1.0, sy = 1.0, sz = 1.0;
+		double rx = 0.0, ry = 0.0, rz = 0.0;
 		RGBA color (255, 255, 255, 255);
 		int is_wireframe = false;
 		PyObject* anim_name = nullptr;
 		Uint32 animation_time = 0;
 
 		if (!PyArg_ParseTuple(
-			args, "(fff)|(fff)(fff)(bbbb)pUI",
-			&pos.x, &pos.y, &pos.z,
-			&scale.x, &scale.y, &scale.z,
-			&rotate.x, &rotate.y, &rotate.z,
+			args, "(ddd)|(ddd)(ddd)(bbbb)pUI",
+			&px, &py, &pz,
+			&sx, &sy, &sz,
+			&rx, &ry, &rz,
 			&color.r, &color.g, &color.b, &color.a,
 			&is_wireframe,
 			&anim_name, &animation_time
 		)) {
 			return nullptr;
 		}
+
+		glm::vec3 pos (px, py, pz);
+		glm::vec3 scale (sx, sy, sz);
+		glm::vec3 rotate (rx, ry, rz);
 
 		bool _is_wireframe = is_wireframe;
 

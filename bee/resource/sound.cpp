@@ -385,8 +385,8 @@ namespace bee {
 		name = m["name"].s;
 		path = m["path"].s;
 
-		volume = m["volume"].d;
-		pan = m["pan"].d;
+		volume = m["volume"].f;
+		pan = m["pan"].f;
 
 		music = nullptr;
 		chunk = nullptr;

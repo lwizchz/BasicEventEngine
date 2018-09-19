@@ -16,10 +16,14 @@
 namespace bee {
 	class FilePath {
 		std::string path;
+		std::string mapname;
 	public:
+		FilePath(const std::string&, const std::string&);
 		FilePath(const std::string&);
+		FilePath();
 
 		std::string get_path() const;
+		std::string get_mapname() const;
 
 		bool exists() const;
 		size_t size() const;

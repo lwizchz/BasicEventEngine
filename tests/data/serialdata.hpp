@@ -19,40 +19,35 @@ TEST_CASE("serialdata1") {
 	bee::SerialData sd1;
 	sd1.store(static_cast<unsigned char>('H')); // These must be cast otherwise they'll be upcast to ints
 	sd1.store(static_cast<unsigned char>('i'));
-	sd1.store(24);
-	sd1.store(3.14f);
+	sd1.store(24l);
 	sd1.store(3.1415);
 	sd1.store(std::string("Hello!"));
 
 	bee::SerialData sd2 (sd1.get());
 	unsigned char a, b;
-	int c;
-	float d;
-	double e;
-	std::string f;
+	long c;
+	double d;
+	std::string e;
 	sd2.get(a);
 	sd2.get(b);
 	sd2.get(c);
 	sd2.get(d);
 	sd2.get(e);
-	sd2.get(f);
 
 	REQUIRE(sd1.get() == sd2.get());
 	REQUIRE(a == 'H');
 	REQUIRE(b == 'i');
 	REQUIRE(c == 24);
-	REQUIRE(d == 3.14f);
-	REQUIRE(e == 3.1415);
-	REQUIRE(f == "Hello!");
+	REQUIRE(d == 3.1415);
+	REQUIRE(e == "Hello!");
 }
 
 TEST_CASE("serialdata2") {
 	unsigned char a1 = 'H', a2;
 	unsigned char b1 = 'i', b2;
-	int c1 = 24, c2;
-	float d1 = 3.14f, d2;
-	double e1 = 3.1415, e2;
-	std::string f1 = "Hello!", f2;
+	long c1 = 24, c2;
+	double d1 = 3.1415, d2;
+	std::string e1 = "Hello!", e2;
 
 	// Writing
 	bee::SerialData sd1;
@@ -61,7 +56,6 @@ TEST_CASE("serialdata2") {
 	sd1.store(c1);
 	sd1.store(d1);
 	sd1.store(e1);
-	sd1.store(f1);
 
 	// Reading
 	bee::SerialData sd2 (sd1.get());
@@ -70,7 +64,6 @@ TEST_CASE("serialdata2") {
 	sd2.get(c2);
 	sd2.get(d2);
 	sd2.get(e2);
-	sd2.get(f2);
 
 	REQUIRE(sd1.get() == sd2.get());
 	REQUIRE(a1 == a2);
@@ -78,34 +71,30 @@ TEST_CASE("serialdata2") {
 	REQUIRE(c1 == c2);
 	REQUIRE(d1 == d2);
 	REQUIRE(e1 == e2);
-	REQUIRE(f1 == f2);
 }
 
 TEST_CASE("serialdata3") {
 	unsigned char a1 = 'H', a2;
 	unsigned char b1 = 'i', b2;
-	int c1 = 24, c2;
-	float d1 = 3.14f, d2;
-	double e1 = 3.1415, e2;
-	std::string f1 = "Hello!", f2;
+	long c1 = 24, c2;
+	double d1 = 3.1415, d2;
+	std::string e1 = "Hello!", e2;
 
 	// Writing
 	bee::SerialData sd1;
 	sd1.store_char(a1);
 	sd1.store_char(b1);
-	sd1.store_int(c1);
-	sd1.store_float(d1);
-	sd1.store_double(e1);
-	sd1.store_string(f1);
+	sd1.store_long(c1);
+	sd1.store_double(d1);
+	sd1.store_string(e1);
 
 	// Reading
 	bee::SerialData sd2 (sd1.get());
 	sd2.store_char(a2);
 	sd2.store_char(b2);
-	sd2.store_int(c2);
-	sd2.store_float(d2);
-	sd2.store_double(e2);
-	sd2.store_string(f2);
+	sd2.store_long(c2);
+	sd2.store_double(d2);
+	sd2.store_string(e2);
 
 	REQUIRE(sd1.get() == sd2.get());
 	REQUIRE(a1 == a2);
@@ -113,7 +102,6 @@ TEST_CASE("serialdata3") {
 	REQUIRE(c1 == c2);
 	REQUIRE(d1 == d2);
 	REQUIRE(e1 == e2);
-	REQUIRE(f1 == f2);
 }
 
 TEST_CASE("serialdata4") {

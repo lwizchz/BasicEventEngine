@@ -88,7 +88,7 @@ void ObjUITextEntry::draw(bee::Instance* self) {
 
 	bee::Font* font = bee::engine->font_default;
 	bee::RGBA c_text (bee::E_RGB::BLACK);
-	bee::RGBA c_back = {_i("color_r"), _i("color_g"), _i("color_b"), _i("color_a")};
+	bee::RGBA c_back = {_c("color_r"), _c("color_g"), _c("color_b"), _c("color_a")};
 
 	int ox = 0, oy = 0;
 	const std::pair<const std::string,bee::ViewPort>* vp = bee::get_current_room()->get_current_viewport();
@@ -100,7 +100,7 @@ void ObjUITextEntry::draw(bee::Instance* self) {
 	int cx, cy;
 	std::tie(cx, cy) = self->get_corner();
 
-	bee::draw_rectangle(cx-ox, cy-oy, _i("w"), _i("h"), -1, c_back); // Draw a box to contain the completions
+	bee::render::draw_rectangle(cx-ox, cy-oy, _i("w"), _i("h"), -1, c_back); // Draw a box to contain the completions
 
 	std::string input = _s("input");
 	if (!input.empty()) {
@@ -116,7 +116,7 @@ void ObjUITextEntry::draw(bee::Instance* self) {
 		// Draw any completions in a box below the input line
 		const std::vector<bee::Variant>& completions = _v("completions");
 		if (completions.size() > 1) { // If completions exist, draw them
-			bee::draw_rectangle(cx, cy+_i("h"), _i("w"), completions.size()*_i("h"), -1, c_back); // Draw a box to contain the completions
+			bee::render::draw_rectangle(cx, cy+_i("h"), _i("w"), completions.size()*_i("h"), -1, c_back); // Draw a box to contain the completions
 			for (size_t i=0; i<completions.size(); ++i) { // Iterate over the completions
 				std::string cmd = " " + completions.at(i).s; // Prepend each completion with a space
 				if (static_cast<int>(i) == _i("completion_index")) { // If the completion is selected, replace the space with a cursor
@@ -133,7 +133,7 @@ void ObjUITextEntry::draw(bee::Instance* self) {
 void ObjUITextEntry::reset(bee::Instance* self) {
 	ObjUIElement::reset(self);
 
-	_a("input") = bee::Variant("");
+	_a("input") = "";
 	_p("input_td") = nullptr;
 
 	_i("rows") = 0;

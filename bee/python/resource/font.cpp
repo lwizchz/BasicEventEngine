@@ -20,6 +20,10 @@
 
 namespace bee { namespace python {
 	PyObject* Font_from(const Font* font) {
+		if (font == nullptr) {
+			return nullptr;
+		}
+
 		PyObject* py_font = internal::Font_new(&internal::FontType, nullptr, nullptr);
 		internal::FontObject* _py_font = reinterpret_cast<internal::FontObject*>(py_font);
 

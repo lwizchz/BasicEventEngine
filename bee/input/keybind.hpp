@@ -18,8 +18,8 @@ namespace bee {
 	struct KeyBind {
 		std::string name;
 		SDL_Keycode key;
-		std::function<void (const SDL_Event*)> func;
 		bool is_repeatable;
+		std::function<void (const SDL_Event*)> func;
 
 		KeyBind(const std::string&, SDL_Keycode, bool, std::function<void (const SDL_Event*)>);
 		KeyBind(const std::string&, bool, std::function<void (const SDL_Event*)>);

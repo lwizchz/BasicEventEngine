@@ -128,7 +128,7 @@ namespace bee{ namespace console {
 
 		ui_handle->set_is_persistent(true);
 		ObjUIHandle* obj_handle = static_cast<ObjUIHandle*>(ui_handle->get_object());
-		obj_handle->set_is_visible(ui_handle, is_open);
+		ui_handle->set_data("is_visible", is_open);
 		obj_handle->set_color(ui_handle, {0, 0, 0, 255});
 
 		ui_text_entry = bee::ui::create_text_entry(rect.x, rect.y+rect.h, 1, 80, [] (Instance* text_entry, const std::string& input) {
@@ -136,7 +136,7 @@ namespace bee{ namespace console {
 			ObjUITextEntry* obj_text_entry = static_cast<ObjUITextEntry*>(text_entry->get_object());
 			obj_text_entry->set_input(text_entry, "");
 			obj_text_entry->reset_completion(text_entry);
-			obj_text_entry->set_focus(text_entry, true);
+			text_entry->set_data("has_focus", true);
 			page_index = 0;
 
 			bee::console::run(input); // Run the command
@@ -149,7 +149,7 @@ namespace bee{ namespace console {
 		ui_text_entry->set_data("input_tmp", Variant(""));
 
 		ObjUITextEntry* obj_text_entry = static_cast<ObjUITextEntry*>(ui_text_entry->get_object());
-		obj_text_entry->set_is_visible(ui_text_entry, is_open);
+		ui_text_entry->set_data("is_visible", is_open);
 		obj_text_entry->set_color(ui_text_entry, {127, 127, 127, 127});
 
 		bee::ui::add_text_entry_completor(ui_text_entry, [] (Instance* text_entry, const std::string& input) -> std::vector<Variant> {
@@ -250,14 +250,10 @@ namespace bee{ namespace console {
 	* Update the UI visibility to match the console visibility.
 	*/
 	void internal::update_ui() {
-		ObjUIHandle* obj_handle = static_cast<ObjUIHandle*>(ui_handle->get_object());
-		obj_handle->update(ui_handle);
-		obj_handle->set_is_visible(ui_handle, is_open);
+		ui_handle->set_data("is_visible", is_open);
 
-		ObjUITextEntry* obj_text_entry = static_cast<ObjUITextEntry*>(ui_text_entry->get_object());
-		obj_text_entry->update(ui_text_entry);
-		obj_text_entry->set_focus(ui_text_entry, is_open);
-		obj_text_entry->set_is_visible(ui_text_entry, is_open);
+		ui_text_entry->set_data("has_focus", is_open);
+		ui_text_entry->set_data("is_visible", is_open);
 	}
 
 	/**
@@ -369,7 +365,7 @@ namespace bee{ namespace console {
 		unsigned int input_line_y = rect.h - 30;
 
 		// Draw console rectangle and input line
-		draw_rectangle(cx, cy, rect.w, rect.h, -1, {127, 127, 127, 225});
+		render::draw_rectangle(cx, cy, rect.w, rect.h, -1, {127, 127, 127, 225});
 
 		// Remove the top of the console log if it doesn't fit
 		size_t line_amount = input_line_y/line_height+1; // Calculate the total lines that can be stored in the console window

@@ -87,10 +87,10 @@ void ObjUIElement::mouse_release(bee::Instance* self, SDL_Event* e) {
 }
 
 void ObjUIElement::reset(bee::Instance* self) {
-	_i("color_r") = 255;
-	_i("color_g") = 255;
-	_i("color_b") = 255;
-	_i("color_a") = 255;
+	_c("color_r") = 255;
+	_c("color_g") = 255;
+	_c("color_b") = 255;
+	_c("color_a") = 255;
 
 	_i("w") = 0;
 	_i("h") = 0;
@@ -106,17 +106,11 @@ void ObjUIElement::reset(bee::Instance* self) {
 	_i("has_focus") = false;
 	_i("has_hover") = false;
 }
-void ObjUIElement::set_focus(bee::Instance* self, bool new_has_focus) {
-	_i("has_focus") = new_has_focus;
-}
-void ObjUIElement::set_is_visible(bee::Instance* self, bool new_is_visibile) {
-	_i("is_visible") = new_is_visibile;
-}
 void ObjUIElement::set_color(bee::Instance* self, const bee::RGBA& new_color) {
-	_i("color_r") = new_color.r;
-	_i("color_g") = new_color.g;
-	_i("color_b") = new_color.b;
-	_i("color_a") = new_color.a;
+	_c("color_r") = new_color.r;
+	_c("color_g") = new_color.g;
+	_c("color_b") = new_color.b;
+	_c("color_a") = new_color.a;
 }
 
 #endif // BEE_OBJ_UI_ELEMENT

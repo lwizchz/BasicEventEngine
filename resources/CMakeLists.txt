@@ -1,5 +1,5 @@
-set(objects objects/obj_control.cpp objects/obj_bee.cpp)
-set(rooms rooms/rm_test.cpp)
+set(rooms)
+set(objects)
 set(deps resources.cpp ${objects} ${rooms})
 
 if (WIN32)

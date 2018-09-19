@@ -151,13 +151,13 @@ namespace bee {
 	std::map<Variant,Variant> Instance::serialize() const {
 		std::map<Variant,Variant> info;
 
-		info["id"] = static_cast<int>(id);
+		info["id"] = static_cast<long>(id);
 		info["object"] = object->get_name();
 		info["sprite"] = "";
 		if (get_sprite() != nullptr) {
 			info["sprite"] = get_sprite()->get_name();
 		}
-		info["subimage_time"] = static_cast<int>(subimage_time);
+		info["subimage_time"] = static_cast<long>(subimage_time);
 
 		info["body"] = body->serialize();
 
@@ -165,7 +165,7 @@ namespace bee {
 		info["pos_start"] = {Variant(pos_start.x()), Variant(pos_start.y()), Variant(pos_start.z())};
 		info["pos_previous"] = {Variant(pos_previous.x()), Variant(pos_previous.y()), Variant(pos_previous.z())};
 
-		info["computation_type"] = static_cast<int>(computation_type);
+		info["computation_type"] = static_cast<long>(computation_type);
 		info["is_persistent"] = is_persistent;
 
 		std::map<Variant,Variant> _data;
@@ -231,8 +231,8 @@ namespace bee {
 
 		std::string sprite_name = get_sprite()->get_name();
 		sd.store_string(sprite_name);
-		int s = subimage_time;
-		sd.store_int(s);
+		long s = subimage_time;
+		sd.store_long(s);
 
 		std::vector<Uint8> body_data = body->serialize_net();
 		sd.store_serial_v(body_data);
@@ -259,8 +259,8 @@ namespace bee {
 		std::string sprite_name;
 		sd.store_string(sprite_name);
 		sprite = Texture::get_by_name(sprite_name);
-		int s;
-		sd.store_int(s);
+		long s;
+		sd.store_long(s);
 		subimage_time = s;
 
 		std::vector<Uint8> body_data;
@@ -790,7 +790,7 @@ namespace bee {
 	* @retval true a collision will not occur
 	* @retval false a collision will occur
 	*/
-	bool Instance::is_move_free(double magnitude, double direction) {
+	bool Instance::is_move_free(double magnitude, double direction) const {
 		double dx = cos(util::degtorad(direction)) * magnitude;
 		double dy = -sin(util::degtorad(direction)) * magnitude;
 		return is_place_free(
@@ -989,28 +989,24 @@ namespace bee {
 	* Determine the 2D relation with a given Instance.
 	* @param other the Instance to measure against
 	*
-	* @retval 0 failed to determine relation
-	* @retval 1 the given Instance is above
-	* @retval 2 the given Instance is to the right
-	* @retval 3 the given Instance is below
-	* @retval 4 the given Instance is to the left
+	* @returns the relation from the given Instance to this Instance
 	*/
-	int Instance::get_relation(Instance* other) const {
+	E_RELATION Instance::get_relation(Instance* other) const {
 		int w2 = get_aabb().w/2;
 		int h2 = get_aabb().h/2;
 		int ow2 = other->get_aabb().w/2;
 		int oh2 = other->get_aabb().h/2;
 
-		if ((other->get_y() < get_y())&&(abs(other->get_x() - get_x()) < ow2+w2)) { // Top block
-			return 1;
-		} else if ((other->get_x() > get_x())&&(abs(other->get_y() - get_y()) < oh2+h2)) { // Right block
-			return 2;
-		} else if ((other->get_y() > get_y())&&(abs(other->get_x() - get_x()) < ow2+w2)) { // Bottom block
-			return 3;
-		} else if ((other->get_x() < get_x())&&(abs(other->get_y() - get_y()) < oh2+h2)) { // Left block
-			return 4;
+		if ((other->get_y() < get_y())&&(abs(other->get_x() - get_x()) < ow2+w2)) {
+			return E_RELATION::ABOVE;
+		} else if ((other->get_x() > get_x())&&(abs(other->get_y() - get_y()) < oh2+h2)) {
+			return E_RELATION::RIGHT;
+		} else if ((other->get_y() > get_y())&&(abs(other->get_x() - get_x()) < ow2+w2)) {
+			return E_RELATION::BELOW;
+		} else if ((other->get_x() < get_x())&&(abs(other->get_y() - get_y()) < oh2+h2)) {
+			return E_RELATION::LEFT;
 		}
-		return 0;
+		return E_RELATION::NONE;
 	}
 
 	/**

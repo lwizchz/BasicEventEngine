@@ -9,19 +9,15 @@
 #ifndef BEE_CORE_ENGINESTATE_H
 #define BEE_CORE_ENGINESTATE_H 1
 
-#include <functional>
 #include <vector>
 
 #include <SDL2/SDL.h> // Include the required SDL headers
-
-#include "../enum.hpp"
 
 namespace bee {
 	// Forward declarations
 	class Renderer;
 	struct RGBA;
 
-	class Texture;
 	class Font;
 	class Room;
 
@@ -50,11 +46,6 @@ namespace bee {
 		unsigned int fps_goal, fps_max, fps_unfocused;
 		unsigned int fps_count;
 		Uint32 frame_number;
-		Texture* texture_before;
-		Texture* texture_after;
-		E_TRANSITION transition_type;
-		double transition_speed;
-		std::function<void (Texture*, Texture*)> transition_custom_func;
 
 		std::vector<std::string> commandline_input;
 		unsigned int commandline_current;

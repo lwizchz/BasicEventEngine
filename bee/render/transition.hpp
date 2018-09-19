@@ -16,14 +16,20 @@
 namespace bee {
 	// Forward declaration
 	class Texture;
+namespace render {
+	namespace internal {
+		int init_transitions();
+		int transition_target_before();
+		int transition_target_after();
+	}
 
 	E_TRANSITION get_transition_type();
-	int set_transition_type(E_TRANSITION);
-	int set_transition_custom(std::function<void (Texture*, Texture*)>);
+	void set_transition_type(E_TRANSITION);
+	void set_transition_custom(std::function<void (Texture*, Texture*)>);
 	double get_transition_speed();
-	int set_transition_speed(double);
+	void set_transition_speed(double);
+
 	int draw_transition();
-	bool compute_check_quit();
-}
+}}
 
 #endif // BEE_RENDER_TRANSITION_H

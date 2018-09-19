@@ -15,7 +15,7 @@
 
 namespace bee { namespace fs { namespace python {
 	namespace internal {
-		PyObject* spec_from_file(const std::string&, const std::string&);
+		PyObject* get_file_callable(PyObject*);
 	}
 
 	PyObject* import(const std::string&);

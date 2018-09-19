@@ -36,6 +36,10 @@
 
 namespace bee { namespace python {
 	PyObject* Room_from(const Room* room) {
+		if (room == nullptr) {
+			return nullptr;
+		}
+
 		PyObject* py_room = internal::Room_new(&internal::RoomType, nullptr, nullptr);
 		internal::RoomObject* _py_room = reinterpret_cast<internal::RoomObject*>(py_room);
 
@@ -532,9 +536,9 @@ namespace internal {
 	}
 	PyObject* Room_automate_path(RoomObject* self, PyObject* args) {
 		PyObject* inst;
-		PyDictObject* pf;
+		PyObject* pf;
 
-		if (!PyArg_ParseTuple(args, "O!O!", &InstanceType, &inst, &PyDict_Type, &pf)) {
+		if (!PyArg_ParseTuple(args, "O!O", &InstanceType, &inst, &pf)) {
 			return nullptr;
 		}
 
@@ -543,13 +547,22 @@ namespace internal {
 			return nullptr;
 		}
 
-		PathFollower _pf;
-		if (as_path_follower(pf, &_pf)) {
-			PyErr_SetString(PyExc_ValueError, "the provided PathFollower dict is not valid");
+		Instance* _inst = as_instance(inst);
+		if (inst == nullptr) {
 			return nullptr;
 		}
 
-		room->automate_path(as_instance(inst), _pf);
+		if (pf == Py_None) {
+			room->automate_path(_inst, PathFollower());
+		} else {
+			PathFollower _pf;
+			if (as_path_follower(reinterpret_cast<PyDictObject*>(pf), &_pf)) {
+				PyErr_SetString(PyExc_ValueError, "the provided PathFollower dict is not valid");
+				return nullptr;
+			}
+
+			room->automate_path(_inst, _pf);
+		}
 
 		Py_RETURN_NONE;
 	}

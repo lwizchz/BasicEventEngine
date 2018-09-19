@@ -22,6 +22,10 @@
 
 namespace bee { namespace python {
 	PyObject* Sound_from(const Sound* sound) {
+		if (sound == nullptr) {
+			return nullptr;
+		}
+
 		PyObject* py_sound = internal::Sound_new(&internal::SoundType, nullptr, nullptr);
 		internal::SoundObject* _py_sound = reinterpret_cast<internal::SoundObject*>(py_sound);
 
@@ -437,34 +441,31 @@ namespace internal {
 
 	PyObject* Sound_effect_add(SoundObject* self, PyObject* args) {
 		PyObject* name;
-		PyObject* type_name;
+		int type;
 		PyObject* params;
 
-		if (!PyArg_ParseTuple(args, "UUO!", &name, &type_name, &PyDict_Type, &params)) {
+		if (!PyArg_ParseTuple(args, "UiO!", &name, &type, &PyDict_Type, &params)) {
 			return nullptr;
 		}
 
 		name = PyTuple_GetItem(args, 0);
 		std::string _name (PyUnicode_AsUTF8(name));
 
-		std::string _type_name (PyUnicode_AsUTF8(type_name));
-		_type_name = util::string::lower(_type_name);
-
-		E_SOUNDEFFECT type;
-		if (_type_name == "chorus") {
-			type = E_SOUNDEFFECT::CHORUS;
-		} else if (_type_name == "echo") {
-			type = E_SOUNDEFFECT::ECHO;
-		} else if (_type_name == "flanger") {
-			type = E_SOUNDEFFECT::FLANGER;
-		} else if (_type_name == "gargle") {
-			type = E_SOUNDEFFECT::GARGLE;
-		} else if (_type_name == "reverb") {
-			type = E_SOUNDEFFECT::REVERB;
-		} else if (_type_name == "compressor") {
-			type = E_SOUNDEFFECT::COMPRESSOR;
-		} else if (_type_name == "equalizer") {
-			type = E_SOUNDEFFECT::EQUALIZER;
+		E_SOUNDEFFECT _type;
+		if (type == static_cast<int>(E_SOUNDEFFECT::CHORUS)) {
+			_type = E_SOUNDEFFECT::CHORUS;
+		} else if (type == static_cast<int>(E_SOUNDEFFECT::ECHO)) {
+			_type = E_SOUNDEFFECT::ECHO;
+		} else if (type == static_cast<int>(E_SOUNDEFFECT::FLANGER)) {
+			_type = E_SOUNDEFFECT::FLANGER;
+		} else if (type == static_cast<int>(E_SOUNDEFFECT::GARGLE)) {
+			_type = E_SOUNDEFFECT::GARGLE;
+		} else if (type == static_cast<int>(E_SOUNDEFFECT::REVERB)) {
+			_type = E_SOUNDEFFECT::REVERB;
+		} else if (type == static_cast<int>(E_SOUNDEFFECT::COMPRESSOR)) {
+			_type = E_SOUNDEFFECT::COMPRESSOR;
+		} else if (type == static_cast<int>(E_SOUNDEFFECT::EQUALIZER)) {
+			_type = E_SOUNDEFFECT::EQUALIZER;
 		} else {
 			PyErr_SetString(PyExc_TypeError, "parameter must be valid effect type");
 			return nullptr;
@@ -477,7 +478,7 @@ namespace internal {
 			return nullptr;
 		}
 
-		return Py_BuildValue("i", snd->effect_add(SoundEffect(_name, type, _params.m)));
+		return Py_BuildValue("i", snd->effect_add(SoundEffect(_name, _type, _params.m)));
 	}
 	PyObject* Sound_effect_remove(SoundObject* self, PyObject* args) {
 		PyObject* name;

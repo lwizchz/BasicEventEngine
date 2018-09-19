@@ -21,7 +21,7 @@
 
 #include "rgba.hpp"
 
-namespace bee {
+namespace bee { namespace render {
 	int draw_triangle(glm::vec3, glm::vec3, glm::vec3, const RGBA&, bool);
 	int draw_line(glm::vec3, glm::vec3, const RGBA&);
 	int draw_line(int, int, int, int, const RGBA&);
@@ -38,6 +38,6 @@ namespace bee {
 
 	RGBA get_pixel_color(int, int);
 	int save_screenshot(const std::string&);
-}
+}}
 
 #endif // BEE_RENDER_DRAWING_H

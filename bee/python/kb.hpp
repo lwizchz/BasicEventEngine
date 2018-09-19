@@ -18,6 +18,13 @@ namespace bee { namespace python { namespace internal {
 	PyObject* kb_get_mod_state(PyObject*, PyObject*);
 
 	PyObject* kb_append_input(PyObject*, PyObject*);
+
+	PyObject* kb_bind(PyObject*, PyObject*);
+	PyObject* kb_get_keybind(PyObject*, PyObject*);
+	PyObject* kb_get_keybind_by_name(PyObject*, PyObject*);
+	PyObject* kb_unbind(PyObject*, PyObject*);
+	PyObject* kb_unbind_by_name(PyObject*, PyObject*);
+	PyObject* kb_unbind_all(PyObject*, PyObject*);
 }}}
 
 #endif // BEE_PYTHON_KB_H

@@ -24,6 +24,7 @@ namespace bee { namespace python { namespace internal {
 	PyObject* get_delta(PyObject*, PyObject*);
 	PyObject* get_tick_delta(PyObject*, PyObject*);
 	PyObject* get_fps_goal(PyObject*, PyObject*);
+	PyObject* get_fps_stable(PyObject*, PyObject*);
 
 	PyObject* restart_game(PyObject*, PyObject*);
 	PyObject* end_game(PyObject*, PyObject*);

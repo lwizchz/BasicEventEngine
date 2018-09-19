@@ -441,14 +441,16 @@ namespace bee {
 		script->run_func("commandline_input", args, nullptr);
 	}
 
-	void ObjScript::path_end(Instance* self, PathFollower* pf) {
+	void ObjScript::path_end(Instance* self, const PathFollower& pf) {
 		if (!is_loaded) {
 			return;
 		}
 
+		PathFollower* _pf = const_cast<PathFollower*>(&pf);
+
 		Variant args (std::vector<Variant>{
 			Variant(self),
-			Variant(pf->path)
+			Variant(_pf)
 		});
 		script->run_func("path_end", args, nullptr);
 	}

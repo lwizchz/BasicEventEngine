@@ -192,7 +192,7 @@ namespace bee {
 
 		render::set_program(program);
 
-		draw_set_color({255, 255, 255, 255});
+		render::draw_set_color({255, 255, 255, 255});
 		glEnable(GL_TEXTURE_2D);
 
 		glEnable(GL_BLEND);

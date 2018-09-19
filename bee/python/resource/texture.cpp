@@ -20,6 +20,10 @@
 
 namespace bee { namespace python {
 	PyObject* Texture_from(const Texture* texture) {
+		if (texture == nullptr) {
+			return nullptr;
+		}
+
 		PyObject* py_texture = internal::Texture_new(&internal::TextureType, nullptr, nullptr);
 		internal::TextureObject* _py_texture = reinterpret_cast<internal::TextureObject*>(py_texture);
 

@@ -33,7 +33,7 @@
 #include "rgba.hpp"
 #include "shader.hpp"
 
-namespace bee {
+namespace bee { namespace render {
 	/*
 	* draw_triangle() - Draw a triangle between the given vertices in the given color
 	* @v1: the first vertex of the triangle
@@ -351,6 +351,6 @@ namespace bee {
 
 		return 0; // Return 0 on successfull save and filename
 	}
-}
+}}
 
 #endif // BEE_RENDER_DRAWING

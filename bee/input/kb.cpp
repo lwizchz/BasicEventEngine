@@ -46,12 +46,12 @@ namespace bee { namespace kb {
 	void init() {
 		internal::keystate = SDL_GetKeyboardState(nullptr);
 
-		bee::kb::bind(SDLK_BACKQUOTE, bee::KeyBind("ConsoleToggle", [] (const SDL_Event* e) {
+		bind(SDLK_BACKQUOTE, KeyBind("ConsoleToggle", [] (const SDL_Event* e) {
 			console::toggle();
 		}));
-		bee::kb::bind(SDLK_ESCAPE, bee::KeyBind("Quit", [] (const SDL_Event* e) {
+		bind(SDLK_ESCAPE, KeyBind("Quit", [] (const SDL_Event* e) {
 			messenger::send({"engine"}, E_MESSAGE::INFO, "Quitting...");
-			set_transition_type(E_TRANSITION::NONE);
+			render::set_transition_type(E_TRANSITION::NONE);
 			end_game();
 		}));
 	}
@@ -495,16 +495,23 @@ namespace bee { namespace kb {
 	/**
 	* Unbind a key from a KeyBind.
 	* @param key the keycode to unbind
+	*
+	* @returns the number of keys unbound
 	*/
-	void unbind(SDL_Keycode key) {
+	int unbind(SDL_Keycode key) {
+		int r = 0;
+
 		if (internal::bindings.find(key) != internal::bindings.end()) {
 			auto binds = internal::bindings.equal_range(key);
-			std::for_each(binds.first, binds.second, [] (auto& kb) {
+			std::for_each(binds.first, binds.second, [&r] (auto& kb) {
 				internal::allbinds.at(kb.second.name).key = SDLK_UNKNOWN;
+				r++;
 			});
 
 			internal::bindings.erase(key);
 		}
+
+		return r;
 	}
 	/**
 	* Unbind a KeyBind from a key.

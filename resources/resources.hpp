@@ -50,7 +50,6 @@ extern bee::Object* obj_mesh;
 
 // Declare Rooms
 extern bee::Room* rm_test;
-extern bee::Room* rm_test2;
 
 int init_resources();
 int close_resources();

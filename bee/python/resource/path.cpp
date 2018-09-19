@@ -18,8 +18,14 @@
 
 #include "../../resource/path.hpp"
 
+#include "../structs.hpp"
+
 namespace bee { namespace python {
 	PyObject* Path_from(const Path* path) {
+		if (path == nullptr) {
+			return nullptr;
+		}
+
 		PyObject* py_path = internal::Path_new(&internal::PathType, nullptr, nullptr);
 		internal::PathObject* _py_path = reinterpret_cast<internal::PathObject*>(py_path);
 
@@ -45,7 +51,8 @@ namespace internal {
 
 		{"load", reinterpret_cast<PyCFunction>(Path_load), METH_VARARGS, "Load the Path from a file path"},
 
-		{"draw", reinterpret_cast<PyCFunction>(Path_draw), METH_VARARGS, "Draw the Path for debugging purposes"},
+		{"draw", reinterpret_cast<PyCFunction>(Path_draw), METH_VARARGS, "Draw the effective Path of the given follower for debugging purposes"},
+		{"draw_pos", reinterpret_cast<PyCFunction>(Path_draw_pos), METH_VARARGS, "Draw the Path for debugging purposes"},
 
 		{nullptr, nullptr, 0, nullptr}
 	};
@@ -295,6 +302,28 @@ namespace internal {
 	}
 
 	PyObject* Path_draw(PathObject* self, PyObject* args) {
+		PyDictObject* pf;
+
+		if (!PyArg_ParseTuple(args, "O!", &PyDict_Type, &pf)) {
+			return nullptr;
+		}
+
+		PathFollower _pf;
+		if (as_path_follower(pf, &_pf)) {
+			PyErr_SetString(PyExc_ValueError, "the provided PathFollower dict is not valid");
+			return nullptr;
+		}
+
+		Path* path = as_path(self);
+		if (path == nullptr) {
+			return nullptr;
+		}
+
+		path->draw(_pf);
+
+		Py_RETURN_NONE;
+	}
+	PyObject* Path_draw_pos(PathObject* self, PyObject* args) {
 		double x, y, z;
 
 		if (!PyArg_ParseTuple(args, "(ddd)", &x, &y, &z)) {

@@ -15,8 +15,8 @@ namespace bee {
 	KeyBind::KeyBind(const std::string& _name, SDL_Keycode _key, bool _is_repeatable, std::function<void (const SDL_Event*)> _func) :
 		name(_name),
 		key(_key),
-		func(_func),
-		is_repeatable(_is_repeatable)
+		is_repeatable(_is_repeatable),
+		func(_func)
 	{}
 	KeyBind::KeyBind(const std::string& _name, bool _is_repeatable, std::function<void (const SDL_Event*)> _func) :
 		KeyBind(_name, SDLK_UNKNOWN, _is_repeatable, _func)

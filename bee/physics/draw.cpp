@@ -53,7 +53,7 @@ namespace bee { namespace internal {
 				static_cast<int>(color1.z()),
 				255
 			);
-			draw_line(util::bt_to_glm_v3(v1*s), util::bt_to_glm_v3(v2*s), c);
+			render::draw_line(util::bt_to_glm_v3(v1*s), util::bt_to_glm_v3(v2*s), c);
 		}
 	}
 	/**
@@ -71,7 +71,7 @@ namespace bee { namespace internal {
 				static_cast<int>(color.z()),
 				255
 			);
-			draw_line(util::bt_to_glm_v3(v1*s), util::bt_to_glm_v3(v2*s), c);
+			render::draw_line(util::bt_to_glm_v3(v1*s), util::bt_to_glm_v3(v2*s), c);
 		}
 	}
 	/**
@@ -89,7 +89,7 @@ namespace bee { namespace internal {
 				static_cast<int>(color.z()),
 				255
 			);
-			draw_circle(util::bt_to_glm_v3(center*s), (radius*s).length(), 1, c);
+			render::draw_circle(util::bt_to_glm_v3(center*s), (radius*s).length(), 1, c);
 		}
 	}
 	/**
@@ -109,7 +109,7 @@ namespace bee { namespace internal {
 				static_cast<int>(color.z()),
 				alpha
 			);
-			draw_triangle(util::bt_to_glm_v3(v1*s), util::bt_to_glm_v3(v2*s), util::bt_to_glm_v3(v3*s), c, false);
+			render::draw_triangle(util::bt_to_glm_v3(v1*s), util::bt_to_glm_v3(v2*s), util::bt_to_glm_v3(v3*s), c, false);
 		}
 	}
 	/**
@@ -129,7 +129,7 @@ namespace bee { namespace internal {
 				static_cast<int>(color.z()),
 				255
 			);
-			draw_line(util::bt_to_glm_v3(v1*s), util::bt_to_glm_v3(distance*normal*s), c);
+			render::draw_line(util::bt_to_glm_v3(v1*s), util::bt_to_glm_v3(distance*normal*s), c);
 		}
 	}
 

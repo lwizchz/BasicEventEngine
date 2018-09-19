@@ -9,7 +9,8 @@
 #ifndef BEE_UI_H
 #define BEE_UI_H
 
-#include <string> // Include required library headers
+#include <string>
+#include <vector>
 #include <functional>
 
 #include "../render/rgba.hpp"

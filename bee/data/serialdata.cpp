@@ -66,12 +66,12 @@ namespace bee {
 
 		return 0;
 	}
-	int SerialData::store_int(int& d) {
+	int SerialData::store_long(long& d) {
 		/*int min = -32767;
 		int max = 32767;*/
 
 		if (is_writing) {
-			data.push_back(static_cast<Uint8>(E_DATA_TYPE::INT));
+			data.push_back(static_cast<Uint8>(E_DATA_TYPE::INTEGER));
 			data.push_back(d >> 8);
 			data.push_back(d);
 
@@ -82,7 +82,7 @@ namespace bee {
 				return 1;
 			}
 
-			if (data.at(pos++) != static_cast<Uint8>(E_DATA_TYPE::INT)) {
+			if (data.at(pos++) != static_cast<Uint8>(E_DATA_TYPE::INTEGER)) {
 				messenger::send({"engine", "serialdata"}, E_MESSAGE::ERROR, "Int deserialization failed: incorrect type");
 				return 2;
 			}
@@ -93,16 +93,16 @@ namespace bee {
 
 		return 0;
 	}
-	int SerialData::store_float(float& d) {
-		/*int min = -32767;
-		int max = 32767;*/
+	/*int SerialData::store_float(float& d) {
+		/ *int min = -32767;
+		int max = 32767;* /
 
 		float factor = 100.0f;
 
 		if (is_writing) {
 			int f = static_cast<int>(d * factor);
 
-			data.push_back(static_cast<Uint8>(E_DATA_TYPE::FLOAT));
+			data.push_back(static_cast<Uint8>(E_DATA_TYPE::FLOATING));
 			data.push_back(f >> 8);
 			data.push_back(f);
 
@@ -113,7 +113,7 @@ namespace bee {
 				return 1;
 			}
 
-			if (data.at(pos++) != static_cast<Uint8>(E_DATA_TYPE::FLOAT)) {
+			if (data.at(pos++) != static_cast<Uint8>(E_DATA_TYPE::FLOATING)) {
 				messenger::send({"engine", "serialdata"}, E_MESSAGE::ERROR, "Float deserialization failed: incorrect type");
 				return 2;
 			}
@@ -124,10 +124,10 @@ namespace bee {
 		}
 
 		return 0;
-	}
+	}*/
 	int SerialData::store_double(double& d) {
 		if (is_writing) {
-			data.push_back(static_cast<Uint8>(E_DATA_TYPE::DOUBLE));
+			data.push_back(static_cast<Uint8>(E_DATA_TYPE::FLOATING));
 
 			std::stringstream ss;
 			ss << d;
@@ -147,7 +147,7 @@ namespace bee {
 				return 1;
 			}
 
-			if (data.at(pos++) != static_cast<Uint8>(E_DATA_TYPE::DOUBLE)) {
+			if (data.at(pos++) != static_cast<Uint8>(E_DATA_TYPE::FLOATING)) {
 				messenger::send({"engine", "serialdata"}, E_MESSAGE::ERROR, "Double deserialization failed: incorrect type");
 				return 2;
 			}
@@ -311,14 +311,11 @@ namespace bee {
 		return 3;
 	}
 	int SerialData::store(int d) {
-		if (is_writing) {
-			return store_int(d);
-		}
-		return 3;
+		return store(static_cast<long>(d));
 	}
-	int SerialData::store(float d) {
+	int SerialData::store(long d) {
 		if (is_writing) {
-			return store_float(d);
+			return store_long(d);
 		}
 		return 3;
 	}
@@ -342,14 +339,14 @@ namespace bee {
 		return 3;
 	}
 	int SerialData::get(int& d) {
-		if (!is_writing) {
-			return store_int(d);
-		}
-		return 3;
+		long _d = d;
+		int r = get(_d);
+		d = _d;
+		return r;
 	}
-	int SerialData::get(float& d) {
+	int SerialData::get(long& d) {
 		if (!is_writing) {
-			return store_float(d);
+			return store_long(d);
 		}
 		return 3;
 	}

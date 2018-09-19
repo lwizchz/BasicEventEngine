@@ -225,11 +225,11 @@ namespace bee { namespace python {
 	int as_path_follower(PyDictObject* dict, PathFollower* pf) {
 		PyObject* obj = reinterpret_cast<PyObject*>(dict);
 
-		PyObject* path_name = PyDict_GetItemString(obj, "path");
-		if (path_name == nullptr) {
+		PyObject* path = PyDict_GetItemString(obj, "path");
+		if (path == nullptr) {
 			return 1;
 		}
-		std::string _path_name (PyUnicode_AsUTF8(path_name));
+		Path* _path = internal::as_path(path);
 
 		PyObject* offset = PyDict_GetItemString(obj, "offset");
 		if (offset == nullptr) {
@@ -247,7 +247,7 @@ namespace bee { namespace python {
 		}
 
 		*pf = PathFollower(
-			Path::get_by_name(_path_name),
+			_path,
 			_offset,
 			static_cast<unsigned int>(PyLong_AsUnsignedLong(speed))
 		);
@@ -284,28 +284,31 @@ namespace bee { namespace python {
 	int as_timeline_iterator(PyDictObject* dict, TimelineIterator* tlit) {
 		PyObject* obj = reinterpret_cast<PyObject*>(dict);
 
-		PyObject* timeline_name = PyDict_GetItemString(obj, "timeline");
-		if (timeline_name == nullptr) {
+		PyObject* timeline = PyDict_GetItemString(obj, "timeline");
+		if (timeline == nullptr) {
 			return 1;
 		}
-		std::string _timeline_name (PyUnicode_AsUTF8(timeline_name));
+		Timeline* _timeline = internal::as_timeline(timeline);
+		if (_timeline == nullptr) {
+			return 2;
+		}
 
 		PyObject* start_offset = PyDict_GetItemString(obj, "start_offset");
 		if (start_offset == nullptr) {
-			return 2;
+			return 3;
 		}
 
 		PyObject* is_looping = PyDict_GetItemString(obj, "is_looping");
 		if (is_looping == nullptr) {
-			return 3;
+			return 4;
 		}
 		PyObject* is_pausable = PyDict_GetItemString(obj, "is_pausable");
 		if (is_pausable == nullptr) {
-			return 3;
+			return 5;
 		}
 
 		*tlit = TimelineIterator(
-			Timeline::get_by_name(_timeline_name),
+			_timeline,
 			static_cast<unsigned int>(PyLong_AsUnsignedLong(start_offset)),
 			PyObject_IsTrue(is_looping),
 			PyObject_IsTrue(is_pausable)

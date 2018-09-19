@@ -50,6 +50,9 @@ namespace bee { // The engine namespace
 	double get_delta();
 	Uint32 get_tick_delta();
 	unsigned int get_fps_goal();
+	unsigned int get_fps_stable();
+
+	bool compute_check_quit();
 
 	void restart_game();
 	void end_game();

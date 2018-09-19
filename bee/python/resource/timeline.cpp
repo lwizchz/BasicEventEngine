@@ -20,6 +20,10 @@
 
 namespace bee { namespace python {
 	PyObject* Timeline_from(const Timeline* timeline) {
+		if (timeline == nullptr) {
+			return nullptr;
+		}
+
 		PyObject* py_timeline = internal::Timeline_new(&internal::TimelineType, nullptr, nullptr);
 		internal::TimelineObject* _py_timeline = reinterpret_cast<internal::TimelineObject*>(py_timeline);
 

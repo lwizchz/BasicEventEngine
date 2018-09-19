@@ -49,14 +49,6 @@ bee::Object* obj_mesh = nullptr;
 
 // Declare Rooms
 bee::Room* rm_test = nullptr;
-bee::Room* rm_test2 = nullptr;
-
-// Include Objects
-#include "objects/obj_control.hpp"
-#include "objects/obj_bee.hpp"
-
-// Include Rooms
-#include "rooms/rm_test.hpp"
 
 /**
 * Initialize all game resources.
@@ -101,15 +93,17 @@ int init_resources() {
 		scr_test = new bee::Script("scr_test", "scr_test.py");
 
 		// Init Objects
-		obj_control = new ObjControl();
-		obj_bee = new ObjBee();
+		obj_control = new bee::ObjScript("obj_control.py");
+			obj_control->load();
+		obj_bee = new bee::ObjScript("obj_bee.py");
 			obj_bee->set_sprite(spr_bee);
+			obj_bee->load();
 		obj_mesh = new bee::ObjScript("obj_mesh.py");
+			obj_mesh->load();
 
 		// Init Rooms
-		rm_test = new RmTest();
-		rm_test2 = new bee::RmScript("rm_test2.py");
-			rm_test2->load();
+		rm_test = new bee::RmScript("rm_test.py");
+			rm_test->load();
 
 		bee::is_initialized = true; // Set the engine initialization flag
 	} catch (...) {
@@ -163,7 +157,6 @@ int close_resources() {
 
 	// Destroy Rooms
 	DEL(rm_test);
-	DEL(rm_test2);
 
 	bee::is_initialized = false; // Unset the engine initialization flag
 

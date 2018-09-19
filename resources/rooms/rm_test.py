@@ -64,6 +64,5 @@ def init(self):
     queue(bee.Light("lt_ambient"))
     queue(bee.Light("lt_bee"))
     queue(bee.Script("scr_test"))
-    queue(bee.Object("obj_mesh"))
 
     bee.loader.load()

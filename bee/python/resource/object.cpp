@@ -26,6 +26,10 @@
 
 namespace bee { namespace python {
 	PyObject* Object_from(const Object* object) {
+		if (object == nullptr) {
+			return nullptr;
+		}
+
 		PyObject* py_object = internal::Object_new(&internal::ObjectType, nullptr, nullptr);
 		internal::ObjectObject* _py_object = reinterpret_cast<internal::ObjectObject*>(py_object);
 

@@ -62,7 +62,7 @@ void ObjUIOptionBox::draw(bee::Instance* self) {
 	int h = _i("h");
 
 	bee::RGBA c_border = {0, 0, 0, 255};
-	bee::RGBA c_back = {_i("color_r"), _i("color_g"), _i("color_b"), _i("color_a")};
+	bee::RGBA c_back = {_c("color_r"), _c("color_g"), _c("color_b"), _c("color_a")};
 	bee::RGBA c_highlight = c_back;
 	c_highlight.add_value(-0.20f);
 
@@ -76,40 +76,40 @@ void ObjUIOptionBox::draw(bee::Instance* self) {
 	int cx, cy;
 	std::tie(cx, cy) = self->get_corner();
 
-	bee::draw_rectangle(cx-ox, cy-oy, w, h, -1, c_back);
+	bee::render::draw_rectangle(cx-ox, cy-oy, w, h, -1, c_back);
 	if (_i("has_hover")) {
 		const std::pair<int,int> mpos (bee::mouse::get_pos());
-		bee::draw_rectangle(cx-ox, cy+get_option_at(self, mpos.first, mpos.second)*_i("option_height") - oy, w, _i("option_height"), -1, c_highlight);
+		bee::render::draw_rectangle(cx-ox, cy+get_option_at(self, mpos.first, mpos.second)*_i("option_height") - oy, w, _i("option_height"), -1, c_highlight);
 	}
-	bee::draw_rectangle(cx-ox, cy-oy, w, h, 6, c_border);
+	bee::render::draw_rectangle(cx-ox, cy-oy, w, h, 6, c_border);
 
 	bee::Font* font = bee::engine->font_default;
 	size_t i = 0;
 	for (auto& option : _v("options")) {
 		if (_i("type") == 0) {
-			bee::draw_rectangle(cx + 16 - ox, cy + i*_i("option_height") + 8 - oy, 16, 16, 1, c_border);
+			bee::render::draw_rectangle(cx + 16 - ox, cy + i*_i("option_height") + 8 - oy, 16, 16, 1, c_border);
 			if (_v("option_state")[i].i) {
-				bee::draw_line(
+				bee::render::draw_line(
 					cx + 18 - ox, cy + i*_i("option_height") + 16 - oy,
 					cx + 22 - ox, cy + i*_i("option_height") + 22 - oy,
 					c_border
 				);
-				bee::draw_line(
+				bee::render::draw_line(
 					cx + 22 - ox, cy + i*_i("option_height") + 22 - oy,
 					cx + 30 - ox, cy + i*_i("option_height") + 10 - oy,
 					c_border
 				);
 			}
 		} else if (_i("type") == 1) {
-			bee::draw_circle(glm::vec3(cx + 24 - ox, cy + i*_i("option_height") + 16 - oy, 0), 8, 1, c_border);
+			bee::render::draw_circle(glm::vec3(cx + 24 - ox, cy + i*_i("option_height") + 16 - oy, 0), 8, 1, c_border);
 			if (_v("option_state")[i].i) {
-				bee::draw_circle(glm::vec3(cx + 24 - ox, cy + i*_i("option_height") + 16 - oy, 0), 6, -1, c_border);
+				bee::render::draw_circle(glm::vec3(cx + 24 - ox, cy + i*_i("option_height") + 16 - oy, 0), 6, -1, c_border);
 			}
 		}
 
 		font->draw_fast(cx + 40 - ox, cy + i*_i("option_height") + 8 - oy, option.s, c_border);
 
-		bee::draw_line(cx - ox, cy + (i+1)*_i("option_height") - oy, cx + _i("w") - ox, cy + (i+1)*_i("option_height") - oy, c_border);
+		bee::render::draw_line(cx - ox, cy + (i+1)*_i("option_height") - oy, cx + _i("w") - ox, cy + (i+1)*_i("option_height") - oy, c_border);
 
 		++i;
 	}

@@ -286,16 +286,16 @@ namespace bee {
 		subimage_width = m["subimage_width"].i;
 
 		crop = {
-			m["crop"].v[0].i,
-			m["crop"].v[1].i,
-			m["crop"].v[2].i,
-			m["crop"].v[3].i,
+			static_cast<int>(m["crop"].v[0].i),
+			static_cast<int>(m["crop"].v[1].i),
+			static_cast<int>(m["crop"].v[2].i),
+			static_cast<int>(m["crop"].v[3].i)
 		};
-		speed = m["speed"].d;
+		speed = m["speed"].f;
 		origin.first = m["origin_x"].i;
 		origin.second = m["origin_y"].i;
-		rotate.first = m["rotate_x"].d;
-		rotate.second = m["rotate_y"].d;
+		rotate.first = m["rotate_x"].f;
+		rotate.second = m["rotate_y"].f;
 
 		texture = nullptr;
 		is_loaded = false;

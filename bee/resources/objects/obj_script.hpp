@@ -48,7 +48,7 @@ namespace bee {
 		void controller_release(Instance*, SDL_Event*);
 		void controller_modify(Instance*, SDL_Event*);
 		void commandline_input(Instance*, const std::string&);
-		void path_end(Instance*, PathFollower*);
+		void path_end(Instance*, const PathFollower&);
 		void outside_room(Instance*);
 		void intersect_boundary(Instance*);
 		void collision(Instance*, Instance*);

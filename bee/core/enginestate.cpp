@@ -67,12 +67,6 @@ namespace bee {
 		fps_count(0),
 		frame_number(0),
 
-		texture_before(nullptr),
-		texture_after(nullptr),
-		transition_type(E_TRANSITION::NONE),
-		transition_speed(1024.0/DEFAULT_GAME_FPS),
-		transition_custom_func(nullptr),
-
 		commandline_input(),
 		commandline_current(0),
 
@@ -86,15 +80,6 @@ namespace bee {
 		if (font_default != nullptr) {
 			delete font_default;
 			font_default = nullptr;
-		}
-
-		if (texture_before != nullptr) {
-			delete texture_before;
-			texture_before = nullptr;
-		}
-		if (texture_after != nullptr) {
-			delete texture_after;
-			texture_after = nullptr;
 		}
 
 		if (color != nullptr) {

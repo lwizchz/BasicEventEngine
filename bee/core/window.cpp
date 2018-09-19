@@ -19,6 +19,7 @@
 #include "enginestate.hpp"
 
 #include "../render/renderer.hpp"
+#include "../render/transition.hpp"
 
 #include "../resource/texture.hpp"
 
@@ -100,10 +101,7 @@ namespace bee {
 		engine->height = height;
 		SDL_SetWindowSize(engine->renderer->window, engine->width, engine->height);
 
-		engine->texture_before->free();
-		engine->texture_after->free();
-		engine->texture_before->load_as_target(engine->width, engine->height);
-		engine->texture_after->load_as_target(engine->width, engine->height);
+		render::internal::init_transitions();
 	}
 }
 

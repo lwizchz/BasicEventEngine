@@ -212,10 +212,10 @@ namespace bee { namespace python { namespace internal {
 		}
 
 		if (filename == nullptr) {
-			save_screenshot("screenshot.bmp");
+			render::save_screenshot("screenshot.bmp");
 		} else {
 			std::string _filename (PyUnicode_AsUTF8(filename));
-			save_screenshot(_filename);
+			render::save_screenshot(_filename);
 		}
 
 		Py_RETURN_NONE;

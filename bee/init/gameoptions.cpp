@@ -128,7 +128,7 @@ namespace bee {
 				return 0;
 			}}},
 
-			{"renderer_type", {"renderer_type", Variant(static_cast<int>(E_RENDERER::OPENGL3)), [] (GameOption* self, Variant value) {
+			{"renderer_type", {"renderer_type", Variant(static_cast<long>(E_RENDERER::OPENGL3)), [] (GameOption* self, Variant value) {
 				self->value = value;
 
 				if (engine->renderer->context != nullptr) {

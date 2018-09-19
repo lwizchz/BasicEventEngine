@@ -40,16 +40,12 @@ namespace bee {
 				c = '\0';
 				break;
 			}
-			case E_DATA_TYPE::INT: {
+			case E_DATA_TYPE::INTEGER: {
 				i = 0;
 				break;
 			}
-			case E_DATA_TYPE::FLOAT: {
-				f = 0.0f;
-				break;
-			}
-			case E_DATA_TYPE::DOUBLE: {
-				d = 0.0;
+			case E_DATA_TYPE::FLOATING: {
+				f = 0.0;
 				break;
 			}
 			case E_DATA_TYPE::STRING: {
@@ -84,16 +80,12 @@ namespace bee {
 				c = var.c;
 				break;
 			}
-			case E_DATA_TYPE::INT: {
+			case E_DATA_TYPE::INTEGER: {
 				i = var.i;
 				break;
 			}
-			case E_DATA_TYPE::FLOAT: {
+			case E_DATA_TYPE::FLOATING: {
 				f = var.f;
-				break;
-			}
-			case E_DATA_TYPE::DOUBLE: {
-				d = var.d;
 				break;
 			}
 			case E_DATA_TYPE::STRING: {
@@ -144,20 +136,24 @@ namespace bee {
 		ptype(std::type_index(typeid(nullptr))),
 		c(_c)
 	{}
+	Variant::Variant(bool _b) :
+		Variant(static_cast<long>(_b))
+	{}
 	Variant::Variant(int _i) :
-		type(E_DATA_TYPE::INT),
+		Variant(static_cast<long>(_i))
+	{}
+	Variant::Variant(long _i) :
+		type(E_DATA_TYPE::INTEGER),
 		ptype(std::type_index(typeid(nullptr))),
 		i(_i)
 	{}
 	Variant::Variant(float _f) :
-		type(E_DATA_TYPE::FLOAT),
+		Variant(static_cast<double>(_f))
+	{}
+	Variant::Variant(double _f) :
+		type(E_DATA_TYPE::FLOATING),
 		ptype(std::type_index(typeid(nullptr))),
 		f(_f)
-	{}
-	Variant::Variant(double _d) :
-		type(E_DATA_TYPE::DOUBLE),
-		ptype(std::type_index(typeid(nullptr))),
-		d(_d)
 	{}
 	Variant::Variant(const std::string& _s) :
 		type(E_DATA_TYPE::STRING),
@@ -235,7 +231,7 @@ namespace bee {
 				_ns = _ns.substr(1, _ns.length()-2);
 				type = E_DATA_TYPE::STRING;
 				new (&s) std::string(util::string::unescape(_ns));
-			} else if ((_ns[0] == '[')&&(_ns[_ns.length()-1] == ']')) { // Array
+			} else if ((_ns[0] == '[')&&(_ns[_ns.length()-1] == ']')) { // Vector
 				type = E_DATA_TYPE::VECTOR;
 				new (&v) std::vector<Variant>;
 				util::vector_deserialize(_ns, &v);
@@ -243,19 +239,15 @@ namespace bee {
 				type = E_DATA_TYPE::MAP;
 				new (&m) std::map<Variant,Variant>;
 				util::map_deserialize(_ns, &m);
-			} else if (util::string::is_integer(_ns)) { // Integer
-				type = E_DATA_TYPE::INT;
-				i = std::stoi(_ns);
+			} else if (util::string::is_integer(_ns)) { // Long
+				type = E_DATA_TYPE::INTEGER;
+				i = std::stol(_ns);
 			} else if (util::string::is_floating(_ns)) { // Double
-				type = E_DATA_TYPE::DOUBLE;
-				d = std::stod(_ns);
+				type = E_DATA_TYPE::FLOATING;
+				f = std::stod(_ns);
 			} else if ((_ns == "true")||(_ns == "false")) { // Boolean
-				type = E_DATA_TYPE::INT;
-				if (_ns == "true") {
-					i = 1;
-				} else {
-					i = 0;
-				}
+				type = E_DATA_TYPE::INTEGER;
+				i = (_ns == "true");
 			} else { // Probably a string
 				messenger::send({"engine", "variant"}, E_MESSAGE::WARNING, "Variant type not determined, storing as string: \"" + ns + "\"");
 				type = E_DATA_TYPE::STRING;
@@ -281,14 +273,11 @@ namespace bee {
 			case E_DATA_TYPE::CHAR: {
 				return std::string(1, c);
 			}
-			case E_DATA_TYPE::INT: {
+			case E_DATA_TYPE::INTEGER: {
 				return std::to_string(i);
 			}
-			case E_DATA_TYPE::FLOAT: {
+			case E_DATA_TYPE::FLOATING: {
 				return std::to_string(f);
-			}
-			case E_DATA_TYPE::DOUBLE: {
-				return std::to_string(d);
 			}
 			case E_DATA_TYPE::STRING: {
 				return "\"" + util::string::escape(s) + "\"";
@@ -326,16 +315,12 @@ namespace bee {
 					this->c = rhs.c;
 					break;
 				}
-				case E_DATA_TYPE::INT: {
+				case E_DATA_TYPE::INTEGER: {
 					this->i = rhs.i;
 					break;
 				}
-				case E_DATA_TYPE::FLOAT: {
+				case E_DATA_TYPE::FLOATING: {
 					this->f = rhs.f;
-					break;
-				}
-				case E_DATA_TYPE::DOUBLE: {
-					this->d = rhs.d;
 					break;
 				}
 				case E_DATA_TYPE::STRING: {
@@ -362,7 +347,15 @@ namespace bee {
 		*this = Variant(_c);
 		return *this;
 	}
+	Variant& Variant::operator=(bool _i) {
+		*this = Variant(_i);
+		return *this;
+	}
 	Variant& Variant::operator=(int _i) {
+		*this = Variant(_i);
+		return *this;
+	}
+	Variant& Variant::operator=(long _i) {
 		*this = Variant(_i);
 		return *this;
 	}
@@ -370,8 +363,8 @@ namespace bee {
 		*this = Variant(_f);
 		return *this;
 	}
-	Variant& Variant::operator=(double _d) {
-		*this = Variant(_d);
+	Variant& Variant::operator=(double _f) {
+		*this = Variant(_f);
 		return *this;
 	}
 	Variant& Variant::operator=(const std::string& _s) {
@@ -408,14 +401,11 @@ namespace bee {
 			case E_DATA_TYPE::CHAR: {
 				return (this->c == rhs.c);
 			}
-			case E_DATA_TYPE::INT: {
+			case E_DATA_TYPE::INTEGER: {
 				return (this->i == rhs.i);
 			}
-			case E_DATA_TYPE::FLOAT: {
+			case E_DATA_TYPE::FLOATING: {
 				return (this->f == rhs.f);
-			}
-			case E_DATA_TYPE::DOUBLE: {
-				return (this->d == rhs.d);
 			}
 			case E_DATA_TYPE::STRING: {
 				return (this->s == rhs.s);
@@ -440,7 +430,7 @@ namespace bee {
 
 	bool operator<(const Variant& a, const Variant& b) {
 		if (a.type != b.type) {
-			return (static_cast<int>(a.type) < static_cast<int>(b.type)); // Compare the type values so different types can be used in an ordered map
+			return (static_cast<unsigned char>(a.type) < static_cast<unsigned char>(b.type)); // Compare the type values so different types can be used in an ordered map
 		}
 
 		switch (a.type) {
@@ -450,14 +440,11 @@ namespace bee {
 			case E_DATA_TYPE::CHAR: {
 				return (a.c < b.c);
 			}
-			case E_DATA_TYPE::INT: {
+			case E_DATA_TYPE::INTEGER: {
 				return (a.i < b.i);
 			}
-			case E_DATA_TYPE::FLOAT: {
+			case E_DATA_TYPE::FLOATING: {
 				return (a.f < b.f);
-			}
-			case E_DATA_TYPE::DOUBLE: {
-				return (a.d < b.d);
 			}
 			case E_DATA_TYPE::STRING: {
 				return (a.s < b.s);

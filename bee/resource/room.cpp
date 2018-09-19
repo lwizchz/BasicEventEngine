@@ -362,17 +362,17 @@ namespace bee {
 		for (auto& vw : m["viewports"].m) {
 			std::map<Variant,Variant>& vm (vw.second.m["view"].m);
 			SDL_Rect v = {
-				vm["x"].i,
-				vm["y"].i,
-				vm["w"].i,
-				vm["h"].i
+				static_cast<int>(vm["x"].i),
+				static_cast<int>(vm["y"].i),
+				static_cast<int>(vm["w"].i),
+				static_cast<int>(vm["h"].i)
 			};
 			std::map<Variant,Variant>& pm (vw.second.m["port"].m);
 			SDL_Rect p = {
-				pm["x"].i,
-				pm["y"].i,
-				pm["w"].i,
-				pm["h"].i
+				static_cast<int>(pm["x"].i),
+				static_cast<int>(pm["y"].i),
+				static_cast<int>(pm["w"].i),
+				static_cast<int>(pm["h"].i)
 			};
 
 			ViewPort vp (
@@ -696,7 +696,7 @@ namespace bee {
 
 		// Store and restore the Instance's mass
 		if (pf.path == nullptr) {
-			inst->set_mass(inst->get_data("__path_previous_mass", Variant(0.0), false).d);
+			inst->set_mass(inst->get_data("__path_previous_mass", Variant(0.0), false).f);
 		} else {
 			inst->set_data("__path_previous_mass", inst->get_mass());
 			inst->set_mass(0.0);
@@ -1193,7 +1193,7 @@ namespace bee {
 		}
 		viewport_current = nullptr;
 
-		draw_set_color(RGBA(E_RGB::WHITE));
+		render::draw_set_color(RGBA(E_RGB::WHITE));
 
 		render::set_target(prev_target);
 		render::set_viewport(nullptr);
@@ -1220,7 +1220,7 @@ namespace bee {
 	*/
 	void Room::draw_view(ViewPort* viewport) {
 		// Draw backgrounds
-		draw_set_color(RGBA(E_RGB::WHITE));
+		render::draw_set_color(RGBA(E_RGB::WHITE));
 
 		render::set_target(viewport->texture.get());
 		render::set_viewport(viewport);
@@ -1253,7 +1253,7 @@ namespace bee {
 
 		if (get_option("is_debug_enabled").i) {
 			// Draw room outline
-			draw_rectangle(0, 0, get_width(), get_height(), 1, RGBA(E_RGB::RED));
+			render::draw_rectangle(0, 0, get_width(), get_height(), 1, RGBA(E_RGB::RED));
 
 			// Draw physics engine debug shapes
 			physics_world->draw_debug();

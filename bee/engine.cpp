@@ -37,6 +37,7 @@
 #include "render/drawing.hpp"
 #include "render/render.hpp"
 #include "render/renderer.hpp"
+#include "render/transition.hpp"
 
 #include "resource/texture.hpp"
 #include "resource/sound.hpp"
@@ -111,10 +112,7 @@ namespace bee {
 			}
 		}
 
-		engine->texture_before = new Texture();
-		engine->texture_before->load_as_target(engine->width, engine->height);
-		engine->texture_after = new Texture();
-		engine->texture_after->load_as_target(engine->width, engine->height);
+		render::internal::init_transitions();
 
 		engine->font_default = Font::add("font_default", "liberation_mono.ttf", 16);
 
@@ -131,8 +129,6 @@ namespace bee {
 			}
 		}
 
-		console::internal::init_ui();
-
 		if (handle_flags(false) < 0) {
 			return 1; // Return 1 when the flags request to exit
 		}
@@ -141,6 +137,8 @@ namespace bee {
 		return 0; // Return 0 on success
 	}
 	int loop() {
+		console::internal::init_ui();
+
 		engine->tickstamp = get_ticks();
 		engine->fps_ticks = get_ticks();
 
@@ -209,7 +207,7 @@ namespace bee {
 				if (get_option("single_run").i) {
 					if (!get_option("is_headless").i) {
 						engine->current_room->draw();
-						save_screenshot("single_run.bmp");
+						render::save_screenshot("single_run.bmp");
 					}
 					engine->quit = true;
 				}
@@ -676,6 +674,26 @@ namespace bee {
 	*/
 	unsigned int get_fps_goal() {
 		return engine->fps_goal;
+	}
+	/**
+	* @returns the stablized frames per second, e.g. 60fps
+	*/
+	unsigned int get_fps_stable() {
+		return engine->fps_stable;
+	}
+
+	/**
+	* Check whether we received an SDL_QUIT event in the middle of heavy data-processing.
+	* ! This function should be periodically called by any loop that retains control for more than 500ms
+	* ! Note that this will not handle custom close events such as the Escape key
+	*/
+	bool compute_check_quit() {
+		SDL_PumpEvents();
+		if (SDL_PeepEvents(nullptr, 1, SDL_PEEKEVENT, SDL_QUIT, SDL_QUIT) > 0) {
+			engine->quit = true;
+		}
+
+		return engine->quit;
 	}
 
 	/**

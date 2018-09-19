@@ -128,15 +128,8 @@ namespace bee { namespace python {
 			return 1;
 		}
 
-		PyObject* fileobj = Py_BuildValue("s", filename.c_str());
-		FILE* file = _Py_fopen_obj(fileobj, "r");
-		if (file == nullptr) {
-			messenger::send({"engine", "python"}, E_MESSAGE::ERROR, "Failed to open file \"" + filename + "\"");
+		if (run_string(fs::get_file(filename).get())) {
 			return 2;
-		}
-
-		if (PyRun_SimpleFileEx(file, filename.c_str(), 1) < 0) {
-			return 3;
 		}
 
 		return 0;
@@ -230,7 +223,7 @@ namespace bee { namespace python {
 		if (obj == Py_None) {
 			var = Variant(E_DATA_TYPE::NONE);
 		} else if (PyLong_Check(obj)) {
-			var = static_cast<int>(PyLong_AsLong(obj));
+			var = PyLong_AsLong(obj);
 		} else if (PyBool_Check(obj)) {
 			var = (obj == Py_True);
 		} else if (PyFloat_Check(obj)) {
@@ -349,14 +342,11 @@ namespace bee { namespace python {
 			case E_DATA_TYPE::CHAR: {
 				return PyUnicode_FromString(std::string(1, var.c).c_str());
 			}
-			case E_DATA_TYPE::INT: {
+			case E_DATA_TYPE::INTEGER: {
 				return PyLong_FromLong(var.i);
 			}
-			case E_DATA_TYPE::FLOAT: {
+			case E_DATA_TYPE::FLOATING: {
 				return PyFloat_FromDouble(var.f);
-			}
-			case E_DATA_TYPE::DOUBLE: {
-				return PyFloat_FromDouble(var.d);
 			}
 			case E_DATA_TYPE::STRING: {
 				return PyUnicode_FromString(var.s.c_str());
@@ -459,6 +449,7 @@ namespace bee { namespace python {
 	/**
 	* Run the given string in the loaded module.
 	* @param code the code string to run
+	* @param path the source file of the code string
 	* @param retval the pointer to store the code return value in
 	* @param start the start point of the Python interpreter, either Py_file_input or Py_single_input
 	*
@@ -467,7 +458,7 @@ namespace bee { namespace python {
 	* @retval 2 failed to compile the code string, see the Python exception for more info
 	* @retval 3 failed to evaluate the code, see the Python exception for more info
 	*/
-	int PythonScriptInterface::run_string(const std::string& code, Variant* retval, int start) {
+	int PythonScriptInterface::run_string(const std::string& code, const std::string& filename, Variant* retval, int start) {
 		if (module == nullptr) {
 			messenger::send({"engine", "python"}, E_MESSAGE::ERROR, "Failed to run python string \"" + path + "\": script is not loaded");
 			return 1;
@@ -499,7 +490,7 @@ namespace bee { namespace python {
 			}
 		}
 
-		PyObject* codeobj = Py_CompileString(code.c_str(), "<string>", start);
+		PyObject* codeobj = Py_CompileString(code.c_str(), filename.c_str(), start);
 		if (codeobj == nullptr) {
 			PyErr_Print();
 			messenger::send({"engine", "python"}, E_MESSAGE::ERROR, "Python script codestring \"" + code + "\" compile failed for \"" + path + "\"");
@@ -539,16 +530,21 @@ namespace bee { namespace python {
 	* @see run_string(const std::string&, Variant*, int) for return values
 	*/
 	int PythonScriptInterface::run_string(const std::string& code, Variant* retval) {
-		return run_string(code, retval, Py_single_input);
+		return run_string(code, "<string>", retval, Py_single_input);
 	}
 	/**
 	* Run the given file in the loaded module.
 	* @param filename the file to run
 	*
+	* @retval -1 failed since the file doesn't exist in the filesystem
 	* @see run_string(const std::string&, Variant*, int) for return values
 	*/
 	int PythonScriptInterface::run_file(const std::string& filename) {
-		return run_string(fs::get_file(filename).get(), nullptr, Py_file_input);
+		FilePath fp (fs::get_file(filename));
+		if (fp.exists()) {
+			return run_string(fp.get(), fp.get_path(), nullptr, Py_file_input);
+		}
+		return -1;
 	}
 	/**
 	* Run the given function in the loaded module.

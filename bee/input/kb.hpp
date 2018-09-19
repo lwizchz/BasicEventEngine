@@ -38,7 +38,7 @@ namespace kb {
 	int bind(SDL_Keycode, KeyBind);
 	KeyBind get_keybind(SDL_Keycode);
 	KeyBind get_keybind(const std::string&);
-	void unbind(SDL_Keycode);
+	int unbind(SDL_Keycode);
 	int unbind(KeyBind);
 	void unbind_all();
 }}

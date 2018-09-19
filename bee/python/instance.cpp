@@ -21,10 +21,15 @@
 #include "../resource/texture.hpp"
 #include "../resource/object.hpp"
 
+#include "resource/object.hpp"
 #include "physics/body.hpp"
 
 namespace bee { namespace python {
 	PyObject* Instance_from(const Instance* inst) {
+		if (inst == nullptr) {
+			return nullptr;
+		}
+
 		PyObject* py_inst = internal::Instance_new(&internal::InstanceType, nullptr, nullptr);
 		internal::InstanceObject* _py_inst = reinterpret_cast<internal::InstanceObject*>(py_inst);
 
@@ -40,7 +45,10 @@ namespace bee { namespace python {
 namespace internal {
 	PyMethodDef InstanceMethods[] = {
 		{"at", reinterpret_cast<PyCFunction>(Instance_at), METH_VARARGS, "Return the nth Instance of the Object"},
+		{"get_id", reinterpret_cast<PyCFunction>(Instance_get_id), METH_NOARGS, "Return the Instance id"},
 
+		{"serialize", reinterpret_cast<PyCFunction>(Instance_serialize), METH_NOARGS, ""},
+		{"deserialize", reinterpret_cast<PyCFunction>(Instance_deserialize), METH_VARARGS, ""},
 		{"print", reinterpret_cast<PyCFunction>(Instance_print), METH_NOARGS, "Print all relevant information about the Instance"},
 
 		{"set_alarm", reinterpret_cast<PyCFunction>(Instance_set_alarm), METH_VARARGS, "Set the alarm with the given name"},
@@ -72,7 +80,7 @@ namespace internal {
 		{"set_gravity", reinterpret_cast<PyCFunction>(Instance_set_gravity), METH_VARARGS, "Set the gravity vector of the attached PhysicsBody"},
 		{"set_velocity", reinterpret_cast<PyCFunction>(Instance_set_velocity), METH_VARARGS, "Set the velocity of the attached PhysicsBody"},
 		{"add_velocity", reinterpret_cast<PyCFunction>(Instance_add_velocity), METH_VARARGS, "Add the given velocityy to the velocity of the attached PhysicsBody"},
-		// Do some terrible casting to get rid of an incompatible function type warning
+		// FIXME: Do some terrible casting to get rid of an incompatible function type warning
 		{"limit_velocity", reinterpret_cast<PyCFunction>(reinterpret_cast<void (*)(void)>(Instance_limit_velocity)), METH_VARARGS | METH_KEYWORDS, "Limit the velocity of the attached PhysicsBody along the given axes"},
 		//{"limit_velocity", reinterpret_cast<PyCFunction>(Instance_limit_velocity), METH_VARARGS | METH_KEYWORDS, "Limit the velocity of the attached PhysicsBody along the given axes"},
 
@@ -81,6 +89,24 @@ namespace internal {
 		{"get_velocity_ang", reinterpret_cast<PyCFunction>(Instance_get_velocity_ang), METH_NOARGS, "Return the angular velocity of the attached PhysicsBody"},
 		{"get_friction", reinterpret_cast<PyCFunction>(Instance_get_friction), METH_NOARGS, "Return the friction of the attached PhysicsBody"},
 		{"get_gravity", reinterpret_cast<PyCFunction>(Instance_get_gravity), METH_NOARGS, "Return the gravity vector of the attached PhysicsBody"},
+
+		{"is_place_free", reinterpret_cast<PyCFunction>(Instance_is_place_free), METH_VARARGS, "Check whether a move to the given coordinates would be collision-free"},
+		{"is_place_empty", reinterpret_cast<PyCFunction>(Instance_is_place_empty), METH_VARARGS, "Check whether a move to the given coordinates would overlap with another Instance"},
+		{"is_place_meeting", reinterpret_cast<PyCFunction>(Instance_is_place_meeting), METH_VARARGS, "Check whether a move to the given coordinates would overlap with a certain Object and optionally run a callback for each Instance"},
+		{"is_move_free", reinterpret_cast<PyCFunction>(Instance_is_move_free), METH_VARARGS, "Check whether a move with the given magnitude and direction would be collision-free"},
+		{"is_snapped", reinterpret_cast<PyCFunction>(Instance_is_snapped), METH_VARARGS, "Check whether the current position is aligned to the given grid size"},
+
+		{"get_snapped", reinterpret_cast<PyCFunction>(Instance_get_snapped), METH_VARARGS, "Return the 2D coordinates aligned to the given grid size"},
+		{"move_random", reinterpret_cast<PyCFunction>(Instance_move_random), METH_VARARGS, "Move to a random 2D position aligned to the given grid size"},
+		{"move_snap", reinterpret_cast<PyCFunction>(Instance_move_snap), METH_VARARGS, "Move the 2D position to align with the given grid size"},
+		{"move_wrap", reinterpret_cast<PyCFunction>(Instance_move_wrap), METH_VARARGS, "Wrap the 2D position around the screen with the given margin"},
+
+		// FIXME: Do some terrible casting to get rid of an incompatible function type warning
+		{"get_distance", reinterpret_cast<PyCFunction>(reinterpret_cast<void (*)(void)>(Instance_get_distance)), METH_VARARGS | METH_KEYWORDS, "Return the distance to the given position vector"},
+		{"get_direction_of", reinterpret_cast<PyCFunction>(reinterpret_cast<void (*)(void)>(Instance_get_direction_of)), METH_VARARGS | METH_KEYWORDS, "Return a unit vector in the direction of the given position vector"},
+		{"get_relation", reinterpret_cast<PyCFunction>(Instance_get_relation), METH_VARARGS, "Determine the 2D relation with a given Instance"},
+
+		{"draw", reinterpret_cast<PyCFunction>(Instance_draw), METH_VARARGS, "Draw the sprite Texture with the given properties"},
 
 		{nullptr, nullptr, 0, nullptr}
 	};
@@ -101,7 +127,7 @@ namespace internal {
 		0,
 		reinterpret_cast<reprfunc>(Instance_repr),
 		0, 0, 0,
-		0,
+		reinterpret_cast<hashfunc>(Instance_hash),
 		0,
 		reinterpret_cast<reprfunc>(Instance_str),
 		0, 0,
@@ -110,7 +136,7 @@ namespace internal {
 		"Instance objects",
 		0,
 		0,
-		0,
+		reinterpret_cast<richcmpfunc>(Instance_richcmp),
 		0,
 		0, 0,
 		InstanceMethods,
@@ -211,6 +237,37 @@ namespace internal {
 
 		return 0;
 	}
+	Py_hash_t Instance_hash(InstanceObject* inst) {
+		return inst->num;
+	}
+	PyObject* Instance_richcmp(InstanceObject* lhs, InstanceObject* rhs, int op) {
+		int lid = lhs->num;
+		int rid = rhs->num;
+
+		switch (op) {
+			case Py_LT: {
+				return PyLong_FromLong(lid < rid);
+			}
+			case Py_LE: {
+				return PyLong_FromLong(lid <= rid);
+			}
+			case Py_EQ: {
+				return PyLong_FromLong(lid == rid);
+			}
+			case Py_NE: {
+				return PyLong_FromLong(lid != rid);
+			}
+			case Py_GT: {
+				return PyLong_FromLong(lid > rid);
+			}
+			case Py_GE: {
+				return PyLong_FromLong(lid >= rid);
+			}
+			default: {
+				Py_RETURN_NOTIMPLEMENTED;
+			};
+		}
+	}
 
 	PyObject* Instance_at(InstanceObject* self, PyObject* args) {
 		int index;
@@ -239,6 +296,14 @@ namespace internal {
 
 		return Py_BuildValue("O", self);
 	}
+	PyObject* Instance_get_id(InstanceObject* self, PyObject* args) {
+		Instance* inst = as_instance(self);
+		if (inst == nullptr) {
+			return nullptr;
+		}
+
+		return PyLong_FromLong(inst->id);
+	}
 
 	PyObject* Instance_repr(InstanceObject* self) {
 		std::string s = std::string("bee.Instance(\"") + PyUnicode_AsUTF8(self->name) + "\", " + std::to_string(self->num) + ")";
@@ -254,6 +319,31 @@ namespace internal {
 		std::string s = "Instance " + m.to_str(true);
 
 		return PyUnicode_FromString(s.c_str());
+	}
+
+	PyObject* Instance_serialize(InstanceObject* self, PyObject* args) {
+		Instance* inst = as_instance(self);
+		if (inst == nullptr) {
+			return nullptr;
+		}
+
+		return variant_to_pyobj(Variant(inst->serialize()));
+	}
+	PyObject* Instance_deserialize(InstanceObject* self, PyObject* args) {
+		PyObject* data;
+
+		if (!PyArg_ParseTuple(args, "O!", &PyDict_Type, &data)) {
+			return nullptr;
+		}
+
+		Instance* inst = as_instance(self);
+		if (inst == nullptr) {
+			return nullptr;
+		}
+
+		Variant _data (pyobj_to_variant(data));
+
+		return PyLong_FromLong(inst->deserialize(_data.m));
 	}
 	PyObject* Instance_print(InstanceObject* self, PyObject* args) {
 		Instance* inst = as_instance(self);
@@ -383,7 +473,11 @@ namespace internal {
 
 		btVector3 pos (inst->get_pos());
 
-		return Py_BuildValue("(ddd)", pos.x(), pos.y(), pos.z());
+		double x = pos.x();
+		double y = pos.y();
+		double z = pos.z();
+
+		return Py_BuildValue("(ddd)", x, y, z);
 	}
 	PyObject* Instance_get_aabb(InstanceObject* self, PyObject* args) {
 		Instance* inst = as_instance(self);
@@ -414,7 +508,11 @@ namespace internal {
 
 		btVector3 start (inst->get_start());
 
-		return Py_BuildValue("(ddd)", start.x(), start.y(), start.z());
+		double x = start.x();
+		double y = start.y();
+		double z = start.z();
+
+		return Py_BuildValue("(ddd)", x, y, z);
 	}
 
 	PyObject* Instance_get_sprite(InstanceObject* self, PyObject* args) {
@@ -656,7 +754,11 @@ namespace internal {
 
 		btVector3 v (inst->get_velocity());
 
-		return Py_BuildValue("(ddd)", v.x(), v.y(), v.z());
+		double x = v.x();
+		double y = v.y();
+		double z = v.z();
+
+		return Py_BuildValue("(ddd)", x, y, z);
 	}
 	PyObject* Instance_get_velocity_ang(InstanceObject* self, PyObject* args) {
 		Instance* inst = as_instance(self);
@@ -666,7 +768,11 @@ namespace internal {
 
 		btVector3 v (inst->get_velocity_ang());
 
-		return Py_BuildValue("(ddd)", v.x(), v.y(), v.z());
+		double x = v.x();
+		double y = v.y();
+		double z = v.z();
+
+		return Py_BuildValue("(ddd)", x, y, z);
 	}
 	PyObject* Instance_get_friction(InstanceObject* self, PyObject* args) {
 		Instance* inst = as_instance(self);
@@ -684,7 +790,292 @@ namespace internal {
 
 		btVector3 g (inst->get_gravity());
 
-		return Py_BuildValue("(ddd)", g.x(), g.y(), g.z());
+		double x = g.x();
+		double y = g.y();
+		double z = g.z();
+
+		return Py_BuildValue("(ddd)", x, y, z);
+	}
+
+	PyObject* Instance_is_place_free(InstanceObject* self, PyObject* args) {
+		int x, y;
+
+		if (!PyArg_ParseTuple(args, "ii", &x, &y)) {
+			return nullptr;
+		}
+
+		Instance* inst = as_instance(self);
+		if (inst == nullptr) {
+			return nullptr;
+		}
+
+		return PyBool_FromLong(inst->is_place_free(x, y));
+	}
+	PyObject* Instance_is_place_empty(InstanceObject* self, PyObject* args) {
+		int x, y;
+
+		if (!PyArg_ParseTuple(args, "ii", &x, &y)) {
+			return nullptr;
+		}
+
+		Instance* inst = as_instance(self);
+		if (inst == nullptr) {
+			return nullptr;
+		}
+
+		return PyBool_FromLong(inst->is_place_empty(x, y));
+	}
+	PyObject* Instance_is_place_meeting(InstanceObject* self, PyObject* args) {
+		int x, y;
+		ObjectObject* obj;
+		PyObject* callback = nullptr;
+
+		if (!PyArg_ParseTuple(args, "iiO!|O", &x, &y, &ObjectType, &obj, &callback)) {
+			return nullptr;
+		}
+
+		Object* _obj = as_object(obj);
+		if (_obj == nullptr) {
+			return nullptr;
+		}
+
+		Instance* inst = as_instance(self);
+		if (inst == nullptr) {
+			return nullptr;
+		}
+
+		if (callback == nullptr) {
+			return PyBool_FromLong(inst->is_place_meeting(x, y, _obj));
+		} else {
+			if (!PyCallable_Check(callback)) {
+				PyErr_SetString(PyExc_TypeError, "parameter must be callable");
+				return nullptr;
+			}
+
+			return PyBool_FromLong(inst->is_place_meeting(x, y, _obj, [callback] (Instance* _self, Instance* _other) {
+				PyObject* arg_tup = Py_BuildValue("(NN)", Instance_from(_self), Instance_from(_other));
+				if (PyEval_CallObject(callback, arg_tup) == nullptr) {
+					PyErr_Print();
+				}
+				Py_DECREF(arg_tup);
+			}));
+		}
+	}
+	PyObject* Instance_is_move_free(InstanceObject* self, PyObject* args) {
+		double x, y;
+
+		if (!PyArg_ParseTuple(args, "dd", &x, &y)) {
+			return nullptr;
+		}
+
+		Instance* inst = as_instance(self);
+		if (inst == nullptr) {
+			return nullptr;
+		}
+
+		return PyBool_FromLong(inst->is_move_free(x, y));
+	}
+	PyObject* Instance_is_snapped(InstanceObject* self, PyObject* args) {
+		int x, y;
+
+		if (!PyArg_ParseTuple(args, "ii", &x, &y)) {
+			return nullptr;
+		}
+
+		Instance* inst = as_instance(self);
+		if (inst == nullptr) {
+			return nullptr;
+		}
+
+		return PyBool_FromLong(inst->is_snapped(x, y));
+	}
+
+	PyObject* Instance_get_snapped(InstanceObject* self, PyObject* args) {
+		int x = 0;
+		int y = 0;
+
+		if (!PyArg_ParseTuple(args, "|ii", &x, &y)) {
+			return nullptr;
+		}
+
+		Instance* inst = as_instance(self);
+		if (inst == nullptr) {
+			return nullptr;
+		}
+
+		std::pair<int,int> snap_pos;
+		if ((x == 0)||(y == 0)) {
+			snap_pos = inst->get_snapped();
+		} else {
+			snap_pos = inst->get_snapped(x, y);
+		}
+
+		return Py_BuildValue("(ii)", snap_pos.first, snap_pos.second);
+	}
+	PyObject* Instance_move_random(InstanceObject* self, PyObject* args) {
+		int x, y;
+
+		if (!PyArg_ParseTuple(args, "ii", &x, &y)) {
+			return nullptr;
+		}
+
+		Instance* inst = as_instance(self);
+		if (inst == nullptr) {
+			return nullptr;
+		}
+
+		inst->move_random(x, y);
+
+		Py_RETURN_NONE;
+	}
+	PyObject* Instance_move_snap(InstanceObject* self, PyObject* args) {
+		int x = 0;
+		int y = 0;
+
+		if (!PyArg_ParseTuple(args, "|ii", &x, &y)) {
+			return nullptr;
+		}
+
+		Instance* inst = as_instance(self);
+		if (inst == nullptr) {
+			return nullptr;
+		}
+
+		if ((x == 0)||(y == 0)) {
+			inst->move_snap();
+		} else {
+			inst->move_snap(x, y);
+		}
+
+		Py_RETURN_NONE;
+	}
+	PyObject* Instance_move_wrap(InstanceObject* self, PyObject* args) {
+		bool h, v;
+		int margin;
+
+		if (!PyArg_ParseTuple(args, "ppi", &h, &v, &margin)) {
+			return nullptr;
+		}
+
+		Instance* inst = as_instance(self);
+		if (inst == nullptr) {
+			return nullptr;
+		}
+
+		inst->move_wrap(h, v, margin);
+
+		Py_RETURN_NONE;
+	}
+
+	PyObject* Instance_get_distance(InstanceObject* self, PyObject* args, PyObject* kwds) {
+		const char* kwlist[] = {"", "inst", "obj", nullptr};
+
+		double x = nan(""), y = nan(""), z = nan("");
+		InstanceObject* other = nullptr;
+		ObjectObject* other_obj = nullptr;
+		if (!PyArg_ParseTupleAndKeywords(args, kwds, "|(ddd)$O!O!", const_cast<char**>(kwlist), &x, &y, &z, &InstanceType, &other, &ObjectType, &other_obj)) {
+			return nullptr;
+		}
+
+		Instance* inst = as_instance(self);
+		if (inst == nullptr) {
+			return nullptr;
+		}
+
+		if ((!isnan(x))&&(!isnan(y))&&(!isnan(z))) {
+			return PyFloat_FromDouble(inst->get_distance(btVector3(x, y, z)));
+		} else if (other != nullptr) {
+			Instance* _other = as_instance(other);
+			if (_other == nullptr) {
+				return nullptr;
+			}
+			return PyFloat_FromDouble(inst->get_distance(_other));
+		} else if (other_obj != nullptr) {
+			Object* _other_obj = as_object(other_obj);
+			if (_other_obj == nullptr) {
+				return nullptr;
+			}
+			return PyFloat_FromDouble(inst->get_distance(_other_obj));
+		}
+
+		return nullptr;
+	}
+	PyObject* Instance_get_direction_of(InstanceObject* self, PyObject* args, PyObject* kwds) {
+		const char* kwlist[] = {"", "inst", "obj", nullptr};
+
+		double x = nan(""), y = nan(""), z = nan("");
+		InstanceObject* other = nullptr;
+		ObjectObject* other_obj = nullptr;
+		if (!PyArg_ParseTupleAndKeywords(args, kwds, "|(ddd)$O!O!", const_cast<char**>(kwlist), &x, &y, &z, &InstanceType, &other, &ObjectType, &other_obj)) {
+			return nullptr;
+		}
+
+		Instance* inst = as_instance(self);
+		if (inst == nullptr) {
+			return nullptr;
+		}
+
+		btVector3 dir;
+		if ((!isnan(x))&&(!isnan(y))&&(!isnan(z))) {
+			dir = inst->get_direction_of(btVector3(x, y, z));
+		} else if (other != nullptr) {
+			Instance* _other = as_instance(other);
+			if (_other == nullptr) {
+				return nullptr;
+			}
+			dir = inst->get_direction_of(_other);
+		} else if (other_obj != nullptr) {
+			Object* _other_obj = as_object(other_obj);
+			if (_other_obj == nullptr) {
+				return nullptr;
+			}
+			dir = inst->get_direction_of(_other_obj);
+		} else {
+			return nullptr;
+		}
+
+		double dx = dir.x();
+		double dy = dir.y();
+		double dz = dir.z();
+
+		return Py_BuildValue("(ddd)", dx, dy, dz);
+	}
+	PyObject* Instance_get_relation(InstanceObject* self, PyObject* args) {
+		InstanceObject* other;
+
+		if (!PyArg_ParseTuple(args, "O!", &InstanceType, &other)) {
+			return nullptr;
+		}
+
+		Instance* _other = as_instance(other);
+		if (_other == nullptr) {
+			return nullptr;
+		}
+
+		Instance* inst = as_instance(self);
+		if (inst == nullptr) {
+			return nullptr;
+		}
+
+		return PyLong_FromLong(static_cast<int>(inst->get_relation(_other)));
+	}
+
+	PyObject* Instance_draw(InstanceObject* self, PyObject* args) {
+		int w = -1;
+		int h = -1;
+		double angle = 0.0;
+		RGBA color = {255, 255, 255, 255};
+
+		if (!PyArg_ParseTuple(args, "|iid(iiii)", &w, &h, &angle, &color.r, &color.g, &color.b, &color.a)) {
+			return nullptr;
+		}
+
+		Instance* inst = as_instance(self);
+		if (inst == nullptr) {
+			return nullptr;
+		}
+
+		return PyLong_FromLong(inst->draw(w, h, angle, color));
 	}
 }}}
 

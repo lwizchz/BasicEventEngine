@@ -207,8 +207,12 @@ namespace internal {
 		}
 
 		btVector3 inertia = physbody->get_inertia();
+		
+		double x = inertia.x();
+		double y = inertia.y();
+		double z = inertia.z();
 
-		return Py_BuildValue("(ddd)", inertia.x(), inertia.y(), inertia.z());
+		return Py_BuildValue("(ddd)", x, y, z);
 	}
 	PyObject* PhysicsBody_get_world(PhysicsBodyObject* self, PyObject* args) {
 		auto physbody = as_physics_body(self);
@@ -259,7 +263,11 @@ namespace internal {
 
 		btVector3 pos = physbody->get_pos();
 
-		return Py_BuildValue("(ddd)", pos.x(), pos.y(), pos.z());
+		double x = pos.x();
+		double y = pos.y();
+		double z = pos.z();
+
+		return Py_BuildValue("(ddd)", x, y, z);
 	}
 	PyObject* PhysicsBody_get_rotation(PhysicsBodyObject* self, PyObject* args) {
 		auto physbody = as_physics_body(self);

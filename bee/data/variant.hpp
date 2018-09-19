@@ -26,9 +26,8 @@ namespace bee {
 	public:
 		union {
 			unsigned char c;
-			int i;
-			float f;
-			double d;
+			long i;
+			double f;
 			std::string s;
 			std::vector<Variant> v;
 			std::map<Variant,Variant> m;
@@ -44,7 +43,9 @@ namespace bee {
 		//Variant(std::initializer_list<Variant>);
 
 		explicit Variant(unsigned char);
+		explicit Variant(bool);
 		explicit Variant(int);
+		explicit Variant(long);
 		explicit Variant(float);
 		explicit Variant(double);
 		explicit Variant(const std::string&);
@@ -66,7 +67,9 @@ namespace bee {
 
 		Variant& operator=(const Variant&);
 		Variant& operator=(unsigned char);
+		Variant& operator=(bool);
 		Variant& operator=(int);
+		Variant& operator=(long);
 		Variant& operator=(float);
 		Variant& operator=(double);
 		Variant& operator=(const std::string&);
@@ -109,7 +112,6 @@ namespace bee {
 #define _c(x) (*s)[x].c
 #define _i(x) (*s)[x].i
 #define _f(x) (*s)[x].f
-#define _d(x) (*s)[x].d
 #define _s(x) (*s)[x].s
 #define _v(x) (*s)[x].v
 #define _m(x) (*s)[x].m

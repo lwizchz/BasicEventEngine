@@ -139,8 +139,12 @@ namespace internal {
 		}
 
 		btVector3 grav = world->get_gravity();
+		
+		double x = grav.x();
+		double y = grav.y();
+		double z = grav.z();
 
-		return Py_BuildValue("(ddd)", grav.x(), grav.y(), grav.z());
+		return Py_BuildValue("(ddd)", x, y, z);
 	}
 	PyObject* PhysicsWorld_get_scale(PhysicsWorldObject* self, PyObject* args) {
 		auto world = as_physics_world(self).lock();

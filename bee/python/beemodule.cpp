@@ -21,6 +21,10 @@
 #include "kb.hpp"
 #include "loader.hpp"
 #include "physics.hpp"
+#include "fs.hpp"
+#include "render.hpp"
+#include "net.hpp"
+#include "ui.hpp"
 
 #include "instance.hpp"
 
@@ -62,6 +66,7 @@ namespace bee { namespace python { namespace internal {
 		{"get_delta", get_delta, METH_NOARGS, "Return the seconds elapsed since last frame"},
 		{"get_tick_delta", get_tick_delta, METH_NOARGS, "Return the millisecond ticks elapsed since last frame"},
 		{"get_fps_goal", get_fps_goal, METH_NOARGS, "Return the goal frames per second"},
+		{"get_fps_stable", get_fps_stable, METH_NOARGS, "Return the stabilized frames per second"},
 
 		{"restart_game", restart_game, METH_NOARGS, "Restart the game without reinitializaing"},
 		{"end_game", end_game, METH_NOARGS, "End the game"},
@@ -119,11 +124,7 @@ namespace bee { namespace python { namespace internal {
 
 		long i = start;
 		for (auto& e : enums) {
-			if (e.front() == '=') {
-				PyDict_SetItemString(_enum, e.substr(1).c_str(), PyLong_FromLong(i));
-			} else {
-				PyDict_SetItemString(_enum, e.c_str(), PyLong_FromLong(i++));
-			}
+			PyDict_SetItemString(_enum, e.c_str(), PyLong_FromLong(i++));
 		}
 
 		return _enum;
@@ -133,11 +134,7 @@ namespace bee { namespace python { namespace internal {
 
 		long i = start;
 		for (auto& e : enums) {
-			if (e.front() == '=') {
-				PyDict_SetItemString(_enum, e.substr(1).c_str(), PyLong_FromLong(1u << i));
-			} else {
-				PyDict_SetItemString(_enum, e.c_str(), PyLong_FromLong(1u << i++));
-			}
+			PyDict_SetItemString(_enum, e.c_str(), PyLong_FromLong(1u << i++));
 		}
 
 		return _enum;
@@ -162,9 +159,10 @@ namespace bee { namespace python { namespace internal {
 		PyModule_AddObject(module, "kb", PyInit_bee_kb());
 		PyModule_AddObject(module, "loader", PyInit_bee_loader());
 		PyModule_AddObject(module, "physics", PyInit_bee_physics());
-		//PyModule_AddObject(module, "render", PyInit_bee_render());
-		//PyModule_AddObject(module, "ui", PyInit_bee_ui());
-		//PyModule_AddObject(module, "network", PyInit_bee_network());
+		PyModule_AddObject(module, "fs", PyInit_bee_fs());
+		PyModule_AddObject(module, "render", PyInit_bee_render());
+		PyModule_AddObject(module, "net", PyInit_bee_net());
+		PyModule_AddObject(module, "ui", PyInit_bee_ui());
 
 		// Add core classes
 		if (PyInit_bee_instance(module) == nullptr) {
@@ -217,8 +215,7 @@ namespace bee { namespace python { namespace internal {
 			"OPTIONAL",
 			"REQUIRED"
 		}));
-		PyModule_AddObject(module, "E_SOUNDEFFECT", make_enum_bits({
-			"NONE",
+		PyModule_AddObject(module, "E_SOUNDEFFECT", make_enum({
 			"CHORUS",
 			"ECHO",
 			"FLANGER",
@@ -227,26 +224,32 @@ namespace bee { namespace python { namespace internal {
 			"COMPRESSOR",
 			"EQUALIZER"
 		}));
-		PyModule_AddObject(module, "E_RGB", make_enum({
-			"=CYAN", "AQUA",
-			"BLACK",
-			"BLUE",
-			"DKGRAY",
-			"=MAGENTA", "FUCHSIA",
-			"GRAY",
-			"GREEN",
-			"LIME",
-			"=LTGRAY", "SILVER",
-			"MAROON",
-			"NAVY",
-			"OLIVE",
-			"ORANGE",
-			"PURPLE",
-			"RED",
-			"TEAL",
-			"WHITE",
-			"YELLOW"
-		}));
+		PyObject* rgba = PyDict_New();
+		const std::map<E_RGB,std::string> colors = {
+			{E_RGB::CYAN, "CYAN"},
+			{E_RGB::BLACK, "BLACK"},
+			{E_RGB::BLUE, "BLUE"},
+			{E_RGB::DKGRAY, "DKGRAY"},
+			{E_RGB::MAGENTA, "MAGENTA"},
+			{E_RGB::GRAY, "GRAY"},
+			{E_RGB::GREEN, "GREEN"},
+			{E_RGB::LIME, "LIME"},
+			{E_RGB::LTGRAY, "LTGRAY"},
+			{E_RGB::MAROON, "MAROON"},
+			{E_RGB::NAVY, "NAVY"},
+			{E_RGB::OLIVE, "OLIVE"},
+			{E_RGB::ORANGE, "ORANGE"},
+			{E_RGB::PURPLE, "PURPLE"},
+			{E_RGB::RED, "RED"},
+			{E_RGB::TEAL, "TEAL"},
+			{E_RGB::WHITE, "WHITE"},
+			{E_RGB::YELLOW, "YELLOW"}
+		};
+		for (auto& color : colors) {
+			RGBA c = RGBA(color.first);
+			PyDict_SetItemString(rgba, color.second.c_str(), Py_BuildValue("(bbbb)", c.r, c.g, c.b, c.a));
+		}
+		PyModule_AddObject(module, "E_RGBA", rgba);
 		PyModule_AddObject(module, "E_RENDERER", make_enum({
 			"OPENGL3",
 			"OPENGL4"
@@ -384,13 +387,13 @@ namespace bee { namespace python { namespace internal {
 		PyDict_SetItemString(netsig1, "INVALID", PyLong_FromLong(255));
 		PyModule_AddObject(module, "E_NETSIG1", netsig1);
 		PyObject* netsig2 (make_enum({
-			"=NONE",
 			"KEEPALIVE",
 			"NAME",
 			"PLAYERS",
 			"KEYFRAME",
 			"DELTA",
 		}));
+		PyDict_SetItemString(netsig2, "NONE", PyLong_FromLong(0));
 		PyDict_SetItemString(netsig2, "INVALID", PyLong_FromLong(255));
 		PyModule_AddObject(module, "E_NETSIG2", netsig2);
 		PyModule_AddObject(module, "E_DATA_TYPE", make_enum({
@@ -452,6 +455,27 @@ namespace bee { namespace python { namespace internal {
 			"INVALID",
 			"PYTHON"
 		}));
+		PyModule_AddObject(module, "E_FS_ROOT_TYPE", make_enum({
+			"NOT_ROOT",
+			"IS_ROOT",
+			"HAS_ROOTS"
+		}));
+		PyModule_AddObject(module, "E_RELATION", make_enum({
+			"NONE",
+			"ABOVE",
+			"RIGHT",
+			"BELOW",
+			"LEFT"
+		}));
+
+		PyModule_AddObject(module, "E_SDL_BUTTON", make_enum({
+			"NONE",
+			"LEFT",
+			"MIDDLE",
+			"RIGHT",
+			"X1",
+			"X2"
+		}));
 
 		return module;
 	}
@@ -493,6 +517,9 @@ namespace bee { namespace python { namespace internal {
 	}
 	PyObject* get_fps_goal(PyObject* self, PyObject* args) {
 		return Py_BuildValue("k", bee::get_fps_goal());
+	}
+	PyObject* get_fps_stable(PyObject* self, PyObject* args) {
+		return Py_BuildValue("k", bee::get_fps_stable());
 	}
 
 	PyObject* restart_game(PyObject* self, PyObject* args) {

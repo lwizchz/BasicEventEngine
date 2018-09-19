@@ -126,7 +126,7 @@ namespace bee {
 		bool is_place_empty(int, int) const;
 		bool is_place_meeting(int, int, Object*) const;
 		bool is_place_meeting(int, int, Object*, std::function<void(Instance*, Instance*)>);
-		bool is_move_free(double, double);
+		bool is_move_free(double, double) const;
 		bool is_snapped(int, int) const;
 
 		std::pair<int,int> get_snapped(int, int) const;
@@ -142,7 +142,7 @@ namespace bee {
 		btVector3 get_direction_of(btVector3) const;
 		btVector3 get_direction_of(Instance*) const;
 		btVector3 get_direction_of(Object*) const;
-		int get_relation(Instance*) const;
+		E_RELATION get_relation(Instance*) const;
 
 		int draw(int, int, double, RGBA);
 		int draw();

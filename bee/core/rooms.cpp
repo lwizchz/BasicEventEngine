@@ -64,8 +64,8 @@ namespace bee {
 
 		bool is_game_start = false;
 		if (engine->current_room != nullptr) { // if we are currently in a room
-			if (engine->transition_type != E_TRANSITION::NONE) { // If a transition has been defined then draw the current room into the before buffer
-				render::set_target(engine->texture_before);
+			if (render::get_transition_type() != E_TRANSITION::NONE) { // If a transition has been defined then draw the current room into the before buffer
+				render::internal::transition_target_before();
 				engine->current_room->draw();
 			}
 			if (new_room != nullptr) {
@@ -73,8 +73,8 @@ namespace bee {
 				engine->current_room->reset_properties(); // Reset the current room's properties
 			}
 		} else { // if we are not in a room
-			if (engine->transition_type != E_TRANSITION::NONE) { // If a transition has been defined then draw nothing into the before buffer
-				render::set_target(engine->texture_before);
+			if (render::get_transition_type() != E_TRANSITION::NONE) { // If a transition has been defined then draw nothing into the before buffer
+				render::internal::transition_target_before();
 				render::clear();
 				render::render();
 			}
@@ -83,12 +83,12 @@ namespace bee {
 		}
 
 		if (new_room == nullptr) { // If we're transitioning to a null room, i.e. the game is ending
-			if (engine->transition_type != E_TRANSITION::NONE) { // If a transition has been defined then prepare for drawing an empty room into the after buffer
-				render::set_target(engine->texture_after);
+			if (render::get_transition_type() != E_TRANSITION::NONE) { // If a transition has been defined then prepare for drawing an empty room into the after buffer
+				render::internal::transition_target_after();
 				render::clear();
 				render::render();
 				render::reset_target();
-				draw_transition(); // Animate the defined transition from the before and after buffers
+				render::draw_transition(); // Animate the defined transition from the before and after buffers
 			}
 			engine->quit = true; // Set the quit flag just in case this was called in the main loop
 			return 0;
@@ -104,8 +104,8 @@ namespace bee {
 		//set_window_title(engine->current_room->get_name()); // Set the window title to the room's name
 		messenger::send({"engine", "room"}, E_MESSAGE::INFO, "Changed to room \"" + engine->current_room->get_name() + "\"");
 
-		if (engine->transition_type != E_TRANSITION::NONE) { // If a transition has been defined then prepare for drawing the new room into the after buffer
-			render::set_target(engine->texture_after);
+		if (render::get_transition_type() != E_TRANSITION::NONE) { // If a transition has been defined then prepare for drawing the new room into the after buffer
+			render::internal::transition_target_after();
 		} else { // Otherwise reset the render target just to be sure
 			render::reset_target();
 		}
@@ -125,9 +125,9 @@ namespace bee {
 			engine->current_room->draw(); // Run the draw event for the new room
 		}
 
-		if ((engine->transition_type != E_TRANSITION::NONE)&&(!get_option("is_headless").i)) { // If a transition has been defined then finish drawing the new room into the after buffer
+		if ((render::get_transition_type() != E_TRANSITION::NONE)&&(!get_option("is_headless").i)) { // If a transition has been defined then finish drawing the new room into the after buffer
 			render::reset_target();
-			draw_transition(); // Animate the defined transition from the before and after buffers
+			render::draw_transition(); // Animate the defined transition from the before and after buffers
 		}
 
 		if (should_jump) { // If we should jump to the end of the event loop

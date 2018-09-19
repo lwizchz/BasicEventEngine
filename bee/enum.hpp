@@ -259,9 +259,8 @@ namespace bee {
 	enum class E_DATA_TYPE : unsigned char {
 		NONE,
 		CHAR,
-		INT,
-		FLOAT,
-		DOUBLE,
+		INTEGER,
+		FLOATING,
 		STRING,
 		VECTOR,
 		MAP,
@@ -337,6 +336,26 @@ namespace bee {
 	enum class E_SCRIPT_TYPE {
 		INVALID,
 		PYTHON
+	};
+
+	/**
+	* The types of directory roots when mapping the filesystem.
+	*/
+	enum class E_FS_ROOT_TYPE {
+		NOT_ROOT,
+		IS_ROOT,
+		HAS_ROOTS
+	};
+
+	/**
+	* The 2D positional relation types.
+	*/
+	enum class E_RELATION {
+		NONE,
+		ABOVE,
+		RIGHT,
+		BELOW,
+		LEFT
 	};
 }
 

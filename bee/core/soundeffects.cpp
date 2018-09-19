@@ -78,11 +78,11 @@ namespace bee { namespace soundeffects {
 		std::vector<Variant>& vstream = data->at("stream").v;
 		std::map<Variant,Variant> p = data->at("params").m;
 
-		const double p_wet = p["wet"].d;
-		const double p_depth = p["depth"].d;
-		const double p_feedback = p["feedback"].d;
-		const double p_frequency = p["frequency"].d;
-		const double p_delay = p["delay"].d;
+		const double p_wet = p["wet"].f;
+		const double p_depth = p["depth"].f;
+		const double p_feedback = p["feedback"].f;
+		const double p_frequency = p["frequency"].f;
+		const double p_delay = p["delay"].f;
 
 		for (int i=0, e=0; i<len-1; i+=sizeof(Sint16)*2, e+=2) {
 			int lfo = 44.1 * (sin(PI/10.0 * p_frequency * vstream.size())*30.0*p_depth + 30.0 + p_delay);
@@ -125,9 +125,9 @@ namespace bee { namespace soundeffects {
 		std::vector<Variant>& vstream = data->at("stream").v;
 		std::map<Variant,Variant> p = data->at("params").m;
 
-		const double p_wet = p["wet"].d;
-		const double p_feedback = p["feedback"].d;
-		const double p_delay = p["delay"].d;
+		const double p_wet = p["wet"].f;
+		const double p_feedback = p["feedback"].f;
+		const double p_delay = p["delay"].f;
 
 		unsigned int offset = 44.1 * p_delay;
 		for (int i=0, e=0; i<len-1; i+=sizeof(Sint16)*2, e+=2) {
@@ -170,11 +170,11 @@ namespace bee { namespace soundeffects {
 		std::vector<Variant>& vstream = data->at("stream").v;
 		std::map<Variant,Variant> p = data->at("params").m;
 
-		const double p_wet = p["wet"].d;
-		const double p_depth = p["depth"].d;
-		const double p_feedback = p["feedback"].d;
-		const double p_frequency = p["frequency"].d;
-		const double p_delay = p["delay"].d;
+		const double p_wet = p["wet"].f;
+		const double p_depth = p["depth"].f;
+		const double p_feedback = p["feedback"].f;
+		const double p_frequency = p["frequency"].f;
+		const double p_delay = p["delay"].f;
 
 		const double d = 0.5 * p_delay;
 

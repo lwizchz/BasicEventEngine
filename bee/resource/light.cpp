@@ -351,26 +351,26 @@ namespace bee {
 
 		if (m.m.find("position") != m.m.end()) {
 			lighting.position = glm::vec4(
-				m.m["position"].v[0].d,
-				m.m["position"].v[1].d,
-				m.m["position"].v[2].d,
-				m.m["position"].v[3].d
+				m.m["position"].v[0].f,
+				m.m["position"].v[1].f,
+				m.m["position"].v[2].f,
+				m.m["position"].v[3].f
 			);
 		}
 		if (m.m.find("direction") != m.m.end()) {
 			lighting.direction = glm::vec4(
-				m.m["direction"].v[0].d,
-				m.m["direction"].v[1].d,
-				m.m["direction"].v[2].d,
-				m.m["direction"].v[3].d
+				m.m["direction"].v[0].f,
+				m.m["direction"].v[1].f,
+				m.m["direction"].v[2].f,
+				m.m["direction"].v[3].f
 			);
 		}
 		if (m.m.find("attenuation") != m.m.end()) {
 			lighting.attenuation = glm::vec4(
-				m.m["attenuation"].v[0].d,
-				m.m["attenuation"].v[1].d,
-				m.m["attenuation"].v[2].d,
-				m.m["attenuation"].v[3].d
+				m.m["attenuation"].v[0].f,
+				m.m["attenuation"].v[1].f,
+				m.m["attenuation"].v[2].f,
+				m.m["attenuation"].v[3].f
 			);
 		}
 		if (m.m.find("color") != m.m.end()) {

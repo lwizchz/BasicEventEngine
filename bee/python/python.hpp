@@ -43,7 +43,7 @@ namespace bee { namespace python {
 		void free();
 		void release();
 
-		int run_string(const std::string&, Variant*, int);
+		int run_string(const std::string&, const std::string&, Variant*, int);
 		int run_string(const std::string&, Variant*);
 		int run_file(const std::string&);
 		int run_func(const std::string&, const Variant&, Variant*);

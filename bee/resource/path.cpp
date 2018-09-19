@@ -245,12 +245,12 @@ namespace bee {
 		path = m["path"].s;
 
 		for (auto& n : m["nodes"].v) {
-			btVector3 pos (n.v[0].v[0].d, n.v[0].v[1].d, n.v[0].v[2].d);
-			nodes.emplace_back(pos, n.v[1].d);
+			btVector3 pos (n.v[0].v[0].f, n.v[0].v[1].f, n.v[0].v[2].f);
+			nodes.emplace_back(pos, n.v[1].f);
 		}
 
 		for (auto& cp : m["control_points"].v) {
-			btVector3 pos (cp.v[1].v[0].d, cp.v[1].v[1].d, cp.v[1].v[2].d);
+			btVector3 pos (cp.v[1].v[0].f, cp.v[1].v[1].f, cp.v[1].v[2].f);
 			control_points.emplace(cp.v[0].i, pos);
 		}
 
@@ -390,13 +390,13 @@ namespace bee {
 
 		// Load the new nodes
 		for (auto& n : m.m["nodes"].v) {
-			btVector3 pos (n.v[0].v[0].d, n.v[0].v[1].d, n.v[0].v[2].d);
-			nodes.emplace_back(pos, n.v[1].d);
+			btVector3 pos (n.v[0].v[0].f, n.v[0].v[1].f, n.v[0].v[2].f);
+			nodes.emplace_back(pos, n.v[1].f);
 		}
 
 		// Load the new control points
 		for (auto& cp : m.m["control_points"].v) {
-			btVector3 pos (cp.v[1].v[0].d, cp.v[1].v[1].d, cp.v[1].v[2].d);
+			btVector3 pos (cp.v[1].v[0].f, cp.v[1].v[1].f, cp.v[1].v[2].f);
 			control_points.emplace(cp.v[0].i, pos);
 		}
 
@@ -609,12 +609,12 @@ namespace bee {
 			++it; // Move to the next node
 			v2 = util::bt_to_glm_v3(*it); // Get the end point from the next node
 
-			draw_line(offset+v1, offset+v2, c_line);
+			render::draw_line(offset+v1, offset+v2, c_line);
 		}
 
 		// Draw the control points
 		for (auto& cp : control_points) {
-			draw_circle(offset+util::bt_to_glm_v3(cp.second), 7.0, -1, c_controls);
+			render::draw_circle(offset+util::bt_to_glm_v3(cp.second), 7.0, -1, c_controls);
 		}
 	}
 	/**

@@ -31,7 +31,7 @@ void ObjUIHandle::create(bee::Instance* self) {
 	_p("parent") = nullptr;
 	_i("parent_xoffset") = 0;
 	_i("parent_yoffset") = 0;
-	_d("parent_mass") = 0.0;
+	_f("parent_mass") = 0.0;
 
 	_i("mouse_xoffset") = 0;
 	_i("mouse_yoffset") = 0;
@@ -58,7 +58,7 @@ void ObjUIHandle::mouse_press(bee::Instance* self, SDL_Event* e) {
 
 		bee::Instance* parent_inst = static_cast<bee::Instance*>(_p("parent"));
 		if (parent_inst != nullptr) {
-			_d("parent_mass") = parent_inst->get_physbody()->get_mass();
+			_f("parent_mass") = parent_inst->get_physbody()->get_mass();
 			parent_inst->set_mass(0.0);
 		}
 	}
@@ -87,7 +87,7 @@ void ObjUIHandle::mouse_release(bee::Instance* self, SDL_Event* e) {
 
 	bee::Instance* parent_inst = static_cast<bee::Instance*>(_p("parent"));
 	if (parent_inst != nullptr) {
-		parent_inst->set_mass(_d("parent_mass"));
+		parent_inst->set_mass(_f("parent_mass"));
 	}
 }
 void ObjUIHandle::draw(bee::Instance* self) {
@@ -97,7 +97,7 @@ void ObjUIHandle::draw(bee::Instance* self) {
 
 	bee::render::set_is_lightable(false);
 
-	bee::RGBA c_back = {_i("color_r"), _i("color_g"), _i("color_b"), _i("color_a")};
+	bee::RGBA c_back = {_c("color_r"), _c("color_g"), _c("color_b"), _c("color_a")};
 	bee::RGBA c_stripe = {255, 255, 255, 255};
 	if ((c_back.r+c_back.g+c_back.b)/3 > 127) {
 		c_stripe = {0, 0, 0, 255};
@@ -113,12 +113,12 @@ void ObjUIHandle::draw(bee::Instance* self) {
 	int cx, cy;
 	std::tie(cx, cy) = self->get_corner();
 
-	bee::draw_rectangle(cx-ox, cy-oy, _i("w"), _i("h"), -1, c_back); // Draw a box to contain the completions
+	bee::render::draw_rectangle(cx-ox, cy-oy, _i("w"), _i("h"), -1, c_back); // Draw a box to contain the completions
 
 	int stripe_width = 10;
 	size_t stripe_amount = _i("w") / stripe_width;
 	for (size_t i=0; i<stripe_amount; ++i) {
-		bee::draw_line(
+		bee::render::draw_line(
 			cx + i*stripe_width - ox,
 			cy + _i("h") - oy,
 			cx + (i+1)*stripe_width - ox,

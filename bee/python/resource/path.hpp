@@ -50,6 +50,7 @@ namespace internal {
 	PyObject* Path_load(PathObject*, PyObject*);
 
 	PyObject* Path_draw(PathObject*, PyObject*);
+	PyObject* Path_draw_pos(PathObject*, PyObject*);
 }}}
 
 #endif // BEE_PYTHON_PATH_H

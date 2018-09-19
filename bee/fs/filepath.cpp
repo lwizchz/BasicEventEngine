@@ -16,16 +16,26 @@
 #include "../messenger/messenger.hpp"
 
 namespace bee {
-	FilePath::FilePath(const std::string& _path) :
-		path(_path)
+	FilePath::FilePath(const std::string& _path, const std::string& _mapname) :
+		path(_path),
+		mapname(_mapname)
 	{
 		if ((!path.empty())&&(path.front() == '/')) {
 			path = path.substr(1);
 		}
 	}
+	FilePath::FilePath(const std::string& _path) :
+		FilePath(_path, "")
+	{}
+	FilePath::FilePath() :
+		FilePath("", "")
+	{}
 
 	std::string FilePath::get_path() const {
 		return path;
+	}
+	std::string FilePath::get_mapname() const {
+		return mapname;
 	}
 
 	bool FilePath::exists() const {

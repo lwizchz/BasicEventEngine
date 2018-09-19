@@ -18,4 +18,4 @@ namespace bee { namespace python { namespace internal {
 	PyObject* physics_get_constraint_param_amount(PyObject*, PyObject*);
 }}}
 
-#endif // BEE_PYTHON_KB_H
+#endif // BEE_PYTHON_PHYSICS_H

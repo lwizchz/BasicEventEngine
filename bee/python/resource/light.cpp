@@ -20,6 +20,10 @@
 
 namespace bee { namespace python {
 	PyObject* Light_from(const Light* light) {
+		if (light == nullptr) {
+			return nullptr;
+		}
+
 		PyObject* py_light = internal::Light_new(&internal::LightType, nullptr, nullptr);
 		internal::LightObject* _py_light = reinterpret_cast<internal::LightObject*>(py_light);
 

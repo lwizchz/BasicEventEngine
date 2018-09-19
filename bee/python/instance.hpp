@@ -35,12 +35,18 @@ namespace internal {
 	void Instance_dealloc(InstanceObject*);
 	PyObject* Instance_new(PyTypeObject*, PyObject*, PyObject*);
 	int Instance_init(InstanceObject*, PyObject*, PyObject*);
+	Py_hash_t Instance_hash(InstanceObject*);
+	PyObject* Instance_richcmp(InstanceObject*, InstanceObject*, int);
 
 	// Instance methods
 	PyObject* Instance_at(InstanceObject*, PyObject*);
+	PyObject* Instance_get_id(InstanceObject*, PyObject*);
 
 	PyObject* Instance_repr(InstanceObject*);
 	PyObject* Instance_str(InstanceObject*);
+
+	PyObject* Instance_serialize(InstanceObject*, PyObject*);
+	PyObject* Instance_deserialize(InstanceObject*, PyObject*);
 	PyObject* Instance_print(InstanceObject*, PyObject*);
 
 	PyObject* Instance_set_alarm(InstanceObject*, PyObject*);
@@ -79,6 +85,23 @@ namespace internal {
 	PyObject* Instance_get_velocity_ang(InstanceObject*, PyObject*);
 	PyObject* Instance_get_friction(InstanceObject*, PyObject*);
 	PyObject* Instance_get_gravity(InstanceObject*, PyObject*);
+
+	PyObject* Instance_is_place_free(InstanceObject*, PyObject*);
+	PyObject* Instance_is_place_empty(InstanceObject*, PyObject*);
+	PyObject* Instance_is_place_meeting(InstanceObject*, PyObject*);
+	PyObject* Instance_is_move_free(InstanceObject*, PyObject*);
+	PyObject* Instance_is_snapped(InstanceObject*, PyObject*);
+
+	PyObject* Instance_get_snapped(InstanceObject*, PyObject*);
+	PyObject* Instance_move_random(InstanceObject*, PyObject*);
+	PyObject* Instance_move_snap(InstanceObject*, PyObject*);
+	PyObject* Instance_move_wrap(InstanceObject*, PyObject*);
+
+	PyObject* Instance_get_distance(InstanceObject*, PyObject*, PyObject*);
+	PyObject* Instance_get_direction_of(InstanceObject*, PyObject*, PyObject*);
+	PyObject* Instance_get_relation(InstanceObject*, PyObject*);
+
+	PyObject* Instance_draw(InstanceObject*, PyObject*);
 }}}
 
 #endif // BEE_PYTHON_INSTANCE_H

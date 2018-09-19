@@ -208,16 +208,16 @@ namespace bee {
 	* @retval 1 failed to set the shape type
 	*/
 	int PhysicsBody::deserialize(std::map<Variant,Variant>& m, Instance* inst) {
-		mass = m["mass"].d;
-		scale = m["scale"].d;
-		friction = m["friction"].d;
+		mass = m["mass"].f;
+		scale = m["scale"].f;
+		friction = m["friction"].f;
 
 		E_PHYS_SHAPE previous_type = type;
 		type = static_cast<E_PHYS_SHAPE>(m["type"].i);
 		if (type != previous_type) {
 			shape_param_amount = physics::get_shape_param_amount(type);
 			if ((type == E_PHYS_SHAPE::MULTISPHERE)||(type == E_PHYS_SHAPE::CONVEX_HULL)) {
-				shape_param_amount = physics::get_shape_param_amount(type, static_cast<int>(m["shape_params"].v[0].d));
+				shape_param_amount = physics::get_shape_param_amount(type, static_cast<int>(m["shape_params"].v[0].f));
 			}
 
 			if (shape_params != nullptr) {
@@ -227,7 +227,7 @@ namespace bee {
 			if (shape_param_amount > 0) {
 				shape_params = new double[shape_param_amount];
 				for (size_t i=0; i<shape_param_amount; ++i) {
-					shape_params[i] = m["shape_params"].v[i].d;
+					shape_params[i] = m["shape_params"].v[i].f;
 				}
 			}
 
