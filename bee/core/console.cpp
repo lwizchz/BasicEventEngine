@@ -209,8 +209,9 @@ namespace bee{ namespace console {
 				}
 				default: {
 					// Remove bind key from the input
-					if (e->key.keysym.sym == kb::get_keybind("ConsoleToggle").key) {
-						if (!input.empty()) {
+					if ((e->key.keysym.sym == kb::get_keybind("ConsoleToggle").key)&&(!input.empty())) {
+						std::string ks (SDL_GetKeyName(e->key.keysym.sym));
+						if ((ks.length() == 1)&&(input.back() == ks.front())) {
 							ObjUITextEntry* obj_entry = static_cast<ObjUITextEntry*>(text_entry->get_object());
 							obj_entry->set_input(text_entry, input.substr(0, input.length()-1));
 						}

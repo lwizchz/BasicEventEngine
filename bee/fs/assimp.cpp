@@ -43,6 +43,7 @@ namespace bee { namespace fs { namespace assimp {
 		pos(0),
 		fp(_fp)
 	{}
+	IOStream::~IOStream() {}
 	size_t IOStream::FileSize() const {
 		return fp.size();
 	}

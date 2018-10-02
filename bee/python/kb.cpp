@@ -202,7 +202,7 @@ namespace bee { namespace python { namespace internal {
 		KeyBind kb = kb::get_keybind(_bindname);
 
 		PyObject* _kb = PyDict_New();
-		PyDict_SetItemString(_kb, "key", PyUnicode_FromString(kb::keystrings_get_name(kb.key).c_str()));
+		PyDict_SetItemString(_kb, "key", PyUnicode_FromString(kb::keystrings_get_string(kb.key).c_str()));
 		PyDict_SetItemString(_kb, "is_repeatable", PyBool_FromLong(kb.is_repeatable));
 
 		return _kb;

@@ -23,7 +23,7 @@
 #include "body.hpp"
 
 namespace bee { namespace python {
-	PyObject* PhysicsWorld_from(std::shared_ptr<PhysicsWorld> world) {
+	PyObject* PhysicsWorld_from(std::weak_ptr<PhysicsWorld> world) {
 		PyObject* py_world = internal::PhysicsWorld_new(&internal::PhysicsWorldType, nullptr, nullptr);
 		internal::PhysicsWorldObject* _py_world = reinterpret_cast<internal::PhysicsWorldObject*>(py_world);
 
@@ -139,7 +139,7 @@ namespace internal {
 		}
 
 		btVector3 grav = world->get_gravity();
-		
+
 		double x = grav.x();
 		double y = grav.y();
 		double z = grav.z();
@@ -200,7 +200,7 @@ namespace internal {
 			return nullptr;
 		}
 
-		auto physbody = as_physics_body(pbobj);
+		auto physbody = as_physics_body(pbobj).lock();
 		if (physbody == nullptr) {
 			return nullptr;
 		}
@@ -236,11 +236,11 @@ namespace internal {
 			return nullptr;
 		}
 
-		auto physbody1 = as_physics_body(pbobj1);
+		auto physbody1 = as_physics_body(pbobj1).lock();
 		if (physbody1 == nullptr) {
 			return nullptr;
 		}
-		auto physbody2 = as_physics_body(pbobj2);
+		auto physbody2 = as_physics_body(pbobj2).lock();
 
 		if (physbody2 == nullptr) {
 			world->add_constraint(_type, physbody1->get_body(), _params);
@@ -258,7 +258,7 @@ namespace internal {
 			return nullptr;
 		}
 
-		auto physbody = as_physics_body(pbobj);
+		auto physbody = as_physics_body(pbobj).lock();
 		if (physbody == nullptr) {
 			return nullptr;
 		}

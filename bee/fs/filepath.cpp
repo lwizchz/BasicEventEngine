@@ -37,6 +37,9 @@ namespace bee {
 	std::string FilePath::get_mapname() const {
 		return mapname;
 	}
+	FilePath FilePath::get_parent_dir() const {
+		return FilePath(util::file_dirname(get_path()), get_mapname());
+	}
 
 	bool FilePath::exists() const {
 		return util::file_exists(path);
@@ -47,9 +50,9 @@ namespace bee {
 	std::string FilePath::get() const {
 		return util::file_get_contents(path);
 	}
-	SDL_RWops* FilePath::get_rwops() const {
+	std::pair<SDL_RWops*,std::string*> FilePath::get_rwops() const {
 		std::string* contents = new std::string(get());
-		return SDL_RWFromConstMem(contents->c_str(), contents->size());
+		return std::make_pair(SDL_RWFromConstMem(contents->c_str(), contents->size()), contents);
 	}
 
 	std::streamoff FilePath::put(const std::string& contents) {

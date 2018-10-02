@@ -19,6 +19,7 @@ namespace bee { namespace python { namespace internal {
 	PyObject* commands_clear(PyObject*, PyObject*);
 
 	PyObject* commands_execfile(PyObject*, PyObject*);
+	PyObject* commands_load_map(PyObject*, PyObject*);
 	PyObject* commands_log(PyObject*, PyObject*);
 
 	PyObject* commands_bind(PyObject*, PyObject*);

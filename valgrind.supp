@@ -40,62 +40,7 @@
 	obj:/usr/*lib*/i965_dri.*
 }
 
-{
-	pymalloc_free/address_in_range
-	Memcheck:Value8
-	fun:address_in_range
-	fun:pymalloc_free
-}
-{
-	pymalloc_free/address_in_range
-	Memcheck:Cond
-	fun:address_in_range
-	fun:pymalloc_free
-}
-{
-	pymalloc_free/address_in_range
-	Memcheck:Addr4
-	fun:address_in_range
-	fun:pymalloc_free
-}
-
-{
-	pymalloc_realloc/address_in_range
-	Memcheck:Value8
-	fun:address_in_range
-	fun:pymalloc_realloc
-}
-{
-	pymalloc_realloc/address_in_range
-	Memcheck:Cond
-	fun:address_in_range
-	fun:pymalloc_realloc
-}
-{
-	pymalloc_realloc/address_in_range
-	Memcheck:Addr4
-	fun:address_in_range
-	fun:pymalloc_realloc
-}
-{
-	pymalloc_free/address_in_range
-	Memcheck:Value8
-	fun:address_in_range
-	fun:pymalloc_free.isra.0
-}
-{
-	pymalloc_free/address_in_range
-	Memcheck:Cond
-	fun:address_in_range
-	fun:pymalloc_free.isra.0
-}
-{
-	pymalloc_free/address_in_range
-	Memcheck:Addr4
-	fun:address_in_range
-	fun:pymalloc_free.isra.0
-}
-
+# Library conditional jump or move on uninitialized value
 {
 	Py_EncodeLocale/gconv_transform_internal_utf8
 	Memcheck:Cond
@@ -112,6 +57,11 @@
 	fun:wcstombs
 	fun:Py_EncodeLocale
 }
+{
+	libnvidia-glcore
+	Memcheck:Cond
+	obj:/usr/*lib*/libnvidia-glcore.*
+}
 
 # Library memory leak
 {
@@ -120,7 +70,6 @@
 	fun:malloc
 	fun:PyMem_RawMalloc
 }
-
 {
 	XlcCreateLC/realloc
 	Memcheck:Leak
@@ -134,4 +83,72 @@
 	fun:malloc
 	...
 	obj:/usr/*lib*/libSDL2-*
+}
+{
+	libGLdispatch/malloc
+	Memcheck:Leak
+	fun:malloc
+	obj:/usr/*lib*/libGLdispatch.*
+}
+{
+	libGLX_nvidia/calloc
+	Memcheck:Leak
+	fun:calloc
+	obj:/usr/*lib*/libGLX_nvidia.*
+}
+
+# Python address_in_range errors
+{
+	pymalloc_free/address_in_range
+	Memcheck:Value8
+	fun:address_in_range
+	fun:pymalloc_free
+}
+{
+	pymalloc_free/address_in_range
+	Memcheck:Cond
+	fun:address_in_range
+	fun:pymalloc_free
+}
+{
+	pymalloc_free/address_in_range
+	Memcheck:Addr4
+	fun:address_in_range
+	fun:pymalloc_free
+}
+{
+	pymalloc_realloc/address_in_range
+	Memcheck:Value8
+	fun:address_in_range
+	fun:pymalloc_realloc
+}
+{
+	pymalloc_realloc/address_in_range
+	Memcheck:Cond
+	fun:address_in_range
+	fun:pymalloc_realloc
+}
+{
+	pymalloc_realloc/address_in_range
+	Memcheck:Addr4
+	fun:address_in_range
+	fun:pymalloc_realloc
+}
+{
+	pymalloc_free/address_in_range
+	Memcheck:Value8
+	fun:address_in_range
+	fun:pymalloc_free.isra.0
+}
+{
+	pymalloc_free/address_in_range
+	Memcheck:Cond
+	fun:address_in_range
+	fun:pymalloc_free.isra.0
+}
+{
+	pymalloc_free/address_in_range
+	Memcheck:Addr4
+	fun:address_in_range
+	fun:pymalloc_free.isra.0
 }

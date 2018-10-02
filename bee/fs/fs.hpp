@@ -26,12 +26,21 @@ namespace bee { namespace fs {
 
 	int add_filemap(const std::string&, const std::string&, E_FS_ROOT_TYPE);
 	int add_filemap(const std::string&, const std::string&);
+	void remove_filemaps(const std::string&);
+	void remove_all_filemaps();
 
+	bool exists(const std::string&, const std::string&);
 	bool exists(const std::string&);
+	FilePath get_file(const std::string&, const std::string&);
 	FilePath get_file(const std::string&);
 
-	int load_level(const std::string&, const std::string&, const std::string&);
+	int load_level(const std::string&, const std::string&, const std::string&, bool);
 	int load_level(const std::string&, const std::string&);
+	int switch_level(const std::string&, const std::string&, const std::string&, bool);
+	int unload_level(const std::string&);
+	int unload_all_levels();
+
+	void print_mappings();
 }}
 
 #endif // BEE_FS_H

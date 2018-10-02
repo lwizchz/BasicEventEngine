@@ -440,7 +440,10 @@ namespace bee {
 				}
 
 				// Attempt to load the texure as a temporary surface
-				SDL_Surface* tmp_surface = IMG_Load_RW(fs::get_file(fullpath).get_rwops(), true);
+				auto rwops = fs::get_file(fullpath).get_rwops();
+				SDL_Surface* tmp_surface = IMG_Load_RW(rwops.first, true);
+				delete rwops.second;
+
 				if (tmp_surface == nullptr) { // If the surface could not be loaded, output a warning
 					free_internal();
 					messenger::send({"engine", "sprite"}, E_MESSAGE::WARNING, "Failed to load the texture for Mesh \"" + name + "\": " + util::get_sdl_error());

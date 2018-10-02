@@ -122,7 +122,7 @@ namespace bee {
 
 		ui::load();
 
-		if (*_first_room != nullptr) {
+		if ((_first_room != nullptr)&&(*_first_room != nullptr)) {
 			if (change_room(*_first_room, false)) {
 				messenger::send({"engine", "init"}, E_MESSAGE::ERROR, "Failed to load first room");
 				return 10; // Return 10 when the first room could not be loaded
@@ -137,6 +137,12 @@ namespace bee {
 		return 0; // Return 0 on success
 	}
 	int loop() {
+		messenger::handle();
+
+		if (engine->current_room == nullptr) {
+			messenger::send({"engine"}, E_MESSAGE::ERROR, "Aborted event loop because current_room == nullptr");
+			return 1;
+		}
 		console::internal::init_ui();
 
 		engine->tickstamp = get_ticks();
@@ -242,19 +248,24 @@ namespace bee {
 		}
 		messenger::send({"engine"}, E_MESSAGE::END, "gameloop");
 
+		Room* prev_room = engine->current_room;
 		change_room(nullptr, false);
-		engine->current_room->room_end();
-		engine->current_room->game_end();
+		if (prev_room != nullptr) {
+			engine->is_ready = true;
+			prev_room->room_end();
+			prev_room->game_end();
+			prev_room->reset_properties();
+			engine->is_ready = false;
+		}
 
-		engine->current_room->reset_properties();
-		engine->current_room = nullptr;
-		engine->is_ready = false;
+		messenger::handle();
 
 		return 0;
 	}
 	int close() {
 		messenger::handle();
 
+		fs::unload_all_levels();
 		if (is_initialized) {
 			close_resources();
 		}
@@ -281,6 +292,8 @@ namespace bee {
 			delete engine;
 			engine = nullptr;
 		}
+
+		fs::remove_all_filemaps();
 
 		messenger::handle();
 		messenger::clear();

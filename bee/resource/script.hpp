@@ -41,6 +41,8 @@ namespace bee {
 		static std::map<size_t,Script*> list;
 		static size_t next_id;
 
+		static bool is_new_enabled;
+
 		size_t id; ///< The unique Script identifier
 		std::string name; ///< An arbitrary resource name
 		std::string path; ///< The path of the script file
@@ -57,6 +59,9 @@ namespace bee {
 		static Script* get(size_t);
 		static Script* get_by_name(const std::string&);
 		static Script* add(const std::string&, const std::string&);
+
+		static bool get_is_new_enabled();
+		static bool set_is_new_enabled(bool);
 
 		static std::pair<E_SCRIPT_TYPE,std::string> get_type(const std::string&);
 

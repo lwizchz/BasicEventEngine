@@ -58,8 +58,7 @@ namespace bee {
 	*/
 	int change_room(Room* new_room, bool should_jump) {
 		if (((engine->quit)^(new_room != nullptr)) == false) { // Abort the room change if either the quit flag is set without a null room or if the quit flag is unset with a null room
-			throw 0; // Throw an exception to jump to the end of the event loop
-			return 0;
+			throw 0;
 		}
 
 		bool is_game_start = false;
@@ -90,13 +89,14 @@ namespace bee {
 				render::reset_target();
 				render::draw_transition(); // Animate the defined transition from the before and after buffers
 			}
-			engine->quit = true; // Set the quit flag just in case this was called in the main loop
+			engine->is_ready = false;
+			engine->current_room = nullptr;
 			return 0;
 		}
 
 		Room* old_room = engine->current_room;
-		engine->current_room = new_room; // Set the new room as the current room
 		engine->is_ready = false; // Set the event loop as not running
+		engine->current_room = new_room; // Set the new room as the current room
 		engine->current_room->reset_properties(); // Reset the new room's properties
 		engine->current_room->init(); // Initialize the room
 		engine->current_room->transfer_instances(old_room); // Transfer the persistent instance from the previous room

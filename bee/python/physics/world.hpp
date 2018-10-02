@@ -17,7 +17,7 @@
 namespace bee {
 	class PhysicsWorld;
 namespace python {
-	PyObject* PhysicsWorld_from(std::shared_ptr<PhysicsWorld>);
+	PyObject* PhysicsWorld_from(std::weak_ptr<PhysicsWorld>);
 	bool PhysicsWorld_check(PyObject*);
 namespace internal {
 	typedef struct {

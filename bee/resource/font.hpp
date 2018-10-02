@@ -52,6 +52,7 @@ namespace bee {
 		int lineskip; ///< The spacing between lines of the font
 
 		TTF_Font* font; ///< The internal TTF font used for rendering
+		std::pair<SDL_RWops*,std::string*> rwops; ///< Used to store the Font from the filesystem since TTF_OpenFontRW() doesn't copy the buffer
 		bool is_loaded; ///< Whether the font file was successfully loaded
 		bool has_draw_failed; ///< Whether the draw function has previously failed, this prevents continuous warning outputs
 

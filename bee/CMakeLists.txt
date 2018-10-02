@@ -6,7 +6,7 @@ set(deps_bee_init init/info.cpp init/gameoptions.cpp init/programflags.cpp)
 set(deps_bee_messenger messenger/messenger.cpp messenger/messagecontents.cpp messenger/messagerecipient.cpp)
 
 set(deps_bee_core core/console.cpp core/display.cpp core/enginestate.cpp core/instance.cpp core/loader.cpp core/rooms.cpp core/soundeffects.cpp core/window.cpp)
-set(deps_bee_input input/mouse.cpp input/kb.cpp input/keybind.cpp)
+set(deps_bee_input input/mouse.cpp input/kb.cpp input/keybind.cpp input/keystrings.cpp)
 set(deps_bee_data data/serialdata.cpp data/statemachine.cpp data/variant.cpp)
 set(deps_bee_fs fs/fs.cpp fs/filemap.cpp fs/filepath.cpp fs/assimp.cpp fs/python.cpp)
 

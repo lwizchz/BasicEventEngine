@@ -25,7 +25,9 @@
 #include "../messenger/messenger.hpp"
 
 #include "../core/console.hpp"
+#include "../core/enginestate.hpp"
 #include "../core/rooms.hpp"
+#include "../fs/fs.hpp"
 
 #include "../input/kb.hpp"
 #include "../input/keybind.hpp"
@@ -44,6 +46,7 @@ namespace bee { namespace python { namespace internal {
 		{"clear", commands_clear, METH_NOARGS, "Clear the console log"},
 
 		{"execfile", commands_execfile, METH_VARARGS, "Execute the specified config file"},
+		{"load_map", commands_load_map, METH_VARARGS, "Load the specified map from the filesystem"},
 		{"log", commands_log, METH_VARARGS, "Log a message to the console"},
 
 		{"bind", commands_bind, METH_VARARGS, "Bind a key to a command"},
@@ -123,9 +126,20 @@ namespace bee { namespace python { namespace internal {
 
 		std::string _filename (PyUnicode_AsUTF8(filename));
 
-		Script::get_by_name("scr_console")->run_file(_filename);
+		return PyLong_FromLong(Script::get_by_name("scr_console")->run_file(_filename));
+	}
+	PyObject* commands_load_map(PyObject* self, PyObject* args) {
+		PyObject* mapname;
+		int are_scripts_enabled = false;
 
-		Py_RETURN_NONE;
+		if (!PyArg_ParseTuple(args, "U|p", &mapname, &are_scripts_enabled)) {
+			return nullptr;
+		}
+
+		std::string _mapname (PyUnicode_AsUTF8(mapname));
+		bool _are_scripts_enabled = are_scripts_enabled;
+
+		return PyLong_FromLong(fs::switch_level(_mapname, "maps/"+_mapname, "", _are_scripts_enabled));
 	}
 	PyObject* commands_log(PyObject* self, PyObject* args) {
 		PyObject* str;
@@ -155,7 +169,7 @@ namespace bee { namespace python { namespace internal {
 
 		keystring = PyTuple_GetItem(args, 0);
 		std::string _keystring (PyUnicode_AsUTF8(keystring));
-		if (_keystring.length() < 5) {
+		if (_keystring.rfind("SDLK_", 0) != 0) {
 			PyErr_SetString(PyExc_ValueError, "the provided key name was not prefixed with \"SDLK_\"");
 			return nullptr;
 		}

@@ -17,20 +17,20 @@
 namespace bee {
 	class PhysicsBody;
 namespace python {
-	PyObject* PhysicsBody_from(std::shared_ptr<PhysicsBody>);
+	PyObject* PhysicsBody_from(std::weak_ptr<PhysicsBody>);
 	bool PhysicsBody_check(PyObject*);
 namespace internal {
 	typedef struct {
 		PyObject_HEAD
-		std::shared_ptr<PhysicsBody> body;
+		std::weak_ptr<PhysicsBody> body;
 	} PhysicsBodyObject;
 
 	extern PyTypeObject PhysicsBodyType;
 
 	PyObject* PyInit_bee_physics_body(PyObject*);
 
-	std::shared_ptr<PhysicsBody> as_physics_body(PhysicsBodyObject*);
-	std::shared_ptr<PhysicsBody> as_physics_body(PyObject*);
+	std::weak_ptr<PhysicsBody> as_physics_body(PhysicsBodyObject*);
+	std::weak_ptr<PhysicsBody> as_physics_body(PyObject*);
 
 	void PhysicsBody_dealloc(PhysicsBodyObject*);
 	PyObject* PhysicsBody_new(PyTypeObject*, PyObject*, PyObject*);

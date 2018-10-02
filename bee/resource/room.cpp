@@ -110,8 +110,7 @@ namespace bee {
 	* Free the Room data and remove it from the resource list.
 	*/
 	Room::~Room() {
-		physics_world.reset();
-
+		reset();
 		list.erase(id);
 	}
 
@@ -738,6 +737,7 @@ namespace bee {
 			return 1;
 		}
 
+		std::shared_ptr<PhysicsWorld> pw = get_phys_world();
 		const std::map<size_t,Instance*> old_instances = old_room->get_instances();
 		for (auto& inst : old_instances) {
 			size_t inst_id = inst.first;
@@ -752,7 +752,6 @@ namespace bee {
 
 			if (inst.second->get_physbody() != nullptr) {
 				std::shared_ptr<PhysicsBody> b = inst.second->get_physbody();
-				std::shared_ptr<PhysicsWorld> pw = get_phys_world();
 				b->attach(pw);
 				pw->add_physbody(b);
 				b->update_state();
@@ -1368,7 +1367,7 @@ namespace bee {
 	* @note This is called during the Room change in change_room()
 	*/
 	void Room::init() {
-		physics_world.reset(new PhysicsWorld());
+		physics_world = std::make_shared<PhysicsWorld>();
 	}
 	/**
 	* @note This is called before the Instance room_start events.

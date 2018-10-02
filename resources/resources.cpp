@@ -60,7 +60,7 @@ bee::Room* rm_test = nullptr;
 int init_resources() {
 	try { // Catch any exceptions so that the engine can properly clean up
 		// Init Sprites
-		spr_none = new bee::Texture("spr_none", "none.png");
+		/*spr_none = new bee::Texture("spr_none", "none.png");
 			spr_none->load();
 		spr_bee = new bee::Texture("spr_bee", "spr_bee.png");
 			spr_bee->set_subimage_amount(2, 100);
@@ -103,7 +103,7 @@ int init_resources() {
 
 		// Init Rooms
 		rm_test = new bee::RmScript("rm_test.py");
-			rm_test->load();
+			rm_test->load();*/
 
 		bee::is_initialized = true; // Set the engine initialization flag
 	} catch (...) {
@@ -121,7 +121,7 @@ int init_resources() {
 */
 int close_resources() {
 	// Destroy Sprites
-	DEL(spr_bee);
+	/*DEL(spr_bee);
 	DEL(spr_dot);
 
 	// Destroy Backgrounds
@@ -156,7 +156,7 @@ int close_resources() {
 	DEL(obj_mesh);
 
 	// Destroy Rooms
-	DEL(rm_test);
+	DEL(rm_test);*/
 
 	bee::is_initialized = false; // Unset the engine initialization flag
 

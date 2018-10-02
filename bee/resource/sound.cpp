@@ -564,14 +564,19 @@ namespace bee {
 			return 2;
 		}
 
+		auto rwops = fs::get_file(path).get_rwops();
 		if (is_music) { // If the Sound should be treated as music, load it appropriately
-			music = Mix_LoadMUS_RW(fs::get_file(path).get_rwops(), true); // Load the sound as mixer music
+			music = Mix_LoadMUS_RW(rwops.first, true); // Load the sound as mixer music
+			delete rwops.second;
+
 			if (music == nullptr) { // If the music could not be loaded, output a warning
 				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to load Sound \"" + name + "\" as music: " + util::get_sdl_error());
 				return 3;
 			}
 		} else { // Otherwise load the Sound normally
-			chunk = Mix_LoadWAV_RW(fs::get_file(path).get_rwops(), true); // Load the sound as a chunk sound
+			chunk = Mix_LoadWAV_RW(rwops.first, true); // Load the sound as a chunk sound
+			delete rwops.second;
+
 			if (chunk == nullptr) { // If the chunk could not be loaded, output a warning
 				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to load Sound \"" + name + "\" as chunk: " + util::get_sdl_error());
 				return 3;

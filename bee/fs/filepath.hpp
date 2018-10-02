@@ -24,11 +24,12 @@ namespace bee {
 
 		std::string get_path() const;
 		std::string get_mapname() const;
+		FilePath get_parent_dir() const;
 
 		bool exists() const;
 		size_t size() const;
 		std::string get() const;
-		SDL_RWops* get_rwops() const;
+		std::pair<SDL_RWops*,std::string*> get_rwops() const;
 
 		std::streamoff put(const std::string&);
 	};

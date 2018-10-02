@@ -101,7 +101,7 @@ namespace bee {
 
 		if (body == nullptr) {
 			std::shared_ptr<PhysicsWorld> w = get_current_room()->get_phys_world();
-			body.reset(new PhysicsBody(w, this, E_PHYS_SHAPE::NONE, 0.0, pos, nullptr));
+			body = std::make_shared<PhysicsBody>(w, this, E_PHYS_SHAPE::NONE, 0.0, pos, nullptr);
 		} else {
 			set_pos(pos);
 		}

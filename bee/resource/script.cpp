@@ -21,6 +21,8 @@ namespace bee {
 	std::map<size_t,Script*> Script::list;
 	size_t Script::next_id = 0;
 
+	bool Script::is_new_enabled = true;
+
 	/**
 	* Default construct the Script.
 	* @note This constructor should only be directly used for temporary Scripts, the other constructor should be used for all other cases.
@@ -34,7 +36,12 @@ namespace bee {
 
 		script(nullptr),
 		is_loaded(false)
-	{}
+	{
+		if (!get_is_new_enabled()) {
+			messenger::send({"engine", "resource"}, E_MESSAGE::WARNING, "Failed to add Script resource: new Scripts are disabled");
+			throw -2;
+		}
+	}
 	/**
 	* Construct the Script, add it to the Script resource list, and set the new name and path.
 	*
@@ -103,6 +110,15 @@ namespace bee {
 		Script* new_script = new Script(name, path);
 		new_script->load();
 		return new_script;
+	}
+
+	bool Script::get_is_new_enabled() {
+		return is_new_enabled;
+	}
+	bool Script::set_is_new_enabled(bool _is_new_enabled) {
+		bool e = is_new_enabled;
+		is_new_enabled = _is_new_enabled;
+		return e;
 	}
 
 	/**

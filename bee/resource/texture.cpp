@@ -598,7 +598,10 @@ namespace bee {
 	* @returns the surface on success or nullptr on failure
 	*/
 	SDL_Surface* Texture::load_surface() const {
-		SDL_Surface* surface = IMG_LoadTyped_RW(fs::get_file(path).get_rwops(), true, util::file_extname(path).substr(1).c_str());
+		auto rwops = fs::get_file(path).get_rwops();
+		SDL_Surface* surface = IMG_LoadTyped_RW(rwops.first, true, util::file_extname(path).substr(1).c_str());
+		delete rwops.second;
+
 		if (surface == nullptr) { // If the surface could not be loaded, output a warning
 			messenger::send({"engine", "texture"}, E_MESSAGE::WARNING, "Failed to load Texture surface \"" + name + "\": " + util::get_sdl_error());
 			return nullptr;

@@ -46,10 +46,10 @@ namespace bee { namespace kb {
 	void init() {
 		internal::keystate = SDL_GetKeyboardState(nullptr);
 
-		bind(SDLK_BACKQUOTE, KeyBind("ConsoleToggle", [] (const SDL_Event* e) {
+		bind(SDLK_UNKNOWN, KeyBind("ConsoleToggle", [] (const SDL_Event* e) {
 			console::toggle();
 		}));
-		bind(SDLK_ESCAPE, KeyBind("Quit", [] (const SDL_Event* e) {
+		bind(SDLK_UNKNOWN, KeyBind("Quit", [] (const SDL_Event* e) {
 			messenger::send({"engine"}, E_MESSAGE::INFO, "Quitting...");
 			render::set_transition_type(E_TRANSITION::NONE);
 			end_game();
@@ -385,34 +385,6 @@ namespace bee { namespace kb {
 
 		output->append(s); // Append the character to the given string
 		return s.c_str()[0]; // Return the character
-	}
-
-	/**
-	* @param key the key string
-	* @returns the SDL keycode from the given string
-	*/
-	SDL_Keycode keystrings_get_key(const std::string& key) {
-		return SDL_GetKeyFromName(key.substr(5).c_str());
-	}
-	/**
-	* @param key the keycode
-	* @returns the string of the given SDL keycode
-	*/
-	std::string keystrings_get_string(SDL_Keycode key) {
-		if (key == SDLK_UNKNOWN) {
-			return "SDLK_UNKNOWN";
-		}
-
-		std::string name (SDL_GetKeyName(key));
-		return "SDLK_" + ((name.length() > 1) ? util::string::upper(name) : util::string::lower(name));
-	}
-	/**
-	* @param key the keycode
-	* @returns the name of the given SDL keycode
-	*/
-	std::string keystrings_get_name(SDL_Keycode key) {
-		std::string keystring = keystrings_get_string(key);
-		return util::string::upper(util::string::replace(keystring.substr(5), "_", " "));
 	}
 
 	/**

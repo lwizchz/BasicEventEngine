@@ -81,6 +81,7 @@ namespace bee {
 		lineskip(0),
 
 		font(nullptr),
+		rwops({nullptr, nullptr}),
 		is_loaded(false),
 		has_draw_failed(false)
 	{}
@@ -381,8 +382,12 @@ namespace bee {
 			}
 		}
 
-		font = TTF_OpenFontRW(fs::get_file(path).get_rwops(), true, font_size); // Open the TTF file with the desired font size
+		rwops = fs::get_file(path).get_rwops();
+		font = TTF_OpenFontRW(rwops.first, true, font_size); // Open the TTF file with the desired font size
 		if (font == nullptr) { // If the Font failed to load, output a warning
+			delete rwops.second;
+			rwops = std::make_pair(nullptr, nullptr);
+
 			messenger::send({"engine", "font"}, E_MESSAGE::WARNING, "Failed to load Font \"" + name + "\" from \"" + path + "\": " + util::get_sdl_error());
 			has_draw_failed = true;
 			return 3;
@@ -409,6 +414,9 @@ namespace bee {
 		// Delete the TTF font
 		TTF_CloseFont(font);
 		font = nullptr;
+
+		delete rwops.second;
+		rwops = std::make_pair(nullptr, nullptr);
 
 		// Set the loaded booleans
 		is_loaded = false;

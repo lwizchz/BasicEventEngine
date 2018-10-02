@@ -398,7 +398,7 @@ namespace bee {
 			}
 
 			world->remove_body(body);
-			world = nullptr;
+			attached_world.reset();
 		}
 	}
 

@@ -30,6 +30,7 @@ namespace bee { namespace fs { namespace assimp {
 		FilePath fp;
 
 		IOStream(FilePath);
+		virtual ~IOStream();
 
 		size_t FileSize() const;
 
