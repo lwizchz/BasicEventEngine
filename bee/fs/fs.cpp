@@ -284,18 +284,74 @@ namespace bee { namespace fs {
 				for (auto& t : resmap["textures"].v) {
 					Texture* _t = new Texture(t.m["name"].s, t.m["path"].s);
 
+					if (t.m.find("speed") != t.m.end()) {
+						_t->set_speed(t.m["speed"].f);
+					}
+					if (t.m.find("origin") != t.m.end()) {
+						if (t.m["origin"].get_type() == E_DATA_TYPE::VECTOR) {
+							_t->set_origin(t.m["orgin"].v[0].i, t.m["origin"].v[1].i);
+						} else if (t.m["origin"].get_type() == E_DATA_TYPE::STRING) {
+							if (t.m["origin"].s == "center") {
+								_t->set_origin_center();
+							}
+						}
+					}
+					if (t.m.find("rotate") != t.m.end()) {
+						_t->set_rotate(t.m["rotate"].v[0].f, t.m["rotate"].v[1].f);
+					}
 					if (t.m.find("subimage_amount") != t.m.end()) {
 						_t->set_subimage_amount(t.m["subimage_amount"].v[0].i, t.m["subimage_amount"].v[1].i);
+					}
+					if (t.m.find("crop") != t.m.end()) {
+						SDL_Rect r {
+							static_cast<int>(t.m["crop"].v[0].i),
+							static_cast<int>(t.m["crop"].v[1].i),
+							static_cast<int>(t.m["crop"].v[2].i),
+							static_cast<int>(t.m["crop"].v[3].i)
+						};
+						_t->crop_image(r);
 					}
 
 					amount_failed += (_t->load()) ? 1 : 0;
 				}
 				for (auto& s : resmap["sounds"].v) {
 					Sound* _s = new Sound(s.m["name"].s, s.m["path"].s, s.m["is_music"].i);
+
+					if (s.m.find("volume") != s.m.end()) {
+						_s->set_volume(s.m["volume"].f);
+					}
+					if (s.m.find("pan") != s.m.end()) {
+						_s->set_pan(s.m["pan"].f);
+					}
+					if (s.m.find("is_music") != s.m.end()) {
+						_s->set_is_music(s.m["is_music"].i);
+					}
+					if (s.m.find("effects") != s.m.end()) {
+						for (auto& e : s.m["effects"].m) {
+							SoundEffect se (
+								e.first.s,
+								static_cast<E_SOUNDEFFECT>(e.second.m["type"].i),
+								e.second.m["params"].m
+							);
+							_s->effect_add(se);
+						}
+					}
+
 					amount_failed += (_s->load()) ? 1 : 0;
 				}
 				for (auto& f : resmap["fonts"].v) {
 					Font* _f = new Font(f.m["name"].s, f.m["path"].s, f.m["font_size"].i);
+
+					if (f.m.find("font_size") != f.m.end()) {
+						_f->set_font_size(f.m["font_size"].i);
+					}
+					if (f.m.find("style") != f.m.end()) {
+						_f->set_style(static_cast<E_FONT_STYLE>(f.m["style"].i));
+					}
+					if (f.m.find("lineskip") != f.m.end()) {
+						_f->set_lineskip(f.m["lineksip"].f);
+					}
+
 					amount_failed += (_f->load()) ? 1 : 0;
 				}
 				for (auto& p : resmap["paths"].v) {
@@ -329,11 +385,37 @@ namespace bee { namespace fs {
 					if (o.m.find("sprite") != o.m.end()) {
 						_o->set_sprite(Texture::get_by_name(o.m["sprite"].s));
 					}
+					if (o.m.find("is_persistent") != o.m.end()) {
+						_o->set_is_persistent(o.m["is_persistent"].i);
+					}
+					if (o.m.find("depth") != o.m.end()) {
+						_o->set_depth(o.m["depth"].i);
+					}
+					if (o.m.find("parent") != o.m.end()) {
+						_o->set_parent(Object::get_by_name(o.m["parent"].s));
+					}
+					if (o.m.find("mask_offset") != o.m.end()) {
+						_o->set_mask_offset(std::make_pair(o.m["mask_offset"].v[0].i, o.m["mask_offset"].v[1].i));
+					}
+					if (o.m.find("is_pausable") != o.m.end()) {
+						_o->set_is_pausable(o.m["is_pausable"].i);
+					}
 
 					amount_failed += (_o->load()) ? 1 : 0;
 				}
 				for (auto& r : resmap["rooms"].v) {
 					Room* _r = new RmScript(r.m["path"].s);
+
+					if (r.m.find("width") != r.m.end()) {
+						_r->set_width(r.m["width"].i);
+					}
+					if (r.m.find("height") != r.m.end()) {
+						_r->set_height(r.m["height"].i);
+					}
+					if (r.m.find("is_persistent") != r.m.end()) {
+						_r->set_is_persistent(r.m["is_persistent"].i);
+					}
+
 					amount_failed += (_r->load()) ? 1 : 0;
 				}
 			} catch (int e) {
@@ -486,7 +568,7 @@ namespace bee { namespace fs {
 		for (auto fm = fms.begin(); fm != fms.end(); ++fm) {
 			const std::string name (fm->second.get_name());
 			if (exists("resources.json", name)) {
-				r += !!unload_level(name);
+				r += (unload_level(name)) ? 1 : 0;
 			}
 		}
 

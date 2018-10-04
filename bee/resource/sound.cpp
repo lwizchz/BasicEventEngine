@@ -333,6 +333,10 @@ namespace bee {
 		current_channels.clear();
 		has_play_failed = false;
 
+		effects.clear();
+
+		finish_func = nullptr;
+
 		return 0;
 	}
 
