@@ -354,10 +354,10 @@ namespace bee {
 	/**
 	* Load the Font from its path.
 	*
+	* @retval -1 failed to load since the engine is in headless mode
 	* @retval 0 success
 	* @retval 1 failed to load since it's already loaded
-	* @retval 2 failed to load since the engine is in headless mode
-	* @retval 3 failed to load the font file
+	* @retval 2 failed to load the font file
 	*/
 	int Font::load() {
 		if (is_loaded) { // If the Font has already been loaded, output a warning
@@ -366,7 +366,7 @@ namespace bee {
 		}
 
 		if (get_option("is_headless").i) {
-			return 2;
+			return -1;
 		}
 
 		if (

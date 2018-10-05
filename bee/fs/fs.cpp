@@ -330,7 +330,7 @@ namespace bee { namespace fs {
 						_t->crop_image(r);
 					}
 
-					amount_failed += (_t->load()) ? 1 : 0;
+					amount_failed += (_t->load() > 0) ? 1 : 0;
 				}
 				for (auto& s : resmap["sounds"].v) {
 					Sound* _s = new Sound(s.m["name"].s, s.m["path"].s, s.m["is_music"].i);
@@ -355,7 +355,7 @@ namespace bee { namespace fs {
 						}
 					}
 
-					amount_failed += (_s->load()) ? 1 : 0;
+					amount_failed += (_s->load() > 0) ? 1 : 0;
 				}
 				for (auto& f : resmap["fonts"].v) {
 					Font* _f = new Font(f.m["name"].s, f.m["path"].s, f.m["font_size"].i);
@@ -370,32 +370,32 @@ namespace bee { namespace fs {
 						_f->set_lineskip(f.m["lineksip"].f);
 					}
 
-					amount_failed += (_f->load()) ? 1 : 0;
+					amount_failed += (_f->load() > 0) ? 1 : 0;
 				}
 				for (auto& p : resmap["paths"].v) {
 					Path* _p = new Path(p.m["name"].s, p.m["path"].s);
-					amount_failed += (_p->load()) ? 1 : 0;
+					amount_failed += (_p->load() > 0) ? 1 : 0;
 				}
 				for (auto& t : resmap["timelines"].v) {
 					Timeline* _t = new Timeline(t.m["name"].s, t.m["path"].s);
-					amount_failed += (_t->load()) ? 1 : 0;
+					amount_failed += (_t->load() > 0) ? 1 : 0;
 				}
 				for (auto& m : resmap["meshes"].v) {
 					Mesh* _m = new Mesh(m.m["name"].s, m.m["path"].s);
 
 					if (m.m.find("mesh_index") != m.m.end()) {
-						amount_failed += (_m->load(m.m["mesh_index"].i)) ? 1 : 0;
+						amount_failed += (_m->load(m.m["mesh_index"].i) > 0) ? 1 : 0;
 					} else {
-						amount_failed += (_m->load()) ? 1 : 0;
+						amount_failed += (_m->load() > 0) ? 1 : 0;
 					}
 				}
 				for (auto& l : resmap["lights"].v) {
 					Light* _l = new Light(l.m["name"].s, l.m["path"].s);
-					amount_failed += (_l->load()) ? 1 : 0;
+					amount_failed += (_l->load() > 0) ? 1 : 0;
 				}
 				for (auto& s : resmap["scripts"].v) {
 					Script* _s = new Script(s.m["name"].s, s.m["path"].s);
-					amount_failed += (_s->load()) ? 1 : 0;
+					amount_failed += (_s->load() > 0) ? 1 : 0;
 				}
 				for (auto& o : resmap["objects"].v) {
 					Object* _o = new ObjScript(o.m["path"].s);
@@ -419,7 +419,7 @@ namespace bee { namespace fs {
 						_o->set_is_pausable(o.m["is_pausable"].i);
 					}
 
-					amount_failed += (_o->load()) ? 1 : 0;
+					amount_failed += (_o->load() > 0) ? 1 : 0;
 				}
 				for (auto& r : resmap["rooms"].v) {
 					Room* _r = new RmScript(r.m["path"].s);
@@ -434,7 +434,7 @@ namespace bee { namespace fs {
 						_r->set_is_persistent(r.m["is_persistent"].i);
 					}
 
-					amount_failed += (_r->load()) ? 1 : 0;
+					amount_failed += (_r->load() > 0) ? 1 : 0;
 				}
 			} catch (int e) {
 				messenger::send({"engine", "fs"}, E_MESSAGE::WARNING, "Failed to init some resources for the level \"" + name + "\" at \"" + path + "\"");

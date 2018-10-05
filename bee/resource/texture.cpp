@@ -607,10 +607,10 @@ namespace bee {
 	/**
 	* Load the Texture from its path.
 	*
+	* @retval -1 failed to load since the engine is in headless mode
 	* @retval 0 success
 	* @retval 1 failed to load since it's already loaded
-	* @retval 2 failed to load since the engine is in headless mode
-	* @retval 3 failed to load temporary surface
+	* @retval 2 failed to load temporary surface
 	*/
 	int Texture::load() {
 		if (is_loaded) { // Do not attempt to load the Texture if it has already been loaded
@@ -619,12 +619,12 @@ namespace bee {
 		}
 
 		if (get_option("is_headless").i) {
-			return 2;
+			return -1;
 		}
 
 		SDL_Surface* tmp_surface = load_surface(); // Load the Texture into a temporary surface
 		if (tmp_surface == nullptr) {
-			return 3;
+			return 2;
 		}
 
 		load_from_surface(tmp_surface); // Load the surface into a texture
@@ -637,10 +637,10 @@ namespace bee {
 	* @param w the target width to use
 	* @param h the target height to use
 	*
+	* @retval -1 failed to set as target since the engine is in headless mode
 	* @retval 0 success
 	* @retval 1 failed to set as target since it's already loaded
-	* @retval 2 failed to set as target since the engine is in headless mode
-	* @retval 3 failed to initialize framebuffer
+	* @retval 2 failed to initialize framebuffer
 	*/
 	int Texture::load_as_target(int w, int h) {
 		if (is_loaded) { // Do not attempt to load the Texture if it has already been loaded
@@ -649,7 +649,7 @@ namespace bee {
 		}
 
 		if (get_option("is_headless").i) {
-			return 2;
+			return -1;
 		}
 
 		// Set the Texture dimensions and remove all cropping
@@ -724,7 +724,7 @@ namespace bee {
 			messenger::send({"engine", "texture"}, E_MESSAGE::WARNING, "Failed to create a new framebuffer");
 			glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind the frame buffer to switch back to the default
 			this->free(); // Free the old data
-			return 3;
+			return 2;
 		}
 
 		glBindVertexArray(0); // Unbind VAO when done loading

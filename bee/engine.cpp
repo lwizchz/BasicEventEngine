@@ -102,6 +102,8 @@ namespace bee {
 			if (r) {
 				return r; // Return any nonzero values from SDL init
 			}
+		} else {
+			kb::init();
 		}
 
 		python::init();

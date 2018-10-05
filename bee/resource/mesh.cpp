@@ -291,12 +291,12 @@ namespace bee {
 	* Load the desired Mesh from its given filename.
 	* @param index the desired mesh index from the imported scene
 	*
+	* @retval -1 failed to load since the engine is in headless mode
 	* @retval 0 success
 	* @retval 1 failed to load since it's already loaded
-	* @retval 2 failed to load since the engine is in headless mode
-	* @retval 3 failed to load the object file
-	* @retval 4 failed to load since the mesh's texture file is missing
-	* @retval 5 failed to load the mesh's texture file
+	* @retval 2 failed to load the object file
+	* @retval 3 failed to load since the mesh's texture file is missing
+	* @retval 4 failed to load the mesh's texture file
 	*/
 	int Mesh::load(int index) {
 		if (is_loaded) { // If the Mesh has already been loaded, output a warning
@@ -305,14 +305,14 @@ namespace bee {
 		}
 
 		if (get_option("is_headless").i) {
-			return 2;
+			return -1;
 		}
 
 		// Attempt to import the object file
 		scene = fs::assimp::import(path, aiProcessPreset_TargetRealtime_MaxQuality); // Import it with "MaxQuality"
 		if (scene == nullptr) { // If the file couldn't be imported, output a warning
 			messenger::send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to load Mesh \"" + name + "\" from \"" + path + "\": " + fs::assimp::get_error_string());
-			return 3;
+			return 2;
 		}
 
 		mesh = scene->mMeshes[index]; // Get the mesh with the desired index
@@ -443,7 +443,7 @@ namespace bee {
 				if (tmp_surface == nullptr) { // If the surface could not be loaded, output a warning
 					free_internal();
 					messenger::send({"engine", "sprite"}, E_MESSAGE::WARNING, "Failed to load the texture for Mesh \"" + name + "\": " + util::get_sdl_error());
-					return 5;
+					return 4;
 				}
 
 				// Generate the texture from the surface pixels
@@ -474,7 +474,7 @@ namespace bee {
 				free_internal();
 				messenger::send({"engine", "mesh"}, E_MESSAGE::WARNING, "Failed to load the Mesh \"" + name + "\", the material reported an invalid texture");
 
-				return 4;
+				return 3;
 			}
 		}
 

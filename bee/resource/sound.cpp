@@ -548,10 +548,10 @@ namespace bee {
 	/**
 	* Load the Sound from its path.
 	*
+	* @retval -1 failed to load since the engine is in headless mode
 	* @retval 0 success
 	* @retval 1 failed to load since it's already loaded
-	* @retval 2 failed to load since the engine is in headless mode
-	* @retval 3 failed to load the music or chunk
+	* @retval 2 failed to load the music or chunk
 	*/
 	int Sound::load() {
 		if (is_loaded) { // Do not attempt to load the Sound if it has already been loaded
@@ -561,7 +561,7 @@ namespace bee {
 
 		if (get_option("is_headless").i) {
 			has_play_failed = true;
-			return 2;
+			return -1;
 		}
 
 		auto rwops = fs::get_file(path).get_rwops();
@@ -571,7 +571,7 @@ namespace bee {
 
 			if (music == nullptr) { // If the music could not be loaded, output a warning
 				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to load Sound \"" + name + "\" as music: " + util::get_sdl_error());
-				return 3;
+				return 2;
 			}
 		} else { // Otherwise load the Sound normally
 			chunk = Mix_LoadWAV_RW(rwops.first, true); // Load the sound as a chunk sound
@@ -579,7 +579,7 @@ namespace bee {
 
 			if (chunk == nullptr) { // If the chunk could not be loaded, output a warning
 				messenger::send({"engine", "sound"}, E_MESSAGE::WARNING, "Failed to load Sound \"" + name + "\" as chunk: " + util::get_sdl_error());
-				return 3;
+				return 2;
 			}
 		}
 
