@@ -14,7 +14,7 @@
 
 #include "obj_text_entry.hpp"
 
-ObjUITextEntry::ObjUITextEntry() : ObjUIElement("__obj_ui_text_entry", "/bee/resources/objects/ui/obj_text_entry.cpp") {
+ObjUITextEntry::ObjUITextEntry() : ObjUIElement("__obj_ui_text_entry", "$/ui/obj_text_entry.cpp") {
 	implemented_events.insert({
 		bee::E_EVENT::CREATE,
 		bee::E_EVENT::DESTROY,
@@ -54,7 +54,7 @@ void ObjUITextEntry::keyboard_input(bee::Instance* self, SDL_Event* e) {
 			) {
 				input.pop_back();
 
-				_s("input") = input;
+				set_input(self, input);
 				bee::ui::text_entry_callback(self, input);
 				return;
 			}
@@ -74,7 +74,7 @@ void ObjUITextEntry::keyboard_input(bee::Instance* self, SDL_Event* e) {
 				}
 			}
 
-			_s("input") = input;
+			set_input(self, input);
 			bee::ui::text_entry_handler(self, input, e);
 		}
 	}
@@ -86,7 +86,7 @@ void ObjUITextEntry::draw(bee::Instance* self) {
 
 	bee::render::set_is_lightable(false);
 
-	bee::Font* font = bee::engine->font_default;
+	bee::Font* font = static_cast<bee::Font*>(_p("font"));
 	bee::RGBA c_text (bee::E_RGB::BLACK);
 	bee::RGBA c_back = {_c("color_r"), _c("color_g"), _c("color_b"), _c("color_a")};
 
@@ -108,7 +108,7 @@ void ObjUITextEntry::draw(bee::Instance* self) {
 	}
 	if (_i("has_focus")) {
 		if (bee::get_ticks()/500 % 2) { // Draw a blinking cursor that changes every 500 ticks
-			font->draw_fast(cx-ox + font->get_string_width(input), cy-oy, "_", c_text);
+			font->draw_fast(cx-ox + _i("input_width"), cy-oy, "_", c_text);
 		}
 	}
 
@@ -133,11 +133,19 @@ void ObjUITextEntry::draw(bee::Instance* self) {
 void ObjUITextEntry::reset(bee::Instance* self) {
 	ObjUIElement::reset(self);
 
+	bee::Font* font = bee::engine->font_default;
+	_p("font") = font;
+	_i("char_width") = font->get_string_width();
+	_i("char_height") = font->get_string_height();
+
 	_a("input") = "";
 	_p("input_td") = nullptr;
+	_i("input_width") = 0;
 
 	_i("rows") = 0;
 	_i("cols") = 0;
+	_i("w") = 0;
+	_i("h") = 0;
 
 	_p("entry_func") = nullptr;
 
@@ -152,12 +160,12 @@ void ObjUITextEntry::set_size(bee::Instance* self, int rows, int cols) {
 	_i("rows") = rows;
 	_i("cols") = cols;
 
-	bee::Font* font = bee::engine->font_default;
-	_i("w") = font->get_string_width() * cols;
-	_i("h") = font->get_string_height() * rows;
+	_i("w") = _i("char_width") * cols;
+	_i("h") = _i("char_height") * rows;
 }
 void ObjUITextEntry::set_input(bee::Instance* self, const std::string& new_input) {
 	_s("input") = new_input;
+	_i("input_width") = new_input.length() * _i("char_width");
 }
 std::string ObjUITextEntry::get_input(bee::Instance* self) const {
 	return _s("input");
@@ -197,7 +205,7 @@ void ObjUITextEntry::complete(bee::Instance* self, const std::string& input) {
 	}
 
 	_v("completions") = completions;
-	_s("input") = new_input;
+	set_input(self, new_input);
 }
 
 #endif // BEE_OBJ_UI_TEXTENTRY

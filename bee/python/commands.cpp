@@ -19,6 +19,7 @@
 
 #include "../util/debug.hpp"
 #include "../util/platform.hpp"
+#include "../util/files.hpp"
 
 #include "../init/gameoptions.hpp"
 
@@ -137,9 +138,20 @@ namespace bee { namespace python { namespace internal {
 		}
 
 		std::string _mapname (PyUnicode_AsUTF8(mapname));
+		std::string filename (_mapname);
 		bool _are_scripts_enabled = are_scripts_enabled;
 
-		return PyLong_FromLong(fs::switch_level(_mapname, "maps/"+_mapname, "", _are_scripts_enabled));
+		// If the map doesn't exist as a directory, look for an XZ archive version of it
+		if (!util::directory_exists("maps/"+filename)) {
+			if (util::file_exists("maps/"+filename+".tar.xz")) {
+				filename += ".tar.xz";
+			} else {
+				console::log(E_MESSAGE::WARNING, "Failed to find map \"" + _mapname + "\"");
+				return PyLong_FromLong(-3);
+			}
+		}
+
+		return PyLong_FromLong(fs::switch_level(_mapname, "maps/"+filename, "", _are_scripts_enabled));
 	}
 	PyObject* commands_log(PyObject* self, PyObject* args) {
 		PyObject* str;

@@ -63,7 +63,7 @@ namespace bee {
 		static bool get_is_new_enabled();
 		static bool set_is_new_enabled(bool);
 
-		static std::pair<E_SCRIPT_TYPE,std::string> get_type(const std::string&);
+		static E_SCRIPT_TYPE get_type(const std::string&);
 
 		size_t add_to_resources();
 		int reset();

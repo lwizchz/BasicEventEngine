@@ -13,17 +13,11 @@
 
 #include "../util/files.hpp"
 
-#include "../messenger/messenger.hpp"
-
 namespace bee {
 	FilePath::FilePath(const std::string& _path, const std::string& _mapname) :
 		path(_path),
 		mapname(_mapname)
-	{
-		if ((!path.empty())&&(path.front() == '/')) {
-			path = path.substr(1);
-		}
-	}
+	{}
 	FilePath::FilePath(const std::string& _path) :
 		FilePath(_path, "")
 	{}

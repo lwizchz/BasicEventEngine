@@ -13,7 +13,7 @@ if [ "$package_dir" != "." ]; then
 	mkdir -p $package_dir
 fi
 
-package_file="$game-$version_major.$version_minor.$version_patch-build$(date +%Y.%m.%d).tar.gz"
+package_file="$game-$version_major.$version_minor.$version_patch-build$(date +%Y.%m.%d).tar.xz"
 if [ -n "$2" ]; then
         package_file="$2"
 fi
@@ -33,6 +33,7 @@ strip "$game/$game"
 
 cp -r "./resources/" "$game/"
 cp -r "./cfg/" "$game/"
+cp -r "./maps/" "$game/"
 cp -r "./bee/resources" "$game/bee/"
 
 # Copy dynamic libraries
@@ -62,7 +63,7 @@ cp -r "./lib/cpython/Lib" "$game/lib/cpython/"
 cp "./lib/cpython/libpython3.7m.a" "$game/lib/cpython/"
 rm -r "$game/lib/cpython/Lib/test/data" # Remove bulky test module data
 
-tar czf "$package_dir/$package_file" "$game/"
+tar cJf "$package_dir/$package_file" "$game/"
 echo "$game packaged in \"$package_dir/$package_file\"!"
 
 if [ "$(cat $build_dir/last_build_type.txt)" == "debug" ]; then

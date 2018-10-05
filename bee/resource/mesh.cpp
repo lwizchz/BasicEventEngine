@@ -277,17 +277,13 @@ namespace bee {
 	/**
 	* Set the relative or absolute resource path.
 	* @param _path the new path to use
-	* @note If the first character is '/' then the path will be relative to
-	*       the executable directory, otherwise it will be relative to the
-	*       Mesh resource directory.
+	* @note If the first character is '$' then the path will be relative to
+	*       the Meshes resource directory.
 	*/
 	void Mesh::set_path(const std::string& _path) {
-		if (_path.empty()) {
-			path.clear();
-		} else if (_path.front() == '/') {
-			path = _path.substr(1);
-		} else { // Append the path to the Mesh directory if not root
-			path = "resources/meshes/"+_path;
+		path = _path;
+		if ((!_path.empty())&&(_path.front() == '$')) {
+			path = "resources/meshes"+_path.substr(1);
 		}
 	}
 

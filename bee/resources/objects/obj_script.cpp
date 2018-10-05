@@ -60,7 +60,7 @@ namespace bee {
 
 		is_loaded(false)
 	{
-		set_name(Script::get_type(scriptfile).second);
+		set_name(util::file_plainname(util::file_basename(scriptfile)));
 	}
 	ObjScript::~ObjScript() {
 		this->free();
@@ -80,8 +80,8 @@ namespace bee {
 		}
 
 		std::string filename (scriptfile);
-		if ((!filename.empty())&&(filename.front() != '/')) {
-			filename = "/resources/objects/"+filename;
+		if ((!filename.empty())&&(filename.front() == '$')) {
+			filename = "resources/objects"+filename.substr(1);
 		}
 
 		script = Script::add("__scr_obj_script:" + scriptfile, filename);

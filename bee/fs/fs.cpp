@@ -15,6 +15,7 @@
 
 #include "../util/files.hpp"
 #include "../util/string.hpp"
+#include "../util/archive.hpp"
 
 #include "../messenger/messenger.hpp"
 
@@ -60,7 +61,7 @@ namespace bee { namespace fs {
 			for (auto& f : dir_files) {
 				if ((!root.get_path().empty())&&(root.get_path().back() == '/')) {
 					if (util::directory_exists(path+"/"+f)) {
-						add_filemap(mapname+"/"+f, "/"+path+"/"+f, E_FS_ROOT_TYPE::IS_ROOT);
+						add_filemap(mapname+"/"+f, path+"/"+f, E_FS_ROOT_TYPE::IS_ROOT);
 						continue;
 					}
 				}
@@ -74,7 +75,11 @@ namespace bee { namespace fs {
 			} else {
 				FilePath fp (path, mapname);
 				if ((!root.get_path().empty())&&(root.get_path() != ".")) {
-					fp = FilePath(util::string::replace(fp.get_path(), root.get_path(), ""), mapname);
+					std::string new_path (util::string::replace(fp.get_path(), root.get_path(), ""));
+					if (new_path.front() == '/') {
+						new_path = new_path.substr(1);
+					}
+					fp = FilePath(new_path, mapname);
 				}
 
 				std::unordered_map<std::string,std::vector<FilePath>>::iterator filevec;
@@ -95,17 +100,30 @@ namespace bee { namespace fs {
 	* @returns the number of mapped files
 	*/
 	int internal::scan_archive(const std::string& path, FilePath root, const std::string& mapname) {
-		return 0;
+		std::string tarfile = util::archive::xz_decompress_temp(path);
+		if (tarfile.empty()) {
+			messenger::send({"engine", "fs"}, E_MESSAGE::WARNING, "Failed to decompress archive \"" + path + "\" for scanning");
+			return 0;
+		}
+		std::string dir = util::archive::tar_extract_temp(tarfile);
+		if (dir.empty()) {
+			messenger::send({"engine", "fs"}, E_MESSAGE::WARNING, "Failed to extract archive \"" + tarfile + "\" for scanning");
+			return 0;
+		}
+
+		root = FilePath(dir, root.get_mapname());
+
+		return scan_files(dir, root, mapname);
 	}
 
 	/**
 	* Initialize the filesystem with default mappings.
 	*/
 	int init() {
-		fs::add_filemap("__default_bee", "/bee");
-		fs::add_filemap("__default_cfg", "/cfg");
-		//fs::add_filemap("__default_maps", "/maps", E_FS_ROOT_TYPE::HAS_ROOTS);
-		fs::add_filemap("__default_resources", "/resources");
+		fs::add_filemap("__default_bee_resources", "bee/resources", E_FS_ROOT_TYPE::IS_ROOT);
+		fs::add_filemap("__default_cfg", "cfg");
+		//fs::add_filemap("__default_maps", "maps", E_FS_ROOT_TYPE::HAS_ROOTS);
+		fs::add_filemap("__default_resources", "resources");
 
 		assimp::init();
 
@@ -122,7 +140,7 @@ namespace bee { namespace fs {
 	* @retval 1 success but a FileMap with the same name was overwritten
 	*/
 	int add_filemap(const std::string& name, const std::string& path, E_FS_ROOT_TYPE root_type) {
-		FilePath root ("/");
+		FilePath root (".");
 		if (root_type == E_FS_ROOT_TYPE::HAS_ROOTS) {
 			root = FilePath(path+"/");
 		} else if (root_type == E_FS_ROOT_TYPE::IS_ROOT) {
@@ -443,7 +461,7 @@ namespace bee { namespace fs {
 			}
 
 			kb::unbind_all();
-			console::run("execfile(\"cfg/binds.py\")");
+			console::internal::run("execfile(\"cfg/binds.py\")", true);
 
 			change_room(rm, false);
 		}
@@ -479,7 +497,7 @@ namespace bee { namespace fs {
 			||((room.empty())&&(exists("resources.json", name)))
 		) {
 			kb::unbind_all();
-			console::run("execfile(\"cfg/binds.py\")");
+			console::internal::run("execfile(\"cfg/binds.py\")", true);
 
 			restart_room();
 
@@ -539,11 +557,19 @@ namespace bee { namespace fs {
 					delete _s;
 				}
 				for (auto& o : resmap["objects"].v) {
-					Object* _o = Object::get_by_name(Script::get_type(o.m["path"].s).second);
+					Object* _o = Object::get_by_name(
+						util::file_plainname(util::file_basename(
+							o.m["path"].s
+						))
+					);
 					delete _o;
 				}
 				for (auto& r : resmap["rooms"].v) {
-					Room* _r = Room::get_by_name(Script::get_type(r.m["path"].s).second);
+					Room* _r = Room::get_by_name(
+						util::file_plainname(util::file_basename(
+							r.m["path"].s
+						))
+					);
 					delete _r;
 				}
 			} catch (int e) {

@@ -48,6 +48,7 @@
 
 #include "ui/ui.hpp"
 
+#include "util/files.hpp"
 #include "util/platform.hpp"
 #include "util/debug.hpp"
 #include "util/windefine.hpp"
@@ -114,7 +115,7 @@ namespace bee {
 
 		render::internal::init_transitions();
 
-		engine->font_default = Font::add("font_default", "liberation_mono.ttf", 16);
+		engine->font_default = Font::add("font_default", "$/liberation_mono.ttf", 16);
 
 		messenger::handle();
 		console::internal::init(); // Initialize the default console commands
@@ -294,6 +295,11 @@ namespace bee {
 		}
 
 		fs::remove_all_filemaps();
+
+		std::string d (util::internal::dir_get_temp());
+		if (util::directory_exists(d)) {
+			util::file_delete(d);
+		}
 
 		messenger::handle();
 		messenger::clear();

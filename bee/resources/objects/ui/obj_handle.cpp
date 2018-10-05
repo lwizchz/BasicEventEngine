@@ -14,7 +14,7 @@
 
 #include "obj_handle.hpp"
 
-ObjUIHandle::ObjUIHandle() : ObjUIElement("__obj_ui_handle", "/bee/resources/objects/ui/obj_handle.cpp") {
+ObjUIHandle::ObjUIHandle() : ObjUIElement("__obj_ui_handle", "$/ui/obj_handle.cpp") {
 	implemented_events.insert({
 		bee::E_EVENT::CREATE,
 		bee::E_EVENT::DESTROY,

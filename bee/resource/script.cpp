@@ -124,13 +124,13 @@ namespace bee {
 	/**
 	* @param path the path to check
 	*
-	* @returns the type of script that the given path represents and the path without its script extension
+	* @returns the type of script that the given path represents
 	*/
-	std::pair<E_SCRIPT_TYPE,std::string> Script::get_type(const std::string& path) {
+	E_SCRIPT_TYPE Script::get_type(const std::string& path) {
 		if (path.substr(path.length()-3, 3) == ".py") {
-			return std::make_pair(E_SCRIPT_TYPE::PYTHON, path.substr(0, path.length()-3));
+			return E_SCRIPT_TYPE::PYTHON;
 		}
-		return std::make_pair(E_SCRIPT_TYPE::INVALID, path);
+		return E_SCRIPT_TYPE::INVALID;
 	}
 
 	/**
@@ -228,19 +228,13 @@ namespace bee {
 	/**
 	* Set the relative or absolute resource path.
 	* @param _path the new path to use
-	* @note If the first character is '/' then the path will be relative to
-	*       the executable directory, otherwise it will be relative to the
-	*       Script resource directory.
+	* @note If the first character is '$' then the path will be relative to
+	*       the Scripts resource directory.
 	*/
 	void Script::set_path(const std::string& _path) {
-		if (_path.empty()) {
-			path.clear();
-		} else if (_path == ".py") { // If the path is "empty," use the Script type as the path
-			path = _path;
-		} else if (_path.front() == '/') {
-			path = _path.substr(1);
-		} else {
-			path = "resources/scripts/"+_path; // Append the path to the Script directory if no root
+		path = _path;
+		if ((!_path.empty())&&(_path.front() == '$')) {
+			path = "resources/scripts"+_path.substr(1);
 		}
 	}
 
@@ -258,7 +252,7 @@ namespace bee {
 			return 1;
 		}
 
-		switch (Script::get_type(path).first) {
+		switch (Script::get_type(path)) {
 			case E_SCRIPT_TYPE::PYTHON: {
 				script = new PythonScriptInterface(path);
 				if (script->load()) {

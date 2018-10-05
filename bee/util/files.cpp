@@ -21,6 +21,12 @@
 #include "platform.hpp" // Include the required platform-specific file operation functions
 
 namespace util {
+	namespace internal {
+		std::string temp_dir;
+	}
+	std::string internal::dir_get_temp() {
+		return temp_dir;
+	}
 
 /**
 * @param fname the filename to check
@@ -163,9 +169,12 @@ int directory_create(const std::string& dirname) {
 * @returns the path of a temporary directory to store temporary game files in
 */
 std::string directory_get_temp() {
-	std::string d = platform::mkdtemp("/tmp/bee-XXXXXX"); // Call the cross-platform mkdtemp function with the format specifier
-	if (!d.empty()) {
-		d += "/";
+	std::string& d (internal::temp_dir);
+	if ((d.empty())||(!directory_exists(d))) {
+		d = platform::mkdtemp("/tmp/bee-XXXXXX"); // Call the cross-platform mkdtemp function with the format specifier
+		if (!d.empty()) {
+			d += "/";
+		}
 	}
 	return d;
 }

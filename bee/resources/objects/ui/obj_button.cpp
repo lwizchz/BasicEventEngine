@@ -14,7 +14,7 @@
 
 #include "obj_button.hpp"
 
-ObjUIButton::ObjUIButton() : ObjUIElement("__obj_ui_button", "/bee/resources/objects/ui/obj_button.cpp") {
+ObjUIButton::ObjUIButton() : ObjUIElement("__obj_ui_button", "$/ui/obj_button.cpp") {
 	implemented_events.insert({
 		bee::E_EVENT::CREATE,
 		bee::E_EVENT::DESTROY,

@@ -23,7 +23,7 @@ namespace bee {
 
 		is_loaded(false)
 	{
-		set_name(Script::get_type(scriptfile).second);
+		set_name(util::file_plainname(util::file_basename(scriptfile)));
 	}
 	RmScript::~RmScript() {
 		this->free();
@@ -43,8 +43,8 @@ namespace bee {
 		}
 
 		std::string filename (scriptfile);
-		if ((!filename.empty())&&(filename.front() != '/')) {
-			filename = "/resources/rooms/"+filename;
+		if ((!filename.empty())&&(filename.front() == '$')) {
+			filename = "resources/rooms"+filename.substr(1);
 		}
 
 		script = Script::add("__scr_rm_script:" + scriptfile, filename);

@@ -30,12 +30,7 @@ namespace bee {
 		name = _name;
 	}
 	void FileMap::set_path(const std::string& _path) {
-		if ((!_path.empty())&&(_path.front() == '/')) {
-			path = _path.substr(1);
-		} else {
-			path = _path;
-		}
-
+		path = _path;
 		if (path.empty()) {
 			path = ".";
 		}

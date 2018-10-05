@@ -292,17 +292,13 @@ namespace bee {
 	/**
 	* Set the relative or absolute resource path.
 	* @param _path the new path to use
-	* @note If the first character is '/' then the path will be relative to
-	*       the executable directory, otherwise it will be relative to the
-	*       Paths resource directory.
+	* @note If the first character is '$' then the path will be relative to
+	*       the Paths resource directory.
 	*/
 	void Path::set_path(const std::string& _path) {
-		if (_path.empty()) {
-			path.clear();
-		} else if (_path.front() == '/') {
-			path = _path.substr(1);
-		} else { // Append the path to the Path directory if not root
-			path = "resources/paths/"+_path;
+		path = _path;
+		if ((!_path.empty())&&(_path.front() == '$')) {
+			path = "resources/paths"+_path.substr(1);
 		}
 		is_loaded = false;
 	}

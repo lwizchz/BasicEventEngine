@@ -13,6 +13,9 @@
 #include <vector>
 
 namespace util {
+	namespace internal {
+		std::string dir_get_temp();
+	}
 
 bool file_exists(const std::string&);
 size_t file_size(const std::string&);

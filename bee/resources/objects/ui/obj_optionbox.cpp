@@ -14,7 +14,7 @@
 
 #include "obj_optionbox.hpp"
 
-ObjUIOptionBox::ObjUIOptionBox() : ObjUIElement("__obj_ui_optionbox", "/bee/resources/objects/ui/obj_optionbox.cpp") {
+ObjUIOptionBox::ObjUIOptionBox() : ObjUIElement("__obj_ui_optionbox", "$/ui/obj_optionbox.cpp") {
 	implemented_events.insert({
 		bee::E_EVENT::CREATE,
 		bee::E_EVENT::MOUSE_INPUT,

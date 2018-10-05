@@ -19,6 +19,7 @@ build:
   artifacts:
     paths:
       - ./bee/resources
+      - ./cfg
       - ./resources
       - ./build/BEE_Example
       - ./lib/cpython
@@ -29,6 +30,7 @@ test:
   before_script:
     - apt update
     - *lib_install_def
+    - wget -O maps/lv_test.tar.xz https://lukemontalvo.us/BasicEventEngine/maps/lv_test.tar.xz
   script:
     - ./build/BEE_Example --single-run --headless
   artifacts:

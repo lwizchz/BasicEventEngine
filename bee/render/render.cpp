@@ -52,7 +52,6 @@ namespace bee { namespace render {
 	* set_is_lightable() - Set whether to enable lighting or not
 	* ! This should be used to disable lighting only on specific elements, e.g. the HUD
 	* ! After calling this function it is the user's job to reset the lighting to the previous state
-	* ! See Sprite::set_is_lightable() in bee/resources/sprite.cpp for more specific usage
 	* @is_lightable: whether to enable lighting
 	*/
 	int set_is_lightable(bool is_lightable) {

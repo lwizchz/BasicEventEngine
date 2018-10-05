@@ -64,7 +64,8 @@ namespace bee{ namespace console {
 
 		// Set the drawing sizes
 		SDL_Rect rect = {0, 0, 800, 530};
-		unsigned int line_height = 20;
+		unsigned int char_height = 20;
+		unsigned int char_width = 10;
 
 		Instance* ui_handle = nullptr;
 		Instance* ui_text_entry = nullptr;
@@ -81,7 +82,8 @@ namespace bee{ namespace console {
 		internal::page_index = 0;
 
 		internal::rect = {0, 0, 800, 500};
-		internal::line_height = 20;
+		internal::char_height = 20;
+		internal::char_width = 10;
 
 		ObjUITextEntry* obj_text_entry = static_cast<ObjUITextEntry*>(internal::ui_text_entry->get_object());
 		obj_text_entry->set_input(internal::ui_text_entry, "");
@@ -101,12 +103,14 @@ namespace bee{ namespace console {
 	* @retval 1 failed to load console Script
 	*/
 	int internal::init() {
-		scr_console = Script::add("scr_console", "/bee/resources/scripts/console.py");
+		scr_console = Script::add("scr_console", "$/console.py");
 		if (scr_console == nullptr) {
 			return 1;
 		}
 
-		line_height = engine->font_default->get_string_height(); // Store the default drawing line height for later console drawing operations
+ 		// Store the default drawing line dimensions for later console drawing operations
+		char_height = engine->font_default->get_string_height();
+		char_width = engine->font_default->get_string_width();
 
 		// Register the console logger
 		messenger::internal::register_protected("consolelog", {"engine", "console"}, true, [] (const MessageContents& msg) {
@@ -266,9 +270,7 @@ namespace bee{ namespace console {
 			// Handle certain key presses in order to manipulate history or the command line
 			switch (e->key.keysym.sym) {
 				case SDLK_PAGEUP: { // The pageup key scrolls backward through the console log
-					if (util::splitv(log.str(), '\n', false).size()/((rect.h-30)/line_height + 1) > page_index) { // If the page index is lower than the full amount of pages in the log, increment the index
-						++page_index;
-					}
+					++page_index; // This value is checked against the page amount in internal::draw()
 					break;
 				}
 				case SDLK_PAGEDOWN: { // The pagedown key scrolls forward through the console log
@@ -369,18 +371,18 @@ namespace bee{ namespace console {
 		render::draw_rectangle(cx, cy, rect.w, rect.h, -1, {127, 127, 127, 225});
 
 		// Remove the top of the console log if it doesn't fit
-		size_t line_amount = input_line_y/line_height+1; // Calculate the total lines that can be stored in the console window
+		size_t line_amount = input_line_y/char_height+1; // Calculate the total lines that can be stored in the console window
 		std::vector<std::string> lines = util::splitv(log.str(), '\n', false); // Separate the console log by each newline
 		size_t total_lines = lines.size(); // Store the total line number for the below page number calculation
 
 		// Split lines if they are wider than the console window
 		std::vector<std::string> full_lines (lines);
 		lines.clear();
-		const int cutoff = rect.w / engine->font_default->get_string_width();
+		const int cutoff = rect.w / char_width;
 		for (auto it=full_lines.begin(); it!=full_lines.end(); ++it) {
 			std::string line (*it);
 
-			while (engine->font_default->get_string_width(line) > rect.w) {
+			while (line.length() * char_width > static_cast<unsigned int>(rect.w)) {
 				const int tab_amount = util::string::replace(line, "\t", "").length() - line.length();
 
 				lines.emplace_back(line.substr(0, cutoff+4*tab_amount));
@@ -392,6 +394,10 @@ namespace bee{ namespace console {
 			if (!line.empty()) {
 				lines.emplace_back(line);
 			}
+		}
+
+		if (page_index*line_amount > total_lines) {
+			page_index = total_lines / line_amount;
 		}
 
 		if (total_lines > line_amount) { // If there are more lines than can fit in the console, then remove the ones which shouldn't be rendered
@@ -429,7 +435,7 @@ namespace bee{ namespace console {
 
 		// Draw the console page number
 		std::string p = std::to_string(page_index+1) + "/" + std::to_string(total_lines/line_amount+1);
-		engine->font_default->draw_fast(cx + rect.w - 10 * p.length(), cy + rect.h - line_height, p, c_text);
+		engine->font_default->draw_fast(cx + rect.w - 10 * p.length(), cy + rect.h - char_height, p, c_text);
 	}
 
 	/**

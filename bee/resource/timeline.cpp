@@ -294,17 +294,13 @@ namespace bee {
 	/**
 	* Set the relative or absolute path.
 	* @param _path the new path to use
-	* @note If the first character is '/' then the path will be relative to
-	*       the executable directory, otherwise it will be relative to the
-	*       Timelines resource directory.
+	* @note If the first character is '$' then the path will be relative to
+	*       the Timelines resource directory.
 	*/
 	void Timeline::set_path(const std::string& _path) {
-		if (_path.empty()) {
-			path.clear();
-		} else if (_path.front() == '/') {
-			path = _path.substr(1);
-		} else { // Append the path to the Timelines directory if not root
-			path = "resources/timelines/"+_path;
+		path = _path;
+		if ((!_path.empty())&&(_path.front() == '$')) {
+			path = "resources/timelines"+_path.substr(1);
 		}
 	}
 
@@ -322,12 +318,12 @@ namespace bee {
 			return 1;
 		}
 
-		if (Script::get_type(path).first == E_SCRIPT_TYPE::INVALID) {
+		if (Script::get_type(path) == E_SCRIPT_TYPE::INVALID) {
 			messenger::send({"engine", "timeline"}, E_MESSAGE::WARNING, "Failed to load Timeline \"" + name + "\" from \"" + path + "\" because it's not a script");
 			return 2;
 		}
 
-		scr_actions->set_path("/"+path);
+		scr_actions->set_path(path);
 		if (scr_actions->load()) {
 			messenger::send({"engine", "timeline"}, E_MESSAGE::WARNING, "Failed to load Timeline script \"" + name + "\" from \"" + path + "\"");
 			return 3;

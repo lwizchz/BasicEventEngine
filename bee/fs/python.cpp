@@ -26,7 +26,14 @@ namespace bee { namespace fs { namespace python {
 			[] (PyObject* self, PyObject* args) -> PyObject* {
 				PyObject* path = PyDict_GetItemString(self, "path");
 				std::string _path (PyUnicode_AsUTF8(path));
-				return PyUnicode_FromString(fs::get_file(_path).get().c_str());
+				std::string data (fs::get_file(_path).get());
+
+				PyObject* r = PyUnicode_FromStringAndSize(data.c_str(), data.size());
+				if (r == nullptr) {
+					PyErr_Clear();
+					r = PyBytes_FromStringAndSize(data.c_str(), data.size());
+				}
+				return r;
 			},
 			METH_NOARGS,
 			nullptr

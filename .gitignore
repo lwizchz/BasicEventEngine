@@ -1,6 +1,5 @@
 # Build files
-/build/
-/build2/
+/build*/
 /win/
 /winbuild/
 gmon.out

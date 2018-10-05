@@ -102,7 +102,7 @@ namespace bee { namespace python { namespace internal {
 		FilePath fp = fs::get_file(_path);
 
 		PyObject* file = PyDict_New();
-		PyDict_SetItemString(file, "path", PyUnicode_FromString(fp.get_path().c_str()));
+		PyDict_SetItemString(file, "path", PyUnicode_FromString(FilePath(_path).get_path().c_str()));
 		PyDict_SetItemString(file, "mapname", PyUnicode_FromString(fp.get_mapname().c_str()));
 		PyDict_SetItemString(file, "get", fs::python::internal::get_file_callable(file));
 

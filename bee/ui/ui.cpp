@@ -57,8 +57,8 @@ namespace bee { namespace ui {
 		}
 
 		// Load sounds
-		internal::snd_button_press = Sound::add("snd_ui_button_press", "/bee/resources/sounds/ui/button_press.wav", false);
-		internal::snd_button_release = Sound::add("snd_ui_button_release", "/bee/resources/sounds/ui/button_release.wav", false);
+		internal::snd_button_press = Sound::add("__snd_ui_button_press", "$/ui/button_press.wav", false);
+		internal::snd_button_release = Sound::add("__snd_ui_button_release", "$/ui/button_release.wav", false);
 
 		// Load objects
 		internal::obj_button = new ObjUIButton();

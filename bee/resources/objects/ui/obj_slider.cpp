@@ -14,7 +14,7 @@
 
 #include "obj_slider.hpp"
 
-ObjUISlider::ObjUISlider() : ObjUIElement("__obj_ui_slider", "/bee/resources/objects/ui/obj_slider.cpp") {
+ObjUISlider::ObjUISlider() : ObjUIElement("__obj_ui_slider", "$/ui/obj_slider.cpp") {
 	implemented_events.insert({
 		bee::E_EVENT::CREATE,
 		bee::E_EVENT::MOUSE_INPUT,

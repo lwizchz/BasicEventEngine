@@ -78,6 +78,13 @@ size_t file_size(const std::string& fname) {
 * @retval nonzero failed to remove file
 */
 int remove(const std::string& fname) {
+	if (dir_exists(fname)) {
+		auto list = dir_list(fname);
+		for (auto& f : list) {
+			remove(fname+"/"+f);
+		}
+	}
+
 	return ::remove(fname.c_str());
 }
 /**
@@ -321,9 +328,13 @@ int remove(const std::string& fname) {
         	return -1;
 	}
 
-	if (dwAttr & FILE_ATTRIBUTE_DIRECTORY) { // If the file is a directory, delete it appropriately
+	if (dwAttr & FILE_ATTRIBUTE_DIRECTORY) {
+		auto list = dir_list(fname);
+		for (auto& f : list) {
+			remove(fname+"/"+f);
+		}
 		return (RemoveDirectory(fname.c_str())) ? 0 : 1; // Return whether the directory could be deleted
-	} else { // Otherwise delete it normally
+	} else {
 		return ::remove(fname.c_str()); // Return whether the file could be deleted
 	}
 }
@@ -566,6 +577,13 @@ size_t file_size(const std::string& fname) {
 	return st.st_size;
 }
 int remove(const std::string& fname) {
+	if (dir_exists(fname)) {
+		auto list = dir_list(fname);
+		for (auto& f : list) {
+			remove(fname+"/"+f);
+		}
+	}
+
 	return ::remove(fname.c_str());
 }
 int dir_exists(const std::string& fname) {

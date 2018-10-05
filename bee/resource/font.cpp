@@ -309,17 +309,13 @@ namespace bee {
 	/**
 	* Set the relative or absolute resource path.
 	* @param _path the new path to use
-	* @note If the first character is '/' then the path will be relative to
-	*       the executable directory, otherwise it will be relative to the
-	*       Fonts resource directory.
+	* @note If the first character is '$' then the path will be relative to
+	*       the Fonts resource directory.
 	*/
 	void Font::set_path(const std::string& _path) {
-		if (_path.empty()) {
-			path.clear();
-		} else if (_path.front() == '/') {
-			path = _path.substr(1);
-		} else { // Append the path to the Font directory if not root
-			path = "resources/fonts/"+_path;
+		path = _path;
+		if ((!_path.empty())&&(_path.front() == '$')) {
+			path = "resources/fonts"+_path.substr(1);
 		}
 	}
 	/**
@@ -633,8 +629,10 @@ namespace bee {
 	* @retval -1 failed to load the temporary font
 	*/
 	int Font::get_string_width(const std::string& text, int size) const {
-		TTF_Font* tmp_font = TTF_OpenFont(path.c_str(), size); // Open the TTF file with the desired font size
+		auto tmp_rwops = fs::get_file(path).get_rwops();
+		TTF_Font* tmp_font = TTF_OpenFontRW(tmp_rwops.first, true, font_size); // Open the TTF file with the desired font size
 		if (tmp_font == nullptr) {
+			delete tmp_rwops.second;
 			return -1;
 		}
 
@@ -648,6 +646,7 @@ namespace bee {
 		}
 
 		TTF_CloseFont(tmp_font); // Close the temp font
+		delete tmp_rwops.second;
 
 		return w;
 	}
@@ -678,8 +677,10 @@ namespace bee {
 	* @retval -1 failed to load the temporary font
 	*/
 	int Font::get_string_height(const std::string& text, int size) const {
-		TTF_Font* tmp_font = TTF_OpenFont(path.c_str(), size); // Open the TTF file with the desired font size
+		auto tmp_rwops = fs::get_file(path).get_rwops();
+		TTF_Font* tmp_font = TTF_OpenFontRW(tmp_rwops.first, true, font_size); // Open the TTF file with the desired font size
 		if (tmp_font == nullptr) {
+			delete tmp_rwops.second;
 			return -1;
 		}
 
@@ -691,6 +692,7 @@ namespace bee {
 		}
 
 		TTF_CloseFont(tmp_font); // Close the temp font
+		delete tmp_rwops.second;
 
 		return h;
 	}

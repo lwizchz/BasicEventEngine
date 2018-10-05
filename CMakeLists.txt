@@ -75,11 +75,11 @@ else() # Include Unix libraries automatically
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG}")
 	else()
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE}")
-	endif()
 
-	# Enable link time optimization if it is supported
-	if(GXX_HAS_LTO_FLAG)
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto")
+		# Enable link time optimization if it is supported
+		if(GXX_HAS_LTO_FLAG)
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto")
+		endif()
 	endif()
 
 	add_subdirectory("bee")
@@ -114,6 +114,7 @@ else() # Include Unix libraries automatically
 	find_package(OpenGL REQUIRED)
 	find_package(ASSIMP REQUIRED)
 	find_package(Threads REQUIRED)
+	find_package(LibLZMA REQUIRED)
 
 	set(BULLET_SRC ${${PROJECT_NAME}_SOURCE_DIR}/lib/bullet3/src)
 	set(BULLET_INCLUDE_DIRS ${BULLET_SRC})
@@ -135,6 +136,6 @@ else() # Include Unix libraries automatically
 		util
 	)
 
-	include_directories(${GLEW_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRECTORIES} ${OPENGL_INCLUDE_DIRECTORIES} ${ASSIMP_INCLUDE_DIRECTORIES})
-	target_link_libraries(${PROJECT_NAME} ${GLEW_LIBRARIES} ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES} ${ASSIMP_LIBRARIES} ${BULLET_LIBRARIES} ${CPYTHON_LIBRARIES})
+	include_directories(${GLEW_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIRS} ${ASSIMP_INCLUDE_DIRS} ${LIBLZMA_INCLUDE_DIRS})
+	target_link_libraries(${PROJECT_NAME} ${GLEW_LIBRARIES} ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES} ${ASSIMP_LIBRARIES} ${BULLET_LIBRARIES} ${CPYTHON_LIBRARIES} ${LIBLZMA_LIBRARIES} -ltar)
 endif()
