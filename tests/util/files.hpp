@@ -27,7 +27,6 @@ TEST_CASE("files") {
 	REQUIRE(util::file_exists(tmpdir+"log/test.txt") == true);
 	REQUIRE(util::file_delete(tmpdir+"log/") == 0);
 	REQUIRE(util::file_delete(tmpdir+"test.txt") == 0);
-	REQUIRE(util::file_delete(tmpdir) == 0);
 
 	REQUIRE(util::file_basename(tmpdir+"log/test.txt") == "test.txt");
 	REQUIRE(util::file_dirname(tmpdir+"log/test.txt") == tmpdir+"log");

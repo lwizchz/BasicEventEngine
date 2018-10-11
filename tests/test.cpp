@@ -28,7 +28,12 @@
 bool verify_assertions(int argc, char** argv) {
 	bee::messenger::send({"tests"}, bee::E_MESSAGE::INFO, "Verifying assertions...");
 	bee::messenger::handle();
-	return (doctest::Context(argc, argv).run() == 0);
+
+	std::string tmpdir = util::directory_get_temp();
+	int r = doctest::Context(argc, argv).run();
+	assert(util::file_delete(tmpdir) == 0);
+
+	return (r == 0);
 }
 
 /**

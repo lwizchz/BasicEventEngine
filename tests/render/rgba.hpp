@@ -18,16 +18,22 @@
 TEST_SUITE_BEGIN("render");
 
 TEST_CASE("rgba") {
-	const int i = 2; // Increment by i to avoid spending time testing every single case
-	for (int r=0; r<256; r+=i) {
-		for (int g=0; g<256; g+=i) {
-			for (int b=0; b<256; b+=i) {
+	const int i = 4; // Increment by i to avoid spending time testing every single case
+	const int start = util::date::current_datetime() % i;
+	INFO("start: " << start << ", increment: " << i);
+
+	for (int r=start; r<256; r+=i) {
+		for (int g=start; g<256; g+=i) {
+			for (int b=start; b<256; b+=i) {
 				bee::RGBA c1 (r, g, b, 0);
 				bee::RGBA c2;
 
 				std::array<float,3> a = c1.get_hsv();
 				c2.set_hsv(a);
 
+				INFO("[c1(" << r << ", " << g << ", " << b << "),");
+				int c2r = c2.r, c2g = c2.g, c2b = c2.b;
+				INFO(" c2(" << c2r << ", " << c2g << ", " << c2b << ")]");
 				REQUIRE(c1 == c2);
 			}
 		}

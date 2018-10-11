@@ -32,9 +32,9 @@ the moment support is only offered for Linux.
 2. Install the required libraries:
 
         # Arch Linux
-        sudo pacman -S cmake sdl2 sdl2_image sdl2_ttf sdl2_mixer sdl2_net glew glm freeglut libxmu assimp xz libtar
+        sudo pacman -S cmake sdl2 sdl2_image sdl2_ttf sdl2_mixer sdl2_net glew glm freeglut libxmu assimp xz libtar curl
         # Ubuntu
-        sudo apt-get install cmake libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev libsdl2-net-dev libglew-dev libglm-dev freeglut3-dev libxmu-dev libassimp-dev xz-utils libtar-dev
+        sudo apt-get install cmake libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev libsdl2-net-dev libglew-dev libglm-dev freeglut3-dev libxmu-dev libassimp-dev xz-utils libtar-dev libcurl-dev
 
 3. *(Optional)* Edit the file ``resources/resources.hpp`` in order to add or remove resources which are located in their corresponding subdirectory.
 
@@ -58,11 +58,12 @@ follow the below instructions.
 able to easily download the resources for the example.
 
 2. Install the required libraries from their official websites: SDL2,
-SDL2_image, SDL2_ttf, SDL2_mixer, SDL2_net, GLEW, GLM, ASSIMP, XZ Utils, and
-libtar. The current project setup assumes that each of these libraries has its
-DLL in the same directory as the executable (e.g. ``win/bin``), its header file
-in a ``win/include`` subdirectory, and its .lib file in ``win/lib`` Feel free
-to download the libraries from [here][4] and extract them to ``win/``.
+SDL2_image, SDL2_ttf, SDL2_mixer, SDL2_net, GLEW, GLM, ASSIMP, XZ Utils,
+libtar, and curl. The current project setup assumes that each of these
+libraries has its DLL in the same directory as the executable (e.g.
+``win/bin``), its header file in a ``win/include`` subdirectory, and its .lib
+file in ``win/lib`` Feel free to download the libraries from [here][4] and
+extract them to ``win/``.
 
 3. [Install CMake][5] and [Visual Studio Community 2017][6] (or your favorite
 CMake-compatible IDE).

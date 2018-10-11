@@ -18,6 +18,7 @@
 #include "util/files.hpp"
 #include "util/archive.hpp"
 #include "util/networking.hpp"
+#include "util/curl.hpp"
 
 #include "util/template.hpp" // Include functions which require templates
 

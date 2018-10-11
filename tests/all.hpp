@@ -11,10 +11,11 @@
 #include "util/string.hpp"
 #include "util/dates.hpp"
 #include "util/collision.hpp"
-//#include "util/soundeffects.hpp"
 #include "util/messagebox.hpp"
 #include "util/files.hpp"
+#include "util/archive.hpp"
 #include "util/networking.hpp"
+#include "util/curl.hpp"
 #include "util/debug.hpp"
 #include "util/template.hpp"
 

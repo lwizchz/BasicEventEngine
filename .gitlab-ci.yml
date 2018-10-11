@@ -6,7 +6,7 @@ image: gcc:6
    make cmake libsdl2-dev libegl1-mesa-dev libgles2-mesa-dev
    libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev libsdl2-net-dev
    libglew-dev libglm-dev freeglut3-dev libxmu-dev libassimp-dev
-   xz-utils libtar-dev
+   xz-utils libtar-dev libcurl-dev
 
 build:
   stage: build

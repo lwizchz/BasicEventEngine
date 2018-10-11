@@ -13,8 +13,16 @@
 #include <vector>
 
 namespace util { namespace archive {
+	int tar_create(const std::string&, const std::string&);
+	int tar_create(const std::string&);
+	int tar_extract(const std::string&, const std::string&);
+	int tar_extract(const std::string&);
 	std::string tar_extract_temp(const std::string&);
 
+	int xz_compress(const std::string&, const std::string&);
+	int xz_compress(const std::string&);
+	int xz_decompress(const std::string&, const std::string&);
+	int xz_decompress(const std::string&);
 	std::string xz_decompress_temp(const std::string&);
 }}
 

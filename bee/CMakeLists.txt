@@ -1,5 +1,5 @@
 set(deps_bee engine.cpp enum.hpp)
-set(deps_bee_util util/platform.cpp util/real.cpp util/string.cpp util/dates.cpp util/collision.cpp util/messagebox.cpp util/files.cpp util/archive.cpp util/networking.cpp util/debug.cpp)
+set(deps_bee_util util/platform.cpp util/real.cpp util/string.cpp util/dates.cpp util/collision.cpp util/messagebox.cpp util/files.cpp util/archive.cpp util/networking.cpp util/curl.cpp util/debug.cpp)
 
 set(deps_bee_init init/info.cpp init/gameoptions.cpp init/programflags.cpp)
 
